@@ -53,6 +53,13 @@ public final class SpellDispenserSpellValidator {
             return new ValidationResult(stack, SpellData.EMPTY, FailureReason.NO_ACTIVE_SPELL);
         }
 
+        if (!ApprenticeCodexServerConfig.spellDispenserEnable()) {
+            return new ValidationResult(stack, spellData, FailureReason.SERVER_DISABLED);
+        }
+        if (!ApprenticeCodexServerConfig.isSpellDispenserSpellAllowedByServerAllowlist(spell.getSpellResource())) {
+            return new ValidationResult(stack, spellData, FailureReason.NOT_ALLOWLISTED);
+        }
+
         var castType = spell.getCastType();
         if (castType != CastType.INSTANT && castType != CastType.LONG && castType != CastType.CONTINUOUS) {
             return new ValidationResult(stack, spellData, FailureReason.UNSUPPORTED_CAST_TYPE);
@@ -100,6 +107,8 @@ public final class SpellDispenserSpellValidator {
         MULTIPLE_ACTIVE_SPELLS,
         UNSUPPORTED_CAST_TYPE,
         HAS_RECAST,
+        SERVER_DISABLED,
+        NOT_ALLOWLISTED,
         NOT_PROFILED,
         DENYLISTED;
 
@@ -112,6 +121,8 @@ public final class SpellDispenserSpellValidator {
                         Component.translatable(keyBase + "general_error");
                 case UNSUPPORTED_CAST_TYPE -> Component.translatable(keyBase + "unsupported_cast");
                 case HAS_RECAST -> Component.translatable(keyBase + "has_recast");
+                case SERVER_DISABLED -> Component.translatable(keyBase + "server_disabled");
+                case NOT_ALLOWLISTED -> Component.translatable(keyBase + "not_allowlisted");
                 case NOT_PROFILED -> Component.translatable(keyBase + "not_profiled");
                 case DENYLISTED -> Component.translatable(keyBase + "denylisted");
             };

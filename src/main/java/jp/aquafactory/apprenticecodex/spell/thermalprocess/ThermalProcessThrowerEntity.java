@@ -25,7 +25,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
@@ -335,23 +334,7 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
         var recipeManager = level.getRecipeManager();
         var input = new SingleRecipeInput(inputStack.copyWithCount(1));
 
-        // Priority: blasting -> smelting -> smoking
-        var blasting = recipeManager.getRecipeFor(RecipeType.BLASTING, input, level);
-        if (blasting.isPresent()) {
-            return Optional.of(blasting.get());
-        }
-
-        var smelting = recipeManager.getRecipeFor(RecipeType.SMELTING, input, level);
-        if (smelting.isPresent()) {
-            return Optional.of(smelting.get());
-        }
-
-        var smoking = recipeManager.getRecipeFor(RecipeType.SMOKING, input, level);
-        if (smoking.isPresent()) {
-            return Optional.of(smoking.get());
-        }
-
-        return Optional.empty();
+        return ProcessingRecipeDenylist.findThermalProcessRecipe(level.getRecipeManager(), input, level);
     }
 
     private void applyProcessingResult(ServerLevel level, ItemEntity sourceItem, ItemStack sourceStack, ItemStack outputPerInput, int processCount) {

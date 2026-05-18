@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.harvestmoon;
 
 import jp.aquafactory.apprenticecodex.block.comfortberrybush.ComfortBerryBushBlock;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -67,6 +68,9 @@ public interface HarvestMoonAction {
         @Override
         public int execute(ServerLevel level, ServerPlayer player, ItemStack toolTemplate, Vec3 attractPos) {
             var state = level.getBlockState(pos);
+            if (HarvestMoonActionUtil.isDenylisted(state)) {
+                return 0;
+            }
             if (!HarvestMoonActionUtil.isStillEligibleForRightClickHarvest(level, pos, state, manualHarvestKind)) {
                 return 0;
             }
@@ -116,6 +120,9 @@ public interface HarvestMoonAction {
         @Override
         public int execute(ServerLevel level, ServerPlayer player, ItemStack toolTemplate, Vec3 attractPos) {
             var state = level.getBlockState(fruitPos);
+            if (HarvestMoonActionUtil.isDenylisted(state)) {
+                return 0;
+            }
             if (!(state.getBlock() == Blocks.MELON || state.getBlock() == Blocks.PUMPKIN)
                     || !HarvestMoonActionUtil.hasAttachedStem(level, fruitPos)) {
                 return 0;
@@ -162,6 +169,9 @@ public interface HarvestMoonAction {
             var processed = 0;
             for (var target : harvestTargets) {
                 var state = level.getBlockState(target);
+                if (HarvestMoonActionUtil.isDenylisted(state)) {
+                    continue;
+                }
                 if (!HarvestMoonActionUtil.isColumnHarvestTarget(state)) {
                     continue;
                 }
@@ -206,6 +216,9 @@ public interface HarvestMoonAction {
             var processed = 0;
             for (var pos : flowerTargets) {
                 var state = level.getBlockState(pos);
+                if (HarvestMoonActionUtil.isDenylisted(state)) {
+                    continue;
+                }
                 if (!(state.getBlock() instanceof ChorusFlowerBlock)) {
                     continue;
                 }
@@ -215,6 +228,9 @@ public interface HarvestMoonAction {
             }
             for (var pos : plantTargets) {
                 var state = level.getBlockState(pos);
+                if (HarvestMoonActionUtil.isDenylisted(state)) {
+                    continue;
+                }
                 if (!(state.getBlock() instanceof ChorusPlantBlock)) {
                     continue;
                 }
@@ -542,6 +558,9 @@ public interface HarvestMoonAction {
             for (var pos : cluster) {
                 var immutable = pos.immutable();
                 var state = level.getBlockState(immutable);
+                if (isDenylisted(state)) {
+                    continue;
+                }
                 if (state.getBlock() instanceof ChorusFlowerBlock) {
                     flowers.add(immutable);
                 } else if (state.getBlock() instanceof ChorusPlantBlock) {
@@ -555,6 +574,9 @@ public interface HarvestMoonAction {
                 maxZ = Math.max(maxZ, immutable.getZ());
             }
 
+            if (flowers.isEmpty() && plants.isEmpty()) {
+                return null;
+            }
             flowers.sort(Comparator.comparingInt((BlockPos blockPos) -> blockPos.getY()).reversed()
                     .thenComparingInt(BlockPos::getX)
                     .thenComparingInt(BlockPos::getZ));
@@ -569,6 +591,10 @@ public interface HarvestMoonAction {
                     plants,
                     new AABB(minX, minY, minZ, maxX + 1, maxY + 1, maxZ + 1)
             );
+        }
+
+        static boolean isDenylisted(BlockState state) {
+            return state.is(TagRegistry.Blocks.HARVEST_MOON_DENYLIST);
         }
 
         static int estimateDistanceSq(BlockPos origin, BlockPos pos) {

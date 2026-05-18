@@ -94,6 +94,8 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Mana
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWings;
+import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsManager;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
@@ -125,6 +127,7 @@ import jp.aquafactory.apprenticecodex.registry.CreativeTabRegistry;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.LootConditionRegistry;
 import jp.aquafactory.apprenticecodex.registry.PoiTypeRegistry;
 import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
@@ -135,14 +138,16 @@ import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
+import jp.aquafactory.apprenticecodex.utility.ErrandMageTradeHelper;
+import jp.aquafactory.apprenticecodex.utility.ProcessingRecipeDenylist;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RightClickSpellResolver;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
-import jp.aquafactory.apprenticecodex.worldgen.ErrandMageVillageAddition;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -191,6 +196,7 @@ import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerTrades;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -209,6 +215,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.Level;
@@ -348,6 +355,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertBuiltinRegistryEntries(helper, "recipe type", BuiltInRegistries.RECIPE_TYPE, RecipeRegistry.RECIPE_TYPES.getEntries());
             assertBuiltinRegistryEntries(helper, "creative tab", BuiltInRegistries.CREATIVE_MODE_TAB, CreativeTabRegistry.TABS.getEntries());
             assertEnchantmentsRegistered(helper);
+            assertBuiltinRegistryEntries(helper, "loot condition type", BuiltInRegistries.LOOT_CONDITION_TYPE, LootConditionRegistry.LOOT_CONDITION_TYPES.getEntries());
 
             var apprenticeDeskPoi = PoiTypes.forState(BlockRegistry.APPRENTICE_DESK.get().defaultBlockState()).orElse(null);
             helper.assertTrue(apprenticeDeskPoi != null, "Apprentice Desk POI state mapping is missing");
@@ -702,7 +710,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     ResourceLocation.withDefaultNamespace("village/plains/houses"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("mossify_10_percent"),
-                    ErrandMageVillageAddition.HOUSE_WEIGHT
+                    3
             );
             assertVillageHousePoolContains(
                     helper,
@@ -710,7 +718,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     ResourceLocation.withDefaultNamespace("village/desert/houses"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/desert/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("empty"),
-                    ErrandMageVillageAddition.HOUSE_WEIGHT
+                    3
             );
             assertVillageHousePoolContains(
                     helper,
@@ -718,7 +726,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     ResourceLocation.withDefaultNamespace("village/savanna/houses"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/savanna/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("empty"),
-                    ErrandMageVillageAddition.HOUSE_WEIGHT
+                    3
             );
             assertVillageHousePoolContains(
                     helper,
@@ -726,7 +734,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     ResourceLocation.withDefaultNamespace("village/snowy/houses"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("empty"),
-                    ErrandMageVillageAddition.HOUSE_WEIGHT
+                    3
             );
             assertVillageHousePoolContains(
                     helper,
@@ -734,7 +742,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     ResourceLocation.withDefaultNamespace("village/taiga/houses"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("mossify_10_percent"),
-                    ErrandMageVillageAddition.HOUSE_WEIGHT
+                    3
             );
         });
     }
@@ -763,25 +771,6 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void errandMageOffersAcceptTaggedErrandMagePayments(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var damagedCrown = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get());
-            damagedCrown.setDamageValue(2);
-            var taggedCrownCost = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get());
-            CustomData.update(DataComponents.CUSTOM_DATA, taggedCrownCost, tag -> tag.putString("apprenticecodex_test", "cost"));
-            var taggedCrownItemCost = new ItemCost(
-                    taggedCrownCost.getItemHolder(),
-                    taggedCrownCost.getCount(),
-                    DataComponentPredicate.allOf(taggedCrownCost.getComponents())
-            );
-            var crownOffer = new net.minecraft.world.item.trading.MerchantOffer(
-                    taggedCrownItemCost,
-                    new ItemStack(Items.EMERALD),
-                    16,
-                    2,
-                    0.05F
-            );
-            helper.assertTrue(crownOffer.satisfiedBy(damagedCrown, ItemStack.EMPTY),
-                    "Damaged crown should satisfy the errand mage buy offer even when the saved cost stack has tags");
-
             var taggedScroll = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
             CustomData.update(DataComponents.CUSTOM_DATA, taggedScroll, tag -> tag.putString("apprenticecodex_test", "tagged"));
             var taggedScrollCost = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
@@ -801,6 +790,33 @@ public final class ApprenticeCodexGameTestScenarios {
             );
             helper.assertTrue(scrollOffer.satisfiedBy(taggedScroll, new ItemStack(Items.EMERALD, 16)),
                     "Tagged scroll should satisfy the errand mage ink trade even when the saved cost stack has tags");
+
+            var taggedTarnishedCrown = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get());
+            CustomData.update(DataComponents.CUSTOM_DATA, taggedTarnishedCrown, tag -> tag.putString("apprenticecodex_test", "tagged"));
+            var taggedTarnishedCrownCost = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get());
+            CustomData.update(DataComponents.CUSTOM_DATA, taggedTarnishedCrownCost, tag -> tag.putString("apprenticecodex_test", "cost"));
+            var taggedTarnishedCrownItemCost = new ItemCost(
+                    taggedTarnishedCrownCost.getItemHolder(),
+                    taggedTarnishedCrownCost.getCount(),
+                    DataComponentPredicate.allOf(taggedTarnishedCrownCost.getComponents())
+            );
+            var legacyTarnishedCrownOffer = new MerchantOffer(
+                    taggedTarnishedCrownItemCost,
+                    new ItemStack(Items.EMERALD, 64),
+                    3,
+                    5,
+                    0.05F
+            );
+            helper.assertTrue(legacyTarnishedCrownOffer.satisfiedBy(taggedTarnishedCrown, ItemStack.EMPTY),
+                    "Tagged Tarnished Crown should still satisfy saved legacy errand mage trades");
+
+            var healingPotion = PotionContentsHelper.createPotionStack(Items.POTION, net.minecraft.world.item.alchemy.Potions.HEALING.value());
+            var regenerationPotion = PotionContentsHelper.createPotionStack(Items.POTION, net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
+            var healingPotionCost = ErrandMageTradeHelper.createPaymentStack(healingPotion);
+            helper.assertTrue(healingPotionCost.test(healingPotion),
+                    "Payment stack should satisfy its own potion component");
+            helper.assertFalse(healingPotionCost.test(regenerationPotion),
+                    "Payment stack should not accept a different potion component");
         });
     }
     static void errandMageTradesMatchExpectedOffers(GameTestHelper helper) {
@@ -848,12 +864,21 @@ public final class ApprenticeCodexGameTestScenarios {
                     12,
                     "Errand Mage level 2 trades should always sell Basic Spellcaster Rounds");
 
+            helper.assertFalse(hasBaseCostItem(createOffers(trades.get(4), 0L),
+                            io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get()),
+                    "Errand Mage level 4 trades should not buy Tarnished Crowns");
             assertContainsOffer(helper, createOffers(trades.get(4), 0L),
                     new ItemStack(Items.EMERALD, 32),
                     ItemStack.EMPTY,
                     new ItemStack(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get()),
                     12,
                     "Errand Mage level 4 trades should sell Spellstained Arcane Ingots");
+            assertContainsOffer(helper, createOffers(trades.get(5), 0L),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
+                    new ItemStack(Items.EMERALD, 16),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INK_COMMON.get()),
+                    3,
+                    "Errand Mage level 5 trades should sell Common Ink for Scrolls");
             assertContainsOffer(helper, createOffers(trades.get(5), 0L),
                     new ItemStack(Items.EMERALD, 64),
                     new ItemStack(Items.WRITABLE_BOOK),
@@ -932,6 +957,66 @@ public final class ApprenticeCodexGameTestScenarios {
                     "No Spellcaster Workbench recipes were loaded");
         });
     }
+
+    static void processingRecipeDenylistsRejectConfiguredRecipeIds(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var recipeManager = helper.getLevel().getRecipeManager();
+            var spellcasterWorkbenchRecipeId = ResourceLocation.fromNamespaceAndPath(
+                    ApprenticeCodex.MODID, "spellcaster_workbench/basic_spellcaster_round");
+            var essenceSmokerRecipeId = ResourceLocation.fromNamespaceAndPath(
+                    ApprenticeCodex.MODID, "essence_smoker/infuse_coal_to_arcane_cinder");
+            var grindRunnerRecipeId = ResourceLocation.fromNamespaceAndPath(
+                    ApprenticeCodex.MODID, "grind_runner/bone_meal_from_bone");
+            var deniedBlastingRecipeId = ResourceLocation.fromNamespaceAndPath(
+                    "minecraft", "iron_ingot_from_blasting_iron_ore");
+            var fallbackSmeltingRecipeId = ResourceLocation.fromNamespaceAndPath(
+                    "minecraft", "iron_ingot_from_smelting_iron_ore");
+
+            try (var ignored = ApprenticeCodexServerConfig.useProcessingRecipeDenylistOverrideForGameTest(
+                    List.of(spellcasterWorkbenchRecipeId.toString()),
+                    List.of(essenceSmokerRecipeId.toString()),
+                    List.of(grindRunnerRecipeId.toString()),
+                    List.of(deniedBlastingRecipeId.toString())
+            )) {
+                var spellcasterWorkbenchRecipe = recipeManager
+                        .getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get()).stream()
+                        .filter(recipe -> recipe.id().equals(spellcasterWorkbenchRecipeId))
+                        .findFirst()
+                        .orElse(null);
+                helper.assertTrue(spellcasterWorkbenchRecipe != null, "Missing Spellcaster Workbench test recipe");
+                helper.assertFalse(ProcessingRecipeDenylist.isAllowed(spellcasterWorkbenchRecipe),
+                        "Spellcaster Workbench denylist did not reject configured recipe");
+
+                var essenceSmokerRecipe = recipeManager.getAllRecipesFor(RecipeRegistry.ESSENCE_SMOKER_RECIPE_TYPE.get()).stream()
+                        .filter(recipe -> recipe.id().equals(essenceSmokerRecipeId))
+                        .findFirst()
+                        .orElse(null);
+                helper.assertTrue(essenceSmokerRecipe != null, "Missing Essence Smoker test recipe");
+                helper.assertFalse(ProcessingRecipeDenylist.isAllowed(essenceSmokerRecipe),
+                        "Essence Smoker denylist did not reject configured recipe");
+
+                var grindRunnerRecipe = recipeManager.getAllRecipesFor(RecipeRegistry.GRIND_RUNNER_RECIPE_TYPE.get()).stream()
+                        .filter(recipe -> recipe.id().equals(grindRunnerRecipeId))
+                        .findFirst()
+                        .orElse(null);
+                helper.assertTrue(grindRunnerRecipe != null, "Missing Grind Runner test recipe");
+                helper.assertFalse(ProcessingRecipeDenylist.isAllowed(grindRunnerRecipe),
+                        "Grind Runner denylist did not reject configured recipe");
+
+                var ironOreInput = new SingleRecipeInput(new ItemStack(Items.IRON_ORE));
+                var thermalProcessRecipe = ProcessingRecipeDenylist.findThermalProcessRecipe(
+                        recipeManager, ironOreInput, helper.getLevel()
+                );
+                helper.assertTrue(thermalProcessRecipe.isPresent(),
+                        "Thermal Process denylist should fall back to an allowed cooking recipe");
+                helper.assertFalse(thermalProcessRecipe.get().id().equals(deniedBlastingRecipeId),
+                        "Thermal Process selected a denied blasting recipe");
+                helper.assertTrue(thermalProcessRecipe.get().id().equals(fallbackSmeltingRecipeId),
+                        "Thermal Process fallback recipe mismatch: " + thermalProcessRecipe.get().id());
+            }
+        });
+    }
+
     static void spellcastersFlaskAcceptsAllVanillaPotionTypes(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var normalPotion = createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
@@ -1587,6 +1672,63 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser validator resolved the wrong LONG spell: " + validation.spellData().getSpell().getSpellResource());
         });
     }
+    static void spellDispenserValidatorRejectsWhenServerDisabled(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useSpellDispenserConfigOverrideForGameTest(
+                    false,
+                    false,
+                    List.of(),
+                    1.0D
+            )) {
+                var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+
+                var validation = SpellDispenserSpellValidator.validate(scrollStack);
+                helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted a scroll while server-disabled");
+                helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.SERVER_DISABLED,
+                        "Spell Dispenser validator returned the wrong failure reason while server-disabled: " + validation.failureReason());
+            }
+        });
+    }
+    static void spellDispenserValidatorRequiresServerAllowlist(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var magicMissileStack = createSpellScroll(magicMissile);
+            try (var ignored = ApprenticeCodexServerConfig.useSpellDispenserConfigOverrideForGameTest(
+                    true,
+                    true,
+                    List.of(),
+                    1.0D
+            )) {
+                var validation = SpellDispenserSpellValidator.validate(magicMissileStack);
+                helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted a scroll with an empty server allowlist");
+                helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.NOT_ALLOWLISTED,
+                        "Spell Dispenser validator returned the wrong failure reason for an empty server allowlist: " + validation.failureReason());
+            }
+
+            try (var ignored = ApprenticeCodexServerConfig.useSpellDispenserConfigOverrideForGameTest(
+                    true,
+                    true,
+                    List.of(magicMissile.getSpellResource().toString()),
+                    1.0D
+            )) {
+                var validation = SpellDispenserSpellValidator.validate(magicMissileStack);
+                helper.assertTrue(validation.isSupported(), "Spell Dispenser validator rejected an allowlisted profiled spell");
+            }
+
+            var denylistedSpell = SpellRegistry.ASSIST_WINGS.get();
+            try (var ignored = ApprenticeCodexServerConfig.useSpellDispenserConfigOverrideForGameTest(
+                    true,
+                    true,
+                    List.of(denylistedSpell.getSpellResource().toString()),
+                    1.0D
+            )) {
+                var validation = SpellDispenserSpellValidator.validate(createSpellScroll(denylistedSpell));
+                helper.assertTrue(!validation.isSupported(), "Spell Dispenser server allowlist bypassed the datapack denylist");
+                helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.DENYLISTED,
+                        "Spell Dispenser validator returned the wrong allowlist + datapack denylist failure: " + validation.failureReason());
+            }
+        });
+    }
     static void spellDispenserValidatorRejectsDenylistedSpell(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(SpellRegistry.ASSIST_WINGS.get());
@@ -1993,6 +2135,62 @@ public final class ApprenticeCodexGameTestScenarios {
             }
 
             helper.assertFalse(spellDispenser.isCoolingDown(), "Spell Dispenser cooldown did not expire after the expected number of ticks");
+        });
+    }
+    static void spellDispenserBlockEntityReportsServerDisabledActivation(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useSpellDispenserConfigOverrideForGameTest(
+                    false,
+                    false,
+                    List.of(),
+                    1.0D
+            )) {
+                var pos = new BlockPos(0, 1, 0);
+                helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+
+                var blockEntity = helper.getBlockEntity(pos);
+                helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+                var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+                spellDispenser.getInventory().setStackInSlot(
+                        0,
+                        createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())
+                );
+
+                var result = spellDispenser.tryActivate();
+                helper.assertTrue(!result.succeeded(), "Spell Dispenser activated while disabled by server config");
+                helper.assertTrue(result.failureType() == SpellDispenserCastHelper.FailureType.SERVER_DISABLED,
+                        "Spell Dispenser returned the wrong server-disabled activation failure: " + result.failureType());
+                helper.assertFalse(spellDispenser.isCoolingDown(),
+                        "Spell Dispenser entered cooldown despite server-disabled activation");
+            }
+        });
+    }
+    static void spellDispenserBlockEntityAppliesCooldownMultiplier(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useSpellDispenserConfigOverrideForGameTest(
+                    true,
+                    false,
+                    List.of(),
+                    0.1D
+            )) {
+                var pos = new BlockPos(0, 1, 0);
+                helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+
+                var blockEntity = helper.getBlockEntity(pos);
+                helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+                var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+                var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+                spellDispenser.getInventory().setStackInSlot(0, createSpellScroll(spell));
+                spellDispenser.setOwnerProfile(createSpellDispenserOwnerProfile("spell_dispenser_cooldown_multiplier_test"));
+
+                var result = spellDispenser.tryActivate();
+                var expectedCooldown = Math.max(1, (int) Math.ceil(spell.getSpellCooldown() * 0.1D));
+                helper.assertTrue(result.succeeded(), "Spell Dispenser failed to activate for cooldown multiplier test");
+                helper.assertTrue(result.cooldownTicks() == expectedCooldown,
+                        "Spell Dispenser returned the wrong scaled cooldown: " + result.cooldownTicks() + " / expected " + expectedCooldown);
+                helper.assertTrue(spellDispenser.getRemainingCooldownTicks() == expectedCooldown,
+                        "Spell Dispenser stored the wrong scaled cooldown: " + spellDispenser.getRemainingCooldownTicks());
+            }
         });
     }
     static void spellDispenserAutomationOnlyAcceptsManaContainers(GameTestHelper helper) {
@@ -2470,6 +2668,43 @@ public final class ApprenticeCodexGameTestScenarios {
             var thirdProjectileCount = level.getEntitiesOfClass(CompoundPhialProjectileEntity.class, projectileBox).size();
             helper.assertTrue(thirdProjectileCount > secondProjectileCount,
                     "Create-mounted Spell Dispenser did not fire again after cooldown expired");
+        });
+    }
+    static void spellDispenserCreateAppliesCooldownMultiplier(GameTestHelper helper) {
+        if (skipWhenCreateMissing(helper)) {
+            return;
+        }
+
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useSpellDispenserConfigOverrideForGameTest(
+                    true,
+                    false,
+                    List.of(),
+                    0.1D
+            )) {
+                var level = (ServerLevel) helper.getLevel();
+                var castPos = new BlockPos(0, 1, 0);
+                var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+                var scrollStack = createSpellScroll(spell);
+                var mountedInventory = new ItemStackHandler(1);
+                mountedInventory.setStackInSlot(0, scrollStack.copy());
+                var harness = createSpellDispenserMovementHarness(level, castPos, mountedInventory, null);
+
+                startCreateSpellDispenserMovement(harness);
+                visitCreateSpellDispenserPosition(harness, castPos);
+                helper.assertTrue(createSpellDispenserIsCoolingDown(harness),
+                        "Create-mounted Spell Dispenser did not enter cooldown after a scaled-cooldown cast");
+
+                var expectedCooldown = Math.max(1, (int) Math.ceil(spell.getSpellCooldown() * 0.1D));
+                for (var tick = 0; tick < expectedCooldown && createSpellDispenserIsCoolingDown(harness); tick++) {
+                    tickCreateSpellDispenserMovement(harness);
+                }
+
+                helper.assertFalse(createSpellDispenserIsCoolingDown(harness),
+                        "Create-mounted Spell Dispenser cooldown did not expire after the scaled cooldown ticks");
+                assertNoSpellDispenserProxy(helper, castPos, scrollStack,
+                        "Create-mounted Spell Dispenser cooldown multiplier test left proxy state behind");
+            }
         });
     }
     static void spellDispenserCreateAllowsOwnerOptionalSpellWithoutOwnerProfile(GameTestHelper helper) {
@@ -3436,6 +3671,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 )
         ));
     }
+
     static void ominousVaultLootIncludesApprenticeCurioBonusDrops(GameTestHelper helper) {
         helper.succeedIf(() -> assertLootTableGeneratesAllItems(
                 helper,
@@ -3449,15 +3685,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 )
         ));
     }
-    static void catacombsLootIncludesScarletThirstBonusDrop(GameTestHelper helper) {
-        helper.succeedIf(() -> assertLootTableGeneratesAnyItem(
-                helper,
-                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/catacombs/coffin_loot"),
-                createChestLootParams(helper),
-                256,
-                List.of(ItemRegistry.SCARLET_THIRST.get())
-        ));
-    }
+
     static void nonLootableApprenticeSpellsAreExcludedFromDefaultSpellFilter(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var blockedSpells = getNonLootableApprenticeSpells();
@@ -9516,6 +9744,50 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void multipurposeStaffrifleServerDenylistBlocksSpecialCastSpell(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            helper.assertFalse(MultipurposeStaffrifle.isSpecialCastSpellDenied(spell),
+                    "Multipurpose Staffrifle should not deny Magic Missile by default");
+
+            try (var ignored = ApprenticeCodexServerConfig.useMultipurposeStaffrifleSpellDenylistOverrideForGameTest(
+                    List.of(spell.getSpellResource().toString())
+            )) {
+                helper.assertTrue(MultipurposeStaffrifle.isSpecialCastSpellDenied(spell),
+                        "Multipurpose Staffrifle server denylist should deny Magic Missile");
+            }
+
+            helper.assertFalse(MultipurposeStaffrifle.isSpecialCastSpellDenied(spell),
+                    "Multipurpose Staffrifle server denylist override should be restored");
+        });
+    }
+
+    static void initialSpellContainerHelperSkipsUnavailablePresetSpell(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.GRIMOIRE_MANIFEST.get());
+            InitialSpellContainerHelper.setInitialContainer(
+                    stack,
+                    1,
+                    true,
+                    false,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.none(),
+                    1
+            );
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Initial helper should still create an empty spell container");
+            helper.assertTrue(spellContainer.getActiveSpellCount() == 0,
+                    "Initial helper should skip unavailable preset spells");
+
+            var enabledStack = new ItemStack(ItemRegistry.GRIMOIRE_MANIFEST.get());
+            var spell = SpellRegistry.MANIFESTATION_GRIMOIRE.get();
+            InitialSpellContainerHelper.setInitialContainer(enabledStack, 1, true, false, spell, 1);
+            var enabledContainer = ISpellContainer.get(enabledStack);
+            helper.assertTrue(enabledContainer != null, "Initial helper should create enabled preset spell container");
+            assertSpellData(helper, enabledContainer, 0, spell, 1, true,
+                    "Initial helper should keep enabled preset spells locked");
+        });
+    }
+
     static void multipurposeStaffrifleUsesDedicatedAmmoAndCasingReturnPolicy(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
@@ -11507,6 +11779,214 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(trunk.onGround(), "Companion Trunk should land on the farmland test block");
             helper.assertBlockPresent(Blocks.FARMLAND, farmlandPos);
         });
+    }
+
+    static void riftHoleDimensionDenylistRejectsCurrentDimension(GameTestHelper helper) {
+        var currentDimensionId = helper.getLevel().dimension().location().toString();
+        try (var ignored = ApprenticeCodexServerConfig.useRiftHoleConfigOverrideForGameTest(
+                List.of(currentDimensionId),
+                false,
+                List.of()
+        )) {
+            helper.assertFalse(
+                    ApprenticeCodexServerConfig.isRiftHoleDimensionAllowed(helper.getLevel().dimension().location()),
+                    "RiftHole dimension denylist should reject the current dimension"
+            );
+        }
+        helper.succeed();
+    }
+
+    static void riftHoleDimensionAllowlistRequiresCurrentDimension(GameTestHelper helper) {
+        var currentDimension = helper.getLevel().dimension().location();
+        try (var ignored = ApprenticeCodexServerConfig.useRiftHoleConfigOverrideForGameTest(
+                List.of(),
+                true,
+                List.of("minecraft:the_nether")
+        )) {
+            helper.assertFalse(
+                    ApprenticeCodexServerConfig.isRiftHoleDimensionAllowed(currentDimension),
+                    "RiftHole dimension allowlist should reject unlisted dimensions"
+            );
+        }
+        try (var ignored = ApprenticeCodexServerConfig.useRiftHoleConfigOverrideForGameTest(
+                List.of(),
+                true,
+                List.of(currentDimension.toString())
+        )) {
+            helper.assertTrue(
+                    ApprenticeCodexServerConfig.isRiftHoleDimensionAllowed(currentDimension),
+                    "RiftHole dimension allowlist should accept the current dimension"
+            );
+        }
+        helper.succeed();
+    }
+
+    static void riftHoleDimensionDenylistOverridesAllowlist(GameTestHelper helper) {
+        var currentDimension = helper.getLevel().dimension().location();
+        try (var ignored = ApprenticeCodexServerConfig.useRiftHoleConfigOverrideForGameTest(
+                List.of(currentDimension.toString()),
+                true,
+                List.of(currentDimension.toString())
+        )) {
+            helper.assertFalse(
+                    ApprenticeCodexServerConfig.isRiftHoleDimensionAllowed(currentDimension),
+                    "RiftHole dimension denylist should override the allowlist"
+            );
+        }
+        helper.succeed();
+    }
+
+    static void demicreatorWingsDimensionDenylistRejectsCurrentDimension(GameTestHelper helper) {
+        var currentDimension = helper.getLevel().dimension().location();
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "demicreator_wings_dimension_deny_test");
+        var spell = SpellRegistry.DEMICREATOR_WINGS.get();
+        var magicData = MagicData.getPlayerMagicData(player);
+        try (var ignored = ApprenticeCodexServerConfig.useDemicreatorWingsConfigOverrideForGameTest(
+                List.of(currentDimension.toString()),
+                false,
+                List.of()
+        )) {
+            helper.assertFalse(
+                    ApprenticeCodexServerConfig.isDemicreatorWingsDimensionAllowed(currentDimension),
+                    "DemicreatorWings dimension denylist should reject the current dimension"
+            );
+            helper.assertFalse(
+                    spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "DemicreatorWings pre-cast should reject a denied dimension"
+            );
+        }
+        helper.succeed();
+    }
+
+    static void demicreatorWingsDimensionAllowlistRequiresCurrentDimension(GameTestHelper helper) {
+        var currentDimension = helper.getLevel().dimension().location();
+        try (var ignored = ApprenticeCodexServerConfig.useDemicreatorWingsConfigOverrideForGameTest(
+                List.of(),
+                true,
+                List.of("minecraft:the_nether")
+        )) {
+            helper.assertFalse(
+                    ApprenticeCodexServerConfig.isDemicreatorWingsDimensionAllowed(currentDimension),
+                    "DemicreatorWings dimension allowlist should reject unlisted dimensions"
+            );
+        }
+        try (var ignored = ApprenticeCodexServerConfig.useDemicreatorWingsConfigOverrideForGameTest(
+                List.of(),
+                true,
+                List.of(currentDimension.toString())
+        )) {
+            helper.assertTrue(
+                    ApprenticeCodexServerConfig.isDemicreatorWingsDimensionAllowed(currentDimension),
+                    "DemicreatorWings dimension allowlist should accept the current dimension"
+            );
+        }
+        helper.succeed();
+    }
+
+    static void demicreatorWingsDimensionDenylistOverridesAllowlist(GameTestHelper helper) {
+        var currentDimension = helper.getLevel().dimension().location();
+        try (var ignored = ApprenticeCodexServerConfig.useDemicreatorWingsConfigOverrideForGameTest(
+                List.of(currentDimension.toString()),
+                true,
+                List.of(currentDimension.toString())
+        )) {
+            helper.assertFalse(
+                    ApprenticeCodexServerConfig.isDemicreatorWingsDimensionAllowed(currentDimension),
+                    "DemicreatorWings dimension denylist should override the allowlist"
+            );
+        }
+        helper.succeed();
+    }
+
+    static void demicreatorWingsDimensionRestrictionAllowsCloseCast(GameTestHelper helper) {
+        var currentDimension = helper.getLevel().dimension().location();
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "demicreator_wings_close_dimension_test");
+        var spell = (DemicreatorWings) SpellRegistry.DEMICREATOR_WINGS.get();
+        var magicData = MagicData.getPlayerMagicData(player);
+
+        try {
+            DemicreatorWingsManager.activate(player, 1, CastSource.SPELLBOOK, magicData, spell);
+            try (var ignored = ApprenticeCodexServerConfig.useDemicreatorWingsConfigOverrideForGameTest(
+                    List.of(currentDimension.toString()),
+                    false,
+                    List.of()
+            )) {
+                helper.assertTrue(
+                        spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                        "DemicreatorWings close cast should remain allowed in a denied dimension"
+                );
+                helper.assertTrue(
+                        magicData.getAdditionalCastData() instanceof DemicreatorWings.DemicreatorWingsCastData castData
+                                && castData.isCloseCast(),
+                        "DemicreatorWings close cast should mark close cast data"
+                );
+            }
+        } finally {
+            DemicreatorWingsManager.deactivate(player, true);
+        }
+        helper.succeed();
+    }
+
+    static void remoteEyeDimensionDenylistRejectsCurrentDimension(GameTestHelper helper) {
+        var currentDimension = helper.getLevel().dimension().location();
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "remote_eye_dimension_deny_test");
+        var spell = SpellRegistry.REMOTE_EYE.get();
+        var magicData = MagicData.getPlayerMagicData(player);
+        try (var ignored = ApprenticeCodexServerConfig.useRemoteEyeConfigOverrideForGameTest(
+                List.of(currentDimension.toString()),
+                false,
+                List.of()
+        )) {
+            helper.assertFalse(
+                    ApprenticeCodexServerConfig.isRemoteEyeDimensionAllowed(currentDimension),
+                    "RemoteEye dimension denylist should reject the current dimension"
+            );
+            helper.assertFalse(
+                    spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "RemoteEye pre-cast should reject a denied dimension"
+            );
+        }
+        helper.succeed();
+    }
+
+    static void remoteEyeDimensionAllowlistRequiresCurrentDimension(GameTestHelper helper) {
+        var currentDimension = helper.getLevel().dimension().location();
+        try (var ignored = ApprenticeCodexServerConfig.useRemoteEyeConfigOverrideForGameTest(
+                List.of(),
+                true,
+                List.of("minecraft:the_nether")
+        )) {
+            helper.assertFalse(
+                    ApprenticeCodexServerConfig.isRemoteEyeDimensionAllowed(currentDimension),
+                    "RemoteEye dimension allowlist should reject unlisted dimensions"
+            );
+        }
+        try (var ignored = ApprenticeCodexServerConfig.useRemoteEyeConfigOverrideForGameTest(
+                List.of(),
+                true,
+                List.of(currentDimension.toString())
+        )) {
+            helper.assertTrue(
+                    ApprenticeCodexServerConfig.isRemoteEyeDimensionAllowed(currentDimension),
+                    "RemoteEye dimension allowlist should accept the current dimension"
+            );
+        }
+        helper.succeed();
+    }
+
+    static void remoteEyeDimensionDenylistOverridesAllowlist(GameTestHelper helper) {
+        var currentDimension = helper.getLevel().dimension().location();
+        try (var ignored = ApprenticeCodexServerConfig.useRemoteEyeConfigOverrideForGameTest(
+                List.of(currentDimension.toString()),
+                true,
+                List.of(currentDimension.toString())
+        )) {
+            helper.assertFalse(
+                    ApprenticeCodexServerConfig.isRemoteEyeDimensionAllowed(currentDimension),
+                    "RemoteEye dimension denylist should override the allowlist"
+            );
+        }
+        helper.succeed();
     }
 
     static void harvestMoonResetsMatureNetherWartAndPullsDrops(GameTestHelper helper) {

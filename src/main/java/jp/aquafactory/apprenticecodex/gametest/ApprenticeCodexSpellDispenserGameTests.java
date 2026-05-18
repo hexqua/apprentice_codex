@@ -10,6 +10,11 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @PrefixGameTestTemplate(false)
 public final class ApprenticeCodexSpellDispenserGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
+    private static final String SERVER_DISABLED_CONFIG_BATCH = "spell_dispenser_server_disabled_config";
+    private static final String SERVER_ALLOWLIST_CONFIG_BATCH = "spell_dispenser_server_allowlist_config";
+    private static final String BLOCK_SERVER_DISABLED_CONFIG_BATCH = "spell_dispenser_block_server_disabled_config";
+    private static final String BLOCK_COOLDOWN_MULTIPLIER_CONFIG_BATCH = "spell_dispenser_block_cooldown_multiplier_config";
+    private static final String CREATE_COOLDOWN_MULTIPLIER_CONFIG_BATCH = "spell_dispenser_create_cooldown_multiplier_config";
 
     private ApprenticeCodexSpellDispenserGameTests() {
     }
@@ -27,6 +32,16 @@ public final class ApprenticeCodexSpellDispenserGameTests {
     @GameTest(template = TEMPLATE)
     public static void spellDispenserValidatorAcceptsLongScroll(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellDispenserValidatorAcceptsLongScroll(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = SERVER_DISABLED_CONFIG_BATCH)
+    public static void spellDispenserValidatorRejectsWhenServerDisabled(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserValidatorRejectsWhenServerDisabled(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = SERVER_ALLOWLIST_CONFIG_BATCH)
+    public static void spellDispenserValidatorRequiresServerAllowlist(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserValidatorRequiresServerAllowlist(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -114,6 +129,16 @@ public final class ApprenticeCodexSpellDispenserGameTests {
         ApprenticeCodexGameTestScenarios.spellDispenserBlockEntityStartsAndClearsInstantCooldown(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = BLOCK_SERVER_DISABLED_CONFIG_BATCH)
+    public static void spellDispenserBlockEntityReportsServerDisabledActivation(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserBlockEntityReportsServerDisabledActivation(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = BLOCK_COOLDOWN_MULTIPLIER_CONFIG_BATCH)
+    public static void spellDispenserBlockEntityAppliesCooldownMultiplier(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserBlockEntityAppliesCooldownMultiplier(helper);
+    }
+
     @GameTest(template = TEMPLATE)
     public static void spellDispenserAutomationOnlyAcceptsManaContainers(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellDispenserAutomationOnlyAcceptsManaContainers(helper);
@@ -192,6 +217,11 @@ public final class ApprenticeCodexSpellDispenserGameTests {
     @GameTest(template = TEMPLATE)
     public static void spellDispenserCreateInstantCastUsesCooldown(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellDispenserCreateInstantCastUsesCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CREATE_COOLDOWN_MULTIPLIER_CONFIG_BATCH)
+    public static void spellDispenserCreateAppliesCooldownMultiplier(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserCreateAppliesCooldownMultiplier(helper);
     }
 
     @GameTest(template = TEMPLATE)

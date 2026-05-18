@@ -139,9 +139,10 @@ public class EarthForge extends AbstractSpell implements jp.aquafactory.apprenti
                 sendCantPlaceMessage(entity);
             } else {
                 var plan = placementPlan.get();
+                var placingPlayer = entity instanceof ServerPlayer serverPlayer ? serverPlayer : null;
                 EarthForgeJobManager.submit(
                         serverLevel,
-                        new EarthForgeJob(plan.center(), plan.placeablePositions(), plan.effectDirection(), serverLevel.getGameTime())
+                        new EarthForgeJob(placingPlayer, plan.center(), plan.placeablePositions(), plan.effectDirection(), serverLevel.getGameTime())
                 );
             }
         }

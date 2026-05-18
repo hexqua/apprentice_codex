@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -129,17 +130,19 @@ public abstract class AbstractOffhandMagicItem extends Item
 
     @Override
     public void initializeSpellContainer(ItemStack itemStack) {
-        if (itemStack == null || ISpellContainer.isSpellContainer(itemStack)) {
+        if (itemStack == null || itemStack.isEmpty() || ISpellContainer.isSpellContainer(itemStack)) {
             return;
         }
 
         if (startsWithPresetSpell) {
-            // Datagen時はSpellRegistry未バインドのため、初期呪文の注入をスキップする.
-            if (configuredSpell instanceof net.neoforged.neoforge.registries.DeferredHolder<?, ?> deferredHolder && !deferredHolder.isBound()) {
-                return;
-            }
-
-            ISpellContainer.createImbuedContainer(configuredSpell.get(), configuredSpellLevel, itemStack);
+            InitialSpellContainerHelper.setInitialContainer(
+                    itemStack,
+                    1,
+                    true,
+                    false,
+                    configuredSpell,
+                    configuredSpellLevel
+            );
             return;
         }
 

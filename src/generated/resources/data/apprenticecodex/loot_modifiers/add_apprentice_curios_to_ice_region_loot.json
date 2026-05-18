@@ -23,8 +23,8 @@
       ]
     },
     {
-      "chance": 0.057692307692307696,
-      "condition": "minecraft:random_chance"
+      "base_chance": 0.057692307692307696,
+      "condition": "apprenticecodex:apprentice_curio_loot_chance"
     }
   ],
   "key": "apprenticecodex:chests/ice_region_curio_bonus"

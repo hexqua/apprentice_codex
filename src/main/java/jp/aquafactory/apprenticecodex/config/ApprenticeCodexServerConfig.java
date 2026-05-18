@@ -1,19 +1,33 @@
 package jp.aquafactory.apprenticecodex.config;
 
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
+import java.util.List;
+
 public final class ApprenticeCodexServerConfig {
+    public interface GameTestConfigOverride extends AutoCloseable {
+        @Override
+        void close();
+    }
+
     public static final ModConfigSpec SPEC;
     private static final DamageMultiplierServerConfig DAMAGE_MULTIPLIER_CONFIG;
     private static final BlocksServerConfig BLOCKS_CONFIG;
     private static final ItemsServerConfig ITEMS_CONFIG;
+    private static final LootServerConfig LOOT_CONFIG;
     private static final SpellsServerConfig SPELLS_CONFIG;
+    private static final WorldgenServerConfig WORLDGEN_CONFIG;
+    private static final ProcessingServerConfig PROCESSING_CONFIG;
     static {
         var builder = new ModConfigSpec.Builder();
         DAMAGE_MULTIPLIER_CONFIG = DamageMultiplierServerConfig.define(builder, DamageMultiplierKey.values());
         BLOCKS_CONFIG = BlocksServerConfig.define(builder);
         ITEMS_CONFIG = ItemsServerConfig.define(builder);
+        LOOT_CONFIG = LootServerConfig.define(builder);
         SPELLS_CONFIG = SpellsServerConfig.define(builder);
+        WORLDGEN_CONFIG = WorldgenServerConfig.define(builder);
+        PROCESSING_CONFIG = ProcessingServerConfig.define(builder);
         SPEC = builder.build();
     }
 
@@ -22,6 +36,47 @@ public final class ApprenticeCodexServerConfig {
 
     public static float damageMultiplier(DamageMultiplierKey key) {
         return DAMAGE_MULTIPLIER_CONFIG.value(key);
+    }
+
+    public static boolean isSpellcasterWorkbenchRecipeDenied(ResourceLocation recipeId) {
+        return PROCESSING_CONFIG.isSpellcasterWorkbenchRecipeDenied(recipeId);
+    }
+
+    public static boolean isEssenceSmokerRecipeDenied(ResourceLocation recipeId) {
+        return PROCESSING_CONFIG.isEssenceSmokerRecipeDenied(recipeId);
+    }
+
+    public static boolean isGrindRunnerRecipeDenied(ResourceLocation recipeId) {
+        return PROCESSING_CONFIG.isGrindRunnerRecipeDenied(recipeId);
+    }
+
+    public static boolean isThermalProcessRecipeDenied(ResourceLocation recipeId) {
+        return PROCESSING_CONFIG.isThermalProcessRecipeDenied(recipeId);
+    }
+
+    public static GameTestConfigOverride useProcessingRecipeDenylistOverrideForGameTest(
+            List<String> spellcasterWorkbenchRecipeDenylist,
+            List<String> essenceSmokerRecipeDenylist,
+            List<String> grindRunnerRecipeDenylist,
+            List<String> thermalProcessRecipeDenylist
+    ) {
+        var previousSpellcasterWorkbenchRecipeDenylist = PROCESSING_CONFIG.spellcasterWorkbenchRecipeDenylist();
+        var previousEssenceSmokerRecipeDenylist = PROCESSING_CONFIG.essenceSmokerRecipeDenylist();
+        var previousGrindRunnerRecipeDenylist = PROCESSING_CONFIG.grindRunnerRecipeDenylist();
+        var previousThermalProcessRecipeDenylist = PROCESSING_CONFIG.thermalProcessRecipeDenylist();
+
+        PROCESSING_CONFIG.setRecipeDenylistsForGameTest(
+                spellcasterWorkbenchRecipeDenylist,
+                essenceSmokerRecipeDenylist,
+                grindRunnerRecipeDenylist,
+                thermalProcessRecipeDenylist
+        );
+        return () -> PROCESSING_CONFIG.setRecipeDenylistsForGameTest(
+                previousSpellcasterWorkbenchRecipeDenylist,
+                previousEssenceSmokerRecipeDenylist,
+                previousGrindRunnerRecipeDenylist,
+                previousThermalProcessRecipeDenylist
+        );
     }
 
     public static boolean limitArcaneCinderSpeedupToVanillaFurnaces() {
@@ -34,6 +89,43 @@ public final class ApprenticeCodexServerConfig {
 
     public static boolean spellDispenserIgnoreSpellProfileAndDenylistFiles() {
         return BLOCKS_CONFIG.spellDispenserIgnoreSpellProfileAndDenylistFiles();
+    }
+
+    public static boolean spellDispenserEnable() {
+        return BLOCKS_CONFIG.spellDispenserEnable();
+    }
+
+    public static boolean isSpellDispenserSpellAllowedByServerAllowlist(ResourceLocation spellId) {
+        return BLOCKS_CONFIG.spellDispenserIsSpellAllowedByServerAllowlist(spellId);
+    }
+
+    public static double spellDispenserCooldownMultiplier() {
+        return BLOCKS_CONFIG.spellDispenserCooldownMultiplier();
+    }
+
+    public static GameTestConfigOverride useSpellDispenserConfigOverrideForGameTest(
+            boolean enable,
+            boolean enableSpellAllowlist,
+            List<String> spellAllowlist,
+            double cooldownMultiplier
+    ) {
+        var previousEnable = BLOCKS_CONFIG.spellDispenserEnable();
+        var previousEnableSpellAllowlist = BLOCKS_CONFIG.spellDispenserEnableSpellAllowlist();
+        var previousSpellAllowlist = BLOCKS_CONFIG.spellDispenserSpellAllowlist();
+        var previousCooldownMultiplier = BLOCKS_CONFIG.spellDispenserCooldownMultiplier();
+
+        BLOCKS_CONFIG.setSpellDispenserConfigForGameTest(
+                enable,
+                enableSpellAllowlist,
+                spellAllowlist,
+                cooldownMultiplier
+        );
+        return () -> BLOCKS_CONFIG.setSpellDispenserConfigForGameTest(
+                previousEnable,
+                previousEnableSpellAllowlist,
+                previousSpellAllowlist,
+                previousCooldownMultiplier
+        );
     }
 
     public static boolean apprenticeDeskEnableSpellCraftBlacklist() {
@@ -128,6 +220,14 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.enableIsekaiTravelGuidebookBonusChestLoot();
     }
 
+    public static boolean enableApprenticeCurioLoot() {
+        return LOOT_CONFIG.enableApprenticeCurioLoot();
+    }
+
+    public static double apprenticeCurioLootChanceMultiplier() {
+        return LOOT_CONFIG.apprenticeCurioLootChanceMultiplier();
+    }
+
     public static float manaForceBladeImbueDamageMultiplierScale() {
         return ITEMS_CONFIG.manaForceBladeImbueDamageMultiplierScale();
     }
@@ -172,12 +272,103 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.multipurposeStaffrifleAdsFullAutoIntervalTicks();
     }
 
+    public static boolean isMultipurposeStaffrifleSpellDenied(ResourceLocation spellId) {
+        return ITEMS_CONFIG.isMultipurposeStaffrifleSpellDenied(spellId);
+    }
+
+    public static GameTestConfigOverride useMultipurposeStaffrifleSpellDenylistOverrideForGameTest(
+            List<String> spellDenylist
+    ) {
+        var previousSpellDenylist = ITEMS_CONFIG.multipurposeStaffrifleSpellDenylist();
+        ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(spellDenylist);
+        return () -> ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(previousSpellDenylist);
+    }
+
     public static float forceFieldDrainManaBasePerHit() {
         return SPELLS_CONFIG.forceFieldDrainManaBasePerHit();
     }
 
     public static boolean autoMagnetDisableCollectManaCost() {
         return SPELLS_CONFIG.autoMagnetDisableCollectManaCost();
+    }
+
+    public static boolean isDemicreatorWingsDimensionAllowed(ResourceLocation dimensionId) {
+        return SPELLS_CONFIG.isDemicreatorWingsDimensionAllowed(dimensionId);
+    }
+
+    public static GameTestConfigOverride useDemicreatorWingsConfigOverrideForGameTest(
+            List<String> dimensionDenylist,
+            boolean enableDimensionAllowlist,
+            List<String> dimensionAllowlist
+    ) {
+        var previousDimensionDenylist = SPELLS_CONFIG.demicreatorWingsDimensionDenylist();
+        var previousEnableDimensionAllowlist = SPELLS_CONFIG.demicreatorWingsEnableDimensionAllowlist();
+        var previousDimensionAllowlist = SPELLS_CONFIG.demicreatorWingsDimensionAllowlist();
+
+        SPELLS_CONFIG.setDemicreatorWingsConfigForGameTest(
+                dimensionDenylist,
+                enableDimensionAllowlist,
+                dimensionAllowlist
+        );
+        return () -> SPELLS_CONFIG.setDemicreatorWingsConfigForGameTest(
+                previousDimensionDenylist,
+                previousEnableDimensionAllowlist,
+                previousDimensionAllowlist
+        );
+    }
+
+    public static boolean isRemoteEyeDimensionAllowed(ResourceLocation dimensionId) {
+        return SPELLS_CONFIG.isRemoteEyeDimensionAllowed(dimensionId);
+    }
+
+    public static GameTestConfigOverride useRemoteEyeConfigOverrideForGameTest(
+            List<String> dimensionDenylist,
+            boolean enableDimensionAllowlist,
+            List<String> dimensionAllowlist
+    ) {
+        var previousDimensionDenylist = SPELLS_CONFIG.remoteEyeDimensionDenylist();
+        var previousEnableDimensionAllowlist = SPELLS_CONFIG.remoteEyeEnableDimensionAllowlist();
+        var previousDimensionAllowlist = SPELLS_CONFIG.remoteEyeDimensionAllowlist();
+
+        SPELLS_CONFIG.setRemoteEyeConfigForGameTest(
+                dimensionDenylist,
+                enableDimensionAllowlist,
+                dimensionAllowlist
+        );
+        return () -> SPELLS_CONFIG.setRemoteEyeConfigForGameTest(
+                previousDimensionDenylist,
+                previousEnableDimensionAllowlist,
+                previousDimensionAllowlist
+        );
+    }
+
+    public static boolean isRiftHoleDimensionAllowed(ResourceLocation dimensionId) {
+        return SPELLS_CONFIG.isRiftHoleDimensionAllowed(dimensionId);
+    }
+
+    public static GameTestConfigOverride useRiftHoleConfigOverrideForGameTest(
+            List<String> dimensionDenylist,
+            boolean enableDimensionAllowlist,
+            List<String> dimensionAllowlist
+    ) {
+        var previousDimensionDenylist = SPELLS_CONFIG.riftHoleDimensionDenylist();
+        var previousEnableDimensionAllowlist = SPELLS_CONFIG.riftHoleEnableDimensionAllowlist();
+        var previousDimensionAllowlist = SPELLS_CONFIG.riftHoleDimensionAllowlist();
+
+        SPELLS_CONFIG.setRiftHoleConfigForGameTest(
+                dimensionDenylist,
+                enableDimensionAllowlist,
+                dimensionAllowlist
+        );
+        return () -> SPELLS_CONFIG.setRiftHoleConfigForGameTest(
+                previousDimensionDenylist,
+                previousEnableDimensionAllowlist,
+                previousDimensionAllowlist
+        );
+    }
+
+    public static boolean enableErrandMageVillageHouseInjection() {
+        return WORLDGEN_CONFIG.enableErrandMageVillageHouseInjection();
     }
 }
 

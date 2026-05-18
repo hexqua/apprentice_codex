@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.utility;
 
+import jp.aquafactory.apprenticecodex.event.errandmage.ErrandMageTradeManager;
+import net.minecraft.core.component.DataComponentPredicate;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.trading.ItemCost;
@@ -13,8 +15,7 @@ public final class ErrandMageTradeHelper {
     }
 
     public static boolean shouldIgnorePaymentTags(Item item) {
-        return item == io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get()
-                || item == io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get();
+        return ErrandMageTradeManager.shouldIgnorePaymentTags(item);
     }
 
     public static ItemCost createPaymentStack(Item item, int count) {
@@ -26,7 +27,12 @@ public final class ErrandMageTradeHelper {
 
     public static ItemCost createPaymentStack(ItemStack stack) {
         if (!shouldIgnorePaymentTags(stack)) {
-            return new ItemCost(stack.getItem(), stack.getCount());
+            return new ItemCost(
+                    stack.getItemHolder(),
+                    stack.getCount(),
+                    DataComponentPredicate.allOf(stack.getComponents()),
+                    stack.copyWithCount(stack.getCount())
+            );
         }
 
         return new ItemCost(stack.getItem(), stack.getCount());

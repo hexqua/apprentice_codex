@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.worldgen;
 
 import com.mojang.datafixers.util.Pair;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
 import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
 import net.minecraft.core.Holder;
@@ -21,105 +22,77 @@ import java.util.ArrayList;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ErrandMageVillageAddition {
-    public static final int HOUSE_WEIGHT = 3;
-
-    private static final ResourceKey<StructureProcessorList> EMPTY_PROCESSOR_LIST_KEY = ResourceKey.create(
-            Registries.PROCESSOR_LIST,
-            ResourceLocation.withDefaultNamespace("empty")
-    );
-    private static final ResourceKey<StructureProcessorList> MOSSIFY_10_PERCENT_PROCESSOR_LIST_KEY = ResourceKey.create(
-            Registries.PROCESSOR_LIST,
-            ResourceLocation.withDefaultNamespace("mossify_10_percent")
-    );
-
-    private static final VillageHouseAddition[] HOUSE_ADDITIONS = new VillageHouseAddition[]{
-            new VillageHouseAddition(
-                    ResourceLocation.withDefaultNamespace("village/plains/houses"),
-                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
-                    MOSSIFY_10_PERCENT_PROCESSOR_LIST_KEY
-            ),
-            new VillageHouseAddition(
-                    ResourceLocation.withDefaultNamespace("village/desert/houses"),
-                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/desert/errand_mage_house"),
-                    EMPTY_PROCESSOR_LIST_KEY
-            ),
-            new VillageHouseAddition(
-                    ResourceLocation.withDefaultNamespace("village/savanna/houses"),
-                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/savanna/errand_mage_house"),
-                    EMPTY_PROCESSOR_LIST_KEY
-            ),
-            // 雪原とタイガは専用 NBT を増やさず、plain 家屋の見た目をそのまま使い回す。
-            new VillageHouseAddition(
-                    ResourceLocation.withDefaultNamespace("village/snowy/houses"),
-                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
-                    EMPTY_PROCESSOR_LIST_KEY
-            ),
-            new VillageHouseAddition(
-                    ResourceLocation.withDefaultNamespace("village/taiga/houses"),
-                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
-                    MOSSIFY_10_PERCENT_PROCESSOR_LIST_KEY
-            )
-    };
-
     private ErrandMageVillageAddition() {
     }
 
     @SubscribeEvent
     public static void addErrandMageVillageHouse(final ServerAboutToStartEvent event) {
-        if (HOUSE_WEIGHT <= 0) {
-            ApprenticeCodex.LOGGER.info("Errand Mage village house injection is disabled because HOUSE_WEIGHT <= 0");
+        if (!ApprenticeCodexServerConfig.enableErrandMageVillageHouseInjection()) {
+            ApprenticeCodex.LOGGER.info("Errand Mage village house injection is disabled by server config");
+            return;
+        }
+
+        var additions = ErrandMageVillageHouseManager.definitions();
+        if (additions.isEmpty()) {
+            ApprenticeCodex.LOGGER.info("Errand Mage village house injection skipped because no definitions were loaded");
             return;
         }
 
         var registryAccess = event.getServer().registryAccess();
         var templatePoolRegistry = registryAccess.registryOrThrow(Registries.TEMPLATE_POOL);
         var processorListRegistry = registryAccess.registryOrThrow(Registries.PROCESSOR_LIST);
-        ApprenticeCodex.LOGGER.info("Injecting Errand Mage village houses with weight {} into {} village pools", HOUSE_WEIGHT, HOUSE_ADDITIONS.length);
+        ApprenticeCodex.LOGGER.info("Injecting {} Errand Mage village house definitions", additions.size());
 
-        for (var addition : HOUSE_ADDITIONS) {
-            addBuildingToPool(templatePoolRegistry, processorListRegistry, addition, HOUSE_WEIGHT);
+        for (var addition : additions) {
+            addBuildingToPool(templatePoolRegistry, processorListRegistry, addition);
         }
     }
 
     private static void addBuildingToPool(
             Registry<StructureTemplatePool> templatePoolRegistry,
             Registry<StructureProcessorList> processorListRegistry,
-            VillageHouseAddition addition,
-            int weight
+            ErrandMageVillageHouseDefinition addition
     ) {
         // 村 pool は他 mod も触りやすいため、JSON を丸ごと上書きせず起動時に不足分だけ差し込む。
-        var pool = templatePoolRegistry.get(addition.poolId());
+        var pool = templatePoolRegistry.get(addition.pool());
         if (pool == null) {
-            ApprenticeCodex.LOGGER.warn("Errand Mage village house target pool is missing: {}", addition.poolId());
+            ApprenticeCodex.LOGGER.warn("Errand Mage village house target pool is missing: {}", addition.pool());
             return;
         }
 
         // Processor は static 定数を直接使うと world 起動後の holder identity と食い違うため、動的 registry から取り直す。
-        Holder<StructureProcessorList> processors = processorListRegistry.getHolderOrThrow(addition.processorListKey());
-        var piece = SinglePoolElement.legacy(addition.structureId().toString(), processors)
+        var processorKey = ResourceKey.create(Registries.PROCESSOR_LIST, addition.processor());
+        var processors = processorListRegistry.getHolder(processorKey);
+        if (processors.isEmpty()) {
+            ApprenticeCodex.LOGGER.warn("Errand Mage village house processor list is missing: {}", addition.processor());
+            return;
+        }
+
+        Holder<StructureProcessorList> processorHolder = processors.get();
+        var piece = SinglePoolElement.legacy(addition.structure().toString(), processorHolder)
                 .apply(StructureTemplatePool.Projection.RIGID);
 
         var accessor = (StructureTemplatePoolAccessor) pool;
         var beforeRawTemplates = accessor.apprenticecodex$getRawTemplates();
         int beforeExpandedTemplateCount = accessor.apprenticecodex$getTemplates().size();
         int beforeTotalWeight = getTotalWeight(beforeRawTemplates);
-        int beforeMatchingEntryCount = countMatchingEntries(beforeRawTemplates, addition.structureId(), addition.processorListKey().location());
+        int beforeMatchingEntryCount = countMatchingEntries(beforeRawTemplates, addition.structure(), addition.processor());
 
-        for (int i = 0; i < weight; i++) {
+        for (int i = 0; i < addition.weight(); i++) {
             accessor.apprenticecodex$getTemplates().add(piece);
         }
 
         var rawTemplates = new ArrayList<>(beforeRawTemplates);
-        rawTemplates.add(Pair.of((StructurePoolElement) piece, weight));
+        rawTemplates.add(Pair.of(piece, addition.weight()));
         accessor.apprenticecodex$setRawTemplates(rawTemplates);
 
         int afterTotalWeight = getTotalWeight(rawTemplates);
-        int afterMatchingEntryCount = countMatchingEntries(rawTemplates, addition.structureId(), addition.processorListKey().location());
+        int afterMatchingEntryCount = countMatchingEntries(rawTemplates, addition.structure(), addition.processor());
         ApprenticeCodex.LOGGER.info(
                 "Errand Mage village house injected into pool {}: structure={} processor={} rawEntries {}->{} totalWeight {}->{} matchingEntries {}->{} expandedTemplates {}->{}",
-                addition.poolId(),
-                addition.structureId(),
-                addition.processorListKey().location(),
+                addition.pool(),
+                addition.structure(),
+                addition.processor(),
                 beforeRawTemplates.size(),
                 rawTemplates.size(),
                 beforeTotalWeight,
@@ -165,15 +138,9 @@ public final class ErrandMageVillageAddition {
         var accessor = (SinglePoolElementAccessor) singlePoolElement;
         var structureId = accessor.apprenticecodex$getTemplate().left().orElse(null);
         var processorId = accessor.apprenticecodex$getProcessors().unwrapKey()
-                .map(key -> key.location())
+                .map(ResourceKey::location)
                 .orElse(null);
         return expectedStructureId.equals(structureId) && expectedProcessorId.equals(processorId);
     }
 
-    private record VillageHouseAddition(
-            ResourceLocation poolId,
-            ResourceLocation structureId,
-            ResourceKey<StructureProcessorList> processorListKey
-    ) {
-    }
 }
