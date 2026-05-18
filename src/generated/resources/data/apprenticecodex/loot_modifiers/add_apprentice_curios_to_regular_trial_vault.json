@@ -6,8 +6,8 @@
       "loot_table_id": "minecraft:chests/trial_chambers/reward"
     },
     {
-      "chance": 0.02387267904509284,
-      "condition": "minecraft:random_chance"
+      "base_chance": 0.02387267904509284,
+      "condition": "apprenticecodex:apprentice_curio_loot_chance"
     }
   ],
   "key": "apprenticecodex:chests/regular_trial_vault_curio_bonus"

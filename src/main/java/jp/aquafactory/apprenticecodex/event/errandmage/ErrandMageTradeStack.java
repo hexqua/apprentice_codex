@@ -2,11 +2,11 @@ package jp.aquafactory.apprenticecodex.event.errandmage;
 
 import com.google.gson.JsonObject;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.alchemy.PotionUtils;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -56,7 +56,7 @@ public record ErrandMageTradeStack(
     }
 
     public ItemStack createStack() {
-        var resolvedItem = ForgeRegistries.ITEMS.getValue(item);
+        var resolvedItem = BuiltInRegistries.ITEM.getOptional(item).orElse(null);
         if (resolvedItem == null) {
             ApprenticeCodex.LOGGER.error("Errand Mage trade item is missing: {}", item);
             return ItemStack.EMPTY;
@@ -65,12 +65,12 @@ public record ErrandMageTradeStack(
         var stack = new ItemStack(resolvedItem, count);
         if (potion.isPresent()) {
             var potionId = potion.get();
-            var resolvedPotion = ForgeRegistries.POTIONS.getValue(potionId);
+            var resolvedPotion = BuiltInRegistries.POTION.getOptional(potionId).orElse(null);
             if (resolvedPotion == null) {
                 ApprenticeCodex.LOGGER.error("Errand Mage trade potion is missing: {}", potionId);
                 return ItemStack.EMPTY;
             }
-            PotionUtils.setPotion(stack, resolvedPotion);
+            PotionContentsHelper.setPotion(stack, resolvedPotion);
         }
         return stack;
     }

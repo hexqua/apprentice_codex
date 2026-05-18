@@ -52,15 +52,18 @@ public final class ProcessingRecipeDenylist {
         return findAllowedCookingRecipe(recipeManager, RecipeType.SMOKING, input, level);
     }
 
-    private static <T extends AbstractCookingRecipe> Optional<RecipeHolder<T>> findAllowedCookingRecipe(
+    private static <T extends AbstractCookingRecipe> Optional<RecipeHolder<? extends AbstractCookingRecipe>> findAllowedCookingRecipe(
             RecipeManager recipeManager,
             RecipeType<T> recipeType,
             SingleRecipeInput input,
             Level level
     ) {
-        return recipeManager.getAllRecipesFor(recipeType).stream()
-                .filter(recipe -> !ApprenticeCodexServerConfig.isThermalProcessRecipeDenied(recipe.id()))
-                .filter(recipe -> recipe.value().matches(input, level))
-                .findFirst();
+        for (var recipe : recipeManager.getAllRecipesFor(recipeType)) {
+            if (!ApprenticeCodexServerConfig.isThermalProcessRecipeDenied(recipe.id())
+                    && recipe.value().matches(input, level)) {
+                return Optional.of(recipe);
+            }
+        }
+        return Optional.empty();
     }
 }

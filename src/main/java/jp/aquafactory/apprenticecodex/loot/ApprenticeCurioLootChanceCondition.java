@@ -1,17 +1,21 @@
 package jp.aquafactory.apprenticecodex.loot;
 
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializationContext;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.LootConditionRegistry;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
 import org.jetbrains.annotations.NotNull;
 
 public final class ApprenticeCurioLootChanceCondition implements LootItemCondition {
+    public static final MapCodec<ApprenticeCurioLootChanceCondition> CODEC =
+            RecordCodecBuilder.mapCodec(instance -> instance.group(
+                    Codec.DOUBLE.fieldOf("base_chance").forGetter(ApprenticeCurioLootChanceCondition::baseChance)
+            ).apply(instance, ApprenticeCurioLootChanceCondition::new));
+
     private final double baseChance;
 
     public ApprenticeCurioLootChanceCondition(double baseChance) {
@@ -38,22 +42,7 @@ public final class ApprenticeCurioLootChanceCondition implements LootItemConditi
         return effectiveChance >= 1.0D || context.getRandom().nextDouble() < effectiveChance;
     }
 
-    public static final class Serializer implements net.minecraft.world.level.storage.loot.Serializer<ApprenticeCurioLootChanceCondition> {
-        @Override
-        public void serialize(
-                JsonObject json,
-                ApprenticeCurioLootChanceCondition condition,
-                JsonSerializationContext context
-        ) {
-            json.addProperty("base_chance", condition.baseChance);
-        }
-
-        @Override
-        public @NotNull ApprenticeCurioLootChanceCondition deserialize(
-                JsonObject json,
-                JsonDeserializationContext context
-        ) {
-            return new ApprenticeCurioLootChanceCondition(GsonHelper.getAsDouble(json, "base_chance"));
-        }
+    private double baseChance() {
+        return baseChance;
     }
 }

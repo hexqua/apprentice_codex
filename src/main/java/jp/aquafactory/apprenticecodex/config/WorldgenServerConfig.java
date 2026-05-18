@@ -1,15 +1,15 @@
 package jp.aquafactory.apprenticecodex.config;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 final class WorldgenServerConfig {
-    private final ForgeConfigSpec.BooleanValue enableErrandMageVillageHouseInjection;
+    private final ModConfigSpec.BooleanValue enableErrandMageVillageHouseInjection;
 
-    private WorldgenServerConfig(ForgeConfigSpec.BooleanValue enableErrandMageVillageHouseInjection) {
+    private WorldgenServerConfig(ModConfigSpec.BooleanValue enableErrandMageVillageHouseInjection) {
         this.enableErrandMageVillageHouseInjection = enableErrandMageVillageHouseInjection;
     }
 
-    static WorldgenServerConfig define(ForgeConfigSpec.Builder builder) {
+    static WorldgenServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("Worldgen");
         builder.push("ErrandMageVillageHouse");
         var enableErrandMageVillageHouseInjection = builder

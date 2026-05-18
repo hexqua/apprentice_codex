@@ -1,20 +1,20 @@
 package jp.aquafactory.apprenticecodex.config;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 final class LootServerConfig {
-    private final ForgeConfigSpec.BooleanValue enableApprenticeCurioLoot;
-    private final ForgeConfigSpec.DoubleValue apprenticeCurioLootChanceMultiplier;
+    private final ModConfigSpec.BooleanValue enableApprenticeCurioLoot;
+    private final ModConfigSpec.DoubleValue apprenticeCurioLootChanceMultiplier;
 
     private LootServerConfig(
-            ForgeConfigSpec.BooleanValue enableApprenticeCurioLoot,
-            ForgeConfigSpec.DoubleValue apprenticeCurioLootChanceMultiplier
+            ModConfigSpec.BooleanValue enableApprenticeCurioLoot,
+            ModConfigSpec.DoubleValue apprenticeCurioLootChanceMultiplier
     ) {
         this.enableApprenticeCurioLoot = enableApprenticeCurioLoot;
         this.apprenticeCurioLootChanceMultiplier = apprenticeCurioLootChanceMultiplier;
     }
 
-    static LootServerConfig define(ForgeConfigSpec.Builder builder) {
+    static LootServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("Loot");
 
         var enableApprenticeCurioLoot = builder

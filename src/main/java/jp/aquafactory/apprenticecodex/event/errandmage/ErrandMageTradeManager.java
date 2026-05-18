@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.utility.ErrandMageTradeHelper;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
@@ -14,11 +15,11 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
-import net.minecraftforge.event.AddReloadListenerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -26,9 +27,10 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ErrandMageTradeManager extends SimpleJsonResourceReloadListener {
     public static final String DIRECTORY = "errand_mage_trades";
 
@@ -79,12 +81,13 @@ public final class ErrandMageTradeManager extends SimpleJsonResourceReloadListen
                 );
             }
 
-            var secondaryCost = ItemStack.EMPTY;
+            var secondaryCost = Optional.<ItemCost>empty();
             if (definition.costB().isPresent()) {
-                secondaryCost = definition.costB().get().createStack();
-                if (secondaryCost.isEmpty()) {
+                var secondaryCostStack = definition.costB().get().createStack();
+                if (secondaryCostStack.isEmpty()) {
                     return null;
                 }
+                secondaryCost = java.util.Optional.of(ErrandMageTradeHelper.createPaymentStack(secondaryCostStack));
             }
             return new MerchantOffer(
                     ErrandMageTradeHelper.createPaymentStack(primaryCost),
@@ -156,7 +159,7 @@ public final class ErrandMageTradeManager extends SimpleJsonResourceReloadListen
             return;
         }
 
-        var item = ForgeRegistries.ITEMS.getValue(stack.item());
+        var item = BuiltInRegistries.ITEM.getOptional(stack.item()).orElse(null);
         if (item == null) {
             ApprenticeCodex.LOGGER.error("Errand Mage ignore_nbt item is missing: {}", stack.item());
             return;
