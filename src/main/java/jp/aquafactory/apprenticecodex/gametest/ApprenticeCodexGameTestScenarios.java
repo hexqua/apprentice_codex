@@ -140,7 +140,6 @@ import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RightClickSpellResolver;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
-import jp.aquafactory.apprenticecodex.worldgen.ErrandMageVillageAddition;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.BlockPos;
@@ -579,7 +578,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     ResourceLocation.withDefaultNamespace("village/plains/houses"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("mossify_10_percent"),
-                    ErrandMageVillageAddition.HOUSE_WEIGHT
+                    3
             );
             assertVillageHousePoolContains(
                     helper,
@@ -587,7 +586,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     ResourceLocation.withDefaultNamespace("village/desert/houses"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/desert/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("empty"),
-                    ErrandMageVillageAddition.HOUSE_WEIGHT
+                    3
             );
             assertVillageHousePoolContains(
                     helper,
@@ -595,7 +594,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     ResourceLocation.withDefaultNamespace("village/savanna/houses"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/savanna/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("empty"),
-                    ErrandMageVillageAddition.HOUSE_WEIGHT
+                    3
             );
             assertVillageHousePoolContains(
                     helper,
@@ -603,7 +602,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     ResourceLocation.withDefaultNamespace("village/snowy/houses"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("empty"),
-                    ErrandMageVillageAddition.HOUSE_WEIGHT
+                    3
             );
             assertVillageHousePoolContains(
                     helper,
@@ -611,26 +610,12 @@ public final class ApprenticeCodexGameTestScenarios {
                     ResourceLocation.withDefaultNamespace("village/taiga/houses"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("mossify_10_percent"),
-                    ErrandMageVillageAddition.HOUSE_WEIGHT
+                    3
             );
         });
     }
     static void errandMageOffersAcceptTaggedErrandMagePayments(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var damagedCrown = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get());
-            damagedCrown.setDamageValue(2);
-            var taggedCrownCost = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get());
-            taggedCrownCost.getOrCreateTag().putString("apprenticecodex_test", "cost");
-            var crownOffer = new net.minecraft.world.item.trading.MerchantOffer(
-                    taggedCrownCost,
-                    new ItemStack(Items.EMERALD),
-                    16,
-                    2,
-                    0.05F
-            );
-            helper.assertTrue(crownOffer.satisfiedBy(damagedCrown, ItemStack.EMPTY),
-                    "Damaged crown should satisfy the errand mage buy offer even when the saved cost stack has tags");
-
             var taggedScroll = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
             taggedScroll.getOrCreateTag().putString("apprenticecodex_test", "tagged");
             var taggedScrollCost = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
@@ -688,12 +673,21 @@ public final class ApprenticeCodexGameTestScenarios {
                     12,
                     "Errand Mage level 2 trades should always sell Basic Spellcaster Rounds");
 
+            helper.assertFalse(hasBaseCostItem(createOffers(trades.get(4), 0L),
+                            io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get()),
+                    "Errand Mage level 4 trades should not buy Tarnished Crowns");
             assertContainsOffer(helper, createOffers(trades.get(4), 0L),
                     new ItemStack(Items.EMERALD, 32),
                     ItemStack.EMPTY,
                     new ItemStack(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get()),
                     12,
                     "Errand Mage level 4 trades should sell Spellstained Arcane Ingots");
+            assertContainsOffer(helper, createOffers(trades.get(5), 0L),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
+                    new ItemStack(Items.EMERALD, 16),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INK_COMMON.get()),
+                    3,
+                    "Errand Mage level 5 trades should sell Common Ink for Scrolls");
             assertContainsOffer(helper, createOffers(trades.get(5), 0L),
                     new ItemStack(Items.EMERALD, 64),
                     new ItemStack(Items.WRITABLE_BOOK),
