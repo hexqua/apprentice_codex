@@ -15,8 +15,8 @@
       ]
     },
     {
-      "chance": 0.04615384615384616,
-      "condition": "minecraft:random_chance"
+      "base_chance": 0.04615384615384616,
+      "condition": "apprenticecodex:apprentice_curio_loot_chance"
     }
   ],
   "key": "apprenticecodex:chests/irons_tier_two_curio_bonus"

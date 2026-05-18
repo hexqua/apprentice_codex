@@ -6,8 +6,8 @@
       "loot_table_id": "irons_spellbooks:chests/catacombs/crypt_loot"
     },
     {
-      "chance": 0.23076923076923078,
-      "condition": "minecraft:random_chance"
+      "base_chance": 0.23076923076923078,
+      "condition": "apprenticecodex:apprentice_curio_loot_chance"
     }
   ],
   "key": "apprenticecodex:chests/catacombs_crypt_curio_bonus"

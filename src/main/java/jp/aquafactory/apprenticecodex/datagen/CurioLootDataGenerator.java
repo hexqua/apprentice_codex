@@ -28,6 +28,8 @@ public final class CurioLootDataGenerator implements DataProvider {
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "magic_items/basic_curios_bonus");
     private static final ResourceLocation OMIMOUS_VAULT_CURIOS_BONUS =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "magic_items/ominous_vault_curios_bonus");
+    private static final ResourceLocation APPRENTICE_CURIO_LOOT_CHANCE_CONDITION =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "apprentice_curio_loot_chance");
 
     private final PackOutput.PathProvider lootTablePathProvider;
     private final PackOutput.PathProvider lootModifierPathProvider;
@@ -311,7 +313,7 @@ public final class CurioLootDataGenerator implements DataProvider {
         root.addProperty("type", "irons_spellbooks:append_loot");
         var conditions = new JsonArray();
         conditions.add(createLootTableCondition(lootTableIds));
-        conditions.add(createRandomChanceCondition(chance));
+        conditions.add(createApprenticeCurioLootChanceCondition(chance));
         root.add("conditions", conditions);
         root.addProperty("key", key.toString());
         return root;
@@ -338,10 +340,10 @@ public final class CurioLootDataGenerator implements DataProvider {
         return condition;
     }
 
-    private static JsonObject createRandomChanceCondition(double chance) {
+    private static JsonObject createApprenticeCurioLootChanceCondition(double chance) {
         var condition = new JsonObject();
-        condition.addProperty("condition", "minecraft:random_chance");
-        condition.addProperty("chance", chance);
+        condition.addProperty("condition", APPRENTICE_CURIO_LOOT_CHANCE_CONDITION.toString());
+        condition.addProperty("base_chance", chance);
         return condition;
     }
 
