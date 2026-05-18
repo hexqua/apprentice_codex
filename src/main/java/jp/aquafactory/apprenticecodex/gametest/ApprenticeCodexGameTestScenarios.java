@@ -142,6 +142,7 @@ import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
+import jp.aquafactory.apprenticecodex.utility.ErrandMageTradeHelper;
 import jp.aquafactory.apprenticecodex.utility.ProcessingRecipeDenylist;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RightClickSpellResolver;
@@ -789,6 +790,33 @@ public final class ApprenticeCodexGameTestScenarios {
             );
             helper.assertTrue(scrollOffer.satisfiedBy(taggedScroll, new ItemStack(Items.EMERALD, 16)),
                     "Tagged scroll should satisfy the errand mage ink trade even when the saved cost stack has tags");
+
+            var taggedTarnishedCrown = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get());
+            CustomData.update(DataComponents.CUSTOM_DATA, taggedTarnishedCrown, tag -> tag.putString("apprenticecodex_test", "tagged"));
+            var taggedTarnishedCrownCost = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get());
+            CustomData.update(DataComponents.CUSTOM_DATA, taggedTarnishedCrownCost, tag -> tag.putString("apprenticecodex_test", "cost"));
+            var taggedTarnishedCrownItemCost = new ItemCost(
+                    taggedTarnishedCrownCost.getItemHolder(),
+                    taggedTarnishedCrownCost.getCount(),
+                    DataComponentPredicate.allOf(taggedTarnishedCrownCost.getComponents())
+            );
+            var legacyTarnishedCrownOffer = new MerchantOffer(
+                    taggedTarnishedCrownItemCost,
+                    new ItemStack(Items.EMERALD, 64),
+                    3,
+                    5,
+                    0.05F
+            );
+            helper.assertTrue(legacyTarnishedCrownOffer.satisfiedBy(taggedTarnishedCrown, ItemStack.EMPTY),
+                    "Tagged Tarnished Crown should still satisfy saved legacy errand mage trades");
+
+            var healingPotion = PotionContentsHelper.createPotionStack(Items.POTION, net.minecraft.world.item.alchemy.Potions.HEALING.value());
+            var regenerationPotion = PotionContentsHelper.createPotionStack(Items.POTION, net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
+            var healingPotionCost = ErrandMageTradeHelper.createPaymentStack(healingPotion);
+            helper.assertTrue(healingPotionCost.test(healingPotion),
+                    "Payment stack should satisfy its own potion component");
+            helper.assertFalse(healingPotionCost.test(regenerationPotion),
+                    "Payment stack should not accept a different potion component");
         });
     }
     static void errandMageTradesMatchExpectedOffers(GameTestHelper helper) {
