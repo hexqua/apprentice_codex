@@ -26,8 +26,6 @@ public final class CurioLootDataGenerator implements DataProvider {
 
     private static final ResourceLocation BASIC_CURIOS_BONUS =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "magic_items/basic_curios_bonus");
-    private static final ResourceLocation SCARLET_THIRST_CATACOMBS_BONUS =
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "magic_items/scarlet_thirst_catacombs_bonus");
     private static final ResourceLocation OMIMOUS_VAULT_CURIOS_BONUS =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "magic_items/ominous_vault_curios_bonus");
 
@@ -44,8 +42,6 @@ public final class CurioLootDataGenerator implements DataProvider {
         var futures = new ArrayList<CompletableFuture<?>>();
 
         futures.add(saveLootTable(cachedOutput, BASIC_CURIOS_BONUS, createBasicCuriosBonusTable()));
-        futures.add(saveLootTable(cachedOutput, SCARLET_THIRST_CATACOMBS_BONUS,
-                createSingleItemTable(ItemRegistry.SCARLET_THIRST.getId())));
         futures.add(saveLootTable(cachedOutput, OMIMOUS_VAULT_CURIOS_BONUS,
                 createItemTable(APPRENTICE_BASIC_CURIO_ITEM_IDS, 1.0D)));
 
@@ -204,16 +200,6 @@ public final class CurioLootDataGenerator implements DataProvider {
                         OMIMOUS_VAULT_CURIOS_BONUS,
                         0.075D
                 )));
-        futures.add(saveLootModifier(cachedOutput,
-                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "add_scarlet_thirst_to_catacombs"),
-                createAppendLootModifier(List.of(
-                                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/catacombs/coffin_loot"),
-                                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/catacombs/crypt_loot"),
-                                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/catacombs/wall_loot")
-                        ),
-                        SCARLET_THIRST_CATACOMBS_BONUS,
-                        0.075D
-                )));
         futures.add(DataProvider.saveStable(cachedOutput, createGlobalLootModifierList(), lootModifierPathProvider.json(
                 ResourceLocation.fromNamespaceAndPath("neoforge", "global_loot_modifiers")
         )));
@@ -269,8 +255,7 @@ public final class CurioLootDataGenerator implements DataProvider {
                 "apprenticecodex:add_apprentice_curios_to_nature_fire_loot",
                 "apprenticecodex:add_apprentice_curios_to_catacombs_crypt",
                 "apprenticecodex:add_apprentice_curios_to_catacombs_wall",
-                "apprenticecodex:add_apprentice_curios_to_ominous_vault",
-                "apprenticecodex:add_scarlet_thirst_to_catacombs"
+                "apprenticecodex:add_apprentice_curios_to_ominous_vault"
         )) {
             entries.add(id);
         }
@@ -280,10 +265,6 @@ public final class CurioLootDataGenerator implements DataProvider {
 
     private static JsonObject createBasicCuriosBonusTable() {
         return createItemTable(APPRENTICE_BASIC_CURIO_ITEM_IDS, 1.0D);
-    }
-
-    private static JsonObject createSingleItemTable(ResourceLocation itemId) {
-        return createItemTable(List.of(itemId), 1.0D);
     }
 
     private static JsonObject createItemTable(List<ResourceLocation> itemIds, double rolls) {
