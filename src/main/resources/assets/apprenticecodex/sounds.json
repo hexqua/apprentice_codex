@@ -312,6 +312,13 @@
       "apprenticecodex:mystic_shield_shoot"
     ]
   },
+  "multicast": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.multicast",
+    "sounds": [
+      "apprenticecodex:multicast"
+    ]
+  },
   "smashcast_scepter_smash_air": {
     "_apprentice_codex_note": "ベースはSoundEvents.MACE_SMASH_AIR",
     "category": "player",
