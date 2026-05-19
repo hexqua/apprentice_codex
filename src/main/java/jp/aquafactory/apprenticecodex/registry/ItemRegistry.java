@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.GrimoireManifest;
 import jp.aquafactory.apprenticecodex.item.IlluminateStellarStaff;
 import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
@@ -275,6 +276,8 @@ public final class ItemRegistry {
             ITEMS.register("grimoire_manifest", GrimoireManifest::new);
     public static final DeferredHolder<Item, Item> PASTEL_STAFF =
             ITEMS.register("pastel_staff", PastelStaff::new);
+    public static final DeferredHolder<Item, Item> MULTICAST_ECHO_STAFF =
+            ITEMS.register("multicast_echo_staff", MulticastEchoStaff::new);
     public static final DeferredHolder<Item, Item> FOCUS_STAFFBOW =
             ITEMS.register("focus_staffbow", FocusStaffbow::new);
     public static final DeferredHolder<Item, Item> SMASHCAST_SCEPTER =

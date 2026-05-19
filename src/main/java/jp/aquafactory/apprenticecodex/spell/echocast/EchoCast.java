@@ -6,9 +6,16 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.effect.EchoSpell;
+import jp.aquafactory.apprenticecodex.item.MulticastEchoStaff;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 
@@ -76,7 +83,36 @@ public class EchoCast extends AbstractSpell {
     }
 
     @Override
+    public final boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        if (hasMulticastEchoStaffInHands(entity)) {
+            return true;
+        }
+
+        if (entity instanceof ServerPlayer serverPlayer) {
+            serverPlayer.displayClientMessage(Component.translatable("ui.apprenticecodex.echo_cast.not_match_staff")
+                    .withStyle(ChatFormatting.RED), true);
+        }
+        return false;
+    }
+
+    @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        var existingEffect = entity.getEffect(EffectRegistry.ECHO_SPELL.get());
+        var amplifier = existingEffect == null ? 0 : existingEffect.getAmplifier() + 1;
+        entity.addEffect(new MobEffectInstance(EffectRegistry.ECHO_SPELL.get(), EchoSpell.DURATION_TICKS, amplifier));
+
+        if (entity instanceof ServerPlayer serverPlayer) {
+            serverPlayer.displayClientMessage(Component.translatable(
+                    "ui.apprenticecodex.echo_cast.current_count",
+                    amplifier + 1
+            ).withStyle(ChatFormatting.GREEN), true);
+        }
+
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    }
+
+    private static boolean hasMulticastEchoStaffInHands(LivingEntity entity) {
+        return MulticastEchoStaff.isMulticastEchoStaff(entity.getMainHandItem())
+                || MulticastEchoStaff.isMulticastEchoStaff(entity.getOffhandItem());
     }
 }

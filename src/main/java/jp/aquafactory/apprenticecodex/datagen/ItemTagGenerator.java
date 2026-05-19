@@ -85,6 +85,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     protected void addTags(@NotNull HolderLookup.Provider provider) {
         tag(IRONS_STAFF).add(
                 ItemRegistry.PASTEL_STAFF.get(),
+                ItemRegistry.MULTICAST_ECHO_STAFF.get(),
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
                 ItemRegistry.ILLUMINATE_STELLAR_STAFF.get(),
                 ItemRegistry.UNITE_LUNA_STAFF.get(),
@@ -135,6 +136,16 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaFireAspectEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         vanillaWeaponEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
+
+        // Multicast Echo Staff は StaffItem 継承だが、1.21.1 の tag 駆動 enchant と互換 MOD 判定にも明示登録する。
+        malumMagicCapableWeaponTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        malumSoulShatterCapableWeaponTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        tomagicReversalWeaponTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        wisdomEnchantableTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        vanillaSwordEnchantableTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        vanillaFireAspectEnchantableTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        vanillaSharpWeaponEnchantableTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        vanillaWeaponEnchantableTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
 
         // Smashcast Scepter はメイス相当の武器として、sword/sharp_weapon には入れずバニラメイスと同じ面を通す。
         tomagicReversalWeaponTag.add(ItemRegistry.SMASHCAST_SCEPTER.get());
