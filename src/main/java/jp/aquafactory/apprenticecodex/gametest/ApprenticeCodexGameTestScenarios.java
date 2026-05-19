@@ -41,6 +41,7 @@ import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
 import jp.aquafactory.apprenticecodex.event.ErrandMageVillagerTradesEvent;
+import jp.aquafactory.apprenticecodex.event.errandmage.ErrandMageTradeManager;
 import jp.aquafactory.apprenticecodex.event.ScrollcasterGauntletGrindstoneEvent;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
@@ -636,19 +637,21 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(scrollOffer.satisfiedBy(taggedScroll, new ItemStack(Items.EMERALD, 16)),
                     "Tagged scroll should satisfy the errand mage ink trade even when the saved cost stack has tags");
 
+            var trades = createEmptyVillagerTrades();
+            ErrandMageVillagerTradesEvent.onVillagerTrades(
+                    new VillagerTradesEvent(trades, VillagerProfessionRegistry.ERRAND_MAGE.get())
+            );
+            var tarnishedCrownOffer = createOffers(trades.get(4), 0L).stream()
+                    .filter(offer -> offer.getBaseCostA().is(io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get()))
+                    .findFirst()
+                    .orElse(null);
+            helper.assertTrue(tarnishedCrownOffer != null, "Errand Mage level 4 should buy Tarnished Crowns");
+            helper.assertTrue(ErrandMageTradeManager.shouldIgnorePaymentTags(io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get()),
+                    "Errand Mage Tarnished Crown trade should ignore payment tags");
             var taggedTarnishedCrown = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get());
             taggedTarnishedCrown.getOrCreateTag().putString("apprenticecodex_test", "tagged");
-            var taggedTarnishedCrownCost = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get());
-            taggedTarnishedCrownCost.getOrCreateTag().putString("apprenticecodex_test", "legacy_cost");
-            var tarnishedCrownOffer = new MerchantOffer(
-                    taggedTarnishedCrownCost,
-                    new ItemStack(Items.EMERALD, 32),
-                    3,
-                    5,
-                    0.05F
-            );
             helper.assertTrue(tarnishedCrownOffer.satisfiedBy(taggedTarnishedCrown, ItemStack.EMPTY),
-                    "Tagged Tarnished Crown should satisfy saved legacy errand mage buy trades");
+                    "Tagged Tarnished Crown should satisfy the current errand mage buy trade");
         });
     }
     static void errandMageTradesMatchExpectedOffers(GameTestHelper helper) {
@@ -692,9 +695,12 @@ public final class ApprenticeCodexGameTestScenarios {
                     12,
                     "Errand Mage level 2 trades should always sell Basic Spellcaster Rounds");
 
-            helper.assertFalse(hasBaseCostItem(createOffers(trades.get(4), 0L),
-                            io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get()),
-                    "Errand Mage level 4 trades should not buy Tarnished Crowns");
+            assertContainsOffer(helper, createOffers(trades.get(4), 0L),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get()),
+                    ItemStack.EMPTY,
+                    new ItemStack(Items.EMERALD, 2),
+                    16,
+                    "Errand Mage level 4 trades should buy Tarnished Crowns for two Emeralds");
             assertContainsOffer(helper, createOffers(trades.get(4), 0L),
                     new ItemStack(Items.EMERALD, 32),
                     ItemStack.EMPTY,
