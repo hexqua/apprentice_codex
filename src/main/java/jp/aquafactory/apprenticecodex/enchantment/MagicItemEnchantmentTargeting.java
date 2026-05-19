@@ -6,8 +6,10 @@ import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
+import jp.aquafactory.apprenticecodex.item.PastelStaff;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
@@ -66,6 +68,8 @@ final class MagicItemEnchantmentTargeting {
         return item instanceof AbstractSpellGunItem
                 || item instanceof ElementalBow
                 || item instanceof ManaForceBlade
+                || item instanceof PastelStaff
+                || item instanceof MulticastEchoStaff
                 || item instanceof MultipurposeStaffrifle
                 || item instanceof ScrollcasterGauntlet
                 || item instanceof AbstractRightClickMagicWeaponItem
@@ -80,6 +84,8 @@ final class MagicItemEnchantmentTargeting {
         return item instanceof AbstractSpellGunItem
                 || item instanceof ElementalBow
                 || item instanceof ManaForceBlade
+                || item instanceof PastelStaff
+                || item instanceof MulticastEchoStaff
                 || item instanceof MultipurposeStaffrifle
                 || item instanceof ScrollcasterGauntlet
                 || item instanceof AbstractRightClickMagicWeaponItem

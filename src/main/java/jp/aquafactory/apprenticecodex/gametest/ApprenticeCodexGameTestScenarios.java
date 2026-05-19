@@ -323,6 +323,7 @@ public final class ApprenticeCodexGameTestScenarios {
     private static final ResourceLocation MALUM_HAUNTED = MalumHauntedCompat.hauntedEnchantmentId();
     private static final ResourceLocation MALUM_ANIMATED = MalumHauntedCompat.animatedEnchantmentId();
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER = ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
+    private static final ResourceLocation MALUM_REPLENISHING = ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "replenishing");
 
     private ApprenticeCodexGameTestScenarios() {
     }
@@ -6254,6 +6255,11 @@ public final class ApprenticeCodexGameTestScenarios {
             WisdomExperienceDropEvent.onBlockBreak(heldExperience);
             helper.assertTrue(heldExperience.getExpToDrop() == 4,
                     "Held Wisdom should increase block experience from 3 to 4 at +20% but got " + heldExperience.getExpToDrop());
+
+            assertHeldWisdomBlockExperience(helper, level, state, ItemRegistry.PASTEL_STAFF.get(), 3, 4,
+                    "Pastel Staff");
+            assertHeldWisdomBlockExperience(helper, level, state, ItemRegistry.MULTICAST_ECHO_STAFF.get(), 3, 4,
+                    "Multicast Echo Staff");
         });
     }
     static void elementalBowHeldWisdomAndPlunderWorkInBothHands(GameTestHelper helper) {
@@ -6304,6 +6310,29 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow offhand Plunder should set looting level to 3 but got " + offhandLootingEvent.getLootingLevel());
         });
     }
+
+    private static void assertHeldWisdomBlockExperience(
+            GameTestHelper helper,
+            ServerLevel level,
+            BlockState state,
+            Item item,
+            int baseExperience,
+            int expectedExperience,
+            String itemName
+    ) {
+        var player = new FakePlayer(level, new GameProfile(UUID.randomUUID(), itemName.toLowerCase().replace(' ', '_') + "_wisdom_test"));
+        var stack = new ItemStack(item);
+        stack.enchant(EnchantmentRegistry.WISDOM.get(), 1);
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+        var event = new BlockEvent.BreakEvent(level, new BlockPos(5, 2, 0), state, player);
+        event.setExpToDrop(baseExperience);
+        WisdomExperienceDropEvent.onBlockBreak(event);
+        helper.assertTrue(event.getExpToDrop() == expectedExperience,
+                itemName + " Wisdom should increase block experience from " + baseExperience
+                        + " to " + expectedExperience + " but got " + event.getExpToDrop());
+    }
+
     static void craftsmansDelightAppliesToExternalSpellManaAndCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "craftsmans_external_spell_discount_test");
@@ -10057,72 +10086,140 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void pastelStaffKeepsItsLocalEnchantingRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
-            var item = stack.getItem();
-            var expectedVanillaEnchantments = Set.of(
-                    ResourceLocation.withDefaultNamespace("fortune"),
-                    ResourceLocation.withDefaultNamespace("knockback"),
-                    ResourceLocation.withDefaultNamespace("looting"),
-                    ResourceLocation.withDefaultNamespace("silk_touch")
-            );
+            var pastelStack = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
+            var multicastStack = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
 
-            var actualAllowedVanillaEnchantments = collectAllowedEnchantments(
-                    stack,
-                    enchantment -> {
-                        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-                        return enchantmentId != null
-                                && VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())
-                                && item.canApplyAtEnchantingTable(stack, enchantment);
-                    }
-            );
-            helper.assertTrue(actualAllowedVanillaEnchantments.equals(expectedVanillaEnchantments),
-                    "Pastel Staff allowed vanilla enchantments changed: "
-                            + describeEnchantmentDifference(expectedVanillaEnchantments, actualAllowedVanillaEnchantments));
-
-            // Iron's StaffItem 側の広い互換性は 1.21.1 で揺れやすいため固定せず、
-            // この mod が明示したバニラ武器許可と耐久系拒否だけを回帰監視する。
-            for (var enchantment : getRegisteredEnchantments()) {
-                var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-                if (enchantmentId == null) {
-                    continue;
-                }
-
-                var expectedVanillaAllowed = VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())
-                        && expectedVanillaEnchantments.contains(enchantmentId);
-                if (VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())) {
-                    helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment) == expectedVanillaAllowed,
-                            "Pastel Staff vanilla enchanting-table rule changed for " + enchantmentId
-                                    + ": expected " + expectedVanillaAllowed);
-                    helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)) == expectedVanillaAllowed,
-                            "Pastel Staff vanilla book rule changed for " + enchantmentId
-                                    + ": expected " + expectedVanillaAllowed);
-                }
-
-                if (isDurabilityTargetEnchantment(enchantment)) {
-                    helper.assertFalse(item.canApplyAtEnchantingTable(stack, enchantment),
-                            "Pastel Staff should keep rejecting durability-target enchantments at the enchanting table: "
-                                    + enchantmentId);
-                    helper.assertFalse(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
-                            "Pastel Staff should keep rejecting durability-target enchantments from books: "
-                                    + enchantmentId);
-                }
-
-                if (MALUM_HAUNTED.equals(enchantmentId)) {
-                    helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment),
-                            "Pastel Staff should allow malum:haunted at the enchanting table");
-                    helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
-                            "Pastel Staff should allow malum:haunted from books");
-                }
-
-                if (MALUM_ANIMATED.equals(enchantmentId)) {
-                    helper.assertFalse(item.canApplyAtEnchantingTable(stack, enchantment),
-                            "Pastel Staff should keep rejecting malum:animated at the enchanting table");
-                    helper.assertFalse(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
-                            "Pastel Staff should keep rejecting malum:animated from books");
-                }
-            }
+            assertStaffKeepsExpectedEnchantingRules(helper, pastelStack, "Pastel Staff");
+            assertStaffKeepsExpectedEnchantingRules(helper, multicastStack, "Multicast Echo Staff");
+            assertEnchantingSurfacesMatch(helper, pastelStack, multicastStack, "Pastel Staff", "Multicast Echo Staff");
         });
     }
+
+    private static void assertStaffKeepsExpectedEnchantingRules(
+            GameTestHelper helper,
+            ItemStack stack,
+            String itemName
+    ) {
+        var item = stack.getItem();
+        var expectedVanillaEnchantments = Set.of(
+                ResourceLocation.withDefaultNamespace("fortune"),
+                ResourceLocation.withDefaultNamespace("knockback"),
+                ResourceLocation.withDefaultNamespace("looting"),
+                ResourceLocation.withDefaultNamespace("silk_touch")
+        );
+
+        var actualAllowedVanillaEnchantments = collectAllowedEnchantments(
+                stack,
+                enchantment -> {
+                    var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+                    return enchantmentId != null
+                            && VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())
+                            && item.canApplyAtEnchantingTable(stack, enchantment);
+                }
+        );
+        helper.assertTrue(actualAllowedVanillaEnchantments.equals(expectedVanillaEnchantments),
+                itemName + " allowed vanilla enchantments changed: "
+                        + describeEnchantmentDifference(expectedVanillaEnchantments, actualAllowedVanillaEnchantments));
+
+        // Iron's StaffItem 側の広い互換性は 1.21.1 で揺れやすいため固定せず、
+        // この mod が明示した許可/拒否だけを回帰監視する。
+        for (var enchantment : getRegisteredEnchantments()) {
+            var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+            if (enchantmentId == null) {
+                continue;
+            }
+
+            var expectedVanillaAllowed = VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())
+                    && expectedVanillaEnchantments.contains(enchantmentId);
+            if (VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())) {
+                helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment) == expectedVanillaAllowed,
+                        itemName + " vanilla enchanting-table rule changed for " + enchantmentId
+                                + ": expected " + expectedVanillaAllowed);
+                helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)) == expectedVanillaAllowed,
+                        itemName + " vanilla book rule changed for " + enchantmentId
+                                + ": expected " + expectedVanillaAllowed);
+            }
+
+            if (isDurabilityTargetEnchantment(enchantment)) {
+                helper.assertFalse(item.canApplyAtEnchantingTable(stack, enchantment),
+                        itemName + " should keep rejecting durability-target enchantments at the enchanting table: "
+                                + enchantmentId);
+                helper.assertFalse(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                        itemName + " should keep rejecting durability-target enchantments from books: "
+                                + enchantmentId);
+            }
+
+            if (MALUM_HAUNTED.equals(enchantmentId)) {
+                helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment),
+                        itemName + " should allow malum:haunted at the enchanting table");
+                helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                        itemName + " should allow malum:haunted from books");
+            }
+
+            if (MALUM_SPIRIT_PLUNDER.equals(enchantmentId)) {
+                helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment),
+                        itemName + " should allow malum:spirit_plunder at the enchanting table");
+                helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                        itemName + " should allow malum:spirit_plunder from books");
+            }
+
+            if (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get()) {
+                helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment),
+                        itemName + " should allow apprenticecodex:wisdom at the enchanting table");
+                helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                        itemName + " should allow apprenticecodex:wisdom from books");
+            }
+
+            if (MALUM_ANIMATED.equals(enchantmentId)) {
+                helper.assertFalse(item.canApplyAtEnchantingTable(stack, enchantment),
+                        itemName + " should keep rejecting malum:animated at the enchanting table");
+                helper.assertFalse(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                        itemName + " should keep rejecting malum:animated from books");
+            }
+
+            if (MALUM_REPLENISHING.equals(enchantmentId)) {
+                helper.assertFalse(item.canApplyAtEnchantingTable(stack, enchantment),
+                        itemName + " should reject non-functional malum:replenishing at the enchanting table");
+                helper.assertFalse(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                        itemName + " should reject non-functional malum:replenishing from books");
+            }
+        }
+    }
+
+    private static void assertEnchantingSurfacesMatch(
+            GameTestHelper helper,
+            ItemStack leftStack,
+            ItemStack rightStack,
+            String leftName,
+            String rightName
+    ) {
+        var leftItem = leftStack.getItem();
+        var rightItem = rightStack.getItem();
+        var leftTableEnchantments = collectAllowedEnchantments(
+                leftStack,
+                enchantment -> leftItem.canApplyAtEnchantingTable(leftStack, enchantment)
+        );
+        var rightTableEnchantments = collectAllowedEnchantments(
+                rightStack,
+                enchantment -> rightItem.canApplyAtEnchantingTable(rightStack, enchantment)
+        );
+        helper.assertTrue(leftTableEnchantments.equals(rightTableEnchantments),
+                rightName + " enchanting-table surface should match " + leftName + ": "
+                        + describeEnchantmentDifference(leftTableEnchantments, rightTableEnchantments));
+
+        var leftBookEnchantments = collectAllowedEnchantments(
+                leftStack,
+                enchantment -> leftItem.isBookEnchantable(leftStack, createEnchantedBook(enchantment))
+        );
+        var rightBookEnchantments = collectAllowedEnchantments(
+                rightStack,
+                enchantment -> rightItem.isBookEnchantable(rightStack, createEnchantedBook(enchantment))
+        );
+        helper.assertTrue(leftBookEnchantments.equals(rightBookEnchantments),
+                rightName + " book surface should match " + leftName + ": "
+                        + describeEnchantmentDifference(leftBookEnchantments, rightBookEnchantments));
+    }
+
     static void circuitHeatStaffKeepsExpectedStatsAndEnchantingRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
@@ -10912,6 +11009,13 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Pastel Staff should be a supported Haunted main hand item");
             helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(pastelStaff) > 0.0D,
                     "Pastel Staff should resolve a positive Haunted magic damage bonus");
+
+            var multicastEchoStaff = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+            multicastEchoStaff.enchant(haunted, 1);
+            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(multicastEchoStaff),
+                    "Multicast Echo Staff should be a supported Haunted main hand item");
+            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(multicastEchoStaff) > 0.0D,
+                    "Multicast Echo Staff should resolve a positive Haunted magic damage bonus");
 
             var crystalBladedStaff = new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
             crystalBladedStaff.enchant(haunted, 1);
