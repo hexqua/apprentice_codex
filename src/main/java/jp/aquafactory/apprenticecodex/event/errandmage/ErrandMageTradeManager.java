@@ -36,9 +36,6 @@ public final class ErrandMageTradeManager extends SimpleJsonResourceReloadListen
 
     private static final Gson GSON = new GsonBuilder().create();
     private static final ErrandMageTradeManager INSTANCE = new ErrandMageTradeManager();
-    private static final Set<ResourceLocation> LEGACY_IGNORE_NBT_PAYMENT_ITEM_IDS = Set.of(
-            ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "tarnished_helmet")
-    );
     private static volatile List<ErrandMageTradeDefinition> definitions = List.of();
     private static volatile Set<Item> ignoreNbtPaymentItems = Set.of();
 
@@ -63,8 +60,7 @@ public final class ErrandMageTradeManager extends SimpleJsonResourceReloadListen
     }
 
     public static boolean shouldIgnorePaymentTags(Item item) {
-        return ignoreNbtPaymentItems.contains(item)
-                || LEGACY_IGNORE_NBT_PAYMENT_ITEM_IDS.contains(BuiltInRegistries.ITEM.getKey(item));
+        return ignoreNbtPaymentItems.contains(item);
     }
 
     private static VillagerTrades.ItemListing createListing(ErrandMageTradeDefinition definition) {
