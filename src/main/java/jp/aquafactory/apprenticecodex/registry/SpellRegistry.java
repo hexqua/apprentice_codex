@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhial;
 import jp.aquafactory.apprenticecodex.spell.deepsensor.DeepSensor;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWings;
 import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
+import jp.aquafactory.apprenticecodex.spell.echocast.EchoCast;
 import jp.aquafactory.apprenticecodex.spell.extract.Extract;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRush;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatter;
@@ -147,4 +148,5 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> MOON_LIGHT = reg("moon_light", MoonLight::new);
     public static final RegistryObject<AbstractSpell> DEEP_SENSOR = reg("deep_sensor", DeepSensor::new);
     public static final RegistryObject<AbstractSpell> SPECTRAL_WING = reg("spectral_wing", SpectralWing::new);
+    public static final RegistryObject<AbstractSpell> ECHO_CAST = reg("echo_cast", EchoCast::new);
 }
