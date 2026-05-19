@@ -131,6 +131,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void bonusChestLootIncludesIsekaiTravelGuidebook(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.bonusChestLootIncludesIsekaiTravelGuidebook(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void ironsStructureLootIncludesApprenticeCurioBonusDrops(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.ironsStructureLootIncludesApprenticeCurioBonusDrops(helper);
     }

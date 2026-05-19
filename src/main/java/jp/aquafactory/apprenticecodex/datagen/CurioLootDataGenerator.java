@@ -26,6 +26,8 @@ public final class CurioLootDataGenerator implements DataProvider {
 
     private static final ResourceLocation BASIC_CURIOS_BONUS =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "magic_items/basic_curios_bonus");
+    private static final ResourceLocation ISEKAI_TRAVEL_GUIDEBOOK_BONUS_CHEST =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "chests/isekai_travel_guidebook_bonus_chest");
     private static final ResourceLocation APPRENTICE_CURIO_LOOT_CHANCE_CONDITION =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "apprentice_curio_loot_chance");
 
@@ -42,6 +44,8 @@ public final class CurioLootDataGenerator implements DataProvider {
         var futures = new ArrayList<CompletableFuture<?>>();
 
         futures.add(saveLootTable(cachedOutput, BASIC_CURIOS_BONUS, createBasicCuriosBonusTable()));
+        futures.add(saveLootTable(cachedOutput, ISEKAI_TRAVEL_GUIDEBOOK_BONUS_CHEST,
+                createItemTable(List.of(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.getId()), 1.0D)));
 
         futures.add(saveLootModifier(cachedOutput,
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "add_apprentice_curios_to_generic_loot"),
@@ -180,6 +184,12 @@ public final class CurioLootDataGenerator implements DataProvider {
                         createChanceWrappedLootTableId("catacombs_wall"),
                         basicCurioEquivalentChance(0.35D)
                 )));
+        futures.add(saveLootModifier(cachedOutput,
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "add_isekai_travel_guidebook_to_bonus_chest"),
+                createAppendLootModifier(
+                        List.of(ResourceLocation.withDefaultNamespace("chests/spawn_bonus_chest")),
+                        ISEKAI_TRAVEL_GUIDEBOOK_BONUS_CHEST
+                )));
         futures.add(DataProvider.saveStable(cachedOutput, createGlobalLootModifierList(), lootModifierPathProvider.json(
                 ResourceLocation.fromNamespaceAndPath("forge", "global_loot_modifiers")
         )));
@@ -231,7 +241,8 @@ public final class CurioLootDataGenerator implements DataProvider {
                 "apprenticecodex:add_apprentice_curios_to_mountain_tower",
                 "apprenticecodex:add_apprentice_curios_to_nature_fire_loot",
                 "apprenticecodex:add_apprentice_curios_to_catacombs_crypt",
-                "apprenticecodex:add_apprentice_curios_to_catacombs_wall"
+                "apprenticecodex:add_apprentice_curios_to_catacombs_wall",
+                "apprenticecodex:add_isekai_travel_guidebook_to_bonus_chest"
         )) {
             entries.add(id);
         }
@@ -288,6 +299,19 @@ public final class CurioLootDataGenerator implements DataProvider {
         var conditions = new JsonArray();
         conditions.add(createLootTableCondition(lootTableIds));
         conditions.add(createApprenticeCurioLootChanceCondition(chance));
+        root.add("conditions", conditions);
+        root.addProperty("key", key.toString());
+        return root;
+    }
+
+    private static JsonObject createAppendLootModifier(
+            List<ResourceLocation> lootTableIds,
+            ResourceLocation key
+    ) {
+        var root = new JsonObject();
+        root.addProperty("type", "irons_spellbooks:append_loot");
+        var conditions = new JsonArray();
+        conditions.add(createLootTableCondition(lootTableIds));
         root.add("conditions", conditions);
         root.addProperty("key", key.toString());
         return root;

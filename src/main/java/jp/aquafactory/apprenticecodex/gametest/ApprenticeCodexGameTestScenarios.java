@@ -3396,6 +3396,15 @@ public final class ApprenticeCodexGameTestScenarios {
                 )
         ));
     }
+    static void bonusChestLootIncludesIsekaiTravelGuidebook(GameTestHelper helper) {
+        helper.succeedIf(() -> assertLootTableGeneratesAllItems(
+                helper,
+                ResourceLocation.withDefaultNamespace("chests/spawn_bonus_chest"),
+                createChestLootParams(helper),
+                1,
+                List.of(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get())
+        ));
+    }
     static void ironsStructureLootIncludesApprenticeCurioBonusDrops(GameTestHelper helper) {
         helper.succeedIf(() -> assertLootTableGeneratesAnyItem(
                 helper,
