@@ -102,6 +102,23 @@
       "price_multiplier": 0.05
     },
     {
+      "type": "buy",
+      "level": 4,
+      "costs": [
+        {
+          "item": "irons_spellbooks:tarnished_helmet",
+          "ignore_nbt": true
+        }
+      ],
+      "result": {
+        "item": "minecraft:emerald",
+        "count": 2
+      },
+      "max_uses": 16,
+      "xp": 2,
+      "price_multiplier": 0.05
+    },
+    {
       "type": "sell",
       "level": 4,
       "costs": [
