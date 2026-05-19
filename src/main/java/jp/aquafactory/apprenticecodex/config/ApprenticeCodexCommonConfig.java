@@ -10,17 +10,11 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public final class ApprenticeCodexCommonConfig {
     public static final ModConfigSpec SPEC;
 
-    private static final ModConfigSpec.BooleanValue DISABLE_ARCANUM_IN_A_JAR_RECIPE;
-    private static final ModConfigSpec.BooleanValue DISABLE_EXPLORERS_CODEX_RECIPE;
     private static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> SCHOOL_AFFINITY_PRIORITY;
     private static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> SCHOOL_AFFINITY_DENY;
 
     static {
         var builder = new ModConfigSpec.Builder();
-        builder.push("Items");
-        DISABLE_ARCANUM_IN_A_JAR_RECIPE = builder.define("disableArcanumInAJarRecipe", false);
-        DISABLE_EXPLORERS_CODEX_RECIPE = builder.define("disableExplorersCodexRecipe", false);
-        builder.pop();
         builder.comment(
                         "Entries for schoolAffinityPriority and schoolAffinityDeny use \"modid:school_id\".",
                         "If non-empty files exist under \"data/" + ApprenticeCodex.MODID + "/school_affinity_policies/*.json\", those files take precedence."
@@ -40,14 +34,6 @@ public final class ApprenticeCodexCommonConfig {
     public static void register(IEventBus modEventBus) {
         modEventBus.addListener(ApprenticeCodexCommonConfig::onConfigLoading);
         modEventBus.addListener(ApprenticeCodexCommonConfig::onConfigReloading);
-    }
-
-    public static boolean disableArcanumInAJarRecipe() {
-        return DISABLE_ARCANUM_IN_A_JAR_RECIPE.get();
-    }
-
-    public static boolean disableExplorersCodexRecipe() {
-        return DISABLE_EXPLORERS_CODEX_RECIPE.get();
     }
 
     public static java.util.List<String> schoolAffinityPriority() {

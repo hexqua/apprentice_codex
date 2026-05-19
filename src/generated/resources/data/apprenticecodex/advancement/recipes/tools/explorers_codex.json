@@ -1,9 +1,4 @@
 {
-  "neoforge:conditions": [
-    {
-      "type": "apprenticecodex:explorers_codex_recipe_enabled"
-    }
-  ],
   "parent": "minecraft:recipes/root",
   "criteria": {
     "has_copper_spell_book": {
