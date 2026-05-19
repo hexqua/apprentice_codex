@@ -4,14 +4,9 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class IsekaiTravelGuidebookServerConfig {
     private final ModConfigSpec.BooleanValue showTooltip;
-    private final ModConfigSpec.BooleanValue enableBonusChestLoot;
 
-    private IsekaiTravelGuidebookServerConfig(
-            ModConfigSpec.BooleanValue showTooltip,
-            ModConfigSpec.BooleanValue enableBonusChestLoot
-    ) {
+    private IsekaiTravelGuidebookServerConfig(ModConfigSpec.BooleanValue showTooltip) {
         this.showTooltip = showTooltip;
-        this.enableBonusChestLoot = enableBonusChestLoot;
     }
 
     public static IsekaiTravelGuidebookServerConfig define(ModConfigSpec.Builder builder) {
@@ -19,19 +14,12 @@ public final class IsekaiTravelGuidebookServerConfig {
         var showTooltip = builder
                 .comment("Show a tooltip on the Isekai Travel Guidebook. Disable this if it feels too intrusive.")
                 .define("showTooltip", true);
-        var enableBonusChestLoot = builder
-                .comment("Add the Isekai Travel Guidebook to bonus chest loot.")
-                .define("enableBonusChestLoot", true);
         builder.pop();
 
-        return new IsekaiTravelGuidebookServerConfig(showTooltip, enableBonusChestLoot);
+        return new IsekaiTravelGuidebookServerConfig(showTooltip);
     }
 
     public boolean showTooltip() {
         return showTooltip.get();
-    }
-
-    public boolean enableBonusChestLoot() {
-        return enableBonusChestLoot.get();
     }
 }

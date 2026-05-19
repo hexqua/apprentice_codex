@@ -26,7 +26,6 @@ import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.PoiTypeRegistry;
 import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
-import jp.aquafactory.apprenticecodex.registry.RecipeConditionRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
@@ -70,7 +69,6 @@ public class ApprenticeCodex
         EpicFightCompat.register(modEventBus);
         ParticleRegistry.PARTICLES.register(modEventBus);
         RecipeRegistry.register(modEventBus);
-        RecipeConditionRegistry.register(modEventBus);
         LootConditionRegistry.register(modEventBus);
         GlobalLootModifierRegistry.register(modEventBus);
         AttachmentRegistry.register(modEventBus);

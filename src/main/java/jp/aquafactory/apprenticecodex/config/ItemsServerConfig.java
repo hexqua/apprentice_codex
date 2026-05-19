@@ -151,10 +151,6 @@ final class ItemsServerConfig {
         return isekaiTravelGuidebookConfig.showTooltip();
     }
 
-    boolean enableIsekaiTravelGuidebookBonusChestLoot() {
-        return isekaiTravelGuidebookConfig.enableBonusChestLoot();
-    }
-
     float manaForceBladeImbueDamageMultiplierScale() {
         return manaForceBladeConfig.imbueDamageMultiplierScale();
     }
