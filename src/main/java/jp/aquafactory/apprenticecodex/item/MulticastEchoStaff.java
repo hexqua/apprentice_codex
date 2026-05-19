@@ -16,6 +16,8 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -89,6 +91,32 @@ public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpe
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
+    }
+
+    @Override
+    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
+        return StaffEnchantmentTargeting.canApplyAtEnchantingTable(stack, enchantment);
+    }
+
+    @Override
+    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+        if (!super.isBookEnchantable(stack, book)) {
+            return false;
+        }
+
+        var enchantments = EnchantmentHelper.getEnchantments(book);
+        if (enchantments.isEmpty()) {
+            return true;
+        }
+
+        return enchantments.keySet().stream()
+                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
+    }
+
+    @Override
+    public int getEnchantmentValue(ItemStack stack) {
+        // Pastel Staff と同じく金ツール相当。
+        return 22;
     }
 
     public static boolean isMulticastEchoStaff(ItemStack stack) {
