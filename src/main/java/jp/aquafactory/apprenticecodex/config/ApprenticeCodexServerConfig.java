@@ -217,10 +217,6 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.showIsekaiTravelGuidebookTooltip();
     }
 
-    public static boolean enableIsekaiTravelGuidebookBonusChestLoot() {
-        return ITEMS_CONFIG.enableIsekaiTravelGuidebookBonusChestLoot();
-    }
-
     public static boolean enableApprenticeCurioLoot() {
         return LOOT_CONFIG.enableApprenticeCurioLoot();
     }

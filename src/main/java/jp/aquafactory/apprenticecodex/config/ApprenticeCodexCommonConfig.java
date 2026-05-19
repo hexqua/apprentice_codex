@@ -11,17 +11,11 @@ import net.minecraftforge.fml.event.config.ModConfigEvent;
 public final class ApprenticeCodexCommonConfig {
     public static final ForgeConfigSpec SPEC;
 
-    private static final ForgeConfigSpec.BooleanValue DISABLE_ARCANUM_IN_A_JAR_RECIPE;
-    private static final ForgeConfigSpec.BooleanValue DISABLE_EXPLORERS_CODEX_RECIPE;
     private static final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> SCHOOL_AFFINITY_PRIORITY;
     private static final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> SCHOOL_AFFINITY_DENY;
 
     static {
         var builder = new ForgeConfigSpec.Builder();
-        builder.push("Items");
-        DISABLE_ARCANUM_IN_A_JAR_RECIPE = builder.define("disableArcanumInAJarRecipe", false);
-        DISABLE_EXPLORERS_CODEX_RECIPE = builder.define("disableExplorersCodexRecipe", false);
-        builder.pop();
         builder.comment(
                         "Entries for schoolAffinityPriority and schoolAffinityDeny use \"modid:school_id\".",
                         "If non-empty files exist under \"data/" + jp.aquafactory.apprenticecodex.ApprenticeCodex.MODID + "/school_affinity_policies/*.json\", those files take precedence."
@@ -36,14 +30,6 @@ public final class ApprenticeCodexCommonConfig {
     }
 
     private ApprenticeCodexCommonConfig() {
-    }
-
-    public static boolean disableArcanumInAJarRecipe() {
-        return DISABLE_ARCANUM_IN_A_JAR_RECIPE.get();
-    }
-
-    public static boolean disableExplorersCodexRecipe() {
-        return DISABLE_EXPLORERS_CODEX_RECIPE.get();
     }
 
     public static java.util.List<String> schoolAffinityPriority() {

@@ -29,7 +29,6 @@ public class ApprenticeCodex
         context.registerConfig(ModConfig.Type.CLIENT, ApprenticeCodexClientConfig.SPEC);
         context.registerConfig(ModConfig.Type.COMMON, ApprenticeCodexCommonConfig.SPEC);
         context.registerConfig(ModConfig.Type.SERVER, ApprenticeCodexServerConfig.SPEC);
-        RecipeConditionRegistry.register();
 
         var bus = context.getModEventBus();
         SpellRegistry.register(bus);
