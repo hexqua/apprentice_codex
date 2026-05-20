@@ -36,7 +36,6 @@ import java.util.concurrent.ConcurrentMap;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class MulticastEchoStaffCastHelper {
-    private static final double FINAL_COOLDOWN_MULTIPLIER_PER_CAST = 1.2D;
     private static final ConcurrentMap<UUID, PreCastEchoContext> PRE_CAST_CONTEXTS = new ConcurrentHashMap<>();
     private static final ConcurrentMap<UUID, ActiveNormalCastContext> ACTIVE_NORMAL_CASTS = new ConcurrentHashMap<>();
     private static final ConcurrentMap<UUID, MulticastJob> MULTICAST_JOBS = new ConcurrentHashMap<>();
@@ -109,7 +108,7 @@ public final class MulticastEchoStaffCastHelper {
         player.removeEffect(EffectRegistry.ECHO_SPELL.get());
         PRE_CAST_CONTEXTS.remove(player.getUUID());
 
-        var remainingCasts = context.amplifier() + 1;
+        var remainingCasts = Math.min(context.amplifier() + 1, ApprenticeCodexServerConfig.multicastEchoStaffMaxMulticastCount());
         if (remainingCasts <= 0) {
             finishMulticast(player, context.toFinishedJob(level.getGameTime()), spell);
             return;
@@ -205,7 +204,7 @@ public final class MulticastEchoStaffCastHelper {
 
         var finalContext = FINAL_COOLDOWN_CONTEXTS.get(player.getUUID());
         if (finalContext != null && finalContext.spellId().equals(event.getSpell().getSpellId())) {
-            event.setEffectiveCooldown((int) Math.ceil(event.getEffectiveCooldown() * finalContext.multiplier()));
+            event.setEffectiveCooldown(resolveFinalCooldown(event.getEffectiveCooldown(), event.getSpell(), player, finalContext));
             FINAL_COOLDOWN_CONTEXTS.remove(player.getUUID(), finalContext);
             return;
         }
@@ -317,11 +316,30 @@ public final class MulticastEchoStaffCastHelper {
 
     private static void finishMulticast(ServerPlayer player, MulticastJob job, AbstractSpell spell) {
         MULTICAST_JOBS.remove(player.getUUID(), job);
-        var multiplier = (job.amplifier() + 2) * FINAL_COOLDOWN_MULTIPLIER_PER_CAST;
-        var context = new FinalCooldownContext(job.spellId(), multiplier);
+        var context = new FinalCooldownContext(job.spellId(), job.spellLevel(), job.amplifier());
         FINAL_COOLDOWN_CONTEXTS.put(player.getUUID(), context);
         MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, job.castSource());
         FINAL_COOLDOWN_CONTEXTS.remove(player.getUUID(), context);
+    }
+
+    private static int resolveFinalCooldown(
+            int baseCooldown,
+            AbstractSpell spell,
+            ServerPlayer player,
+            FinalCooldownContext context
+    ) {
+        var cooldownCapTicks = ApprenticeCodexServerConfig.multicastEchoStaffCooldownCapTicks();
+        if (baseCooldown > cooldownCapTicks) {
+            return baseCooldown;
+        }
+
+        var cooldownComponent = (context.amplifier() + 2)
+                * ApprenticeCodexServerConfig.multicastEchoStaffCooldownMultiplier()
+                * baseCooldown;
+        var castTimeComponent = (context.amplifier() + 1)
+                * ApprenticeCodexServerConfig.multicastEchoStaffCastTimeCooldownMultiplier()
+                * spell.getEffectiveCastTime(context.spellLevel(), player);
+        return Math.min(cooldownCapTicks, (int) Math.ceil(cooldownComponent + castTimeComponent));
     }
 
     @SubscribeEvent
@@ -371,6 +389,6 @@ public final class MulticastEchoStaffCastHelper {
         }
     }
 
-    private record FinalCooldownContext(String spellId, double multiplier) {
+    private record FinalCooldownContext(String spellId, int spellLevel, int amplifier) {
     }
 }

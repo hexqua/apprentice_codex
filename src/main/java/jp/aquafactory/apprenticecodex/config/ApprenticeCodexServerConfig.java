@@ -257,6 +257,22 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.multicastEchoStaffDelayTicks();
     }
 
+    public static double multicastEchoStaffCooldownMultiplier() {
+        return ITEMS_CONFIG.multicastEchoStaffCooldownMultiplier();
+    }
+
+    public static double multicastEchoStaffCastTimeCooldownMultiplier() {
+        return ITEMS_CONFIG.multicastEchoStaffCastTimeCooldownMultiplier();
+    }
+
+    public static int multicastEchoStaffCooldownCapTicks() {
+        return ITEMS_CONFIG.multicastEchoStaffCooldownCapTicks();
+    }
+
+    public static int multicastEchoStaffMaxMulticastCount() {
+        return ITEMS_CONFIG.multicastEchoStaffMaxMulticastCount();
+    }
+
     public static int multipurposeStaffrifleCooldownBypassThresholdTicks() {
         return ITEMS_CONFIG.multipurposeStaffrifleCooldownBypassThresholdTicks();
     }
@@ -283,6 +299,35 @@ public final class ApprenticeCodexServerConfig {
         var previousSpellDenylist = ITEMS_CONFIG.multipurposeStaffrifleSpellDenylist();
         ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(spellDenylist);
         return () -> ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(previousSpellDenylist);
+    }
+
+    public static GameTestConfigOverride useMulticastEchoStaffConfigOverrideForGameTest(
+            int multicastDelayTicks,
+            double cooldownMultiplier,
+            double castTimeCooldownMultiplier,
+            int cooldownCapTicks,
+            int maxMulticastCount
+    ) {
+        var previousMulticastDelayTicks = ITEMS_CONFIG.multicastEchoStaffDelayTicks();
+        var previousCooldownMultiplier = ITEMS_CONFIG.multicastEchoStaffCooldownMultiplier();
+        var previousCastTimeCooldownMultiplier = ITEMS_CONFIG.multicastEchoStaffCastTimeCooldownMultiplier();
+        var previousCooldownCapTicks = ITEMS_CONFIG.multicastEchoStaffCooldownCapTicks();
+        var previousMaxMulticastCount = ITEMS_CONFIG.multicastEchoStaffMaxMulticastCount();
+
+        ITEMS_CONFIG.setMulticastEchoStaffConfigForGameTest(
+                multicastDelayTicks,
+                cooldownMultiplier,
+                castTimeCooldownMultiplier,
+                cooldownCapTicks,
+                maxMulticastCount
+        );
+        return () -> ITEMS_CONFIG.setMulticastEchoStaffConfigForGameTest(
+                previousMulticastDelayTicks,
+                previousCooldownMultiplier,
+                previousCastTimeCooldownMultiplier,
+                previousCooldownCapTicks,
+                previousMaxMulticastCount
+        );
     }
 
     public static float forceFieldDrainManaBasePerHit() {

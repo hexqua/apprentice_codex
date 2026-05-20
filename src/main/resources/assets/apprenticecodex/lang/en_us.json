@@ -656,6 +656,8 @@
   "ui.apprenticecodex.assist_wings.only_jump_warning": "The %s in your hand prevents the wings from holding!",
   "ui.apprenticecodex.echo_cast.not_match_staff": "(todo:翻訳)魔力を響かせる杖が手元にない...",
   "ui.apprenticecodex.echo_cast.current_count": "(todo:翻訳)%d回分の魔力が辺りに残響している...",
+  "ui.apprenticecodex.echo_cast.max_reached": "(todo:翻訳)残響している魔力が飽和しきった！",
+  "ui.apprenticecodex.echo_cast.cannot_echo_more": "(todo:翻訳)これ以上は魔力を残響させられない！",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "Switched firing mode to %s",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "Overheating has increased mana cost to %s!",
