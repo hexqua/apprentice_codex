@@ -18,6 +18,7 @@ import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectile;
 import io.redspace.ironsspellbooks.entity.spells.fireball.SmallMagicFireball;
 import io.redspace.ironsspellbooks.entity.spells.spectral_hammer.SpectralHammer;
+import io.redspace.ironsspellbooks.entity.spells.target_area.TargetedAreaEntity;
 import io.redspace.ironsspellbooks.spells.nature.TouchDigSpell;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -62,6 +63,9 @@ import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffCastHelper;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectHandler;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectProfile;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectProfileManager;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
@@ -10064,6 +10068,138 @@ public final class ApprenticeCodexGameTestScenarios {
                             + (cooldown == null ? "null" : cooldown.getSpellCooldown())
                             + " / expected " + expectedCooldown);
             helper.succeed();
+        });
+    }
+
+    static void multicastEchoStaffRepeatedFortifyClearsTargetAreaIndicator(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multicast_echo_staff_fortify_indicator_test");
+        var staffStack = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FORTIFY_SPELL.get();
+        var spellLevel = 1;
+        var amplifier = 0;
+        var manaCost = spell.getManaCost(spellLevel);
+        player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+
+        helper.runAtTickTime(1, () -> {
+            prepareMulticastEchoStaffCast(player, staffStack, spell, spellLevel, amplifier, manaCost * 3.0F);
+            spell.castSpell(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, true);
+        });
+
+        helper.runAtTickTime(4, () -> {
+            MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            var targetAreas = helper.getLevel().getEntitiesOfClass(
+                    TargetedAreaEntity.class,
+                    player.getBoundingBox().inflate(16.0D),
+                    targetArea -> !targetArea.isRemoved()
+            );
+
+            helper.assertTrue(magicData.getAdditionalCastData() == null,
+                    "Repeated Fortify multicast should clear temporary cast data after sending cast data to the client");
+            helper.assertTrue(targetAreas.isEmpty(),
+                    "Repeated Fortify multicast should discard temporary target area indicators: " + targetAreas.size());
+            helper.succeed();
+        });
+    }
+
+    static void multicastEchoStaffMobEffectProfileExtendsDuplicateDuration(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multicast_echo_staff_effect_duration_test");
+            var spell = SpellRegistry.SHOCK.get();
+            var effect = MobEffects.MOVEMENT_SPEED;
+            player.addEffect(new MobEffectInstance(effect, 100, 0));
+
+            try (var ignoredConfig = ApprenticeCodexServerConfig.useMulticastEchoStaffMobEffectConfigOverrideForGameTest(
+                    true,
+                    true,
+                    true,
+                    true,
+                    false,
+                    0,
+                    false,
+                    0
+            ); var ignoredProfile = MulticastEchoStaffMobEffectProfileManager.useProfilesForGameTest(Map.of(
+                    spell.getSpellResource(),
+                    MulticastEchoStaffMobEffectProfile.DEFAULT_DURATION_EXTENSION
+            ))) {
+                MulticastEchoStaffMobEffectHandler.runRepeatedCast(
+                        player,
+                        spell,
+                        () -> player.addEffect(new MobEffectInstance(effect, 40, 0))
+                );
+            }
+
+            var result = player.getEffect(effect);
+            helper.assertTrue(result != null && result.getDuration() == 120,
+                    "Duplicate multicast mob effect should extend duration by 50% of attempted duration: "
+                            + (result == null ? "null" : result.getDuration()));
+        });
+    }
+
+    static void multicastEchoStaffMobEffectProfileStacksAmplifierByLevel(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multicast_echo_staff_effect_amp_test");
+            var spell = SpellRegistry.SHOCK.get();
+            var effect = MobEffects.MOVEMENT_SPEED;
+            var profile = new MulticastEchoStaffMobEffectProfile(0.0D, 0, 6000, 0.5D, 0, 2);
+            player.addEffect(new MobEffectInstance(effect, 100, 0));
+
+            try (var ignoredConfig = ApprenticeCodexServerConfig.useMulticastEchoStaffMobEffectConfigOverrideForGameTest(
+                    true,
+                    true,
+                    true,
+                    true,
+                    false,
+                    0,
+                    false,
+                    0
+            ); var ignoredProfile = MulticastEchoStaffMobEffectProfileManager.useProfilesForGameTest(Map.of(
+                    spell.getSpellResource(),
+                    profile
+            ))) {
+                MulticastEchoStaffMobEffectHandler.runRepeatedCast(
+                        player,
+                        spell,
+                        () -> player.addEffect(new MobEffectInstance(effect, 40, 1))
+                );
+            }
+
+            var result = player.getEffect(effect);
+            helper.assertTrue(result != null && result.getAmplifier() == 2,
+                    "Duplicate multicast mob effect should stack amplifier from attempted level: "
+                            + (result == null ? "null" : result.getAmplifier()));
+        });
+    }
+
+    static void multicastEchoStaffMobEffectProfileIgnoresMissingProfile(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multicast_echo_staff_effect_missing_profile_test");
+            var spell = SpellRegistry.SHOCK.get();
+            var effect = MobEffects.MOVEMENT_SPEED;
+            player.addEffect(new MobEffectInstance(effect, 100, 0));
+
+            try (var ignoredConfig = ApprenticeCodexServerConfig.useMulticastEchoStaffMobEffectConfigOverrideForGameTest(
+                    true,
+                    true,
+                    true,
+                    true,
+                    false,
+                    0,
+                    false,
+                    0
+            ); var ignoredProfile = MulticastEchoStaffMobEffectProfileManager.useProfilesForGameTest(Map.of())) {
+                MulticastEchoStaffMobEffectHandler.runRepeatedCast(
+                        player,
+                        spell,
+                        () -> player.addEffect(new MobEffectInstance(effect, 40, 0))
+                );
+            }
+
+            var result = player.getEffect(effect);
+            helper.assertTrue(result != null && result.getDuration() == 100,
+                    "Missing multicast mob effect profile should leave vanilla duplicate handling unchanged: "
+                            + (result == null ? "null" : result.getDuration()));
         });
     }
 

@@ -209,6 +209,38 @@ final class ItemsServerConfig {
         return multicastEchoStaffConfig.maxMulticastCount();
     }
 
+    boolean multicastEchoStaffMobEffectProfilesEnabled() {
+        return multicastEchoStaffConfig.mobEffectProfilesEnabled();
+    }
+
+    boolean multicastEchoStaffBeneficialMobEffectsEnabled() {
+        return multicastEchoStaffConfig.beneficialMobEffectsEnabled();
+    }
+
+    boolean multicastEchoStaffHarmfulMobEffectsEnabled() {
+        return multicastEchoStaffConfig.harmfulMobEffectsEnabled();
+    }
+
+    boolean multicastEchoStaffNeutralMobEffectsEnabled() {
+        return multicastEchoStaffConfig.neutralMobEffectsEnabled();
+    }
+
+    boolean multicastEchoStaffDurationServerCapEnabled() {
+        return multicastEchoStaffConfig.durationServerCapEnabled();
+    }
+
+    int multicastEchoStaffDurationServerCapTicks() {
+        return multicastEchoStaffConfig.durationServerCapTicks();
+    }
+
+    boolean multicastEchoStaffAmplifierServerCapEnabled() {
+        return multicastEchoStaffConfig.amplifierServerCapEnabled();
+    }
+
+    int multicastEchoStaffAmplifierServerCap() {
+        return multicastEchoStaffConfig.amplifierServerCap();
+    }
+
     int multipurposeStaffrifleCooldownReductionTicks() {
         return multipurposeStaffrifleConfig.cooldownReductionTicks();
     }
@@ -246,6 +278,28 @@ final class ItemsServerConfig {
                 castTimeCooldownMultiplier,
                 cooldownCapTicks,
                 maxMulticastCount
+        );
+    }
+
+    void setMulticastEchoStaffMobEffectConfigForGameTest(
+            boolean mobEffectProfilesEnabled,
+            boolean beneficialMobEffectsEnabled,
+            boolean harmfulMobEffectsEnabled,
+            boolean neutralMobEffectsEnabled,
+            boolean durationServerCapEnabled,
+            int durationServerCapTicks,
+            boolean amplifierServerCapEnabled,
+            int amplifierServerCap
+    ) {
+        multicastEchoStaffConfig.setMobEffectOverridesForGameTest(
+                mobEffectProfilesEnabled,
+                beneficialMobEffectsEnabled,
+                harmfulMobEffectsEnabled,
+                neutralMobEffectsEnabled,
+                durationServerCapEnabled,
+                durationServerCapTicks,
+                amplifierServerCapEnabled,
+                amplifierServerCap
         );
     }
 }
