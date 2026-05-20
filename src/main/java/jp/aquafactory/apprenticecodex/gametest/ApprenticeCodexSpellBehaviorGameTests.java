@@ -291,6 +291,26 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.multicastEchoStaffLongCastAddsSkippedCastTimeCooldown(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void multicastEchoStaffRepeatedFortifyClearsTargetAreaIndicator(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffRepeatedFortifyClearsTargetAreaIndicator(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void multicastEchoStaffMobEffectProfileExtendsDuplicateDuration(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffMobEffectProfileExtendsDuplicateDuration(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void multicastEchoStaffMobEffectProfileStacksAmplifierByLevel(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffMobEffectProfileStacksAmplifierByLevel(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void multicastEchoStaffMobEffectProfileIgnoresMissingProfile(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffMobEffectProfileIgnoresMissingProfile(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_COOLDOWN_CAP_BATCH, timeoutTicks = 80)
     public static void multicastEchoStaffCooldownCapLimitsAdjustedCooldown(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.multicastEchoStaffCooldownCapLimitsAdjustedCooldown(helper);

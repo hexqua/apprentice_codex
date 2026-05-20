@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.ICastData;
 import io.redspace.ironsspellbooks.config.ServerConfigs;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -272,8 +273,7 @@ public final class MulticastEchoStaffCastHelper {
 
         var remainingCasts = job.remainingCasts() - 1;
         if (canRunMulticastPreCast(level, spell, job.spellLevel(), job.castSource(), player, magicData)) {
-            spell.onServerPreCast(level, job.spellLevel(), player, magicData);
-            spell.castSpell(level, job.spellLevel(), player, job.castSource(), false);
+            runRepeatedCast(level, spell, job, player, magicData);
         }
 
         if (remainingCasts <= 0) {
@@ -285,6 +285,38 @@ public final class MulticastEchoStaffCastHelper {
                 remainingCasts,
                 level.getGameTime() + ApprenticeCodexServerConfig.multicastEchoStaffDelayTicks()
         ));
+    }
+
+    private static void runRepeatedCast(
+            ServerLevel level,
+            AbstractSpell spell,
+            MulticastJob job,
+            ServerPlayer player,
+            MagicData magicData
+    ) {
+        var previousCastData = magicData.getAdditionalCastData();
+        try {
+            spell.onServerPreCast(level, job.spellLevel(), player, magicData);
+            MulticastEchoStaffMobEffectHandler.runRepeatedCast(
+                    player,
+                    spell,
+                    () -> spell.castSpell(level, job.spellLevel(), player, job.castSource(), false)
+            );
+        } finally {
+            clearRepeatedCastData(magicData, previousCastData);
+        }
+    }
+
+    private static void clearRepeatedCastData(MagicData magicData, @Nullable ICastData previousCastData) {
+        var currentCastData = magicData.getAdditionalCastData();
+        if (currentCastData == previousCastData) {
+            return;
+        }
+
+        if (currentCastData != null) {
+            currentCastData.reset();
+        }
+        magicData.setAdditionalCastData(previousCastData);
     }
 
     private static boolean hasMulticastEchoStaffInHands(ServerPlayer player) {

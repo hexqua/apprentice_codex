@@ -273,6 +273,38 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.multicastEchoStaffMaxMulticastCount();
     }
 
+    public static boolean multicastEchoStaffMobEffectProfilesEnabled() {
+        return ITEMS_CONFIG.multicastEchoStaffMobEffectProfilesEnabled();
+    }
+
+    public static boolean multicastEchoStaffBeneficialMobEffectsEnabled() {
+        return ITEMS_CONFIG.multicastEchoStaffBeneficialMobEffectsEnabled();
+    }
+
+    public static boolean multicastEchoStaffHarmfulMobEffectsEnabled() {
+        return ITEMS_CONFIG.multicastEchoStaffHarmfulMobEffectsEnabled();
+    }
+
+    public static boolean multicastEchoStaffNeutralMobEffectsEnabled() {
+        return ITEMS_CONFIG.multicastEchoStaffNeutralMobEffectsEnabled();
+    }
+
+    public static boolean multicastEchoStaffDurationServerCapEnabled() {
+        return ITEMS_CONFIG.multicastEchoStaffDurationServerCapEnabled();
+    }
+
+    public static int multicastEchoStaffDurationServerCapTicks() {
+        return ITEMS_CONFIG.multicastEchoStaffDurationServerCapTicks();
+    }
+
+    public static boolean multicastEchoStaffAmplifierServerCapEnabled() {
+        return ITEMS_CONFIG.multicastEchoStaffAmplifierServerCapEnabled();
+    }
+
+    public static int multicastEchoStaffAmplifierServerCap() {
+        return ITEMS_CONFIG.multicastEchoStaffAmplifierServerCap();
+    }
+
     public static int multipurposeStaffrifleCooldownBypassThresholdTicks() {
         return ITEMS_CONFIG.multipurposeStaffrifleCooldownBypassThresholdTicks();
     }
@@ -327,6 +359,47 @@ public final class ApprenticeCodexServerConfig {
                 previousCastTimeCooldownMultiplier,
                 previousCooldownCapTicks,
                 previousMaxMulticastCount
+        );
+    }
+
+    public static GameTestConfigOverride useMulticastEchoStaffMobEffectConfigOverrideForGameTest(
+            boolean mobEffectProfilesEnabled,
+            boolean beneficialMobEffectsEnabled,
+            boolean harmfulMobEffectsEnabled,
+            boolean neutralMobEffectsEnabled,
+            boolean durationServerCapEnabled,
+            int durationServerCapTicks,
+            boolean amplifierServerCapEnabled,
+            int amplifierServerCap
+    ) {
+        var previousMobEffectProfilesEnabled = ITEMS_CONFIG.multicastEchoStaffMobEffectProfilesEnabled();
+        var previousBeneficialMobEffectsEnabled = ITEMS_CONFIG.multicastEchoStaffBeneficialMobEffectsEnabled();
+        var previousHarmfulMobEffectsEnabled = ITEMS_CONFIG.multicastEchoStaffHarmfulMobEffectsEnabled();
+        var previousNeutralMobEffectsEnabled = ITEMS_CONFIG.multicastEchoStaffNeutralMobEffectsEnabled();
+        var previousDurationServerCapEnabled = ITEMS_CONFIG.multicastEchoStaffDurationServerCapEnabled();
+        var previousDurationServerCapTicks = ITEMS_CONFIG.multicastEchoStaffDurationServerCapTicks();
+        var previousAmplifierServerCapEnabled = ITEMS_CONFIG.multicastEchoStaffAmplifierServerCapEnabled();
+        var previousAmplifierServerCap = ITEMS_CONFIG.multicastEchoStaffAmplifierServerCap();
+
+        ITEMS_CONFIG.setMulticastEchoStaffMobEffectConfigForGameTest(
+                mobEffectProfilesEnabled,
+                beneficialMobEffectsEnabled,
+                harmfulMobEffectsEnabled,
+                neutralMobEffectsEnabled,
+                durationServerCapEnabled,
+                durationServerCapTicks,
+                amplifierServerCapEnabled,
+                amplifierServerCap
+        );
+        return () -> ITEMS_CONFIG.setMulticastEchoStaffMobEffectConfigForGameTest(
+                previousMobEffectProfilesEnabled,
+                previousBeneficialMobEffectsEnabled,
+                previousHarmfulMobEffectsEnabled,
+                previousNeutralMobEffectsEnabled,
+                previousDurationServerCapEnabled,
+                previousDurationServerCapTicks,
+                previousAmplifierServerCapEnabled,
+                previousAmplifierServerCap
         );
     }
 

@@ -8,24 +8,56 @@ public final class MulticastEchoStaffServerConfig {
     private final ForgeConfigSpec.DoubleValue castTimeCooldownMultiplier;
     private final ForgeConfigSpec.IntValue cooldownCapTicks;
     private final ForgeConfigSpec.IntValue maxMulticastCount;
+    private final ForgeConfigSpec.BooleanValue mobEffectProfilesEnabled;
+    private final ForgeConfigSpec.BooleanValue beneficialMobEffectsEnabled;
+    private final ForgeConfigSpec.BooleanValue harmfulMobEffectsEnabled;
+    private final ForgeConfigSpec.BooleanValue neutralMobEffectsEnabled;
+    private final ForgeConfigSpec.BooleanValue durationServerCapEnabled;
+    private final ForgeConfigSpec.IntValue durationServerCapTicks;
+    private final ForgeConfigSpec.BooleanValue amplifierServerCapEnabled;
+    private final ForgeConfigSpec.IntValue amplifierServerCap;
     private Integer multicastDelayTicksOverride;
     private Double cooldownMultiplierOverride;
     private Double castTimeCooldownMultiplierOverride;
     private Integer cooldownCapTicksOverride;
     private Integer maxMulticastCountOverride;
+    private Boolean mobEffectProfilesEnabledOverride;
+    private Boolean beneficialMobEffectsEnabledOverride;
+    private Boolean harmfulMobEffectsEnabledOverride;
+    private Boolean neutralMobEffectsEnabledOverride;
+    private Boolean durationServerCapEnabledOverride;
+    private Integer durationServerCapTicksOverride;
+    private Boolean amplifierServerCapEnabledOverride;
+    private Integer amplifierServerCapOverride;
 
     private MulticastEchoStaffServerConfig(
             ForgeConfigSpec.IntValue multicastDelayTicks,
             ForgeConfigSpec.DoubleValue cooldownMultiplier,
             ForgeConfigSpec.DoubleValue castTimeCooldownMultiplier,
             ForgeConfigSpec.IntValue cooldownCapTicks,
-            ForgeConfigSpec.IntValue maxMulticastCount
+            ForgeConfigSpec.IntValue maxMulticastCount,
+            ForgeConfigSpec.BooleanValue mobEffectProfilesEnabled,
+            ForgeConfigSpec.BooleanValue beneficialMobEffectsEnabled,
+            ForgeConfigSpec.BooleanValue harmfulMobEffectsEnabled,
+            ForgeConfigSpec.BooleanValue neutralMobEffectsEnabled,
+            ForgeConfigSpec.BooleanValue durationServerCapEnabled,
+            ForgeConfigSpec.IntValue durationServerCapTicks,
+            ForgeConfigSpec.BooleanValue amplifierServerCapEnabled,
+            ForgeConfigSpec.IntValue amplifierServerCap
     ) {
         this.multicastDelayTicks = multicastDelayTicks;
         this.cooldownMultiplier = cooldownMultiplier;
         this.castTimeCooldownMultiplier = castTimeCooldownMultiplier;
         this.cooldownCapTicks = cooldownCapTicks;
         this.maxMulticastCount = maxMulticastCount;
+        this.mobEffectProfilesEnabled = mobEffectProfilesEnabled;
+        this.beneficialMobEffectsEnabled = beneficialMobEffectsEnabled;
+        this.harmfulMobEffectsEnabled = harmfulMobEffectsEnabled;
+        this.neutralMobEffectsEnabled = neutralMobEffectsEnabled;
+        this.durationServerCapEnabled = durationServerCapEnabled;
+        this.durationServerCapTicks = durationServerCapTicks;
+        this.amplifierServerCapEnabled = amplifierServerCapEnabled;
+        this.amplifierServerCap = amplifierServerCap;
     }
 
     public static MulticastEchoStaffServerConfig define(ForgeConfigSpec.Builder builder) {
@@ -45,6 +77,30 @@ public final class MulticastEchoStaffServerConfig {
         var maxMulticastCount = builder
                 .comment("Maximum number of repeated casts stored by Echo Cast for Multicast Echo Staff.")
                 .defineInRange("maxMulticastCount", 10, 1, 20);
+        var mobEffectProfilesEnabled = builder
+                .comment("Enables Multicast Echo Staff mob effect profile handling for repeated casts.")
+                .define("mobEffectProfilesEnabled", true);
+        var beneficialMobEffectsEnabled = builder
+                .comment("Allows Multicast Echo Staff mob effect profile handling for beneficial effects.")
+                .define("beneficialMobEffectsEnabled", true);
+        var harmfulMobEffectsEnabled = builder
+                .comment("Allows Multicast Echo Staff mob effect profile handling for harmful effects.")
+                .define("harmfulMobEffectsEnabled", true);
+        var neutralMobEffectsEnabled = builder
+                .comment("Allows Multicast Echo Staff mob effect profile handling for neutral effects.")
+                .define("neutralMobEffectsEnabled", true);
+        var durationServerCapEnabled = builder
+                .comment("Enables an additional server-side duration cap for Multicast Echo Staff mob effect profile handling.")
+                .define("durationServerCapEnabled", false);
+        var durationServerCapTicks = builder
+                .comment("Additional server-side duration cap in ticks. 0 disables this cap even when enabled.")
+                .defineInRange("durationServerCapTicks", 6000, 0, 72000);
+        var amplifierServerCapEnabled = builder
+                .comment("Enables an additional server-side amplifier cap for Multicast Echo Staff mob effect profile handling.")
+                .define("amplifierServerCapEnabled", false);
+        var amplifierServerCap = builder
+                .comment("Additional server-side amplifier cap. 0 disables this cap even when enabled.")
+                .defineInRange("amplifierServerCap", 10, 0, 255);
         builder.pop();
 
         return new MulticastEchoStaffServerConfig(
@@ -52,7 +108,15 @@ public final class MulticastEchoStaffServerConfig {
                 cooldownMultiplier,
                 castTimeCooldownMultiplier,
                 cooldownCapTicks,
-                maxMulticastCount
+                maxMulticastCount,
+                mobEffectProfilesEnabled,
+                beneficialMobEffectsEnabled,
+                harmfulMobEffectsEnabled,
+                neutralMobEffectsEnabled,
+                durationServerCapEnabled,
+                durationServerCapTicks,
+                amplifierServerCapEnabled,
+                amplifierServerCap
         );
     }
 
@@ -78,6 +142,50 @@ public final class MulticastEchoStaffServerConfig {
         return maxMulticastCountOverride == null ? maxMulticastCount.get() : maxMulticastCountOverride;
     }
 
+    public boolean mobEffectProfilesEnabled() {
+        return mobEffectProfilesEnabledOverride == null
+                ? mobEffectProfilesEnabled.get()
+                : mobEffectProfilesEnabledOverride;
+    }
+
+    public boolean beneficialMobEffectsEnabled() {
+        return beneficialMobEffectsEnabledOverride == null
+                ? beneficialMobEffectsEnabled.get()
+                : beneficialMobEffectsEnabledOverride;
+    }
+
+    public boolean harmfulMobEffectsEnabled() {
+        return harmfulMobEffectsEnabledOverride == null
+                ? harmfulMobEffectsEnabled.get()
+                : harmfulMobEffectsEnabledOverride;
+    }
+
+    public boolean neutralMobEffectsEnabled() {
+        return neutralMobEffectsEnabledOverride == null
+                ? neutralMobEffectsEnabled.get()
+                : neutralMobEffectsEnabledOverride;
+    }
+
+    public boolean durationServerCapEnabled() {
+        return durationServerCapEnabledOverride == null
+                ? durationServerCapEnabled.get()
+                : durationServerCapEnabledOverride;
+    }
+
+    public int durationServerCapTicks() {
+        return durationServerCapTicksOverride == null ? durationServerCapTicks.get() : durationServerCapTicksOverride;
+    }
+
+    public boolean amplifierServerCapEnabled() {
+        return amplifierServerCapEnabledOverride == null
+                ? amplifierServerCapEnabled.get()
+                : amplifierServerCapEnabledOverride;
+    }
+
+    public int amplifierServerCap() {
+        return amplifierServerCapOverride == null ? amplifierServerCap.get() : amplifierServerCapOverride;
+    }
+
     public void setOverridesForGameTest(
             int multicastDelayTicks,
             double cooldownMultiplier,
@@ -90,5 +198,25 @@ public final class MulticastEchoStaffServerConfig {
         this.castTimeCooldownMultiplierOverride = castTimeCooldownMultiplier;
         this.cooldownCapTicksOverride = cooldownCapTicks;
         this.maxMulticastCountOverride = maxMulticastCount;
+    }
+
+    public void setMobEffectOverridesForGameTest(
+            boolean mobEffectProfilesEnabled,
+            boolean beneficialMobEffectsEnabled,
+            boolean harmfulMobEffectsEnabled,
+            boolean neutralMobEffectsEnabled,
+            boolean durationServerCapEnabled,
+            int durationServerCapTicks,
+            boolean amplifierServerCapEnabled,
+            int amplifierServerCap
+    ) {
+        this.mobEffectProfilesEnabledOverride = mobEffectProfilesEnabled;
+        this.beneficialMobEffectsEnabledOverride = beneficialMobEffectsEnabled;
+        this.harmfulMobEffectsEnabledOverride = harmfulMobEffectsEnabled;
+        this.neutralMobEffectsEnabledOverride = neutralMobEffectsEnabled;
+        this.durationServerCapEnabledOverride = durationServerCapEnabled;
+        this.durationServerCapTicksOverride = durationServerCapTicks;
+        this.amplifierServerCapEnabledOverride = amplifierServerCapEnabled;
+        this.amplifierServerCapOverride = amplifierServerCap;
     }
 }
