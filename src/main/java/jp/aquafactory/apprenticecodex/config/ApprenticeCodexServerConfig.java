@@ -252,6 +252,10 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.manaForceBladePerfectGuardTicks();
     }
 
+    public static int multicastEchoStaffDelayTicks() {
+        return ITEMS_CONFIG.multicastEchoStaffDelayTicks();
+    }
+
     public static int multipurposeStaffrifleCooldownBypassThresholdTicks() {
         return ITEMS_CONFIG.multipurposeStaffrifleCooldownBypassThresholdTicks();
     }

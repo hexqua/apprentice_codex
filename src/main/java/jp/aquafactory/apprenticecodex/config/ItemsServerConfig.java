@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.config.item.ChromaticMagiaDressServerConfi
 import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaForceBladeServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.MulticastEchoStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MultipurposeStaffrifleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.AbsorptionAmplifyAmuletServerConfig;
@@ -25,6 +26,7 @@ final class ItemsServerConfig {
     private final PastelStaffServerConfig pastelStaffConfig;
     private final IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig;
     private final ManaForceBladeServerConfig manaForceBladeConfig;
+    private final MulticastEchoStaffServerConfig multicastEchoStaffConfig;
     private final MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig;
 
     private ItemsServerConfig(
@@ -37,6 +39,7 @@ final class ItemsServerConfig {
             PastelStaffServerConfig pastelStaffConfig,
             IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig,
             ManaForceBladeServerConfig manaForceBladeConfig,
+            MulticastEchoStaffServerConfig multicastEchoStaffConfig,
             MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig
     ) {
         this.arcaneCinderConfig = arcaneCinderConfig;
@@ -48,6 +51,7 @@ final class ItemsServerConfig {
         this.pastelStaffConfig = pastelStaffConfig;
         this.isekaiTravelGuidebookConfig = isekaiTravelGuidebookConfig;
         this.manaForceBladeConfig = manaForceBladeConfig;
+        this.multicastEchoStaffConfig = multicastEchoStaffConfig;
         this.multipurposeStaffrifleConfig = multipurposeStaffrifleConfig;
     }
 
@@ -62,6 +66,7 @@ final class ItemsServerConfig {
         var pastelStaffConfig = PastelStaffServerConfig.define(builder);
         var isekaiTravelGuidebookConfig = IsekaiTravelGuidebookServerConfig.define(builder);
         var manaForceBladeConfig = ManaForceBladeServerConfig.define(builder);
+        var multicastEchoStaffConfig = MulticastEchoStaffServerConfig.define(builder);
         var multipurposeStaffrifleConfig = MultipurposeStaffrifleServerConfig.define(builder);
         builder.pop();
 
@@ -75,6 +80,7 @@ final class ItemsServerConfig {
                 pastelStaffConfig,
                 isekaiTravelGuidebookConfig,
                 manaForceBladeConfig,
+                multicastEchoStaffConfig,
                 multipurposeStaffrifleConfig
         );
     }
@@ -181,6 +187,10 @@ final class ItemsServerConfig {
 
     int multipurposeStaffrifleCooldownBypassThresholdTicks() {
         return multipurposeStaffrifleConfig.cooldownBypassThresholdTicks();
+    }
+
+    int multicastEchoStaffDelayTicks() {
+        return multicastEchoStaffConfig.multicastDelayTicks();
     }
 
     int multipurposeStaffrifleCooldownReductionTicks() {

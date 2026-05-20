@@ -13,6 +13,7 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectile;
 import io.redspace.ironsspellbooks.entity.spells.fireball.SmallMagicFireball;
@@ -60,6 +61,7 @@ import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffCastHelper;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
@@ -9927,6 +9929,137 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Multipurpose Staffrifle instant cast should bypass cooldowns at the threshold: "
                             + cooldownEvent.getEffectiveCooldown());
         });
+    }
+
+    static void multicastEchoStaffInstantCastRunsAfterDelayAndAppliesPenaltyCooldown(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multicast_echo_staff_delay_test");
+        var staffStack = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        var spell = SpellRegistry.SHOCK.get();
+        var spellLevel = 1;
+        var amplifier = 0;
+        var manaCost = spell.getManaCost(spellLevel);
+        var initialMana = manaCost * 3.0F;
+        player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+
+        helper.runAtTickTime(1, () -> {
+            prepareMulticastEchoStaffCast(player, staffStack, spell, spellLevel, amplifier, initialMana);
+            spell.castSpell(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, true);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertFalse(player.hasEffect(EffectRegistry.ECHO_SPELL.get()),
+                    "Multicast Echo Staff should consume EchoSpell after the normal cast succeeds");
+            helper.assertTrue(Math.abs(magicData.getMana() - (initialMana - manaCost)) < 1.0e-4F,
+                    "Normal cast should consume mana before delayed multicast: " + magicData.getMana());
+            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "Normal cast cooldown should be suppressed until multicast finishes");
+        });
+
+        helper.runAtTickTime(2, () -> {
+            MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            helper.assertTrue(Math.abs(MagicData.getPlayerMagicData(player).getMana() - (initialMana - manaCost)) < 1.0e-4F,
+                    "Multicast Echo Staff should not fire before the configured delay");
+        });
+
+        helper.runAtTickTime(4, () -> {
+            MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            var magicData = MagicData.getPlayerMagicData(player);
+            var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
+            var expectedCooldown = expectedMulticastEchoStaffCooldown(spell, player, CastSource.SPELLBOOK, amplifier);
+
+            helper.assertTrue(Math.abs(magicData.getMana() - (initialMana - manaCost * 2.0F)) < 1.0e-4F,
+                    "Delayed multicast should consume mana once: " + magicData.getMana());
+            helper.assertTrue(cooldown != null && cooldown.getSpellCooldown() == expectedCooldown,
+                    "Multicast Echo Staff should apply the final penalty cooldown: "
+                            + (cooldown == null ? "null" : cooldown.getSpellCooldown())
+                            + " / expected " + expectedCooldown);
+            helper.succeed();
+        });
+    }
+
+    static void multicastEchoStaffInsufficientManaEndsWithPenaltyCooldown(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multicast_echo_staff_mana_penalty_test");
+        var staffStack = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        var spell = SpellRegistry.SHOCK.get();
+        var spellLevel = 1;
+        var amplifier = 1;
+        var manaCost = spell.getManaCost(spellLevel);
+        player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+
+        helper.runAtTickTime(1, () -> {
+            prepareMulticastEchoStaffCast(player, staffStack, spell, spellLevel, amplifier, manaCost);
+            spell.castSpell(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, true);
+        });
+
+        helper.runAtTickTime(4, () -> {
+            MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            var magicData = MagicData.getPlayerMagicData(player);
+            var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
+            var expectedCooldown = expectedMulticastEchoStaffCooldown(spell, player, CastSource.SPELLBOOK, amplifier);
+
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Insufficient mana interruption should not run an additional multicast: " + magicData.getMana());
+            helper.assertTrue(cooldown != null && cooldown.getSpellCooldown() == expectedCooldown,
+                    "Insufficient mana interruption should keep the full amplifier penalty cooldown: "
+                            + (cooldown == null ? "null" : cooldown.getSpellCooldown())
+                            + " / expected " + expectedCooldown);
+            helper.succeed();
+        });
+    }
+
+    static void multicastEchoStaffItemChangeEndsWithPenaltyCooldown(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multicast_echo_staff_item_penalty_test");
+        var staffStack = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        var spell = SpellRegistry.SHOCK.get();
+        var spellLevel = 1;
+        var amplifier = 0;
+        var manaCost = spell.getManaCost(spellLevel);
+        var initialMana = manaCost * 3.0F;
+        player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+
+        helper.runAtTickTime(1, () -> {
+            prepareMulticastEchoStaffCast(player, staffStack, spell, spellLevel, amplifier, initialMana);
+            spell.castSpell(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, true);
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        });
+
+        helper.runAtTickTime(4, () -> {
+            MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            var magicData = MagicData.getPlayerMagicData(player);
+            var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
+            var expectedCooldown = expectedMulticastEchoStaffCooldown(spell, player, CastSource.SPELLBOOK, amplifier);
+
+            helper.assertTrue(Math.abs(magicData.getMana() - (initialMana - manaCost)) < 1.0e-4F,
+                    "Item change interruption should not run an additional multicast: " + magicData.getMana());
+            helper.assertTrue(cooldown != null && cooldown.getSpellCooldown() == expectedCooldown,
+                    "Item change interruption should keep the full amplifier penalty cooldown: "
+                            + (cooldown == null ? "null" : cooldown.getSpellCooldown())
+                            + " / expected " + expectedCooldown);
+            helper.succeed();
+        });
+    }
+
+    private static void prepareMulticastEchoStaffCast(
+            FakePlayer player,
+            ItemStack staffStack,
+            AbstractSpell spell,
+            int spellLevel,
+            int amplifier,
+            float mana
+    ) {
+        var magicData = MagicData.getPlayerMagicData(player);
+        magicData.getPlayerCooldowns().removeCooldown(spell.getSpellId());
+        magicData.setPlayerCastingItem(staffStack);
+        magicData.setMana(mana);
+        player.addEffect(new MobEffectInstance(EffectRegistry.ECHO_SPELL.get(), 200, amplifier));
+    }
+
+    private static int expectedMulticastEchoStaffCooldown(
+            AbstractSpell spell,
+            ServerPlayer player,
+            CastSource castSource,
+            int amplifier
+    ) {
+        return (int) Math.ceil((amplifier + 2) * 1.2D * MagicManager.getEffectiveSpellCooldown(spell, player, castSource));
     }
 
     static void circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(GameTestHelper helper) {
