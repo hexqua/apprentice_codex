@@ -686,6 +686,7 @@
   "ui.apprenticecodex.multicast_echo_staff.cannot_cast": "%1$sは多重詠唱できないため通常詠唱となる",
   "ui.apprenticecodex.multicast_echo_staff.deny_list": "%1$sは世界の理から拒絶されているため通常詠唱となる",
   "ui.apprenticecodex.multicast_echo_staff.insufficient_mana": "魔力が枯渇したため多重詠唱が中断された！",
+  "ui.apprenticecodex.multicast_echo_staff.cancel_by_item_change": "魔力の残響を受け止める杖が手元にない！",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "このアイテムからは魔法は取り出せない",

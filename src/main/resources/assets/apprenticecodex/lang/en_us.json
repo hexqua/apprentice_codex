@@ -676,6 +676,7 @@
   "ui.apprenticecodex.multicast_echo_staff.cannot_cast": "(todo:翻訳)%1$sは多重詠唱できないため通常詠唱となる",
   "ui.apprenticecodex.multicast_echo_staff.deny_list": "(todo:翻訳)%1$sは世界の理から拒絶されているため通常詠唱となる",
   "ui.apprenticecodex.multicast_echo_staff.insufficient_mana": "(todo:翻訳)魔力が枯渇したため多重詠唱が中断された！",
+  "ui.apprenticecodex.multicast_echo_staff.cancel_by_item_change": "(todo:翻訳)魔力の残響を受け止める杖が手元にない！",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "This item does not allow spell extraction",

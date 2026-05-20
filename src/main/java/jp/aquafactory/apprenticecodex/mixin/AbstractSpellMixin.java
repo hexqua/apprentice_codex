@@ -58,7 +58,7 @@ public abstract class AbstractSpellMixin {
     }
 
     @Inject(method = "castSpell", at = @At("HEAD"))
-    private void apprentice_codex$handleMulticastEchoStaffCastSpell(
+    private void apprentice_codex$handleMulticastEchoStaffCastSpellStart(
             Level world,
             int spellLevel,
             ServerPlayer serverPlayer,
@@ -67,7 +67,31 @@ public abstract class AbstractSpellMixin {
             CallbackInfo ci
     ) {
         var magicData = MagicData.getPlayerMagicData(serverPlayer);
-        MulticastEchoStaffCastHelper.onCastSpell((AbstractSpell) (Object) this, world, spellLevel, serverPlayer, magicData);
+        MulticastEchoStaffCastHelper.onCastSpellStart(
+                (AbstractSpell) (Object) this,
+                world,
+                spellLevel,
+                serverPlayer,
+                castSource,
+                triggerCooldown,
+                magicData
+        );
+    }
+
+    @Inject(method = "castSpell", at = @At("RETURN"))
+    private void apprentice_codex$handleMulticastEchoStaffCastSpellComplete(
+            Level world,
+            int spellLevel,
+            ServerPlayer serverPlayer,
+            CastSource castSource,
+            boolean triggerCooldown,
+            CallbackInfo ci
+    ) {
+        if (!triggerCooldown) {
+            return;
+        }
+
+        MulticastEchoStaffCastHelper.onCastSpellComplete((AbstractSpell) (Object) this, world, spellLevel, serverPlayer);
     }
 
     @Inject(method = "onServerPreCast", at = @At("HEAD"))
