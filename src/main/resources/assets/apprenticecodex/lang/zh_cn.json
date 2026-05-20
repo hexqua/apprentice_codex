@@ -657,6 +657,8 @@
   "ui.apprenticecodex.assist_wings.only_jump_warning": "手中的%s使翅膀无法维持！",
   "ui.apprenticecodex.echo_cast.not_match_staff": "(todo:翻訳)魔力を響かせる杖が手元にない...",
   "ui.apprenticecodex.echo_cast.current_count": "(todo:翻訳)%d回分の魔力が辺りに残響している...",
+  "ui.apprenticecodex.echo_cast.max_reached": "(todo:翻訳)残響している魔力が飽和しきった！",
+  "ui.apprenticecodex.echo_cast.cannot_echo_more": "(todo:翻訳)これ以上は魔力を残響させられない！",
 
  "ui.apprenticecodex.elemental_bow.mode_switched": "已切换发射模式为 %s",
  "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "过热导致魔力消耗提升至 %s！",

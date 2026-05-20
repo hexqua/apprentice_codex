@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.effect.EchoSpell;
 import jp.aquafactory.apprenticecodex.item.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
@@ -84,28 +85,43 @@ public class EchoCast extends AbstractSpell {
 
     @Override
     public final boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        if (hasMulticastEchoStaffInHands(entity)) {
-            return true;
+        if (!hasMulticastEchoStaffInHands(entity)) {
+            if (entity instanceof ServerPlayer serverPlayer) {
+                serverPlayer.displayClientMessage(Component.translatable("ui.apprenticecodex.echo_cast.not_match_staff")
+                        .withStyle(ChatFormatting.RED), true);
+            }
+            return false;
         }
 
-        if (entity instanceof ServerPlayer serverPlayer) {
-            serverPlayer.displayClientMessage(Component.translatable("ui.apprenticecodex.echo_cast.not_match_staff")
-                    .withStyle(ChatFormatting.RED), true);
+        if (isEchoAmplifierAtLimit(entity)) {
+            if (entity instanceof ServerPlayer serverPlayer) {
+                serverPlayer.displayClientMessage(Component.translatable("ui.apprenticecodex.echo_cast.cannot_echo_more")
+                        .withStyle(ChatFormatting.RED), true);
+            }
+            return false;
         }
-        return false;
+
+        return true;
     }
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         var existingEffect = entity.getEffect(EffectRegistry.ECHO_SPELL.get());
-        var amplifier = existingEffect == null ? 0 : existingEffect.getAmplifier() + 1;
+        var amplifier = existingEffect == null ? 0 : Math.min(existingEffect.getAmplifier() + 1, maxEchoAmplifier());
         entity.addEffect(new MobEffectInstance(EffectRegistry.ECHO_SPELL.get(), EchoSpell.DURATION_TICKS, amplifier));
 
         if (entity instanceof ServerPlayer serverPlayer) {
-            serverPlayer.displayClientMessage(Component.translatable(
-                    "ui.apprenticecodex.echo_cast.current_count",
-                    amplifier + 1
-            ).withStyle(ChatFormatting.GREEN), true);
+            if (amplifier >= maxEchoAmplifier()) {
+                serverPlayer.displayClientMessage(Component.translatable(
+                        "ui.apprenticecodex.echo_cast.max_reached",
+                        amplifier + 1
+                ).withStyle(ChatFormatting.GREEN), true);
+            } else {
+                serverPlayer.displayClientMessage(Component.translatable(
+                        "ui.apprenticecodex.echo_cast.current_count",
+                        amplifier + 1
+                ).withStyle(ChatFormatting.GREEN), true);
+            }
         }
 
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
@@ -114,5 +130,14 @@ public class EchoCast extends AbstractSpell {
     private static boolean hasMulticastEchoStaffInHands(LivingEntity entity) {
         return MulticastEchoStaff.isMulticastEchoStaff(entity.getMainHandItem())
                 || MulticastEchoStaff.isMulticastEchoStaff(entity.getOffhandItem());
+    }
+
+    private static boolean isEchoAmplifierAtLimit(LivingEntity entity) {
+        var existingEffect = entity.getEffect(EffectRegistry.ECHO_SPELL.get());
+        return existingEffect != null && existingEffect.getAmplifier() >= maxEchoAmplifier();
+    }
+
+    private static int maxEchoAmplifier() {
+        return ApprenticeCodexServerConfig.multicastEchoStaffMaxMulticastCount() - 1;
     }
 }

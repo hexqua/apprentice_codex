@@ -10038,6 +10038,148 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void multicastEchoStaffLongCastAddsSkippedCastTimeCooldown(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multicast_echo_staff_cast_time_test");
+        var staffStack = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        var spell = SpellRegistry.ARCANE_BLAST.get();
+        var spellLevel = 1;
+        var amplifier = 0;
+        var manaCost = spell.getManaCost(spellLevel);
+        var initialMana = manaCost * 3.0F;
+        player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+
+        helper.runAtTickTime(1, () -> {
+            prepareMulticastEchoStaffCast(player, staffStack, spell, spellLevel, amplifier, initialMana);
+            spell.castSpell(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, true);
+        });
+
+        helper.runAtTickTime(4, () -> {
+            MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            var magicData = MagicData.getPlayerMagicData(player);
+            var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
+            var expectedCooldown = expectedMulticastEchoStaffCooldown(spell, player, CastSource.SPELLBOOK, amplifier);
+
+            helper.assertTrue(cooldown != null && cooldown.getSpellCooldown() == expectedCooldown,
+                    "Multicast Echo Staff should add skipped cast time to final cooldown: "
+                            + (cooldown == null ? "null" : cooldown.getSpellCooldown())
+                            + " / expected " + expectedCooldown);
+            helper.succeed();
+        });
+    }
+
+    static void multicastEchoStaffCooldownCapLimitsAdjustedCooldown(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multicast_echo_staff_cap_test");
+        var staffStack = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        var spell = SpellRegistry.SHOCK.get();
+        var spellLevel = 1;
+        var amplifier = 0;
+        var manaCost = spell.getManaCost(spellLevel);
+        var initialMana = manaCost * 3.0F;
+        var cooldownCapTicks = 300;
+        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
+        player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+
+        helper.runAtTickTime(1, () -> {
+            override[0] = ApprenticeCodexServerConfig.useMulticastEchoStaffConfigOverrideForGameTest(
+                    2,
+                    1.2D,
+                    1.0D,
+                    cooldownCapTicks,
+                    10
+            );
+            prepareMulticastEchoStaffCast(player, staffStack, spell, spellLevel, amplifier, initialMana);
+            spell.castSpell(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, true);
+        });
+
+        helper.runAtTickTime(4, () -> {
+            try {
+                MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+                var magicData = MagicData.getPlayerMagicData(player);
+                var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
+
+                helper.assertTrue(cooldown != null && cooldown.getSpellCooldown() == cooldownCapTicks,
+                        "Multicast Echo Staff adjusted cooldown should be capped: "
+                                + (cooldown == null ? "null" : cooldown.getSpellCooldown()));
+                helper.succeed();
+            } finally {
+                if (override[0] != null) {
+                    override[0].close();
+                }
+            }
+        });
+    }
+
+    static void multicastEchoStaffBaseCooldownAboveCapUsesOriginalCooldown(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multicast_echo_staff_base_above_cap_test");
+        var staffStack = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        var spell = SpellRegistry.SHOCK.get();
+        var spellLevel = 1;
+        var amplifier = 0;
+        var manaCost = spell.getManaCost(spellLevel);
+        var initialMana = manaCost * 3.0F;
+        var cooldownCapTicks = 10;
+        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
+        player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+
+        helper.runAtTickTime(1, () -> {
+            override[0] = ApprenticeCodexServerConfig.useMulticastEchoStaffConfigOverrideForGameTest(
+                    2,
+                    1.2D,
+                    1.0D,
+                    cooldownCapTicks,
+                    10
+            );
+            prepareMulticastEchoStaffCast(player, staffStack, spell, spellLevel, amplifier, initialMana);
+            spell.castSpell(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, true);
+        });
+
+        helper.runAtTickTime(4, () -> {
+            try {
+                MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+                var magicData = MagicData.getPlayerMagicData(player);
+                var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
+                var expectedCooldown = MagicManager.getEffectiveSpellCooldown(spell, player, CastSource.SPELLBOOK);
+
+                helper.assertTrue(cooldown != null && cooldown.getSpellCooldown() == expectedCooldown,
+                        "Multicast Echo Staff should preserve original cooldowns above the cap: "
+                                + (cooldown == null ? "null" : cooldown.getSpellCooldown())
+                                + " / expected " + expectedCooldown);
+                helper.succeed();
+            } finally {
+                if (override[0] != null) {
+                    override[0].close();
+                }
+            }
+        });
+    }
+
+    static void echoCastStopsAtConfiguredMulticastLimit(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useMulticastEchoStaffConfigOverrideForGameTest(
+                    2,
+                    1.2D,
+                    1.0D,
+                    12000,
+                    1
+            )) {
+                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "echo_cast_max_limit_test");
+                var staffStack = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+                var spell = SpellRegistry.ECHO_CAST.get();
+                var magicData = MagicData.getPlayerMagicData(player);
+                player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+
+                helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                        "Echo Cast should allow the cast that reaches the configured maximum");
+                spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+                var effect = player.getEffect(EffectRegistry.ECHO_SPELL.get());
+                helper.assertTrue(effect != null && effect.getAmplifier() == 0,
+                        "Echo Cast should store the maximum amplifier for a one-cast limit");
+                helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                        "Echo Cast should reject casts while already at the configured maximum");
+            }
+        });
+    }
+
     private static void prepareMulticastEchoStaffCast(
             FakePlayer player,
             ItemStack staffStack,
@@ -10059,7 +10201,19 @@ public final class ApprenticeCodexGameTestScenarios {
             CastSource castSource,
             int amplifier
     ) {
-        return (int) Math.ceil((amplifier + 2) * 1.2D * MagicManager.getEffectiveSpellCooldown(spell, player, castSource));
+        var baseCooldown = MagicManager.getEffectiveSpellCooldown(spell, player, castSource);
+        var cooldownCapTicks = ApprenticeCodexServerConfig.multicastEchoStaffCooldownCapTicks();
+        if (baseCooldown > cooldownCapTicks) {
+            return baseCooldown;
+        }
+
+        var cooldownComponent = (amplifier + 2)
+                * ApprenticeCodexServerConfig.multicastEchoStaffCooldownMultiplier()
+                * baseCooldown;
+        var castTimeComponent = (amplifier + 1)
+                * ApprenticeCodexServerConfig.multicastEchoStaffCastTimeCooldownMultiplier()
+                * spell.getEffectiveCastTime(1, player);
+        return Math.min(cooldownCapTicks, (int) Math.ceil(cooldownComponent + castTimeComponent));
     }
 
     static void circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(GameTestHelper helper) {

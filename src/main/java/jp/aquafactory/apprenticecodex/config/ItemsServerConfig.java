@@ -193,6 +193,22 @@ final class ItemsServerConfig {
         return multicastEchoStaffConfig.multicastDelayTicks();
     }
 
+    double multicastEchoStaffCooldownMultiplier() {
+        return multicastEchoStaffConfig.cooldownMultiplier();
+    }
+
+    double multicastEchoStaffCastTimeCooldownMultiplier() {
+        return multicastEchoStaffConfig.castTimeCooldownMultiplier();
+    }
+
+    int multicastEchoStaffCooldownCapTicks() {
+        return multicastEchoStaffConfig.cooldownCapTicks();
+    }
+
+    int multicastEchoStaffMaxMulticastCount() {
+        return multicastEchoStaffConfig.maxMulticastCount();
+    }
+
     int multipurposeStaffrifleCooldownReductionTicks() {
         return multipurposeStaffrifleConfig.cooldownReductionTicks();
     }
@@ -215,6 +231,22 @@ final class ItemsServerConfig {
 
     void setMultipurposeStaffrifleSpellDenylistForGameTest(List<String> spellDenylist) {
         multipurposeStaffrifleConfig.setSpellDenylistForGameTest(spellDenylist);
+    }
+
+    void setMulticastEchoStaffConfigForGameTest(
+            int multicastDelayTicks,
+            double cooldownMultiplier,
+            double castTimeCooldownMultiplier,
+            int cooldownCapTicks,
+            int maxMulticastCount
+    ) {
+        multicastEchoStaffConfig.setOverridesForGameTest(
+                multicastDelayTicks,
+                cooldownMultiplier,
+                castTimeCooldownMultiplier,
+                cooldownCapTicks,
+                maxMulticastCount
+        );
     }
 }
 

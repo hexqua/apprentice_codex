@@ -667,6 +667,8 @@
   "ui.apprenticecodex.assist_wings.only_jump_warning": "手に持っている%sの影響で翼を維持できない！",
   "ui.apprenticecodex.echo_cast.not_match_staff": "魔力を響かせる杖が手元にない...",
   "ui.apprenticecodex.echo_cast.current_count": "%d回分の魔力が辺りに残響している...",
+  "ui.apprenticecodex.echo_cast.max_reached": "残響している魔力が飽和しきった！",
+  "ui.apprenticecodex.echo_cast.cannot_echo_more": "これ以上は魔力を残響させられない！",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "射撃モードを%sに設定",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "オーバーヒートで消費マナが%sに増加している！",
