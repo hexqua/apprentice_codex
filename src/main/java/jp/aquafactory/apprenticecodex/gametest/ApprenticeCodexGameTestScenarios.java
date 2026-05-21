@@ -10045,6 +10045,34 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void multicastEchoStaffLogoutEndsWithPenaltyCooldown(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multicast_echo_staff_logout_penalty_test");
+        var staffStack = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        var spell = SpellRegistry.SHOCK.get();
+        var spellLevel = 1;
+        var amplifier = 0;
+        var manaCost = spell.getManaCost(spellLevel);
+        var initialMana = manaCost * 3.0F;
+        player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+
+        helper.runAtTickTime(1, () -> {
+            completeMulticastEchoStaffCast(helper.getLevel(), player, staffStack, spell, spellLevel, amplifier, initialMana);
+            MulticastEchoStaffCastHelper.onPlayerLoggedOut(new PlayerEvent.PlayerLoggedOutEvent(player));
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
+            var expectedCooldown = expectedMulticastEchoStaffCooldown(spell, player, CastSource.SPELLBOOK, amplifier);
+
+            helper.assertTrue(Math.abs(magicData.getMana() - (initialMana - manaCost)) < 1.0e-4F,
+                    "Logout interruption should not run an additional multicast: " + magicData.getMana());
+            helper.assertTrue(cooldown != null && cooldown.getSpellCooldown() == expectedCooldown,
+                    "Logout interruption should keep the full amplifier penalty cooldown: "
+                            + (cooldown == null ? "null" : cooldown.getSpellCooldown())
+                            + " / expected " + expectedCooldown);
+            helper.succeed();
+        });
+    }
+
     static void multicastEchoStaffLongCastAddsSkippedCastTimeCooldown(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multicast_echo_staff_cast_time_test");
         var staffStack = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
