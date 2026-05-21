@@ -11700,9 +11700,10 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void healingBloomSkipsSelfRegenerationAndUsesSlowNaturalHealing(GameTestHelper helper) {
         var level = helper.getLevel();
-        var relativeAnchorPos = new BlockPos(0, 2, 0);
+        // 同 batch の他 Healing Bloom から再生オーラを受けないよう、高所へ隔離する。
+        var relativeAnchorPos = new BlockPos(0, 20, 0);
         var anchorPos = helper.absolutePos(relativeAnchorPos);
-        helper.setBlock(relativeAnchorPos.below(), Blocks.STONE);
+        prepareHighIsolationPlatform(helper, relativeAnchorPos);
 
         var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "healing_bloom_regen_test"));
         var bloom = new HealingBloomEntity(EntityRegistry.HEALING_BLOOM.get(), level);
@@ -11719,9 +11720,10 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(Math.abs(bloom.getHealth() - 5.0f) < 0.01f,
                     "Healing Bloom should not recover before its low-speed natural heal ticks");
         });
-        helper.runAtTickTime(81, () -> {
+        helper.runAtTickTime(85, () -> {
             helper.assertTrue(Math.abs(bloom.getHealth() - 6.0f) < 0.01f,
-                    "Healing Bloom should recover exactly one point from low-speed natural healing after 80 ticks");
+                    "Healing Bloom should recover exactly one point from low-speed natural healing after 80 ticks: "
+                            + bloom.getHealth());
             helper.succeed();
         });
     }
