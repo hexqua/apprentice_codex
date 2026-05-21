@@ -84,6 +84,12 @@ public final class MulticastEchoStaffCastHelper {
         }
 
         var castingItem = magicData.getPlayerCastingItem();
+        if (!isActiveNormalCastingSequence(magicData, castingItem, spell, spellLevel, castSource)
+                || !canStillPassPreCastConditions(spell, level, spellLevel, player, magicData)) {
+            PRE_CAST_CONTEXTS.remove(player.getUUID());
+            return;
+        }
+
         var amplifier = resolveEchoAmplifier(player, castingItem, spell);
         if (amplifier == null) {
             return;
@@ -99,9 +105,22 @@ public final class MulticastEchoStaffCastHelper {
         ACTIVE_NORMAL_CASTS.put(player.getUUID(), context);
     }
 
-    public static void onCastSpellComplete(AbstractSpell spell, Level level, int spellLevel, ServerPlayer player) {
+    public static void onServerCastComplete(
+            AbstractSpell spell,
+            Level level,
+            int spellLevel,
+            ServerPlayer player,
+            MagicData magicData,
+            boolean cancelled
+    ) {
+        if (cancelled) {
+            discardNormalCastContext(spell, spellLevel, player, magicData);
+            return;
+        }
+
         var context = ACTIVE_NORMAL_CASTS.remove(player.getUUID());
-        if (!matches(context, spell, spellLevel)) {
+        if (!matches(context, spell, spellLevel, magicData)) {
+            PRE_CAST_CONTEXTS.remove(player.getUUID());
             return;
         }
 
@@ -123,6 +142,35 @@ public final class MulticastEchoStaffCastHelper {
                 remainingCasts,
                 level.getGameTime() + ApprenticeCodexServerConfig.multicastEchoStaffDelayTicks()
         ));
+    }
+
+    private static boolean isActiveNormalCastingSequence(
+            MagicData magicData,
+            ItemStack castingItem,
+            AbstractSpell spell,
+            int spellLevel,
+            CastSource castSource
+    ) {
+        return magicData.isCasting()
+                && magicData.getCastingSpellLevel() == spellLevel
+                && magicData.getCastingSpell().getSpell().getSpellId().equals(spell.getSpellId())
+                && magicData.getCastSource() == castSource
+                && magicData.getPlayerCastingItem().getItem() == castingItem.getItem();
+    }
+
+    private static boolean canStillPassPreCastConditions(
+            AbstractSpell spell,
+            Level level,
+            int spellLevel,
+            ServerPlayer player,
+            MagicData magicData
+    ) {
+        var previousCastData = magicData.getAdditionalCastData();
+        try {
+            return spell.checkPreCastConditions(level, spellLevel, player, magicData);
+        } finally {
+            clearRepeatedCastData(magicData, previousCastData);
+        }
     }
 
     private static boolean isEchoTarget(ServerPlayer player, MagicData magicData, AbstractSpell spell, boolean requireActiveEffect) {
@@ -152,7 +200,6 @@ public final class MulticastEchoStaffCastHelper {
         if (echoSpell == null) {
             return null;
         }
-
         return echoSpell.getAmplifier();
     }
 
@@ -166,6 +213,30 @@ public final class MulticastEchoStaffCastHelper {
         return context != null
                 && context.spellId().equals(spell.getSpellId())
                 && context.spellLevel() == spellLevel;
+    }
+
+    private static boolean matches(
+            @Nullable ActiveNormalCastContext context,
+            AbstractSpell spell,
+            int spellLevel,
+            MagicData magicData
+    ) {
+        return matches(context, spell, spellLevel)
+                && context.item() == magicData.getPlayerCastingItem().getItem()
+                && context.castSource() == magicData.getCastSource();
+    }
+
+    private static void discardNormalCastContext(
+            AbstractSpell spell,
+            int spellLevel,
+            ServerPlayer player,
+            MagicData magicData
+    ) {
+        var context = ACTIVE_NORMAL_CASTS.get(player.getUUID());
+        if (context != null && matches(context, spell, spellLevel, magicData)) {
+            ACTIVE_NORMAL_CASTS.remove(player.getUUID(), context);
+        }
+        PRE_CAST_CONTEXTS.remove(player.getUUID());
     }
 
     private static void sendCannotCastMessage(ServerPlayer player, AbstractSpell spell) {
@@ -213,6 +284,7 @@ public final class MulticastEchoStaffCastHelper {
         }
 
         clearStalePreCastContext(player);
+        clearStaleActiveNormalCastContext(player);
         tickMulticastJob(player);
     }
 
@@ -228,6 +300,25 @@ public final class MulticastEchoStaffCastHelper {
         }
 
         PRE_CAST_CONTEXTS.remove(player.getUUID(), context);
+    }
+
+    private static void clearStaleActiveNormalCastContext(ServerPlayer player) {
+        var context = ACTIVE_NORMAL_CASTS.get(player.getUUID());
+        if (context == null) {
+            return;
+        }
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData != null
+                && magicData.isCasting()
+                && context.spellId().equals(magicData.getCastingSpell().getSpell().getSpellId())
+                && context.spellLevel() == magicData.getCastingSpellLevel()
+                && context.item() == magicData.getPlayerCastingItem().getItem()
+                && context.castSource() == magicData.getCastSource()) {
+            return;
+        }
+
+        ACTIVE_NORMAL_CASTS.remove(player.getUUID(), context);
     }
 
     private static void tickMulticastJob(ServerPlayer player) {
