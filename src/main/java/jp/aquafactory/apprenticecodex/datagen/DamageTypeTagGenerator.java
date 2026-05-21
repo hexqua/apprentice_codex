@@ -87,7 +87,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 SHOCK,
                 TIRO_VOLLEY,
                 MAGIC_SPEAR,
-                FROST_RUNE
+                FROST_RUNE,
+                MYSTIC_SHIELD
         );
 
         // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
@@ -162,7 +163,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 TIRO_VOLLEY,
                 MANA_FORCE_BLADE,
                 MAGIC_SPEAR,
-                FROST_RUNE
+                FROST_RUNE,
+                MYSTIC_SHIELD
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.
@@ -187,7 +189,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 COMPOUND_PHIAL,
                 MOON_LIGHT,
                 UNITE_LUNA,
-                HAUNTED_BONUS
+                HAUNTED_BONUS,
+                MYSTIC_SHIELD
         );
 
         // Malum連携: 魔法ダメージ全体をSoul Shatter判定対象にする.
