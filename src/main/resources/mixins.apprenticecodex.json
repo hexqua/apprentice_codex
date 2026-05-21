@@ -50,7 +50,7 @@
     "MinecraftMixin",
     "EntityMixin",
     "GuiGraphicsItemInventoryOverlayMixin",
-    "ItemRendererFocusStaffbowContextMixin",
+    "ItemRendererClientItemRenderContextMixin",
     "QuickCastPacketAccessor",
     "SpellWheelOverlayMixin",
     "TooltipsUtilsMixin"
