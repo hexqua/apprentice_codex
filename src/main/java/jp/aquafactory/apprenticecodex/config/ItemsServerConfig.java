@@ -241,6 +241,14 @@ final class ItemsServerConfig {
         return multicastEchoStaffConfig.amplifierServerCap();
     }
 
+    boolean multicastEchoStaffAttackProfilesEnabled() {
+        return multicastEchoStaffConfig.attackProfilesEnabled();
+    }
+
+    double multicastEchoStaffRepeatDamageMultiplier() {
+        return multicastEchoStaffConfig.repeatDamageMultiplier();
+    }
+
     int multipurposeStaffrifleCooldownReductionTicks() {
         return multipurposeStaffrifleConfig.cooldownReductionTicks();
     }
@@ -300,6 +308,16 @@ final class ItemsServerConfig {
                 durationServerCapTicks,
                 amplifierServerCapEnabled,
                 amplifierServerCap
+        );
+    }
+
+    void setMulticastEchoStaffAttackConfigForGameTest(
+            boolean attackProfilesEnabled,
+            double repeatDamageMultiplier
+    ) {
+        multicastEchoStaffConfig.setAttackOverridesForGameTest(
+                attackProfilesEnabled,
+                repeatDamageMultiplier
         );
     }
 }

@@ -297,10 +297,14 @@ public final class MulticastEchoStaffCastHelper {
         var previousCastData = magicData.getAdditionalCastData();
         try {
             spell.onServerPreCast(level, job.spellLevel(), player, magicData);
-            MulticastEchoStaffMobEffectHandler.runRepeatedCast(
+            MulticastEchoStaffAttackHandler.runRepeatedCast(
                     player,
                     spell,
-                    () -> spell.castSpell(level, job.spellLevel(), player, job.castSource(), false)
+                    () -> MulticastEchoStaffMobEffectHandler.runRepeatedCast(
+                            player,
+                            spell,
+                            () -> spell.castSpell(level, job.spellLevel(), player, job.castSource(), false)
+                    )
             );
         } finally {
             clearRepeatedCastData(magicData, previousCastData);

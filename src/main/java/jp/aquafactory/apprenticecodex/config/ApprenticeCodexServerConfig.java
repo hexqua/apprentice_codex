@@ -304,6 +304,14 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.multicastEchoStaffAmplifierServerCap();
     }
 
+    public static boolean multicastEchoStaffAttackProfilesEnabled() {
+        return ITEMS_CONFIG.multicastEchoStaffAttackProfilesEnabled();
+    }
+
+    public static double multicastEchoStaffRepeatDamageMultiplier() {
+        return ITEMS_CONFIG.multicastEchoStaffRepeatDamageMultiplier();
+    }
+
     public static int multipurposeStaffrifleCooldownBypassThresholdTicks() {
         return ITEMS_CONFIG.multipurposeStaffrifleCooldownBypassThresholdTicks();
     }
@@ -399,6 +407,23 @@ public final class ApprenticeCodexServerConfig {
                 previousDurationServerCapTicks,
                 previousAmplifierServerCapEnabled,
                 previousAmplifierServerCap
+        );
+    }
+
+    public static GameTestConfigOverride useMulticastEchoStaffAttackConfigOverrideForGameTest(
+            boolean attackProfilesEnabled,
+            double repeatDamageMultiplier
+    ) {
+        var previousAttackProfilesEnabled = ITEMS_CONFIG.multicastEchoStaffAttackProfilesEnabled();
+        var previousRepeatDamageMultiplier = ITEMS_CONFIG.multicastEchoStaffRepeatDamageMultiplier();
+
+        ITEMS_CONFIG.setMulticastEchoStaffAttackConfigForGameTest(
+                attackProfilesEnabled,
+                repeatDamageMultiplier
+        );
+        return () -> ITEMS_CONFIG.setMulticastEchoStaffAttackConfigForGameTest(
+                previousAttackProfilesEnabled,
+                previousRepeatDamageMultiplier
         );
     }
 

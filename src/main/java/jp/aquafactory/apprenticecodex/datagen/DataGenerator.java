@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.datagen.spell.SchoolAffinityCatalystOverri
 import jp.aquafactory.apprenticecodex.datagen.spell.SchoolAffinitySelectionPolicyDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SearchBeaconTargetDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SenseEvilHighlightDataGenerator;
+import jp.aquafactory.apprenticecodex.datagen.spell.MulticastEchoStaffAttackProfileDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.MulticastEchoStaffMobEffectProfileDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SpellDispenserSpellListDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SpellDispenserSpellProfileDataGenerator;
@@ -47,6 +48,7 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), new SpellDispenserSpellListDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new SpellDispenserSpellProfileDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new ChargedTwinBladeStaffSpellProfileDataGenerator(output, lookupProvider, existing));
+        generator.addProvider(event.includeServer(), new MulticastEchoStaffAttackProfileDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new MulticastEchoStaffMobEffectProfileDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new SpellGunSpellListDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new AutocastAmuletSpellListDataGenerator(output, lookupProvider, existing));
