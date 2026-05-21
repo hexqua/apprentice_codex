@@ -10260,6 +10260,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(Math.abs(magicData.getMana() - (initialMana - manaCost)) < 1.0e-4F,
                     "Valid long cast should only pay the normal cast mana cost before delayed ticks: "
                             + magicData.getMana());
+            magicData.setAdditionalCastData(null);
         });
 
         helper.runAtTickTime(4, () -> {
@@ -10274,6 +10275,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Valid long cast should apply the multicast penalty cooldown from the start context: "
                             + (cooldown == null ? "null" : cooldown.getSpellCooldown())
                             + " / expected " + expectedCooldown);
+            helper.assertTrue(magicData.getAdditionalCastData() == null,
+                    "Delayed multicast pre-cast data should be restored after the repeated cast");
             helper.succeed();
         });
     }

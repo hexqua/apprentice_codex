@@ -353,8 +353,13 @@ public final class MulticastEchoStaffCastHelper {
         }
 
         var remainingCasts = job.remainingCasts() - 1;
-        if (canRunMulticastPreCast(level, spell, job.spellLevel(), job.castSource(), player, magicData)) {
-            runRepeatedCast(level, spell, job, player, magicData);
+        var previousCastData = magicData.getAdditionalCastData();
+        try {
+            if (canRunMulticastPreCast(level, spell, job.spellLevel(), job.castSource(), player, magicData)) {
+                runRepeatedCast(level, spell, job, player, magicData);
+            }
+        } finally {
+            clearRepeatedCastData(magicData, previousCastData);
         }
 
         if (remainingCasts <= 0) {
