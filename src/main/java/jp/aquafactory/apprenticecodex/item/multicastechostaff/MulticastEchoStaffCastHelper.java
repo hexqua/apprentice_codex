@@ -97,7 +97,6 @@ public final class MulticastEchoStaffCastHelper {
                 amplifier
         );
         ACTIVE_NORMAL_CASTS.put(player.getUUID(), context);
-        logEchoAmplifier(player, spell, amplifier);
     }
 
     public static void onCastSpellComplete(AbstractSpell spell, Level level, int spellLevel, ServerPlayer player) {
@@ -167,15 +166,6 @@ public final class MulticastEchoStaffCastHelper {
         return context != null
                 && context.spellId().equals(spell.getSpellId())
                 && context.spellLevel() == spellLevel;
-    }
-
-    private static void logEchoAmplifier(ServerPlayer player, AbstractSpell spell, int amplifier) {
-        ApprenticeCodex.LOGGER.info(
-                "Multicast Echo Staff consumed EchoSpell amplifier {} for player {} spell {}",
-                amplifier,
-                player.getGameProfile().getName(),
-                spell.getSpellId()
-        );
     }
 
     private static void sendCannotCastMessage(ServerPlayer player, AbstractSpell spell) {

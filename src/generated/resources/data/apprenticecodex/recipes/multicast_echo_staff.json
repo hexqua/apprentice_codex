@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "E": {
+      "item": "minecraft:echo_shard"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_ingot"
+    },
+    "N": {
+      "item": "minecraft:netherite_ingot"
+    },
+    "P": {
+      "item": "irons_spellbooks:weapon_parts"
+    },
+    "W": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "pattern": [
+    " ME",
+    " WN",
+    "PN "
+  ],
+  "result": {
+    "item": "apprenticecodex:multicast_echo_staff"
+  },
+  "show_notification": true
+}
