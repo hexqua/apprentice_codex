@@ -59,6 +59,9 @@ import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfile;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfileManager;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffCastHelper;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectHandler;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectProfile;
@@ -110,6 +113,7 @@ import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
+import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
@@ -144,6 +148,7 @@ import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
 import jp.aquafactory.apprenticecodex.utility.ApprenticeEnchantmentAvailability;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import jp.aquafactory.apprenticecodex.utility.ProcessingRecipeDenylist;
@@ -10852,6 +10857,79 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(result != null && result.getDuration() == 100,
                     "Missing multicast mob effect profile should leave vanilla duplicate handling unchanged: "
                             + (result == null ? "null" : result.getDuration()));
+        });
+    }
+
+    static void multicastEchoStaffAttackProfileScalesDirectCombatToolsDamage(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multicast_echo_staff_attack_direct_test");
+            helper.getLevel().addFreshEntity(player);
+            var target = spawnPositionedZombie(helper.getLevel(), helper.absoluteVec(new Vec3(2.5D, 2.0D, 0.5D)));
+            var spell = SpellRegistry.SHOCK.get();
+            var profile = new MulticastEchoStaffAttackProfile(0.25D, true, false, true, 0, 1);
+            var source = CombatTools.getDamageSource(helper.getLevel(), player, DamageTypes.SHOCK);
+            var initialHealth = target.getHealth();
+
+            try (var ignoredConfig = ApprenticeCodexServerConfig.useMulticastEchoStaffAttackConfigOverrideForGameTest(
+                    true,
+                    1.0D
+            ); var ignoredProfile = MulticastEchoStaffAttackProfileManager.useProfilesForGameTest(Map.of(
+                    spell.getSpellResource(),
+                    profile
+            ))) {
+                MulticastEchoStaffAttackHandler.runRepeatedCast(
+                        player,
+                        spell,
+                        () -> {
+                            target.invulnerableTime = 20;
+                            CombatTools.applyDamage(target, 8.0F, source, spell.getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+                        }
+                );
+            }
+
+            var damageTaken = initialHealth - target.getHealth();
+            helper.assertTrue(damageTaken > 0.0F && damageTaken < 4.0F,
+                    "Direct CombatTools multicast damage should use the profile multiplier before resistance: " + damageTaken);
+            helper.assertTrue(target.invulnerableTime == 1,
+                    "Direct CombatTools multicast damage should leave configured post-hit i-frame ticks: "
+                            + target.invulnerableTime);
+        });
+    }
+
+    static void multicastEchoStaffAttackProfileTracksDelayedProjectileDamage(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multicast_echo_staff_attack_projectile_test");
+            helper.getLevel().addFreshEntity(player);
+            var target = spawnPositionedZombie(helper.getLevel(), helper.absoluteVec(new Vec3(2.5D, 2.0D, 0.5D)));
+            var spell = SpellRegistry.MANA_SLASH.get();
+            var profile = new MulticastEchoStaffAttackProfile(0.5D, true, true, false, 20, 1);
+            var projectile = new ManaSlashProjectileEntity(EntityRegistry.MANA_SLASH_PROJECTILE.get(), helper.getLevel(), player);
+            var source = CombatTools.getDamageSource(helper.getLevel(), projectile, player, DamageTypes.MANA_SLASH);
+            var initialHealth = target.getHealth();
+
+            try (var ignoredConfig = ApprenticeCodexServerConfig.useMulticastEchoStaffAttackConfigOverrideForGameTest(
+                    true,
+                    1.0D
+            ); var ignoredProfile = MulticastEchoStaffAttackProfileManager.useProfilesForGameTest(Map.of(
+                    spell.getSpellResource(),
+                    profile
+            ))) {
+                MulticastEchoStaffAttackHandler.runRepeatedCast(
+                        player,
+                        spell,
+                        () -> helper.getLevel().addFreshEntity(projectile)
+                );
+                target.invulnerableTime = 20;
+                CombatTools.applyDamage(target, 8.0F, source, spell.getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+            }
+
+            var damageTaken = initialHealth - target.getHealth();
+            helper.assertTrue(damageTaken > 0.0F && damageTaken < 6.0F,
+                    "Tracked projectile multicast damage should use the profile multiplier after cast context closes: "
+                            + damageTaken);
+            helper.assertTrue(target.invulnerableTime == 1,
+                    "Tracked projectile multicast damage should leave configured post-hit i-frame ticks: "
+                            + target.invulnerableTime);
         });
     }
 

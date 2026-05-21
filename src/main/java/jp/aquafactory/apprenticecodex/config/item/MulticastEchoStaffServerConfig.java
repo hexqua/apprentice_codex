@@ -16,6 +16,8 @@ public final class MulticastEchoStaffServerConfig {
     private final ForgeConfigSpec.IntValue durationServerCapTicks;
     private final ForgeConfigSpec.BooleanValue amplifierServerCapEnabled;
     private final ForgeConfigSpec.IntValue amplifierServerCap;
+    private final ForgeConfigSpec.BooleanValue attackProfilesEnabled;
+    private final ForgeConfigSpec.DoubleValue repeatDamageMultiplier;
     private Integer multicastDelayTicksOverride;
     private Double cooldownMultiplierOverride;
     private Double castTimeCooldownMultiplierOverride;
@@ -29,6 +31,8 @@ public final class MulticastEchoStaffServerConfig {
     private Integer durationServerCapTicksOverride;
     private Boolean amplifierServerCapEnabledOverride;
     private Integer amplifierServerCapOverride;
+    private Boolean attackProfilesEnabledOverride;
+    private Double repeatDamageMultiplierOverride;
 
     private MulticastEchoStaffServerConfig(
             ForgeConfigSpec.IntValue multicastDelayTicks,
@@ -43,7 +47,9 @@ public final class MulticastEchoStaffServerConfig {
             ForgeConfigSpec.BooleanValue durationServerCapEnabled,
             ForgeConfigSpec.IntValue durationServerCapTicks,
             ForgeConfigSpec.BooleanValue amplifierServerCapEnabled,
-            ForgeConfigSpec.IntValue amplifierServerCap
+            ForgeConfigSpec.IntValue amplifierServerCap,
+            ForgeConfigSpec.BooleanValue attackProfilesEnabled,
+            ForgeConfigSpec.DoubleValue repeatDamageMultiplier
     ) {
         this.multicastDelayTicks = multicastDelayTicks;
         this.cooldownMultiplier = cooldownMultiplier;
@@ -58,6 +64,8 @@ public final class MulticastEchoStaffServerConfig {
         this.durationServerCapTicks = durationServerCapTicks;
         this.amplifierServerCapEnabled = amplifierServerCapEnabled;
         this.amplifierServerCap = amplifierServerCap;
+        this.attackProfilesEnabled = attackProfilesEnabled;
+        this.repeatDamageMultiplier = repeatDamageMultiplier;
     }
 
     public static MulticastEchoStaffServerConfig define(ForgeConfigSpec.Builder builder) {
@@ -101,6 +109,12 @@ public final class MulticastEchoStaffServerConfig {
         var amplifierServerCap = builder
                 .comment("Additional server-side amplifier cap. 0 disables this cap even when enabled.")
                 .defineInRange("amplifierServerCap", 10, 0, 255);
+        var attackProfilesEnabled = builder
+                .comment("Enables Multicast Echo Staff attack profile handling for repeated casts.")
+                .define("attackProfilesEnabled", true);
+        var repeatDamageMultiplier = builder
+                .comment("Server-wide multiplier applied to repeated Multicast Echo Staff attack profile damage.")
+                .defineInRange("repeatDamageMultiplier", 1.0D, 0.0D, 100.0D);
         builder.pop();
 
         return new MulticastEchoStaffServerConfig(
@@ -116,7 +130,9 @@ public final class MulticastEchoStaffServerConfig {
                 durationServerCapEnabled,
                 durationServerCapTicks,
                 amplifierServerCapEnabled,
-                amplifierServerCap
+                amplifierServerCap,
+                attackProfilesEnabled,
+                repeatDamageMultiplier
         );
     }
 
@@ -186,6 +202,18 @@ public final class MulticastEchoStaffServerConfig {
         return amplifierServerCapOverride == null ? amplifierServerCap.get() : amplifierServerCapOverride;
     }
 
+    public boolean attackProfilesEnabled() {
+        return attackProfilesEnabledOverride == null
+                ? attackProfilesEnabled.get()
+                : attackProfilesEnabledOverride;
+    }
+
+    public double repeatDamageMultiplier() {
+        return repeatDamageMultiplierOverride == null
+                ? repeatDamageMultiplier.get()
+                : repeatDamageMultiplierOverride;
+    }
+
     public void setOverridesForGameTest(
             int multicastDelayTicks,
             double cooldownMultiplier,
@@ -218,5 +246,13 @@ public final class MulticastEchoStaffServerConfig {
         this.durationServerCapTicksOverride = durationServerCapTicks;
         this.amplifierServerCapEnabledOverride = amplifierServerCapEnabled;
         this.amplifierServerCapOverride = amplifierServerCap;
+    }
+
+    public void setAttackOverridesForGameTest(
+            boolean attackProfilesEnabled,
+            double repeatDamageMultiplier
+    ) {
+        this.attackProfilesEnabledOverride = attackProfilesEnabled;
+        this.repeatDamageMultiplierOverride = repeatDamageMultiplier;
     }
 }
