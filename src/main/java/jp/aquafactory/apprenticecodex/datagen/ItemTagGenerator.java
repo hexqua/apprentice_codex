@@ -53,6 +53,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     protected void addTags(@NotNull HolderLookup.Provider provider) {
         tag(IRONS_STAFF).add(
                 ItemRegistry.PASTEL_STAFF.get(),
+                ItemRegistry.MULTICAST_ECHO_STAFF.get(),
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
                 ItemRegistry.ILLUMINATE_STELLAR_STAFF.get(),
                 ItemRegistry.UNITE_LUNA_STAFF.get(),
@@ -82,6 +83,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var malumSoulHunterWeaponTag = tag(MALUM_SOUL_HUNTER_WEAPON);
         malumSoulHunterWeaponTag.add(
                 ItemRegistry.PASTEL_STAFF.get(),
+                ItemRegistry.MULTICAST_ECHO_STAFF.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get(),
                 ItemRegistry.SMASHCAST_SCEPTER.get(),
                 ItemRegistry.CIRCUIT_HEAT_STAFF.get(),
@@ -97,6 +99,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var tomagicReversalWeaponTag = tag(TOMAGIC_REVERSAL_WEAPON);
         tomagicReversalWeaponTag.add(
                 ItemRegistry.PASTEL_STAFF.get(),
+                ItemRegistry.MULTICAST_ECHO_STAFF.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get(),
                 ItemRegistry.SMASHCAST_SCEPTER.get(),
                 ItemRegistry.CIRCUIT_HEAT_STAFF.get(),

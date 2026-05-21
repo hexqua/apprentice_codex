@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.effect.ArcaneCharge;
 import jp.aquafactory.apprenticecodex.effect.CastingMobility;
 import jp.aquafactory.apprenticecodex.effect.CraftsmansDelightMobility;
+import jp.aquafactory.apprenticecodex.effect.EchoSpell;
 import jp.aquafactory.apprenticecodex.effect.FrostTrapped;
 import jp.aquafactory.apprenticecodex.effect.Intelligence;
 import jp.aquafactory.apprenticecodex.effect.LongStrideMobility;
@@ -40,6 +41,8 @@ public final class EffectRegistry {
             EFFECTS.register("mana_regeneration", ManaRegeneration::new);
     public static final RegistryObject<MobEffect> PALETTE_RECEPTION =
             EFFECTS.register("palette_reception", PaletteReception::new);
+    public static final RegistryObject<MobEffect> ECHO_SPELL =
+            EFFECTS.register("echo_spell", EchoSpell::new);
     public static final RegistryObject<MobEffect> PHALANX_STANCE =
             EFFECTS.register("phalanx_stance", PhalanxStance::new);
     public static final RegistryObject<MobEffect> SENSE_SENSOR =

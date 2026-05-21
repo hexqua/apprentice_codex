@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -73,6 +74,9 @@ public final class CombatTools {
     public static boolean applyDamage(Entity target, float baseAmount, DamageSource source, SchoolType magicSchool,
                                       KnockbackTypes type) {
         if (target instanceof LivingEntity livingTarget) {
+            var multicastAdjustment = MulticastEchoStaffAttackHandler.adjustCombatDamage(target, baseAmount, source);
+            baseAmount = multicastAdjustment.baseAmount();
+
             // Iron'sの召喚ダメージはLivingEntityのみ対象なので合わせる.
             if (source.is(DamageTypeTagGenerator.SUMMON_DAMAGE) && source.getEntity() instanceof LivingEntity caster){
                 var attributeInstance = caster.getAttribute(AttributeRegistry.SUMMON_DAMAGE.get());
@@ -88,17 +92,26 @@ public final class CombatTools {
             var amount = baseAmount * getResistAttribute(livingTarget, magicSchool);
 
             // Epicfight関連は例外握りつぶしを行う.
+            boolean applied;
             if (isEpicFightLikeEnvironment()) {
                 try {
-                    return livingTarget.hurt(source, amount);
+                    applied = livingTarget.hurt(source, amount);
                 } catch (Throwable t) {
                     logEpicFightCompatOncePerInterval("LivingEntity#hurt", livingTarget, source, amount, t);
                     return false;
                 }
+            } else {
+                applied = livingTarget.hurt(source, amount);
             }
-            return livingTarget.hurt(source, amount);
+
+            if (applied && multicastAdjustment.ignoreIframe()) {
+                livingTarget.invulnerableTime = multicastAdjustment.postHitIframeTicks();
+            }
+            return applied;
 
         } else {
+            var multicastAdjustment = MulticastEchoStaffAttackHandler.adjustCombatDamage(target, baseAmount, source);
+            baseAmount = multicastAdjustment.baseAmount();
             return target.hurt(source, baseAmount);
         }
     }

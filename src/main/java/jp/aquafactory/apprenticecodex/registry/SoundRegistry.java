@@ -59,6 +59,7 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> STELLAR_EXPLODE = reg("stellar_explode");
     public static final RegistryObject<SoundEvent> FROZEN_RUNE = reg("frozen_rune");
     public static final RegistryObject<SoundEvent> STAFFRIFLE = reg("staffrifle");
+    public static final RegistryObject<SoundEvent> MULTICAST = reg("multicast");
     public static final RegistryObject<SoundEvent> SMASHCAST_SCEPTER_SMASH_AIR = reg("smashcast_scepter_smash_air");
     public static final RegistryObject<SoundEvent> SMASHCAST_SCEPTER_SMASH_GROUND = reg("smashcast_scepter_smash_ground");
     public static final RegistryObject<SoundEvent> SMASHCAST_SCEPTER_SMASH_GROUND_HEAVY = reg("smashcast_scepter_smash_ground_heavy");

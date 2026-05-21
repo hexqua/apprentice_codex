@@ -12,7 +12,6 @@ import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import io.redspace.ironsspellbooks.item.weapons.StaffItem;
 import io.redspace.ironsspellbooks.item.weapons.StaffTier;
 import io.redspace.ironsspellbooks.render.ClientStaffItemExtensions;
-import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
@@ -31,7 +30,6 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.registries.ForgeRegistries;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -40,7 +38,6 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -49,14 +46,6 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
     public static final String STONE_AFFINITY_SCHOOL_TAG = "StoneAffinitySchool";
     public static final int DEFAULT_STONE_TINT_COLOR = 0xFFFFFF;
     private static final String AFFINITY_MODIFIER_NAME_PREFIX = "apprenticecodex.pastel_staff.affinity.";
-    private static final String VANILLA_NAMESPACE = "minecraft";
-    private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
-    private static final Set<ResourceLocation> ALLOWED_VANILLA_WEAPON_ENCHANTMENTS = Set.of(
-            ResourceLocation.withDefaultNamespace("looting"),
-            ResourceLocation.withDefaultNamespace("knockback"),
-            ResourceLocation.withDefaultNamespace("fortune"),
-            ResourceLocation.withDefaultNamespace("silk_touch")
-    );
     private static final StaffTier PASTEL_STAFF_TIER = new StaffTier(
             3.0F,
             -3.0F,
@@ -156,29 +145,7 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
 
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-        if (enchantmentId == null) {
-            return false;
-        }
-
-        if (isDurabilityTargetEnchantment(enchantment)) {
-            return false;
-        }
-
-        if (MalumHauntedCompat.isAnimatedEnchantment(enchantmentId)) {
-            return false;
-        }
-
-        if (MalumHauntedCompat.isHauntedEnchantment(enchantmentId)
-                && MalumHauntedCompat.isSupportedHauntedMainhandItem(stack)) {
-            return true;
-        }
-
-        if (VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())) {
-            return ALLOWED_VANILLA_WEAPON_ENCHANTMENTS.contains(enchantmentId);
-        }
-
-        return enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD));
+        return StaffEnchantmentTargeting.canApplyAtEnchantingTable(stack, enchantment);
     }
 
     @Override
@@ -200,12 +167,6 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
     public int getEnchantmentValue(ItemStack stack) {
         // 金ツール相当.
         return 22;
-    }
-
-    private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
-        // エリトラは耐久値を持つが武器/ツール系カテゴリではないため,
-        // ここに付くエンチャントを「耐久値持ちアイテム向け」とみなして除外する.
-        return enchantment.canApplyAtEnchantingTable(DURABILITY_ENCHANTMENT_PROBE_STACK);
     }
 
     public int getStoneTintColor(ItemStack stack) {

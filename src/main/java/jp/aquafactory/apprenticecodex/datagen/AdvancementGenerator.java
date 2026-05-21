@@ -245,6 +245,19 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
 
         Advancement.Builder.advancement()
                 .parent(root)
+                .display(ItemRegistry.MULTICAST_ECHO_STAFF.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_multicast_echo_staff.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_multicast_echo_staff.description"),
+                        null,
+                        FrameType.CHALLENGE,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_multicast_echo_staff", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.MULTICAST_ECHO_STAFF.getId()))
+                .save(saver, advancementId("craft_multicast_echo_staff"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(root)
                 .display(ItemRegistry.SMASHCAST_SCEPTER.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_smashcast_scepter.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_smashcast_scepter.description"),
