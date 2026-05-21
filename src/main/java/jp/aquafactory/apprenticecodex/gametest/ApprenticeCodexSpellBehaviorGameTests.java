@@ -287,6 +287,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void multicastEchoStaffLogoutEndsWithPenaltyCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffLogoutEndsWithPenaltyCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 80)
     public static void multicastEchoStaffLongCastAddsSkippedCastTimeCooldown(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.multicastEchoStaffLongCastAddsSkippedCastTimeCooldown(helper);
     }

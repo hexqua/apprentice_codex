@@ -461,25 +461,39 @@ public final class MulticastEchoStaffCastHelper {
 
     @SubscribeEvent
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
-        clearVolatileState(event.getEntity().getUUID());
+        if (event.getEntity() instanceof ServerPlayer player) {
+            clearVolatileState(player);
+        }
     }
 
     @SubscribeEvent
     public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
-        clearVolatileState(event.getEntity().getUUID());
+        if (event.getEntity() instanceof ServerPlayer player) {
+            clearVolatileState(player);
+        }
     }
 
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            clearVolatileState(player.getUUID());
+            clearVolatileState(player);
         }
     }
 
-    private static void clearVolatileState(UUID playerId) {
+    private static void clearVolatileState(ServerPlayer player) {
+        var playerId = player.getUUID();
+        var job = MULTICAST_JOBS.get(playerId);
+        if (job != null) {
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(job.spellId());
+            if (spell != null && spell != io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()) {
+                finishMulticast(player, job, spell);
+            } else {
+                MULTICAST_JOBS.remove(playerId, job);
+            }
+        }
+
         PRE_CAST_CONTEXTS.remove(playerId);
         ACTIVE_NORMAL_CASTS.remove(playerId);
-        MULTICAST_JOBS.remove(playerId);
         FINAL_COOLDOWN_CONTEXTS.remove(playerId);
     }
 
