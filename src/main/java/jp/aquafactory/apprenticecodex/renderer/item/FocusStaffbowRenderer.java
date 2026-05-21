@@ -2,10 +2,10 @@ package jp.aquafactory.apprenticecodex.renderer.item;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import jp.aquafactory.apprenticecodex.item.ClientItemRenderContext;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeEffectState;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientRenderState;
-import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowItemRenderContext;
 import jp.aquafactory.apprenticecodex.model.FocusStaffbowModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -35,7 +35,7 @@ public final class FocusStaffbowRenderer extends GeoItemRenderer<FocusStaffbow> 
             this.chargeEffectState = FocusStaffbowClientRenderState.resolveChargeEffectState(
                     this.currentItemStack,
                     this.renderPerspective,
-                    FocusStaffbowItemRenderContext.getRenderingEntity(),
+                    ClientItemRenderContext.getRenderingEntity(),
                     partialTick
             );
         }
