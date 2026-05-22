@@ -11,7 +11,6 @@ import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.Level;
@@ -179,11 +178,7 @@ public final class MysticShieldDefenseEvent {
         }
 
         var shieldCenter = resolveShieldCenter(defender);
-        var shieldNormal = horizontal(defender.getLookAngle());
-        if (!isUsableDirection(shieldNormal)) {
-            shieldNormal = new Vec3(0.0, 0.0, 1.0);
-        }
-        shieldNormal = shieldNormal.normalize();
+        var shieldNormal = resolveHorizontalFacing(defender);
 
         var sourceVector = resolveIncomingOrigin(defender, source);
         var planeVector = sourceVector.subtract(shieldNormal.scale(sourceVector.dot(shieldNormal)));
@@ -245,11 +240,7 @@ public final class MysticShieldDefenseEvent {
     }
 
     private static boolean isFromFront(LivingEntity defender, DamageSource source) {
-        var defenderForward = horizontal(defender.getLookAngle());
-        if (!isUsableDirection(defenderForward)) {
-            return false;
-        }
-        defenderForward = defenderForward.normalize();
+        var defenderForward = resolveHorizontalFacing(defender);
 
         var incomingOrigin = resolveIncomingOrigin(defender, source);
         if (!isUsableDirection(incomingOrigin)) {
@@ -262,6 +253,14 @@ public final class MysticShieldDefenseEvent {
         }
 
         return defenderForward.dot(horizontalIncomingOrigin.normalize()) >= FRONT_DOT_THRESHOLD;
+    }
+
+    private static Vec3 resolveHorizontalFacing(LivingEntity defender) {
+        var look = horizontal(defender.getLookAngle());
+        if (isUsableDirection(look)) {
+            return look.normalize();
+        }
+        return horizontal(Vec3.directionFromRotation(0.0f, defender.getYRot())).normalize();
     }
 
     private static Vec3 resolveIncomingOrigin(LivingEntity defender, DamageSource source) {
