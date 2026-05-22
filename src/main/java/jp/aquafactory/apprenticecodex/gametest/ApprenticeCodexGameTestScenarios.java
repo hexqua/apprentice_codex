@@ -3123,6 +3123,8 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(menu.getSlot(0).mayPlace(gauntlet), "Scrollcaster Gauntlet should be accepted in the gauntlet slot");
             helper.assertTrue(!menu.getSlot(0).mayPlace(new ItemStack(Items.STICK)), "Non-gauntlet items should be rejected from the gauntlet slot");
             helper.assertTrue(!menu.getSlot(1).mayPlace(lesserUpgrade), "Adjustment slots should be disabled without a gauntlet");
+            helper.assertTrue(lesserUpgrade.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES),
+                    "Lesser spell slot upgrade should be tagged as a Scrollcaster Gauntlet slot upgrade");
 
             menu.getSlot(0).set(gauntlet);
             helper.assertTrue(menu.isScrollSlotEnabled(0), "Scroll slot 0 should be enabled by default");
@@ -3335,6 +3337,10 @@ public final class ApprenticeCodexGameTestScenarios {
             var lesserUpgrade = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get());
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
 
+            helper.assertTrue(lesserUpgrade.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES),
+                    "Lesser spell slot upgrade should be tagged as a Scrollcaster Gauntlet slot upgrade");
+            helper.assertTrue(enchantedBook.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS),
+                    "Vanilla enchanted book should be tagged as a Scrollcaster Gauntlet enchantment book");
             menu.getSlot(0).set(gauntlet);
             helper.assertTrue(
                     ScrollcasterSchoolRuneResolver.resolveSchool(fireRune)
@@ -3359,8 +3365,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Manual rune override should take precedence over automatic rune lookup"
             );
             helper.assertTrue(menu.getSlot(1).mayPlace(fireRune), "School rune should be accepted as a calibration adjustment");
-            helper.assertTrue(menu.getSlot(2).mayPlace(enchantedBook), "Enchanted book should be accepted as a calibration adjustment");
-            helper.assertTrue(menu.getSlot(3).mayPlace(lesserUpgrade), "Lesser spell slot upgrade should be accepted as a calibration adjustment");
+            helper.assertTrue(menu.getSlot(2).mayPlace(enchantedBook), "Tagged enchantment books should be accepted as a calibration adjustment");
+            helper.assertTrue(menu.getSlot(3).mayPlace(lesserUpgrade), "Tagged slot upgrades should be accepted as a calibration adjustment");
             helper.assertTrue(!menu.getSlot(1).mayPlace(arcaneRune), "Arcane rune should not be treated as a scrollcaster school rune");
 
             menu.getSlot(1).set(fireRune);
@@ -3508,6 +3514,23 @@ public final class ApprenticeCodexGameTestScenarios {
             menu.getSlot(2).set(ItemStack.EMPTY);
             helper.assertTrue(EnchantmentHelper.getEnchantmentsForCrafting(gauntlet).isEmpty(),
                     "Removing Bench books should clear gauntlet enchantments");
+
+            var sharpnessId = ForgeRegistries.ENCHANTMENTS.getKey(Enchantments.SHARPNESS);
+            var mendingId = ForgeRegistries.ENCHANTMENTS.getKey(Enchantments.MENDING);
+            helper.assertTrue(sharpnessId != null, "Sharpness should have a registry id");
+            helper.assertTrue(mendingId != null, "Mending should have a registry id");
+            try (var ignored = ApprenticeCodexServerConfig.useScrollcasterGauntletConfigOverrideForGameTest(
+                    List.of(sharpnessId.toString()),
+                    List.of(sharpnessId.toString(), mendingId.toString())
+            )) {
+                menu.getSlot(1).set(createEnchantedBook(new EnchantmentInstance(Enchantments.SHARPNESS, 1)));
+                helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.SHARPNESS) == 0,
+                        "Denied Scrollcaster Gauntlet enchantments should not transfer even when normally supported or compat-allowed");
+
+                menu.getSlot(1).set(createEnchantedBook(new EnchantmentInstance(Enchantments.MENDING, 1)));
+                helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.MENDING) == 1,
+                        "Compat additional allowed Scrollcaster Gauntlet enchantments should transfer when not denied");
+            }
         });
     }
 

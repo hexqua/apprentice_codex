@@ -2,15 +2,21 @@ package jp.aquafactory.apprenticecodex.block.spellcalibrationbench;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<SpellCalibrationBenchMenu> {
@@ -23,6 +29,8 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
     private static final int SCROLL_COLUMNS = 5;
     private static final Component SCROLL_LABEL =
             Component.translatable("container.apprenticecodex.spell_calibration_bench.scroll_label");
+    private static final Component SLOT_UPGRADE_GROUP =
+            Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_slot_upgrades");
 
     public SpellCalibrationBenchScreen(SpellCalibrationBenchMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -58,7 +66,7 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
             var tooltip = menu.getScrollItem(disabledScrollSlot).isEmpty()
                     ? Component.translatable(
                             "container.apprenticecodex.spell_calibration_bench.tooltip.unable_scroll_slot.empty",
-                            new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()).getHoverName()
+                            SLOT_UPGRADE_GROUP
                     )
                     : Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.unable_scroll_slot.scroll");
             gui.renderTooltip(font, tooltip, mouseX, mouseY);
@@ -141,17 +149,45 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
     }
 
     private List<Component> createAdjustmentItemHintTooltip() {
-        return List.of(
-                Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_title"),
-                Component.translatable(
-                        "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_specific_item",
-                        new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()).getHoverName()
-                ),
-                Component.translatable(
-                        "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_specific_item",
-                        new ItemStack(Items.ENCHANTED_BOOK).getHoverName()
-                ),
-                Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_runes")
+        var lines = new ArrayList<Component>();
+        lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_title"));
+        lines.add(SLOT_UPGRADE_GROUP);
+        appendTaggedItemHintLines(
+                lines,
+                TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES,
+                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
+        );
+        lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_enchantment_books"));
+        appendTaggedItemHintLines(
+                lines,
+                TagRegistry.Items.SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS,
+                new ItemStack(Items.ENCHANTED_BOOK)
+        );
+        lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_runes"));
+        return List.copyOf(lines);
+    }
+
+    private static void appendTaggedItemHintLines(List<Component> lines, TagKey<Item> tag, ItemStack fallbackStack) {
+        var stacks = ForgeRegistries.ITEMS.getValues().stream()
+                .map(ItemStack::new)
+                .filter(stack -> stack.is(tag))
+                .sorted(Comparator.comparing(stack -> stack.getHoverName().getString()))
+                .toList();
+
+        if (stacks.isEmpty()) {
+            lines.add(createSpecificItemHint(fallbackStack));
+            return;
+        }
+
+        for (var stack : stacks) {
+            lines.add(createSpecificItemHint(stack));
+        }
+    }
+
+    private static Component createSpecificItemHint(ItemStack stack) {
+        return Component.translatable(
+                "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_specific_item",
+                stack.getHoverName()
         );
     }
 }
