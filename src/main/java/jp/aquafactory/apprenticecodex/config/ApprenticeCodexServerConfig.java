@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.config;
 
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
 
@@ -253,8 +254,88 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.manaForceBladePerfectGuardTicks();
     }
 
+    public static float manaShieldCharmManaPerDamage() {
+        return ITEMS_CONFIG.manaShieldCharmManaPerDamage();
+    }
+
+    public static int manaShieldCharmRecoveryThresholdMana() {
+        return ITEMS_CONFIG.manaShieldCharmRecoveryThresholdMana();
+    }
+
+    public static float manaShieldCharmSynchronizationManaPerDamage() {
+        return ITEMS_CONFIG.manaShieldCharmSynchronizationManaPerDamage();
+    }
+
+    public static float manaShieldCharmNeutralizationRecoverManaPerDamage() {
+        return ITEMS_CONFIG.manaShieldCharmNeutralizationRecoverManaPerDamage();
+    }
+
+    public static int manaShieldCharmShellArmorDurabilityDamage() {
+        return ITEMS_CONFIG.manaShieldCharmShellArmorDurabilityDamage();
+    }
+
+    public static int manaShieldCharmInvulnerableTimeTicks() {
+        return ITEMS_CONFIG.manaShieldCharmInvulnerableTimeTicks();
+    }
+
     public static int multicastEchoStaffDelayTicks() {
         return ITEMS_CONFIG.multicastEchoStaffDelayTicks();
+    }
+
+    public static int circuitHeatStaffAdditionalManaReferenceCooldownTicks() {
+        return ITEMS_CONFIG.circuitHeatStaffAdditionalManaReferenceCooldownTicks();
+    }
+
+    public static float circuitHeatStaffAdditionalManaLinearMultiplier() {
+        return ITEMS_CONFIG.circuitHeatStaffAdditionalManaLinearMultiplier();
+    }
+
+    public static float circuitHeatStaffAdditionalManaQuadraticMultiplier() {
+        return ITEMS_CONFIG.circuitHeatStaffAdditionalManaQuadraticMultiplier();
+    }
+
+    public static int circuitHeatStaffCooldownBypassMaxRemainingTicks() {
+        return ITEMS_CONFIG.circuitHeatStaffCooldownBypassMaxRemainingTicks();
+    }
+
+    public static boolean isCircuitHeatStaffSpellDenied(ResourceLocation spellId) {
+        return ITEMS_CONFIG.isCircuitHeatStaffSpellDenied(spellId);
+    }
+
+    public static double circuitHeatStaffOverheatDurationMultiplier() {
+        return ITEMS_CONFIG.circuitHeatStaffOverheatDurationMultiplier();
+    }
+
+    public static int circuitHeatStaffOverheatDurationMinTicks() {
+        return ITEMS_CONFIG.circuitHeatStaffOverheatDurationMinTicks();
+    }
+
+    public static int circuitHeatStaffOverheatDurationCapTicks() {
+        return ITEMS_CONFIG.circuitHeatStaffOverheatDurationCapTicks();
+    }
+
+    public static boolean circuitHeatStaffDropCoolingEnabled() {
+        return ITEMS_CONFIG.circuitHeatStaffDropCoolingEnabled();
+    }
+
+    public static int circuitHeatStaffDropCoolingProcessIntervalTicks() {
+        return ITEMS_CONFIG.circuitHeatStaffDropCoolingProcessIntervalTicks();
+    }
+
+    public static int circuitHeatStaffDropCoolingReductionTicks() {
+        return ITEMS_CONFIG.circuitHeatStaffDropCoolingReductionTicks();
+    }
+
+    public static int circuitHeatStaffDropCoolingWaterConsumeProcessCount() {
+        return ITEMS_CONFIG.circuitHeatStaffDropCoolingWaterConsumeProcessCount();
+    }
+
+    public static boolean circuitHeatStaffConsumeWaterSourceOnCooling() {
+        return ITEMS_CONFIG.circuitHeatStaffConsumeWaterSourceOnCooling();
+    }
+
+    public static boolean circuitHeatStaffConsumeWaterCauldronOnCooling() {
+        return ITEMS_CONFIG.circuitHeatStaffConsumeWaterCauldronOnCooling();
     }
 
     public static double multicastEchoStaffCooldownMultiplier() {
@@ -333,12 +414,276 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.isMultipurposeStaffrifleSpellDenied(spellId);
     }
 
+    public static boolean focusStaffbowEnableContinuousFocusedCast() {
+        return ITEMS_CONFIG.focusStaffbowEnableContinuousFocusedCast();
+    }
+
+    public static boolean focusStaffbowEnableManaLoan() {
+        return ITEMS_CONFIG.focusStaffbowEnableManaLoan();
+    }
+
+    public static boolean focusStaffbowEnableArrowCatalystRequirement() {
+        return ITEMS_CONFIG.focusStaffbowEnableArrowCatalystRequirement();
+    }
+
+    public static List<ResourceLocation> focusStaffbowArrowCatalystItemIds() {
+        return ITEMS_CONFIG.focusStaffbowArrowCatalystItemIds();
+    }
+
+    public static double focusStaffbowPendingMaxLoanManaRatio() {
+        return ITEMS_CONFIG.focusStaffbowPendingMaxLoanManaRatio();
+    }
+
+    public static boolean isFocusStaffbowSpellDenied(ResourceLocation spellId) {
+        return ITEMS_CONFIG.isFocusStaffbowSpellDenied(spellId);
+    }
+
+    public static boolean isFocusStaffbowSpellAllowed(ResourceLocation spellId) {
+        return ITEMS_CONFIG.isFocusStaffbowSpellAllowed(spellId);
+    }
+
+    public static boolean focusStaffbowEnableSpellAllowlist() {
+        return ITEMS_CONFIG.focusStaffbowEnableSpellAllowlist();
+    }
+
+    public static FocusStaffbowChargeSettings focusStaffbowChargeSettings() {
+        return ITEMS_CONFIG.focusStaffbowChargeSettings();
+    }
+
+    public static double elementalBowMagicReadyDrawTicksMultiplier() {
+        return ITEMS_CONFIG.elementalBowMagicReadyDrawTicksMultiplier();
+    }
+
+    public static float elementalBowOverheatAdditionalManaLinearMultiplier() {
+        return ITEMS_CONFIG.elementalBowOverheatAdditionalManaLinearMultiplier();
+    }
+
+    public static float elementalBowOverheatAdditionalManaQuadraticMultiplier() {
+        return ITEMS_CONFIG.elementalBowOverheatAdditionalManaQuadraticMultiplier();
+    }
+
+    public static double elementalBowOverheatDurationMultiplier() {
+        return ITEMS_CONFIG.elementalBowOverheatDurationMultiplier();
+    }
+
+    public static int elementalBowOverheatDurationMinTicks() {
+        return ITEMS_CONFIG.elementalBowOverheatDurationMinTicks();
+    }
+
+    public static int elementalBowOverheatDurationCapTicks() {
+        return ITEMS_CONFIG.elementalBowOverheatDurationCapTicks();
+    }
+
+    public static double elementalBowPowerArrowSpellLevelBonusPerLevel() {
+        return ITEMS_CONFIG.elementalBowPowerArrowSpellLevelBonusPerLevel();
+    }
+
+    public static boolean isScrollcasterGauntletEnchantmentDenied(ResourceLocation enchantmentId) {
+        return ITEMS_CONFIG.isScrollcasterGauntletEnchantmentDenied(enchantmentId);
+    }
+
+    public static boolean isScrollcasterGauntletCompatAdditionalAllowedEnchantment(ResourceLocation enchantmentId) {
+        return ITEMS_CONFIG.isScrollcasterGauntletCompatAdditionalAllowedEnchantment(enchantmentId);
+    }
+
+    public static GameTestConfigOverride useFocusStaffbowConfigOverrideForGameTest(
+            boolean enableContinuousFocusedCast,
+            boolean enableManaLoan,
+            boolean enableArrowCatalystRequirement,
+            List<String> arrowCatalystItems,
+            double pendingMaxChargeMultiplier,
+            double continuousMaxChargeMultiplier,
+            int minimumOverchargeBaselineTicks,
+            double chargeManaCostExponent,
+            double chargeManaCostMultiplier,
+            double pendingMaxLoanManaRatio,
+            List<String> spellDenylist,
+            boolean enableSpellAllowlist,
+            List<String> spellAllowlist
+    ) {
+        var previousEnableContinuousFocusedCast = ITEMS_CONFIG.focusStaffbowEnableContinuousFocusedCast();
+        var previousEnableManaLoan = ITEMS_CONFIG.focusStaffbowEnableManaLoan();
+        var previousEnableArrowCatalystRequirement = ITEMS_CONFIG.focusStaffbowEnableArrowCatalystRequirement();
+        var previousArrowCatalystItems = ITEMS_CONFIG.focusStaffbowArrowCatalystItems();
+        var previousChargeSettings = ITEMS_CONFIG.focusStaffbowChargeSettings();
+        var previousPendingMaxLoanManaRatio = ITEMS_CONFIG.focusStaffbowPendingMaxLoanManaRatio();
+        var previousSpellDenylist = ITEMS_CONFIG.focusStaffbowSpellDenylist();
+        var previousEnableSpellAllowlist = ITEMS_CONFIG.focusStaffbowEnableSpellAllowlist();
+        var previousSpellAllowlist = ITEMS_CONFIG.focusStaffbowSpellAllowlist();
+
+        ITEMS_CONFIG.setFocusStaffbowConfigForGameTest(
+                enableContinuousFocusedCast,
+                enableManaLoan,
+                enableArrowCatalystRequirement,
+                arrowCatalystItems,
+                pendingMaxChargeMultiplier,
+                continuousMaxChargeMultiplier,
+                minimumOverchargeBaselineTicks,
+                chargeManaCostExponent,
+                chargeManaCostMultiplier,
+                pendingMaxLoanManaRatio,
+                spellDenylist,
+                enableSpellAllowlist,
+                spellAllowlist
+        );
+        return () -> ITEMS_CONFIG.setFocusStaffbowConfigForGameTest(
+                previousEnableContinuousFocusedCast,
+                previousEnableManaLoan,
+                previousEnableArrowCatalystRequirement,
+                previousArrowCatalystItems,
+                previousChargeSettings.pendingMaxChargeMultiplier(),
+                previousChargeSettings.continuousMaxChargeMultiplier(),
+                previousChargeSettings.minimumOverchargeBaselineTicks(),
+                previousChargeSettings.chargeManaCostExponent(),
+                previousChargeSettings.chargeManaCostMultiplier(),
+                previousPendingMaxLoanManaRatio,
+                previousSpellDenylist,
+                previousEnableSpellAllowlist,
+                previousSpellAllowlist
+        );
+    }
+
+    public static GameTestConfigOverride useElementalBowConfigOverrideForGameTest(
+            double magicReadyDrawTicksMultiplier,
+            double overheatAdditionalManaLinearMultiplier,
+            double overheatAdditionalManaQuadraticMultiplier,
+            double overheatDurationMultiplier,
+            int overheatDurationMinTicks,
+            int overheatDurationCapTicks,
+            double powerArrowSpellLevelBonusPerLevel
+    ) {
+        var previousMagicReadyDrawTicksMultiplier = ITEMS_CONFIG.elementalBowMagicReadyDrawTicksMultiplier();
+        var previousOverheatAdditionalManaLinearMultiplier = ITEMS_CONFIG.elementalBowOverheatAdditionalManaLinearMultiplier();
+        var previousOverheatAdditionalManaQuadraticMultiplier = ITEMS_CONFIG.elementalBowOverheatAdditionalManaQuadraticMultiplier();
+        var previousOverheatDurationMultiplier = ITEMS_CONFIG.elementalBowOverheatDurationMultiplier();
+        var previousOverheatDurationMinTicks = ITEMS_CONFIG.elementalBowOverheatDurationMinTicks();
+        var previousOverheatDurationCapTicks = ITEMS_CONFIG.elementalBowOverheatDurationCapTicks();
+        var previousPowerArrowSpellLevelBonusPerLevel = ITEMS_CONFIG.elementalBowPowerArrowSpellLevelBonusPerLevel();
+
+        ITEMS_CONFIG.setElementalBowConfigForGameTest(
+                magicReadyDrawTicksMultiplier,
+                overheatAdditionalManaLinearMultiplier,
+                overheatAdditionalManaQuadraticMultiplier,
+                overheatDurationMultiplier,
+                overheatDurationMinTicks,
+                overheatDurationCapTicks,
+                powerArrowSpellLevelBonusPerLevel
+        );
+        return () -> ITEMS_CONFIG.setElementalBowConfigForGameTest(
+                previousMagicReadyDrawTicksMultiplier,
+                previousOverheatAdditionalManaLinearMultiplier,
+                previousOverheatAdditionalManaQuadraticMultiplier,
+                previousOverheatDurationMultiplier,
+                previousOverheatDurationMinTicks,
+                previousOverheatDurationCapTicks,
+                previousPowerArrowSpellLevelBonusPerLevel
+        );
+    }
+
     public static GameTestConfigOverride useMultipurposeStaffrifleSpellDenylistOverrideForGameTest(
             List<String> spellDenylist
     ) {
         var previousSpellDenylist = ITEMS_CONFIG.multipurposeStaffrifleSpellDenylist();
         ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(spellDenylist);
         return () -> ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(previousSpellDenylist);
+    }
+
+    public static GameTestConfigOverride useManaShieldCharmConfigOverrideForGameTest(
+            double manaPerDamage,
+            int recoveryThresholdMana,
+            double synchronizationManaPerDamage,
+            double neutralizationRecoverManaPerDamage,
+            int shellArmorDurabilityDamage,
+            int invulnerableTimeTicks
+    ) {
+        var previousManaPerDamage = ITEMS_CONFIG.manaShieldCharmManaPerDamage();
+        var previousRecoveryThresholdMana = ITEMS_CONFIG.manaShieldCharmRecoveryThresholdMana();
+        var previousSynchronizationManaPerDamage = ITEMS_CONFIG.manaShieldCharmSynchronizationManaPerDamage();
+        var previousNeutralizationRecoverManaPerDamage = ITEMS_CONFIG.manaShieldCharmNeutralizationRecoverManaPerDamage();
+        var previousShellArmorDurabilityDamage = ITEMS_CONFIG.manaShieldCharmShellArmorDurabilityDamage();
+        var previousInvulnerableTimeTicks = ITEMS_CONFIG.manaShieldCharmInvulnerableTimeTicks();
+
+        ITEMS_CONFIG.setManaShieldCharmConfigForGameTest(
+                manaPerDamage,
+                recoveryThresholdMana,
+                synchronizationManaPerDamage,
+                neutralizationRecoverManaPerDamage,
+                shellArmorDurabilityDamage,
+                invulnerableTimeTicks
+        );
+        return () -> ITEMS_CONFIG.setManaShieldCharmConfigForGameTest(
+                previousManaPerDamage,
+                previousRecoveryThresholdMana,
+                previousSynchronizationManaPerDamage,
+                previousNeutralizationRecoverManaPerDamage,
+                previousShellArmorDurabilityDamage,
+                previousInvulnerableTimeTicks
+        );
+    }
+
+    public static GameTestConfigOverride useCircuitHeatStaffConfigOverrideForGameTest(
+            int additionalManaReferenceCooldownTicks,
+            double additionalManaLinearMultiplier,
+            double additionalManaQuadraticMultiplier,
+            int cooldownBypassMaxRemainingTicks,
+            List<String> spellDenylist,
+            double staffOverheatDurationMultiplier,
+            int staffOverheatDurationMinTicks,
+            int staffOverheatDurationCapTicks,
+            boolean dropCoolingEnabled,
+            int dropCoolingProcessIntervalTicks,
+            int dropCoolingReductionTicks,
+            int dropCoolingWaterConsumeProcessCount,
+            boolean consumeWaterSourceOnCooling,
+            boolean consumeWaterCauldronOnCooling
+    ) {
+        var previousAdditionalManaReferenceCooldownTicks = ITEMS_CONFIG.circuitHeatStaffAdditionalManaReferenceCooldownTicks();
+        var previousAdditionalManaLinearMultiplier = ITEMS_CONFIG.circuitHeatStaffAdditionalManaLinearMultiplier();
+        var previousAdditionalManaQuadraticMultiplier = ITEMS_CONFIG.circuitHeatStaffAdditionalManaQuadraticMultiplier();
+        var previousCooldownBypassMaxRemainingTicks = ITEMS_CONFIG.circuitHeatStaffCooldownBypassMaxRemainingTicks();
+        var previousSpellDenylist = ITEMS_CONFIG.circuitHeatStaffSpellDenylist();
+        var previousStaffOverheatDurationMultiplier = ITEMS_CONFIG.circuitHeatStaffOverheatDurationMultiplier();
+        var previousStaffOverheatDurationMinTicks = ITEMS_CONFIG.circuitHeatStaffOverheatDurationMinTicks();
+        var previousStaffOverheatDurationCapTicks = ITEMS_CONFIG.circuitHeatStaffOverheatDurationCapTicks();
+        var previousDropCoolingEnabled = ITEMS_CONFIG.circuitHeatStaffDropCoolingEnabled();
+        var previousDropCoolingProcessIntervalTicks = ITEMS_CONFIG.circuitHeatStaffDropCoolingProcessIntervalTicks();
+        var previousDropCoolingReductionTicks = ITEMS_CONFIG.circuitHeatStaffDropCoolingReductionTicks();
+        var previousDropCoolingWaterConsumeProcessCount = ITEMS_CONFIG.circuitHeatStaffDropCoolingWaterConsumeProcessCount();
+        var previousConsumeWaterSourceOnCooling = ITEMS_CONFIG.circuitHeatStaffConsumeWaterSourceOnCooling();
+        var previousConsumeWaterCauldronOnCooling = ITEMS_CONFIG.circuitHeatStaffConsumeWaterCauldronOnCooling();
+
+        ITEMS_CONFIG.setCircuitHeatStaffConfigForGameTest(
+                additionalManaReferenceCooldownTicks,
+                additionalManaLinearMultiplier,
+                additionalManaQuadraticMultiplier,
+                cooldownBypassMaxRemainingTicks,
+                spellDenylist,
+                staffOverheatDurationMultiplier,
+                staffOverheatDurationMinTicks,
+                staffOverheatDurationCapTicks,
+                dropCoolingEnabled,
+                dropCoolingProcessIntervalTicks,
+                dropCoolingReductionTicks,
+                dropCoolingWaterConsumeProcessCount,
+                consumeWaterSourceOnCooling,
+                consumeWaterCauldronOnCooling
+        );
+        return () -> ITEMS_CONFIG.setCircuitHeatStaffConfigForGameTest(
+                previousAdditionalManaReferenceCooldownTicks,
+                previousAdditionalManaLinearMultiplier,
+                previousAdditionalManaQuadraticMultiplier,
+                previousCooldownBypassMaxRemainingTicks,
+                previousSpellDenylist,
+                previousStaffOverheatDurationMultiplier,
+                previousStaffOverheatDurationMinTicks,
+                previousStaffOverheatDurationCapTicks,
+                previousDropCoolingEnabled,
+                previousDropCoolingProcessIntervalTicks,
+                previousDropCoolingReductionTicks,
+                previousDropCoolingWaterConsumeProcessCount,
+                previousConsumeWaterSourceOnCooling,
+                previousConsumeWaterCauldronOnCooling
+        );
     }
 
     public static GameTestConfigOverride useMulticastEchoStaffConfigOverrideForGameTest(
@@ -425,6 +770,23 @@ public final class ApprenticeCodexServerConfig {
         return () -> ITEMS_CONFIG.setMulticastEchoStaffAttackConfigForGameTest(
                 previousAttackProfilesEnabled,
                 previousRepeatDamageMultiplier
+        );
+    }
+
+    public static GameTestConfigOverride useScrollcasterGauntletConfigOverrideForGameTest(
+            List<String> deniedEnchantments,
+            List<String> compatAdditionalAllowedEnchantments
+    ) {
+        var previousDeniedEnchantments = ITEMS_CONFIG.scrollcasterGauntletDeniedEnchantments();
+        var previousCompatAdditionalAllowedEnchantments = ITEMS_CONFIG.scrollcasterGauntletCompatAdditionalAllowedEnchantments();
+
+        ITEMS_CONFIG.setScrollcasterGauntletConfigForGameTest(
+                deniedEnchantments,
+                compatAdditionalAllowedEnchantments
+        );
+        return () -> ITEMS_CONFIG.setScrollcasterGauntletConfigForGameTest(
+                previousDeniedEnchantments,
+                previousCompatAdditionalAllowedEnchantments
         );
     }
 

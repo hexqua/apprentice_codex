@@ -17,12 +17,15 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPac
 import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletNotificationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncApprenticeDeskConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffOverheatPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaShieldCharmConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
@@ -40,7 +43,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "26";
+    private static final String PROTOCOL_VERSION = "30";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -88,6 +91,13 @@ public final class Networks {
                 SyncFocusStaffbowPresentationPacket::encode,
                 SyncFocusStaffbowPresentationPacket::decode,
                 SyncFocusStaffbowPresentationPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncFocusStaffbowConfigPacket.class,
+                SyncFocusStaffbowConfigPacket::encode,
+                SyncFocusStaffbowConfigPacket::decode,
+                SyncFocusStaffbowConfigPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
@@ -154,6 +164,13 @@ public final class Networks {
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
+                SyncManaShieldCharmConfigPacket.class,
+                SyncManaShieldCharmConfigPacket::encode,
+                SyncManaShieldCharmConfigPacket::decode,
+                SyncManaShieldCharmConfigPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
                 SyncScarletThirstHealthPacket.class,
                 SyncScarletThirstHealthPacket::encode,
                 SyncScarletThirstHealthPacket::decode,
@@ -207,6 +224,13 @@ public final class Networks {
                 SyncCircuitHeatStaffOverheatPacket::encode,
                 SyncCircuitHeatStaffOverheatPacket::decode,
                 SyncCircuitHeatStaffOverheatPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncCircuitHeatStaffConfigPacket.class,
+                SyncCircuitHeatStaffConfigPacket::encode,
+                SyncCircuitHeatStaffConfigPacket::decode,
+                SyncCircuitHeatStaffConfigPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.Container;
@@ -14,7 +15,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
@@ -228,7 +228,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     static boolean isAdjustmentItem(@NotNull ItemStack stack) {
-        return isSpellSlotUpgrade(stack) || isSchoolRune(stack) || stack.is(Items.ENCHANTED_BOOK);
+        return isSpellSlotUpgrade(stack) || isSchoolRune(stack) || isEnchantmentBook(stack);
     }
 
     static boolean isSchoolRune(@NotNull ItemStack stack) {
@@ -236,7 +236,11 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     static boolean isSpellSlotUpgrade(@NotNull ItemStack stack) {
-        return !stack.isEmpty() && stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get());
+        return ScrollcasterGauntlet.isCalibrationSlotUpgrade(stack);
+    }
+
+    static boolean isEnchantmentBook(@NotNull ItemStack stack) {
+        return !stack.isEmpty() && stack.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS);
     }
 
     private static boolean isScroll(@NotNull ItemStack stack) {

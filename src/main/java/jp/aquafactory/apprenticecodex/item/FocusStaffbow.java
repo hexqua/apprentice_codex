@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientConfigState;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientLoanState;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientRenderState;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
@@ -153,6 +154,34 @@ public final class FocusStaffbow extends CastingItem
 
     public static Component createInsufficientArrowMessage() {
         return Component.translatable("ui.apprenticecodex.focus_staffbow.insufficient_arrow")
+                .withStyle(ChatFormatting.RED);
+    }
+
+    public static Component createContinuousDisabledMessage() {
+        return Component.translatable("ui.apprenticecodex.focus_staffbow.continuous_disabled")
+                .withStyle(ChatFormatting.RED);
+    }
+
+    public static Component createManaLoanDisabledMessage() {
+        return Component.translatable("ui.apprenticecodex.focus_staffbow.loan_disabled")
+                .withStyle(ChatFormatting.RED);
+    }
+
+    public static Component createManaLoanLimitMessage(float missingMana, float maxLoanMana) {
+        return Component.translatable(
+                "ui.apprenticecodex.focus_staffbow.loan_limit",
+                Mth.ceil(Math.max(0.0F, missingMana)),
+                Mth.ceil(Math.max(0.0F, maxLoanMana))
+        ).withStyle(ChatFormatting.RED);
+    }
+
+    public static Component createSpellDenylistedMessage(Component spellName) {
+        return Component.translatable("ui.apprenticecodex.focus_staffbow.spell_denylisted", spellName)
+                .withStyle(ChatFormatting.RED);
+    }
+
+    public static Component createSpellNotAllowlistedMessage(Component spellName) {
+        return Component.translatable("ui.apprenticecodex.focus_staffbow.spell_not_allowlisted", spellName)
                 .withStyle(ChatFormatting.RED);
     }
 
@@ -373,7 +402,16 @@ public final class FocusStaffbow extends CastingItem
         if (cooldown != null && cooldown.getCooldownRemaining() > 0.0F) {
             return false;
         }
-        if (!BowCastAmmoResolver.canStartFocusStaffbowUse(player, stack)) {
+        if (spell.getCastType() == io.redspace.ironsspellbooks.api.spells.CastType.CONTINUOUS
+                && !FocusStaffbowClientConfigState.continuousFocusedCastEnabled()) {
+            return false;
+        }
+        if (!BowCastAmmoResolver.canStartFocusStaffbowUse(
+                player,
+                stack,
+                FocusStaffbowClientConfigState.arrowCatalystRequired(),
+                FocusStaffbowClientConfigState.arrowCatalystItemIds()
+        )) {
             return false;
         }
         if (player.getAbilities().instabuild) {
@@ -432,7 +470,9 @@ public final class FocusStaffbow extends CastingItem
     @Override
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        if (EnchantmentRegistry.SYNTHESIS.isPresent()
+        if (!FocusStaffbowClientConfigState.arrowCatalystRequired()) {
+            lines.add(Component.translatable(getDescriptionId() + ".require_arrow.disabled").withStyle(ChatFormatting.GRAY));
+        } else if (EnchantmentRegistry.SYNTHESIS.isPresent()
                 && stack.getEnchantmentLevel(EnchantmentRegistry.SYNTHESIS.get()) > 0) {
             lines.add(Component.translatable(getDescriptionId() + ".require_arrow.with_synthesis").withStyle(ChatFormatting.GRAY));
         } else {
