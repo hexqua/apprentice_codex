@@ -33,8 +33,8 @@ public class MysticShield extends AbstractSpell {
     public MysticShield() {
         baseSpellPower = 50;
         spellPowerPerLevel = 25;
-        baseManaCost = 8;
-        manaCostPerLevel = 1;
+        baseManaCost = 15;
+        manaCostPerLevel = 3;
         castTime = 200;
     }
 
