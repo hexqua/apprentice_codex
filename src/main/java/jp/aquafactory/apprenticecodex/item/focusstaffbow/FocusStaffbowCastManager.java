@@ -18,6 +18,7 @@ import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowCastState;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
@@ -267,6 +268,21 @@ public final class FocusStaffbowCastManager {
         var castSource = selection.getCastSource();
         var castingSlot = selection.slot;
         var magicData = MagicData.getPlayerMagicData(player);
+        var spellId = spell.getSpellResource();
+
+        if (ApprenticeCodexServerConfig.isFocusStaffbowSpellDenied(spellId)) {
+            showSpellDenylistedMessage(player, spell);
+            return false;
+        }
+        if (!ApprenticeCodexServerConfig.isFocusStaffbowSpellAllowed(spellId)) {
+            showSpellNotAllowlistedMessage(player, spell);
+            return false;
+        }
+        if (spell.getCastType() == CastType.CONTINUOUS
+                && !ApprenticeCodexServerConfig.focusStaffbowEnableContinuousFocusedCast()) {
+            showContinuousDisabledMessage(player);
+            return false;
+        }
 
         if (magicData.isCasting() && !magicData.getCastingSpellId().equals(spell.getSpellId())) {
             stopFocusStaffbowOrVanillaCast(player, magicData);
@@ -292,7 +308,12 @@ public final class FocusStaffbowCastManager {
             clearFocusStaffbowState(player, true, true);
         }
 
-        var ammoRoute = BowCastAmmoResolver.resolveFocusStaffbowAmmoRoute(player, focusStaffbowStack);
+        var ammoRoute = BowCastAmmoResolver.resolveFocusStaffbowAmmoRoute(
+                player,
+                focusStaffbowStack,
+                ApprenticeCodexServerConfig.focusStaffbowEnableArrowCatalystRequirement(),
+                ApprenticeCodexServerConfig.focusStaffbowArrowCatalystItemIds()
+        );
         if (ammoRoute == BowCastAmmoResolver.FocusStaffbowAmmoRoute.NONE) {
             showInsufficientArrowMessage(player);
             return false;
@@ -311,7 +332,10 @@ public final class FocusStaffbowCastManager {
                                             BowCastAmmoResolver.FocusStaffbowAmmoRoute ammoRoute) {
         var originalEffectiveCastTicks = Math.max(spell.getEffectiveCastTime(spellLevel, player), 0);
         var requiredCastTicks = FocusStaffbowChargeLogic.normalizePendingRequiredCastTicks(originalEffectiveCastTicks);
-        var chargeBaselineTicks = FocusStaffbowChargeLogic.normalizePendingChargeBaselineTicks(originalEffectiveCastTicks);
+        var chargeBaselineTicks = FocusStaffbowChargeLogic.normalizePendingChargeBaselineTicks(
+                originalEffectiveCastTicks,
+                ApprenticeCodexServerConfig.focusStaffbowChargeSettings()
+        );
 
         var magicData = MagicData.getPlayerMagicData(player);
         if (!validateCastStart(player, spell, spellLevel, castSource, magicData)) {
@@ -386,7 +410,11 @@ public final class FocusStaffbowCastManager {
             clearPendingMagicDataSimulation(magicData);
             return false;
         }
-        if (!BowCastAmmoResolver.consumeFocusStaffbowAmmo(player, ammoRoute)) {
+        if (!BowCastAmmoResolver.consumeFocusStaffbowAmmo(
+                player,
+                ammoRoute,
+                ApprenticeCodexServerConfig.focusStaffbowArrowCatalystItemIds()
+        )) {
             showInsufficientArrowMessage(player);
             magicData.resetAdditionalCastData();
             clearPendingMagicDataSimulation(magicData);
@@ -460,11 +488,16 @@ public final class FocusStaffbowCastManager {
         var spellLevel = state.spellLevel;
         var castSource = resolveCastSource(state.castSource);
         var castingSlot = state.castingSlot;
-        var finalMultiplier = FocusStaffbowChargeLogic.computePendingChargeMultiplier(totalCastTicks, state.chargeBaselineTicks);
+        var chargeSettings = ApprenticeCodexServerConfig.focusStaffbowChargeSettings();
+        var finalMultiplier = FocusStaffbowChargeLogic.computePendingChargeMultiplier(
+                totalCastTicks,
+                state.chargeBaselineTicks,
+                chargeSettings
+        );
         var ammoRoute = state.getAmmoRoute();
         var shouldConsumeScaledMana = castSource.consumesMana() && !player.getAbilities().instabuild;
         var plannedManaCost = shouldConsumeScaledMana
-                ? FocusStaffbowChargeLogic.computeScaledManaCost(spell.getManaCost(spellLevel), finalMultiplier)
+                ? FocusStaffbowChargeLogic.computeScaledManaCost(spell.getManaCost(spellLevel), finalMultiplier, chargeSettings)
                 : 0;
 
         codexSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, FocusStaffbowCastState::reset);
@@ -483,7 +516,21 @@ public final class FocusStaffbowCastManager {
         if (player.isUsingItem()) {
             player.stopUsingItem();
         }
-        if (!BowCastAmmoResolver.consumeFocusStaffbowAmmo(player, ammoRoute)) {
+        var borrowedMana = shouldConsumeScaledMana
+                ? Math.max(0.0F, plannedManaCost - magicData.getMana())
+                : 0.0F;
+        if (!validatePendingLoan(player, borrowedMana)) {
+            cleanupPendingSpellArtifacts(player, magicData.getAdditionalCastData());
+            magicData.resetAdditionalCastData();
+            clearPendingMagicDataSimulation(magicData);
+            cancelPendingPresentation(player, focusStaffbowStack, spell.getSpellId());
+            return false;
+        }
+        if (!BowCastAmmoResolver.consumeFocusStaffbowAmmo(
+                player,
+                ammoRoute,
+                ApprenticeCodexServerConfig.focusStaffbowArrowCatalystItemIds()
+        )) {
             cleanupPendingSpellArtifacts(player, magicData.getAdditionalCastData());
             magicData.resetAdditionalCastData();
             clearPendingMagicDataSimulation(magicData);
@@ -500,9 +547,6 @@ public final class FocusStaffbowCastManager {
 
         spellPowerAttribute.removeModifier(OVERCHARGE_SPELL_POWER_MODIFIER_ID);
         spellPowerAttribute.addTransientModifier(modifier);
-        var borrowedMana = shouldConsumeScaledMana
-                ? Math.max(0.0F, plannedManaCost - magicData.getMana())
-                : 0.0F;
         var castCompleted = false;
         try {
             if (borrowedMana > 0.0F) {
@@ -745,9 +789,58 @@ public final class FocusStaffbowCastManager {
         return true;
     }
 
+    private static boolean validatePendingLoan(ServerPlayer player, float borrowedMana) {
+        if (borrowedMana <= 0.0F) {
+            return true;
+        }
+        if (!ApprenticeCodexServerConfig.focusStaffbowEnableManaLoan()) {
+            showManaLoanDisabledMessage(player);
+            return false;
+        }
+
+        var maxLoanMana = (float) Math.max(0.0D, player.getAttributeValue(AttributeRegistry.MAX_MANA.get())
+                * ApprenticeCodexServerConfig.focusStaffbowPendingMaxLoanManaRatio());
+        if (borrowedMana > maxLoanMana + 0.001F) {
+            showManaLoanLimitMessage(player, borrowedMana, maxLoanMana);
+            return false;
+        }
+
+        return true;
+    }
+
     private static void showInsufficientArrowMessage(ServerPlayer player) {
         player.connection.send(new ClientboundSetActionBarTextPacket(
                 FocusStaffbow.createInsufficientArrowMessage()
+        ));
+    }
+
+    private static void showContinuousDisabledMessage(ServerPlayer player) {
+        player.connection.send(new ClientboundSetActionBarTextPacket(
+                FocusStaffbow.createContinuousDisabledMessage()
+        ));
+    }
+
+    private static void showManaLoanDisabledMessage(ServerPlayer player) {
+        player.connection.send(new ClientboundSetActionBarTextPacket(
+                FocusStaffbow.createManaLoanDisabledMessage()
+        ));
+    }
+
+    private static void showManaLoanLimitMessage(ServerPlayer player, float borrowedMana, float maxLoanMana) {
+        player.connection.send(new ClientboundSetActionBarTextPacket(
+                FocusStaffbow.createManaLoanLimitMessage(borrowedMana, maxLoanMana)
+        ));
+    }
+
+    private static void showSpellDenylistedMessage(ServerPlayer player, AbstractSpell spell) {
+        player.connection.send(new ClientboundSetActionBarTextPacket(
+                FocusStaffbow.createSpellDenylistedMessage(spell.getDisplayName(player))
+        ));
+    }
+
+    private static void showSpellNotAllowlistedMessage(ServerPlayer player, AbstractSpell spell) {
+        player.connection.send(new ClientboundSetActionBarTextPacket(
+                FocusStaffbow.createSpellNotAllowlistedMessage(spell.getDisplayName(player))
         ));
     }
 
@@ -797,8 +890,11 @@ public final class FocusStaffbowCastManager {
             return;
         }
 
-        var finalMultiplier = FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(sampledTicks);
-        var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER);
+        var finalMultiplier = FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(
+                sampledTicks,
+                ApprenticeCodexServerConfig.focusStaffbowChargeSettings()
+        );
+        var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER.get());
         if (spellPowerAttribute != null) {
             spellPowerAttribute.removeModifier(OVERCHARGE_SPELL_POWER_MODIFIER_ID);
             if (finalMultiplier > 1.0D) {
@@ -821,7 +917,10 @@ public final class FocusStaffbowCastManager {
     }
 
     private static double resolveContinuousChargeMultiplier(long totalHeldTicks) {
-        return FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(totalHeldTicks);
+        return FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(
+                totalHeldTicks,
+                ApprenticeCodexServerConfig.focusStaffbowChargeSettings()
+        );
     }
 
     private static int resolveContinuousManaCost(ServerPlayer player, AbstractSpell spell, FocusStaffbowCastState state,
@@ -830,7 +929,11 @@ public final class FocusStaffbowCastManager {
             return 0;
         }
 
-        return FocusStaffbowChargeLogic.computeScaledManaCost(spell.getManaCost(state.spellLevel), chargeMultiplier);
+        return FocusStaffbowChargeLogic.computeScaledManaCost(
+                spell.getManaCost(state.spellLevel),
+                chargeMultiplier,
+                ApprenticeCodexServerConfig.focusStaffbowChargeSettings()
+        );
     }
 
     private static CastSource resolveCastSource(String castSourceName) {

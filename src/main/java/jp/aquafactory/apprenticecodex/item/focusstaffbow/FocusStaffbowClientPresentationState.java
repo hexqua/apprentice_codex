@@ -77,14 +77,21 @@ public final class FocusStaffbowClientPresentationState {
                     data.spellId(),
                     data.startedGameTime(),
                     elapsedTicks,
-                    FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(elapsedTicks),
+                    FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(
+                            elapsedTicks,
+                            FocusStaffbowClientConfigState.chargeSettings()
+                    ),
                     1.0F
             );
         }
 
         var multiplier = elapsedTicks < data.requiredCastTicks()
                 ? 1.0D
-                : FocusStaffbowChargeLogic.computePendingChargeMultiplier(elapsedTicks, data.chargeBaselineTicks());
+                : FocusStaffbowChargeLogic.computePendingChargeMultiplier(
+                        elapsedTicks,
+                        data.chargeBaselineTicks(),
+                        FocusStaffbowClientConfigState.chargeSettings()
+                );
         var longRampProgress = data.requiredCastTicks() > 0 && elapsedTicks < data.requiredCastTicks()
                 ? Mth.clamp(elapsedTicks / (float) data.requiredCastTicks(), 0.0F, 1.0F)
                 : 1.0F;

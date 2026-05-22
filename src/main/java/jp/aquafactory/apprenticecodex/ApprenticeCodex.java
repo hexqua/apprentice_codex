@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.event.IsekaiTravelGuidebookConfigSyncEvent
 import jp.aquafactory.apprenticecodex.event.ManaForceBladeConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ModEntityAttributeEvent;
 import jp.aquafactory.apprenticecodex.event.client.ClientModBusEvents;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
@@ -76,6 +77,7 @@ public class ApprenticeCodex
         ModEntityAttributeEvent.register(modEventBus);
         ApprenticeDeskConfigSyncEvents.register(modEventBus);
         CircuitHeatStaffConfigSyncEvents.register(modEventBus);
+        FocusStaffbowConfigSyncEvents.register(modEventBus);
         IsekaiTravelGuidebookConfigSyncEvents.register(modEventBus);
         ManaForceBladeConfigSyncEvents.register(modEventBus);
         CodexSpellStateTypeRegister.register();

@@ -94,6 +94,9 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
     }
 
     public BowCastAmmoResolver.FocusStaffbowAmmoRoute getAmmoRoute() {
+        if ("NORMAL_ARROW".equals(ammoRoute)) {
+            return BowCastAmmoResolver.FocusStaffbowAmmoRoute.ARROW_CATALYST;
+        }
         try {
             return BowCastAmmoResolver.FocusStaffbowAmmoRoute.valueOf(ammoRoute);
         } catch (IllegalArgumentException ignored) {

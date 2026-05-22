@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffOverhea
 import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
@@ -40,7 +41,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "27";
+    private static final String PROTOCOL_VERSION = "29";
 
     private Networks() {
     }
@@ -60,6 +61,11 @@ public final class Networks {
                 ClientFocusStaffbowCancelPacket.TYPE,
                 ClientFocusStaffbowCancelPacket.STREAM_CODEC,
                 ClientFocusStaffbowCancelPacket::handle
+        );
+        registrar.playToClient(
+                SyncFocusStaffbowConfigPacket.TYPE,
+                SyncFocusStaffbowConfigPacket.STREAM_CODEC,
+                SyncFocusStaffbowConfigPacket::handle
         );
         registrar.playToServer(
                 ClientConfirmElementalBowModePacket.TYPE,
