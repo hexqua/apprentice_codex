@@ -25,6 +25,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaShieldCharmConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
@@ -42,7 +43,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "29";
+    private static final String PROTOCOL_VERSION = "30";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -160,6 +161,13 @@ public final class Networks {
                 SyncManaForceBladeConfigPacket::encode,
                 SyncManaForceBladeConfigPacket::decode,
                 SyncManaForceBladeConfigPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncManaShieldCharmConfigPacket.class,
+                SyncManaShieldCharmConfigPacket::encode,
+                SyncManaShieldCharmConfigPacket::decode,
+                SyncManaShieldCharmConfigPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

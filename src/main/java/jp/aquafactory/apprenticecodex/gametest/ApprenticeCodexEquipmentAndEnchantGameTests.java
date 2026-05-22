@@ -44,6 +44,18 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
             "apprenticecodex.circuit_heat_staff_water_consumption_config";
     private static final String CIRCUIT_HEAT_STAFF_CAULDRON_CONSUMPTION_CONFIG_BATCH =
             "apprenticecodex.circuit_heat_staff_cauldron_consumption_config";
+    private static final String MANA_SHIELD_CHARM_FREE_COST_CONFIG_BATCH =
+            "apprenticecodex.mana_shield_charm_free_cost_config";
+    private static final String MANA_SHIELD_CHARM_RECOVERY_CONFIG_BATCH =
+            "apprenticecodex.mana_shield_charm_recovery_config";
+    private static final String MANA_SHIELD_CHARM_SYNCHRONIZATION_CONFIG_BATCH =
+            "apprenticecodex.mana_shield_charm_synchronization_config";
+    private static final String MANA_SHIELD_CHARM_NEUTRALIZATION_CONFIG_BATCH =
+            "apprenticecodex.mana_shield_charm_neutralization_config";
+    private static final String MANA_SHIELD_CHARM_SHELL_CONFIG_BATCH =
+            "apprenticecodex.mana_shield_charm_shell_config";
+    private static final String MANA_SHIELD_CHARM_IFRAME_CONFIG_BATCH =
+            "apprenticecodex.mana_shield_charm_iframe_config";
 
     private ApprenticeCodexEquipmentAndEnchantGameTests() {
     }
@@ -211,6 +223,36 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void manaShieldCharmNeutralizationAbsorbsBypassArmorDamageDuringCooldown(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.manaShieldCharmNeutralizationAbsorbsBypassArmorDamageDuringCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_SHIELD_CHARM_FREE_COST_CONFIG_BATCH)
+    public static void manaShieldCharmFreeManaCostConfigAbsorbsWithoutDepletionCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmFreeManaCostConfigAbsorbsWithoutDepletionCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_SHIELD_CHARM_RECOVERY_CONFIG_BATCH)
+    public static void manaShieldCharmZeroRecoveryThresholdDisablesDepletionCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmZeroRecoveryThresholdDisablesDepletionCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_SHIELD_CHARM_SYNCHRONIZATION_CONFIG_BATCH)
+    public static void manaShieldCharmSynchronizationManaCostUsesServerConfig(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmSynchronizationManaCostUsesServerConfig(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_SHIELD_CHARM_NEUTRALIZATION_CONFIG_BATCH)
+    public static void manaShieldCharmNeutralizationZeroRecoveryStillNullifies(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmNeutralizationZeroRecoveryStillNullifies(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_SHIELD_CHARM_SHELL_CONFIG_BATCH)
+    public static void manaShieldCharmShellArmorDurabilityDamageUsesServerConfig(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmShellArmorDurabilityDamageUsesServerConfig(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_SHIELD_CHARM_IFRAME_CONFIG_BATCH)
+    public static void manaShieldCharmInvulnerableTimeUsesServerConfig(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmInvulnerableTimeUsesServerConfig(helper);
     }
 
     @GameTest(template = TEMPLATE)
