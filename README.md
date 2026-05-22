@@ -64,6 +64,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
 ./gradlew.bat runGameTestServer
 ```
 
+- `runGameTestServer` は専用 world `run/codex_gametest_clean` を毎回初期化してから起動します。通常の手動確認用 `run/world` は削除しません。
 - `runGameTestServer` では現在、次の項目を確認します。
 - Registry と動的登録の確認:
   item / block / block entity / entity / mob effect / enchantment / attribute / potion / recipe serializer / recipe type / creative tab / apprenticecodex の spell / School Affinity の動的 effect・potion・catalyst

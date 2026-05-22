@@ -50,6 +50,7 @@ Get-ChildItem build\libs\*.jar
 ```
 - `runClient` は GUI を起動するため、CI やヘッドレス環境では実行しない。
 - `runGameTestServer` はサーバー側の登録、データ読込、レシピ、生成まわりの検証に使う。renderer / screen など client 専用の起動不良は別途 `runClient` で確認する。
+- `runGameTestServer` は専用 world `run/codex_gametest_clean` を毎回初期化してから起動する。通常の手動確認用 `run/world` は削除しない。
 - 通常確認で `clean` は付けない。必要時のみ `./gradlew.bat clean build` を使う。
 
 ## 4. コーディング規約

@@ -17,6 +17,10 @@ base {
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
+
+def gameTestServerWorldName = 'codex_gametest_clean'
+def gameTestServerWorldDir = layout.projectDirectory.dir("run/${gameTestServerWorldName}")
+
 minecraft {
     mappings channel: mapping_channel, version: mapping_version
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
@@ -47,6 +51,7 @@ minecraft {
 
         gameTestServer {
             property 'forge.enabledGameTestNamespaces', mod_id
+            args '--world', gameTestServerWorldName
         }
 
         data {
@@ -57,6 +62,16 @@ minecraft {
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+tasks.register('cleanGameTestServerWorld', Delete) {
+    group = 'verification'
+    description = 'Deletes the dedicated GameTest world so runGameTestServer starts from clean world state.'
+    delete gameTestServerWorldDir
+}
+
+tasks.matching { it.name == 'runGameTestServer' }.configureEach {
+    dependsOn tasks.named('cleanGameTestServerWorld')
+}
 
 // 依存のmavenをココに追加していく.
 repositories {
