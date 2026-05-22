@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -23,7 +24,6 @@ import java.util.UUID;
 
 public class MysticShieldShieldEntity extends Entity implements TraceableEntity {
     static final int FADE_TICKS = 4;
-    private static final byte BREAK_PARTICLE_EVENT = 72;
 
     private static final EntityDataAccessor<Boolean> DATA_FADING =
             SynchedEntityData.defineId(MysticShieldShieldEntity.class, EntityDataSerializers.BOOLEAN);
@@ -81,7 +81,7 @@ public class MysticShieldShieldEntity extends Entity implements TraceableEntity 
             entityData.set(DATA_FADING, true);
             fadeTicks = 0;
             if (!level().isClientSide) {
-                level().broadcastEntityEvent(this, BREAK_PARTICLE_EVENT);
+                spawnBreakParticles();
             }
         }
     }
@@ -134,15 +134,6 @@ public class MysticShieldShieldEntity extends Entity implements TraceableEntity 
     }
 
     @Override
-    public void handleEntityEvent(byte id) {
-        if (id == BREAK_PARTICLE_EVENT) {
-            spawnBreakParticles();
-            return;
-        }
-        super.handleEntityEvent(id);
-    }
-
-    @Override
     protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
         if (tag.hasUUID("Owner")) {
             ownerUuid = tag.getUUID("Owner");
@@ -183,6 +174,10 @@ public class MysticShieldShieldEntity extends Entity implements TraceableEntity 
     }
 
     private void spawnBreakParticles() {
+        if (!(level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
         var random = level().random;
         var right = rightVectorFromYaw();
         var center = position();
@@ -196,7 +191,7 @@ public class MysticShieldShieldEntity extends Entity implements TraceableEntity 
                         .add(0.0, (random.nextDouble() - 0.5) * 0.5, 0.0)
                         .add(randomOffset(0.08));
 
-                level().addParticle(
+                serverLevel.sendParticles(
                         new AdditiveGlowParticleOptions(
                                 i % 3 == 0 ? ParticleRegistry.ADDITIVE_RHOMBUS.get() : ParticleRegistry.ADDITIVE_SPARK.get(),
                                 i % 3 == 0 ? 0.18f : 0.12f,
@@ -208,9 +203,11 @@ public class MysticShieldShieldEntity extends Entity implements TraceableEntity 
                         panelCenter.x + positionOffset.x,
                         panelCenter.y + positionOffset.y,
                         panelCenter.z + positionOffset.z,
+                        0,
                         velocity.x,
                         velocity.y,
-                        velocity.z
+                        velocity.z,
+                        1.0
                 );
             }
         }
@@ -218,7 +215,7 @@ public class MysticShieldShieldEntity extends Entity implements TraceableEntity 
 
     private Vec3 rightVectorFromYaw() {
         var yawRadians = Math.toRadians(getYRot());
-        return new Vec3(Math.cos(yawRadians), 0.0, -Math.sin(yawRadians));
+        return new Vec3(Math.cos(yawRadians), 0.0, Math.sin(yawRadians));
     }
 
     private Vec3 randomOffset(double scale) {
