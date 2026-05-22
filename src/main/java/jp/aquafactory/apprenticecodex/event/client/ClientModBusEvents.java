@@ -64,6 +64,8 @@ import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeRenderer;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightChargeCutRenderer;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightKatanaRenderer;
+import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldProjectileRenderer;
+import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldShieldRenderer;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockRenderer;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxChargeBeamRenderer;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxWeaponryRenderer;
@@ -256,6 +258,8 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.ILLUMINATE_STELLAR_STAR.get(), IlluminateStellarStarRenderer::new);
         event.registerEntityRenderer(EntityRegistry.UNITE_LUNA_MOON.get(), UniteLunaMoonRenderer::new);
         event.registerEntityRenderer(EntityRegistry.MAGIC_SPEAR_MISSILE.get(), MagicSpearMissileRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.MYSTIC_SHIELD_PROJECTILE.get(), MysticShieldProjectileRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.MYSTIC_SHIELD_SHIELD.get(), MysticShieldShieldRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FEATHER_RUSH_PROJECTILE.get(), FeatherRushProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FEATHER_RUSH_WING.get(), FeatherRushWingRenderer::new);
         event.registerEntityRenderer(EntityRegistry.WORLD_FLATTER_DRILL.get(), WorldFlatterDrillRenderer::new);

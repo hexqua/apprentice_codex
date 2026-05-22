@@ -60,6 +60,10 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> FROZEN_RUNE = reg("frozen_rune");
     public static final RegistryObject<SoundEvent> STAFFRIFLE = reg("staffrifle");
     public static final RegistryObject<SoundEvent> MULTICAST = reg("multicast");
+    public static final RegistryObject<SoundEvent> MYSTIC_SHIELD_DEPLOY = reg("mystic_shield_deploy");
+    public static final RegistryObject<SoundEvent> MYSTIC_SHIELD_BLOCK = reg("mystic_shield_block");
+    public static final RegistryObject<SoundEvent> MYSTIC_SHIELD_SHOOT = reg("mystic_shield_shoot");
+
     public static final RegistryObject<SoundEvent> SMASHCAST_SCEPTER_SMASH_AIR = reg("smashcast_scepter_smash_air");
     public static final RegistryObject<SoundEvent> SMASHCAST_SCEPTER_SMASH_GROUND = reg("smashcast_scepter_smash_ground");
     public static final RegistryObject<SoundEvent> SMASHCAST_SCEPTER_SMASH_GROUND_HEAVY = reg("smashcast_scepter_smash_ground_heavy");

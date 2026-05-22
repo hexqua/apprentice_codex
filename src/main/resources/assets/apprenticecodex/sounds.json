@@ -298,6 +298,27 @@
       "apprenticecodex:multicast"
     ]
   },
+  "mystic_shield_deploy": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.mystic_shield_deploy",
+    "sounds": [
+      "apprenticecodex:mystic_shield_deploy"
+    ]
+  },
+  "mystic_shield_block": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.mystic_shield_block",
+    "sounds": [
+      "apprenticecodex:mystic_shield_block"
+    ]
+  },
+  "mystic_shield_shoot": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.mystic_shield_shoot",
+    "sounds": [
+      "apprenticecodex:mystic_shield_shoot"
+    ]
+  },
 
   "smashcast_scepter_smash_air": {
     "_apprentice_codex_note": "ベースはSoundEvents.PLAYER_ATTACK_CRIT",
