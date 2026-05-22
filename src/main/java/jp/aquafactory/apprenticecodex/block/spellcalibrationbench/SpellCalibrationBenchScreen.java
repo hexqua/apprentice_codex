@@ -31,6 +31,7 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
             Component.translatable("container.apprenticecodex.spell_calibration_bench.scroll_label");
     private static final Component SLOT_UPGRADE_GROUP =
             Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_slot_upgrades");
+    private List<Component> adjustmentItemHintTooltip = List.of();
 
     public SpellCalibrationBenchScreen(SpellCalibrationBenchMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -44,6 +45,12 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
         renderBackground(gui);
         super.render(gui, mouseX, mouseY, partialTicks);
         renderTooltip(gui, mouseX, mouseY);
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        adjustmentItemHintTooltip = createAdjustmentItemHintTooltip();
     }
 
     @Override
@@ -74,7 +81,7 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
         }
 
         if (findHoveredEmptyAdjustmentSlot(mouseX, mouseY) >= 0) {
-            gui.renderComponentTooltip(font, createAdjustmentItemHintTooltip(), mouseX, mouseY);
+            gui.renderComponentTooltip(font, adjustmentItemHintTooltip, mouseX, mouseY);
             return;
         }
 
