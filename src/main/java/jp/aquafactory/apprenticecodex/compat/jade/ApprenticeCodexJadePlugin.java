@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStation;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntity;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmoker;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
@@ -52,5 +53,6 @@ public final class ApprenticeCodexJadePlugin implements IWailaPlugin {
         registration.registerEntityComponent(ArcherMultipleJadeProvider.INSTANCE, ArcherMultipleBowEntity.class);
         registration.registerEntityComponent(AutoTurretJadeProvider.INSTANCE, AutoTurretEntity.class);
         registration.registerEntityComponent(SearchBeaconJadeProvider.INSTANCE, SearchBeaconEntity.class);
+        registration.hideTarget(EntityRegistry.MYSTIC_SHIELD_SHIELD.get());
     }
 }
