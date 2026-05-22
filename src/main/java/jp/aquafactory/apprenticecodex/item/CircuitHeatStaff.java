@@ -18,6 +18,8 @@ import io.redspace.ironsspellbooks.render.ClientStaffItemExtensions;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffConfigState;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffCoolingHandler;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager;
 import jp.aquafactory.apprenticecodex.renderer.item.CircuitHeatStaffRenderer;
@@ -222,6 +224,13 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
         lines.add(Component.translatable("item.apprenticecodex.circuit_heat_staff.tooltip").withStyle(ChatFormatting.GRAY));
+        var cooldownBypassMaxRemainingTicks = CircuitHeatStaffConfigState.cooldownBypassMaxRemainingTicks();
+        if (cooldownBypassMaxRemainingTicks > 0) {
+            lines.add(Component.translatable(
+                    "item.apprenticecodex.circuit_heat_staff.tooltip.cooldown_limit",
+                    Math.max(1, (cooldownBypassMaxRemainingTicks + 19) / 20)
+            ).withStyle(ChatFormatting.GRAY));
+        }
         var remainingTicks = getStaffOverheatRemainingTicks(stack, level);
         if (remainingTicks > 0) {
             lines.add(Component.translatable(
@@ -368,6 +377,10 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
         var originalMana = magicData.getMana();
         var baseManaCost = spell.getManaCost(spellLevel);
         var remainingCooldownTicks = Math.max(0, removedCooldown.getCooldownRemaining());
+        if (isCooldownBypassDenied(spellId, remainingCooldownTicks)) {
+            return InteractionResultHolder.fail(stack);
+        }
+
         var step = CircuitHeatStaffOverheatManager.getNextStep(player, spellId);
         var additionalManaCost = CircuitHeatStaffOverheatManager.getAdditionalManaCost(
                 baseManaCost,
@@ -376,7 +389,7 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
         );
         var plannedManaCost = baseManaCost + additionalManaCost;
         var effectiveCooldown = Math.max(0, WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, castSource, stack));
-        var overheatTicks = (int) Math.min((long) effectiveCooldown + remainingCooldownTicks, Integer.MAX_VALUE);
+        var overheatTicks = resolveConfiguredStaffOverheatTicks((long) effectiveCooldown + remainingCooldownTicks);
 
         // cooldown だけ通常判定から外し、基礎マナ不足などの失敗条件は Iron's の判定をそのまま使う。
         // 追加マナ分だけは SpellOnCastEvent で上乗せし、足りなければ発動後に杖の過熱 cooldown へ入れる。
@@ -415,6 +428,30 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
 
     private static void restoreCooldown(java.util.Map<String, CooldownInstance> cooldowns, String spellId, CooldownInstance cooldown) {
         cooldowns.put(spellId, cooldown);
+    }
+
+    private static boolean isCooldownBypassDenied(String spellId, int remainingCooldownTicks) {
+        var spellResourceLocation = ResourceLocation.tryParse(spellId);
+        if (spellResourceLocation != null && ApprenticeCodexServerConfig.isCircuitHeatStaffSpellDenied(spellResourceLocation)) {
+            return true;
+        }
+
+        var maxRemainingTicks = ApprenticeCodexServerConfig.circuitHeatStaffCooldownBypassMaxRemainingTicks();
+        return maxRemainingTicks > 0 && remainingCooldownTicks > maxRemainingTicks;
+    }
+
+    private static int resolveConfiguredStaffOverheatTicks(long baseOverheatTicks) {
+        var multipliedTicks = Math.ceil(Math.max(0L, baseOverheatTicks)
+                * ApprenticeCodexServerConfig.circuitHeatStaffOverheatDurationMultiplier());
+        var overheatTicks = (long) Math.min(multipliedTicks, Integer.MAX_VALUE);
+        overheatTicks = Math.max(overheatTicks, ApprenticeCodexServerConfig.circuitHeatStaffOverheatDurationMinTicks());
+
+        var capTicks = ApprenticeCodexServerConfig.circuitHeatStaffOverheatDurationCapTicks();
+        if (capTicks > 0) {
+            overheatTicks = Math.min(overheatTicks, capTicks);
+        }
+
+        return (int) Math.min(overheatTicks, Integer.MAX_VALUE);
     }
 
     private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {

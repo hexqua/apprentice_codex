@@ -201,6 +201,7 @@
   "item.apprenticecodex.flask_system.particles_suppressed": "效果粒子已隐藏",
   "item.apprenticecodex.flask_system.mismatch_flask_type": "内容物与烧瓶类型不匹配",
   "item.apprenticecodex.circuit_heat_staff.tooltip": "使用该法杖施法可无视法术冷却时间。",
+  "item.apprenticecodex.circuit_heat_staff.tooltip.cooldown_limit": "对冷却时间超过%1$d秒的法术无效。",
   "item.apprenticecodex.circuit_heat_staff.tooltip.overheat_remaining": "过热冷却：剩余%1$d秒",
   "item.apprenticecodex.special_spellbook.inscribe_hint": "手持该法术书即可添加卷轴，无需在铭文台铭刻。",
   "item.apprenticecodex.archivists_grimoire.tooltip.current_page": "当前页码：%1$d/%2$d",
