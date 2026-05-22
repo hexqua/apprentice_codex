@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.config;
 import jp.aquafactory.apprenticecodex.config.item.CraftsmansDelightServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.CircuitHeatStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ChromaticMagiaDressServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ElementalBowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FocusStaffbowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
@@ -35,6 +36,7 @@ final class ItemsServerConfig {
     private final MulticastEchoStaffServerConfig multicastEchoStaffConfig;
     private final MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig;
     private final FocusStaffbowServerConfig focusStaffbowConfig;
+    private final ElementalBowServerConfig elementalBowConfig;
 
     private ItemsServerConfig(
             ArcaneCinderServerConfig arcaneCinderConfig,
@@ -50,7 +52,8 @@ final class ItemsServerConfig {
             CircuitHeatStaffServerConfig circuitHeatStaffConfig,
             MulticastEchoStaffServerConfig multicastEchoStaffConfig,
             MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig,
-            FocusStaffbowServerConfig focusStaffbowConfig
+            FocusStaffbowServerConfig focusStaffbowConfig,
+            ElementalBowServerConfig elementalBowConfig
     ) {
         this.arcaneCinderConfig = arcaneCinderConfig;
         this.absorptionAmplifyAmuletConfig = absorptionAmplifyAmuletConfig;
@@ -66,6 +69,7 @@ final class ItemsServerConfig {
         this.multicastEchoStaffConfig = multicastEchoStaffConfig;
         this.multipurposeStaffrifleConfig = multipurposeStaffrifleConfig;
         this.focusStaffbowConfig = focusStaffbowConfig;
+        this.elementalBowConfig = elementalBowConfig;
     }
 
     static ItemsServerConfig define(ModConfigSpec.Builder builder) {
@@ -84,6 +88,7 @@ final class ItemsServerConfig {
         var multicastEchoStaffConfig = MulticastEchoStaffServerConfig.define(builder);
         var multipurposeStaffrifleConfig = MultipurposeStaffrifleServerConfig.define(builder);
         var focusStaffbowConfig = FocusStaffbowServerConfig.define(builder);
+        var elementalBowConfig = ElementalBowServerConfig.define(builder);
         builder.pop();
 
         return new ItemsServerConfig(
@@ -100,7 +105,8 @@ final class ItemsServerConfig {
                 circuitHeatStaffConfig,
                 multicastEchoStaffConfig,
                 multipurposeStaffrifleConfig,
-                focusStaffbowConfig
+                focusStaffbowConfig,
+                elementalBowConfig
         );
     }
 
@@ -416,6 +422,34 @@ final class ItemsServerConfig {
         return focusStaffbowConfig.chargeSettings();
     }
 
+    double elementalBowMagicReadyDrawTicksMultiplier() {
+        return elementalBowConfig.magicReadyDrawTicksMultiplier();
+    }
+
+    float elementalBowOverheatAdditionalManaLinearMultiplier() {
+        return elementalBowConfig.overheatAdditionalManaLinearMultiplier();
+    }
+
+    float elementalBowOverheatAdditionalManaQuadraticMultiplier() {
+        return elementalBowConfig.overheatAdditionalManaQuadraticMultiplier();
+    }
+
+    double elementalBowOverheatDurationMultiplier() {
+        return elementalBowConfig.overheatDurationMultiplier();
+    }
+
+    int elementalBowOverheatDurationMinTicks() {
+        return elementalBowConfig.overheatDurationMinTicks();
+    }
+
+    int elementalBowOverheatDurationCapTicks() {
+        return elementalBowConfig.overheatDurationCapTicks();
+    }
+
+    double elementalBowPowerArrowSpellLevelBonusPerLevel() {
+        return elementalBowConfig.powerArrowSpellLevelBonusPerLevel();
+    }
+
     List<String> multipurposeStaffrifleSpellDenylist() {
         return multipurposeStaffrifleConfig.spellDenylist();
     }
@@ -471,6 +505,26 @@ final class ItemsServerConfig {
                 spellDenylist,
                 enableSpellAllowlist,
                 spellAllowlist
+        );
+    }
+
+    void setElementalBowConfigForGameTest(
+            double magicReadyDrawTicksMultiplier,
+            double overheatAdditionalManaLinearMultiplier,
+            double overheatAdditionalManaQuadraticMultiplier,
+            double overheatDurationMultiplier,
+            int overheatDurationMinTicks,
+            int overheatDurationCapTicks,
+            double powerArrowSpellLevelBonusPerLevel
+    ) {
+        elementalBowConfig.setForGameTest(
+                magicReadyDrawTicksMultiplier,
+                overheatAdditionalManaLinearMultiplier,
+                overheatAdditionalManaQuadraticMultiplier,
+                overheatDurationMultiplier,
+                overheatDurationMinTicks,
+                overheatDurationCapTicks,
+                powerArrowSpellLevelBonusPerLevel
         );
     }
 

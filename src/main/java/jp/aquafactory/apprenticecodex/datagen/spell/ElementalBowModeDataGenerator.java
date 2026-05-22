@@ -48,16 +48,19 @@ public final class ElementalBowModeDataGenerator extends JsonCodecProvider<Eleme
                         new ElementalBowModeDefinition(
                                 SchoolRegistry.FIRE_RESOURCE,
                                 getSpellId(SpellRegistry.FIRE_ARROW_SPELL),
+                                ElementalBowModeDefinition.DEFAULT_REQUIRED_DRAW_TICKS,
                                 List.of(new ElementalBowEnchantmentBonus(getEnchantmentId(Enchantments.FLAME), 0, 2))
                         ),
                         new ElementalBowModeDefinition(
                                 SchoolRegistry.ENDER_RESOURCE,
                                 getSpellId(SpellRegistry.MAGIC_ARROW_SPELL),
+                                ElementalBowModeDefinition.DEFAULT_REQUIRED_DRAW_TICKS,
                                 List.of()
                         ),
                         new ElementalBowModeDefinition(
                                 SchoolRegistry.NATURE_RESOURCE,
                                 getSpellId(SpellRegistry.POISON_ARROW_SPELL),
+                                ElementalBowModeDefinition.DEFAULT_REQUIRED_DRAW_TICKS,
                                 List.of()
                         )
                 ))

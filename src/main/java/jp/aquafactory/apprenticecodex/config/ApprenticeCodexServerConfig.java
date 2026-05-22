@@ -449,6 +449,34 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.focusStaffbowChargeSettings();
     }
 
+    public static double elementalBowMagicReadyDrawTicksMultiplier() {
+        return ITEMS_CONFIG.elementalBowMagicReadyDrawTicksMultiplier();
+    }
+
+    public static float elementalBowOverheatAdditionalManaLinearMultiplier() {
+        return ITEMS_CONFIG.elementalBowOverheatAdditionalManaLinearMultiplier();
+    }
+
+    public static float elementalBowOverheatAdditionalManaQuadraticMultiplier() {
+        return ITEMS_CONFIG.elementalBowOverheatAdditionalManaQuadraticMultiplier();
+    }
+
+    public static double elementalBowOverheatDurationMultiplier() {
+        return ITEMS_CONFIG.elementalBowOverheatDurationMultiplier();
+    }
+
+    public static int elementalBowOverheatDurationMinTicks() {
+        return ITEMS_CONFIG.elementalBowOverheatDurationMinTicks();
+    }
+
+    public static int elementalBowOverheatDurationCapTicks() {
+        return ITEMS_CONFIG.elementalBowOverheatDurationCapTicks();
+    }
+
+    public static double elementalBowPowerArrowSpellLevelBonusPerLevel() {
+        return ITEMS_CONFIG.elementalBowPowerArrowSpellLevelBonusPerLevel();
+    }
+
     public static GameTestConfigOverride useFocusStaffbowConfigOverrideForGameTest(
             boolean enableContinuousFocusedCast,
             boolean enableManaLoan,
@@ -503,6 +531,43 @@ public final class ApprenticeCodexServerConfig {
                 previousSpellDenylist,
                 previousEnableSpellAllowlist,
                 previousSpellAllowlist
+        );
+    }
+
+    public static GameTestConfigOverride useElementalBowConfigOverrideForGameTest(
+            double magicReadyDrawTicksMultiplier,
+            double overheatAdditionalManaLinearMultiplier,
+            double overheatAdditionalManaQuadraticMultiplier,
+            double overheatDurationMultiplier,
+            int overheatDurationMinTicks,
+            int overheatDurationCapTicks,
+            double powerArrowSpellLevelBonusPerLevel
+    ) {
+        var previousMagicReadyDrawTicksMultiplier = ITEMS_CONFIG.elementalBowMagicReadyDrawTicksMultiplier();
+        var previousOverheatAdditionalManaLinearMultiplier = ITEMS_CONFIG.elementalBowOverheatAdditionalManaLinearMultiplier();
+        var previousOverheatAdditionalManaQuadraticMultiplier = ITEMS_CONFIG.elementalBowOverheatAdditionalManaQuadraticMultiplier();
+        var previousOverheatDurationMultiplier = ITEMS_CONFIG.elementalBowOverheatDurationMultiplier();
+        var previousOverheatDurationMinTicks = ITEMS_CONFIG.elementalBowOverheatDurationMinTicks();
+        var previousOverheatDurationCapTicks = ITEMS_CONFIG.elementalBowOverheatDurationCapTicks();
+        var previousPowerArrowSpellLevelBonusPerLevel = ITEMS_CONFIG.elementalBowPowerArrowSpellLevelBonusPerLevel();
+
+        ITEMS_CONFIG.setElementalBowConfigForGameTest(
+                magicReadyDrawTicksMultiplier,
+                overheatAdditionalManaLinearMultiplier,
+                overheatAdditionalManaQuadraticMultiplier,
+                overheatDurationMultiplier,
+                overheatDurationMinTicks,
+                overheatDurationCapTicks,
+                powerArrowSpellLevelBonusPerLevel
+        );
+        return () -> ITEMS_CONFIG.setElementalBowConfigForGameTest(
+                previousMagicReadyDrawTicksMultiplier,
+                previousOverheatAdditionalManaLinearMultiplier,
+                previousOverheatAdditionalManaQuadraticMultiplier,
+                previousOverheatDurationMultiplier,
+                previousOverheatDurationMinTicks,
+                previousOverheatDurationCapTicks,
+                previousPowerArrowSpellLevelBonusPerLevel
         );
     }
 

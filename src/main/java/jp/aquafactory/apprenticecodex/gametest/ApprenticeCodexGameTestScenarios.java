@@ -5273,8 +5273,10 @@ public final class ApprenticeCodexGameTestScenarios {
             )) {
                 var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_config_test");
                 var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-                charm.enchant(EnchantmentRegistry.SYNCHRONIZATION.get(), 1);
+                var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+                charm.enchant(enchantmentLookup.getOrThrow(Enchantments.SYNCHRONIZATION), 1);
                 equipCurio(player, CuriosSlotConstants.CHARM, charm);
+                var protectionEnchantment = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.PROTECTION);
                 for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
                     var armorStack = switch (slot) {
                         case HEAD -> new ItemStack(Items.IRON_HELMET);
@@ -5283,7 +5285,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         case FEET -> new ItemStack(Items.IRON_BOOTS);
                         default -> ItemStack.EMPTY;
                     };
-                    armorStack.enchant(Enchantments.ALL_DAMAGE_PROTECTION, 10);
+                    armorStack.enchant(protectionEnchantment, 10);
                     player.setItemSlot(slot, armorStack);
                 }
 
@@ -5325,7 +5327,8 @@ public final class ApprenticeCodexGameTestScenarios {
             )) {
                 var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_neutralization_zero_test");
                 var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-                charm.enchant(EnchantmentRegistry.NEUTRALIZATION.get(), 1);
+                charm.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                        .getOrThrow(Enchantments.NEUTRALIZATION), 1);
                 equipCurio(player, CuriosSlotConstants.CHARM, charm);
                 var magicData = MagicData.getPlayerMagicData(player);
                 helper.assertTrue(magicData != null, "Neutralization zero-recovery test could not resolve player mana data");
@@ -5359,7 +5362,8 @@ public final class ApprenticeCodexGameTestScenarios {
             )) {
                 var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_shell_durability_config_test");
                 var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-                charm.enchant(EnchantmentRegistry.SHELL.get(), 1);
+                charm.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                        .getOrThrow(Enchantments.SHELL), 1);
                 equipCurio(player, CuriosSlotConstants.CHARM, charm);
                 var chestplate = new ItemStack(Items.IRON_CHESTPLATE);
                 player.setItemSlot(EquipmentSlot.CHEST, chestplate);
@@ -8023,6 +8027,162 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow continuous release should clear Iron's casting state");
         });
     }
+    static void elementalBowMagicDrawTicksUseProfileAndServerMultiplier(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = useElementalBowConfigOverrideForGameTest(
+                    1.5D,
+                    0.20D,
+                    0.08D,
+                    1.0D,
+                    0,
+                    0,
+                    1.0D
+            )) {
+                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_draw_config_test");
+                var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+                setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+                player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+                player.getInventory().setItem(1, new ItemStack(Items.ARROW, 2));
+
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Elemental Bow draw config test could not resolve player mana data");
+                magicData.setMana(300.0F);
+                var initialMana = magicData.getMana();
+
+                helper.assertTrue(ElementalBow.resolveMagicRequiredDrawTicks(stack) == 30,
+                        "Elemental Bow required draw ticks should use profile ticks and server multiplier");
+                var shortUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+                helper.assertTrue(shortUseResult.getResult().consumesAction(),
+                        "Elemental Bow draw config test should start drawing: " + shortUseResult.getResult());
+                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 29);
+                player.stopUsingItem();
+                helper.assertTrue(stack.getDamageValue() == 0,
+                        "Elemental Bow should not fire before configured draw ticks");
+                helper.assertTrue(player.getInventory().getItem(1).getCount() == 2,
+                        "Elemental Bow should not consume arrows before configured draw ticks");
+                helper.assertTrue(magicData.getMana() == initialMana,
+                        "Elemental Bow should not consume mana before configured draw ticks");
+
+                var readyUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+                helper.assertTrue(readyUseResult.getResult().consumesAction(),
+                        "Elemental Bow draw config test should restart drawing: " + readyUseResult.getResult());
+                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 30);
+                player.stopUsingItem();
+                helper.assertTrue(stack.getDamageValue() == 1,
+                        "Elemental Bow should fire at configured draw ticks");
+                helper.assertTrue(player.getInventory().getItem(1).getCount() == 1,
+                        "Elemental Bow should consume one arrow after configured draw ticks");
+                helper.assertTrue(magicData.getMana() < initialMana,
+                        "Elemental Bow should consume spell mana after configured draw ticks");
+            }
+        });
+    }
+
+
+    static void elementalBowAdditionalManaUsesServerConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = useElementalBowConfigOverrideForGameTest(
+                    1.0D,
+                    0.5D,
+                    0.25D,
+                    1.0D,
+                    0,
+                    0,
+                    1.0D
+            )) {
+                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_mana_config_test");
+                jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                        player,
+                        SchoolRegistry.FIRE_RESOURCE,
+                        100
+                );
+
+                var extraMana = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getAdditionalManaCost(
+                        player,
+                        SchoolRegistry.FIRE_RESOURCE,
+                        100.0F
+                );
+                helper.assertTrue(Math.abs(extraMana - 75.0F) < 1.0e-3F,
+                        "Elemental Bow additional mana should use its server config but got " + extraMana);
+            }
+        });
+    }
+
+
+    static void elementalBowOverheatDurationUsesServerConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = useElementalBowConfigOverrideForGameTest(
+                    1.0D,
+                    0.20D,
+                    0.08D,
+                    2.0D,
+                    30,
+                    50,
+                    1.0D
+            )) {
+                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_duration_config_test");
+
+                jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                        player,
+                        SchoolRegistry.FIRE_RESOURCE,
+                        10
+                );
+                var minState = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE);
+                helper.assertTrue(minState.active()
+                                && minState.expireGameTime() - helper.getLevel().getGameTime() == 30,
+                        "Elemental Bow overheat duration should use configured minimum: " + minState);
+
+                jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.clear(player, SchoolRegistry.FIRE_RESOURCE);
+                jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                        player,
+                        SchoolRegistry.FIRE_RESOURCE,
+                        100
+                );
+                var capState = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE);
+                helper.assertTrue(capState.active()
+                                && capState.expireGameTime() - helper.getLevel().getGameTime() == 50,
+                        "Elemental Bow overheat duration should use configured cap: " + capState);
+            }
+        });
+    }
+
+
+    static void elementalBowPowerSpellLevelBonusUsesServerConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = useElementalBowConfigOverrideForGameTest(
+                    1.0D,
+                    0.20D,
+                    0.08D,
+                    1.0D,
+                    0,
+                    0,
+                    0.5D
+            )) {
+                var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
+                var stack = new ItemStack(item);
+                var power = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                        .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.POWER);
+                stack.enchant(power, 3);
+                setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+
+                item.initializeSpellContainer(stack);
+
+                var fireMode = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.getResolvedDefinition(SchoolRegistry.FIRE_RESOURCE);
+                helper.assertTrue(fireMode != null, "Elemental Bow power config test should resolve Fire mode");
+                var powerBonus = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.resolvePowerArrowSpellLevelBonus(stack);
+                helper.assertTrue(powerBonus == 1,
+                        "Elemental Bow Power III should add floor(3 * 0.5) spell levels but got " + powerBonus);
+                var expectedLevel = fireMode == null ? 1 : Mth.clamp(1 + powerBonus, fireMode.spell().getMinLevel(), fireMode.spell().getMaxLevel());
+                var profile = ElementalBow.getDisplayedSpellProfile(stack);
+                helper.assertTrue(profile != null, "Elemental Bow power config test should expose a displayed spell profile");
+                helper.assertTrue(profile != null && profile.spellLevel() == expectedLevel,
+                        "Elemental Bow Power spell level should use the configured bonus before spell level clamp but got "
+                                + (profile == null ? "null" : profile.spellLevel()));
+            }
+        });
+    }
+
+
     static void focusStaffbowRejectsUseWithoutArrowCatalyst(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_arrow_gate_test");
@@ -14098,6 +14258,26 @@ public final class ApprenticeCodexGameTestScenarios {
                 spellDenylist,
                 enableSpellAllowlist,
                 spellAllowlist
+        );
+    }
+
+    private static ApprenticeCodexServerConfig.GameTestConfigOverride useElementalBowConfigOverrideForGameTest(
+            double magicReadyDrawTicksMultiplier,
+            double overheatAdditionalManaLinearMultiplier,
+            double overheatAdditionalManaQuadraticMultiplier,
+            double overheatDurationMultiplier,
+            int overheatDurationMinTicks,
+            int overheatDurationCapTicks,
+            double powerArrowSpellLevelBonusPerLevel
+    ) {
+        return ApprenticeCodexServerConfig.useElementalBowConfigOverrideForGameTest(
+                magicReadyDrawTicksMultiplier,
+                overheatAdditionalManaLinearMultiplier,
+                overheatAdditionalManaQuadraticMultiplier,
+                overheatDurationMultiplier,
+                overheatDurationMinTicks,
+                overheatDurationCapTicks,
+                powerArrowSpellLevelBonusPerLevel
         );
     }
 

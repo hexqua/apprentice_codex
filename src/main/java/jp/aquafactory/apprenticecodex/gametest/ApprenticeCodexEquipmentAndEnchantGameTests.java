@@ -27,6 +27,14 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     private static final String FOCUS_STAFFBOW_ALLOWLIST_CONFIG_BATCH =
             "apprenticecodex.focus_staffbow_allowlist_config";
     private static final String ELEMENTAL_BOW_OVERHEAT_BATCH = "apprenticecodex.elemental_bow_overheat";
+    private static final String ELEMENTAL_BOW_DRAW_CONFIG_BATCH =
+            "apprenticecodex.elemental_bow_draw_config";
+    private static final String ELEMENTAL_BOW_OVERHEAT_MANA_CONFIG_BATCH =
+            "apprenticecodex.elemental_bow_overheat_mana_config";
+    private static final String ELEMENTAL_BOW_OVERHEAT_DURATION_CONFIG_BATCH =
+            "apprenticecodex.elemental_bow_overheat_duration_config";
+    private static final String ELEMENTAL_BOW_POWER_CONFIG_BATCH =
+            "apprenticecodex.elemental_bow_power_config";
     private static final String SPELLCASTER_QUIVER_ISOLATED_BATCH = "apprenticecodex.spellcaster_quiver_isolated";
     private static final String CIRCUIT_HEAT_STAFF_ADDITIONAL_MANA_CONFIG_BATCH =
             "apprenticecodex.circuit_heat_staff_additional_mana_config";
@@ -843,6 +851,26 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffImpactCastManagerSkipsWhenOwnerCannotCast(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerSkipsWhenOwnerCannotCast(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ELEMENTAL_BOW_DRAW_CONFIG_BATCH)
+    public static void elementalBowMagicDrawTicksUseProfileAndServerMultiplier(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowMagicDrawTicksUseProfileAndServerMultiplier(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ELEMENTAL_BOW_OVERHEAT_MANA_CONFIG_BATCH)
+    public static void elementalBowAdditionalManaUsesServerConfig(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowAdditionalManaUsesServerConfig(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ELEMENTAL_BOW_OVERHEAT_DURATION_CONFIG_BATCH)
+    public static void elementalBowOverheatDurationUsesServerConfig(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowOverheatDurationUsesServerConfig(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ELEMENTAL_BOW_POWER_CONFIG_BATCH)
+    public static void elementalBowPowerSpellLevelBonusUsesServerConfig(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowPowerSpellLevelBonusUsesServerConfig(helper);
     }
 
     @GameTest(template = TEMPLATE)
