@@ -242,6 +242,7 @@
   "jei.apprenticecodex.protection_spell_supporter.desc_1": "Modifies the spells below and reduces their mana cost while they are active.",
   "jei.apprenticecodex.protection_spell_supporter.desc_2": "- Force Field: Can block attacks that a shield cannot.",
   "jei.apprenticecodex.protection_spell_supporter.desc_3": "- Phalanx Charge: Increases movement speed while guarding with the shield.",
+  "jei.apprenticecodex.protection_spell_supporter.desc_4": "- Mystic Shield: Increases damage of reflected projectiles.",
   "jei.apprenticecodex.offhand_magic_items.desc_1": "Spellcasting aids meant to be used in your offhand.",
   "jei.apprenticecodex.offhand_magic_items.desc_2": "When your main hand holds a weapon or tool without a special use action, you can use these from your offhand-like a staff-to cast spells.",
   "jei.apprenticecodex.offhand_magic_items.desc_3": "Additionally, you can gain ability bonuses and cast imbued spell when you need to use two-handed weapons.",
@@ -562,7 +563,7 @@
   "spell.apprenticecodex.tiro_volley.guide": "Summons magical muskets one after another around you, continuously attacking nearby enemies. A replica of the magic used by a magical girl who overcame her fear.",
   "spell.apprenticecodex.magic_spear.guide": "Summons and launches a magical spear that flies toward the target in your line of sight. It bursts on impact, catching nearby targets in the blast. A replica of the weapon once wielded by an angel who ruled the skies.",
   "spell.apprenticecodex.frost_rune.guide": "Carves a frost rune into terrain. It detonates when touched by anything other than its caster, attacking targets in range. Concealment magic makes it hard to see, but it cannot fool the Jade Eye at all.",
-  "spell.apprenticecodex.mystic_shield.guide": "(todo:翻訳)魔法の障壁を展開し攻撃を吸収する。前方からの攻撃しか防げないが、障壁を解除した際に吸収した攻撃に応じた反撃弾を発射する。",
+  "spell.apprenticecodex.mystic_shield.guide": "Deploys a magical barrier that absorbs attacks. It only blocks attacks from the front, but when the barrier is released, it fires a counterattack projectile based on the absorbed attacks.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "Sneak Damage Multiplier: %d%%",

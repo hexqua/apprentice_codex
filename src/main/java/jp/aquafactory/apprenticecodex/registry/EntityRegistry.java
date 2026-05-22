@@ -30,6 +30,8 @@ import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightChargeCutEntity;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightKatanaEntity;
+import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldShieldEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxChargeBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxWeaponryEntity;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity;
@@ -197,6 +199,14 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<MagicSpearMissileEntity>> MAGIC_SPEAR_MISSILE =
             regProjectile("magic_spear_missile", MagicSpearMissileEntity::new, 128, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<FeatherRushProjectileEntity>> FEATHER_RUSH_PROJECTILE =
+    public static final DeferredHolder<EntityType<?>, EntityType<MysticShieldProjectileEntity>> MYSTIC_SHIELD_PROJECTILE =
+            regProjectile("mystic_shield_projectile", MysticShieldProjectileEntity::new, 96, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<MysticShieldShieldEntity>> MYSTIC_SHIELD_SHIELD =
+            reg("mystic_shield_shield", MysticShieldShieldEntity::new, MobCategory.MISC,
+                    0.2f, 0.2f, 96, 1, false);
 
     public static final DeferredHolder<EntityType<?>, EntityType<FeatherRushProjectileEntity>> FEATHER_RUSH_PROJECTILE =
             regProjectile("feather_rush_projectile", FeatherRushProjectileEntity::new, 96, 1);

@@ -23,6 +23,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String EARTH_FORGE_ISOLATED_BATCH = "apprenticecodex.earth_forge_isolated";
     private static final String COMPOUND_PHIAL_ISOLATED_BATCH = "apprenticecodex.compound_phial_isolated";
     private static final String ASSIST_WINGS_ISOLATED_BATCH = "apprenticecodex.assist_wings_isolated";
+    private static final String MYSTIC_SHIELD_ISOLATED_BATCH = "apprenticecodex.mystic_shield_isolated";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
     }
@@ -275,5 +276,20 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
     public static void smashcastScepterSmashSetsVanillaImpulseFallProtection(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.smashcastScepterSmashSetsVanillaImpulseFallProtection(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MYSTIC_SHIELD_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void mysticShieldBlocksFrontDamageAndLimitsSameSourceAccumulation(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mysticShieldBlocksFrontDamageAndLimitsSameSourceAccumulation(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MYSTIC_SHIELD_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void mysticShieldReflectsStoredDamageAfterNonFrontCancel(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mysticShieldReflectsStoredDamageAfterNonFrontCancel(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MYSTIC_SHIELD_ISOLATED_BATCH)
+    public static void mysticShieldReceivesProtectionSpellSupporterBenefits(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mysticShieldReceivesProtectionSpellSupporterBenefits(helper);
     }
 }
