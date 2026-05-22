@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.config;
 import jp.aquafactory.apprenticecodex.config.item.CraftsmansDelightServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.CircuitHeatStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ChromaticMagiaDressServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.FocusStaffbowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaForceBladeServerConfig;
@@ -12,6 +13,7 @@ import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.AbsorptionAmplifyAmuletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArcaneCinderServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScarletThirstServerConfig;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
 
@@ -30,6 +32,7 @@ final class ItemsServerConfig {
     private final CircuitHeatStaffServerConfig circuitHeatStaffConfig;
     private final MulticastEchoStaffServerConfig multicastEchoStaffConfig;
     private final MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig;
+    private final FocusStaffbowServerConfig focusStaffbowConfig;
 
     private ItemsServerConfig(
             ArcaneCinderServerConfig arcaneCinderConfig,
@@ -43,7 +46,8 @@ final class ItemsServerConfig {
             ManaForceBladeServerConfig manaForceBladeConfig,
             CircuitHeatStaffServerConfig circuitHeatStaffConfig,
             MulticastEchoStaffServerConfig multicastEchoStaffConfig,
-            MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig
+            MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig,
+            FocusStaffbowServerConfig focusStaffbowConfig
     ) {
         this.arcaneCinderConfig = arcaneCinderConfig;
         this.absorptionAmplifyAmuletConfig = absorptionAmplifyAmuletConfig;
@@ -57,6 +61,7 @@ final class ItemsServerConfig {
         this.circuitHeatStaffConfig = circuitHeatStaffConfig;
         this.multicastEchoStaffConfig = multicastEchoStaffConfig;
         this.multipurposeStaffrifleConfig = multipurposeStaffrifleConfig;
+        this.focusStaffbowConfig = focusStaffbowConfig;
     }
 
     static ItemsServerConfig define(ForgeConfigSpec.Builder builder) {
@@ -73,6 +78,7 @@ final class ItemsServerConfig {
         var circuitHeatStaffConfig = CircuitHeatStaffServerConfig.define(builder);
         var multicastEchoStaffConfig = MulticastEchoStaffServerConfig.define(builder);
         var multipurposeStaffrifleConfig = MultipurposeStaffrifleServerConfig.define(builder);
+        var focusStaffbowConfig = FocusStaffbowServerConfig.define(builder);
         builder.pop();
 
         return new ItemsServerConfig(
@@ -87,7 +93,8 @@ final class ItemsServerConfig {
                 manaForceBladeConfig,
                 circuitHeatStaffConfig,
                 multicastEchoStaffConfig,
-                multipurposeStaffrifleConfig
+                multipurposeStaffrifleConfig,
+                focusStaffbowConfig
         );
     }
 
@@ -331,12 +338,92 @@ final class ItemsServerConfig {
         return multipurposeStaffrifleConfig.isSpellDenied(spellId);
     }
 
+    boolean focusStaffbowEnableContinuousFocusedCast() {
+        return focusStaffbowConfig.enableContinuousFocusedCast();
+    }
+
+    boolean focusStaffbowEnableManaLoan() {
+        return focusStaffbowConfig.enableManaLoan();
+    }
+
+    boolean focusStaffbowEnableArrowCatalystRequirement() {
+        return focusStaffbowConfig.enableArrowCatalystRequirement();
+    }
+
+    List<ResourceLocation> focusStaffbowArrowCatalystItemIds() {
+        return focusStaffbowConfig.arrowCatalystItemIds();
+    }
+
+    List<String> focusStaffbowArrowCatalystItems() {
+        return focusStaffbowConfig.arrowCatalystItems();
+    }
+
+    double focusStaffbowPendingMaxLoanManaRatio() {
+        return focusStaffbowConfig.pendingMaxLoanManaRatio();
+    }
+
+    boolean isFocusStaffbowSpellDenied(ResourceLocation spellId) {
+        return focusStaffbowConfig.isSpellDenied(spellId);
+    }
+
+    boolean isFocusStaffbowSpellAllowed(ResourceLocation spellId) {
+        return focusStaffbowConfig.isSpellAllowed(spellId);
+    }
+
+    List<String> focusStaffbowSpellDenylist() {
+        return focusStaffbowConfig.spellDenylist();
+    }
+
+    boolean focusStaffbowEnableSpellAllowlist() {
+        return focusStaffbowConfig.enableSpellAllowlist();
+    }
+
+    List<String> focusStaffbowSpellAllowlist() {
+        return focusStaffbowConfig.spellAllowlist();
+    }
+
+    FocusStaffbowChargeSettings focusStaffbowChargeSettings() {
+        return focusStaffbowConfig.chargeSettings();
+    }
+
     List<String> multipurposeStaffrifleSpellDenylist() {
         return multipurposeStaffrifleConfig.spellDenylist();
     }
 
     void setMultipurposeStaffrifleSpellDenylistForGameTest(List<String> spellDenylist) {
         multipurposeStaffrifleConfig.setSpellDenylistForGameTest(spellDenylist);
+    }
+
+    void setFocusStaffbowConfigForGameTest(
+            boolean enableContinuousFocusedCast,
+            boolean enableManaLoan,
+            boolean enableArrowCatalystRequirement,
+            List<String> arrowCatalystItems,
+            double pendingMaxChargeMultiplier,
+            double continuousMaxChargeMultiplier,
+            int minimumOverchargeBaselineTicks,
+            double chargeManaCostExponent,
+            double chargeManaCostMultiplier,
+            double pendingMaxLoanManaRatio,
+            List<String> spellDenylist,
+            boolean enableSpellAllowlist,
+            List<String> spellAllowlist
+    ) {
+        focusStaffbowConfig.setForGameTest(
+                enableContinuousFocusedCast,
+                enableManaLoan,
+                enableArrowCatalystRequirement,
+                arrowCatalystItems,
+                pendingMaxChargeMultiplier,
+                continuousMaxChargeMultiplier,
+                minimumOverchargeBaselineTicks,
+                chargeManaCostExponent,
+                chargeManaCostMultiplier,
+                pendingMaxLoanManaRatio,
+                spellDenylist,
+                enableSpellAllowlist,
+                spellAllowlist
+        );
     }
 
     void setCircuitHeatStaffConfigForGameTest(

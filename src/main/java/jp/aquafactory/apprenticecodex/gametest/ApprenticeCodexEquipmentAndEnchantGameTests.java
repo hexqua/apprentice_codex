@@ -12,6 +12,20 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final String MINING_SPELL_ISOLATED_BATCH = "apprenticecodex.mining_spell_isolated";
     private static final String FOCUS_STAFFBOW_CONTINUOUS_BATCH = "apprenticecodex.focus_staffbow_continuous";
+    private static final String FOCUS_STAFFBOW_ARROW_CONFIG_BATCH =
+            "apprenticecodex.focus_staffbow_arrow_config";
+    private static final String FOCUS_STAFFBOW_ARROW_ITEM_CONFIG_BATCH =
+            "apprenticecodex.focus_staffbow_arrow_item_config";
+    private static final String FOCUS_STAFFBOW_CONTINUOUS_CONFIG_BATCH =
+            "apprenticecodex.focus_staffbow_continuous_config";
+    private static final String FOCUS_STAFFBOW_LOAN_CONFIG_BATCH =
+            "apprenticecodex.focus_staffbow_loan_config";
+    private static final String FOCUS_STAFFBOW_LOAN_RATIO_CONFIG_BATCH =
+            "apprenticecodex.focus_staffbow_loan_ratio_config";
+    private static final String FOCUS_STAFFBOW_DENYLIST_CONFIG_BATCH =
+            "apprenticecodex.focus_staffbow_denylist_config";
+    private static final String FOCUS_STAFFBOW_ALLOWLIST_CONFIG_BATCH =
+            "apprenticecodex.focus_staffbow_allowlist_config";
     private static final String ELEMENTAL_BOW_OVERHEAT_BATCH = "apprenticecodex.elemental_bow_overheat";
     private static final String SPELLCASTER_QUIVER_ISOLATED_BATCH = "apprenticecodex.spellcaster_quiver_isolated";
     private static final String CIRCUIT_HEAT_STAFF_ADDITIONAL_MANA_CONFIG_BATCH =
@@ -415,8 +429,43 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void focusStaffbowConfigCurveAndManaFormulaUsesFixedTimeToMax(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowConfigCurveAndManaFormulaUsesFixedTimeToMax(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void focusStaffbowStillRejectsCastWhenBaseManaIsInsufficient(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.focusStaffbowStillRejectsCastWhenBaseManaIsInsufficient(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_ARROW_CONFIG_BATCH)
+    public static void focusStaffbowArrowRequirementConfigAllowsArrowlessCasting(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowArrowRequirementConfigAllowsArrowlessCasting(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_CONTINUOUS_CONFIG_BATCH)
+    public static void focusStaffbowContinuousConfigRejectsWithoutConsumingArrow(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowContinuousConfigRejectsWithoutConsumingArrow(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_LOAN_CONFIG_BATCH)
+    public static void focusStaffbowManaLoanConfigRejectsBorrowedPendingCast(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowManaLoanConfigRejectsBorrowedPendingCast(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_LOAN_RATIO_CONFIG_BATCH)
+    public static void focusStaffbowLoanRatioConfigRejectsExcessBorrowing(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowLoanRatioConfigRejectsExcessBorrowing(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_DENYLIST_CONFIG_BATCH)
+    public static void focusStaffbowSpellDenylistBlocksBeforeAmmo(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowSpellDenylistBlocksBeforeAmmo(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_ALLOWLIST_CONFIG_BATCH)
+    public static void focusStaffbowSpellAllowlistBlocksMissingSpellBeforeAmmo(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowSpellAllowlistBlocksMissingSpellBeforeAmmo(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -450,8 +499,13 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void focusStaffbowFallsBackToSpecialArrowWhenNormalArrowIsMissing(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowFallsBackToSpecialArrowWhenNormalArrowIsMissing(helper);
+    public static void focusStaffbowRejectsUnconfiguredSpecialArrow(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowRejectsUnconfiguredSpecialArrow(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_ARROW_ITEM_CONFIG_BATCH)
+    public static void focusStaffbowArrowCatalystItemListAllowsConfiguredSpecialArrow(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowArrowCatalystItemListAllowsConfiguredSpecialArrow(helper);
     }
 
     @GameTest(template = TEMPLATE)

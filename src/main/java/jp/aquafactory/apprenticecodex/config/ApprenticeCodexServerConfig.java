@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.config;
 
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
 
@@ -387,6 +388,99 @@ public final class ApprenticeCodexServerConfig {
 
     public static boolean isMultipurposeStaffrifleSpellDenied(ResourceLocation spellId) {
         return ITEMS_CONFIG.isMultipurposeStaffrifleSpellDenied(spellId);
+    }
+
+    public static boolean focusStaffbowEnableContinuousFocusedCast() {
+        return ITEMS_CONFIG.focusStaffbowEnableContinuousFocusedCast();
+    }
+
+    public static boolean focusStaffbowEnableManaLoan() {
+        return ITEMS_CONFIG.focusStaffbowEnableManaLoan();
+    }
+
+    public static boolean focusStaffbowEnableArrowCatalystRequirement() {
+        return ITEMS_CONFIG.focusStaffbowEnableArrowCatalystRequirement();
+    }
+
+    public static List<ResourceLocation> focusStaffbowArrowCatalystItemIds() {
+        return ITEMS_CONFIG.focusStaffbowArrowCatalystItemIds();
+    }
+
+    public static double focusStaffbowPendingMaxLoanManaRatio() {
+        return ITEMS_CONFIG.focusStaffbowPendingMaxLoanManaRatio();
+    }
+
+    public static boolean isFocusStaffbowSpellDenied(ResourceLocation spellId) {
+        return ITEMS_CONFIG.isFocusStaffbowSpellDenied(spellId);
+    }
+
+    public static boolean isFocusStaffbowSpellAllowed(ResourceLocation spellId) {
+        return ITEMS_CONFIG.isFocusStaffbowSpellAllowed(spellId);
+    }
+
+    public static boolean focusStaffbowEnableSpellAllowlist() {
+        return ITEMS_CONFIG.focusStaffbowEnableSpellAllowlist();
+    }
+
+    public static FocusStaffbowChargeSettings focusStaffbowChargeSettings() {
+        return ITEMS_CONFIG.focusStaffbowChargeSettings();
+    }
+
+    public static GameTestConfigOverride useFocusStaffbowConfigOverrideForGameTest(
+            boolean enableContinuousFocusedCast,
+            boolean enableManaLoan,
+            boolean enableArrowCatalystRequirement,
+            List<String> arrowCatalystItems,
+            double pendingMaxChargeMultiplier,
+            double continuousMaxChargeMultiplier,
+            int minimumOverchargeBaselineTicks,
+            double chargeManaCostExponent,
+            double chargeManaCostMultiplier,
+            double pendingMaxLoanManaRatio,
+            List<String> spellDenylist,
+            boolean enableSpellAllowlist,
+            List<String> spellAllowlist
+    ) {
+        var previousEnableContinuousFocusedCast = ITEMS_CONFIG.focusStaffbowEnableContinuousFocusedCast();
+        var previousEnableManaLoan = ITEMS_CONFIG.focusStaffbowEnableManaLoan();
+        var previousEnableArrowCatalystRequirement = ITEMS_CONFIG.focusStaffbowEnableArrowCatalystRequirement();
+        var previousArrowCatalystItems = ITEMS_CONFIG.focusStaffbowArrowCatalystItems();
+        var previousChargeSettings = ITEMS_CONFIG.focusStaffbowChargeSettings();
+        var previousPendingMaxLoanManaRatio = ITEMS_CONFIG.focusStaffbowPendingMaxLoanManaRatio();
+        var previousSpellDenylist = ITEMS_CONFIG.focusStaffbowSpellDenylist();
+        var previousEnableSpellAllowlist = ITEMS_CONFIG.focusStaffbowEnableSpellAllowlist();
+        var previousSpellAllowlist = ITEMS_CONFIG.focusStaffbowSpellAllowlist();
+
+        ITEMS_CONFIG.setFocusStaffbowConfigForGameTest(
+                enableContinuousFocusedCast,
+                enableManaLoan,
+                enableArrowCatalystRequirement,
+                arrowCatalystItems,
+                pendingMaxChargeMultiplier,
+                continuousMaxChargeMultiplier,
+                minimumOverchargeBaselineTicks,
+                chargeManaCostExponent,
+                chargeManaCostMultiplier,
+                pendingMaxLoanManaRatio,
+                spellDenylist,
+                enableSpellAllowlist,
+                spellAllowlist
+        );
+        return () -> ITEMS_CONFIG.setFocusStaffbowConfigForGameTest(
+                previousEnableContinuousFocusedCast,
+                previousEnableManaLoan,
+                previousEnableArrowCatalystRequirement,
+                previousArrowCatalystItems,
+                previousChargeSettings.pendingMaxChargeMultiplier(),
+                previousChargeSettings.continuousMaxChargeMultiplier(),
+                previousChargeSettings.minimumOverchargeBaselineTicks(),
+                previousChargeSettings.chargeManaCostExponent(),
+                previousChargeSettings.chargeManaCostMultiplier(),
+                previousPendingMaxLoanManaRatio,
+                previousSpellDenylist,
+                previousEnableSpellAllowlist,
+                previousSpellAllowlist
+        );
     }
 
     public static GameTestConfigOverride useMultipurposeStaffrifleSpellDenylistOverrideForGameTest(
