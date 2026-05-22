@@ -253,6 +253,30 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.manaForceBladePerfectGuardTicks();
     }
 
+    public static float manaShieldCharmManaPerDamage() {
+        return ITEMS_CONFIG.manaShieldCharmManaPerDamage();
+    }
+
+    public static int manaShieldCharmRecoveryThresholdMana() {
+        return ITEMS_CONFIG.manaShieldCharmRecoveryThresholdMana();
+    }
+
+    public static float manaShieldCharmSynchronizationManaPerDamage() {
+        return ITEMS_CONFIG.manaShieldCharmSynchronizationManaPerDamage();
+    }
+
+    public static float manaShieldCharmNeutralizationRecoverManaPerDamage() {
+        return ITEMS_CONFIG.manaShieldCharmNeutralizationRecoverManaPerDamage();
+    }
+
+    public static int manaShieldCharmShellArmorDurabilityDamage() {
+        return ITEMS_CONFIG.manaShieldCharmShellArmorDurabilityDamage();
+    }
+
+    public static int manaShieldCharmInvulnerableTimeTicks() {
+        return ITEMS_CONFIG.manaShieldCharmInvulnerableTimeTicks();
+    }
+
     public static int multicastEchoStaffDelayTicks() {
         return ITEMS_CONFIG.multicastEchoStaffDelayTicks();
     }
@@ -488,6 +512,39 @@ public final class ApprenticeCodexServerConfig {
         var previousSpellDenylist = ITEMS_CONFIG.multipurposeStaffrifleSpellDenylist();
         ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(spellDenylist);
         return () -> ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(previousSpellDenylist);
+    }
+
+    public static GameTestConfigOverride useManaShieldCharmConfigOverrideForGameTest(
+            double manaPerDamage,
+            int recoveryThresholdMana,
+            double synchronizationManaPerDamage,
+            double neutralizationRecoverManaPerDamage,
+            int shellArmorDurabilityDamage,
+            int invulnerableTimeTicks
+    ) {
+        var previousManaPerDamage = ITEMS_CONFIG.manaShieldCharmManaPerDamage();
+        var previousRecoveryThresholdMana = ITEMS_CONFIG.manaShieldCharmRecoveryThresholdMana();
+        var previousSynchronizationManaPerDamage = ITEMS_CONFIG.manaShieldCharmSynchronizationManaPerDamage();
+        var previousNeutralizationRecoverManaPerDamage = ITEMS_CONFIG.manaShieldCharmNeutralizationRecoverManaPerDamage();
+        var previousShellArmorDurabilityDamage = ITEMS_CONFIG.manaShieldCharmShellArmorDurabilityDamage();
+        var previousInvulnerableTimeTicks = ITEMS_CONFIG.manaShieldCharmInvulnerableTimeTicks();
+
+        ITEMS_CONFIG.setManaShieldCharmConfigForGameTest(
+                manaPerDamage,
+                recoveryThresholdMana,
+                synchronizationManaPerDamage,
+                neutralizationRecoverManaPerDamage,
+                shellArmorDurabilityDamage,
+                invulnerableTimeTicks
+        );
+        return () -> ITEMS_CONFIG.setManaShieldCharmConfigForGameTest(
+                previousManaPerDamage,
+                previousRecoveryThresholdMana,
+                previousSynchronizationManaPerDamage,
+                previousNeutralizationRecoverManaPerDamage,
+                previousShellArmorDurabilityDamage,
+                previousInvulnerableTimeTicks
+        );
     }
 
     public static GameTestConfigOverride useCircuitHeatStaffConfigOverrideForGameTest(

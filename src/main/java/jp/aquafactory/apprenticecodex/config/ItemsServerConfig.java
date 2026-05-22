@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.config.item.FocusStaffbowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaForceBladeServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ManaShieldCharmServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MulticastEchoStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MultipurposeStaffrifleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
@@ -29,6 +30,7 @@ final class ItemsServerConfig {
     private final PastelStaffServerConfig pastelStaffConfig;
     private final IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig;
     private final ManaForceBladeServerConfig manaForceBladeConfig;
+    private final ManaShieldCharmServerConfig manaShieldCharmConfig;
     private final CircuitHeatStaffServerConfig circuitHeatStaffConfig;
     private final MulticastEchoStaffServerConfig multicastEchoStaffConfig;
     private final MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig;
@@ -44,6 +46,7 @@ final class ItemsServerConfig {
             PastelStaffServerConfig pastelStaffConfig,
             IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig,
             ManaForceBladeServerConfig manaForceBladeConfig,
+            ManaShieldCharmServerConfig manaShieldCharmConfig,
             CircuitHeatStaffServerConfig circuitHeatStaffConfig,
             MulticastEchoStaffServerConfig multicastEchoStaffConfig,
             MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig,
@@ -58,6 +61,7 @@ final class ItemsServerConfig {
         this.pastelStaffConfig = pastelStaffConfig;
         this.isekaiTravelGuidebookConfig = isekaiTravelGuidebookConfig;
         this.manaForceBladeConfig = manaForceBladeConfig;
+        this.manaShieldCharmConfig = manaShieldCharmConfig;
         this.circuitHeatStaffConfig = circuitHeatStaffConfig;
         this.multicastEchoStaffConfig = multicastEchoStaffConfig;
         this.multipurposeStaffrifleConfig = multipurposeStaffrifleConfig;
@@ -75,6 +79,7 @@ final class ItemsServerConfig {
         var pastelStaffConfig = PastelStaffServerConfig.define(builder);
         var isekaiTravelGuidebookConfig = IsekaiTravelGuidebookServerConfig.define(builder);
         var manaForceBladeConfig = ManaForceBladeServerConfig.define(builder);
+        var manaShieldCharmConfig = ManaShieldCharmServerConfig.define(builder);
         var circuitHeatStaffConfig = CircuitHeatStaffServerConfig.define(builder);
         var multicastEchoStaffConfig = MulticastEchoStaffServerConfig.define(builder);
         var multipurposeStaffrifleConfig = MultipurposeStaffrifleServerConfig.define(builder);
@@ -91,6 +96,7 @@ final class ItemsServerConfig {
                 pastelStaffConfig,
                 isekaiTravelGuidebookConfig,
                 manaForceBladeConfig,
+                manaShieldCharmConfig,
                 circuitHeatStaffConfig,
                 multicastEchoStaffConfig,
                 multipurposeStaffrifleConfig,
@@ -196,6 +202,30 @@ final class ItemsServerConfig {
 
     int manaForceBladePerfectGuardTicks() {
         return manaForceBladeConfig.perfectGuardTicks();
+    }
+
+    float manaShieldCharmManaPerDamage() {
+        return manaShieldCharmConfig.manaPerDamage();
+    }
+
+    int manaShieldCharmRecoveryThresholdMana() {
+        return manaShieldCharmConfig.recoveryThresholdMana();
+    }
+
+    float manaShieldCharmSynchronizationManaPerDamage() {
+        return manaShieldCharmConfig.synchronizationManaPerDamage();
+    }
+
+    float manaShieldCharmNeutralizationRecoverManaPerDamage() {
+        return manaShieldCharmConfig.neutralizationRecoverManaPerDamage();
+    }
+
+    int manaShieldCharmShellArmorDurabilityDamage() {
+        return manaShieldCharmConfig.shellArmorDurabilityDamage();
+    }
+
+    int manaShieldCharmInvulnerableTimeTicks() {
+        return manaShieldCharmConfig.invulnerableTimeTicks();
     }
 
     int multipurposeStaffrifleCooldownBypassThresholdTicks() {
@@ -392,6 +422,24 @@ final class ItemsServerConfig {
 
     void setMultipurposeStaffrifleSpellDenylistForGameTest(List<String> spellDenylist) {
         multipurposeStaffrifleConfig.setSpellDenylistForGameTest(spellDenylist);
+    }
+
+    void setManaShieldCharmConfigForGameTest(
+            double manaPerDamage,
+            int recoveryThresholdMana,
+            double synchronizationManaPerDamage,
+            double neutralizationRecoverManaPerDamage,
+            int shellArmorDurabilityDamage,
+            int invulnerableTimeTicks
+    ) {
+        manaShieldCharmConfig.setForGameTest(
+                manaPerDamage,
+                recoveryThresholdMana,
+                synchronizationManaPerDamage,
+                neutralizationRecoverManaPerDamage,
+                shellArmorDurabilityDamage,
+                invulnerableTimeTicks
+        );
     }
 
     void setFocusStaffbowConfigForGameTest(

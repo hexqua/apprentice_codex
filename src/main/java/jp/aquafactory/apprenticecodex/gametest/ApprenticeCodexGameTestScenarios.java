@@ -5093,7 +5093,7 @@ public final class ApprenticeCodexGameTestScenarios {
             var synchronizationSteps = countWholeDamageStepsForGameTest(5.0F - reducedDamage);
             helper.assertTrue(synchronizationSteps > 0,
                     "Synchronization low mana enchant-stage test should require at least one enchant mitigation cost step");
-            magicData.setMana(synchronizationSteps * 30.0F - 1.0F);
+            magicData.setMana(synchronizationSteps * ApprenticeCodexServerConfig.manaShieldCharmSynchronizationManaPerDamage() - 1.0F);
 
             var event = postLivingAttackEventForGameTest(player, source, 5.0F);
             var expectedHealthLoss = CombatRules.getDamageAfterAbsorb(
@@ -5147,7 +5147,8 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(synchronizationSteps > 0,
                     "Synchronization low mana barrier-stage test should still require enchant mitigation cost before the barrier");
 
-            magicData.setMana(synchronizationSteps * 30.0F + 24.0F);
+            magicData.setMana(synchronizationSteps * ApprenticeCodexServerConfig.manaShieldCharmSynchronizationManaPerDamage()
+                    + ApprenticeCodexServerConfig.manaShieldCharmManaPerDamage() - 1.0F);
             var event = postLivingAttackEventForGameTest(player, source, incomingDamage);
 
             helper.assertTrue(event.isCanceled(),
@@ -5193,6 +5194,224 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(state.cooldownActive,
                     "Neutralization should not clear cooldown until mana reaches the normal recovery threshold");
             helper.succeed();
+        });
+    }
+
+    static void manaShieldCharmFreeManaCostConfigAbsorbsWithoutDepletionCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    0.0D,
+                    100,
+                    30.0D,
+                    25.0D,
+                    1,
+                    20
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_free_cost_test");
+                equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Mana Shield Charm free-cost test could not resolve player mana data");
+                magicData.setMana(0.0F);
+                player.invulnerableTime = 0;
+                var initialHealth = player.getHealth();
+
+                var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 2.0F);
+
+                helper.assertTrue(event.isCanceled(),
+                        "Mana Shield Charm should absorb whole damage steps without mana when manaPerDamage is zero");
+                helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
+                        "Free-cost Mana Shield Charm should keep health unchanged");
+                helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                        "Free-cost Mana Shield Charm should not recover or spend mana");
+                helper.assertFalse(getManaShieldCharmState(player).cooldownActive,
+                        "Free-cost Mana Shield Charm should not enter depletion cooldown without spending mana");
+            }
+        });
+    }
+
+    static void manaShieldCharmZeroRecoveryThresholdDisablesDepletionCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    25.0D,
+                    0,
+                    30.0D,
+                    25.0D,
+                    1,
+                    20
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_no_cooldown_test");
+                equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Mana Shield Charm zero-threshold test could not resolve player mana data");
+                var state = getManaShieldCharmState(player);
+                state.reset();
+                state.cooldownActive = true;
+                magicData.setMana(25.0F);
+                player.invulnerableTime = 0;
+
+                var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+
+                helper.assertTrue(event.isCanceled(),
+                        "Mana Shield Charm should clear existing cooldown and absorb while recovery threshold is zero");
+                helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                        "Mana Shield Charm should still spend mana when only depletion cooldown is disabled");
+                helper.assertFalse(state.cooldownActive,
+                        "Mana Shield Charm should not enter depletion cooldown when recovery threshold is zero");
+            }
+        });
+    }
+
+    static void manaShieldCharmSynchronizationManaCostUsesServerConfig(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    25.0D,
+                    100,
+                    10.0D,
+                    25.0D,
+                    1,
+                    20
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_config_test");
+                var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+                charm.enchant(EnchantmentRegistry.SYNCHRONIZATION.get(), 1);
+                equipCurio(player, CuriosSlotConstants.CHARM, charm);
+                for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+                    var armorStack = switch (slot) {
+                        case HEAD -> new ItemStack(Items.IRON_HELMET);
+                        case CHEST -> new ItemStack(Items.IRON_CHESTPLATE);
+                        case LEGS -> new ItemStack(Items.IRON_LEGGINGS);
+                        case FEET -> new ItemStack(Items.IRON_BOOTS);
+                        default -> ItemStack.EMPTY;
+                    };
+                    armorStack.enchant(Enchantments.ALL_DAMAGE_PROTECTION, 10);
+                    player.setItemSlot(slot, armorStack);
+                }
+
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Synchronization config test could not resolve player mana data");
+                magicData.setMana(100.0F);
+                var source = helper.getLevel().damageSources().lava();
+                var protection = EnchantmentHelper.getDamageProtection(player.getArmorSlots(), source);
+                var incomingDamage = 1.5F;
+                var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(incomingDamage, protection);
+                helper.assertTrue(reducedDamage < 1.0F,
+                        "Synchronization config test should isolate the enchant-reduction cost before the barrier stage"
+                                + " protection=" + protection
+                                + " reducedDamage=" + reducedDamage);
+                var expectedRemainingMana = resolveExpectedSynchronizationManaAfterHitForGameTest(incomingDamage, 100.0F, protection);
+
+                var event = postLivingAttackEventForGameTest(player, source, incomingDamage);
+
+                helper.assertTrue(event.isCanceled(),
+                        "Synchronization config test should cancel the intercepted hit");
+                helper.assertTrue(Math.abs(magicData.getMana() - expectedRemainingMana) < 1.0e-4F,
+                        "Synchronization should use configured mana cost"
+                                + " expectedMana=" + expectedRemainingMana
+                                + " actualMana=" + magicData.getMana());
+                helper.succeed();
+            }
+        });
+    }
+
+    static void manaShieldCharmNeutralizationZeroRecoveryStillNullifies(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    25.0D,
+                    100,
+                    30.0D,
+                    0.0D,
+                    1,
+                    20
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_neutralization_zero_test");
+                var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+                charm.enchant(EnchantmentRegistry.NEUTRALIZATION.get(), 1);
+                equipCurio(player, CuriosSlotConstants.CHARM, charm);
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Neutralization zero-recovery test could not resolve player mana data");
+                magicData.setMana(10.0F);
+                player.invulnerableTime = 0;
+                var initialHealth = player.getHealth();
+                var source = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(helper.getLevel(), player, DamageTypes.UNITE_LUNA);
+
+                var event = postLivingAttackEventForGameTest(player, source, 2.0F);
+
+                helper.assertTrue(event.isCanceled(),
+                        "Neutralization should still nullify armor-bypass damage when configured recovery is zero");
+                helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
+                        "Neutralization zero-recovery should fully negate armor-bypass damage");
+                helper.assertTrue(Math.abs(magicData.getMana() - 10.0F) < 1.0e-4F,
+                        "Neutralization zero-recovery should leave mana unchanged");
+                helper.succeed();
+            }
+        });
+    }
+
+    static void manaShieldCharmShellArmorDurabilityDamageUsesServerConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    25.0D,
+                    100,
+                    30.0D,
+                    25.0D,
+                    0,
+                    20
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_shell_durability_config_test");
+                var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+                charm.enchant(EnchantmentRegistry.SHELL.get(), 1);
+                equipCurio(player, CuriosSlotConstants.CHARM, charm);
+                var chestplate = new ItemStack(Items.IRON_CHESTPLATE);
+                player.setItemSlot(EquipmentSlot.CHEST, chestplate);
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Shell durability config test could not resolve player mana data");
+                magicData.setMana(100.0F);
+                player.invulnerableTime = 0;
+                var armor = getEquippedAttributeTotal(player, Attributes.ARMOR);
+                var toughness = getEquippedAttributeTotal(player, Attributes.ARMOR_TOUGHNESS);
+                var incomingDamage = findDamageForArmorReducedTarget(armor, toughness, 1.0F);
+
+                var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), incomingDamage);
+
+                helper.assertTrue(event.isCanceled(),
+                        "Shell durability config test should still intercept normal damage");
+                helper.assertTrue(chestplate.getDamageValue() == 0,
+                        "Shell should not damage armor when configured durability damage is zero");
+            }
+        });
+    }
+
+    static void manaShieldCharmInvulnerableTimeUsesServerConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    25.0D,
+                    100,
+                    30.0D,
+                    25.0D,
+                    1,
+                    6
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_iframe_config_test");
+                equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Mana Shield Charm i-frame config test could not resolve player mana data");
+                magicData.setMana(100.0F);
+                player.invulnerableTime = 0;
+
+                var firstEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+                helper.assertTrue(firstEvent.isCanceled(),
+                        "Mana Shield Charm i-frame config test should cancel the first hit");
+                helper.assertTrue(player.invulnerableTime >= 6,
+                        "Mana Shield Charm should apply configured invulnerable time");
+                helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
+                        "Mana Shield Charm should spend mana on the first configured i-frame hit");
+
+                var secondEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+                helper.assertTrue(secondEvent.isCanceled(),
+                        "Mana Shield Charm should cancel repeated damage while configured i-frame gate is active");
+                helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
+                        "Mana Shield Charm should not spend mana again inside configured i-frame gate");
+            }
         });
     }
 
@@ -15127,11 +15346,16 @@ public final class ApprenticeCodexGameTestScenarios {
     private static float resolveExpectedBarrierManaAfterHitForGameTest(float incomingDamage, float availableMana) {
         var remainingDamage = incomingDamage;
         var remainingMana = availableMana;
+        var manaPerDamage = ApprenticeCodexServerConfig.manaShieldCharmManaPerDamage();
+
+        if (manaPerDamage <= 0.0F) {
+            return remainingMana;
+        }
 
         while (remainingDamage >= 1.0F) {
-            if (remainingMana >= 25.0F) {
+            if (remainingMana >= manaPerDamage) {
                 remainingDamage -= 1.0F;
-                remainingMana -= 25.0F;
+                remainingMana -= manaPerDamage;
                 continue;
             }
             if (remainingMana > 0.0F) {
@@ -15152,10 +15376,15 @@ public final class ApprenticeCodexGameTestScenarios {
         var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(incomingDamage, protection);
         var remainingMitigatedDamage = Math.max(incomingDamage - reducedDamage, 0.0F);
         var remainingMana = availableMana;
+        var synchronizationManaPerDamage = ApprenticeCodexServerConfig.manaShieldCharmSynchronizationManaPerDamage();
 
-        while (remainingMitigatedDamage >= 1.0F && remainingMana >= 30.0F) {
-            remainingMitigatedDamage -= 1.0F;
-            remainingMana -= 30.0F;
+        if (synchronizationManaPerDamage > 0.0F) {
+            while (remainingMitigatedDamage >= 1.0F && remainingMana >= synchronizationManaPerDamage) {
+                remainingMitigatedDamage -= 1.0F;
+                remainingMana -= synchronizationManaPerDamage;
+            }
+        } else {
+            remainingMitigatedDamage = 0.0F;
         }
 
         if (remainingMitigatedDamage >= 1.0F) {
