@@ -130,6 +130,24 @@ public class ApprenticeRenderTypes extends RenderStateShard {
         );
     }
 
+    public static RenderType colorNoCull(String renderTypeName) {
+        return RenderType.create(
+                renderTypeName,
+                DefaultVertexFormat.POSITION_COLOR,
+                VertexFormat.Mode.QUADS,
+                256,
+                false,
+                false,
+                RenderType.CompositeState.builder()
+                        .setShaderState(RenderStateShard.POSITION_COLOR_SHADER)
+                        .setTextureState(RenderStateShard.NO_TEXTURE)
+                        .setTransparencyState(RenderStateShard.NO_TRANSPARENCY)
+                        .setLightmapState(RenderStateShard.NO_LIGHTMAP)
+                        .setCullState(RenderStateShard.NO_CULL)
+                        .createCompositeState(false)
+        );
+    }
+
     public static RenderType translucentColorNoCull(String renderTypeName) {
         return RenderType.create(
                 renderTypeName,

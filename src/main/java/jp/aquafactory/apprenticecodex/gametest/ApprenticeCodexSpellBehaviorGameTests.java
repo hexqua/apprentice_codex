@@ -27,6 +27,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String MULTICAST_ECHO_STAFF_COOLDOWN_CAP_BATCH = "apprenticecodex.multicast_echo_staff_cooldown_cap";
     private static final String MULTICAST_ECHO_STAFF_BASE_COOLDOWN_CAP_BATCH = "apprenticecodex.multicast_echo_staff_base_cooldown_cap";
     private static final String ECHO_CAST_MULTICAST_LIMIT_BATCH = "apprenticecodex.echo_cast_multicast_limit";
+    private static final String MYSTIC_SHIELD_ISOLATED_BATCH = "apprenticecodex.mystic_shield_isolated";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
     }
@@ -354,5 +355,20 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = ECHO_CAST_MULTICAST_LIMIT_BATCH, timeoutTicks = 40)
     public static void echoCastStopsAtConfiguredMulticastLimit(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.echoCastStopsAtConfiguredMulticastLimit(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MYSTIC_SHIELD_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void mysticShieldBlocksFrontDamageAndLimitsSameSourceAccumulation(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mysticShieldBlocksFrontDamageAndLimitsSameSourceAccumulation(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MYSTIC_SHIELD_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void mysticShieldReflectsStoredDamageAfterNonFrontCancel(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mysticShieldReflectsStoredDamageAfterNonFrontCancel(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MYSTIC_SHIELD_ISOLATED_BATCH)
+    public static void mysticShieldReceivesProtectionSpellSupporterBenefits(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mysticShieldReceivesProtectionSpellSupporterBenefits(helper);
     }
 }
