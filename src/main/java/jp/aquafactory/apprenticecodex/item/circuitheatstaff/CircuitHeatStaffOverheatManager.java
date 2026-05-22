@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.circuitheatstaff;
 
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerPlayer;
@@ -14,10 +15,6 @@ public final class CircuitHeatStaffOverheatManager {
     private static final String EXPIRE_GAME_TIME_TAG = "ExpireGameTime";
     private static final String CHAIN_DEPTH_TAG = "ChainDepth";
     private static final String LAST_APPLIED_COOLDOWN_TICKS_TAG = "LastAppliedCooldownTicks";
-    // 10秒ぶんの踏み倒しを従来の追加マナ倍率と同等に扱う。
-    private static final float COOLDOWN_MANA_REFERENCE_TICKS = 20.0F * 10.0F;
-    private static final float EXTRA_MANA_LINEAR_MULTIPLIER = 0.10F;
-    private static final float EXTRA_MANA_QUADRATIC_MULTIPLIER = 0.10F;
 
     private CircuitHeatStaffOverheatManager() {
     }
@@ -32,9 +29,15 @@ public final class CircuitHeatStaffOverheatManager {
             return 0;
         }
 
-        var skippedCooldownMultiplier = remainingCooldownTicks / COOLDOWN_MANA_REFERENCE_TICKS;
-        var multiplier = (EXTRA_MANA_LINEAR_MULTIPLIER * step + EXTRA_MANA_QUADRATIC_MULTIPLIER * step * step)
+        var referenceCooldownTicks = Math.max(1, ApprenticeCodexServerConfig.circuitHeatStaffAdditionalManaReferenceCooldownTicks());
+        var skippedCooldownMultiplier = remainingCooldownTicks / (float) referenceCooldownTicks;
+        var multiplier = (ApprenticeCodexServerConfig.circuitHeatStaffAdditionalManaLinearMultiplier() * step
+                + ApprenticeCodexServerConfig.circuitHeatStaffAdditionalManaQuadraticMultiplier() * step * step)
                 * skippedCooldownMultiplier;
+        if (multiplier <= 0.0F) {
+            return 0;
+        }
+
         return Math.max(1, (int)Math.ceil(baseManaCost * multiplier));
     }
 

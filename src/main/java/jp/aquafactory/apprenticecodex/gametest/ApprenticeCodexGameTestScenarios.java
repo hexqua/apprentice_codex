@@ -10692,6 +10692,32 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void circuitHeatStaffAdditionalManaUsesServerConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                    100,
+                    0.50D,
+                    0.25D,
+                    0,
+                    List.of(),
+                    1.0D,
+                    20 * 10,
+                    0,
+                    true,
+                    10,
+                    20 * 10,
+                    3,
+                    true,
+                    true
+            )) {
+                var additionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                        .getAdditionalManaCost(100, 2, 50);
+                helper.assertTrue(additionalMana == 100,
+                        "Circuit Heat Staff extra mana should use server config multipliers: " + additionalMana);
+            }
+        });
+    }
+
     static void circuitHeatStaffOverheatUsesCastCooldownPlusSkippedCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_overheat_duration_test");
@@ -10732,6 +10758,90 @@ public final class ApprenticeCodexGameTestScenarios {
                             + remainingOverheatTicks + " / expected " + expectedOverheatTicks);
 
             CircuitHeatStaffCastEvent.clearReservedOverheatCast(player);
+        });
+    }
+
+    static void circuitHeatStaffOverheatDurationUsesServerMinTicks(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                    20 * 10,
+                    0.0D,
+                    0.0D,
+                    0,
+                    List.of(),
+                    0.0D,
+                    20 * 10,
+                    0,
+                    true,
+                    10,
+                    20 * 10,
+                    3,
+                    true,
+                    true
+            )) {
+                var context = createCircuitHeatStaffBypassTestContext(
+                        helper,
+                        "circuit_heat_staff_overheat_min_config_test",
+                        SpellRegistry.MANA_SLASH.get()
+                );
+                var baseManaCost = context.spell().getManaCost(1);
+                context.magicData().setMana(baseManaCost);
+
+                var result = context.staffStack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
+                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.CONSUME,
+                        "Circuit Heat Staff min overheat config test should cast but got " + result.getResult());
+                context.magicData().setPlayerCastingItem(context.staffStack());
+                postCircuitHeatStaffSpellOnCastEvent(context, baseManaCost);
+
+                var remainingOverheatTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(
+                        context.staffStack(),
+                        helper.getLevel()
+                );
+                helper.assertTrue(remainingOverheatTicks == 20 * 10,
+                        "Circuit Heat Staff item overheat should use configured minimum: " + remainingOverheatTicks);
+            }
+        });
+    }
+
+    static void circuitHeatStaffOverheatDurationUsesServerCapTicks(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                    20 * 10,
+                    0.0D,
+                    0.0D,
+                    0,
+                    List.of(),
+                    100.0D,
+                    0,
+                    40,
+                    true,
+                    10,
+                    20 * 10,
+                    3,
+                    true,
+                    true
+            )) {
+                var context = createCircuitHeatStaffBypassTestContext(
+                        helper,
+                        "circuit_heat_staff_overheat_cap_config_test",
+                        SpellRegistry.MANA_SLASH.get()
+                );
+                var baseManaCost = context.spell().getManaCost(1);
+                context.magicData().setMana(baseManaCost);
+
+                var result = context.staffStack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
+                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.CONSUME,
+                        "Circuit Heat Staff cap overheat config test should cast but got " + result.getResult());
+                context.magicData().setPlayerCastingItem(context.staffStack());
+                postCircuitHeatStaffSpellOnCastEvent(context, baseManaCost);
+
+                var remainingOverheatTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(
+                        context.staffStack(),
+                        helper.getLevel()
+                );
+                helper.assertTrue(remainingOverheatTicks == 40,
+                        "Circuit Heat Staff item overheat should use configured cap: " + remainingOverheatTicks);
+            }
         });
     }
 
@@ -10842,6 +10952,79 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Circuit Heat Staff right-click bypass should apply step 1 extra mana: " + manaEvent.getManaCost());
 
             magicData.resetCastingState();
+        });
+    }
+
+    static void circuitHeatStaffCooldownLimitBlocksBypass(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                    20 * 10,
+                    0.10D,
+                    0.10D,
+                    1,
+                    List.of(),
+                    1.0D,
+                    20 * 10,
+                    0,
+                    true,
+                    10,
+                    20 * 10,
+                    3,
+                    true,
+                    true
+            )) {
+                var context = createCircuitHeatStaffBypassTestContext(
+                        helper,
+                        "circuit_heat_staff_cooldown_limit_config_test",
+                        SpellRegistry.MANA_SLASH.get()
+                );
+                context.magicData().setMana(context.spell().getManaCost(1) * 10.0F);
+
+                var result = context.staffStack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
+                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                        "Circuit Heat Staff should fail cooldown bypass above server limit but got " + result.getResult());
+                helper.assertTrue(context.magicData().getPlayerCooldowns().isOnCooldown(context.spell()),
+                        "Circuit Heat Staff should keep cooldown when server limit blocks bypass");
+                helper.assertFalse(CircuitHeatStaff.isStaffOverheated(context.staffStack(), helper.getLevel()),
+                        "Circuit Heat Staff should not overheat when server limit blocks bypass");
+            }
+        });
+    }
+
+    static void circuitHeatStaffSpellDenylistBlocksBypass(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = SpellRegistry.MANA_SLASH.get();
+            try (var ignored = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                    20 * 10,
+                    0.10D,
+                    0.10D,
+                    0,
+                    List.of(spell.getSpellId()),
+                    1.0D,
+                    20 * 10,
+                    0,
+                    true,
+                    10,
+                    20 * 10,
+                    3,
+                    true,
+                    true
+            )) {
+                var context = createCircuitHeatStaffBypassTestContext(
+                        helper,
+                        "circuit_heat_staff_spell_denylist_config_test",
+                        spell
+                );
+                context.magicData().setMana(spell.getManaCost(1) * 10.0F);
+
+                var result = context.staffStack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
+                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                        "Circuit Heat Staff should fail cooldown bypass for denied spells but got " + result.getResult());
+                helper.assertTrue(context.magicData().getPlayerCooldowns().isOnCooldown(spell),
+                        "Circuit Heat Staff should keep cooldown when spell denylist blocks bypass");
+                helper.assertFalse(CircuitHeatStaff.isStaffOverheated(context.staffStack(), helper.getLevel()),
+                        "Circuit Heat Staff should not overheat when spell denylist blocks bypass");
+            }
         });
     }
 
@@ -11010,6 +11193,46 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    private static CircuitHeatStaffBypassTestContext createCircuitHeatStaffBypassTestContext(
+            GameTestHelper helper,
+            String playerName,
+            AbstractSpell spell
+    ) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), playerName);
+        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Circuit Heat Staff config test could not resolve player mana data");
+        io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, CastSource.SPELLBOOK);
+        return new CircuitHeatStaffBypassTestContext(player, staffStack, magicData, spell);
+    }
+
+    private static void postCircuitHeatStaffSpellOnCastEvent(CircuitHeatStaffBypassTestContext context, int manaCost) {
+        NeoForge.EVENT_BUS.post(new SpellOnCastEvent(
+                context.player(),
+                context.spell().getSpellId(),
+                1,
+                manaCost,
+                context.spell().getSchoolType(),
+                CastSource.SPELLBOOK
+        ));
+    }
+
+    private record CircuitHeatStaffBypassTestContext(
+            ServerPlayer player,
+            ItemStack staffStack,
+            MagicData magicData,
+            AbstractSpell spell
+    ) {
+    }
+
     static void circuitHeatStaffDropCoolingConsumesWaterSource(GameTestHelper helper) {
         var waterPos = new BlockPos(0, 2, 0);
         placeWaterTestBasin(helper, waterPos);
@@ -11032,6 +11255,46 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void circuitHeatStaffDropCoolingDisabledByServerConfig(GameTestHelper helper) {
+        var waterPos = new BlockPos(0, 2, 0);
+        placeWaterTestBasin(helper, waterPos);
+        helper.setBlock(waterPos, Blocks.WATER);
+
+        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+        var itemEntity = spawnItem(helper, waterPos, staffStack);
+        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
+        override[0] = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                20 * 10,
+                0.10D,
+                0.10D,
+                0,
+                List.of(),
+                1.0D,
+                20 * 10,
+                0,
+                false,
+                10,
+                20 * 10,
+                3,
+                true,
+                true
+        );
+
+        helper.runAtTickTime(40, () -> {
+            try {
+                var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
+                helper.assertTrue(remainingTicks > 20 * 55,
+                        "Circuit Heat Staff cooling should not reduce while disabled by server config: " + remainingTicks);
+                helper.assertTrue(helper.getBlockState(waterPos).is(Blocks.WATER),
+                        "Circuit Heat Staff cooling should not consume water while disabled by server config");
+                helper.succeed();
+            } finally {
+                override[0].close();
+            }
+        });
+    }
+
     static void circuitHeatStaffDropCoolingIgnoresFlowingWater(GameTestHelper helper) {
         var waterPos = new BlockPos(0, 2, 0);
         placeWaterTestBasin(helper, waterPos);
@@ -11046,6 +11309,47 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(remainingTicks > 20 * 55,
                     "Circuit Heat Staff should not use flowing water for cooling: " + remainingTicks);
             helper.succeed();
+        });
+    }
+
+    static void circuitHeatStaffDropCoolingKeepsWaterSourceWhenConsumptionDisabled(GameTestHelper helper) {
+        var waterPos = new BlockPos(0, 2, 0);
+        placeWaterTestBasin(helper, waterPos);
+        helper.setBlock(waterPos, Blocks.WATER);
+
+        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+        var itemEntity = spawnItem(helper, waterPos, staffStack);
+        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
+        override[0] = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                20 * 10,
+                0.10D,
+                0.10D,
+                0,
+                List.of(),
+                1.0D,
+                20 * 10,
+                0,
+                true,
+                10,
+                20 * 10,
+                3,
+                false,
+                true
+        );
+
+        helper.runAtTickTime(40, () -> {
+            try {
+                var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
+                helper.assertTrue(remainingTicks <= 20 * 30,
+                        "Circuit Heat Staff water-source cooling should still reduce when consumption is disabled: "
+                                + remainingTicks);
+                helper.assertTrue(helper.getBlockState(waterPos).is(Blocks.WATER),
+                        "Circuit Heat Staff water-source cooling should keep water when consumption is disabled");
+                helper.succeed();
+            } finally {
+                override[0].close();
+            }
         });
     }
 
@@ -11069,6 +11373,51 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(state.is(Blocks.WATER_CAULDRON) && state.getValue(LayeredCauldronBlock.LEVEL) == 2,
                     "Circuit Heat Staff cauldron cooling should consume one water level after three cycles: " + state);
             helper.succeed();
+        });
+    }
+
+    static void circuitHeatStaffDropCoolingKeepsWaterCauldronWhenConsumptionDisabled(GameTestHelper helper) {
+        var cauldronPos = new BlockPos(0, 2, 0);
+        helper.setBlock(
+                cauldronPos,
+                Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3)
+        );
+
+        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+        var itemEntity = spawnNoGravityItem(helper, cauldronPos, staffStack);
+        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
+        override[0] = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                20 * 10,
+                0.10D,
+                0.10D,
+                0,
+                List.of(),
+                1.0D,
+                20 * 10,
+                0,
+                true,
+                10,
+                20 * 10,
+                3,
+                true,
+                false
+        );
+
+        helper.runAtTickTime(40, () -> {
+            try {
+                var state = helper.getBlockState(cauldronPos);
+                var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
+                helper.assertTrue(remainingTicks <= 20 * 30,
+                        "Circuit Heat Staff cauldron cooling should still reduce when consumption is disabled: "
+                                + remainingTicks);
+                helper.assertTrue(state.is(Blocks.WATER_CAULDRON) && state.getValue(LayeredCauldronBlock.LEVEL) == 3,
+                        "Circuit Heat Staff cauldron cooling should keep water level when consumption is disabled: "
+                                + state);
+                helper.succeed();
+            } finally {
+                override[0].close();
+            }
         });
     }
 

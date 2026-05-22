@@ -256,6 +256,62 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.multicastEchoStaffDelayTicks();
     }
 
+    public static int circuitHeatStaffAdditionalManaReferenceCooldownTicks() {
+        return ITEMS_CONFIG.circuitHeatStaffAdditionalManaReferenceCooldownTicks();
+    }
+
+    public static float circuitHeatStaffAdditionalManaLinearMultiplier() {
+        return ITEMS_CONFIG.circuitHeatStaffAdditionalManaLinearMultiplier();
+    }
+
+    public static float circuitHeatStaffAdditionalManaQuadraticMultiplier() {
+        return ITEMS_CONFIG.circuitHeatStaffAdditionalManaQuadraticMultiplier();
+    }
+
+    public static int circuitHeatStaffCooldownBypassMaxRemainingTicks() {
+        return ITEMS_CONFIG.circuitHeatStaffCooldownBypassMaxRemainingTicks();
+    }
+
+    public static boolean isCircuitHeatStaffSpellDenied(ResourceLocation spellId) {
+        return ITEMS_CONFIG.isCircuitHeatStaffSpellDenied(spellId);
+    }
+
+    public static double circuitHeatStaffOverheatDurationMultiplier() {
+        return ITEMS_CONFIG.circuitHeatStaffOverheatDurationMultiplier();
+    }
+
+    public static int circuitHeatStaffOverheatDurationMinTicks() {
+        return ITEMS_CONFIG.circuitHeatStaffOverheatDurationMinTicks();
+    }
+
+    public static int circuitHeatStaffOverheatDurationCapTicks() {
+        return ITEMS_CONFIG.circuitHeatStaffOverheatDurationCapTicks();
+    }
+
+    public static boolean circuitHeatStaffDropCoolingEnabled() {
+        return ITEMS_CONFIG.circuitHeatStaffDropCoolingEnabled();
+    }
+
+    public static int circuitHeatStaffDropCoolingProcessIntervalTicks() {
+        return ITEMS_CONFIG.circuitHeatStaffDropCoolingProcessIntervalTicks();
+    }
+
+    public static int circuitHeatStaffDropCoolingReductionTicks() {
+        return ITEMS_CONFIG.circuitHeatStaffDropCoolingReductionTicks();
+    }
+
+    public static int circuitHeatStaffDropCoolingWaterConsumeProcessCount() {
+        return ITEMS_CONFIG.circuitHeatStaffDropCoolingWaterConsumeProcessCount();
+    }
+
+    public static boolean circuitHeatStaffConsumeWaterSourceOnCooling() {
+        return ITEMS_CONFIG.circuitHeatStaffConsumeWaterSourceOnCooling();
+    }
+
+    public static boolean circuitHeatStaffConsumeWaterCauldronOnCooling() {
+        return ITEMS_CONFIG.circuitHeatStaffConsumeWaterCauldronOnCooling();
+    }
+
     public static double multicastEchoStaffCooldownMultiplier() {
         return ITEMS_CONFIG.multicastEchoStaffCooldownMultiplier();
     }
@@ -338,6 +394,71 @@ public final class ApprenticeCodexServerConfig {
         var previousSpellDenylist = ITEMS_CONFIG.multipurposeStaffrifleSpellDenylist();
         ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(spellDenylist);
         return () -> ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(previousSpellDenylist);
+    }
+
+    public static GameTestConfigOverride useCircuitHeatStaffConfigOverrideForGameTest(
+            int additionalManaReferenceCooldownTicks,
+            double additionalManaLinearMultiplier,
+            double additionalManaQuadraticMultiplier,
+            int cooldownBypassMaxRemainingTicks,
+            List<String> spellDenylist,
+            double staffOverheatDurationMultiplier,
+            int staffOverheatDurationMinTicks,
+            int staffOverheatDurationCapTicks,
+            boolean dropCoolingEnabled,
+            int dropCoolingProcessIntervalTicks,
+            int dropCoolingReductionTicks,
+            int dropCoolingWaterConsumeProcessCount,
+            boolean consumeWaterSourceOnCooling,
+            boolean consumeWaterCauldronOnCooling
+    ) {
+        var previousAdditionalManaReferenceCooldownTicks = ITEMS_CONFIG.circuitHeatStaffAdditionalManaReferenceCooldownTicks();
+        var previousAdditionalManaLinearMultiplier = ITEMS_CONFIG.circuitHeatStaffAdditionalManaLinearMultiplier();
+        var previousAdditionalManaQuadraticMultiplier = ITEMS_CONFIG.circuitHeatStaffAdditionalManaQuadraticMultiplier();
+        var previousCooldownBypassMaxRemainingTicks = ITEMS_CONFIG.circuitHeatStaffCooldownBypassMaxRemainingTicks();
+        var previousSpellDenylist = ITEMS_CONFIG.circuitHeatStaffSpellDenylist();
+        var previousStaffOverheatDurationMultiplier = ITEMS_CONFIG.circuitHeatStaffOverheatDurationMultiplier();
+        var previousStaffOverheatDurationMinTicks = ITEMS_CONFIG.circuitHeatStaffOverheatDurationMinTicks();
+        var previousStaffOverheatDurationCapTicks = ITEMS_CONFIG.circuitHeatStaffOverheatDurationCapTicks();
+        var previousDropCoolingEnabled = ITEMS_CONFIG.circuitHeatStaffDropCoolingEnabled();
+        var previousDropCoolingProcessIntervalTicks = ITEMS_CONFIG.circuitHeatStaffDropCoolingProcessIntervalTicks();
+        var previousDropCoolingReductionTicks = ITEMS_CONFIG.circuitHeatStaffDropCoolingReductionTicks();
+        var previousDropCoolingWaterConsumeProcessCount = ITEMS_CONFIG.circuitHeatStaffDropCoolingWaterConsumeProcessCount();
+        var previousConsumeWaterSourceOnCooling = ITEMS_CONFIG.circuitHeatStaffConsumeWaterSourceOnCooling();
+        var previousConsumeWaterCauldronOnCooling = ITEMS_CONFIG.circuitHeatStaffConsumeWaterCauldronOnCooling();
+
+        ITEMS_CONFIG.setCircuitHeatStaffConfigForGameTest(
+                additionalManaReferenceCooldownTicks,
+                additionalManaLinearMultiplier,
+                additionalManaQuadraticMultiplier,
+                cooldownBypassMaxRemainingTicks,
+                spellDenylist,
+                staffOverheatDurationMultiplier,
+                staffOverheatDurationMinTicks,
+                staffOverheatDurationCapTicks,
+                dropCoolingEnabled,
+                dropCoolingProcessIntervalTicks,
+                dropCoolingReductionTicks,
+                dropCoolingWaterConsumeProcessCount,
+                consumeWaterSourceOnCooling,
+                consumeWaterCauldronOnCooling
+        );
+        return () -> ITEMS_CONFIG.setCircuitHeatStaffConfigForGameTest(
+                previousAdditionalManaReferenceCooldownTicks,
+                previousAdditionalManaLinearMultiplier,
+                previousAdditionalManaQuadraticMultiplier,
+                previousCooldownBypassMaxRemainingTicks,
+                previousSpellDenylist,
+                previousStaffOverheatDurationMultiplier,
+                previousStaffOverheatDurationMinTicks,
+                previousStaffOverheatDurationCapTicks,
+                previousDropCoolingEnabled,
+                previousDropCoolingProcessIntervalTicks,
+                previousDropCoolingReductionTicks,
+                previousDropCoolingWaterConsumeProcessCount,
+                previousConsumeWaterSourceOnCooling,
+                previousConsumeWaterCauldronOnCooling
+        );
     }
 
     public static GameTestConfigOverride useMulticastEchoStaffConfigOverrideForGameTest(

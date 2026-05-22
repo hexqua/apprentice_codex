@@ -14,6 +14,22 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     private static final String FOCUS_STAFFBOW_CONTINUOUS_BATCH = "apprenticecodex.focus_staffbow_continuous";
     private static final String ELEMENTAL_BOW_OVERHEAT_BATCH = "apprenticecodex.elemental_bow_overheat";
     private static final String SPELLCASTER_QUIVER_ISOLATED_BATCH = "apprenticecodex.spellcaster_quiver_isolated";
+    private static final String CIRCUIT_HEAT_STAFF_ADDITIONAL_MANA_CONFIG_BATCH =
+            "apprenticecodex.circuit_heat_staff_additional_mana_config";
+    private static final String CIRCUIT_HEAT_STAFF_OVERHEAT_MIN_CONFIG_BATCH =
+            "apprenticecodex.circuit_heat_staff_overheat_min_config";
+    private static final String CIRCUIT_HEAT_STAFF_OVERHEAT_CAP_CONFIG_BATCH =
+            "apprenticecodex.circuit_heat_staff_overheat_cap_config";
+    private static final String CIRCUIT_HEAT_STAFF_COOLDOWN_LIMIT_CONFIG_BATCH =
+            "apprenticecodex.circuit_heat_staff_cooldown_limit_config";
+    private static final String CIRCUIT_HEAT_STAFF_SPELL_DENYLIST_CONFIG_BATCH =
+            "apprenticecodex.circuit_heat_staff_spell_denylist_config";
+    private static final String CIRCUIT_HEAT_STAFF_COOLING_DISABLED_CONFIG_BATCH =
+            "apprenticecodex.circuit_heat_staff_cooling_disabled_config";
+    private static final String CIRCUIT_HEAT_STAFF_WATER_CONSUMPTION_CONFIG_BATCH =
+            "apprenticecodex.circuit_heat_staff_water_consumption_config";
+    private static final String CIRCUIT_HEAT_STAFF_CAULDRON_CONSUMPTION_CONFIG_BATCH =
+            "apprenticecodex.circuit_heat_staff_cauldron_consumption_config";
 
     private ApprenticeCodexEquipmentAndEnchantGameTests() {
     }
@@ -863,14 +879,39 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         ApprenticeCodexGameTestScenarios.circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = CIRCUIT_HEAT_STAFF_ADDITIONAL_MANA_CONFIG_BATCH)
+    public static void circuitHeatStaffAdditionalManaUsesServerConfig(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffAdditionalManaUsesServerConfig(helper);
+    }
+
     @GameTest(template = TEMPLATE)
     public static void circuitHeatStaffOverheatUsesCastCooldownPlusSkippedCooldown(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.circuitHeatStaffOverheatUsesCastCooldownPlusSkippedCooldown(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = CIRCUIT_HEAT_STAFF_OVERHEAT_MIN_CONFIG_BATCH)
+    public static void circuitHeatStaffOverheatDurationUsesServerMinTicks(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffOverheatDurationUsesServerMinTicks(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CIRCUIT_HEAT_STAFF_OVERHEAT_CAP_CONFIG_BATCH)
+    public static void circuitHeatStaffOverheatDurationUsesServerCapTicks(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffOverheatDurationUsesServerCapTicks(helper);
+    }
+
     @GameTest(template = TEMPLATE)
     public static void circuitHeatStaffBypassKeepsBaseManaGate(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.circuitHeatStaffBypassKeepsBaseManaGate(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CIRCUIT_HEAT_STAFF_COOLDOWN_LIMIT_CONFIG_BATCH)
+    public static void circuitHeatStaffCooldownLimitBlocksBypass(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffCooldownLimitBlocksBypass(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CIRCUIT_HEAT_STAFF_SPELL_DENYLIST_CONFIG_BATCH)
+    public static void circuitHeatStaffSpellDenylistBlocksBypass(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffSpellDenylistBlocksBypass(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -893,14 +934,29 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingConsumesWaterSource(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = CIRCUIT_HEAT_STAFF_COOLING_DISABLED_CONFIG_BATCH, timeoutTicks = 80)
+    public static void circuitHeatStaffDropCoolingDisabledByServerConfig(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingDisabledByServerConfig(helper);
+    }
+
     @GameTest(template = TEMPLATE, timeoutTicks = 80)
     public static void circuitHeatStaffDropCoolingIgnoresFlowingWater(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingIgnoresFlowingWater(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = CIRCUIT_HEAT_STAFF_WATER_CONSUMPTION_CONFIG_BATCH, timeoutTicks = 80)
+    public static void circuitHeatStaffDropCoolingKeepsWaterSourceWhenConsumptionDisabled(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingKeepsWaterSourceWhenConsumptionDisabled(helper);
+    }
+
     @GameTest(template = TEMPLATE, timeoutTicks = 80)
     public static void circuitHeatStaffDropCoolingConsumesCauldronLevel(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingConsumesCauldronLevel(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CIRCUIT_HEAT_STAFF_CAULDRON_CONSUMPTION_CONFIG_BATCH, timeoutTicks = 80)
+    public static void circuitHeatStaffDropCoolingKeepsWaterCauldronWhenConsumptionDisabled(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingKeepsWaterCauldronWhenConsumptionDisabled(helper);
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 80)

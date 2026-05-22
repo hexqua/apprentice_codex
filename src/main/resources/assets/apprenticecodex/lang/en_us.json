@@ -201,6 +201,7 @@
   "item.apprenticecodex.flask_system.particles_suppressed": "Effects visuals suppressed",
   "item.apprenticecodex.flask_system.mismatch_flask_type": "Contents do not match flask type",
   "item.apprenticecodex.circuit_heat_staff.tooltip": "Casting with this staff ignores spell cooldown.",
+  "item.apprenticecodex.circuit_heat_staff.tooltip.cooldown_limit": "Does not work on spells with cooldowns longer than %1$ds.",
   "item.apprenticecodex.circuit_heat_staff.tooltip.overheat_remaining": "Overheat cooldown: %1$ds remaining",
   "item.apprenticecodex.special_spellbook.inscribe_hint": "Use this spellbook in hand to add scrolls instead of inscribing them at an Inscription Table.",
   "item.apprenticecodex.archivists_grimoire.tooltip.current_page": "Current Page: %1$d/%2$d",

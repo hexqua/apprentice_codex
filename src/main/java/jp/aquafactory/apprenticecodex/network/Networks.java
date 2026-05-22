@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPac
 import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletNotificationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncApprenticeDeskConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffOverheatPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
@@ -39,7 +40,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "26";
+    private static final String PROTOCOL_VERSION = "27";
 
     private Networks() {
     }
@@ -144,6 +145,11 @@ public final class Networks {
                 SyncCircuitHeatStaffOverheatPacket.TYPE,
                 SyncCircuitHeatStaffOverheatPacket.STREAM_CODEC,
                 SyncCircuitHeatStaffOverheatPacket::handle
+        );
+        registrar.playToClient(
+                SyncCircuitHeatStaffConfigPacket.TYPE,
+                SyncCircuitHeatStaffConfigPacket.STREAM_CODEC,
+                SyncCircuitHeatStaffConfigPacket::handle
         );
         registrar.playToClient(
                 SyncAutocastAmuletNotificationPacket.TYPE,

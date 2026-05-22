@@ -205,6 +205,7 @@
   "item.apprenticecodex.flask_system.particles_suppressed": "効果演出を抑制中",
   "item.apprenticecodex.flask_system.mismatch_flask_type": "中身がフラスコのタイプと不一致",
   "item.apprenticecodex.circuit_heat_staff.tooltip": "この杖を使用して詠唱するとクールダウンを無視できる。",
+  "item.apprenticecodex.circuit_heat_staff.tooltip.cooldown_limit": "%1$d秒を超えるクールダウンを持つ魔法には無効。",
   "item.apprenticecodex.circuit_heat_staff.tooltip.overheat_remaining": "過熱冷却中: 残り%1$d秒",
   "item.apprenticecodex.special_spellbook.inscribe_hint": "この魔法書は銘刻台で刻み込む代わりに手に持って使ってスクロールを入れる。",
   "item.apprenticecodex.archivists_grimoire.tooltip.current_page": "選択中のページ: %1$d/%2$d",

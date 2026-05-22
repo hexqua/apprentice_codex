@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.config;
 
 import jp.aquafactory.apprenticecodex.config.item.CraftsmansDelightServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.CircuitHeatStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ChromaticMagiaDressServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
@@ -26,6 +27,7 @@ final class ItemsServerConfig {
     private final PastelStaffServerConfig pastelStaffConfig;
     private final IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig;
     private final ManaForceBladeServerConfig manaForceBladeConfig;
+    private final CircuitHeatStaffServerConfig circuitHeatStaffConfig;
     private final MulticastEchoStaffServerConfig multicastEchoStaffConfig;
     private final MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig;
 
@@ -39,6 +41,7 @@ final class ItemsServerConfig {
             PastelStaffServerConfig pastelStaffConfig,
             IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig,
             ManaForceBladeServerConfig manaForceBladeConfig,
+            CircuitHeatStaffServerConfig circuitHeatStaffConfig,
             MulticastEchoStaffServerConfig multicastEchoStaffConfig,
             MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig
     ) {
@@ -51,6 +54,7 @@ final class ItemsServerConfig {
         this.pastelStaffConfig = pastelStaffConfig;
         this.isekaiTravelGuidebookConfig = isekaiTravelGuidebookConfig;
         this.manaForceBladeConfig = manaForceBladeConfig;
+        this.circuitHeatStaffConfig = circuitHeatStaffConfig;
         this.multicastEchoStaffConfig = multicastEchoStaffConfig;
         this.multipurposeStaffrifleConfig = multipurposeStaffrifleConfig;
     }
@@ -66,6 +70,7 @@ final class ItemsServerConfig {
         var pastelStaffConfig = PastelStaffServerConfig.define(builder);
         var isekaiTravelGuidebookConfig = IsekaiTravelGuidebookServerConfig.define(builder);
         var manaForceBladeConfig = ManaForceBladeServerConfig.define(builder);
+        var circuitHeatStaffConfig = CircuitHeatStaffServerConfig.define(builder);
         var multicastEchoStaffConfig = MulticastEchoStaffServerConfig.define(builder);
         var multipurposeStaffrifleConfig = MultipurposeStaffrifleServerConfig.define(builder);
         builder.pop();
@@ -80,6 +85,7 @@ final class ItemsServerConfig {
                 pastelStaffConfig,
                 isekaiTravelGuidebookConfig,
                 manaForceBladeConfig,
+                circuitHeatStaffConfig,
                 multicastEchoStaffConfig,
                 multipurposeStaffrifleConfig
         );
@@ -189,6 +195,66 @@ final class ItemsServerConfig {
         return multipurposeStaffrifleConfig.cooldownBypassThresholdTicks();
     }
 
+    int circuitHeatStaffAdditionalManaReferenceCooldownTicks() {
+        return circuitHeatStaffConfig.additionalManaReferenceCooldownTicks();
+    }
+
+    float circuitHeatStaffAdditionalManaLinearMultiplier() {
+        return circuitHeatStaffConfig.additionalManaLinearMultiplier();
+    }
+
+    float circuitHeatStaffAdditionalManaQuadraticMultiplier() {
+        return circuitHeatStaffConfig.additionalManaQuadraticMultiplier();
+    }
+
+    int circuitHeatStaffCooldownBypassMaxRemainingTicks() {
+        return circuitHeatStaffConfig.cooldownBypassMaxRemainingTicks();
+    }
+
+    boolean isCircuitHeatStaffSpellDenied(ResourceLocation spellId) {
+        return circuitHeatStaffConfig.isSpellDenied(spellId);
+    }
+
+    List<String> circuitHeatStaffSpellDenylist() {
+        return circuitHeatStaffConfig.spellDenylist();
+    }
+
+    double circuitHeatStaffOverheatDurationMultiplier() {
+        return circuitHeatStaffConfig.staffOverheatDurationMultiplier();
+    }
+
+    int circuitHeatStaffOverheatDurationMinTicks() {
+        return circuitHeatStaffConfig.staffOverheatDurationMinTicks();
+    }
+
+    int circuitHeatStaffOverheatDurationCapTicks() {
+        return circuitHeatStaffConfig.staffOverheatDurationCapTicks();
+    }
+
+    boolean circuitHeatStaffDropCoolingEnabled() {
+        return circuitHeatStaffConfig.dropCoolingEnabled();
+    }
+
+    int circuitHeatStaffDropCoolingProcessIntervalTicks() {
+        return circuitHeatStaffConfig.dropCoolingProcessIntervalTicks();
+    }
+
+    int circuitHeatStaffDropCoolingReductionTicks() {
+        return circuitHeatStaffConfig.dropCoolingReductionTicks();
+    }
+
+    int circuitHeatStaffDropCoolingWaterConsumeProcessCount() {
+        return circuitHeatStaffConfig.dropCoolingWaterConsumeProcessCount();
+    }
+
+    boolean circuitHeatStaffConsumeWaterSourceOnCooling() {
+        return circuitHeatStaffConfig.consumeWaterSourceOnCooling();
+    }
+
+    boolean circuitHeatStaffConsumeWaterCauldronOnCooling() {
+        return circuitHeatStaffConfig.consumeWaterCauldronOnCooling();
+    }
+
     int multicastEchoStaffDelayTicks() {
         return multicastEchoStaffConfig.multicastDelayTicks();
     }
@@ -271,6 +337,40 @@ final class ItemsServerConfig {
 
     void setMultipurposeStaffrifleSpellDenylistForGameTest(List<String> spellDenylist) {
         multipurposeStaffrifleConfig.setSpellDenylistForGameTest(spellDenylist);
+    }
+
+    void setCircuitHeatStaffConfigForGameTest(
+            int additionalManaReferenceCooldownTicks,
+            double additionalManaLinearMultiplier,
+            double additionalManaQuadraticMultiplier,
+            int cooldownBypassMaxRemainingTicks,
+            List<String> spellDenylist,
+            double staffOverheatDurationMultiplier,
+            int staffOverheatDurationMinTicks,
+            int staffOverheatDurationCapTicks,
+            boolean dropCoolingEnabled,
+            int dropCoolingProcessIntervalTicks,
+            int dropCoolingReductionTicks,
+            int dropCoolingWaterConsumeProcessCount,
+            boolean consumeWaterSourceOnCooling,
+            boolean consumeWaterCauldronOnCooling
+    ) {
+        circuitHeatStaffConfig.setForGameTest(
+                additionalManaReferenceCooldownTicks,
+                additionalManaLinearMultiplier,
+                additionalManaQuadraticMultiplier,
+                cooldownBypassMaxRemainingTicks,
+                spellDenylist,
+                staffOverheatDurationMultiplier,
+                staffOverheatDurationMinTicks,
+                staffOverheatDurationCapTicks,
+                dropCoolingEnabled,
+                dropCoolingProcessIntervalTicks,
+                dropCoolingReductionTicks,
+                dropCoolingWaterConsumeProcessCount,
+                consumeWaterSourceOnCooling,
+                consumeWaterCauldronOnCooling
+        );
     }
 
     void setMulticastEchoStaffConfigForGameTest(
