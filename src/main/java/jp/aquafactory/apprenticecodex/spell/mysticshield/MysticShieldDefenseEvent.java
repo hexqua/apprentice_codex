@@ -120,6 +120,7 @@ public final class MysticShieldDefenseEvent {
     private static void fadeStoredShieldEntity(Level level, LivingEntity caster) {
         var shield = getStoredShieldEntity(level, caster);
         if (shield != null) {
+            shield.snapToOwner();
             shield.startFade();
         }
         caster.getPersistentData().remove(SHIELD_ENTITY_ID_TAG);
