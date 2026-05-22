@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.AbsorptionAmplifyAmuletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArcaneCinderServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScarletThirstServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ScrollcasterGauntletServerConfig;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -37,6 +38,7 @@ final class ItemsServerConfig {
     private final MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig;
     private final FocusStaffbowServerConfig focusStaffbowConfig;
     private final ElementalBowServerConfig elementalBowConfig;
+    private final ScrollcasterGauntletServerConfig scrollcasterGauntletConfig;
 
     private ItemsServerConfig(
             ArcaneCinderServerConfig arcaneCinderConfig,
@@ -53,7 +55,8 @@ final class ItemsServerConfig {
             MulticastEchoStaffServerConfig multicastEchoStaffConfig,
             MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig,
             FocusStaffbowServerConfig focusStaffbowConfig,
-            ElementalBowServerConfig elementalBowConfig
+            ElementalBowServerConfig elementalBowConfig,
+            ScrollcasterGauntletServerConfig scrollcasterGauntletConfig
     ) {
         this.arcaneCinderConfig = arcaneCinderConfig;
         this.absorptionAmplifyAmuletConfig = absorptionAmplifyAmuletConfig;
@@ -70,6 +73,7 @@ final class ItemsServerConfig {
         this.multipurposeStaffrifleConfig = multipurposeStaffrifleConfig;
         this.focusStaffbowConfig = focusStaffbowConfig;
         this.elementalBowConfig = elementalBowConfig;
+        this.scrollcasterGauntletConfig = scrollcasterGauntletConfig;
     }
 
     static ItemsServerConfig define(ForgeConfigSpec.Builder builder) {
@@ -89,6 +93,7 @@ final class ItemsServerConfig {
         var multipurposeStaffrifleConfig = MultipurposeStaffrifleServerConfig.define(builder);
         var focusStaffbowConfig = FocusStaffbowServerConfig.define(builder);
         var elementalBowConfig = ElementalBowServerConfig.define(builder);
+        var scrollcasterGauntletConfig = ScrollcasterGauntletServerConfig.define(builder);
         builder.pop();
 
         return new ItemsServerConfig(
@@ -106,7 +111,8 @@ final class ItemsServerConfig {
                 multicastEchoStaffConfig,
                 multipurposeStaffrifleConfig,
                 focusStaffbowConfig,
-                elementalBowConfig
+                elementalBowConfig,
+                scrollcasterGauntletConfig
         );
     }
 
@@ -450,6 +456,22 @@ final class ItemsServerConfig {
         return elementalBowConfig.powerArrowSpellLevelBonusPerLevel();
     }
 
+    boolean isScrollcasterGauntletEnchantmentDenied(ResourceLocation enchantmentId) {
+        return scrollcasterGauntletConfig.isEnchantmentDenied(enchantmentId);
+    }
+
+    boolean isScrollcasterGauntletCompatAdditionalAllowedEnchantment(ResourceLocation enchantmentId) {
+        return scrollcasterGauntletConfig.isCompatAdditionalAllowedEnchantment(enchantmentId);
+    }
+
+    List<String> scrollcasterGauntletDeniedEnchantments() {
+        return scrollcasterGauntletConfig.deniedEnchantments();
+    }
+
+    List<String> scrollcasterGauntletCompatAdditionalAllowedEnchantments() {
+        return scrollcasterGauntletConfig.compatAdditionalAllowedEnchantments();
+    }
+
     List<String> multipurposeStaffrifleSpellDenylist() {
         return multipurposeStaffrifleConfig.spellDenylist();
     }
@@ -608,5 +630,12 @@ final class ItemsServerConfig {
                 attackProfilesEnabled,
                 repeatDamageMultiplier
         );
+    }
+
+    void setScrollcasterGauntletConfigForGameTest(
+            List<String> deniedEnchantments,
+            List<String> compatAdditionalAllowedEnchantments
+    ) {
+        scrollcasterGauntletConfig.setForGameTest(deniedEnchantments, compatAdditionalAllowedEnchantments);
     }
 }

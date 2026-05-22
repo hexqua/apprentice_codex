@@ -13,10 +13,11 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.Scroll;
-import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.ScrollcasterGauntletRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
@@ -340,8 +341,14 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     private static boolean isSupportedCalibrationEnchantment(ItemStack gauntletStack, Enchantment enchantment) {
+        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+        if (enchantmentId == null || ApprenticeCodexServerConfig.isScrollcasterGauntletEnchantmentDenied(enchantmentId)) {
+            return false;
+        }
+
         return isExplicitlySupportedMagicEnchantment(enchantment)
                 || isMalumSpiritPlunder(gauntletStack, enchantment)
+                || ApprenticeCodexServerConfig.isScrollcasterGauntletCompatAdditionalAllowedEnchantment(enchantmentId)
                 || ((enchantment.canApplyAtEnchantingTable(SWORD_ENCHANTMENT_PROBE_STACK)
                         || enchantment.canApplyAtEnchantingTable(PICKAXE_ENCHANTMENT_PROBE_STACK))
                 && !enchantment.canApplyAtEnchantingTable(DURABILITY_ENCHANTMENT_PROBE_STACK));
@@ -368,7 +375,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     private static @Nullable CalibrationEnchantmentCandidate readFirstBookEnchantment(ItemStack stack) {
-        if (stack.isEmpty() || !stack.is(Items.ENCHANTED_BOOK)) {
+        if (stack.isEmpty() || !stack.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS)) {
             return null;
         }
 
@@ -493,7 +500,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
         var upgradeCount = 0;
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (getCalibrationAdjustment(gauntletStack, slot).getItem() instanceof SpellSlotUpgradeItem) {
+            if (isCalibrationSlotUpgrade(getCalibrationAdjustment(gauntletStack, slot))) {
                 ++upgradeCount;
             }
         }
@@ -729,6 +736,10 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     private static boolean isValidScrollSpell(@NotNull ItemStack scrollStack) {
         return getScrollSpellData(scrollStack) != SpellData.EMPTY;
+    }
+
+    public static boolean isCalibrationSlotUpgrade(@NotNull ItemStack stack) {
+        return !stack.isEmpty() && stack.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES);
     }
 
     private static @NotNull SpellData getScrollSpellData(@NotNull ItemStack scrollStack) {
