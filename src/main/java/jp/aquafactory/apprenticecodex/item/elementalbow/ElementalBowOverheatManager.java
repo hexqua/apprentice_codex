@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.elementalbow;
 
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
@@ -18,8 +19,6 @@ public final class ElementalBowOverheatManager {
     private static final String CHAIN_DEPTH_TAG = "ChainDepth";
     private static final String PENDING_COOLDOWN_TICKS_TAG = "PendingCooldownTicks";
     private static final String LAST_APPLIED_COOLDOWN_TICKS_TAG = "LastAppliedCooldownTicks";
-    private static final float EXTRA_MANA_LINEAR_MULTIPLIER = 0.20F;
-    private static final float EXTRA_MANA_QUADRATIC_MULTIPLIER = 0.08F;
 
     private ElementalBowOverheatManager() {
     }
@@ -35,7 +34,8 @@ public final class ElementalBowOverheatManager {
         }
 
         var step = state.chainDepth();
-        var multiplier = EXTRA_MANA_LINEAR_MULTIPLIER * step + EXTRA_MANA_QUADRATIC_MULTIPLIER * step * step;
+        var multiplier = ApprenticeCodexServerConfig.elementalBowOverheatAdditionalManaLinearMultiplier() * step
+                + ApprenticeCodexServerConfig.elementalBowOverheatAdditionalManaQuadraticMultiplier() * step * step;
         return baseManaCost * multiplier;
     }
 
@@ -81,13 +81,19 @@ public final class ElementalBowOverheatManager {
             return;
         }
 
+        var overheatTicks = resolveConfiguredOverheatTicks(cooldownTicks);
+        if (overheatTicks <= 0) {
+            clear(player, schoolId);
+            return;
+        }
+
         var state = getState(player, schoolId);
         var nextChainDepth = state.active() ? state.chainDepth() + 1 : 1;
         var schoolTag = getSchoolTag(player, schoolId, true);
         if (schoolTag != null) {
-            schoolTag.putLong(EXPIRE_GAME_TIME_TAG, player.level().getGameTime() + cooldownTicks);
+            schoolTag.putLong(EXPIRE_GAME_TIME_TAG, player.level().getGameTime() + overheatTicks);
             schoolTag.putInt(CHAIN_DEPTH_TAG, nextChainDepth);
-            schoolTag.putInt(LAST_APPLIED_COOLDOWN_TICKS_TAG, cooldownTicks);
+            schoolTag.putInt(LAST_APPLIED_COOLDOWN_TICKS_TAG, overheatTicks);
             schoolTag.remove(PENDING_COOLDOWN_TICKS_TAG);
         }
         syncToClientIfNeeded(player);
@@ -337,6 +343,20 @@ public final class ElementalBowOverheatManager {
         }
 
         player.getPersistentData().remove(OBSERVED_ROOT_TAG);
+    }
+
+    private static int resolveConfiguredOverheatTicks(int baseOverheatTicks) {
+        var multipliedTicks = Math.ceil(Math.max(0, baseOverheatTicks)
+                * ApprenticeCodexServerConfig.elementalBowOverheatDurationMultiplier());
+        var overheatTicks = (long) Math.min(multipliedTicks, Integer.MAX_VALUE);
+        overheatTicks = Math.max(overheatTicks, ApprenticeCodexServerConfig.elementalBowOverheatDurationMinTicks());
+
+        var capTicks = ApprenticeCodexServerConfig.elementalBowOverheatDurationCapTicks();
+        if (capTicks > 0) {
+            overheatTicks = Math.min(overheatTicks, capTicks);
+        }
+
+        return (int) Math.min(overheatTicks, Integer.MAX_VALUE);
     }
 
     private static void syncToClientIfNeeded(Player player) {
