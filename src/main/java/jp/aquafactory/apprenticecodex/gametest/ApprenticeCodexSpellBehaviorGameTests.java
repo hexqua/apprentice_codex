@@ -368,6 +368,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = MYSTIC_SHIELD_ISOLATED_BATCH)
+    public static void mysticShieldUsesYawWhenLookPitchIsVertical(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mysticShieldUsesYawWhenLookPitchIsVertical(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MYSTIC_SHIELD_ISOLATED_BATCH)
     public static void mysticShieldReceivesProtectionSpellSupporterBenefits(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.mysticShieldReceivesProtectionSpellSupporterBenefits(helper);
     }

@@ -12856,6 +12856,35 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void mysticShieldUsesYawWhenLookPitchIsVertical(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var level = helper.getLevel();
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mystic_shield_vertical_pitch_test");
+            player.setYRot(0.0f);
+            player.setYBodyRot(0.0f);
+            player.setYHeadRot(0.0f);
+            player.setXRot(-90.0f);
+            var frontAttacker = helper.spawn(EntityType.ZOMBIE, new BlockPos(0, 2, 3));
+            var sideAttacker = helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 0));
+            beginMysticShieldCast(level, player, 1);
+
+            var frontAttack = postLivingAttackEventForGameTest(
+                    player,
+                    CombatTools.getDamageSource(level, frontAttacker, DamageTypes.SHOCK),
+                    6.0f
+            );
+            var sideAttack = postLivingAttackEventForGameTest(
+                    player,
+                    CombatTools.getDamageSource(level, sideAttacker, DamageTypes.SHOCK),
+                    6.0f
+            );
+
+            helper.assertTrue(frontAttack.isCanceled(), "Mystic Shield should use yaw to block front attacks at vertical pitch");
+            helper.assertFalse(sideAttack.isCanceled(), "Mystic Shield should still reject side attacks at vertical pitch");
+            helper.succeed();
+        });
+    }
+
     static void mysticShieldReceivesProtectionSpellSupporterBenefits(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mystic_shield_supporter_test");
