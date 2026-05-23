@@ -1,27 +1,27 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.List;
 import java.util.Objects;
 
 public final class ScrollcasterGauntletServerConfig {
-    private final ForgeConfigSpec.ConfigValue<List<? extends String>> deniedEnchantments;
-    private final ForgeConfigSpec.ConfigValue<List<? extends String>> compatAdditionalAllowedEnchantments;
+    private final ModConfigSpec.ConfigValue<List<? extends String>> deniedEnchantments;
+    private final ModConfigSpec.ConfigValue<List<? extends String>> compatAdditionalAllowedEnchantments;
 
     private List<String> deniedEnchantmentsOverride;
     private List<String> compatAdditionalAllowedEnchantmentsOverride;
 
     private ScrollcasterGauntletServerConfig(
-            ForgeConfigSpec.ConfigValue<List<? extends String>> deniedEnchantments,
-            ForgeConfigSpec.ConfigValue<List<? extends String>> compatAdditionalAllowedEnchantments
+            ModConfigSpec.ConfigValue<List<? extends String>> deniedEnchantments,
+            ModConfigSpec.ConfigValue<List<? extends String>> compatAdditionalAllowedEnchantments
     ) {
         this.deniedEnchantments = deniedEnchantments;
         this.compatAdditionalAllowedEnchantments = compatAdditionalAllowedEnchantments;
     }
 
-    public static ScrollcasterGauntletServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static ScrollcasterGauntletServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("ScrollcasterGauntlet");
         var deniedEnchantments = builder
                 .comment("Enchantment IDs that cannot be copied to Scrollcaster Gauntlets through Spell Calibration Bench books. This is a final safety gate for books that already exist outside normal enchantment-control paths.")

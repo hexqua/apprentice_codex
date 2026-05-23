@@ -2,25 +2,25 @@ package jp.aquafactory.apprenticecodex.config.item;
 
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.List;
 import java.util.Objects;
 
 public final class FocusStaffbowServerConfig {
-    private final ForgeConfigSpec.BooleanValue enableContinuousFocusedCast;
-    private final ForgeConfigSpec.BooleanValue enableManaLoan;
-    private final ForgeConfigSpec.BooleanValue enableArrowCatalystRequirement;
-    private final ForgeConfigSpec.ConfigValue<List<? extends String>> arrowCatalystItems;
-    private final ForgeConfigSpec.DoubleValue pendingMaxChargeMultiplier;
-    private final ForgeConfigSpec.DoubleValue continuousMaxChargeMultiplier;
-    private final ForgeConfigSpec.IntValue minimumOverchargeBaselineTicks;
-    private final ForgeConfigSpec.DoubleValue chargeManaCostExponent;
-    private final ForgeConfigSpec.DoubleValue chargeManaCostMultiplier;
-    private final ForgeConfigSpec.DoubleValue pendingMaxLoanManaRatio;
-    private final ForgeConfigSpec.ConfigValue<List<? extends String>> spellDenylist;
-    private final ForgeConfigSpec.BooleanValue enableSpellAllowlist;
-    private final ForgeConfigSpec.ConfigValue<List<? extends String>> spellAllowlist;
+    private final ModConfigSpec.BooleanValue enableContinuousFocusedCast;
+    private final ModConfigSpec.BooleanValue enableManaLoan;
+    private final ModConfigSpec.BooleanValue enableArrowCatalystRequirement;
+    private final ModConfigSpec.ConfigValue<List<? extends String>> arrowCatalystItems;
+    private final ModConfigSpec.DoubleValue pendingMaxChargeMultiplier;
+    private final ModConfigSpec.DoubleValue continuousMaxChargeMultiplier;
+    private final ModConfigSpec.IntValue minimumOverchargeBaselineTicks;
+    private final ModConfigSpec.DoubleValue chargeManaCostExponent;
+    private final ModConfigSpec.DoubleValue chargeManaCostMultiplier;
+    private final ModConfigSpec.DoubleValue pendingMaxLoanManaRatio;
+    private final ModConfigSpec.ConfigValue<List<? extends String>> spellDenylist;
+    private final ModConfigSpec.BooleanValue enableSpellAllowlist;
+    private final ModConfigSpec.ConfigValue<List<? extends String>> spellAllowlist;
 
     private Boolean enableContinuousFocusedCastOverride;
     private Boolean enableManaLoanOverride;
@@ -37,19 +37,19 @@ public final class FocusStaffbowServerConfig {
     private List<String> spellAllowlistOverride;
 
     private FocusStaffbowServerConfig(
-            ForgeConfigSpec.BooleanValue enableContinuousFocusedCast,
-            ForgeConfigSpec.BooleanValue enableManaLoan,
-            ForgeConfigSpec.BooleanValue enableArrowCatalystRequirement,
-            ForgeConfigSpec.ConfigValue<List<? extends String>> arrowCatalystItems,
-            ForgeConfigSpec.DoubleValue pendingMaxChargeMultiplier,
-            ForgeConfigSpec.DoubleValue continuousMaxChargeMultiplier,
-            ForgeConfigSpec.IntValue minimumOverchargeBaselineTicks,
-            ForgeConfigSpec.DoubleValue chargeManaCostExponent,
-            ForgeConfigSpec.DoubleValue chargeManaCostMultiplier,
-            ForgeConfigSpec.DoubleValue pendingMaxLoanManaRatio,
-            ForgeConfigSpec.ConfigValue<List<? extends String>> spellDenylist,
-            ForgeConfigSpec.BooleanValue enableSpellAllowlist,
-            ForgeConfigSpec.ConfigValue<List<? extends String>> spellAllowlist
+            ModConfigSpec.BooleanValue enableContinuousFocusedCast,
+            ModConfigSpec.BooleanValue enableManaLoan,
+            ModConfigSpec.BooleanValue enableArrowCatalystRequirement,
+            ModConfigSpec.ConfigValue<List<? extends String>> arrowCatalystItems,
+            ModConfigSpec.DoubleValue pendingMaxChargeMultiplier,
+            ModConfigSpec.DoubleValue continuousMaxChargeMultiplier,
+            ModConfigSpec.IntValue minimumOverchargeBaselineTicks,
+            ModConfigSpec.DoubleValue chargeManaCostExponent,
+            ModConfigSpec.DoubleValue chargeManaCostMultiplier,
+            ModConfigSpec.DoubleValue pendingMaxLoanManaRatio,
+            ModConfigSpec.ConfigValue<List<? extends String>> spellDenylist,
+            ModConfigSpec.BooleanValue enableSpellAllowlist,
+            ModConfigSpec.ConfigValue<List<? extends String>> spellAllowlist
     ) {
         this.enableContinuousFocusedCast = enableContinuousFocusedCast;
         this.enableManaLoan = enableManaLoan;
@@ -66,7 +66,7 @@ public final class FocusStaffbowServerConfig {
         this.spellAllowlist = spellAllowlist;
     }
 
-    public static FocusStaffbowServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static FocusStaffbowServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("FocusStaffbow");
         var enableContinuousFocusedCast = builder
                 .comment("Enables Focus Staffbow custom continuous cast handling. When false, CONTINUOUS spells fail before consuming arrows or mana.")

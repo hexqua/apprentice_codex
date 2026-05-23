@@ -798,7 +798,7 @@ public final class FocusStaffbowCastManager {
             return false;
         }
 
-        var maxLoanMana = (float) Math.max(0.0D, player.getAttributeValue(AttributeRegistry.MAX_MANA.get())
+        var maxLoanMana = (float) Math.max(0.0D, player.getAttributeValue(AttributeRegistry.MAX_MANA)
                 * ApprenticeCodexServerConfig.focusStaffbowPendingMaxLoanManaRatio());
         if (borrowedMana > maxLoanMana + 0.001F) {
             showManaLoanLimitMessage(player, borrowedMana, maxLoanMana);
@@ -894,7 +894,7 @@ public final class FocusStaffbowCastManager {
                 sampledTicks,
                 ApprenticeCodexServerConfig.focusStaffbowChargeSettings()
         );
-        var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER.get());
+        var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER);
         if (spellPowerAttribute != null) {
             spellPowerAttribute.removeModifier(OVERCHARGE_SPELL_POWER_MODIFIER_ID);
             if (finalMultiplier > 1.0D) {

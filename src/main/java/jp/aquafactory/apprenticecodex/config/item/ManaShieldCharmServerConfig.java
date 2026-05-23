@@ -1,14 +1,14 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class ManaShieldCharmServerConfig {
-    private final ForgeConfigSpec.DoubleValue manaPerDamage;
-    private final ForgeConfigSpec.IntValue recoveryThresholdMana;
-    private final ForgeConfigSpec.DoubleValue synchronizationManaPerDamage;
-    private final ForgeConfigSpec.DoubleValue neutralizationRecoverManaPerDamage;
-    private final ForgeConfigSpec.IntValue shellArmorDurabilityDamage;
-    private final ForgeConfigSpec.IntValue invulnerableTimeTicks;
+    private final ModConfigSpec.DoubleValue manaPerDamage;
+    private final ModConfigSpec.IntValue recoveryThresholdMana;
+    private final ModConfigSpec.DoubleValue synchronizationManaPerDamage;
+    private final ModConfigSpec.DoubleValue neutralizationRecoverManaPerDamage;
+    private final ModConfigSpec.IntValue shellArmorDurabilityDamage;
+    private final ModConfigSpec.IntValue invulnerableTimeTicks;
     private Double manaPerDamageOverride;
     private Integer recoveryThresholdManaOverride;
     private Double synchronizationManaPerDamageOverride;
@@ -17,12 +17,12 @@ public final class ManaShieldCharmServerConfig {
     private Integer invulnerableTimeTicksOverride;
 
     private ManaShieldCharmServerConfig(
-            ForgeConfigSpec.DoubleValue manaPerDamage,
-            ForgeConfigSpec.IntValue recoveryThresholdMana,
-            ForgeConfigSpec.DoubleValue synchronizationManaPerDamage,
-            ForgeConfigSpec.DoubleValue neutralizationRecoverManaPerDamage,
-            ForgeConfigSpec.IntValue shellArmorDurabilityDamage,
-            ForgeConfigSpec.IntValue invulnerableTimeTicks
+            ModConfigSpec.DoubleValue manaPerDamage,
+            ModConfigSpec.IntValue recoveryThresholdMana,
+            ModConfigSpec.DoubleValue synchronizationManaPerDamage,
+            ModConfigSpec.DoubleValue neutralizationRecoverManaPerDamage,
+            ModConfigSpec.IntValue shellArmorDurabilityDamage,
+            ModConfigSpec.IntValue invulnerableTimeTicks
     ) {
         this.manaPerDamage = manaPerDamage;
         this.recoveryThresholdMana = recoveryThresholdMana;
@@ -32,7 +32,7 @@ public final class ManaShieldCharmServerConfig {
         this.invulnerableTimeTicks = invulnerableTimeTicks;
     }
 
-    public static ManaShieldCharmServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static ManaShieldCharmServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("ManaShieldCharm");
 
         var manaPerDamage = builder

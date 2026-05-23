@@ -3515,20 +3515,18 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(EnchantmentHelper.getEnchantmentsForCrafting(gauntlet).isEmpty(),
                     "Removing Bench books should clear gauntlet enchantments");
 
-            var sharpnessId = ForgeRegistries.ENCHANTMENTS.getKey(Enchantments.SHARPNESS);
-            var mendingId = ForgeRegistries.ENCHANTMENTS.getKey(Enchantments.MENDING);
-            helper.assertTrue(sharpnessId != null, "Sharpness should have a registry id");
-            helper.assertTrue(mendingId != null, "Mending should have a registry id");
+            var sharpnessId = sharpness.key().location();
+            var mendingId = mending.key().location();
             try (var ignored = ApprenticeCodexServerConfig.useScrollcasterGauntletConfigOverrideForGameTest(
                     List.of(sharpnessId.toString()),
                     List.of(sharpnessId.toString(), mendingId.toString())
             )) {
-                menu.getSlot(1).set(createEnchantedBook(new EnchantmentInstance(Enchantments.SHARPNESS, 1)));
-                helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.SHARPNESS) == 0,
+                menu.getSlot(1).set(createEnchantedBook(sharpness, 1));
+                helper.assertTrue(getEnchantmentLevel(gauntlet, sharpness) == 0,
                         "Denied Scrollcaster Gauntlet enchantments should not transfer even when normally supported or compat-allowed");
 
-                menu.getSlot(1).set(createEnchantedBook(new EnchantmentInstance(Enchantments.MENDING, 1)));
-                helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.MENDING) == 1,
+                menu.getSlot(1).set(createEnchantedBook(mending, 1));
+                helper.assertTrue(getEnchantmentLevel(gauntlet, mending) == 1,
                         "Compat additional allowed Scrollcaster Gauntlet enchantments should transfer when not denied");
             }
         });
@@ -5316,7 +5314,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 helper.assertTrue(magicData != null, "Synchronization config test could not resolve player mana data");
                 magicData.setMana(100.0F);
                 var source = helper.getLevel().damageSources().lava();
-                var protection = EnchantmentHelper.getDamageProtection(player.getArmorSlots(), source);
+                var protection = EnchantmentHelper.getDamageProtection(player.serverLevel(), player, source);
                 var incomingDamage = 1.5F;
                 var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(incomingDamage, protection);
                 helper.assertTrue(reducedDamage < 1.0F,
@@ -5396,9 +5394,10 @@ public final class ApprenticeCodexGameTestScenarios {
                 player.invulnerableTime = 0;
                 var armor = getEquippedAttributeTotal(player, Attributes.ARMOR);
                 var toughness = getEquippedAttributeTotal(player, Attributes.ARMOR_TOUGHNESS);
-                var incomingDamage = findDamageForArmorReducedTarget(armor, toughness, 1.0F);
+                var source = helper.getLevel().damageSources().lava();
+                var incomingDamage = findDamageForArmorReducedTarget(player, source, armor, toughness, 1.0F);
 
-                var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), incomingDamage);
+                var event = postLivingAttackEventForGameTest(player, source, incomingDamage);
 
                 helper.assertTrue(event.isCanceled(),
                         "Shell durability config test should still intercept normal damage");
@@ -8077,7 +8076,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 var shortUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
                 helper.assertTrue(shortUseResult.getResult().consumesAction(),
                         "Elemental Bow draw config test should start drawing: " + shortUseResult.getResult());
-                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 29);
+                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 29);
                 player.stopUsingItem();
                 helper.assertTrue(stack.getDamageValue() == 0,
                         "Elemental Bow should not fire before configured draw ticks");
@@ -8089,7 +8088,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 var readyUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
                 helper.assertTrue(readyUseResult.getResult().consumesAction(),
                         "Elemental Bow draw config test should restart drawing: " + readyUseResult.getResult());
-                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 30);
+                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 30);
                 player.stopUsingItem();
                 helper.assertTrue(stack.getDamageValue() == 1,
                         "Elemental Bow should fire at configured draw ticks");
@@ -8477,7 +8476,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration()
+                        bowStack.getUseDuration(player)
                 )
         );
         helper.runAtTickTime(3, () -> {
@@ -8558,7 +8557,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration() - 120
+                        bowStack.getUseDuration(player) - 120
                 )
         );
         helper.runAtTickTime(3, () -> {
@@ -8612,7 +8611,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration() - 120
+                        bowStack.getUseDuration(player) - 120
                 )
         );
         helper.runAtTickTime(3, () -> {
@@ -8767,7 +8766,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration()
+                        bowStack.getUseDuration(player)
                 );
                 helper.assertTrue(player.getInventory().getItem(1).isEmpty(),
                         "Focus Staffbow should consume the configured special arrow");
@@ -8833,23 +8832,24 @@ public final class ApprenticeCodexGameTestScenarios {
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration(player) - 120
+                        bowStack.getUseDuration(player) - 60
                 )
         );
         helper.runAtTickTime(4, () -> {
             var spellData = Capabilities.getSpellDataOrNull(player);
             helper.assertTrue(spellData != null, "Focus Staffbow loan test lost spell data capability after cast");
             var loanState = spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE);
-            helper.assertTrue(loanState.remainingLoanMana >= 119.0F,
-                    "Focus Staffbow loan test should create roughly eight base-cost worth of debt at x3 but got "
-                            + loanState.remainingLoanMana);
+            var expectedLoanMana = baseManaCost * 3.0F;
+            helper.assertTrue(Math.abs(loanState.remainingLoanMana - expectedLoanMana) < 1.0F,
+                    "Focus Staffbow loan test should create three base-cost worth of debt at x2 but got "
+                            + loanState.remainingLoanMana + " expected " + expectedLoanMana);
             helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
                     "Focus Staffbow loan test should leave current mana at zero after borrowed cast: " + magicData.getMana());
             helper.assertTrue(getFocusStaffbowArrowCount(player) == 0,
                     "Focus Staffbow borrowed cast should still consume exactly one catalyst arrow");
             magicData.setMana(10.0F);
             jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager.tickLoanRepayment(player);
-            helper.assertTrue(loanState.remainingLoanMana >= 109.0F && loanState.remainingLoanMana <= 111.0F,
+            helper.assertTrue(Math.abs(loanState.remainingLoanMana - (expectedLoanMana - 10.0F)) < 1.0F,
                     "Focus Staffbow loan repay test should consume recovered mana into the debt first but got "
                             + loanState.remainingLoanMana);
             helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,

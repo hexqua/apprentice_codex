@@ -1,15 +1,15 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class ElementalBowServerConfig {
-    private final ForgeConfigSpec.DoubleValue magicReadyDrawTicksMultiplier;
-    private final ForgeConfigSpec.DoubleValue overheatAdditionalManaLinearMultiplier;
-    private final ForgeConfigSpec.DoubleValue overheatAdditionalManaQuadraticMultiplier;
-    private final ForgeConfigSpec.DoubleValue overheatDurationMultiplier;
-    private final ForgeConfigSpec.IntValue overheatDurationMinTicks;
-    private final ForgeConfigSpec.IntValue overheatDurationCapTicks;
-    private final ForgeConfigSpec.DoubleValue powerArrowSpellLevelBonusPerLevel;
+    private final ModConfigSpec.DoubleValue magicReadyDrawTicksMultiplier;
+    private final ModConfigSpec.DoubleValue overheatAdditionalManaLinearMultiplier;
+    private final ModConfigSpec.DoubleValue overheatAdditionalManaQuadraticMultiplier;
+    private final ModConfigSpec.DoubleValue overheatDurationMultiplier;
+    private final ModConfigSpec.IntValue overheatDurationMinTicks;
+    private final ModConfigSpec.IntValue overheatDurationCapTicks;
+    private final ModConfigSpec.DoubleValue powerArrowSpellLevelBonusPerLevel;
 
     private Double magicReadyDrawTicksMultiplierOverride;
     private Double overheatAdditionalManaLinearMultiplierOverride;
@@ -20,13 +20,13 @@ public final class ElementalBowServerConfig {
     private Double powerArrowSpellLevelBonusPerLevelOverride;
 
     private ElementalBowServerConfig(
-            ForgeConfigSpec.DoubleValue magicReadyDrawTicksMultiplier,
-            ForgeConfigSpec.DoubleValue overheatAdditionalManaLinearMultiplier,
-            ForgeConfigSpec.DoubleValue overheatAdditionalManaQuadraticMultiplier,
-            ForgeConfigSpec.DoubleValue overheatDurationMultiplier,
-            ForgeConfigSpec.IntValue overheatDurationMinTicks,
-            ForgeConfigSpec.IntValue overheatDurationCapTicks,
-            ForgeConfigSpec.DoubleValue powerArrowSpellLevelBonusPerLevel
+            ModConfigSpec.DoubleValue magicReadyDrawTicksMultiplier,
+            ModConfigSpec.DoubleValue overheatAdditionalManaLinearMultiplier,
+            ModConfigSpec.DoubleValue overheatAdditionalManaQuadraticMultiplier,
+            ModConfigSpec.DoubleValue overheatDurationMultiplier,
+            ModConfigSpec.IntValue overheatDurationMinTicks,
+            ModConfigSpec.IntValue overheatDurationCapTicks,
+            ModConfigSpec.DoubleValue powerArrowSpellLevelBonusPerLevel
     ) {
         this.magicReadyDrawTicksMultiplier = magicReadyDrawTicksMultiplier;
         this.overheatAdditionalManaLinearMultiplier = overheatAdditionalManaLinearMultiplier;
@@ -37,7 +37,7 @@ public final class ElementalBowServerConfig {
         this.powerArrowSpellLevelBonusPerLevel = powerArrowSpellLevelBonusPerLevel;
     }
 
-    public static ElementalBowServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static ElementalBowServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("ElementalBow");
         var magicReadyDrawTicksMultiplier = builder
                 .comment("Multiplier applied to Elemental Bow magic mode required draw ticks from its mode profile.")

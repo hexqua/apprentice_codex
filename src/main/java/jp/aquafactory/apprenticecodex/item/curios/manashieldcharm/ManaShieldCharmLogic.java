@@ -109,13 +109,13 @@ final class ManaShieldCharmLogic {
             case FULLY_NEGATED_ACTIVE -> {
                 event.setCanceled(true);
                 applyVanillaStyleIFrame(player);
-                event.setInvulnerabilityTicks(Math.max(player.invulnerableTime, VANILLA_INVULNERABLE_TIME_TICKS));
+                event.setInvulnerabilityTicks(Math.max(player.invulnerableTime, invulnerableTimeTicks()));
                 ForceFieldDefenseEvent.spawnManaShieldWallEffect(player, event.getSource(), false);
             }
             case FULLY_NEGATED_BURNED_OUT -> {
                 event.setCanceled(true);
                 applyVanillaStyleIFrame(player);
-                event.setInvulnerabilityTicks(Math.max(player.invulnerableTime, VANILLA_INVULNERABLE_TIME_TICKS));
+                event.setInvulnerabilityTicks(Math.max(player.invulnerableTime, invulnerableTimeTicks()));
                 ForceFieldDefenseEvent.spawnManaShieldWallEffect(player, event.getSource(), true);
             }
             case PARTIALLY_NEGATED_FAILED -> {
@@ -319,7 +319,7 @@ final class ManaShieldCharmLogic {
 
         event.setCanceled(true);
         applyVanillaStyleIFrame(player);
-        event.setInvulnerabilityTicks(Math.max(player.invulnerableTime, VANILLA_INVULNERABLE_TIME_TICKS));
+        event.setInvulnerabilityTicks(Math.max(player.invulnerableTime, invulnerableTimeTicks()));
         ForceFieldDefenseEvent.spawnManaShieldWallEffect(player, event.getSource(), false);
     }
 
@@ -464,7 +464,7 @@ final class ManaShieldCharmLogic {
                 continue;
             }
 
-            armorStack.hurtAndBreak(durabilityDamage, player, brokenEntity -> brokenEntity.broadcastBreakEvent(slot));
+            armorStack.hurtAndBreak(durabilityDamage, player, slot);
         }
     }
 

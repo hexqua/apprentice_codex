@@ -1,26 +1,26 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.List;
 import java.util.Objects;
 
 public final class CircuitHeatStaffServerConfig {
-    private final ForgeConfigSpec.IntValue additionalManaReferenceCooldownTicks;
-    private final ForgeConfigSpec.DoubleValue additionalManaLinearMultiplier;
-    private final ForgeConfigSpec.DoubleValue additionalManaQuadraticMultiplier;
-    private final ForgeConfigSpec.IntValue cooldownBypassMaxRemainingTicks;
-    private final ForgeConfigSpec.ConfigValue<List<? extends String>> spellDenylist;
-    private final ForgeConfigSpec.DoubleValue staffOverheatDurationMultiplier;
-    private final ForgeConfigSpec.IntValue staffOverheatDurationMinTicks;
-    private final ForgeConfigSpec.IntValue staffOverheatDurationCapTicks;
-    private final ForgeConfigSpec.BooleanValue dropCoolingEnabled;
-    private final ForgeConfigSpec.IntValue dropCoolingProcessIntervalTicks;
-    private final ForgeConfigSpec.IntValue dropCoolingReductionTicks;
-    private final ForgeConfigSpec.IntValue dropCoolingWaterConsumeProcessCount;
-    private final ForgeConfigSpec.BooleanValue consumeWaterSourceOnCooling;
-    private final ForgeConfigSpec.BooleanValue consumeWaterCauldronOnCooling;
+    private final ModConfigSpec.IntValue additionalManaReferenceCooldownTicks;
+    private final ModConfigSpec.DoubleValue additionalManaLinearMultiplier;
+    private final ModConfigSpec.DoubleValue additionalManaQuadraticMultiplier;
+    private final ModConfigSpec.IntValue cooldownBypassMaxRemainingTicks;
+    private final ModConfigSpec.ConfigValue<List<? extends String>> spellDenylist;
+    private final ModConfigSpec.DoubleValue staffOverheatDurationMultiplier;
+    private final ModConfigSpec.IntValue staffOverheatDurationMinTicks;
+    private final ModConfigSpec.IntValue staffOverheatDurationCapTicks;
+    private final ModConfigSpec.BooleanValue dropCoolingEnabled;
+    private final ModConfigSpec.IntValue dropCoolingProcessIntervalTicks;
+    private final ModConfigSpec.IntValue dropCoolingReductionTicks;
+    private final ModConfigSpec.IntValue dropCoolingWaterConsumeProcessCount;
+    private final ModConfigSpec.BooleanValue consumeWaterSourceOnCooling;
+    private final ModConfigSpec.BooleanValue consumeWaterCauldronOnCooling;
     private Integer additionalManaReferenceCooldownTicksOverride;
     private Double additionalManaLinearMultiplierOverride;
     private Double additionalManaQuadraticMultiplierOverride;
@@ -37,20 +37,20 @@ public final class CircuitHeatStaffServerConfig {
     private Boolean consumeWaterCauldronOnCoolingOverride;
 
     private CircuitHeatStaffServerConfig(
-            ForgeConfigSpec.IntValue additionalManaReferenceCooldownTicks,
-            ForgeConfigSpec.DoubleValue additionalManaLinearMultiplier,
-            ForgeConfigSpec.DoubleValue additionalManaQuadraticMultiplier,
-            ForgeConfigSpec.IntValue cooldownBypassMaxRemainingTicks,
-            ForgeConfigSpec.ConfigValue<List<? extends String>> spellDenylist,
-            ForgeConfigSpec.DoubleValue staffOverheatDurationMultiplier,
-            ForgeConfigSpec.IntValue staffOverheatDurationMinTicks,
-            ForgeConfigSpec.IntValue staffOverheatDurationCapTicks,
-            ForgeConfigSpec.BooleanValue dropCoolingEnabled,
-            ForgeConfigSpec.IntValue dropCoolingProcessIntervalTicks,
-            ForgeConfigSpec.IntValue dropCoolingReductionTicks,
-            ForgeConfigSpec.IntValue dropCoolingWaterConsumeProcessCount,
-            ForgeConfigSpec.BooleanValue consumeWaterSourceOnCooling,
-            ForgeConfigSpec.BooleanValue consumeWaterCauldronOnCooling
+            ModConfigSpec.IntValue additionalManaReferenceCooldownTicks,
+            ModConfigSpec.DoubleValue additionalManaLinearMultiplier,
+            ModConfigSpec.DoubleValue additionalManaQuadraticMultiplier,
+            ModConfigSpec.IntValue cooldownBypassMaxRemainingTicks,
+            ModConfigSpec.ConfigValue<List<? extends String>> spellDenylist,
+            ModConfigSpec.DoubleValue staffOverheatDurationMultiplier,
+            ModConfigSpec.IntValue staffOverheatDurationMinTicks,
+            ModConfigSpec.IntValue staffOverheatDurationCapTicks,
+            ModConfigSpec.BooleanValue dropCoolingEnabled,
+            ModConfigSpec.IntValue dropCoolingProcessIntervalTicks,
+            ModConfigSpec.IntValue dropCoolingReductionTicks,
+            ModConfigSpec.IntValue dropCoolingWaterConsumeProcessCount,
+            ModConfigSpec.BooleanValue consumeWaterSourceOnCooling,
+            ModConfigSpec.BooleanValue consumeWaterCauldronOnCooling
     ) {
         this.additionalManaReferenceCooldownTicks = additionalManaReferenceCooldownTicks;
         this.additionalManaLinearMultiplier = additionalManaLinearMultiplier;
@@ -68,7 +68,7 @@ public final class CircuitHeatStaffServerConfig {
         this.consumeWaterCauldronOnCooling = consumeWaterCauldronOnCooling;
     }
 
-    public static CircuitHeatStaffServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static CircuitHeatStaffServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("CircuitHeatStaff");
         var additionalManaReferenceCooldownTicks = builder
                 .comment("Cooldown ticks treated as the reference amount for Circuit Heat Staff extra mana. 200 ticks = 10 seconds.")

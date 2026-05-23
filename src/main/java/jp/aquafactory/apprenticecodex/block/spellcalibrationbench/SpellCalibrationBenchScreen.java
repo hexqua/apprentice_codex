@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -12,12 +13,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<SpellCalibrationBenchMenu> {
     private static final ResourceLocation TEXTURE =
@@ -175,7 +176,7 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
     }
 
     private static void appendTaggedItemHintLines(List<Component> lines, TagKey<Item> tag, ItemStack fallbackStack) {
-        var stacks = ForgeRegistries.ITEMS.getValues().stream()
+        var stacks = StreamSupport.stream(BuiltInRegistries.ITEM.spliterator(), false)
                 .map(ItemStack::new)
                 .filter(stack -> stack.is(tag))
                 .sorted(Comparator.comparing(stack -> stack.getHoverName().getString()))
