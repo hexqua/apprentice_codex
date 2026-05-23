@@ -47,6 +47,7 @@ import jp.aquafactory.apprenticecodex.renderer.item.FocusStaffbowRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.GoldSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IronSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IlluminateStellarStaffRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.MithrilFreecastStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.MultipurposeStaffrifleRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.MulticastEchoStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
@@ -304,6 +305,17 @@ public final class ClientModBusEvents {
                 return renderer;
             }
         }, ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        event.registerItem(new ClientStaffItemExtensions() {
+            private MithrilFreecastStaffRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new MithrilFreecastStaffRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.MITHRIL_FREECAST_STAFF.get());
         event.registerItem(new IClientItemExtensions() {
             private IlluminateStellarStaffRenderer renderer;
 

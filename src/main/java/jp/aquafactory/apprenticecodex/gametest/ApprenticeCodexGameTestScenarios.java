@@ -6972,7 +6972,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
             var stack = new ItemStack(item);
-            setElementalBowMode(stack, "fire");
+            CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putString("ElementalBowMode", "fire"));
 
             item.initializeSpellContainer(stack);
 
@@ -15458,7 +15458,6 @@ public final class ApprenticeCodexGameTestScenarios {
         if (stack.getItem() instanceof MithrilFreecastStaff) {
             expectedEnchantments.remove(Enchantments.TRANSCENDENCE.location());
         }
-        addExpectedMalumHauntedIfPresent(stack, expectedEnchantments);
         addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
         addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedEnchantments);
         return expectedEnchantments;

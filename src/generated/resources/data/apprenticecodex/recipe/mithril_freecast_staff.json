@@ -24,7 +24,15 @@
     "D  "
   ],
   "result": {
-    "item": "apprenticecodex:mithril_freecast_staff"
-  },
-  "show_notification": true
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [],
+        "maxSpells": 1,
+        "mustEquip": false,
+        "spellWheel": true
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:mithril_freecast_staff"
+  }
 }

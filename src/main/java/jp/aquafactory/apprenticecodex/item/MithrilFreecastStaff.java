@@ -14,9 +14,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
-import jp.aquafactory.apprenticecodex.renderer.item.MithrilFreecastStaffRenderer;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -30,21 +28,19 @@ import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
         implements GeoItem, CastAnimationOverrideItem, IJeiInfoItem, SwingTriggeredMagicItem, ArcaneAnvilImbueBlockItem {
@@ -71,13 +67,18 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
                 ITEM_KEY,
                 DISPLAYED_ATTACK_DAMAGE,
                 DISPLAYED_ATTACK_SPEED - 4.0D,
-                bonus(AttributeRegistry.SPELL_POWER, SPELL_POWER_BONUS, AttributeModifier.Operation.MULTIPLY_BASE)
+                bonus(AttributeRegistry.SPELL_POWER.value(), SPELL_POWER_BONUS,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE, "spell_power")
         );
         GeoItem.registerSyncedAnimatable(this);
     }
 
     public ResourceLocation getTextureLocation() {
         return textureLocation;
+    }
+
+    public boolean hasCustomRendering() {
+        return true;
     }
 
     @Override
@@ -201,22 +202,6 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
         super.appendHoverText(stack, context, lines, flag);
         lines.add(Component.translatable("item.apprenticecodex.freecast.common.desc").withStyle(ChatFormatting.GRAY));
         appendFreecastTooltip(lines);
-    }
-
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private MithrilFreecastStaffRenderer renderer;
-
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                if (renderer == null) {
-                    renderer = new MithrilFreecastStaffRenderer();
-                }
-
-                return renderer;
-            }
-        });
     }
 
     @Override

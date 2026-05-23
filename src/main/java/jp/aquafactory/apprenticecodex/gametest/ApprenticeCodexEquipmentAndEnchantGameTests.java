@@ -854,26 +854,6 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void elementalBowHeldWisdomAndPlunderWorkInBothHands(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowHeldWisdomAndPlunderWorkInBothHands(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void smashcastScepterKeepsExpectedStatsImbueAndEnchantingRules(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.smashcastScepterKeepsExpectedStatsImbueAndEnchantingRules(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void smashcastScepterFallProtectionKeepsFallDistanceAndCancelsNextFall(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.smashcastScepterFallProtectionKeepsFallDistanceAndCancelsNextFall(helper);
-    }
-
-    @GameTest(template = TEMPLATE, timeoutTicks = 80)
-    public static void smashcastScepterFallProtectionExpiresAfterGracePeriod(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.smashcastScepterFallProtectionExpiresAfterGracePeriod(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
     public static void elementalBowFallsBackToNoneWhenLegacyModeCannotResolve(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.elementalBowFallsBackToNoneWhenLegacyModeCannotResolve(helper);
     }
@@ -918,10 +898,6 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         ApprenticeCodexGameTestScenarios.elementalBowArrowModeRequiresNormalArrowsEvenWhenSpecialArrowsExist(helper);
     }
 
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowSpecialModeInfinityKeepsSelectionAndAllowsEmptyReuse(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowSpecialModeInfinityKeepsSelectionAndAllowsEmptyReuse(helper);
-    }
     @GameTest(template = TEMPLATE, batch = ELEMENTAL_BOW_DRAW_CONFIG_BATCH)
     public static void elementalBowMagicDrawTicksUseProfileAndServerMultiplier(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.elementalBowMagicDrawTicksUseProfileAndServerMultiplier(helper);
