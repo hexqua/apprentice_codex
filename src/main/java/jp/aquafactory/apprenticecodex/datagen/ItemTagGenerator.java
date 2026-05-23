@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.core.HolderLookup;
@@ -241,7 +242,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                     // 1.21.1 の Haunted / Animated は magic_capable_weapon タグ基準なので、
                     // 主手用魔法武器は tag と Java 側判定を同じ面に揃える。
                     malumMagicCapableWeaponTag.add(item);
-                    transcendenceEnchantableTag.add(item);
+                    if (!(item instanceof MithrilFreecastStaff)) {
+                        transcendenceEnchantableTag.add(item);
+                    }
                     wisdomEnchantableTag.add(item);
                     vanillaSwordEnchantableTag.add(item);
                     vanillaFireAspectEnchantableTag.add(item);

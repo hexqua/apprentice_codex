@@ -1,13 +1,14 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
+import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record ClientSwingMagicAttackPacket(boolean bypassChargeCheck) implements CustomPacketPayload {
@@ -36,8 +37,12 @@ public record ClientSwingMagicAttackPacket(boolean bypassChargeCheck) implements
             }
 
             var mainHandItem = sender.getMainHandItem().getItem();
-            if (mainHandItem instanceof AbstractSwingMagicItem swingMagicItem) {
-                swingMagicItem.tryTriggerImbuedSpellOnSwing(sender, packet.bypassChargeCheck());
+            if (mainHandItem instanceof SwingTriggeredMagicItem swingTriggeredMagicItem) {
+                swingTriggeredMagicItem.tryTriggerSpellOnSwing(
+                        sender,
+                        InteractionHand.MAIN_HAND,
+                        packet.bypassChargeCheck()
+                );
             }
         });
     }

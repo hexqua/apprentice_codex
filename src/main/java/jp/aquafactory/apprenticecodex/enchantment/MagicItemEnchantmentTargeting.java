@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
@@ -55,7 +56,7 @@ final class MagicItemEnchantmentTargeting {
                 || item instanceof ElementalBow
                 || item instanceof ManaForceBlade
                 || item instanceof ScrollcasterGauntlet
-                || item instanceof AbstractRightClickMagicWeaponItem
+                || (item instanceof AbstractRightClickMagicWeaponItem && !(item instanceof MithrilFreecastStaff))
                 || item instanceof AlchemistsFlask
                 || isSupportedSpellContainerArmorItem(item);
     }
