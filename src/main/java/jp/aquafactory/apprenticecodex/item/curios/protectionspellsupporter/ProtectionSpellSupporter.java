@@ -91,7 +91,7 @@ public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiIn
         }
 
         return CuriosApi.getCuriosInventory(entity)
-                .map(inventory -> inventory.isEquipped(ItemRegistry.PROTECTION_SPELL_SUPPORTER.get()))
+                .map(inventory -> inventory.findFirstCurio(stack -> stack.is(ItemRegistry.PROTECTION_SPELL_SUPPORTER.get())).isPresent())
                 .orElse(false);
     }
 

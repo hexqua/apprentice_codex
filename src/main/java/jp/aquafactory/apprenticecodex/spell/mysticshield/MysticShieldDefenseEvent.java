@@ -15,13 +15,13 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import org.jetbrains.annotations.Nullable;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class MysticShieldDefenseEvent {
     private static final double FRONT_DOT_THRESHOLD = 0.25;
     private static final int SAME_SOURCE_ACCUMULATION_COOLDOWN_TICKS = 10;
@@ -36,7 +36,7 @@ public final class MysticShieldDefenseEvent {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onLivingAttack(LivingAttackEvent event) {
+    public static void onLivingAttack(LivingIncomingDamageEvent event) {
         var target = event.getEntity();
         //noinspection resource
         if (target.level().isClientSide) {

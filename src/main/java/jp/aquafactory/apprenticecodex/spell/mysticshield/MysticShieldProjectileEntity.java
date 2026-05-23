@@ -8,6 +8,8 @@ import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -21,7 +23,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
+import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.NotNull;
 
 public class MysticShieldProjectileEntity extends Projectile {
@@ -45,7 +47,7 @@ public class MysticShieldProjectileEntity extends Projectile {
     }
 
     @Override
-    protected void defineSynchedData() {
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
     }
 
     @Override
@@ -66,7 +68,7 @@ public class MysticShieldProjectileEntity extends Projectile {
         }
 
         var hitResult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-        if (hitResult.getType() != HitResult.Type.MISS && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitResult)) {
+        if (hitResult.getType() != HitResult.Type.MISS && !EventHooks.onProjectileImpact(this, hitResult)) {
             onHit(hitResult);
         }
 
@@ -134,8 +136,8 @@ public class MysticShieldProjectileEntity extends Projectile {
     }
 
     @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
+    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket(@NotNull ServerEntity serverEntity) {
+        return super.getAddEntityPacket(serverEntity);
     }
 
     @Override

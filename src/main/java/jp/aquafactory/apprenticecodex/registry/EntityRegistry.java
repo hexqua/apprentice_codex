@@ -200,7 +200,6 @@ public final class EntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<MagicSpearMissileEntity>> MAGIC_SPEAR_MISSILE =
             regProjectile("magic_spear_missile", MagicSpearMissileEntity::new, 128, 1);
 
-    public static final DeferredHolder<EntityType<?>, EntityType<FeatherRushProjectileEntity>> FEATHER_RUSH_PROJECTILE =
     public static final DeferredHolder<EntityType<?>, EntityType<MysticShieldProjectileEntity>> MYSTIC_SHIELD_PROJECTILE =
             regProjectile("mystic_shield_projectile", MysticShieldProjectileEntity::new, 96, 1);
 
