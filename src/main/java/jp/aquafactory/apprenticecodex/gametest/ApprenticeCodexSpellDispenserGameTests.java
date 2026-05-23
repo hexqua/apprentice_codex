@@ -86,6 +86,11 @@ public final class ApprenticeCodexSpellDispenserGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellDispenserCastHelperUsesNeutralLivingCasterProfileForMagicMissile(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserCastHelperUsesNeutralLivingCasterProfileForMagicMissile(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellDispenserCastHelperCompletesLongCastImmediately(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellDispenserCastHelperCompletesLongCastImmediately(helper);
     }
