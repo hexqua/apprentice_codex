@@ -274,6 +274,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.damagesource.DamageContainer;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.GrindstoneEvent;
@@ -1879,7 +1880,7 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         };
 
-        MinecraftForge.EVENT_BUS.addListener(projectileListener);
+        NeoForge.EVENT_BUS.addListener(projectileListener);
         try (var ignored = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of(spell.getSpellResource(), neutralProfile))) {
             var castResult = SpellDispenserCastHelper.tryCast(
                     level,
@@ -1891,7 +1892,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(castResult.succeeded(), "Spell Dispenser neutral living cast failed for Magic Missile");
             helper.assertTrue(castResult.reachedOnCast(), "Spell Dispenser neutral living cast did not reach onCast");
         } finally {
-            MinecraftForge.EVENT_BUS.unregister(projectileListener);
+            NeoForge.EVENT_BUS.unregister(projectileListener);
         }
 
         helper.assertTrue(!spawnedProjectiles.isEmpty(), "Spell Dispenser neutral living cast did not spawn Magic Missile");
@@ -2486,11 +2487,11 @@ public final class ApprenticeCodexGameTestScenarios {
             SpellDispenserBlockEntity.saveOwnerProfile(originalTag, ownerProfile);
 
             var creative = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.CREATIVE_SPELL_DISPENSER.get().defaultBlockState());
-            creative.load(originalTag);
+            creative.loadWithComponents(originalTag, helper.getLevel().registryAccess());
             helper.assertFalse(creative.hasOwnerProfile(), "Creative Spell Dispenser restored owner profile from NBT");
 
             creative.setOwnerProfile(ownerProfile);
-            helper.assertFalse(creative.getUpdateTag().hasUUID("OwnerUuid"),
+            helper.assertFalse(creative.getUpdateTag(helper.getLevel().registryAccess()).hasUUID("OwnerUuid"),
                     "Creative Spell Dispenser saved owner UUID into update NBT");
         });
     }

@@ -3,13 +3,12 @@ package jp.aquafactory.apprenticecodex.item;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -30,12 +29,12 @@ public class SpellDispenserItem extends BlockItem implements IJeiInfoItem {
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
         if (showCreativeTooltip) {
             lines.add(Component.translatable(CREATIVE_TOOLTIP_KEY).withStyle(ChatFormatting.GRAY));
         }
-        super.appendHoverText(stack, level, lines, flag);
+        super.appendHoverText(stack, context, lines, flag);
     }
 
     @Override
