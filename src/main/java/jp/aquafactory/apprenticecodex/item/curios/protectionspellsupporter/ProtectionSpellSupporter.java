@@ -26,7 +26,8 @@ public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiIn
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.protection_spell_supporter.desc_";
     private static final List<DeferredHolder<AbstractSpell, AbstractSpell>> TARGET_SPELLS = List.of(
             SpellRegistry.FORCE_FIELD,
-            SpellRegistry.PHALANX_CHARGE
+            SpellRegistry.PHALANX_CHARGE,
+            SpellRegistry.MYSTIC_SHIELD
     );
 
     private final String slotIdentifier;
@@ -90,7 +91,7 @@ public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiIn
         }
 
         return CuriosApi.getCuriosInventory(entity)
-                .map(inventory -> inventory.isEquipped(ItemRegistry.PROTECTION_SPELL_SUPPORTER.get()))
+                .map(inventory -> inventory.findFirstCurio(stack -> stack.is(ItemRegistry.PROTECTION_SPELL_SUPPORTER.get())).isPresent())
                 .orElse(false);
     }
 

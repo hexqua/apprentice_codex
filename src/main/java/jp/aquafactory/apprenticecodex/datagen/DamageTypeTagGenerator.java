@@ -37,6 +37,7 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANTIS_LEAP;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANA_FORCE_BLADE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANA_SLASH;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MOON_LIGHT;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MYSTIC_SHIELD;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.PHALANX_CHARGE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.PRECISION_JACK;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.QUICK_ARMS;
@@ -121,7 +122,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 SHOCK,
                 TIRO_VOLLEY,
                 MAGIC_SPEAR,
-                FROST_RUNE
+                FROST_RUNE,
+                MYSTIC_SHIELD
         );
 
         // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
@@ -194,7 +196,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 TIRO_VOLLEY,
                 MANA_FORCE_BLADE,
                 MAGIC_SPEAR,
-                FROST_RUNE
+                FROST_RUNE,
+                MYSTIC_SHIELD
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.
@@ -219,7 +222,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 COMPOUND_PHIAL,
                 MOON_LIGHT,
                 UNITE_LUNA,
-                HAUNTED_BONUS
+                HAUNTED_BONUS,
+                MYSTIC_SHIELD
         );
 
         // Malum連携: 魔法ダメージ全体をSoul Shatter判定対象にする.

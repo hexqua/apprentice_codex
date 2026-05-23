@@ -58,6 +58,9 @@ public final class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> STELLAR_EXPLODE = reg("stellar_explode");
     public static final DeferredHolder<SoundEvent, SoundEvent> FROZEN_RUNE = reg("frozen_rune");
     public static final DeferredHolder<SoundEvent, SoundEvent> STAFFRIFLE = reg("staffrifle");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MYSTIC_SHIELD_DEPLOY = reg("mystic_shield_deploy");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MYSTIC_SHIELD_BLOCK = reg("mystic_shield_block");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MYSTIC_SHIELD_SHOOT = reg("mystic_shield_shoot");
     public static final DeferredHolder<SoundEvent, SoundEvent> SMASHCAST_SCEPTER_SMASH_AIR = reg("smashcast_scepter_smash_air");
     public static final DeferredHolder<SoundEvent, SoundEvent> SMASHCAST_SCEPTER_SMASH_GROUND = reg("smashcast_scepter_smash_ground");
     public static final DeferredHolder<SoundEvent, SoundEvent> SMASHCAST_SCEPTER_SMASH_GROUND_HEAVY = reg("smashcast_scepter_smash_ground_heavy");

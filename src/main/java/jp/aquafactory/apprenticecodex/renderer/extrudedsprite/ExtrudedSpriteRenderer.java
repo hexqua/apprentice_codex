@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.renderer.extrudedsprite;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -61,11 +62,8 @@ public final class ExtrudedSpriteRenderer {
 
     private static void render(ExtrudedSpriteMesh mesh, Matrix4f poseMatrix, Matrix3f normalMatrix, MultiBufferSource buffer, int packedLight,
                                ResourceLocation texture, RenderMode renderMode) {
-        // emissive は FULL_BRIGHT のみを保証し、glow 用 additive pass とは分けて扱う。
-        var vc = buffer.getBuffer(renderMode == RenderMode.EMISSIVE
-                ? RenderType.entityTranslucent(texture)
-                : RenderType.entityCutoutNoCull(texture));
-        var resolvedLight = renderMode == RenderMode.EMISSIVE ? LightTexture.FULL_BRIGHT : packedLight;
+        var vc = buffer.getBuffer(resolveRenderType(texture, renderMode));
+        var resolvedLight = renderMode == RenderMode.DEFAULT ? packedLight : LightTexture.FULL_BRIGHT;
         for (var q : mesh.quads) {
             for (var i = 0; i < 4; ++i) {
                 var transformedNormal = new org.joml.Vector3f(q.nx, q.ny, q.nz)
@@ -81,8 +79,17 @@ public final class ExtrudedSpriteRenderer {
         }
     }
 
+    private static RenderType resolveRenderType(ResourceLocation texture, RenderMode renderMode) {
+        return switch (renderMode) {
+            case DEFAULT -> RenderType.entityCutoutNoCull(texture);
+            case EMISSIVE -> RenderType.entityTranslucent(texture);
+            case ADDITIVE_COLOR_ONLY -> ApprenticeRenderTypes.entityAdditiveGlowNoCullColorOnly("extruded_sprite_additive_color_only", texture);
+        };
+    }
+
     public enum RenderMode {
         DEFAULT,
-        EMISSIVE
+        EMISSIVE,
+        ADDITIVE_COLOR_ONLY
     }
 }
