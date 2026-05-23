@@ -62,6 +62,7 @@ import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
+import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfile;
@@ -6965,6 +6966,179 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
                     "Elemental Bow should fail to start drawing when mana is insufficient: " + result.getResult());
             helper.assertFalse(player.isUsingItem(), "Elemental Bow should not enter use state without enough mana");
+        });
+    }
+    static void elementalBowFallsBackToNoneWhenLegacyModeCannotResolve(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
+            var stack = new ItemStack(item);
+            CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putString("ElementalBowMode", "fire"));
+
+            item.initializeSpellContainer(stack);
+
+            assertElementalBowSelection(helper, stack, null, null,
+                    "Elemental Bow should clear unresolved legacy mode values back to normal mode");
+            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
+                    "Elemental Bow should remove its spell container after falling back to normal mode");
+        });
+    }
+
+    static void elementalBowSynchronizesSpellContainerToCurrentMode(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
+            var stack = new ItemStack(item);
+            setElementalBowMode(stack, SchoolRegistry.FIRE_RESOURCE.toString());
+            item.initializeSpellContainer(stack);
+
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Elemental Bow should expose a spell container outside NONE mode");
+            helper.assertTrue(spellContainer != null && !spellContainer.isSpellWheel(),
+                    "Elemental Bow should keep its derived spell out of the spell wheel");
+            assertSpellData(
+                    helper,
+                    spellContainer,
+                    0,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                    1,
+                    true,
+                    "Elemental Bow should sync Fire mode into a locked spell container"
+            );
+        });
+    }
+
+    static void elementalBowSpellContainerAppliesPowerFlameAndClearsInNoneMode(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var power = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.POWER);
+            var flame = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.FLAME);
+            var transcendence = enchantmentLookup.getOrThrow(Enchantments.TRANSCENDENCE);
+            var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
+            var stack = new ItemStack(item);
+            stack.enchant(power, 2);
+            stack.enchant(transcendence, 1);
+            stack.enchant(flame, 1);
+
+            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            item.initializeSpellContainer(stack);
+            helper.assertTrue(getEnchantmentLevel(stack, power) == 2,
+                    "Elemental Bow spell container test should preserve POWER II on the stack");
+            helper.assertTrue(getEnchantmentLevel(stack, flame) == 1,
+                    "Elemental Bow spell container test should preserve FLAME I on the stack");
+            helper.assertTrue(getEnchantmentLevel(stack, transcendence) == 1,
+                    "Elemental Bow spell container test should preserve TRANSCENDENCE I on the stack");
+            var fireMode = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.getResolvedDefinition(SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(fireMode != null, "Elemental Bow Fire mode should resolve from the loaded mode definitions");
+            var expectedFireLevel = fireMode != null ? fireMode.resolveSpellLevel(stack) : 1;
+            var fireProfile = ElementalBow.getDisplayedSpellProfile(stack);
+            helper.assertTrue(fireProfile != null, "Elemental Bow should expose a displayed spell profile in Fire mode");
+            helper.assertTrue(fireProfile.spell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                    "Elemental Bow Fire mode should resolve Fire Arrow");
+            helper.assertTrue(fireProfile.spellLevel() == expectedFireLevel,
+                    "Elemental Bow Fire mode display level should stay in sync with the loaded mode resolver but got " + fireProfile.spellLevel());
+            var fireContainer = ISpellContainer.get(stack);
+            helper.assertTrue(fireContainer != null, "Elemental Bow Fire mode should keep a synced spell container");
+            helper.assertTrue(fireContainer != null && !fireContainer.isSpellWheel(),
+                    "Elemental Bow Fire mode container should stay hidden from the spell wheel");
+            assertSpellData(
+                    helper,
+                    fireContainer,
+                    0,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                    expectedFireLevel,
+                    true,
+                    "Elemental Bow Fire mode container should stay in sync with the loaded mode resolver"
+            );
+
+            setElementalBowShotSelection(stack, "magic", SchoolRegistry.ENDER_RESOURCE);
+            item.initializeSpellContainer(stack);
+            var enderMode = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.getResolvedDefinition(SchoolRegistry.ENDER_RESOURCE);
+            helper.assertTrue(enderMode != null, "Elemental Bow Ender mode should resolve from the loaded mode definitions");
+            var expectedEnderLevel = enderMode != null ? enderMode.resolveSpellLevel(stack) : 1;
+            var enderProfile = ElementalBow.getDisplayedSpellProfile(stack);
+            helper.assertTrue(enderProfile != null, "Elemental Bow should expose a displayed spell profile in Ender mode");
+            helper.assertTrue(enderProfile.spell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get(),
+                    "Elemental Bow Ender mode should resolve Magic Arrow");
+            helper.assertTrue(enderProfile.spellLevel() == expectedEnderLevel,
+                    "Elemental Bow Ender mode display level should stay in sync with the loaded mode resolver but got " + enderProfile.spellLevel());
+            var enderContainer = ISpellContainer.get(stack);
+            helper.assertTrue(enderContainer != null, "Elemental Bow Ender mode should keep a synced spell container");
+            helper.assertTrue(enderContainer != null && !enderContainer.isSpellWheel(),
+                    "Elemental Bow Ender mode container should stay hidden from the spell wheel");
+            assertSpellData(
+                    helper,
+                    enderContainer,
+                    0,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get(),
+                    expectedEnderLevel,
+                    true,
+                    "Elemental Bow Ender mode container should stay in sync with the loaded mode resolver"
+            );
+
+            CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.remove("ElementalBowMode"));
+            item.initializeSpellContainer(stack);
+            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
+                    "Elemental Bow should remove its spell container in NONE mode");
+        });
+    }
+
+    static void elementalBowDoesNotAddDerivedSpellToMainhandSpellWheel(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_spell_wheel_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            setElementalBowMode(stack, SchoolRegistry.FIRE_RESOURCE.toString());
+            ((ElementalBow) stack.getItem()).initializeSpellContainer(stack);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var selectionManager = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player);
+            var mainhandSelections = selectionManager.getSpellsForSlot(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND);
+            helper.assertTrue(mainhandSelections.isEmpty(),
+                    "Elemental Bow should not add its derived spell to the mainhand spell wheel: " + mainhandSelections);
+            helper.assertTrue(selectionManager.getSelection() == null,
+                    "Elemental Bow should not create a selected spell from its derived container");
+        });
+    }
+
+    static void elementalBowBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            setElementalBowMode(stack, SchoolRegistry.FIRE_RESOURCE.toString());
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
+                    "Elemental Bow should reject Arcane Anvil spell imbuing regardless of scroll spell"
+            );
+        });
+    }
+
+    static void mithrilFreecastStaffBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
+            var item = (MithrilFreecastStaff) stack.getItem();
+            item.initializeSpellContainer(stack);
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+
+            helper.assertFalse(stack.getItem() instanceof RestrictedSpellImbuableItem,
+                    "Mithril Freecast Staff should not expose the restricted imbue API");
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
+                    "Mithril Freecast Staff should reject Arcane Anvil spell imbuing"
+            );
+        });
+    }
+
+    static void elementalBowManaErrorUsesIronsSpellbooksTranslationKey(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var message = ElementalBow.createInsufficientManaMessage(
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                    null
+            );
+            assertTranslatableKey(
+                    helper,
+                    message,
+                    "ui.irons_spellbooks.cast_error_mana",
+                    "Elemental Bow mana error should use Iron's cast_error_mana key"
+            );
         });
     }
     static void elementalBowDoesNotConsumeResourcesBeforeFullDraw(GameTestHelper helper) {
@@ -15281,6 +15455,9 @@ public final class ApprenticeCodexGameTestScenarios {
                 Enchantments.TRANSCENDENCE,
                 Enchantments.WISDOM
         ));
+        if (stack.getItem() instanceof MithrilFreecastStaff) {
+            expectedEnchantments.remove(Enchantments.TRANSCENDENCE.location());
+        }
         addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
         addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedEnchantments);
         return expectedEnchantments;

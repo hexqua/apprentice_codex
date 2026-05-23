@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
-import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
+import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import net.minecraft.client.Minecraft;
@@ -24,7 +24,7 @@ public final class ClientSwingMagicAttackTrigger {
 
     private static void trySend(Minecraft minecraft, boolean bypassChargeCheck) {
         var player = minecraft.player;
-        if (!canSend(minecraft, player, bypassChargeCheck)) {
+        if (!canSend(minecraft, player, bypassChargeCheck) || player == null) {
             return;
         }
 
@@ -38,7 +38,8 @@ public final class ClientSwingMagicAttackTrigger {
             return false;
         }
 
-        if (player == null || player.isSpectator() || !(player.getMainHandItem().getItem() instanceof AbstractSwingMagicItem)) {
+        if (player == null || player.isSpectator()
+                || !(player.getMainHandItem().getItem() instanceof SwingTriggeredMagicItem)) {
             return false;
         }
 

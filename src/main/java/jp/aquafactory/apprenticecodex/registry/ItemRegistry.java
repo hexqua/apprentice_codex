@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.GrimoireManifest;
 import jp.aquafactory.apprenticecodex.item.IlluminateStellarStaff;
 import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
@@ -306,6 +307,8 @@ public final class ItemRegistry {
             ITEMS.register("diamond_swingcast_staff", DiamondSwingcastStaff::new);
     public static final DeferredHolder<Item, Item> NETHERITE_SWINGCAST_STAFF =
             ITEMS.register("netherite_swingcast_staff", NetheriteSwingcastStaff::new);
+    public static final DeferredHolder<Item, Item> MITHRIL_FREECAST_STAFF =
+            ITEMS.register("mithril_freecast_staff", MithrilFreecastStaff::new);
     public static final DeferredHolder<Item, Item> CRYSTAL_BLADED_STAFF =
             ITEMS.register("crystal_bladed_staff", CrystalBladedStaff::new);
     public static final DeferredHolder<Item, Item> ILLUMINATE_STELLAR_STAFF =

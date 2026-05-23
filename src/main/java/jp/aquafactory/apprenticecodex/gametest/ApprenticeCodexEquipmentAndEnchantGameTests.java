@@ -853,6 +853,51 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerSkipsWhenOwnerCannotCast(helper);
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowFallsBackToNoneWhenLegacyModeCannotResolve(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowFallsBackToNoneWhenLegacyModeCannotResolve(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSynchronizesSpellContainerToCurrentMode(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowSynchronizesSpellContainerToCurrentMode(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSpellContainerAppliesPowerFlameAndClearsInNoneMode(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowSpellContainerAppliesPowerFlameAndClearsInNoneMode(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowDoesNotAddDerivedSpellToMainhandSpellWheel(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowDoesNotAddDerivedSpellToMainhandSpellWheel(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowBlocksArcaneAnvilImbueViaSpellValidator(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void mithrilFreecastStaffBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mithrilFreecastStaffBlocksArcaneAnvilImbueViaSpellValidator(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowManaErrorUsesIronsSpellbooksTranslationKey(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowManaErrorUsesIronsSpellbooksTranslationKey(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowVanillaModeConsumesSpecialArrowWhenNormalArrowsAreMissing(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowVanillaModeConsumesSpecialArrowWhenNormalArrowsAreMissing(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowArrowModeRequiresNormalArrowsEvenWhenSpecialArrowsExist(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowArrowModeRequiresNormalArrowsEvenWhenSpecialArrowsExist(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = ELEMENTAL_BOW_DRAW_CONFIG_BATCH)
     public static void elementalBowMagicDrawTicksUseProfileAndServerMultiplier(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.elementalBowMagicDrawTicksUseProfileAndServerMultiplier(helper);
