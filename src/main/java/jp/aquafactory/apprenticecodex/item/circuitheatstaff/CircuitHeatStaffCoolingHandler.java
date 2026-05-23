@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.circuitheatstaff;
 
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.CircuitHeatStaff;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -21,16 +22,18 @@ public final class CircuitHeatStaffCoolingHandler {
     private static final String ROOT_TAG = "ApprenticeCodexCircuitHeatStaffCooling";
     private static final String TARGET_KEY_TAG = "TargetKey";
     private static final String PROCESS_COUNT_TAG = "ProcessCount";
-    private static final int PROCESS_INTERVAL_TICKS = 10;
-    private static final int OVERHEAT_REDUCTION_TICKS = 20 * 10;
-    private static final int WATER_CONSUME_PROCESS_COUNT = 3;
 
     private CircuitHeatStaffCoolingHandler() {
     }
 
     public static void onEntityItemUpdate(@NotNull ItemStack stack, @NotNull ItemEntity entity) {
         entity.setUnlimitedLifetime();
-        if (entity.level().isClientSide || entity.tickCount % PROCESS_INTERVAL_TICKS != 0) {
+        if (entity.level().isClientSide || !ApprenticeCodexServerConfig.circuitHeatStaffDropCoolingEnabled()) {
+            return;
+        }
+
+        var processIntervalTicks = ApprenticeCodexServerConfig.circuitHeatStaffDropCoolingProcessIntervalTicks();
+        if (entity.tickCount % processIntervalTicks != 0) {
             return;
         }
 
@@ -46,17 +49,23 @@ public final class CircuitHeatStaffCoolingHandler {
             return;
         }
 
-        CircuitHeatStaff.reduceStaffOverheatTicks(stack, level, OVERHEAT_REDUCTION_TICKS);
+        var reductionTicks = ApprenticeCodexServerConfig.circuitHeatStaffDropCoolingReductionTicks();
+        if (reductionTicks <= 0) {
+            clearCoolingData(entity);
+            return;
+        }
+
+        CircuitHeatStaff.reduceStaffOverheatTicks(stack, level, reductionTicks);
         entity.setItem(stack);
         playCoolingEffects(level, entity, target);
 
-        if (!target.type().isConsumable()) {
+        if (!isConsumableByConfig(target.type())) {
             clearCoolingData(entity);
             return;
         }
 
         var processCount = updateProcessCount(entity, target);
-        if (processCount >= WATER_CONSUME_PROCESS_COUNT) {
+        if (processCount >= ApprenticeCodexServerConfig.circuitHeatStaffDropCoolingWaterConsumeProcessCount()) {
             consumeCoolingTarget(level, target);
             clearCoolingData(entity);
         }
@@ -195,33 +204,38 @@ public final class CircuitHeatStaffCoolingHandler {
     private static void consumeCoolingTarget(@NotNull Level level, @NotNull CoolingTarget target) {
         var state = level.getBlockState(target.pos());
         if (target.type() == CoolingTargetType.WATER_SOURCE) {
-            if (state.is(Blocks.WATER) && state.getFluidState().isSource()) {
+            if (ApprenticeCodexServerConfig.circuitHeatStaffConsumeWaterSourceOnCooling()
+                    && state.is(Blocks.WATER)
+                    && state.getFluidState().isSource()) {
                 level.setBlockAndUpdate(target.pos(), Blocks.AIR.defaultBlockState());
             }
             return;
         }
 
-        if (state.is(Blocks.WATER_CAULDRON)) {
+        if (ApprenticeCodexServerConfig.circuitHeatStaffConsumeWaterCauldronOnCooling()
+                && state.is(Blocks.WATER_CAULDRON)) {
             LayeredCauldronBlock.lowerFillLevel(state, level, target.pos());
         }
     }
 
-    private enum CoolingTargetType {
-        WATER_SOURCE(true, false),
-        WATER_CAULDRON(true, false),
-        POWDER_SNOW_BLOCK(false, true),
-        POWDER_SNOW_CAULDRON(false, true);
+    private static boolean isConsumableByConfig(CoolingTargetType type) {
+        return switch (type) {
+            case WATER_SOURCE -> ApprenticeCodexServerConfig.circuitHeatStaffConsumeWaterSourceOnCooling();
+            case WATER_CAULDRON -> ApprenticeCodexServerConfig.circuitHeatStaffConsumeWaterCauldronOnCooling();
+            case POWDER_SNOW_BLOCK, POWDER_SNOW_CAULDRON -> false;
+        };
+    }
 
-        private final boolean consumable;
+    private enum CoolingTargetType {
+        WATER_SOURCE(false),
+        WATER_CAULDRON(false),
+        POWDER_SNOW_BLOCK(true),
+        POWDER_SNOW_CAULDRON(true);
+
         private final boolean powderSnow;
 
-        CoolingTargetType(boolean consumable, boolean powderSnow) {
-            this.consumable = consumable;
+        CoolingTargetType(boolean powderSnow) {
             this.powderSnow = powderSnow;
-        }
-
-        private boolean isConsumable() {
-            return consumable;
         }
 
         private boolean isPowderSnow() {

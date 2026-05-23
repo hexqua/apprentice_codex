@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -57,6 +58,12 @@ public final class ElementalBowModeManager extends SimpleJsonResourceReloadListe
     @Nullable
     public static ResolvedDefinition getResolvedDefinition(@Nullable ResourceLocation schoolId) {
         return schoolId == null ? null : resolvedDefinitionsBySchool.get(schoolId);
+    }
+
+    public static int resolvePowerArrowSpellLevelBonus(ItemStack stack) {
+        var powerLevel = getEnchantmentLevel(stack, Enchantments.POWER.location());
+        return (int) Math.floor(powerLevel
+                * ApprenticeCodexServerConfig.elementalBowPowerArrowSpellLevelBonusPerLevel());
     }
 
     public static boolean isElementalSpell(@Nullable AbstractSpell spell) {
@@ -141,6 +148,7 @@ public final class ElementalBowModeManager extends SimpleJsonResourceReloadListe
                 schoolType,
                 definition.spell(),
                 spell,
+                definition.requiredDrawTicks(),
                 resolvedBonuses
         );
         resolvedBySchool.put(schoolId, resolvedDefinition);
@@ -165,14 +173,16 @@ public final class ElementalBowModeManager extends SimpleJsonResourceReloadListe
             SchoolType schoolType,
             ResourceLocation spellId,
             AbstractSpell spell,
+            int requiredDrawTicks,
             List<ResolvedEnchantmentBonus> enchantmentBonuses
     ) {
         public ResolvedDefinition {
+            requiredDrawTicks = Math.max(0, requiredDrawTicks);
             enchantmentBonuses = List.copyOf(enchantmentBonuses);
         }
 
         public int resolveSpellLevel(ItemStack stack) {
-            var spellLevel = 1 + getEnchantmentLevel(stack, Enchantments.POWER.location());
+            var spellLevel = 1 + ElementalBowModeManager.resolvePowerArrowSpellLevelBonus(stack);
             // Elemental Bow の属性ショットは preset spell level を tooltip / UI / 実詠唱で共有しているため、
             // 汎用イベント加算ではなくここで POWER 相当の基礎レベルとして先に合算する。
             spellLevel += jp.aquafactory.apprenticecodex.enchantment.Enchantments.getLevel(
@@ -187,6 +197,12 @@ public final class ElementalBowModeManager extends SimpleJsonResourceReloadListe
                 spellLevel += bonus.flatBonus() + bonus.bonusPerLevel() * enchantmentLevel;
             }
             return net.minecraft.util.Mth.clamp(spellLevel, spell.getMinLevel(), spell.getMaxLevel());
+        }
+
+        public int resolveRequiredDrawTicks() {
+            var multipliedTicks = Math.ceil(requiredDrawTicks
+                    * ApprenticeCodexServerConfig.elementalBowMagicReadyDrawTicksMultiplier());
+            return (int) Math.min(Math.max(0.0D, multipliedTicks), Integer.MAX_VALUE);
         }
 
         public int color() {

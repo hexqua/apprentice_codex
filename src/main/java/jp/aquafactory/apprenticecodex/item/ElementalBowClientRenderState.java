@@ -153,8 +153,9 @@ public final class ElementalBowClientRenderState {
         }
 
         float drawDuration = stack.getUseDuration(player) - player.getUseItemRemainingTicks();
-        float completion = Mth.clamp(drawDuration / ElementalBow.READY_DRAW_TICKS, 0.0F, 1.0F);
-        float remainingTicks = Math.max(0.0F, ElementalBow.READY_DRAW_TICKS - drawDuration);
+        var requiredDrawTicks = ElementalBow.resolveMagicRequiredDrawTicks(stack);
+        float completion = requiredDrawTicks <= 0 ? 1.0F : Mth.clamp(drawDuration / requiredDrawTicks, 0.0F, 1.0F);
+        float remainingTicks = Math.max(0.0F, requiredDrawTicks - drawDuration);
         return new CastBarRenderState(true, completion, remainingTicks);
     }
 
@@ -351,7 +352,7 @@ public final class ElementalBowClientRenderState {
         private OrbRotationState resolveRotation(long gameTime, float partialTick) {
             if (drawing) {
                 float elapsed = (gameTime - drawStartGameTime) + partialTick;
-                float accelerationDuration = Math.max(1.0F, ElementalBow.READY_DRAW_TICKS);
+                float accelerationDuration = Math.max(1.0F, ElementalBow.resolveMagicRequiredDrawTicks(trackedStack));
                 return new OrbRotationState(
                         true,
                         drawStartRotX + resolveAcceleratedRotationOffset(elapsed, rotXSpeed, accelerationDuration),

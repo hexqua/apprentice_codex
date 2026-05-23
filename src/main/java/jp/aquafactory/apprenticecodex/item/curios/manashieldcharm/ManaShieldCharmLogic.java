@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.forcefield.ForceFieldDefenseEvent;
@@ -31,12 +32,7 @@ import top.theillusivec4.curios.api.SlotContext;
 import java.util.function.Consumer;
 
 final class ManaShieldCharmLogic {
-    private static final float MANA_PER_DAMAGE = 25.0F;
-    private static final float SYNCHRONIZATION_MANA_PER_DAMAGE = 30.0F;
     private static final float DAMAGE_STEP = 1.0F;
-    private static final float RECOVERY_THRESHOLD_MANA = 100.0F;
-    private static final int VANILLA_INVULNERABLE_TIME_TICKS = 20;
-    private static final int VANILLA_COOLDOWN_DAMAGE_GATE_TICKS = VANILLA_INVULNERABLE_TIME_TICKS / 2;
 
     private ManaShieldCharmLogic() {
     }
@@ -113,19 +109,18 @@ final class ManaShieldCharmLogic {
             case FULLY_NEGATED_ACTIVE -> {
                 event.setCanceled(true);
                 applyVanillaStyleIFrame(player);
-                event.setInvulnerabilityTicks(Math.max(player.invulnerableTime, VANILLA_INVULNERABLE_TIME_TICKS));
+                event.setInvulnerabilityTicks(Math.max(player.invulnerableTime, invulnerableTimeTicks()));
                 ForceFieldDefenseEvent.spawnManaShieldWallEffect(player, event.getSource(), false);
             }
             case FULLY_NEGATED_BURNED_OUT -> {
                 event.setCanceled(true);
                 applyVanillaStyleIFrame(player);
-                event.setInvulnerabilityTicks(Math.max(player.invulnerableTime, VANILLA_INVULNERABLE_TIME_TICKS));
+                event.setInvulnerabilityTicks(Math.max(player.invulnerableTime, invulnerableTimeTicks()));
                 ForceFieldDefenseEvent.spawnManaShieldWallEffect(player, event.getSource(), true);
             }
             case PARTIALLY_NEGATED_FAILED -> {
                 ForceFieldDefenseEvent.spawnManaShieldWallEffect(player, event.getSource(), true);
-                // Forge 1.20.1 では LivingAttackEvent が防御計算前なので、cancel 後に残ダメージだけ hurt し直して
-                // 防具・エンチャント・吸収・ノックバックの通常経路へ戻す。1.21.1 側へはそのまま運ばず再確認すること。
+                // LivingIncomingDamageEvent の cancel 後も、残ダメージだけは防具・エンチャント・吸収・ノックバックの通常経路へ戻す。
                 withState(player, current -> current.manualReentryGuard = true);
                 try {
                     applyResidualDamage(player, event.getSource(), resolution.remainingDamage(), resolution.residualDamageProfile());
@@ -137,14 +132,22 @@ final class ManaShieldCharmLogic {
     }
 
     private static boolean shouldIgnoreDuringVanillaStyleIFrame(ServerPlayer player, LivingIncomingDamageEvent event) {
-        return player.invulnerableTime > VANILLA_COOLDOWN_DAMAGE_GATE_TICKS
+        var invulnerableTimeTicks = invulnerableTimeTicks();
+        if (invulnerableTimeTicks <= 0) {
+            return false;
+        }
+
+        return player.invulnerableTime > invulnerableTimeTicks / 2
                 && !event.getSource().is(DamageTypeTags.BYPASSES_COOLDOWN);
     }
 
     private static void applyVanillaStyleIFrame(ServerPlayer player) {
         // LivingIncomingDamageEvent を cancel すると通常の hurt 経路が走らず i-frame が付かないため、
         // 完全無効化時だけバニラ相当の無敵時間を明示的に与えて継続接触ダメージの多重消費を防ぐ。
-        player.invulnerableTime = Math.max(player.invulnerableTime, VANILLA_INVULNERABLE_TIME_TICKS);
+        var invulnerableTimeTicks = invulnerableTimeTicks();
+        if (invulnerableTimeTicks > 0) {
+            player.invulnerableTime = Math.max(player.invulnerableTime, invulnerableTimeTicks);
+        }
     }
 
     static void onDeath(ServerPlayer player) {
@@ -171,7 +174,7 @@ final class ManaShieldCharmLogic {
         var barrierResolution = negateDamageWithMana(
                 incomingDamage,
                 HitManaBudget.forIncomingHit(currentMana),
-                MANA_PER_DAMAGE
+                manaPerDamage()
         );
         return new DamageResolution(
                 barrierResolution.negatedDamage(),
@@ -192,7 +195,7 @@ final class ManaShieldCharmLogic {
         var barrierResolution = negateDamageWithMana(
                 reducedDamage,
                 HitManaBudget.forIncomingHit(currentMana),
-                MANA_PER_DAMAGE
+                manaPerDamage()
         );
         return new DamageResolution(
                 barrierResolution.negatedDamage(),
@@ -214,7 +217,7 @@ final class ManaShieldCharmLogic {
         var synchronizationCharge = consumeMitigationCost(
                 mitigatedBySynchronization,
                 HitManaBudget.forIncomingHit(currentMana),
-                SYNCHRONIZATION_MANA_PER_DAMAGE
+                synchronizationManaPerDamage()
         );
         if (synchronizationCharge.stopBeforeBarrierStage()) {
             return new DamageResolution(
@@ -229,7 +232,7 @@ final class ManaShieldCharmLogic {
         var barrierResolution = negateDamageWithMana(
                 reducedDamage,
                 synchronizationCharge.hitManaBudget(),
-                MANA_PER_DAMAGE
+                manaPerDamage()
         );
         return new DamageResolution(
                 mitigatedBySynchronization + barrierResolution.negatedDamage(),
@@ -241,15 +244,23 @@ final class ManaShieldCharmLogic {
     }
 
     private static void applyManaResult(ServerPlayer player, MagicData magicData, float remainingMana) {
+        var spentMana = magicData.getMana() > remainingMana + 1.0e-4F;
         magicData.setMana(Math.max(0.0F, remainingMana));
-        if (remainingMana <= 0.0F) {
+        if (remainingMana <= 0.0F && spentMana && recoveryThresholdMana() > 0) {
             withState(player, state -> state.cooldownActive = true);
+        } else {
+            withState(player, state -> state.cooldownActive = false);
         }
     }
 
     private static void refreshCooldownIfRecovered(ServerPlayer player) {
+        if (recoveryThresholdMana() <= 0) {
+            withState(player, state -> state.cooldownActive = false);
+            return;
+        }
+
         var magicData = MagicData.getPlayerMagicData(player);
-        if (magicData == null || magicData.getMana() < RECOVERY_THRESHOLD_MANA) {
+        if (magicData == null || magicData.getMana() < recoveryThresholdMana()) {
             return;
         }
 
@@ -301,20 +312,19 @@ final class ManaShieldCharmLogic {
 
     private static void handleNeutralization(LivingIncomingDamageEvent event, ServerPlayer player, MagicData magicData) {
         var recoverMana = calculateRecoveryMana(event.getAmount());
-        if (recoverMana <= 0.0F) {
-            return;
+        if (recoverMana > 0.0F) {
+            MagicTools.recoverManaSafely(player, magicData, recoverMana);
+            refreshCooldownIfRecovered(player);
         }
 
-        MagicTools.recoverManaSafely(player, magicData, recoverMana);
-        refreshCooldownIfRecovered(player);
         event.setCanceled(true);
         applyVanillaStyleIFrame(player);
-        event.setInvulnerabilityTicks(Math.max(player.invulnerableTime, VANILLA_INVULNERABLE_TIME_TICKS));
+        event.setInvulnerabilityTicks(Math.max(player.invulnerableTime, invulnerableTimeTicks()));
         ForceFieldDefenseEvent.spawnManaShieldWallEffect(player, event.getSource(), false);
     }
 
     private static float calculateRecoveryMana(float incomingDamage) {
-        return countWholeDamageSteps(incomingDamage) * MANA_PER_DAMAGE;
+        return countWholeDamageSteps(incomingDamage) * neutralizationRecoverManaPerDamage();
     }
 
     private static EnchantmentMode resolveEnchantmentMode(ItemStack charmStack, DamageSource source) {
@@ -343,6 +353,19 @@ final class ManaShieldCharmLogic {
         var remainingMana = hitManaBudget.remainingMana();
         var negatedDamage = 0.0F;
         var overdraftAvailable = hitManaBudget.overdraftAvailable();
+
+        if (manaPerDamage <= 0.0F) {
+            while (remainingDamage >= DAMAGE_STEP) {
+                remainingDamage -= DAMAGE_STEP;
+                negatedDamage += DAMAGE_STEP;
+            }
+
+            return new BarrierResolution(
+                    negatedDamage,
+                    Math.max(remainingDamage, 0.0F),
+                    new HitManaBudget(remainingMana, overdraftAvailable)
+            );
+        }
 
         while (remainingDamage >= DAMAGE_STEP) {
             if (remainingMana >= manaPerDamage) {
@@ -374,6 +397,10 @@ final class ManaShieldCharmLogic {
     ) {
         var remainingDamage = mitigatedDamage;
         var remainingMana = hitManaBudget.remainingMana();
+
+        if (manaPerDamage <= 0.0F) {
+            return new MitigationChargeResult(hitManaBudget, false);
+        }
 
         while (remainingDamage >= DAMAGE_STEP && remainingMana >= manaPerDamage) {
             remainingDamage -= DAMAGE_STEP;
@@ -426,13 +453,18 @@ final class ManaShieldCharmLogic {
     }
 
     private static void damageArmorPiecesForShell(ServerPlayer player) {
+        var durabilityDamage = ApprenticeCodexServerConfig.manaShieldCharmShellArmorDurabilityDamage();
+        if (durabilityDamage <= 0) {
+            return;
+        }
+
         for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
             var armorStack = player.getItemBySlot(slot);
             if (armorStack.isEmpty() || !armorStack.isDamageableItem()) {
                 continue;
             }
 
-            armorStack.hurtAndBreak(1, player, slot);
+            armorStack.hurtAndBreak(durabilityDamage, player, slot);
         }
     }
 
@@ -499,7 +531,10 @@ final class ManaShieldCharmLogic {
         player.getCombatTracker().recordDamage(source, healthDamage);
         player.setHealth(player.getHealth() - healthDamage);
         player.gameEvent(GameEvent.ENTITY_DAMAGE);
-        player.invulnerableTime = Math.max(player.invulnerableTime, VANILLA_INVULNERABLE_TIME_TICKS);
+        var invulnerableTimeTicks = invulnerableTimeTicks();
+        if (invulnerableTimeTicks > 0) {
+            player.invulnerableTime = Math.max(player.invulnerableTime, invulnerableTimeTicks);
+        }
     }
 
     private static ArmorStats resolveArmorStats(ServerPlayer player) {
@@ -545,6 +580,26 @@ final class ManaShieldCharmLogic {
             ++count;
         }
         return count;
+    }
+
+    private static float manaPerDamage() {
+        return ApprenticeCodexServerConfig.manaShieldCharmManaPerDamage();
+    }
+
+    private static int recoveryThresholdMana() {
+        return ApprenticeCodexServerConfig.manaShieldCharmRecoveryThresholdMana();
+    }
+
+    private static float synchronizationManaPerDamage() {
+        return ApprenticeCodexServerConfig.manaShieldCharmSynchronizationManaPerDamage();
+    }
+
+    private static float neutralizationRecoverManaPerDamage() {
+        return ApprenticeCodexServerConfig.manaShieldCharmNeutralizationRecoverManaPerDamage();
+    }
+
+    private static int invulnerableTimeTicks() {
+        return ApprenticeCodexServerConfig.manaShieldCharmInvulnerableTimeTicks();
     }
 
     private enum MitigationResult {

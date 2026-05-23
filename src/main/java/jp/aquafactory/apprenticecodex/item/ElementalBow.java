@@ -114,7 +114,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
                     var perspective = state.getData(DataTickets.ITEM_RENDER_PERSPECTIVE);
                     if (ElementalBowClientRenderState.shouldPlayDrawAnimation(stack, perspective)) {
                         state.setAnimation(ANIM_DRAW);
-                        state.getController().setAnimationSpeed(resolveDrawAnimationSpeed());
+                        state.getController().setAnimationSpeed(resolveDrawAnimationSpeed(stack));
                     } else {
                         state.setAnimation(ANIM_IDLE);
                         state.getController().setAnimationSpeed(1.0D);
@@ -215,7 +215,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         }
 
         var drawDuration = stack.getUseDuration(entity) - remainingUseDuration;
-        if (drawDuration <= 0 || drawDuration >= READY_DRAW_TICKS) {
+        if (drawDuration <= 0 || drawDuration >= mode.resolveRequiredDrawTicks()) {
             return;
         }
 
@@ -513,7 +513,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         var canFireWithoutAmmo = player.getAbilities().instabuild || hasSynthesisEnchantment;
         var drawDuration = stack.getUseDuration(player) - timeLeft;
         drawDuration = EventHooks.onArrowLoose(stack, level, player, drawDuration, ammoSource != null || canFireWithoutAmmo);
-        if (drawDuration < READY_DRAW_TICKS) {
+        if (drawDuration < mode.resolveRequiredDrawTicks()) {
             return;
         }
 
@@ -984,12 +984,21 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         return hasInfinity(bowStack) && ammoStack.is(Items.ARROW);
     }
 
-    public static double resolveDrawAnimationSpeed() {
-        return DRAW_ANIMATION_SOURCE_SECONDS / resolveDrawDurationSeconds();
+    public static double resolveDrawAnimationSpeed(ItemStack stack) {
+        return DRAW_ANIMATION_SOURCE_SECONDS / resolveDrawDurationSeconds(stack);
     }
 
-    private static float resolveDrawDurationSeconds() {
-        return READY_DRAW_TICKS / 20.0F;
+    private static float resolveDrawDurationSeconds(ItemStack stack) {
+        return Math.max(1, resolveMagicRequiredDrawTicks(stack)) / 20.0F;
+    }
+
+    public static int resolveMagicRequiredDrawTicks(ItemStack stack) {
+        if (!(stack.getItem() instanceof ElementalBow elementalBow)) {
+            return READY_DRAW_TICKS;
+        }
+
+        var mode = elementalBow.resolveConfiguredMagicMode(stack);
+        return mode == null ? READY_DRAW_TICKS : mode.resolveRequiredDrawTicks();
     }
 
     private void triggerReleaseAnimation(Player player, ItemStack stack) {

@@ -16,12 +16,15 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPac
 import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletNotificationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncApprenticeDeskConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffOverheatPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaShieldCharmConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
@@ -39,7 +42,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "26";
+    private static final String PROTOCOL_VERSION = "30";
 
     private Networks() {
     }
@@ -59,6 +62,11 @@ public final class Networks {
                 ClientFocusStaffbowCancelPacket.TYPE,
                 ClientFocusStaffbowCancelPacket.STREAM_CODEC,
                 ClientFocusStaffbowCancelPacket::handle
+        );
+        registrar.playToClient(
+                SyncFocusStaffbowConfigPacket.TYPE,
+                SyncFocusStaffbowConfigPacket.STREAM_CODEC,
+                SyncFocusStaffbowConfigPacket::handle
         );
         registrar.playToServer(
                 ClientConfirmElementalBowModePacket.TYPE,
@@ -106,6 +114,11 @@ public final class Networks {
                 SyncManaForceBladeConfigPacket::handle
         );
         registrar.playToClient(
+                SyncManaShieldCharmConfigPacket.TYPE,
+                SyncManaShieldCharmConfigPacket.STREAM_CODEC,
+                SyncManaShieldCharmConfigPacket::handle
+        );
+        registrar.playToClient(
                 SyncScarletThirstHealthPacket.TYPE,
                 SyncScarletThirstHealthPacket.STREAM_CODEC,
                 SyncScarletThirstHealthPacket::handle
@@ -144,6 +157,11 @@ public final class Networks {
                 SyncCircuitHeatStaffOverheatPacket.TYPE,
                 SyncCircuitHeatStaffOverheatPacket.STREAM_CODEC,
                 SyncCircuitHeatStaffOverheatPacket::handle
+        );
+        registrar.playToClient(
+                SyncCircuitHeatStaffConfigPacket.TYPE,
+                SyncCircuitHeatStaffConfigPacket.STREAM_CODEC,
+                SyncCircuitHeatStaffConfigPacket::handle
         );
         registrar.playToClient(
                 SyncAutocastAmuletNotificationPacket.TYPE,

@@ -98,14 +98,21 @@ public final class FocusStaffbowClientCastState {
                     spellId,
                     startedGameTime,
                     elapsedTicks,
-                    FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(elapsedTicks),
+                    FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(
+                            elapsedTicks,
+                            FocusStaffbowClientConfigState.chargeSettings()
+                    ),
                     1.0F
             );
         }
 
         var multiplier = elapsedTicks < requiredCastTicks
                 ? 1.0D
-                : FocusStaffbowChargeLogic.computePendingChargeMultiplier(elapsedTicks, chargeBaselineTicks);
+                : FocusStaffbowChargeLogic.computePendingChargeMultiplier(
+                        elapsedTicks,
+                        chargeBaselineTicks,
+                        FocusStaffbowClientConfigState.chargeSettings()
+                );
         var longRampProgress = requiredCastTicks > 0 && elapsedTicks < requiredCastTicks
                 ? Mth.clamp(elapsedTicks / (float) requiredCastTicks, 0.0F, 1.0F)
                 : 1.0F;
@@ -146,7 +153,10 @@ public final class FocusStaffbowClientCastState {
         // 初回表示は main hand に FocusStaffbow を持っている限り許可し、1フレームで捨てない。
         long elapsedTicks = Math.max(0L, currentGameTime - startedGameTime);
         if (isContinuous()) {
-            var appliedMultiplier = FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(elapsedTicks);
+            var appliedMultiplier = FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(
+                    elapsedTicks,
+                    FocusStaffbowClientConfigState.chargeSettings()
+            );
             return new CastBarRenderState(
                     true,
                     FocusStaffbowChargeLogic.computeContinuousChargeProgress(elapsedTicks),
@@ -163,7 +173,11 @@ public final class FocusStaffbowClientCastState {
             return new CastBarRenderState(true, completion, remainingLabel, "", 0xFFFFFF, 0xFFFFFF);
         }
 
-        var appliedMultiplier = FocusStaffbowChargeLogic.computePendingChargeMultiplier(elapsedTicks, chargeBaselineTicks);
+        var appliedMultiplier = FocusStaffbowChargeLogic.computePendingChargeMultiplier(
+                elapsedTicks,
+                chargeBaselineTicks,
+                FocusStaffbowClientConfigState.chargeSettings()
+        );
 
         var plannedManaCost = resolveDisplayedManaCost(player, appliedMultiplier);
         var currentMana = resolveCurrentMana(player);
@@ -183,7 +197,11 @@ public final class FocusStaffbowClientCastState {
             return 0;
         }
 
-        return FocusStaffbowChargeLogic.computeScaledManaCost(baseManaCost, appliedMultiplier);
+        return FocusStaffbowChargeLogic.computeScaledManaCost(
+                baseManaCost,
+                appliedMultiplier,
+                FocusStaffbowClientConfigState.chargeSettings()
+        );
     }
 
     private static float resolveCurrentMana(LocalPlayer player) {

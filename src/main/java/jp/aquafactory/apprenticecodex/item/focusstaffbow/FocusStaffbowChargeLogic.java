@@ -17,7 +17,11 @@ public final class FocusStaffbowChargeLogic {
     }
 
     public static int normalizePendingChargeBaselineTicks(int effectiveCastTicks) {
-        return Math.max(MINIMUM_OVERCHARGE_BASELINE_TICKS, Math.max(0, effectiveCastTicks));
+        return normalizePendingChargeBaselineTicks(effectiveCastTicks, FocusStaffbowChargeSettings.DEFAULT);
+    }
+
+    public static int normalizePendingChargeBaselineTicks(int effectiveCastTicks, FocusStaffbowChargeSettings settings) {
+        return Math.max(settings.minimumOverchargeBaselineTicks(), Math.max(0, effectiveCastTicks));
     }
 
     public static int normalizeContinuousRequiredCastTicks(int effectiveCastTicks) {
@@ -30,41 +34,57 @@ public final class FocusStaffbowChargeLogic {
     }
 
     public static double computePendingChargeMultiplier(long totalCastTicks, int baselineCastTicks) {
-        var normalizedBaselineTicks = Math.max(MINIMUM_OVERCHARGE_BASELINE_TICKS, baselineCastTicks);
+        return computePendingChargeMultiplier(totalCastTicks, baselineCastTicks, FocusStaffbowChargeSettings.DEFAULT);
+    }
+
+    public static double computePendingChargeMultiplier(long totalCastTicks, int baselineCastTicks,
+                                                        FocusStaffbowChargeSettings settings) {
+        var normalizedBaselineTicks = Math.max(settings.minimumOverchargeBaselineTicks(), baselineCastTicks);
         var normalizedCastTicks = Math.max(0L, totalCastTicks);
         if (normalizedCastTicks <= normalizedBaselineTicks) {
             return 1.0D;
         }
 
+        var maxMultiplier = Math.max(1.0D, settings.pendingMaxChargeMultiplier());
         var overchargeTicks = normalizedCastTicks - normalizedBaselineTicks;
-        var secondStageThresholdTicks = normalizedBaselineTicks * 2L;
-        if (overchargeTicks <= secondStageThresholdTicks) {
-            return Math.min(
-                    MAX_PENDING_CHARGE_MULTIPLIER,
-                    1.0D + overchargeTicks / (double) (normalizedBaselineTicks * 2L)
+        var firstStageTicks = Math.max(1L, normalizedBaselineTicks * 2L);
+        var firstStageTarget = Math.min(2.0D, maxMultiplier);
+        if (overchargeTicks <= firstStageTicks || maxMultiplier <= 2.0D) {
+            var progress = Math.min(1.0D, overchargeTicks / (double) firstStageTicks);
+            return clampChargeMultiplier(
+                    1.0D + (firstStageTarget - 1.0D) * progress,
+                    maxMultiplier
             );
         }
 
-        var secondStageOverchargeTicks = overchargeTicks - secondStageThresholdTicks;
-        return Math.min(
-                MAX_PENDING_CHARGE_MULTIPLIER,
-                2.0D + secondStageOverchargeTicks / (double) (normalizedBaselineTicks * 3L)
+        var secondStageTicks = Math.max(1L, normalizedBaselineTicks * 3L);
+        var secondStageOverchargeTicks = overchargeTicks - firstStageTicks;
+        var progress = Math.min(1.0D, secondStageOverchargeTicks / (double) secondStageTicks);
+        return clampChargeMultiplier(
+                2.0D + (maxMultiplier - 2.0D) * progress,
+                maxMultiplier
         );
     }
 
     public static double computeContinuousChargeMultiplier(long totalCastTicks) {
+        return computeContinuousChargeMultiplier(totalCastTicks, FocusStaffbowChargeSettings.DEFAULT);
+    }
+
+    public static double computeContinuousChargeMultiplier(long totalCastTicks, FocusStaffbowChargeSettings settings) {
         var normalizedCastTicks = Math.max(0L, totalCastTicks);
+        var maxMultiplier = Math.max(1.0D, settings.continuousMaxChargeMultiplier());
+        var midpointMultiplier = 1.0D + (maxMultiplier - 1.0D) * 0.5D;
         if (normalizedCastTicks <= CONTINUOUS_STAGE_ONE_TICKS) {
             return clampChargeMultiplier(
-                    1.0D + normalizedCastTicks / (double) (CONTINUOUS_STAGE_ONE_TICKS * 2L),
-                    MAX_CONTINUOUS_CHARGE_MULTIPLIER
+                    1.0D + (midpointMultiplier - 1.0D) * normalizedCastTicks / (double) CONTINUOUS_STAGE_ONE_TICKS,
+                    maxMultiplier
             );
         }
 
         var secondStageTicks = normalizedCastTicks - CONTINUOUS_STAGE_ONE_TICKS;
         return clampChargeMultiplier(
-                1.5D + secondStageTicks / (double) (CONTINUOUS_STAGE_TWO_TICKS * 2L),
-                MAX_CONTINUOUS_CHARGE_MULTIPLIER
+                midpointMultiplier + (maxMultiplier - midpointMultiplier) * secondStageTicks / (double) CONTINUOUS_STAGE_TWO_TICKS,
+                maxMultiplier
         );
     }
 
@@ -73,11 +93,17 @@ public final class FocusStaffbowChargeLogic {
     }
 
     public static int computeScaledManaCost(int baseManaCost, double chargeMultiplier) {
+        return computeScaledManaCost(baseManaCost, chargeMultiplier, FocusStaffbowChargeSettings.DEFAULT);
+    }
+
+    public static int computeScaledManaCost(int baseManaCost, double chargeMultiplier, FocusStaffbowChargeSettings settings) {
         if (baseManaCost <= 0) {
             return 0;
         }
 
-        return (int) Math.floor(baseManaCost * chargeMultiplier * chargeMultiplier);
+        return (int) Math.floor(baseManaCost
+                * settings.chargeManaCostMultiplier()
+                * Math.pow(Math.max(1.0D, chargeMultiplier), settings.chargeManaCostExponent()));
     }
 
     public static long sampleElapsedTicks(long elapsedTicks, int intervalTicks) {

@@ -59,6 +59,7 @@ import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffRightClickItemEvent;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
@@ -3122,6 +3123,8 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(menu.getSlot(0).mayPlace(gauntlet), "Scrollcaster Gauntlet should be accepted in the gauntlet slot");
             helper.assertTrue(!menu.getSlot(0).mayPlace(new ItemStack(Items.STICK)), "Non-gauntlet items should be rejected from the gauntlet slot");
             helper.assertTrue(!menu.getSlot(1).mayPlace(lesserUpgrade), "Adjustment slots should be disabled without a gauntlet");
+            helper.assertTrue(lesserUpgrade.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES),
+                    "Lesser spell slot upgrade should be tagged as a Scrollcaster Gauntlet slot upgrade");
 
             menu.getSlot(0).set(gauntlet);
             helper.assertTrue(menu.isScrollSlotEnabled(0), "Scroll slot 0 should be enabled by default");
@@ -3334,6 +3337,10 @@ public final class ApprenticeCodexGameTestScenarios {
             var lesserUpgrade = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get());
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
 
+            helper.assertTrue(lesserUpgrade.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES),
+                    "Lesser spell slot upgrade should be tagged as a Scrollcaster Gauntlet slot upgrade");
+            helper.assertTrue(enchantedBook.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS),
+                    "Vanilla enchanted book should be tagged as a Scrollcaster Gauntlet enchantment book");
             menu.getSlot(0).set(gauntlet);
             helper.assertTrue(
                     ScrollcasterSchoolRuneResolver.resolveSchool(fireRune)
@@ -3358,8 +3365,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Manual rune override should take precedence over automatic rune lookup"
             );
             helper.assertTrue(menu.getSlot(1).mayPlace(fireRune), "School rune should be accepted as a calibration adjustment");
-            helper.assertTrue(menu.getSlot(2).mayPlace(enchantedBook), "Enchanted book should be accepted as a calibration adjustment");
-            helper.assertTrue(menu.getSlot(3).mayPlace(lesserUpgrade), "Lesser spell slot upgrade should be accepted as a calibration adjustment");
+            helper.assertTrue(menu.getSlot(2).mayPlace(enchantedBook), "Tagged enchantment books should be accepted as a calibration adjustment");
+            helper.assertTrue(menu.getSlot(3).mayPlace(lesserUpgrade), "Tagged slot upgrades should be accepted as a calibration adjustment");
             helper.assertTrue(!menu.getSlot(1).mayPlace(arcaneRune), "Arcane rune should not be treated as a scrollcaster school rune");
 
             menu.getSlot(1).set(fireRune);
@@ -3507,6 +3514,21 @@ public final class ApprenticeCodexGameTestScenarios {
             menu.getSlot(2).set(ItemStack.EMPTY);
             helper.assertTrue(EnchantmentHelper.getEnchantmentsForCrafting(gauntlet).isEmpty(),
                     "Removing Bench books should clear gauntlet enchantments");
+
+            var sharpnessId = sharpness.key().location();
+            var mendingId = mending.key().location();
+            try (var ignored = ApprenticeCodexServerConfig.useScrollcasterGauntletConfigOverrideForGameTest(
+                    List.of(sharpnessId.toString()),
+                    List.of(sharpnessId.toString(), mendingId.toString())
+            )) {
+                menu.getSlot(1).set(createEnchantedBook(sharpness, 1));
+                helper.assertTrue(getEnchantmentLevel(gauntlet, sharpness) == 0,
+                        "Denied Scrollcaster Gauntlet enchantments should not transfer even when normally supported or compat-allowed");
+
+                menu.getSlot(1).set(createEnchantedBook(mending, 1));
+                helper.assertTrue(getEnchantmentLevel(gauntlet, mending) == 1,
+                        "Compat additional allowed Scrollcaster Gauntlet enchantments should transfer when not denied");
+            }
         });
     }
 
@@ -5092,7 +5114,7 @@ public final class ApprenticeCodexGameTestScenarios {
             var synchronizationSteps = countWholeDamageStepsForGameTest(5.0F - reducedDamage);
             helper.assertTrue(synchronizationSteps > 0,
                     "Synchronization low mana enchant-stage test should require at least one enchant mitigation cost step");
-            magicData.setMana(synchronizationSteps * 30.0F - 1.0F);
+            magicData.setMana(synchronizationSteps * ApprenticeCodexServerConfig.manaShieldCharmSynchronizationManaPerDamage() - 1.0F);
 
             var event = postLivingAttackEventForGameTest(player, source, 5.0F);
             var expectedHealthLoss = CombatRules.getDamageAfterAbsorb(
@@ -5146,7 +5168,8 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(synchronizationSteps > 0,
                     "Synchronization low mana barrier-stage test should still require enchant mitigation cost before the barrier");
 
-            magicData.setMana(synchronizationSteps * 30.0F + 24.0F);
+            magicData.setMana(synchronizationSteps * ApprenticeCodexServerConfig.manaShieldCharmSynchronizationManaPerDamage()
+                    + ApprenticeCodexServerConfig.manaShieldCharmManaPerDamage() - 1.0F);
             var event = postLivingAttackEventForGameTest(player, source, incomingDamage);
 
             helper.assertTrue(event.isCanceled(),
@@ -5192,6 +5215,229 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(state.cooldownActive,
                     "Neutralization should not clear cooldown until mana reaches the normal recovery threshold");
             helper.succeed();
+        });
+    }
+
+    static void manaShieldCharmFreeManaCostConfigAbsorbsWithoutDepletionCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    0.0D,
+                    100,
+                    30.0D,
+                    25.0D,
+                    1,
+                    20
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_free_cost_test");
+                equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Mana Shield Charm free-cost test could not resolve player mana data");
+                magicData.setMana(0.0F);
+                player.invulnerableTime = 0;
+                var initialHealth = player.getHealth();
+
+                var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 2.0F);
+
+                helper.assertTrue(event.isCanceled(),
+                        "Mana Shield Charm should absorb whole damage steps without mana when manaPerDamage is zero");
+                helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
+                        "Free-cost Mana Shield Charm should keep health unchanged");
+                helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                        "Free-cost Mana Shield Charm should not recover or spend mana");
+                helper.assertFalse(getManaShieldCharmState(player).cooldownActive,
+                        "Free-cost Mana Shield Charm should not enter depletion cooldown without spending mana");
+            }
+        });
+    }
+
+    static void manaShieldCharmZeroRecoveryThresholdDisablesDepletionCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    25.0D,
+                    0,
+                    30.0D,
+                    25.0D,
+                    1,
+                    20
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_no_cooldown_test");
+                equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Mana Shield Charm zero-threshold test could not resolve player mana data");
+                var state = getManaShieldCharmState(player);
+                state.reset();
+                state.cooldownActive = true;
+                magicData.setMana(25.0F);
+                player.invulnerableTime = 0;
+
+                var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+
+                helper.assertTrue(event.isCanceled(),
+                        "Mana Shield Charm should clear existing cooldown and absorb while recovery threshold is zero");
+                helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                        "Mana Shield Charm should still spend mana when only depletion cooldown is disabled");
+                helper.assertFalse(state.cooldownActive,
+                        "Mana Shield Charm should not enter depletion cooldown when recovery threshold is zero");
+            }
+        });
+    }
+
+    static void manaShieldCharmSynchronizationManaCostUsesServerConfig(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    25.0D,
+                    100,
+                    10.0D,
+                    25.0D,
+                    1,
+                    20
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_config_test");
+                var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+                var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+                charm.enchant(enchantmentLookup.getOrThrow(Enchantments.SYNCHRONIZATION), 1);
+                equipCurio(player, CuriosSlotConstants.CHARM, charm);
+                var protectionEnchantment = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.PROTECTION);
+                for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+                    var armorStack = switch (slot) {
+                        case HEAD -> new ItemStack(Items.IRON_HELMET);
+                        case CHEST -> new ItemStack(Items.IRON_CHESTPLATE);
+                        case LEGS -> new ItemStack(Items.IRON_LEGGINGS);
+                        case FEET -> new ItemStack(Items.IRON_BOOTS);
+                        default -> ItemStack.EMPTY;
+                    };
+                    armorStack.enchant(protectionEnchantment, 10);
+                    player.setItemSlot(slot, armorStack);
+                }
+
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Synchronization config test could not resolve player mana data");
+                magicData.setMana(100.0F);
+                var source = helper.getLevel().damageSources().lava();
+                var protection = EnchantmentHelper.getDamageProtection(player.serverLevel(), player, source);
+                var incomingDamage = 1.5F;
+                var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(incomingDamage, protection);
+                helper.assertTrue(reducedDamage < 1.0F,
+                        "Synchronization config test should isolate the enchant-reduction cost before the barrier stage"
+                                + " protection=" + protection
+                                + " reducedDamage=" + reducedDamage);
+                var expectedRemainingMana = resolveExpectedSynchronizationManaAfterHitForGameTest(incomingDamage, 100.0F, protection);
+
+                var event = postLivingAttackEventForGameTest(player, source, incomingDamage);
+
+                helper.assertTrue(event.isCanceled(),
+                        "Synchronization config test should cancel the intercepted hit");
+                helper.assertTrue(Math.abs(magicData.getMana() - expectedRemainingMana) < 1.0e-4F,
+                        "Synchronization should use configured mana cost"
+                                + " expectedMana=" + expectedRemainingMana
+                                + " actualMana=" + magicData.getMana());
+                helper.succeed();
+            }
+        });
+    }
+
+    static void manaShieldCharmNeutralizationZeroRecoveryStillNullifies(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    25.0D,
+                    100,
+                    30.0D,
+                    0.0D,
+                    1,
+                    20
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_neutralization_zero_test");
+                var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+                charm.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                        .getOrThrow(Enchantments.NEUTRALIZATION), 1);
+                equipCurio(player, CuriosSlotConstants.CHARM, charm);
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Neutralization zero-recovery test could not resolve player mana data");
+                magicData.setMana(10.0F);
+                player.invulnerableTime = 0;
+                var initialHealth = player.getHealth();
+                var source = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(helper.getLevel(), player, DamageTypes.UNITE_LUNA);
+
+                var event = postLivingAttackEventForGameTest(player, source, 2.0F);
+
+                helper.assertTrue(event.isCanceled(),
+                        "Neutralization should still nullify armor-bypass damage when configured recovery is zero");
+                helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
+                        "Neutralization zero-recovery should fully negate armor-bypass damage");
+                helper.assertTrue(Math.abs(magicData.getMana() - 10.0F) < 1.0e-4F,
+                        "Neutralization zero-recovery should leave mana unchanged");
+                helper.succeed();
+            }
+        });
+    }
+
+    static void manaShieldCharmShellArmorDurabilityDamageUsesServerConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    25.0D,
+                    100,
+                    30.0D,
+                    25.0D,
+                    0,
+                    20
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_shell_durability_config_test");
+                var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+                charm.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                        .getOrThrow(Enchantments.SHELL), 1);
+                equipCurio(player, CuriosSlotConstants.CHARM, charm);
+                var chestplate = new ItemStack(Items.IRON_CHESTPLATE);
+                player.setItemSlot(EquipmentSlot.CHEST, chestplate);
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Shell durability config test could not resolve player mana data");
+                magicData.setMana(100.0F);
+                player.invulnerableTime = 0;
+                var armor = getEquippedAttributeTotal(player, Attributes.ARMOR);
+                var toughness = getEquippedAttributeTotal(player, Attributes.ARMOR_TOUGHNESS);
+                var source = helper.getLevel().damageSources().lava();
+                var incomingDamage = findDamageForArmorReducedTarget(player, source, armor, toughness, 1.0F);
+
+                var event = postLivingAttackEventForGameTest(player, source, incomingDamage);
+
+                helper.assertTrue(event.isCanceled(),
+                        "Shell durability config test should still intercept normal damage");
+                helper.assertTrue(chestplate.getDamageValue() == 0,
+                        "Shell should not damage armor when configured durability damage is zero");
+            }
+        });
+    }
+
+    static void manaShieldCharmInvulnerableTimeUsesServerConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    25.0D,
+                    100,
+                    30.0D,
+                    25.0D,
+                    1,
+                    6
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_iframe_config_test");
+                equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Mana Shield Charm i-frame config test could not resolve player mana data");
+                magicData.setMana(100.0F);
+                player.invulnerableTime = 0;
+
+                var firstEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+                helper.assertTrue(firstEvent.isCanceled(),
+                        "Mana Shield Charm i-frame config test should cancel the first hit");
+                helper.assertTrue(player.invulnerableTime >= 6,
+                        "Mana Shield Charm should apply configured invulnerable time");
+                helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
+                        "Mana Shield Charm should spend mana on the first configured i-frame hit");
+
+                var secondEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+                helper.assertTrue(secondEvent.isCanceled(),
+                        "Mana Shield Charm should cancel repeated damage while configured i-frame gate is active");
+                helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
+                        "Mana Shield Charm should not spend mana again inside configured i-frame gate");
+            }
         });
     }
 
@@ -7803,6 +8049,162 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow continuous release should clear Iron's casting state");
         });
     }
+    static void elementalBowMagicDrawTicksUseProfileAndServerMultiplier(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = useElementalBowConfigOverrideForGameTest(
+                    1.5D,
+                    0.20D,
+                    0.08D,
+                    1.0D,
+                    0,
+                    0,
+                    1.0D
+            )) {
+                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_draw_config_test");
+                var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+                setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+                player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+                player.getInventory().setItem(1, new ItemStack(Items.ARROW, 2));
+
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Elemental Bow draw config test could not resolve player mana data");
+                magicData.setMana(300.0F);
+                var initialMana = magicData.getMana();
+
+                helper.assertTrue(ElementalBow.resolveMagicRequiredDrawTicks(stack) == 30,
+                        "Elemental Bow required draw ticks should use profile ticks and server multiplier");
+                var shortUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+                helper.assertTrue(shortUseResult.getResult().consumesAction(),
+                        "Elemental Bow draw config test should start drawing: " + shortUseResult.getResult());
+                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 29);
+                player.stopUsingItem();
+                helper.assertTrue(stack.getDamageValue() == 0,
+                        "Elemental Bow should not fire before configured draw ticks");
+                helper.assertTrue(player.getInventory().getItem(1).getCount() == 2,
+                        "Elemental Bow should not consume arrows before configured draw ticks");
+                helper.assertTrue(magicData.getMana() == initialMana,
+                        "Elemental Bow should not consume mana before configured draw ticks");
+
+                var readyUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+                helper.assertTrue(readyUseResult.getResult().consumesAction(),
+                        "Elemental Bow draw config test should restart drawing: " + readyUseResult.getResult());
+                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 30);
+                player.stopUsingItem();
+                helper.assertTrue(stack.getDamageValue() == 1,
+                        "Elemental Bow should fire at configured draw ticks");
+                helper.assertTrue(player.getInventory().getItem(1).getCount() == 1,
+                        "Elemental Bow should consume one arrow after configured draw ticks");
+                helper.assertTrue(magicData.getMana() < initialMana,
+                        "Elemental Bow should consume spell mana after configured draw ticks");
+            }
+        });
+    }
+
+
+    static void elementalBowAdditionalManaUsesServerConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = useElementalBowConfigOverrideForGameTest(
+                    1.0D,
+                    0.5D,
+                    0.25D,
+                    1.0D,
+                    0,
+                    0,
+                    1.0D
+            )) {
+                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_mana_config_test");
+                jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                        player,
+                        SchoolRegistry.FIRE_RESOURCE,
+                        100
+                );
+
+                var extraMana = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getAdditionalManaCost(
+                        player,
+                        SchoolRegistry.FIRE_RESOURCE,
+                        100.0F
+                );
+                helper.assertTrue(Math.abs(extraMana - 75.0F) < 1.0e-3F,
+                        "Elemental Bow additional mana should use its server config but got " + extraMana);
+            }
+        });
+    }
+
+
+    static void elementalBowOverheatDurationUsesServerConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = useElementalBowConfigOverrideForGameTest(
+                    1.0D,
+                    0.20D,
+                    0.08D,
+                    2.0D,
+                    30,
+                    50,
+                    1.0D
+            )) {
+                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_duration_config_test");
+
+                jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                        player,
+                        SchoolRegistry.FIRE_RESOURCE,
+                        10
+                );
+                var minState = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE);
+                helper.assertTrue(minState.active()
+                                && minState.expireGameTime() - helper.getLevel().getGameTime() == 30,
+                        "Elemental Bow overheat duration should use configured minimum: " + minState);
+
+                jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.clear(player, SchoolRegistry.FIRE_RESOURCE);
+                jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                        player,
+                        SchoolRegistry.FIRE_RESOURCE,
+                        100
+                );
+                var capState = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE);
+                helper.assertTrue(capState.active()
+                                && capState.expireGameTime() - helper.getLevel().getGameTime() == 50,
+                        "Elemental Bow overheat duration should use configured cap: " + capState);
+            }
+        });
+    }
+
+
+    static void elementalBowPowerSpellLevelBonusUsesServerConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = useElementalBowConfigOverrideForGameTest(
+                    1.0D,
+                    0.20D,
+                    0.08D,
+                    1.0D,
+                    0,
+                    0,
+                    0.5D
+            )) {
+                var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
+                var stack = new ItemStack(item);
+                var power = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                        .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.POWER);
+                stack.enchant(power, 3);
+                setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+
+                item.initializeSpellContainer(stack);
+
+                var fireMode = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.getResolvedDefinition(SchoolRegistry.FIRE_RESOURCE);
+                helper.assertTrue(fireMode != null, "Elemental Bow power config test should resolve Fire mode");
+                var powerBonus = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.resolvePowerArrowSpellLevelBonus(stack);
+                helper.assertTrue(powerBonus == 1,
+                        "Elemental Bow Power III should add floor(3 * 0.5) spell levels but got " + powerBonus);
+                var expectedLevel = fireMode == null ? 1 : Mth.clamp(1 + powerBonus, fireMode.spell().getMinLevel(), fireMode.spell().getMaxLevel());
+                var profile = ElementalBow.getDisplayedSpellProfile(stack);
+                helper.assertTrue(profile != null, "Elemental Bow power config test should expose a displayed spell profile");
+                helper.assertTrue(profile != null && profile.spellLevel() == expectedLevel,
+                        "Elemental Bow Power spell level should use the configured bonus before spell level clamp but got "
+                                + (profile == null ? "null" : profile.spellLevel()));
+            }
+        });
+    }
+
+
     static void focusStaffbowRejectsUseWithoutArrowCatalyst(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_arrow_gate_test");
@@ -8009,6 +8411,369 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow short LONG cast should still consume only one catalyst arrow after completion");
         });
     }
+    static void focusStaffbowConfigCurveAndManaFormulaUsesFixedTimeToMax(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var settings = new jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings(
+                    4.0D,
+                    3.0D,
+                    20,
+                    1.0D,
+                    0.5D
+            );
+            var pendingMaxTicks = 20L + 20L * 2L + 20L * 3L;
+            var pendingMultiplier = jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic
+                    .computePendingChargeMultiplier(pendingMaxTicks, 20, settings);
+            helper.assertTrue(Math.abs(pendingMultiplier - 4.0D) < 1.0e-9D,
+                    "Focus Staffbow pending config should reach custom max within the fixed existing time window: "
+                            + pendingMultiplier);
+
+            var continuousMidpoint = jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic
+                    .computeContinuousChargeMultiplier(100L, settings);
+            helper.assertTrue(Math.abs(continuousMidpoint - 2.0D) < 1.0e-9D,
+                    "Focus Staffbow continuous config should reach the midpoint at 100 ticks: " + continuousMidpoint);
+            var continuousMax = jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic
+                    .computeContinuousChargeMultiplier(250L, settings);
+            helper.assertTrue(Math.abs(continuousMax - 3.0D) < 1.0e-9D,
+                    "Focus Staffbow continuous config should reach custom max at 250 ticks: " + continuousMax);
+
+            var manaCost = jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic
+                    .computeScaledManaCost(10, 4.0D, settings);
+            helper.assertTrue(manaCost == 20,
+                    "Focus Staffbow mana config should apply multiplier and exponent before flooring: " + manaCost);
+        });
+    }
+
+    static void focusStaffbowArrowRequirementConfigAllowsArrowlessCasting(GameTestHelper helper) {
+        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
+        override[0] = useFocusStaffbowConfigOverrideForGameTest(
+                true,
+                true,
+                false,
+                1.0D,
+                List.of(),
+                false,
+                List.of()
+        );
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_arrow_config_test");
+        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
+        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        MagicData.getPlayerMagicData(player).setMana(100.0F);
+
+        helper.runAtTickTime(1, () -> {
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow should start without arrows when arrow catalysts are disabled but got " + result.getResult());
+        });
+        helper.runAtTickTime(2, () ->
+                bowStack.getItem().releaseUsing(
+                        bowStack,
+                        helper.getLevel(),
+                        player,
+                        bowStack.getUseDuration(player)
+                )
+        );
+        helper.runAtTickTime(3, () -> {
+            try {
+                helper.assertTrue(getFocusStaffbowArrowCount(player) == 0,
+                        "Focus Staffbow arrow-disabled config should not create or consume arrows");
+                helper.succeed();
+            } finally {
+                override[0].close();
+            }
+        });
+    }
+
+    static void focusStaffbowContinuousConfigRejectsWithoutConsumingArrow(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = useFocusStaffbowConfigOverrideForGameTest(
+                    false,
+                    true,
+                    true,
+                    1.0D,
+                    List.of(),
+                    false,
+                    List.of()
+            )) {
+                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_config_test");
+                var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+                var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+                var amplifierStack = new ItemStack(amplifierItem);
+                amplifierItem.initializeSpellContainer(amplifierStack);
+                setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get(), 1);
+
+                player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+                player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+                setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
+                MagicData.getPlayerMagicData(player).setMana(1000.0F);
+
+                var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                        "Focus Staffbow should reject continuous spells when disabled but got " + result.getResult());
+                helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
+                        "Focus Staffbow should reject disabled continuous casts before consuming arrows");
+            }
+        });
+    }
+
+    static void focusStaffbowManaLoanConfigRejectsBorrowedPendingCast(GameTestHelper helper) {
+        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
+        override[0] = useFocusStaffbowConfigOverrideForGameTest(
+                true,
+                false,
+                true,
+                1.0D,
+                List.of(),
+                false,
+                List.of()
+        );
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_config_test");
+        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
+        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
+        var magicData = MagicData.getPlayerMagicData(player);
+        magicData.setMana(spell.getManaCost(1));
+
+        helper.runAtTickTime(1, () -> {
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow loan-disabled test should still start when base mana is available but got " + result.getResult());
+        });
+        helper.runAtTickTime(2, () ->
+                bowStack.getItem().releaseUsing(
+                        bowStack,
+                        helper.getLevel(),
+                        player,
+                        bowStack.getUseDuration(player) - 120
+                )
+        );
+        helper.runAtTickTime(3, () -> {
+            try {
+                var spellData = Capabilities.getSpellDataOrNull(player);
+                helper.assertTrue(spellData != null, "Focus Staffbow loan-disabled test lost spell data capability");
+                helper.assertTrue(spellData != null
+                                && !spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE).hasOutstandingLoan(),
+                        "Focus Staffbow should not create loan state when loan is disabled");
+                helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
+                        "Focus Staffbow should reject disabled loan before consuming arrows");
+                helper.succeed();
+            } finally {
+                override[0].close();
+            }
+        });
+    }
+
+    static void focusStaffbowLoanRatioConfigRejectsExcessBorrowing(GameTestHelper helper) {
+        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
+        override[0] = useFocusStaffbowConfigOverrideForGameTest(
+                true,
+                true,
+                true,
+                0.0D,
+                List.of(),
+                false,
+                List.of()
+        );
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_ratio_test");
+        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
+        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
+        var magicData = MagicData.getPlayerMagicData(player);
+        magicData.setMana(spell.getManaCost(1));
+
+        helper.runAtTickTime(1, () -> {
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow loan-ratio test should still start when base mana is available but got " + result.getResult());
+        });
+        helper.runAtTickTime(2, () ->
+                bowStack.getItem().releaseUsing(
+                        bowStack,
+                        helper.getLevel(),
+                        player,
+                        bowStack.getUseDuration(player) - 120
+                )
+        );
+        helper.runAtTickTime(3, () -> {
+            try {
+                var spellData = Capabilities.getSpellDataOrNull(player);
+                helper.assertTrue(spellData != null, "Focus Staffbow loan-ratio test lost spell data capability");
+                helper.assertTrue(spellData != null
+                                && !spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE).hasOutstandingLoan(),
+                        "Focus Staffbow should not create loan state above the configured ratio");
+                helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
+                        "Focus Staffbow should reject loan-ratio overflow before consuming arrows");
+                helper.succeed();
+            } finally {
+                override[0].close();
+            }
+        });
+    }
+
+    static void focusStaffbowSpellDenylistBlocksBeforeAmmo(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
+            try (var ignored = useFocusStaffbowConfigOverrideForGameTest(
+                    true,
+                    true,
+                    true,
+                    1.0D,
+                    List.of(spell.getSpellId()),
+                    false,
+                    List.of()
+            )) {
+                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_denylist_test");
+                var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+                var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+                var amplifierStack = new ItemStack(amplifierItem);
+                amplifierItem.initializeSpellContainer(amplifierStack);
+                setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+                player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+                player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+                setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
+                MagicData.getPlayerMagicData(player).setMana(100.0F);
+
+                var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                        "Focus Staffbow should reject denylisted spells but got " + result.getResult());
+                helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
+                        "Focus Staffbow should reject denylisted spells before consuming arrows");
+            }
+        });
+    }
+
+    static void focusStaffbowSpellAllowlistBlocksMissingSpellBeforeAmmo(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
+            try (var ignored = useFocusStaffbowConfigOverrideForGameTest(
+                    true,
+                    true,
+                    true,
+                    1.0D,
+                    List.of(),
+                    true,
+                    List.of("irons_spellbooks:magic_arrow")
+            )) {
+                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_allowlist_test");
+                var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+                var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+                var amplifierStack = new ItemStack(amplifierItem);
+                amplifierItem.initializeSpellContainer(amplifierStack);
+                setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+                player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+                player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+                setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
+                MagicData.getPlayerMagicData(player).setMana(100.0F);
+
+                var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                        "Focus Staffbow should reject spells missing from the allowlist but got " + result.getResult());
+                helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
+                        "Focus Staffbow should reject allowlist misses before consuming arrows");
+            }
+        });
+    }
+
+    static void focusStaffbowRejectsUnconfiguredSpecialArrow(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_special_arrow_reject_test");
+            var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierStack = new ItemStack(amplifierItem);
+            amplifierItem.initializeSpellContainer(amplifierStack);
+            setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+            player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW, 1));
+            MagicData.getPlayerMagicData(player).setMana(100.0F);
+
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                    "Focus Staffbow should reject special arrows that are not in arrowCatalystItems but got " + result.getResult());
+            helper.assertTrue(player.getInventory().getItem(1).getCount() == 1,
+                    "Focus Staffbow should not consume an unconfigured special arrow");
+        });
+    }
+
+    static void focusStaffbowArrowCatalystItemListAllowsConfiguredSpecialArrow(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useFocusStaffbowConfigOverrideForGameTest(
+                    true,
+                    true,
+                    true,
+                    List.of("minecraft:spectral_arrow"),
+                    3.0D,
+                    2.0D,
+                    20,
+                    2.0D,
+                    1.0D,
+                    1.0D,
+                    List.of(),
+                    false,
+                    List.of()
+            )) {
+                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_special_arrow_test");
+                var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+                var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+                var amplifierStack = new ItemStack(amplifierItem);
+                amplifierItem.initializeSpellContainer(amplifierStack);
+                setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
+
+                player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+                player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+                player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW, 1));
+                MagicData.getPlayerMagicData(player).setMana(100.0F);
+
+                var configuredSpecialArrowId = ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow");
+                helper.assertTrue(ApprenticeCodexServerConfig.focusStaffbowArrowCatalystItemIds().contains(configuredSpecialArrowId),
+                        "Focus Staffbow arrowCatalystItems override should contain " + configuredSpecialArrowId);
+                helper.assertTrue(
+                        BowCastAmmoResolver.resolveFocusStaffbowAmmoRoute(
+                                player,
+                                bowStack,
+                                true,
+                                ApprenticeCodexServerConfig.focusStaffbowArrowCatalystItemIds()
+                        ) == BowCastAmmoResolver.FocusStaffbowAmmoRoute.ARROW_CATALYST,
+                        "Focus Staffbow should resolve configured special arrow as arrow catalyst"
+                );
+                var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+                helper.assertTrue(result.getResult().consumesAction(),
+                        "Focus Staffbow should start when a configured special arrow is available but got " + result.getResult());
+                bowStack.getItem().releaseUsing(
+                        bowStack,
+                        helper.getLevel(),
+                        player,
+                        bowStack.getUseDuration(player)
+                );
+                helper.assertTrue(player.getInventory().getItem(1).isEmpty(),
+                        "Focus Staffbow should consume the configured special arrow");
+            }
+        });
+    }
+
     static void focusStaffbowStillRejectsCastWhenBaseManaIsInsufficient(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_base_mana_gate_test");
@@ -8067,23 +8832,24 @@ public final class ApprenticeCodexGameTestScenarios {
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration(player) - 120
+                        bowStack.getUseDuration(player) - 60
                 )
         );
         helper.runAtTickTime(4, () -> {
             var spellData = Capabilities.getSpellDataOrNull(player);
             helper.assertTrue(spellData != null, "Focus Staffbow loan test lost spell data capability after cast");
             var loanState = spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE);
-            helper.assertTrue(loanState.remainingLoanMana >= 119.0F,
-                    "Focus Staffbow loan test should create roughly eight base-cost worth of debt at x3 but got "
-                            + loanState.remainingLoanMana);
+            var expectedLoanMana = baseManaCost * 3.0F;
+            helper.assertTrue(Math.abs(loanState.remainingLoanMana - expectedLoanMana) < 1.0F,
+                    "Focus Staffbow loan test should create three base-cost worth of debt at x2 but got "
+                            + loanState.remainingLoanMana + " expected " + expectedLoanMana);
             helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
                     "Focus Staffbow loan test should leave current mana at zero after borrowed cast: " + magicData.getMana());
             helper.assertTrue(getFocusStaffbowArrowCount(player) == 0,
                     "Focus Staffbow borrowed cast should still consume exactly one catalyst arrow");
             magicData.setMana(10.0F);
             jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager.tickLoanRepayment(player);
-            helper.assertTrue(loanState.remainingLoanMana >= 109.0F && loanState.remainingLoanMana <= 111.0F,
+            helper.assertTrue(Math.abs(loanState.remainingLoanMana - (expectedLoanMana - 10.0F)) < 1.0F,
                     "Focus Staffbow loan repay test should consume recovered mana into the debt first but got "
                             + loanState.remainingLoanMana);
             helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
@@ -10692,6 +11458,32 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void circuitHeatStaffAdditionalManaUsesServerConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                    100,
+                    0.50D,
+                    0.25D,
+                    0,
+                    List.of(),
+                    1.0D,
+                    20 * 10,
+                    0,
+                    true,
+                    10,
+                    20 * 10,
+                    3,
+                    true,
+                    true
+            )) {
+                var additionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                        .getAdditionalManaCost(100, 2, 50);
+                helper.assertTrue(additionalMana == 100,
+                        "Circuit Heat Staff extra mana should use server config multipliers: " + additionalMana);
+            }
+        });
+    }
+
     static void circuitHeatStaffOverheatUsesCastCooldownPlusSkippedCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_overheat_duration_test");
@@ -10732,6 +11524,90 @@ public final class ApprenticeCodexGameTestScenarios {
                             + remainingOverheatTicks + " / expected " + expectedOverheatTicks);
 
             CircuitHeatStaffCastEvent.clearReservedOverheatCast(player);
+        });
+    }
+
+    static void circuitHeatStaffOverheatDurationUsesServerMinTicks(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                    20 * 10,
+                    0.0D,
+                    0.0D,
+                    0,
+                    List.of(),
+                    0.0D,
+                    20 * 10,
+                    0,
+                    true,
+                    10,
+                    20 * 10,
+                    3,
+                    true,
+                    true
+            )) {
+                var context = createCircuitHeatStaffBypassTestContext(
+                        helper,
+                        "circuit_heat_staff_overheat_min_config_test",
+                        SpellRegistry.MANA_SLASH.get()
+                );
+                var baseManaCost = context.spell().getManaCost(1);
+                context.magicData().setMana(baseManaCost);
+
+                var result = context.staffStack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
+                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.CONSUME,
+                        "Circuit Heat Staff min overheat config test should cast but got " + result.getResult());
+                context.magicData().setPlayerCastingItem(context.staffStack());
+                postCircuitHeatStaffSpellOnCastEvent(context, baseManaCost);
+
+                var remainingOverheatTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(
+                        context.staffStack(),
+                        helper.getLevel()
+                );
+                helper.assertTrue(remainingOverheatTicks == 20 * 10,
+                        "Circuit Heat Staff item overheat should use configured minimum: " + remainingOverheatTicks);
+            }
+        });
+    }
+
+    static void circuitHeatStaffOverheatDurationUsesServerCapTicks(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                    20 * 10,
+                    0.0D,
+                    0.0D,
+                    0,
+                    List.of(),
+                    100.0D,
+                    0,
+                    40,
+                    true,
+                    10,
+                    20 * 10,
+                    3,
+                    true,
+                    true
+            )) {
+                var context = createCircuitHeatStaffBypassTestContext(
+                        helper,
+                        "circuit_heat_staff_overheat_cap_config_test",
+                        SpellRegistry.MANA_SLASH.get()
+                );
+                var baseManaCost = context.spell().getManaCost(1);
+                context.magicData().setMana(baseManaCost);
+
+                var result = context.staffStack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
+                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.CONSUME,
+                        "Circuit Heat Staff cap overheat config test should cast but got " + result.getResult());
+                context.magicData().setPlayerCastingItem(context.staffStack());
+                postCircuitHeatStaffSpellOnCastEvent(context, baseManaCost);
+
+                var remainingOverheatTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(
+                        context.staffStack(),
+                        helper.getLevel()
+                );
+                helper.assertTrue(remainingOverheatTicks == 40,
+                        "Circuit Heat Staff item overheat should use configured cap: " + remainingOverheatTicks);
+            }
         });
     }
 
@@ -10842,6 +11718,79 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Circuit Heat Staff right-click bypass should apply step 1 extra mana: " + manaEvent.getManaCost());
 
             magicData.resetCastingState();
+        });
+    }
+
+    static void circuitHeatStaffCooldownLimitBlocksBypass(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                    20 * 10,
+                    0.10D,
+                    0.10D,
+                    1,
+                    List.of(),
+                    1.0D,
+                    20 * 10,
+                    0,
+                    true,
+                    10,
+                    20 * 10,
+                    3,
+                    true,
+                    true
+            )) {
+                var context = createCircuitHeatStaffBypassTestContext(
+                        helper,
+                        "circuit_heat_staff_cooldown_limit_config_test",
+                        SpellRegistry.MANA_SLASH.get()
+                );
+                context.magicData().setMana(context.spell().getManaCost(1) * 10.0F);
+
+                var result = context.staffStack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
+                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                        "Circuit Heat Staff should fail cooldown bypass above server limit but got " + result.getResult());
+                helper.assertTrue(context.magicData().getPlayerCooldowns().isOnCooldown(context.spell()),
+                        "Circuit Heat Staff should keep cooldown when server limit blocks bypass");
+                helper.assertFalse(CircuitHeatStaff.isStaffOverheated(context.staffStack(), helper.getLevel()),
+                        "Circuit Heat Staff should not overheat when server limit blocks bypass");
+            }
+        });
+    }
+
+    static void circuitHeatStaffSpellDenylistBlocksBypass(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = SpellRegistry.MANA_SLASH.get();
+            try (var ignored = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                    20 * 10,
+                    0.10D,
+                    0.10D,
+                    0,
+                    List.of(spell.getSpellId()),
+                    1.0D,
+                    20 * 10,
+                    0,
+                    true,
+                    10,
+                    20 * 10,
+                    3,
+                    true,
+                    true
+            )) {
+                var context = createCircuitHeatStaffBypassTestContext(
+                        helper,
+                        "circuit_heat_staff_spell_denylist_config_test",
+                        spell
+                );
+                context.magicData().setMana(spell.getManaCost(1) * 10.0F);
+
+                var result = context.staffStack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
+                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                        "Circuit Heat Staff should fail cooldown bypass for denied spells but got " + result.getResult());
+                helper.assertTrue(context.magicData().getPlayerCooldowns().isOnCooldown(spell),
+                        "Circuit Heat Staff should keep cooldown when spell denylist blocks bypass");
+                helper.assertFalse(CircuitHeatStaff.isStaffOverheated(context.staffStack(), helper.getLevel()),
+                        "Circuit Heat Staff should not overheat when spell denylist blocks bypass");
+            }
         });
     }
 
@@ -11010,6 +11959,46 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    private static CircuitHeatStaffBypassTestContext createCircuitHeatStaffBypassTestContext(
+            GameTestHelper helper,
+            String playerName,
+            AbstractSpell spell
+    ) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), playerName);
+        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Circuit Heat Staff config test could not resolve player mana data");
+        io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, CastSource.SPELLBOOK);
+        return new CircuitHeatStaffBypassTestContext(player, staffStack, magicData, spell);
+    }
+
+    private static void postCircuitHeatStaffSpellOnCastEvent(CircuitHeatStaffBypassTestContext context, int manaCost) {
+        NeoForge.EVENT_BUS.post(new SpellOnCastEvent(
+                context.player(),
+                context.spell().getSpellId(),
+                1,
+                manaCost,
+                context.spell().getSchoolType(),
+                CastSource.SPELLBOOK
+        ));
+    }
+
+    private record CircuitHeatStaffBypassTestContext(
+            ServerPlayer player,
+            ItemStack staffStack,
+            MagicData magicData,
+            AbstractSpell spell
+    ) {
+    }
+
     static void circuitHeatStaffDropCoolingConsumesWaterSource(GameTestHelper helper) {
         var waterPos = new BlockPos(0, 2, 0);
         placeWaterTestBasin(helper, waterPos);
@@ -11032,6 +12021,46 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void circuitHeatStaffDropCoolingDisabledByServerConfig(GameTestHelper helper) {
+        var waterPos = new BlockPos(0, 2, 0);
+        placeWaterTestBasin(helper, waterPos);
+        helper.setBlock(waterPos, Blocks.WATER);
+
+        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+        var itemEntity = spawnItem(helper, waterPos, staffStack);
+        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
+        override[0] = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                20 * 10,
+                0.10D,
+                0.10D,
+                0,
+                List.of(),
+                1.0D,
+                20 * 10,
+                0,
+                false,
+                10,
+                20 * 10,
+                3,
+                true,
+                true
+        );
+
+        helper.runAtTickTime(40, () -> {
+            try {
+                var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
+                helper.assertTrue(remainingTicks > 20 * 55,
+                        "Circuit Heat Staff cooling should not reduce while disabled by server config: " + remainingTicks);
+                helper.assertTrue(helper.getBlockState(waterPos).is(Blocks.WATER),
+                        "Circuit Heat Staff cooling should not consume water while disabled by server config");
+                helper.succeed();
+            } finally {
+                override[0].close();
+            }
+        });
+    }
+
     static void circuitHeatStaffDropCoolingIgnoresFlowingWater(GameTestHelper helper) {
         var waterPos = new BlockPos(0, 2, 0);
         placeWaterTestBasin(helper, waterPos);
@@ -11046,6 +12075,47 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(remainingTicks > 20 * 55,
                     "Circuit Heat Staff should not use flowing water for cooling: " + remainingTicks);
             helper.succeed();
+        });
+    }
+
+    static void circuitHeatStaffDropCoolingKeepsWaterSourceWhenConsumptionDisabled(GameTestHelper helper) {
+        var waterPos = new BlockPos(0, 2, 0);
+        placeWaterTestBasin(helper, waterPos);
+        helper.setBlock(waterPos, Blocks.WATER);
+
+        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+        var itemEntity = spawnItem(helper, waterPos, staffStack);
+        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
+        override[0] = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                20 * 10,
+                0.10D,
+                0.10D,
+                0,
+                List.of(),
+                1.0D,
+                20 * 10,
+                0,
+                true,
+                10,
+                20 * 10,
+                3,
+                false,
+                true
+        );
+
+        helper.runAtTickTime(40, () -> {
+            try {
+                var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
+                helper.assertTrue(remainingTicks <= 20 * 30,
+                        "Circuit Heat Staff water-source cooling should still reduce when consumption is disabled: "
+                                + remainingTicks);
+                helper.assertTrue(helper.getBlockState(waterPos).is(Blocks.WATER),
+                        "Circuit Heat Staff water-source cooling should keep water when consumption is disabled");
+                helper.succeed();
+            } finally {
+                override[0].close();
+            }
         });
     }
 
@@ -11069,6 +12139,51 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(state.is(Blocks.WATER_CAULDRON) && state.getValue(LayeredCauldronBlock.LEVEL) == 2,
                     "Circuit Heat Staff cauldron cooling should consume one water level after three cycles: " + state);
             helper.succeed();
+        });
+    }
+
+    static void circuitHeatStaffDropCoolingKeepsWaterCauldronWhenConsumptionDisabled(GameTestHelper helper) {
+        var cauldronPos = new BlockPos(0, 2, 0);
+        helper.setBlock(
+                cauldronPos,
+                Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3)
+        );
+
+        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+        var itemEntity = spawnNoGravityItem(helper, cauldronPos, staffStack);
+        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
+        override[0] = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                20 * 10,
+                0.10D,
+                0.10D,
+                0,
+                List.of(),
+                1.0D,
+                20 * 10,
+                0,
+                true,
+                10,
+                20 * 10,
+                3,
+                true,
+                false
+        );
+
+        helper.runAtTickTime(40, () -> {
+            try {
+                var state = helper.getBlockState(cauldronPos);
+                var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
+                helper.assertTrue(remainingTicks <= 20 * 30,
+                        "Circuit Heat Staff cauldron cooling should still reduce when consumption is disabled: "
+                                + remainingTicks);
+                helper.assertTrue(state.is(Blocks.WATER_CAULDRON) && state.getValue(LayeredCauldronBlock.LEVEL) == 3,
+                        "Circuit Heat Staff cauldron cooling should keep water level when consumption is disabled: "
+                                + state);
+                helper.succeed();
+            } finally {
+                override[0].close();
+            }
         });
     }
 
@@ -13143,6 +14258,52 @@ public final class ApprenticeCodexGameTestScenarios {
         player.getInventory().setItem(1, arrowStack.copy());
     }
 
+    private static ApprenticeCodexServerConfig.GameTestConfigOverride useFocusStaffbowConfigOverrideForGameTest(
+            boolean enableContinuousFocusedCast,
+            boolean enableManaLoan,
+            boolean enableArrowCatalystRequirement,
+            double pendingMaxLoanManaRatio,
+            List<String> spellDenylist,
+            boolean enableSpellAllowlist,
+            List<String> spellAllowlist
+    ) {
+        return ApprenticeCodexServerConfig.useFocusStaffbowConfigOverrideForGameTest(
+                enableContinuousFocusedCast,
+                enableManaLoan,
+                enableArrowCatalystRequirement,
+                List.of("minecraft:arrow"),
+                3.0D,
+                2.0D,
+                20,
+                2.0D,
+                1.0D,
+                pendingMaxLoanManaRatio,
+                spellDenylist,
+                enableSpellAllowlist,
+                spellAllowlist
+        );
+    }
+
+    private static ApprenticeCodexServerConfig.GameTestConfigOverride useElementalBowConfigOverrideForGameTest(
+            double magicReadyDrawTicksMultiplier,
+            double overheatAdditionalManaLinearMultiplier,
+            double overheatAdditionalManaQuadraticMultiplier,
+            double overheatDurationMultiplier,
+            int overheatDurationMinTicks,
+            int overheatDurationCapTicks,
+            double powerArrowSpellLevelBonusPerLevel
+    ) {
+        return ApprenticeCodexServerConfig.useElementalBowConfigOverrideForGameTest(
+                magicReadyDrawTicksMultiplier,
+                overheatAdditionalManaLinearMultiplier,
+                overheatAdditionalManaQuadraticMultiplier,
+                overheatDurationMultiplier,
+                overheatDurationMinTicks,
+                overheatDurationCapTicks,
+                powerArrowSpellLevelBonusPerLevel
+        );
+    }
+
     private static int getFocusStaffbowArrowCount(Player player) {
         int count = 0;
         for (var stack : player.getInventory().items) {
@@ -14388,11 +15549,16 @@ public final class ApprenticeCodexGameTestScenarios {
     private static float resolveExpectedBarrierManaAfterHitForGameTest(float incomingDamage, float availableMana) {
         var remainingDamage = incomingDamage;
         var remainingMana = availableMana;
+        var manaPerDamage = ApprenticeCodexServerConfig.manaShieldCharmManaPerDamage();
+
+        if (manaPerDamage <= 0.0F) {
+            return remainingMana;
+        }
 
         while (remainingDamage >= 1.0F) {
-            if (remainingMana >= 25.0F) {
+            if (remainingMana >= manaPerDamage) {
                 remainingDamage -= 1.0F;
-                remainingMana -= 25.0F;
+                remainingMana -= manaPerDamage;
                 continue;
             }
             if (remainingMana > 0.0F) {
@@ -14413,10 +15579,15 @@ public final class ApprenticeCodexGameTestScenarios {
         var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(incomingDamage, protection);
         var remainingMitigatedDamage = Math.max(incomingDamage - reducedDamage, 0.0F);
         var remainingMana = availableMana;
+        var synchronizationManaPerDamage = ApprenticeCodexServerConfig.manaShieldCharmSynchronizationManaPerDamage();
 
-        while (remainingMitigatedDamage >= 1.0F && remainingMana >= 30.0F) {
-            remainingMitigatedDamage -= 1.0F;
-            remainingMana -= 30.0F;
+        if (synchronizationManaPerDamage > 0.0F) {
+            while (remainingMitigatedDamage >= 1.0F && remainingMana >= synchronizationManaPerDamage) {
+                remainingMitigatedDamage -= 1.0F;
+                remainingMana -= synchronizationManaPerDamage;
+            }
+        } else {
+            remainingMitigatedDamage = 0.0F;
         }
 
         if (remainingMitigatedDamage >= 1.0F) {

@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.curios.manashieldcharm;
 
+import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
@@ -44,16 +45,40 @@ public class ManaShieldCharm extends Item implements ICurioItem, NonDamageableAn
         var result = new java.util.ArrayList<>(tooltips);
         result.add(Component.empty());
         result.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
-        result.add(Component.literal(" ")
-                .append(Component.translatable(getDescriptionId() + ".desc_1"))
-                .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+        appendManaCostTooltip(result);
         result.add(Component.literal(" ")
                 .append(Component.translatable(getDescriptionId() + ".desc_2"))
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-        result.add(Component.literal(" ")
-                .append(Component.translatable(getDescriptionId() + ".desc_3"))
-                .withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED)));
+        appendRecoveryThresholdTooltip(result);
         return result;
+    }
+
+    private void appendManaCostTooltip(List<Component> tooltips) {
+        var manaPerDamage = ManaShieldCharmConfigState.manaPerDamage();
+        if (manaPerDamage <= 0.0F) {
+            tooltips.add(Component.literal(" ")
+                    .append(Component.translatable(getDescriptionId() + ".desc_1_free"))
+                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+            return;
+        }
+
+        tooltips.add(Component.literal(" ")
+                .append(Component.translatable(
+                        getDescriptionId() + ".desc_1",
+                        Utils.stringTruncation(manaPerDamage, 2)
+                ))
+                .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+    }
+
+    private void appendRecoveryThresholdTooltip(List<Component> tooltips) {
+        var recoveryThresholdMana = ManaShieldCharmConfigState.recoveryThresholdMana();
+        if (recoveryThresholdMana <= 0) {
+            return;
+        }
+
+        tooltips.add(Component.literal(" ")
+                .append(Component.translatable(getDescriptionId() + ".desc_3", recoveryThresholdMana))
+                .withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED)));
     }
 
     @Override
