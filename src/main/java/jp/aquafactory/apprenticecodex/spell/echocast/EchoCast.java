@@ -106,9 +106,9 @@ public class EchoCast extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        var existingEffect = entity.getEffect(EffectRegistry.ECHO_SPELL.get());
+        var existingEffect = entity.getEffect(EffectRegistry.ECHO_SPELL);
         var amplifier = existingEffect == null ? 0 : Math.min(existingEffect.getAmplifier() + 1, maxEchoAmplifier());
-        entity.addEffect(new MobEffectInstance(EffectRegistry.ECHO_SPELL.get(), EchoSpell.DURATION_TICKS, amplifier));
+        entity.addEffect(new MobEffectInstance(EffectRegistry.ECHO_SPELL, EchoSpell.DURATION_TICKS, amplifier));
 
         if (entity instanceof ServerPlayer serverPlayer) {
             if (amplifier >= maxEchoAmplifier()) {
@@ -133,7 +133,7 @@ public class EchoCast extends AbstractSpell {
     }
 
     private static boolean isEchoAmplifierAtLimit(LivingEntity entity) {
-        var existingEffect = entity.getEffect(EffectRegistry.ECHO_SPELL.get());
+        var existingEffect = entity.getEffect(EffectRegistry.ECHO_SPELL);
         return existingEffect != null && existingEffect.getAmplifier() >= maxEchoAmplifier();
     }
 

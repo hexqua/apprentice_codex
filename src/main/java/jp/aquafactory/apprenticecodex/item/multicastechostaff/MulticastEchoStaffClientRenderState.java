@@ -65,7 +65,7 @@ public final class MulticastEchoStaffClientRenderState {
             return 8.0F;
         }
 
-        var echoSpell = owner.getEffect(EffectRegistry.ECHO_SPELL.get());
+        var echoSpell = owner.getEffect(EffectRegistry.ECHO_SPELL);
         if (echoSpell == null) {
             return 1.0F;
         }
@@ -87,11 +87,11 @@ public final class MulticastEchoStaffClientRenderState {
 
         var hand = resolveRenderedHand(owner, perspective);
         if (hand == null) {
-            return ItemStack.isSameItemSameTags(owner.getMainHandItem(), renderingStack)
-                    || ItemStack.isSameItemSameTags(owner.getOffhandItem(), renderingStack);
+            return ItemStack.isSameItemSameComponents(owner.getMainHandItem(), renderingStack)
+                    || ItemStack.isSameItemSameComponents(owner.getOffhandItem(), renderingStack);
         }
 
-        return ItemStack.isSameItemSameTags(owner.getItemInHand(hand), renderingStack);
+        return ItemStack.isSameItemSameComponents(owner.getItemInHand(hand), renderingStack);
     }
 
     private static boolean isOwnerCastingEchoCast(LivingEntity owner, @Nullable ItemDisplayContext perspective) {

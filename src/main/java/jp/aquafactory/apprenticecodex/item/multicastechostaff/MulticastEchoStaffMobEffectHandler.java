@@ -3,21 +3,22 @@ package jp.aquafactory.apprenticecodex.item.multicastechostaff;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.event.entity.living.MobEffectEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class MulticastEchoStaffMobEffectHandler {
     private static final ThreadLocal<CastContext> ACTIVE_CAST = new ThreadLocal<>();
     private static final ThreadLocal<Boolean> SUPPRESS_CAPTURE = ThreadLocal.withInitial(() -> false);
@@ -72,7 +73,7 @@ public final class MulticastEchoStaffMobEffectHandler {
 
         var attempted = event.getEffectInstance();
         var effect = attempted.getEffect();
-        if (effect.isInstantenous() || !isCategoryEnabled(effect.getCategory())) {
+        if (effect.value().isInstantenous() || !isCategoryEnabled(effect.value().getCategory())) {
             return;
         }
 
@@ -210,7 +211,7 @@ public final class MulticastEchoStaffMobEffectHandler {
 
     private record EffectCapture(
             LivingEntity target,
-            MobEffect effect,
+            Holder<MobEffect> effect,
             int attemptedDuration,
             int attemptedAmplifier,
             @Nullable Entity source

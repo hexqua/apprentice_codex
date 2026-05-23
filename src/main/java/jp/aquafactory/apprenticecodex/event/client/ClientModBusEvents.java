@@ -48,6 +48,7 @@ import jp.aquafactory.apprenticecodex.renderer.item.GoldSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IronSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IlluminateStellarStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.MultipurposeStaffrifleRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.MulticastEchoStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.PhotonSiphonRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.ReflectcastShieldRenderer;
@@ -292,6 +293,17 @@ public final class ClientModBusEvents {
                 return renderer;
             }
         }, ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        event.registerItem(new ClientStaffItemExtensions() {
+            private MulticastEchoStaffRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new MulticastEchoStaffRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.MULTICAST_ECHO_STAFF.get());
         event.registerItem(new IClientItemExtensions() {
             private IlluminateStellarStaffRenderer renderer;
 

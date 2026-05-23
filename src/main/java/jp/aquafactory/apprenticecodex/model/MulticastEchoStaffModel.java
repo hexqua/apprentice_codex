@@ -6,7 +6,7 @@ import jp.aquafactory.apprenticecodex.item.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffClientRenderState;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.animation.AnimationState;
 import software.bernie.geckolib.model.GeoModel;
 
 public class MulticastEchoStaffModel extends GeoModel<MulticastEchoStaff> {

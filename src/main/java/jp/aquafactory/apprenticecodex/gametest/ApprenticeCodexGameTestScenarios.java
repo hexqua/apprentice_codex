@@ -150,7 +150,6 @@ import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeStats;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
-import jp.aquafactory.apprenticecodex.utility.ApprenticeEnchantmentAvailability;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
@@ -269,6 +268,7 @@ import net.neoforged.neoforge.common.damagesource.DamageContainer;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.GrindstoneEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
@@ -9955,7 +9955,7 @@ public final class ApprenticeCodexGameTestScenarios {
             completeMulticastEchoStaffCast(helper.getLevel(), player, staffStack, spell, spellLevel, amplifier, initialMana);
 
             var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertFalse(player.hasEffect(EffectRegistry.ECHO_SPELL.get()),
+            helper.assertFalse(player.hasEffect(EffectRegistry.ECHO_SPELL),
                     "Multicast Echo Staff should consume EchoSpell after the normal cast succeeds");
             helper.assertTrue(Math.abs(magicData.getMana() - (initialMana - manaCost)) < 1.0e-4F,
                     "Normal cast should consume mana before delayed multicast: " + magicData.getMana());
@@ -9964,13 +9964,13 @@ public final class ApprenticeCodexGameTestScenarios {
         });
 
         helper.runAtTickTime(2, () -> {
-            MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            MulticastEchoStaffCastHelper.onPlayerTick(new PlayerTickEvent.Post(player));
             helper.assertTrue(Math.abs(MagicData.getPlayerMagicData(player).getMana() - (initialMana - manaCost)) < 1.0e-4F,
                     "Multicast Echo Staff should not fire before the configured delay");
         });
 
         helper.runAtTickTime(4, () -> {
-            MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            MulticastEchoStaffCastHelper.onPlayerTick(new PlayerTickEvent.Post(player));
             var magicData = MagicData.getPlayerMagicData(player);
             var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
             var expectedCooldown = expectedMulticastEchoStaffCooldown(spell, player, CastSource.SPELLBOOK, amplifier);
@@ -9999,7 +9999,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
 
         helper.runAtTickTime(4, () -> {
-            MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            MulticastEchoStaffCastHelper.onPlayerTick(new PlayerTickEvent.Post(player));
             var magicData = MagicData.getPlayerMagicData(player);
             var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
             var expectedCooldown = expectedMulticastEchoStaffCooldown(spell, player, CastSource.SPELLBOOK, amplifier);
@@ -10030,7 +10030,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
 
         helper.runAtTickTime(4, () -> {
-            MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            MulticastEchoStaffCastHelper.onPlayerTick(new PlayerTickEvent.Post(player));
             var magicData = MagicData.getPlayerMagicData(player);
             var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
             var expectedCooldown = expectedMulticastEchoStaffCooldown(spell, player, CastSource.SPELLBOOK, amplifier);
@@ -10088,7 +10088,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
 
         helper.runAtTickTime(4, () -> {
-            MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            MulticastEchoStaffCastHelper.onPlayerTick(new PlayerTickEvent.Post(player));
             var magicData = MagicData.getPlayerMagicData(player);
             var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
             var expectedCooldown = expectedMulticastEchoStaffCooldown(spell, player, CastSource.SPELLBOOK, amplifier);
@@ -10115,7 +10115,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
 
         helper.runAtTickTime(4, () -> {
-            MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            MulticastEchoStaffCastHelper.onPlayerTick(new PlayerTickEvent.Post(player));
 
             var magicData = MagicData.getPlayerMagicData(player);
             var targetAreas = helper.getLevel().getEntitiesOfClass(
@@ -10153,14 +10153,14 @@ public final class ApprenticeCodexGameTestScenarios {
             finishStartedSpellCast(helper.getLevel(), player, spell, spellLevel);
 
             var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(player.hasEffect(EffectRegistry.ECHO_SPELL.get()),
+            helper.assertTrue(player.hasEffect(EffectRegistry.ECHO_SPELL),
                     "Invalid instant casts should not consume EchoSpell");
             helper.assertTrue(Math.abs(magicData.getMana() - (manaCost * 2.0F)) < 1.0e-4F,
                     "Invalid instant cast should only pay the normal cast mana cost: " + magicData.getMana());
         });
 
         helper.runAtTickTime(4, () -> {
-            MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            MulticastEchoStaffCastHelper.onPlayerTick(new PlayerTickEvent.Post(player));
             var magicData = MagicData.getPlayerMagicData(player);
             helper.assertTrue(Math.abs(magicData.getMana() - (manaCost * 2.0F)) < 1.0e-4F,
                     "Invalid instant cast should not start delayed multicast: " + magicData.getMana());
@@ -10179,7 +10179,7 @@ public final class ApprenticeCodexGameTestScenarios {
         var manaCost = spell.getManaCost(spellLevel);
         var initialMana = manaCost * 3.0F;
         player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
-        var maxMana = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get());
+        var maxMana = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA);
         if (maxMana != null) {
             maxMana.setBaseValue(initialMana);
         }
@@ -10193,8 +10193,8 @@ public final class ApprenticeCodexGameTestScenarios {
             var target = spawnPositionedZombie(helper.getLevel(), helper.absoluteVec(new Vec3(2.5D, 41.0D, 0.5D)));
             helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), spellLevel, player, MagicData.getPlayerMagicData(player)),
                     "Slow should find the elevated target before it is removed");
-            player.removeEffect(EffectRegistry.ECHO_SPELL.get());
-            helper.assertFalse(player.hasEffect(EffectRegistry.ECHO_SPELL.get()),
+            player.removeEffect(EffectRegistry.ECHO_SPELL);
+            helper.assertFalse(player.hasEffect(EffectRegistry.ECHO_SPELL),
                     "Long cast test should remove EchoSpell before the normal cast completes");
             target.discard();
             player.setYRot(90.0F);
@@ -10210,7 +10210,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
 
         helper.runAtTickTime(4, () -> {
-            MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            MulticastEchoStaffCastHelper.onPlayerTick(new PlayerTickEvent.Post(player));
             var magicData = MagicData.getPlayerMagicData(player);
             var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
             var expectedCooldown = MagicManager.getEffectiveSpellCooldown(spell, player, CastSource.SPELLBOOK);
@@ -10236,7 +10236,7 @@ public final class ApprenticeCodexGameTestScenarios {
         var manaCost = spell.getManaCost(spellLevel);
         var initialMana = manaCost * 3.0F;
         player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
-        var maxMana = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get());
+        var maxMana = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA);
         if (maxMana != null) {
             maxMana.setBaseValue(initialMana);
         }
@@ -10250,8 +10250,8 @@ public final class ApprenticeCodexGameTestScenarios {
             spawnPositionedZombie(helper.getLevel(), helper.absoluteVec(new Vec3(2.5D, 41.0D, 0.5D)));
             helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), spellLevel, player, MagicData.getPlayerMagicData(player)),
                     "Slow should store a valid target before EchoSpell is removed");
-            player.removeEffect(EffectRegistry.ECHO_SPELL.get());
-            helper.assertFalse(player.hasEffect(EffectRegistry.ECHO_SPELL.get()),
+            player.removeEffect(EffectRegistry.ECHO_SPELL);
+            helper.assertFalse(player.hasEffect(EffectRegistry.ECHO_SPELL),
                     "Long cast context test should remove EchoSpell before the normal cast completes");
 
             finishStartedSpellCast(helper.getLevel(), player, spell, spellLevel);
@@ -10264,7 +10264,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
 
         helper.runAtTickTime(4, () -> {
-            MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            MulticastEchoStaffCastHelper.onPlayerTick(new PlayerTickEvent.Post(player));
             var magicData = MagicData.getPlayerMagicData(player);
             var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
             var expectedCooldown = expectedMulticastEchoStaffCooldown(spell, player, CastSource.SPELLBOOK, amplifier);
@@ -10479,7 +10479,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
         helper.runAtTickTime(4, () -> {
             try {
-                MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+                MulticastEchoStaffCastHelper.onPlayerTick(new PlayerTickEvent.Post(player));
                 var magicData = MagicData.getPlayerMagicData(player);
                 var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
 
@@ -10520,7 +10520,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
         helper.runAtTickTime(4, () -> {
             try {
-                MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+                MulticastEchoStaffCastHelper.onPlayerTick(new PlayerTickEvent.Post(player));
                 var magicData = MagicData.getPlayerMagicData(player);
                 var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
                 var expectedCooldown = MagicManager.getEffectiveSpellCooldown(spell, player, CastSource.SPELLBOOK);
@@ -10556,7 +10556,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
                         "Echo Cast should allow the cast that reaches the configured maximum");
                 spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
-                var effect = player.getEffect(EffectRegistry.ECHO_SPELL.get());
+                var effect = player.getEffect(EffectRegistry.ECHO_SPELL);
                 helper.assertTrue(effect != null && effect.getAmplifier() == 0,
                         "Echo Cast should store the maximum amplifier for a one-cast limit");
                 helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
@@ -10577,7 +10577,7 @@ public final class ApprenticeCodexGameTestScenarios {
         magicData.getPlayerCooldowns().removeCooldown(spell.getSpellId());
         magicData.setPlayerCastingItem(staffStack);
         magicData.setMana(mana);
-        player.addEffect(new MobEffectInstance(EffectRegistry.ECHO_SPELL.get(), 200, amplifier));
+        player.addEffect(new MobEffectInstance(EffectRegistry.ECHO_SPELL, 200, amplifier));
     }
 
     private static void completeMulticastEchoStaffCast(
@@ -11703,7 +11703,7 @@ public final class ApprenticeCodexGameTestScenarios {
         // 同 batch の他 Healing Bloom から再生オーラを受けないよう、高所へ隔離する。
         var relativeAnchorPos = new BlockPos(0, 20, 0);
         var anchorPos = helper.absolutePos(relativeAnchorPos);
-        prepareHighIsolationPlatform(helper, relativeAnchorPos);
+        prepareElevatedStonePlatform(helper, relativeAnchorPos);
 
         var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "healing_bloom_regen_test"));
         var bloom = new HealingBloomEntity(EntityRegistry.HEALING_BLOOM.get(), level);

@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item;
 
+import io.redspace.ironsspellbooks.api.item.weapons.ExtendedSwordItem;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
@@ -7,72 +8,63 @@ import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import io.redspace.ironsspellbooks.item.weapons.StaffItem;
 import io.redspace.ironsspellbooks.item.weapons.StaffTier;
-import io.redspace.ironsspellbooks.render.ClientStaffItemExtensions;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
-import jp.aquafactory.apprenticecodex.renderer.item.MulticastEchoStaffRenderer;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.core.Holder;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.util.function.Consumer;
+import java.util.Set;
 
 public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem {
+    private static final Set<ResourceLocation> EXTRA_SUPPORTED_ENCHANTMENTS = Set.of(
+            ResourceLocation.withDefaultNamespace("fortune"),
+            ResourceLocation.withDefaultNamespace("silk_touch")
+    );
+
     private static final StaffTier MULTICAST_ECHO_STAFF_TIER = new StaffTier(
             3.0F,
             -3.0F,
             new AttributeContainer(
                     AttributeRegistry.SPELL_POWER,
                     0.05D,
-                    AttributeModifier.Operation.MULTIPLY_BASE
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             ),
             new AttributeContainer(
                     AttributeRegistry.ELDRITCH_SPELL_POWER,
                     0.15D,
-                    AttributeModifier.Operation.MULTIPLY_BASE
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             ),
             new AttributeContainer(
                     AttributeRegistry.CAST_TIME_REDUCTION,
                     0.2D,
-                    AttributeModifier.Operation.MULTIPLY_BASE
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             )
     );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public MulticastEchoStaff() {
-        super(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC), MULTICAST_ECHO_STAFF_TIER);
+        super(new Item.Properties()
+                .stacksTo(1)
+                .rarity(Rarity.EPIC)
+                .attributes(ExtendedSwordItem.createAttributes(MULTICAST_ECHO_STAFF_TIER)));
         GeoItem.registerSyncedAnimatable(this);
     }
 
     @Override
     public boolean hasCustomRendering() {
         return true;
-    }
-
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new ClientStaffItemExtensions() {
-            private MulticastEchoStaffRenderer renderer;
-
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                if (renderer == null) {
-                    renderer = new MulticastEchoStaffRenderer();
-                }
-
-                return renderer;
-            }
-        });
     }
 
     @Override
@@ -94,8 +86,22 @@ public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpe
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return StaffEnchantmentTargeting.canApplyAtEnchantingTable(stack, enchantment);
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        if (super.supportsEnchantment(stack, enchantment)) {
+            return true;
+        }
+
+        var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
+        if (MalumCompatibility.isMagicCapableWeaponEnchantment(stack, enchantmentId)) {
+            return true;
+        }
+
+        return enchantmentId != null && EXTRA_SUPPORTED_ENCHANTMENTS.contains(enchantmentId);
+    }
+
+    @Override
+    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -104,13 +110,13 @@ public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpe
             return false;
         }
 
-        var enchantments = EnchantmentHelper.getEnchantments(book);
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
         if (enchantments.isEmpty()) {
             return true;
         }
 
         return enchantments.keySet().stream()
-                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
+                .allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     @Override

@@ -274,7 +274,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_multicast_echo_staff.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_multicast_echo_staff.description"),
                         null,
-                        FrameType.CHALLENGE,
+                        AdvancementType.CHALLENGE,
                         true,
                         true,
                         false)

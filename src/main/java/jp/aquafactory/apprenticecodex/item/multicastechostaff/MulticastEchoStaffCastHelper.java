@@ -22,20 +22,20 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class MulticastEchoStaffCastHelper {
     private static final ConcurrentMap<UUID, PreCastEchoContext> PRE_CAST_CONTEXTS = new ConcurrentHashMap<>();
     private static final ConcurrentMap<UUID, ActiveNormalCastContext> ACTIVE_NORMAL_CASTS = new ConcurrentHashMap<>();
@@ -55,7 +55,7 @@ public final class MulticastEchoStaffCastHelper {
             return;
         }
 
-        var echoSpell = player.getEffect(EffectRegistry.ECHO_SPELL.get());
+        var echoSpell = player.getEffect(EffectRegistry.ECHO_SPELL);
         if (echoSpell == null) {
             return;
         }
@@ -124,7 +124,7 @@ public final class MulticastEchoStaffCastHelper {
             return;
         }
 
-        player.removeEffect(EffectRegistry.ECHO_SPELL.get());
+        player.removeEffect(EffectRegistry.ECHO_SPELL);
         PRE_CAST_CONTEXTS.remove(player.getUUID());
 
         var remainingCasts = Math.min(context.amplifier() + 1, ApprenticeCodexServerConfig.multicastEchoStaffMaxMulticastCount());
@@ -182,7 +182,7 @@ public final class MulticastEchoStaffCastHelper {
         }
 
         return !requireActiveEffect
-                || player.hasEffect(EffectRegistry.ECHO_SPELL.get());
+                || player.hasEffect(EffectRegistry.ECHO_SPELL);
     }
 
     private static boolean isUnsupportedMulticastTarget(AbstractSpell spell, int spellLevel, ServerPlayer player) {
@@ -196,7 +196,7 @@ public final class MulticastEchoStaffCastHelper {
             return context.amplifier();
         }
 
-        var echoSpell = player.getEffect(EffectRegistry.ECHO_SPELL.get());
+        var echoSpell = player.getEffect(EffectRegistry.ECHO_SPELL);
         if (echoSpell == null) {
             return null;
         }
@@ -278,8 +278,8 @@ public final class MulticastEchoStaffCastHelper {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || !(event.player instanceof ServerPlayer player)) {
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
 
@@ -427,13 +427,13 @@ public final class MulticastEchoStaffCastHelper {
             MagicData magicData
     ) {
         return spell.checkPreCastConditions(level, spellLevel, player, magicData)
-                && !MinecraftForge.EVENT_BUS.post(new SpellPreCastEvent(
+                && !NeoForge.EVENT_BUS.post(new SpellPreCastEvent(
                 player,
                 spell.getSpellId(),
                 spellLevel,
                 spell.getSchoolType(),
                 castSource
-        ));
+        )).isCanceled();
     }
 
     private static void finishMulticast(ServerPlayer player, MulticastJob job, AbstractSpell spell) {

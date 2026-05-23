@@ -1,23 +1,23 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class MulticastEchoStaffServerConfig {
-    private final ForgeConfigSpec.IntValue multicastDelayTicks;
-    private final ForgeConfigSpec.DoubleValue cooldownMultiplier;
-    private final ForgeConfigSpec.DoubleValue castTimeCooldownMultiplier;
-    private final ForgeConfigSpec.IntValue cooldownCapTicks;
-    private final ForgeConfigSpec.IntValue maxMulticastCount;
-    private final ForgeConfigSpec.BooleanValue mobEffectProfilesEnabled;
-    private final ForgeConfigSpec.BooleanValue beneficialMobEffectsEnabled;
-    private final ForgeConfigSpec.BooleanValue harmfulMobEffectsEnabled;
-    private final ForgeConfigSpec.BooleanValue neutralMobEffectsEnabled;
-    private final ForgeConfigSpec.BooleanValue durationServerCapEnabled;
-    private final ForgeConfigSpec.IntValue durationServerCapTicks;
-    private final ForgeConfigSpec.BooleanValue amplifierServerCapEnabled;
-    private final ForgeConfigSpec.IntValue amplifierServerCap;
-    private final ForgeConfigSpec.BooleanValue attackProfilesEnabled;
-    private final ForgeConfigSpec.DoubleValue repeatDamageMultiplier;
+    private final ModConfigSpec.IntValue multicastDelayTicks;
+    private final ModConfigSpec.DoubleValue cooldownMultiplier;
+    private final ModConfigSpec.DoubleValue castTimeCooldownMultiplier;
+    private final ModConfigSpec.IntValue cooldownCapTicks;
+    private final ModConfigSpec.IntValue maxMulticastCount;
+    private final ModConfigSpec.BooleanValue mobEffectProfilesEnabled;
+    private final ModConfigSpec.BooleanValue beneficialMobEffectsEnabled;
+    private final ModConfigSpec.BooleanValue harmfulMobEffectsEnabled;
+    private final ModConfigSpec.BooleanValue neutralMobEffectsEnabled;
+    private final ModConfigSpec.BooleanValue durationServerCapEnabled;
+    private final ModConfigSpec.IntValue durationServerCapTicks;
+    private final ModConfigSpec.BooleanValue amplifierServerCapEnabled;
+    private final ModConfigSpec.IntValue amplifierServerCap;
+    private final ModConfigSpec.BooleanValue attackProfilesEnabled;
+    private final ModConfigSpec.DoubleValue repeatDamageMultiplier;
     private Integer multicastDelayTicksOverride;
     private Double cooldownMultiplierOverride;
     private Double castTimeCooldownMultiplierOverride;
@@ -35,21 +35,21 @@ public final class MulticastEchoStaffServerConfig {
     private Double repeatDamageMultiplierOverride;
 
     private MulticastEchoStaffServerConfig(
-            ForgeConfigSpec.IntValue multicastDelayTicks,
-            ForgeConfigSpec.DoubleValue cooldownMultiplier,
-            ForgeConfigSpec.DoubleValue castTimeCooldownMultiplier,
-            ForgeConfigSpec.IntValue cooldownCapTicks,
-            ForgeConfigSpec.IntValue maxMulticastCount,
-            ForgeConfigSpec.BooleanValue mobEffectProfilesEnabled,
-            ForgeConfigSpec.BooleanValue beneficialMobEffectsEnabled,
-            ForgeConfigSpec.BooleanValue harmfulMobEffectsEnabled,
-            ForgeConfigSpec.BooleanValue neutralMobEffectsEnabled,
-            ForgeConfigSpec.BooleanValue durationServerCapEnabled,
-            ForgeConfigSpec.IntValue durationServerCapTicks,
-            ForgeConfigSpec.BooleanValue amplifierServerCapEnabled,
-            ForgeConfigSpec.IntValue amplifierServerCap,
-            ForgeConfigSpec.BooleanValue attackProfilesEnabled,
-            ForgeConfigSpec.DoubleValue repeatDamageMultiplier
+            ModConfigSpec.IntValue multicastDelayTicks,
+            ModConfigSpec.DoubleValue cooldownMultiplier,
+            ModConfigSpec.DoubleValue castTimeCooldownMultiplier,
+            ModConfigSpec.IntValue cooldownCapTicks,
+            ModConfigSpec.IntValue maxMulticastCount,
+            ModConfigSpec.BooleanValue mobEffectProfilesEnabled,
+            ModConfigSpec.BooleanValue beneficialMobEffectsEnabled,
+            ModConfigSpec.BooleanValue harmfulMobEffectsEnabled,
+            ModConfigSpec.BooleanValue neutralMobEffectsEnabled,
+            ModConfigSpec.BooleanValue durationServerCapEnabled,
+            ModConfigSpec.IntValue durationServerCapTicks,
+            ModConfigSpec.BooleanValue amplifierServerCapEnabled,
+            ModConfigSpec.IntValue amplifierServerCap,
+            ModConfigSpec.BooleanValue attackProfilesEnabled,
+            ModConfigSpec.DoubleValue repeatDamageMultiplier
     ) {
         this.multicastDelayTicks = multicastDelayTicks;
         this.cooldownMultiplier = cooldownMultiplier;
@@ -68,7 +68,7 @@ public final class MulticastEchoStaffServerConfig {
         this.repeatDamageMultiplier = repeatDamageMultiplier;
     }
 
-    public static MulticastEchoStaffServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static MulticastEchoStaffServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("MulticastEchoStaff");
         var multicastDelayTicks = builder
                 .comment("Delay in ticks between Multicast Echo Staff repeated casts. Must be at least 1 tick.")

@@ -48,8 +48,8 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), new SpellDispenserSpellListDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new SpellDispenserSpellProfileDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new ChargedTwinBladeStaffSpellProfileDataGenerator(output, lookupProvider, existing));
-        generator.addProvider(event.includeServer(), new MulticastEchoStaffAttackProfileDataGenerator(output, existing));
-        generator.addProvider(event.includeServer(), new MulticastEchoStaffMobEffectProfileDataGenerator(output, existing));
+        generator.addProvider(event.includeServer(), new MulticastEchoStaffAttackProfileDataGenerator(output, lookupProvider, existing));
+        generator.addProvider(event.includeServer(), new MulticastEchoStaffMobEffectProfileDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new SpellGunSpellListDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new AutocastAmuletSpellListDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new ElementalBowModeDataGenerator(output, lookupProvider, existing));

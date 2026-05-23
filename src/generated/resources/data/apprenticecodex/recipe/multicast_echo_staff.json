@@ -24,7 +24,22 @@
     "PN "
   ],
   "result": {
-    "item": "apprenticecodex:multicast_echo_staff"
-  },
-  "show_notification": true
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [
+          {
+            "id": "apprenticecodex:echo_cast",
+            "index": 0,
+            "level": 1,
+            "locked": true
+          }
+        ],
+        "maxSpells": 1,
+        "mustEquip": false,
+        "spellWheel": true
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:multicast_echo_staff"
+  }
 }

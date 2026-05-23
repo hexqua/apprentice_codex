@@ -12,11 +12,12 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 public class MulticastEchoStaffRenderer extends GeoItemRenderer<MulticastEchoStaff> {
     private static final String STAR_BONE = "star";
@@ -46,26 +47,26 @@ public class MulticastEchoStaffRenderer extends GeoItemRenderer<MulticastEchoSta
     @Override
     public void postRender(PoseStack poseStack, MulticastEchoStaff animatable, BakedGeoModel model,
                            MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                           int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                           int packedLight, int packedOverlay, int colour) {
         super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight,
-                packedOverlay, red, green, blue, alpha);
+                packedOverlay, colour);
 
         if (isReRender) {
             return;
         }
 
         renderSpecialPass(model, poseStack, bufferSource, animatable, SpecialPass.HEAD_CORE, HEAD_CORE_RENDER_TYPE,
-                partialTick, LightTexture.FULL_BRIGHT, 1.0F, 1.0F, 1.0F, alpha);
+                partialTick, LightTexture.FULL_BRIGHT, 0xFFFFFFFF);
         renderSpecialPass(model, poseStack, bufferSource, animatable, SpecialPass.SHARD, SHARD_RENDER_TYPE,
-                partialTick, packedLight, red, green, blue,
-                alpha * MulticastEchoStaffClientRenderState.resolveShardAlpha(partialTick));
+                partialTick, packedLight,
+                scaleColour(colour, 1.0F, MulticastEchoStaffClientRenderState.resolveShardAlpha(partialTick)));
     }
 
     @Override
     public void renderRecursively(PoseStack poseStack, MulticastEchoStaff animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
                                   float partialTick, int packedLight, int packedOverlay,
-                                  float red, float green, float blue, float alpha) {
+                                  int colour) {
         var starBone = isBoneOrChildOf(bone, STAR_BONE);
         var headCoreBone = isBoneOrChildOf(bone, HEAD_CORE_BONE);
         var shardBone = isBoneOrChildOf(bone, SHARD_BONE);
@@ -86,10 +87,7 @@ public class MulticastEchoStaffRenderer extends GeoItemRenderer<MulticastEchoSta
                     partialTick,
                     starBone ? raiseBlockLightFloor(packedLight, STAR_MIN_BLOCK_LIGHT) : packedLight,
                     packedOverlay,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    colour
             );
             return;
         }
@@ -97,7 +95,7 @@ public class MulticastEchoStaffRenderer extends GeoItemRenderer<MulticastEchoSta
         if (this.specialPass == SpecialPass.HEAD_CORE) {
             renderSpecialPassBone(
                     poseStack, animatable, bone, headCoreBone, renderType, bufferSource, buffer, isReRender,
-                    partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                    partialTick, packedLight, packedOverlay, colour
             );
             return;
         }
@@ -105,7 +103,7 @@ public class MulticastEchoStaffRenderer extends GeoItemRenderer<MulticastEchoSta
         if (this.specialPass == SpecialPass.SHARD) {
             renderSpecialPassBone(
                     poseStack, animatable, bone, shardBone, renderType, bufferSource, buffer, isReRender,
-                    partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                    partialTick, packedLight, packedOverlay, colour
             );
         }
     }
@@ -118,7 +116,7 @@ public class MulticastEchoStaffRenderer extends GeoItemRenderer<MulticastEchoSta
 
     private void renderSpecialPass(BakedGeoModel model, PoseStack poseStack, MultiBufferSource bufferSource,
                                    MulticastEchoStaff animatable, SpecialPass pass, RenderType renderType,
-                                   float partialTick, int packedLight, float red, float green, float blue, float alpha) {
+                                   float partialTick, int packedLight, int colour) {
         this.specialPass = pass;
         try {
             this.reRender(
@@ -131,10 +129,7 @@ public class MulticastEchoStaffRenderer extends GeoItemRenderer<MulticastEchoSta
                     partialTick,
                     packedLight,
                     OverlayTexture.NO_OVERLAY,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    colour
             );
         } finally {
             this.specialPass = SpecialPass.NONE;
@@ -144,34 +139,34 @@ public class MulticastEchoStaffRenderer extends GeoItemRenderer<MulticastEchoSta
     private void renderSpecialPassBone(PoseStack poseStack, MulticastEchoStaff animatable, GeoBone bone,
                                        boolean targetBone, RenderType renderType, MultiBufferSource bufferSource,
                                        VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight,
-                                       int packedOverlay, float red, float green, float blue, float alpha) {
+                                       int packedOverlay, int colour) {
         if (targetBone) {
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         renderChildBonesOnly(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
     private void renderChildBonesOnly(PoseStack poseStack, MulticastEchoStaff animatable, GeoBone bone,
                                       RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                       boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                      float red, float green, float blue, float alpha) {
+                                      int colour) {
         poseStack.pushPose();
 
         if (bone.isTrackingMatrices()) {
             Matrix4f poseState = new Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
         }
 
-        RenderUtils.prepMatrixForBone(poseStack, bone);
+        RenderUtil.prepMatrixForBone(poseStack, bone);
         renderChildBones(
                 poseStack,
                 animatable,
@@ -183,16 +178,25 @@ public class MulticastEchoStaffRenderer extends GeoItemRenderer<MulticastEchoSta
                 partialTick,
                 packedLight,
                 packedOverlay,
-                red,
-                green,
-                blue,
-                alpha
+                colour
         );
         poseStack.popPose();
     }
 
     private static int raiseBlockLightFloor(int packedLight, int minBlockLight) {
         return LightTexture.pack(Math.max(LightTexture.block(packedLight), minBlockLight), LightTexture.sky(packedLight));
+    }
+
+    private static int scaleColour(int colour, float brightness, float alphaMultiplier) {
+        var safeBrightness = Math.max(0.0F, brightness);
+        var alpha = Math.round(((colour >>> 24) & 0xFF) * Mth.clamp(alphaMultiplier, 0.0F, 1.0F));
+        var red = Math.round(((colour >>> 16) & 0xFF) * safeBrightness);
+        var green = Math.round(((colour >>> 8) & 0xFF) * safeBrightness);
+        var blue = Math.round((colour & 0xFF) * safeBrightness);
+        return (Mth.clamp(alpha, 0, 255) << 24)
+                | (Mth.clamp(red, 0, 255) << 16)
+                | (Mth.clamp(green, 0, 255) << 8)
+                | Mth.clamp(blue, 0, 255);
     }
 
     private static boolean isBoneOrChildOf(GeoBone bone, String rootBoneName) {
