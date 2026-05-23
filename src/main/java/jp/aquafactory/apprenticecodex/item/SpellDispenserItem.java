@@ -14,7 +14,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class SpellDispenserItem extends BlockItem implements IJeiInfoItem {
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.spell_dispenser.desc_";
+    private static final String JEI_INFO_KEY_PREFIX_NORMAL = "jei.apprenticecodex.spell_dispenser.desc_";
+    private static final String JEI_INFO_KEY_PREFIX_CREATIVE = "jei.apprenticecodex.creative_spell_dispenser.desc_";
     private static final String CREATIVE_TOOLTIP_KEY = "item.apprenticecodex.spell_dispenser.creative_tooltip";
 
     private final boolean showCreativeTooltip;
@@ -39,6 +40,6 @@ public class SpellDispenserItem extends BlockItem implements IJeiInfoItem {
 
     @Override
     public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
+        return showCreativeTooltip ? JEI_INFO_KEY_PREFIX_CREATIVE : JEI_INFO_KEY_PREFIX_NORMAL;
     }
 }
