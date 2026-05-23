@@ -27,10 +27,14 @@ import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEn
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastAnchorMode;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCasterMode;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaFluidHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfile;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfileManager;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserVariant;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
@@ -1851,6 +1855,55 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(castResult.reachedOnCast(), "Spell Dispenser owner-optional cast did not reach onCast");
             assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser owner-optional cast left proxy state behind");
         });
+    }
+    static void spellDispenserCastHelperUsesNeutralLivingCasterProfileForMagicMissile(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var castPos = new BlockPos(0, 1, 0);
+        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        var scrollStack = createSpellScroll(spell);
+        var neutralProfile = new SpellDispenserSpellProfile(
+                SpellDispenserCastAnchorMode.AUTO,
+                SpellDispenserCasterMode.NEUTRAL_LIVING,
+                0.0D,
+                0.0D,
+                0.0D,
+                0.0F,
+                0.0F,
+                false
+        );
+        var spawnedProjectiles = new ArrayList<io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile>();
+        java.util.function.Consumer<EntityJoinLevelEvent> projectileListener = event -> {
+            if (event.getLevel() == level
+                    && event.getEntity() instanceof io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile projectile) {
+                spawnedProjectiles.add(projectile);
+            }
+        };
+
+        MinecraftForge.EVENT_BUS.addListener(projectileListener);
+        try (var ignored = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of(spell.getSpellResource(), neutralProfile))) {
+            var castResult = SpellDispenserCastHelper.tryCast(
+                    level,
+                    castPos,
+                    Direction.NORTH,
+                    scrollStack,
+                    null
+            );
+            helper.assertTrue(castResult.succeeded(), "Spell Dispenser neutral living cast failed for Magic Missile");
+            helper.assertTrue(castResult.reachedOnCast(), "Spell Dispenser neutral living cast did not reach onCast");
+        } finally {
+            MinecraftForge.EVENT_BUS.unregister(projectileListener);
+        }
+
+        helper.assertTrue(!spawnedProjectiles.isEmpty(), "Spell Dispenser neutral living cast did not spawn Magic Missile");
+        var owner = spawnedProjectiles.get(0).getOwner();
+        helper.assertTrue(owner instanceof ArmorStand, "Spell Dispenser neutral living cast did not use ArmorStand owner: " + owner);
+        helper.assertTrue(owner.hasCustomName(), "Spell Dispenser neutral living caster did not set a display name");
+        helper.assertTrue(!owner.isCustomNameVisible(), "Spell Dispenser neutral living caster exposes its nameplate");
+        helper.assertTrue(!owner.isSilent(), "Spell Dispenser neutral living caster suppresses cast sound");
+        helper.assertTrue(!(owner instanceof Player), "Spell Dispenser neutral living cast used a Player owner: " + owner);
+        helper.assertTrue(!(owner instanceof FakePlayer), "Spell Dispenser neutral living cast used a FakePlayer owner: " + owner);
+        assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser neutral living cast left proxy state behind");
+        helper.succeed();
     }
     static void spellDispenserCastHelperCompletesLongCastImmediately(GameTestHelper helper) {
         helper.succeedIf(() -> {
