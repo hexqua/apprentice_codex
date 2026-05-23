@@ -11,23 +11,31 @@ public final class SpellDispenserServerConfig {
     private final ModConfigSpec.BooleanValue enableSpellAllowlist;
     private final ModConfigSpec.ConfigValue<List<? extends String>> spellAllowlist;
     private final ModConfigSpec.DoubleValue cooldownMultiplier;
+    private final ModConfigSpec.BooleanValue creativeManaConsumption;
+    private final ModConfigSpec.DoubleValue creativeCooldownMultiplier;
     private final ModConfigSpec.BooleanValue ignoreSpellProfileAndDenylistFiles;
     private Boolean enableOverride;
     private Boolean enableSpellAllowlistOverride;
     private List<String> spellAllowlistOverride;
     private Double cooldownMultiplierOverride;
+    private Boolean creativeManaConsumptionOverride;
+    private Double creativeCooldownMultiplierOverride;
 
     private SpellDispenserServerConfig(
             ModConfigSpec.BooleanValue enable,
             ModConfigSpec.BooleanValue enableSpellAllowlist,
             ModConfigSpec.ConfigValue<List<? extends String>> spellAllowlist,
             ModConfigSpec.DoubleValue cooldownMultiplier,
+            ModConfigSpec.BooleanValue creativeManaConsumption,
+            ModConfigSpec.DoubleValue creativeCooldownMultiplier,
             ModConfigSpec.BooleanValue ignoreSpellProfileAndDenylistFiles
     ) {
         this.enable = enable;
         this.enableSpellAllowlist = enableSpellAllowlist;
         this.spellAllowlist = spellAllowlist;
         this.cooldownMultiplier = cooldownMultiplier;
+        this.creativeManaConsumption = creativeManaConsumption;
+        this.creativeCooldownMultiplier = creativeCooldownMultiplier;
         this.ignoreSpellProfileAndDenylistFiles = ignoreSpellProfileAndDenylistFiles;
     }
 
@@ -49,6 +57,15 @@ public final class SpellDispenserServerConfig {
         var cooldownMultiplier = builder
                 .comment("Multiplier applied to Spell Dispenser cooldown ticks. Minimum is 0.1.")
                 .defineInRange("cooldownMultiplier", 1.0d, 0.1d, Double.MAX_VALUE);
+        var creativeManaConsumption = builder
+                .comment("Enables mana consumption for Creative Spell Dispenser. Disabled by default.")
+                .define("creativeManaConsumption", false);
+        var creativeCooldownMultiplier = builder
+                .comment(
+                        "Multiplier applied to Creative Spell Dispenser cooldown ticks.",
+                        "WARNING: Setting this to 0 can cause catastrophic server load if redstone or contraptions repeatedly cast spells."
+                )
+                .defineInRange("creativeCooldownMultiplier", 0.1d, 0.0d, Double.MAX_VALUE);
         var ignoreSpellProfileAndDenylistFiles = builder
                 .comment(
                         "WARNING: Ignores Spell Dispenser spell profile and denylist config files.",
@@ -63,6 +80,8 @@ public final class SpellDispenserServerConfig {
                 enableSpellAllowlist,
                 spellAllowlist,
                 cooldownMultiplier,
+                creativeManaConsumption,
+                creativeCooldownMultiplier,
                 ignoreSpellProfileAndDenylistFiles
         );
     }
@@ -102,6 +121,20 @@ public final class SpellDispenserServerConfig {
         return cooldownMultiplier.get();
     }
 
+    public boolean creativeManaConsumption() {
+        if (creativeManaConsumptionOverride != null) {
+            return creativeManaConsumptionOverride;
+        }
+        return creativeManaConsumption.get();
+    }
+
+    public double creativeCooldownMultiplier() {
+        if (creativeCooldownMultiplierOverride != null) {
+            return creativeCooldownMultiplierOverride;
+        }
+        return creativeCooldownMultiplier.get();
+    }
+
     public boolean ignoreSpellProfileAndDenylistFiles() {
         return ignoreSpellProfileAndDenylistFiles.get();
     }
@@ -116,6 +149,11 @@ public final class SpellDispenserServerConfig {
         enableSpellAllowlistOverride = enableSpellAllowlist;
         spellAllowlistOverride = List.copyOf(spellAllowlist);
         cooldownMultiplierOverride = Math.max(0.1d, cooldownMultiplier);
+    }
+
+    public void setCreativeForGameTest(boolean manaConsumption, double cooldownMultiplier) {
+        creativeManaConsumptionOverride = manaConsumption;
+        creativeCooldownMultiplierOverride = Math.max(0.0d, cooldownMultiplier);
     }
 
     private static boolean isSpellId(Object value) {

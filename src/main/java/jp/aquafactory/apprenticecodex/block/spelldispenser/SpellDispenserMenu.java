@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.block.spelldispenser;
 
-import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -46,6 +45,7 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
     private final IItemHandlerModifiable inventory;
     private final boolean mounted;
     private final boolean hasOwnerProfile;
+    private final SpellDispenserVariant variant;
     @Nullable
     private final String ownerName;
     private final IntSupplier currentManaSupplier;
@@ -78,10 +78,23 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
             @Nullable String ownerName,
             IntSupplier currentManaSupplier
     ) {
+        return createMounted(containerId, playerInventory, localPos, inventory, hasOwnerProfile, ownerName, currentManaSupplier, SpellDispenserVariant.NORMAL);
+    }
+
+    public static SpellDispenserMenu createMounted(
+            int containerId,
+            Inventory playerInventory,
+            BlockPos localPos,
+            IItemHandlerModifiable inventory,
+            boolean hasOwnerProfile,
+            @Nullable String ownerName,
+            IntSupplier currentManaSupplier,
+            SpellDispenserVariant variant
+    ) {
         return new SpellDispenserMenu(
                 containerId,
                 playerInventory,
-                MenuContext.forMounted(localPos, inventory, hasOwnerProfile, ownerName, currentManaSupplier, currentManaSupplier.getAsInt())
+                MenuContext.forMounted(localPos, inventory, hasOwnerProfile, ownerName, currentManaSupplier, currentManaSupplier.getAsInt(), variant)
         );
     }
 
@@ -94,10 +107,23 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
             @Nullable String ownerName,
             int currentMana
     ) {
+        return createMounted(containerId, playerInventory, localPos, inventory, hasOwnerProfile, ownerName, currentMana, SpellDispenserVariant.NORMAL);
+    }
+
+    public static SpellDispenserMenu createMounted(
+            int containerId,
+            Inventory playerInventory,
+            BlockPos localPos,
+            IItemHandlerModifiable inventory,
+            boolean hasOwnerProfile,
+            @Nullable String ownerName,
+            int currentMana,
+            SpellDispenserVariant variant
+    ) {
         return new SpellDispenserMenu(
                 containerId,
                 playerInventory,
-                MenuContext.forMounted(localPos, inventory, hasOwnerProfile, ownerName, null, currentMana)
+                MenuContext.forMounted(localPos, inventory, hasOwnerProfile, ownerName, null, currentMana, variant)
         );
     }
 
@@ -109,6 +135,7 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
         this.inventory = context.inventory();
         this.mounted = context.mounted();
         this.hasOwnerProfile = context.hasOwnerProfile();
+        this.variant = context.variant();
         this.ownerName = context.ownerName();
         this.currentMana = SpellDispenserManaHelper.clampMana(context.currentMana());
         this.currentManaSupplier = context.currentManaSupplier() != null
@@ -149,7 +176,13 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
             // からくり上ではワールド上の block entity が存在しないため、設置ブロック前提の距離判定を使わない。
             return true;
         }
-        return stillValid(access, player, BlockRegistry.SPELL_DISPENSER.get());
+        return access.evaluate((level, pos) ->
+                level.getBlockState(pos).getBlock() instanceof SpellDispenser
+                        && player.distanceToSqr(
+                        (double) pos.getX() + 0.5D,
+                        (double) pos.getY() + 0.5D,
+                        (double) pos.getZ() + 0.5D
+                ) <= 64.0D, true);
     }
 
     @Override
@@ -196,7 +229,8 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
         var validation = getValidation(player);
         return (!SpellDispenserSpellProfileManager.requiresOwner(validation.spellData()) || hasOwnerProfile())
                 && validation.isSupported()
-                && SpellDispenserManaHelper.canAffordSpell(getCurrentMana(), validation.spellData());
+                && (variant.isManaConsumptionExempt()
+                || SpellDispenserManaHelper.canAffordSpell(getCurrentMana(), validation.spellData()));
     }
 
     public @NotNull ItemStack getSpellSource() {
@@ -229,6 +263,14 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
 
     public int getMaxMana() {
         return SpellDispenserManaHelper.MAX_MANA;
+    }
+
+    public boolean isCreativeVariant() {
+        var currentBlockEntity = getBlockEntity();
+        if (currentBlockEntity != null) {
+            return currentBlockEntity.getVariant().isCreative();
+        }
+        return variant.isCreative();
     }
 
     public @Nullable SpellDispenserBlockEntity getBlockEntity() {
@@ -270,6 +312,7 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
             IItemHandlerModifiable inventory,
             boolean mounted,
             boolean hasOwnerProfile,
+            SpellDispenserVariant variant,
             @Nullable String ownerName,
             @Nullable IntSupplier currentManaSupplier,
             int currentMana
@@ -281,6 +324,7 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
                     blockEntity.getInventory(),
                     false,
                     blockEntity.hasOwnerProfile(),
+                    blockEntity.getVariant(),
                     blockEntity.getOwnerName(),
                     blockEntity::getCurrentMana,
                     blockEntity.getCurrentMana()
@@ -293,9 +337,10 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
                 boolean hasOwnerProfile,
                 @Nullable String ownerName,
                 @Nullable IntSupplier currentManaSupplier,
-                int currentMana
+                int currentMana,
+                SpellDispenserVariant variant
         ) {
-            return new MenuContext(localPos, null, inventory, true, hasOwnerProfile, ownerName, currentManaSupplier, currentMana);
+            return new MenuContext(localPos, null, inventory, true, hasOwnerProfile, variant, ownerName, currentManaSupplier, currentMana);
         }
 
         private static MenuContext fromNetwork(Inventory playerInventory, RegistryFriendlyByteBuf data) {
@@ -311,6 +356,7 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
                         resolveInventory(playerInventory, blockPos),
                         false,
                         blockEntity != null && blockEntity.hasOwnerProfile(),
+                        blockEntity != null ? blockEntity.getVariant() : SpellDispenserVariant.NORMAL,
                         blockEntity != null ? blockEntity.getOwnerName() : ownerName,
                         blockEntity != null ? blockEntity::getCurrentMana : null,
                         blockEntity != null ? blockEntity.getCurrentMana() : SpellDispenserManaHelper.MAX_MANA
@@ -319,11 +365,12 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
 
             var hasOwnerProfile = data.readBoolean();
             var currentMana = SpellDispenserManaHelper.clampMana(data.readVarInt());
+            var variant = data.readBoolean() ? SpellDispenserVariant.CREATIVE : SpellDispenserVariant.NORMAL;
             var inventory = new ItemStackHandler(SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT);
             for (var slot = 0; slot < SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT; ++slot) {
                 inventory.setStackInSlot(slot, ItemStack.STREAM_CODEC.decode(data));
             }
-            return new MenuContext(blockPos, null, inventory, true, hasOwnerProfile, ownerName, null, currentMana);
+            return new MenuContext(blockPos, null, inventory, true, hasOwnerProfile, variant, ownerName, null, currentMana);
         }
     }
 

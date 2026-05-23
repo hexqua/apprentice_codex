@@ -101,21 +101,27 @@ public final class SpellDispenserBlockEntity extends BlockEntity
     }
 
     public void setOwnerProfile(@Nullable GameProfile ownerProfile) {
+        if (!getVariant().storesOwnerProfile()) {
+            this.ownerProfile = null;
+            markUpdated();
+            return;
+        }
+
         this.ownerProfile = normalizeOwnerProfile(ownerProfile);
         markUpdated();
     }
 
     public @Nullable GameProfile getOwnerProfile() {
-        return ownerProfile;
+        return getVariant().storesOwnerProfile() ? ownerProfile : null;
     }
 
     public @Nullable String getOwnerName() {
-        var normalizedOwnerProfile = normalizeOwnerProfile(ownerProfile);
+        var normalizedOwnerProfile = normalizeOwnerProfile(getOwnerProfile());
         return normalizedOwnerProfile != null ? normalizedOwnerProfile.getName() : null;
     }
 
     public boolean hasOwnerProfile() {
-        return normalizeOwnerProfile(ownerProfile) != null;
+        return normalizeOwnerProfile(getOwnerProfile()) != null;
     }
 
     public boolean hasActiveContinuousCast() {
@@ -144,7 +150,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
     }
 
     public boolean canAffordSpell(SpellData spellData) {
-        return SpellDispenserManaHelper.canAffordSpell(currentMana, spellData);
+        return SpellDispenserManaHelper.canAffordSpell(this, spellData);
     }
 
     public SpellDispenserCastHelper.CastResult tryActivate() {
@@ -214,7 +220,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
                     spellDispenser.getFacing(state),
                     validation,
                     source.copy(),
-                    ownerProfile,
+                    getOwnerProfile(),
                     this
             );
             if (startResult.result().succeeded()) {
@@ -228,7 +234,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
                 worldPosition,
                 spellDispenser.getFacing(state),
                 source.copy(),
-                ownerProfile,
+                getOwnerProfile(),
                 this
         );
         startCooldown(result.cooldownTicks());
@@ -239,7 +245,13 @@ public final class SpellDispenserBlockEntity extends BlockEntity
             ServerLevel serverLevel,
             SpellDispenserCastHelper.CastResult result
     ) {
-        SpellDispenserCastHelper.notifyFailureToNearbyPlayers(serverLevel, worldPosition, result, recentFailureNoticeTicks);
+        SpellDispenserCastHelper.notifyFailureToNearbyPlayers(
+                serverLevel,
+                worldPosition,
+                result,
+                recentFailureNoticeTicks,
+                getVariant().restrictsFailureNotices()
+        );
         return result;
     }
 
@@ -367,10 +379,13 @@ public final class SpellDispenserBlockEntity extends BlockEntity
         super.setRemoved();
     }
 
+    @Override
     protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put(INVENTORY_TAG, inventory.serializeNBT(registries));
-        saveOwnerProfile(tag, ownerProfile);
+        if (getVariant().storesOwnerProfile()) {
+            saveOwnerProfile(tag, ownerProfile);
+        }
         tag.putBoolean(CONTINUOUS_RESET_REQUIRED_TAG, continuousResetRequired);
         tag.putInt(COOLDOWN_REMAINING_TAG, remainingCooldownTicks);
         saveCurrentMana(tag, currentMana);
@@ -384,7 +399,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
     protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         inventory.deserializeNBT(registries, tag.getCompound(INVENTORY_TAG));
-        ownerProfile = readOwnerProfile(tag);
+        ownerProfile = getVariant().storesOwnerProfile() ? readOwnerProfile(tag) : null;
         continuousResetRequired = tag.getBoolean(CONTINUOUS_RESET_REQUIRED_TAG);
         remainingCooldownTicks = Math.max(0, tag.getInt(COOLDOWN_REMAINING_TAG));
         currentMana = readCurrentMana(tag);
@@ -401,6 +416,16 @@ public final class SpellDispenserBlockEntity extends BlockEntity
         currentMana = normalizedMana;
         updateComparatorOutput();
         markUpdated();
+    }
+
+    @Override
+    public boolean isManaConsumptionExempt() {
+        return getVariant().isManaConsumptionExempt();
+    }
+
+    @Override
+    public double cooldownMultiplier() {
+        return getVariant().cooldownMultiplier();
     }
 
     @Override
@@ -591,6 +616,10 @@ public final class SpellDispenserBlockEntity extends BlockEntity
         }
 
         level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
+    }
+
+    public SpellDispenserVariant getVariant() {
+        return SpellDispenserVariant.fromState(getBlockState());
     }
 
     private final class SpellDispenserFluidHandler implements IFluidHandler {

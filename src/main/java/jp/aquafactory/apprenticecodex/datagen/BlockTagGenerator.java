@@ -28,7 +28,10 @@ public final class BlockTagGenerator extends BlockTagsProvider {
         tag(BlockTags.MINEABLE_WITH_AXE).add(BlockRegistry.APPRENTICE_DESK.get());
         tag(BlockTags.MINEABLE_WITH_AXE).add(BlockRegistry.SPELLCASTER_WORKBENCH.get());
         tag(BlockTags.MINEABLE_WITH_AXE).add(BlockRegistry.SPELL_CALIBRATION_BENCH.get());
-        tag(BlockTags.MINEABLE_WITH_AXE).add(BlockRegistry.SPELL_DISPENSER.get());
+        tag(BlockTags.MINEABLE_WITH_AXE).add(
+                BlockRegistry.SPELL_DISPENSER.get(),
+                BlockRegistry.CREATIVE_SPELL_DISPENSER.get()
+        );
 
         // 恵みの雨で効果のあるブロック.
         tag(TagRegistry.Blocks.CAN_RECEIVE_GRACED_RAIN).add(

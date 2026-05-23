@@ -451,7 +451,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ENCHANTED_CIRCLET.get()
         );
         tag(CURIOS_CHARM).add(ItemRegistry.MANA_SHIELD_CHARM.get());
-        tag(CREATE_CONTRAPTION_CONTROLLED).add(ItemRegistry.SPELL_DISPENSER.get());
+        tag(CREATE_CONTRAPTION_CONTROLLED).add(
+                ItemRegistry.SPELL_DISPENSER.get(),
+                ItemRegistry.CREATIVE_SPELL_DISPENSER.get()
+        );
         tag(TagRegistry.Items.SPELLCASTER_AMMO_POUCH_STORABLE).add(
                 ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_BASIC_SPELLCASTER_CASING.get(),
