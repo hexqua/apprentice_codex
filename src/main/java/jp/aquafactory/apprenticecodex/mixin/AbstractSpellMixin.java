@@ -2,8 +2,10 @@ package jp.aquafactory.apprenticecodex.mixin;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowStartSoundContext;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffCastHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
@@ -55,6 +57,38 @@ public abstract class AbstractSpellMixin {
         return FocusStaffbowStartSoundContext.isSuppressed(entity) ? Optional.empty() : spell.getCastStartSound();
     }
 
+    @Inject(method = "castSpell", at = @At("HEAD"))
+    private void apprentice_codex$handleMulticastEchoStaffCastSpellStart(
+            Level world,
+            int spellLevel,
+            ServerPlayer serverPlayer,
+            CastSource castSource,
+            boolean triggerCooldown,
+            CallbackInfo ci
+    ) {
+        var magicData = MagicData.getPlayerMagicData(serverPlayer);
+        MulticastEchoStaffCastHelper.onCastSpellStart(
+                (AbstractSpell) (Object) this,
+                world,
+                spellLevel,
+                serverPlayer,
+                castSource,
+                triggerCooldown,
+                magicData
+        );
+    }
+
+    @Inject(method = "onServerPreCast", at = @At("HEAD"))
+    private void apprentice_codex$handleMulticastEchoStaffServerPreCast(
+            Level level,
+            int spellLevel,
+            LivingEntity entity,
+            @Nullable MagicData playerMagicData,
+            CallbackInfo ci
+    ) {
+        MulticastEchoStaffCastHelper.onServerPreCast((AbstractSpell) (Object) this, spellLevel, entity, playerMagicData);
+    }
+
     @Inject(method = "onServerCastComplete", at = @At("HEAD"))
     private void apprentice_codex$handleFocusStaffbowCastComplete(
             Level level,
@@ -67,6 +101,15 @@ public abstract class AbstractSpellMixin {
         if (!(entity instanceof ServerPlayer serverPlayer)) {
             return;
         }
+
+        MulticastEchoStaffCastHelper.onServerCastComplete(
+                (AbstractSpell) (Object) this,
+                level,
+                spellLevel,
+                serverPlayer,
+                playerMagicData,
+                cancelled
+        );
 
         var castingItem = playerMagicData.getPlayerCastingItem();
         if (castingItem.getItem() instanceof FocusStaffbow focusStaffbow) {

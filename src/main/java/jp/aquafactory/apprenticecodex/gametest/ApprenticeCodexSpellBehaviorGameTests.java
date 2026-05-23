@@ -24,6 +24,10 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String COMPOUND_PHIAL_ISOLATED_BATCH = "apprenticecodex.compound_phial_isolated";
     private static final String ASSIST_WINGS_ISOLATED_BATCH = "apprenticecodex.assist_wings_isolated";
     private static final String MYSTIC_SHIELD_ISOLATED_BATCH = "apprenticecodex.mystic_shield_isolated";
+    private static final String MULTICAST_ECHO_STAFF_ISOLATED_BATCH = "apprenticecodex.multicast_echo_staff_isolated";
+    private static final String MULTICAST_ECHO_STAFF_COOLDOWN_CAP_BATCH = "apprenticecodex.multicast_echo_staff_cooldown_cap";
+    private static final String MULTICAST_ECHO_STAFF_BASE_COOLDOWN_CAP_BATCH = "apprenticecodex.multicast_echo_staff_base_cooldown_cap";
+    private static final String ECHO_CAST_MULTICAST_LIMIT_BATCH = "apprenticecodex.echo_cast_multicast_limit";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
     }
@@ -296,5 +300,90 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = MYSTIC_SHIELD_ISOLATED_BATCH)
     public static void mysticShieldReceivesProtectionSpellSupporterBenefits(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.mysticShieldReceivesProtectionSpellSupporterBenefits(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void multicastEchoStaffInstantCastRunsAfterDelayAndAppliesPenaltyCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffInstantCastRunsAfterDelayAndAppliesPenaltyCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void multicastEchoStaffInsufficientManaEndsWithPenaltyCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffInsufficientManaEndsWithPenaltyCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void multicastEchoStaffItemChangeEndsWithPenaltyCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffItemChangeEndsWithPenaltyCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void multicastEchoStaffLogoutEndsWithPenaltyCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffLogoutEndsWithPenaltyCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void multicastEchoStaffLongCastAddsSkippedCastTimeCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffLongCastAddsSkippedCastTimeCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void multicastEchoStaffInvalidInstantCastKeepsEchoSpell(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffInvalidInstantCastKeepsEchoSpell(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void multicastEchoStaffInvalidLongCastIgnoresStaleEchoContext(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffInvalidLongCastIgnoresStaleEchoContext(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void multicastEchoStaffLongCastUsesStartEchoContextAfterEffectRemoved(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffLongCastUsesStartEchoContextAfterEffectRemoved(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void multicastEchoStaffRepeatedFortifyClearsTargetAreaIndicator(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffRepeatedFortifyClearsTargetAreaIndicator(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void multicastEchoStaffMobEffectProfileExtendsDuplicateDuration(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffMobEffectProfileExtendsDuplicateDuration(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void multicastEchoStaffMobEffectProfileStacksAmplifierByLevel(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffMobEffectProfileStacksAmplifierByLevel(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void multicastEchoStaffMobEffectProfileIgnoresMissingProfile(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffMobEffectProfileIgnoresMissingProfile(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void multicastEchoStaffAttackProfileScalesDirectCombatToolsDamage(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffAttackProfileScalesDirectCombatToolsDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void multicastEchoStaffAttackProfileTracksDelayedProjectileDamage(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffAttackProfileTracksDelayedProjectileDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_COOLDOWN_CAP_BATCH, timeoutTicks = 80)
+    public static void multicastEchoStaffCooldownCapLimitsAdjustedCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffCooldownCapLimitsAdjustedCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_BASE_COOLDOWN_CAP_BATCH, timeoutTicks = 80)
+    public static void multicastEchoStaffBaseCooldownAboveCapUsesOriginalCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffBaseCooldownAboveCapUsesOriginalCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ECHO_CAST_MULTICAST_LIMIT_BATCH, timeoutTicks = 40)
+    public static void echoCastStopsAtConfiguredMulticastLimit(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.echoCastStopsAtConfiguredMulticastLimit(helper);
     }
 }

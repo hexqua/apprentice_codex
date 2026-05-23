@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.item.focusstaffbow;
+package jp.aquafactory.apprenticecodex.item;
 
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.Nullable;
@@ -7,11 +7,11 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Optional;
 
-public final class FocusStaffbowItemRenderContext {
+public final class ClientItemRenderContext {
     private static final ThreadLocal<Deque<Optional<LivingEntity>>> RENDERING_ENTITIES =
             ThreadLocal.withInitial(ArrayDeque::new);
 
-    private FocusStaffbowItemRenderContext() {
+    private ClientItemRenderContext() {
     }
 
     public static void push(@Nullable LivingEntity entity) {

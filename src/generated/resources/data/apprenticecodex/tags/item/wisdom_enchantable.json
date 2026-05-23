@@ -1,6 +1,7 @@
 {
   "values": [
     "apprenticecodex:focus_staffbow",
+    "apprenticecodex:multicast_echo_staff",
     "apprenticecodex:smashcast_scepter",
     "apprenticecodex:circuit_heat_staff",
     "apprenticecodex:scrollcaster_gauntlet",
@@ -17,6 +18,7 @@
     "apprenticecodex:illuminate_stellar_staff",
     "apprenticecodex:unite_luna_staff",
     "apprenticecodex:elemental_bow",
+    "apprenticecodex:pastel_staff",
     "#apprenticecodex:spell_gun_enchantable",
     "apprenticecodex:enchanted_circlet",
     "apprenticecodex:enchantress_hat",

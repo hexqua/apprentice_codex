@@ -1,0 +1,45 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_multicast_echo_staff": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:multicast_echo_staff"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_multicast_echo_staff.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "components": {
+        "irons_spellbooks:spell_container": {
+          "data": [
+            {
+              "id": "apprenticecodex:echo_cast",
+              "index": 0,
+              "level": 1,
+              "locked": true
+            }
+          ],
+          "maxSpells": 1,
+          "mustEquip": false,
+          "spellWheel": true
+        }
+      },
+      "count": 1,
+      "id": "apprenticecodex:multicast_echo_staff"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_multicast_echo_staff.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_multicast_echo_staff"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -252,6 +252,66 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.manaForceBladePerfectGuardTicks();
     }
 
+    public static int multicastEchoStaffDelayTicks() {
+        return ITEMS_CONFIG.multicastEchoStaffDelayTicks();
+    }
+
+    public static double multicastEchoStaffCooldownMultiplier() {
+        return ITEMS_CONFIG.multicastEchoStaffCooldownMultiplier();
+    }
+
+    public static double multicastEchoStaffCastTimeCooldownMultiplier() {
+        return ITEMS_CONFIG.multicastEchoStaffCastTimeCooldownMultiplier();
+    }
+
+    public static int multicastEchoStaffCooldownCapTicks() {
+        return ITEMS_CONFIG.multicastEchoStaffCooldownCapTicks();
+    }
+
+    public static int multicastEchoStaffMaxMulticastCount() {
+        return ITEMS_CONFIG.multicastEchoStaffMaxMulticastCount();
+    }
+
+    public static boolean multicastEchoStaffMobEffectProfilesEnabled() {
+        return ITEMS_CONFIG.multicastEchoStaffMobEffectProfilesEnabled();
+    }
+
+    public static boolean multicastEchoStaffBeneficialMobEffectsEnabled() {
+        return ITEMS_CONFIG.multicastEchoStaffBeneficialMobEffectsEnabled();
+    }
+
+    public static boolean multicastEchoStaffHarmfulMobEffectsEnabled() {
+        return ITEMS_CONFIG.multicastEchoStaffHarmfulMobEffectsEnabled();
+    }
+
+    public static boolean multicastEchoStaffNeutralMobEffectsEnabled() {
+        return ITEMS_CONFIG.multicastEchoStaffNeutralMobEffectsEnabled();
+    }
+
+    public static boolean multicastEchoStaffDurationServerCapEnabled() {
+        return ITEMS_CONFIG.multicastEchoStaffDurationServerCapEnabled();
+    }
+
+    public static int multicastEchoStaffDurationServerCapTicks() {
+        return ITEMS_CONFIG.multicastEchoStaffDurationServerCapTicks();
+    }
+
+    public static boolean multicastEchoStaffAmplifierServerCapEnabled() {
+        return ITEMS_CONFIG.multicastEchoStaffAmplifierServerCapEnabled();
+    }
+
+    public static int multicastEchoStaffAmplifierServerCap() {
+        return ITEMS_CONFIG.multicastEchoStaffAmplifierServerCap();
+    }
+
+    public static boolean multicastEchoStaffAttackProfilesEnabled() {
+        return ITEMS_CONFIG.multicastEchoStaffAttackProfilesEnabled();
+    }
+
+    public static double multicastEchoStaffRepeatDamageMultiplier() {
+        return ITEMS_CONFIG.multicastEchoStaffRepeatDamageMultiplier();
+    }
+
     public static int multipurposeStaffrifleCooldownBypassThresholdTicks() {
         return ITEMS_CONFIG.multipurposeStaffrifleCooldownBypassThresholdTicks();
     }
@@ -278,6 +338,93 @@ public final class ApprenticeCodexServerConfig {
         var previousSpellDenylist = ITEMS_CONFIG.multipurposeStaffrifleSpellDenylist();
         ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(spellDenylist);
         return () -> ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(previousSpellDenylist);
+    }
+
+    public static GameTestConfigOverride useMulticastEchoStaffConfigOverrideForGameTest(
+            int multicastDelayTicks,
+            double cooldownMultiplier,
+            double castTimeCooldownMultiplier,
+            int cooldownCapTicks,
+            int maxMulticastCount
+    ) {
+        var previousMulticastDelayTicks = ITEMS_CONFIG.multicastEchoStaffDelayTicks();
+        var previousCooldownMultiplier = ITEMS_CONFIG.multicastEchoStaffCooldownMultiplier();
+        var previousCastTimeCooldownMultiplier = ITEMS_CONFIG.multicastEchoStaffCastTimeCooldownMultiplier();
+        var previousCooldownCapTicks = ITEMS_CONFIG.multicastEchoStaffCooldownCapTicks();
+        var previousMaxMulticastCount = ITEMS_CONFIG.multicastEchoStaffMaxMulticastCount();
+
+        ITEMS_CONFIG.setMulticastEchoStaffConfigForGameTest(
+                multicastDelayTicks,
+                cooldownMultiplier,
+                castTimeCooldownMultiplier,
+                cooldownCapTicks,
+                maxMulticastCount
+        );
+        return () -> ITEMS_CONFIG.setMulticastEchoStaffConfigForGameTest(
+                previousMulticastDelayTicks,
+                previousCooldownMultiplier,
+                previousCastTimeCooldownMultiplier,
+                previousCooldownCapTicks,
+                previousMaxMulticastCount
+        );
+    }
+
+    public static GameTestConfigOverride useMulticastEchoStaffMobEffectConfigOverrideForGameTest(
+            boolean mobEffectProfilesEnabled,
+            boolean beneficialMobEffectsEnabled,
+            boolean harmfulMobEffectsEnabled,
+            boolean neutralMobEffectsEnabled,
+            boolean durationServerCapEnabled,
+            int durationServerCapTicks,
+            boolean amplifierServerCapEnabled,
+            int amplifierServerCap
+    ) {
+        var previousMobEffectProfilesEnabled = ITEMS_CONFIG.multicastEchoStaffMobEffectProfilesEnabled();
+        var previousBeneficialMobEffectsEnabled = ITEMS_CONFIG.multicastEchoStaffBeneficialMobEffectsEnabled();
+        var previousHarmfulMobEffectsEnabled = ITEMS_CONFIG.multicastEchoStaffHarmfulMobEffectsEnabled();
+        var previousNeutralMobEffectsEnabled = ITEMS_CONFIG.multicastEchoStaffNeutralMobEffectsEnabled();
+        var previousDurationServerCapEnabled = ITEMS_CONFIG.multicastEchoStaffDurationServerCapEnabled();
+        var previousDurationServerCapTicks = ITEMS_CONFIG.multicastEchoStaffDurationServerCapTicks();
+        var previousAmplifierServerCapEnabled = ITEMS_CONFIG.multicastEchoStaffAmplifierServerCapEnabled();
+        var previousAmplifierServerCap = ITEMS_CONFIG.multicastEchoStaffAmplifierServerCap();
+
+        ITEMS_CONFIG.setMulticastEchoStaffMobEffectConfigForGameTest(
+                mobEffectProfilesEnabled,
+                beneficialMobEffectsEnabled,
+                harmfulMobEffectsEnabled,
+                neutralMobEffectsEnabled,
+                durationServerCapEnabled,
+                durationServerCapTicks,
+                amplifierServerCapEnabled,
+                amplifierServerCap
+        );
+        return () -> ITEMS_CONFIG.setMulticastEchoStaffMobEffectConfigForGameTest(
+                previousMobEffectProfilesEnabled,
+                previousBeneficialMobEffectsEnabled,
+                previousHarmfulMobEffectsEnabled,
+                previousNeutralMobEffectsEnabled,
+                previousDurationServerCapEnabled,
+                previousDurationServerCapTicks,
+                previousAmplifierServerCapEnabled,
+                previousAmplifierServerCap
+        );
+    }
+
+    public static GameTestConfigOverride useMulticastEchoStaffAttackConfigOverrideForGameTest(
+            boolean attackProfilesEnabled,
+            double repeatDamageMultiplier
+    ) {
+        var previousAttackProfilesEnabled = ITEMS_CONFIG.multicastEchoStaffAttackProfilesEnabled();
+        var previousRepeatDamageMultiplier = ITEMS_CONFIG.multicastEchoStaffRepeatDamageMultiplier();
+
+        ITEMS_CONFIG.setMulticastEchoStaffAttackConfigForGameTest(
+                attackProfilesEnabled,
+                repeatDamageMultiplier
+        );
+        return () -> ITEMS_CONFIG.setMulticastEchoStaffAttackConfigForGameTest(
+                previousAttackProfilesEnabled,
+                previousRepeatDamageMultiplier
+        );
     }
 
     public static float forceFieldDrainManaBasePerHit() {

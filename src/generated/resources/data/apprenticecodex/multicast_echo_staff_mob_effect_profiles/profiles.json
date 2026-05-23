@@ -1,0 +1,130 @@
+{
+  "values": [
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:echoing_strikes"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:blood_step"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:evasion"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:planar_sight"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:abyssal_shroud"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:invisibility"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:angel_wing"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:haste"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:fortify"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:oakskin"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:charge"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:spider_aspect"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:gluttony"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:frostbite"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:thunderstorm"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:ascension"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:blight"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:slow"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:heat_surge"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "irons_spellbooks:frostwave"
+    },
+    {
+      "profile": {
+        "duration_extend_rate": 0.5
+      },
+      "spell": "apprenticecodex:deep_sensor"
+    }
+  ]
+}
