@@ -27,6 +27,8 @@ public final class SpellDispenserScreen extends AbstractContainerScreen<SpellDis
             Component.translatable("container.apprenticecodex.spell_dispenser.flask");
     private static final Component OWNER_MISSING_TOOLTIP =
             Component.translatable("container.apprenticecodex.spell_dispenser.spell.tooltip.owner_missing");
+    private static final Component CREATIVE_TOOLTIP =
+            Component.translatable("container.apprenticecodex.spell_dispenser.spell.tooltip.creative");
     private static final Component HIDDEN_SPELL_LABEL =
             Component.literal("sealed sigil").withStyle(style -> style.withFont(RUNIC_FONT));
 
@@ -154,7 +156,7 @@ public final class SpellDispenserScreen extends AbstractContainerScreen<SpellDis
         var ownerRequired = SpellDispenserSpellProfileManager.requiresOwner(validation.spellData());
         var missingOwner = ownerRequired && !menu.hasOwnerProfile();
         var hidden = missingOwner || validation.shouldUseHiddenPresentation();
-        var tooltip = missingOwner ? OWNER_MISSING_TOOLTIP : validation.getGuiTooltip();
+        var tooltip = missingOwner ? ownerMissingTooltip() : validation.getGuiTooltip();
 
         if (hidden) {
             return new SpellPresentation(HIDDEN_SPELL_LABEL, SpellRegistry.none().getSpellIconResource(), true, tooltip);
@@ -224,7 +226,15 @@ public final class SpellDispenserScreen extends AbstractContainerScreen<SpellDis
             return null;
         }
 
-        return new ArrayList<>(font.split(OWNER_MISSING_TOOLTIP.copy().withStyle(ChatFormatting.RED), tooltipMaxWidth()));
+        return new ArrayList<>(font.split(ownerMissingTitleTooltip(), tooltipMaxWidth()));
+    }
+
+    private Component ownerMissingTooltip() {
+        return menu.isCreativeVariant() ? CREATIVE_TOOLTIP : OWNER_MISSING_TOOLTIP;
+    }
+
+    private Component ownerMissingTitleTooltip() {
+        return ownerMissingTooltip().copy().withStyle(menu.isCreativeVariant() ? ChatFormatting.GRAY : ChatFormatting.RED);
     }
 
     private int tooltipMaxWidth() {
