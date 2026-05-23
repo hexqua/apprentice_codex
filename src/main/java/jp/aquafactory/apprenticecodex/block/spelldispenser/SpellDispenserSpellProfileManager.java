@@ -57,6 +57,12 @@ public final class SpellDispenserSpellProfileManager extends SimpleJsonResourceR
         return getResolvedProfile(spellData).ownerRequired();
     }
 
+    public static GameTestProfileOverride useProfilesForGameTest(Map<ResourceLocation, SpellDispenserSpellProfile> overrideProfiles) {
+        var previousProfiles = profiles;
+        profiles = Map.copyOf(overrideProfiles);
+        return () -> profiles = previousProfiles;
+    }
+
     @Override
     protected void apply(
             Map<ResourceLocation, JsonElement> resourceMap,
@@ -85,5 +91,10 @@ public final class SpellDispenserSpellProfileManager extends SimpleJsonResourceR
                         resolvedProfiles.put(definition.spell(), definition.profile());
                     }
                 });
+    }
+
+    public interface GameTestProfileOverride extends AutoCloseable {
+        @Override
+        void close();
     }
 }

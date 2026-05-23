@@ -70,6 +70,14 @@ final class BlocksServerConfig {
         return spellDispenserConfig.cooldownMultiplier();
     }
 
+    boolean creativeSpellDispenserManaConsumption() {
+        return spellDispenserConfig.creativeManaConsumption();
+    }
+
+    double creativeSpellDispenserCooldownMultiplier() {
+        return spellDispenserConfig.creativeCooldownMultiplier();
+    }
+
     boolean spellDispenserIgnoreSpellProfileAndDenylistFiles() {
         return spellDispenserConfig.ignoreSpellProfileAndDenylistFiles();
     }
@@ -89,5 +97,9 @@ final class BlocksServerConfig {
             double cooldownMultiplier
     ) {
         spellDispenserConfig.setForGameTest(enable, enableSpellAllowlist, spellAllowlist, cooldownMultiplier);
+    }
+
+    void setCreativeSpellDispenserConfigForGameTest(boolean manaConsumption, double cooldownMultiplier) {
+        spellDispenserConfig.setCreativeForGameTest(manaConsumption, cooldownMultiplier);
     }
 }

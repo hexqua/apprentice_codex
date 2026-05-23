@@ -1,122 +1,155 @@
 {
   "values": [
     {
+      "profile": {
+        "caster_mode": "neutral_living",
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:acupuncture"
     },
     {
+      "profile": {
+        "caster_mode": "neutral_living",
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:blood_needles"
     },
     {
+      "profile": {
+        "caster_mode": "neutral_living",
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:blood_slash"
     },
     {
+      "profile": {
+        "caster_mode": "neutral_living",
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:devour"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:wither_skull"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:sculk_tentacles"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:sonic_boom"
     },
     {
+      "profile": {
+        "caster_mode": "neutral_living",
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:black_hole"
     },
     {
       "profile": {
         "cast_anchor": "tracked_anchor",
-        "forward_offset": -1.0,
         "owner_required": false
       },
       "spell": "irons_spellbooks:dragon_breath"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:magic_arrow"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:magic_missile"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:shadow_slash"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:starfall"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:arrow_volley"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:chain_creeper"
     },
     {
       "profile": {
-        "forward_offset": -1.0,
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:fang_strike"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:fang_ward"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:firecracker"
     },
     {
       "profile": {
-        "forward_offset": -1.0,
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:gust"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:lob_creeper"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:shield"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:slow"
@@ -126,12 +159,14 @@
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:blaze_storm"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:fire_arrow"
@@ -139,68 +174,104 @@
     {
       "profile": {
         "cast_anchor": "tracked_anchor",
-        "forward_offset": -1.0,
         "owner_required": false
       },
       "spell": "irons_spellbooks:fire_breath"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:fireball"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:firebolt"
     },
     {
+      "profile": {
+        "caster_mode": "neutral_living",
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:flaming_strike"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:magma_bomb"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:scorch"
     },
     {
+      "profile": {
+        "caster_mode": "neutral_living",
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:blessing_of_life"
     },
     {
+      "profile": {
+        "caster_mode": "neutral_living",
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:cleanse"
     },
     {
+      "profile": {
+        "caster_mode": "neutral_living",
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:divine_smite"
     },
     {
+      "profile": {
+        "caster_mode": "neutral_living",
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:fortify"
     },
     {
+      "profile": {
+        "caster_mode": "neutral_living",
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:guiding_bolt"
     },
     {
+      "profile": {
+        "caster_mode": "neutral_living",
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:haste"
     },
     {
+      "profile": {
+        "caster_mode": "neutral_living",
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:healing_circle"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:sunbeam"
     },
     {
       "profile": {
-        "forward_offset": -1.0,
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:wisp"
@@ -208,55 +279,64 @@
     {
       "profile": {
         "cast_anchor": "tracked_anchor",
-        "forward_offset": -1.0,
         "owner_required": false
       },
       "spell": "irons_spellbooks:cone_of_cold"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:frostwave"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:ice_block"
     },
     {
       "profile": {
-        "forward_offset": -1.0,
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:ice_spikes"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:icicle"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:ray_of_frost"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:snowball"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:ball_lightning"
     },
     {
+      "profile": {
+        "caster_mode": "neutral_living",
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:chain_lightning"
     },
     {
@@ -268,42 +348,56 @@
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:lightning_bolt"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:lightning_lance"
     },
     {
+      "profile": {
+        "caster_mode": "neutral_living",
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:shockwave"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:acid_orb"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:blight"
     },
     {
+      "profile": {
+        "caster_mode": "neutral_living",
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:earthquake"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:firefly_swarm"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:poison_arrow"
@@ -311,25 +405,27 @@
     {
       "profile": {
         "cast_anchor": "tracked_anchor",
-        "forward_offset": -1.0,
         "owner_required": false
       },
       "spell": "irons_spellbooks:poison_breath"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:poison_splash"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:root"
     },
     {
       "profile": {
+        "caster_mode": "neutral_living",
         "owner_required": false
       },
       "spell": "irons_spellbooks:stomp"

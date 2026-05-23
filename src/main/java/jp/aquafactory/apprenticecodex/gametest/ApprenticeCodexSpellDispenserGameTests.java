@@ -15,6 +15,7 @@ public final class ApprenticeCodexSpellDispenserGameTests {
     private static final String BLOCK_SERVER_DISABLED_CONFIG_BATCH = "spell_dispenser_block_server_disabled_config";
     private static final String BLOCK_COOLDOWN_MULTIPLIER_CONFIG_BATCH = "spell_dispenser_block_cooldown_multiplier_config";
     private static final String CREATE_COOLDOWN_MULTIPLIER_CONFIG_BATCH = "spell_dispenser_create_cooldown_multiplier_config";
+    private static final String CREATIVE_CONFIG_BATCH = "creative_spell_dispenser_config";
 
     private ApprenticeCodexSpellDispenserGameTests() {
     }
@@ -82,6 +83,11 @@ public final class ApprenticeCodexSpellDispenserGameTests {
     @GameTest(template = TEMPLATE)
     public static void spellDispenserCastHelperAllowsOwnerOptionalSpellWithoutOwnerProfile(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellDispenserCastHelperAllowsOwnerOptionalSpellWithoutOwnerProfile(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserCastHelperUsesNeutralLivingCasterProfileForMagicMissile(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserCastHelperUsesNeutralLivingCasterProfileForMagicMissile(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -172,6 +178,36 @@ public final class ApprenticeCodexSpellDispenserGameTests {
     @GameTest(template = TEMPLATE)
     public static void spellDispenserPlacementStartsAtZeroManaAndStoresOwnerProfile(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellDispenserPlacementStartsAtZeroManaAndStoresOwnerProfile(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void creativeSpellDispenserPlacementStartsAtZeroManaAndSkipsOwnerProfile(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.creativeSpellDispenserPlacementStartsAtZeroManaAndSkipsOwnerProfile(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void creativeSpellDispenserIgnoresOwnerProfileNbt(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.creativeSpellDispenserIgnoresOwnerProfileNbt(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CREATIVE_CONFIG_BATCH)
+    public static void creativeSpellDispenserUsesCreativeManaConfig(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.creativeSpellDispenserUsesCreativeManaConfig(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CREATIVE_CONFIG_BATCH)
+    public static void creativeSpellDispenserAllowsZeroCooldownMultiplier(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.creativeSpellDispenserAllowsZeroCooldownMultiplier(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void creativeSpellDispenserDropsNoStoredItems(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.creativeSpellDispenserDropsNoStoredItems(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void creativeSpellDispenserRestrictsMenuAccess(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.creativeSpellDispenserRestrictsMenuAccess(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -272,6 +308,11 @@ public final class ApprenticeCodexSpellDispenserGameTests {
     @GameTest(template = TEMPLATE)
     public static void spellDispenserIsTaggedForContraptionControls(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellDispenserIsTaggedForContraptionControls(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void creativeSpellDispenserIsTaggedForContraptionControls(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.creativeSpellDispenserIsTaggedForContraptionControls(helper);
     }
 
     @GameTest(template = TEMPLATE)

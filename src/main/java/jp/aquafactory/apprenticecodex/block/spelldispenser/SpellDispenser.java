@@ -1,8 +1,10 @@
 package jp.aquafactory.apprenticecodex.block.spelldispenser;
 
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -36,15 +38,27 @@ import org.jetbrains.annotations.Nullable;
 public final class SpellDispenser extends BaseEntityBlock {
     public static final net.minecraft.world.level.block.state.properties.DirectionProperty FACING = DispenserBlock.FACING;
     public static final net.minecraft.world.level.block.state.properties.BooleanProperty TRIGGERED = BlockStateProperties.TRIGGERED;
+    private static final String CREATIVE_DENY_OPEN_KEY = "ui.apprenticecodex.spell_dispenser.creative_version.deny_open";
+
+    private final SpellDispenserVariant variant;
 
     public SpellDispenser() {
+        this(SpellDispenserVariant.NORMAL);
+    }
+
+    private SpellDispenser(SpellDispenserVariant variant) {
         super(Properties.of()
                 .mapColor(MapColor.STONE)
                 .strength(3.5F)
                 .sound(SoundType.WOOD));
+        this.variant = variant;
         registerDefaultState(stateDefinition.any()
                 .setValue(FACING, Direction.NORTH)
                 .setValue(TRIGGERED, false));
+    }
+
+    public static SpellDispenser newCreative() {
+        return new SpellDispenser(SpellDispenserVariant.CREATIVE);
     }
 
     @Override
@@ -70,7 +84,11 @@ public final class SpellDispenser extends BaseEntityBlock {
 
         var blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof SpellDispenserBlockEntity spellDispenser) {
-            spellDispenser.setOwnerProfile(player.getGameProfile());
+            if (variant.storesOwnerProfile()) {
+                spellDispenser.setOwnerProfile(player.getGameProfile());
+            } else {
+                spellDispenser.setOwnerProfile(null);
+            }
             spellDispenser.setCurrentMana(0);
         }
     }
@@ -135,6 +153,11 @@ public final class SpellDispenser extends BaseEntityBlock {
 
         var blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof SpellDispenserBlockEntity spellDispenser && player instanceof ServerPlayer serverPlayer) {
+            if (!variant.canOpenMenu(serverPlayer)) {
+                serverPlayer.sendSystemMessage(Component.translatable(CREATIVE_DENY_OPEN_KEY).withStyle(ChatFormatting.RED));
+                return InteractionResult.CONSUME;
+            }
+
             NetworkHooks.openScreen(serverPlayer, spellDispenser, buffer -> {
                 buffer.writeBoolean(false);
                 buffer.writeBlockPos(pos);
@@ -182,7 +205,9 @@ public final class SpellDispenser extends BaseEntityBlock {
             var blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof SpellDispenserBlockEntity spellDispenser) {
                 spellDispenser.stopContinuousCast(true);
-                spellDispenser.dropStoredItems();
+                if (variant.dropsStoredItems()) {
+                    spellDispenser.dropStoredItems();
+                }
             }
         }
 
@@ -191,6 +216,10 @@ public final class SpellDispenser extends BaseEntityBlock {
 
     public Direction getFacing(BlockState state) {
         return state.getValue(FACING);
+    }
+
+    public SpellDispenserVariant getVariant() {
+        return variant;
     }
 
     private static void writeOwnerName(net.minecraft.network.FriendlyByteBuf buffer, @Nullable String ownerName) {

@@ -56,6 +56,9 @@ public final class BlockRegistry {
     public static final RegistryObject<Block> SPELL_DISPENSER =
             BLOCKS.register("spell_dispenser", SpellDispenser::new);
 
+    public static final RegistryObject<Block> CREATIVE_SPELL_DISPENSER =
+            BLOCKS.register("creative_spell_dispenser", SpellDispenser::newCreative);
+
     public static final RegistryObject<Block> ARCANUM_IN_A_JAR =
             BLOCKS.register("arcanum_in_a_jar", ArcanumInAJar::new);
 

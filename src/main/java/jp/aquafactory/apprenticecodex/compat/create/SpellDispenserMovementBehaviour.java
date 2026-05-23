@@ -10,7 +10,7 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHel
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfileManager;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
-import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserVariant;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -69,7 +69,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
             return;
         }
 
-        var ownerProfile = SpellDispenserBlockEntity.readOwnerProfile(context.blockEntityData);
+        var ownerProfile = resolveOwnerProfile(context);
         if (SpellDispenserSpellProfileManager.requiresOwner(validation.spellData()) && ownerProfile == null) {
             var result = SpellDispenserCastHelper.CastResult.missingOwnerProfile(validation);
             notifyFailure(serverLevel, pos, context, result);
@@ -174,7 +174,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
             return;
         }
 
-        var ownerProfile = SpellDispenserBlockEntity.readOwnerProfile(context.blockEntityData);
+        var ownerProfile = resolveOwnerProfile(context);
         if (SpellDispenserSpellProfileManager.requiresOwner(validation.spellData()) && ownerProfile == null) {
             var result = SpellDispenserCastHelper.CastResult.missingOwnerProfile(validation);
             notifyFailure(serverLevel, resolveSoundPos(context), context, result);
@@ -227,7 +227,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
     public @NotNull ItemStack canBeDisabledVia(MovementContext context) {
         // ContraptionControls のフィルタは「何のアクターか」で安定させる。
         // 中身の scroll を返すと Create 側 UI から SpellDispenser を選べなくなる。
-        return new ItemStack(ItemRegistry.SPELL_DISPENSER.get());
+        return new ItemStack(getVariant(context).getItem());
     }
 
     public static boolean hasRunningContinuousCast(MovementContext context) {
@@ -279,7 +279,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
             MovementContext context,
             SpellDispenserCastHelper.ContinuousCastSession session
     ) {
-        var ownerProfile = SpellDispenserBlockEntity.readOwnerProfile(context.blockEntityData);
+        var ownerProfile = resolveOwnerProfile(context);
         var source = getSpellSource(context);
         return (!session.profile().ownerRequired() || ownerProfile != null)
                 && !source.isEmpty()
@@ -469,8 +469,19 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
                 level,
                 pos,
                 result,
-                getOrCreateRuntimeState(context).recentFailureNoticeTicks()
+                getOrCreateRuntimeState(context).recentFailureNoticeTicks(),
+                getVariant(context).restrictsFailureNotices()
         );
+    }
+
+    private static SpellDispenserVariant getVariant(MovementContext context) {
+        return SpellDispenserVariant.fromState(context.state);
+    }
+
+    private static @Nullable com.mojang.authlib.GameProfile resolveOwnerProfile(MovementContext context) {
+        return getVariant(context).storesOwnerProfile()
+                ? SpellDispenserBlockEntity.readOwnerProfile(context.blockEntityData)
+                : null;
     }
 
     private static void playActivationSound(ServerLevel level, BlockPos pos, SpellDispenserCastHelper.CastResult result) {
@@ -547,6 +558,16 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
                     return;
                 }
                 itemStorage.setStackInSlot(slot, stack);
+            }
+
+            @Override
+            public boolean isManaConsumptionExempt() {
+                return SpellDispenserMovementBehaviour.getVariant(context).isManaConsumptionExempt();
+            }
+
+            @Override
+            public double cooldownMultiplier() {
+                return SpellDispenserMovementBehaviour.getVariant(context).cooldownMultiplier();
             }
         }
 }
