@@ -53,7 +53,7 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final int ENCHANTMENT_VALUE = 15;
     private static final double DISPLAYED_ATTACK_DAMAGE = 8.0D;
-    private static final double ATTACK_SPEED = 1.6D;
+    private static final double DISPLAYED_ATTACK_SPEED = 1.8D;
     private static final double SPELL_POWER_BONUS = 0.1D;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -69,7 +69,7 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
                 ENCHANTMENT_VALUE,
                 ITEM_KEY,
                 DISPLAYED_ATTACK_DAMAGE,
-                ATTACK_SPEED,
+                DISPLAYED_ATTACK_SPEED - 4.0D,
                 bonus(AttributeRegistry.SPELL_POWER, SPELL_POWER_BONUS, AttributeModifier.Operation.MULTIPLY_BASE)
         );
         GeoItem.registerSyncedAnimatable(this);
