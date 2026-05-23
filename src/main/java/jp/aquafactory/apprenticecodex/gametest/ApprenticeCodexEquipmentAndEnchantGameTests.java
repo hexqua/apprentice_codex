@@ -809,6 +809,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void multicastEchoStaffKeepsItsExtraMiningEnchantments(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffKeepsItsExtraMiningEnchantments(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void crystalBladedStaffKeepsItsDedicatedEnchantingRules(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.crystalBladedStaffKeepsItsDedicatedEnchantingRules(helper);
     }

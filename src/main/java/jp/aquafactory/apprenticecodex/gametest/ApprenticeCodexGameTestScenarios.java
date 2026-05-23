@@ -9555,7 +9555,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertRequiredExtraEnchantments(
                     helper,
                     stack,
-                    requiredPastelStaffExtraEnchantments(),
+                    requiredStaffExtraEnchantments(),
                     null,
                     "Pastel Staff required extra enchantment"
             );
@@ -9578,6 +9578,19 @@ public final class ApprenticeCodexGameTestScenarios {
                         "Pastel Staff malum extra enchantment"
                 );
             }
+        });
+    }
+
+    static void multicastEchoStaffKeepsItsExtraMiningEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+            assertRequiredExtraEnchantments(
+                    helper,
+                    stack,
+                    requiredStaffExtraEnchantments(),
+                    null,
+                    "Multicast Echo Staff required extra enchantment"
+            );
         });
     }
 
@@ -14191,17 +14204,17 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static Set<ResourceLocation> requiredPastelStaffExtraEnchantments() {
+    private static Set<ResourceLocation> requiredStaffExtraEnchantments() {
         return registryIdSet(
                 net.minecraft.world.item.enchantment.Enchantments.FORTUNE,
-                net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH
+                net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH,
+                Enchantments.WISDOM
         );
     }
 
     private static Set<ResourceLocation> rejectedPastelStaffExtraEnchantments() {
         return registryIdSet(
-                Enchantments.TRANSCENDENCE,
-                Enchantments.WISDOM
+                Enchantments.TRANSCENDENCE
         );
     }
 

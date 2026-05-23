@@ -142,6 +142,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
         tomagicReversalWeaponTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
         wisdomEnchantableTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
         vanillaSwordEnchantableTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
         vanillaFireAspectEnchantableTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
@@ -350,6 +351,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         // 1.21.1 のバニラ enchantment JSON は Fortune / Silk Touch を mining_loot タグで判定する.
         tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.PASTEL_STAFF.get());
         malumMagicCapableWeaponTag.add(ItemRegistry.PASTEL_STAFF.get());
+        wisdomEnchantableTag.add(ItemRegistry.PASTEL_STAFF.get());
         // 1.21.1 の Spirit Plunder は soul_shatter_capable_weapon 経由で supported_items を見ている。
         // Java 側の許可だけでは definition 判定を通らないため、Malum 側 tag も同じ面へ揃える。
         tag(MALUM_SOUL_SHATTER_CAPABLE_WEAPON).add(
