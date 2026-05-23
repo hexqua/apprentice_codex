@@ -201,6 +201,7 @@
   "item.apprenticecodex.mana_shield_charm.desc_2": "ただし、マナの障壁は防御力の効果を受けることができない。",
   "item.apprenticecodex.mana_shield_charm.desc_3": "マナを使い果たすとマナが%dまで回復するまで機能を停止する。",
   "item.apprenticecodex.swingcast.common.desc": "この杖は攻撃時に注入した魔法を放つ。",
+  "item.apprenticecodex.freecast.common.desc": "この杖は攻撃時に選択した魔法を放つ。",
   "item.apprenticecodex.right_click_magic_weapon.desc": "この杖は盾を優先的に使用できる。",
   "item.apprenticecodex.flask_system.kind": "中身: %s",
   "item.apprenticecodex.flask_system.amount": "残量: %1$d/%2$d",

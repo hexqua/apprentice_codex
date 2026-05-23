@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.event.client;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
+import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffClientRenderState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -28,7 +30,7 @@ public final class ClientSwingcastStaffCastContext {
             return;
         }
 
-        pendingContext = new PendingContext(playerId, stack.getItem(), resolveGameTime());
+        pendingContext = new PendingContext(playerId, stack.getItem(), resolveGameTime(), resolvePendingSpellId(stack));
     }
 
     public static void tryActivate(UUID playerId, ItemStack stack, @Nullable AbstractSpell spell) {
@@ -47,7 +49,7 @@ public final class ClientSwingcastStaffCastContext {
             return;
         }
 
-        if (!matchesPrimarySpell(stack, spell)) {
+        if (!matchesPendingSpell(stack, pending, spell)) {
             return;
         }
 
@@ -93,12 +95,29 @@ public final class ClientSwingcastStaffCastContext {
         return spellData != SpellData.EMPTY && Objects.equals(spellData.getSpell(), spell);
     }
 
+    private static boolean matchesPendingSpell(ItemStack stack, PendingContext pending, AbstractSpell spell) {
+        if (stack.getItem() instanceof MithrilFreecastStaff) {
+            return Objects.equals(pending.spellId(), spell.getSpellId());
+        }
+
+        return matchesPrimarySpell(stack, spell);
+    }
+
+    @Nullable
+    private static String resolvePendingSpellId(ItemStack stack) {
+        if (stack.getItem() instanceof MithrilFreecastStaff) {
+            return MithrilFreecastStaffClientRenderState.resolveSelectedSpellId();
+        }
+
+        return null;
+    }
+
     private static long resolveGameTime() {
         var minecraft = Minecraft.getInstance();
         return minecraft.level != null ? minecraft.level.getGameTime() : -1L;
     }
 
-    private record PendingContext(UUID playerId, Item item, long gameTime) {
+    private record PendingContext(UUID playerId, Item item, long gameTime, @Nullable String spellId) {
     }
 
     private record ActiveContext(UUID playerId, Item item, String spellId) {

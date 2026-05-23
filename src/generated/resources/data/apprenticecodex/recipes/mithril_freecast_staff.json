@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "D": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "L": {
+      "item": "irons_spellbooks:magic_cloth"
+    },
+    "W": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "pattern": [
+    " AG",
+    "LWD",
+    "D  "
+  ],
+  "result": {
+    "item": "apprenticecodex:mithril_freecast_staff"
+  },
+  "show_notification": true
+}

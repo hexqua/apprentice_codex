@@ -854,6 +854,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void mithrilFreecastStaffBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mithrilFreecastStaffBlocksArcaneAnvilImbueViaSpellValidator(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowManaErrorUsesIronsSpellbooksTranslationKey(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.elementalBowManaErrorUsesIronsSpellbooksTranslationKey(helper);
     }

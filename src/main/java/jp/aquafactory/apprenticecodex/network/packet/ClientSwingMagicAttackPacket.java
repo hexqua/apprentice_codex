@@ -1,7 +1,8 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
+import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.InteractionHand;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
@@ -24,8 +25,12 @@ public record ClientSwingMagicAttackPacket(boolean bypassChargeCheck) {
             }
 
             var mainHandItem = sender.getMainHandItem().getItem();
-            if (mainHandItem instanceof AbstractSwingMagicItem swingMagicItem) {
-                swingMagicItem.tryTriggerImbuedSpellOnSwing(sender, packet.bypassChargeCheck());
+            if (mainHandItem instanceof SwingTriggeredMagicItem swingTriggeredMagicItem) {
+                swingTriggeredMagicItem.tryTriggerSpellOnSwing(
+                        sender,
+                        InteractionHand.MAIN_HAND,
+                        packet.bypassChargeCheck()
+                );
             }
         });
         context.setPacketHandled(true);

@@ -285,6 +285,8 @@ public final class ItemRegistry {
             ITEMS.register("diamond_swingcast_staff", DiamondSwingcastStaff::new);
     public static final RegistryObject<Item> NETHERITE_SWINGCAST_STAFF =
             ITEMS.register("netherite_swingcast_staff", NetheriteSwingcastStaff::new);
+    public static final RegistryObject<Item> MITHRIL_FREECAST_STAFF =
+            ITEMS.register("mithril_freecast_staff", MithrilFreecastStaff::new);
     public static final RegistryObject<Item> CRYSTAL_BLADED_STAFF =
             ITEMS.register("crystal_bladed_staff", CrystalBladedStaff::new);
     public static final RegistryObject<Item> ILLUMINATE_STELLAR_STAFF =
