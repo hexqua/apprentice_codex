@@ -12,6 +12,7 @@
   "block.apprenticecodex.comfort_berry_bush": "舒心浆果丛",
   "block.apprenticecodex.potted_comfort_berry_bush": "盆栽舒心浆果丛",
   "block.apprenticecodex.spell_dispenser": "法术发射器",
+  "block.apprenticecodex.creative_spell_dispenser": "创造版法术发射器",
   "block.apprenticecodex.frost_rune_trap": "冰霜符文陷阱",
   "block.apprenticecodex.spell_calibration_bench" : "法术校准台",
 
@@ -126,6 +127,7 @@
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "稀有及以下品质",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic": "史诗以上品质",
   "item.apprenticecodex.apprentice_desk.disabled_tooltip": "仅作为跑腿法师的工作站点方块时生效。",
+  "item.apprenticecodex.spell_dispenser.creative_tooltip": "创造版",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "当前指向同维度的磁石。",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "当前根据所在维度调整指向。",
   "item.apprenticecodex.elemental_bow.mode": "当前发射模式：%s",
@@ -696,7 +698,8 @@
  "ui.apprenticecodex.multicast_echo_staff.cannot_cast": "%1$s 无法多重施法，将改为普通施法",
  "ui.apprenticecodex.multicast_echo_staff.deny_list": "%1$s 被世界之理拒绝，将改为普通施法",
  "ui.apprenticecodex.multicast_echo_staff.insufficient_mana": "魔力枯竭，多重施法已中断！",
- "ui.apprenticecodex.multicast_echo_staff.cancel_by_item_change": "你手中没有能承接魔力回响的法杖！",
+"ui.apprenticecodex.multicast_echo_staff.cancel_by_item_change": "你手中没有能承接魔力回响的法杖！",
+"ui.apprenticecodex.spell_dispenser.creative_version.deny_open": "只有创造模式玩家或管理员才能打开这个法术发射器。",
 
  "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "无法移除默认注入法术",
  "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "该物品不允许提取法术",

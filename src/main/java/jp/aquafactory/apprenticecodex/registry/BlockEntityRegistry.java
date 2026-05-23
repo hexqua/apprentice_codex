@@ -30,11 +30,17 @@ public final class BlockEntityRegistry {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES =
             DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, ApprenticeCodex.MODID);
 
+    @SafeVarargs
     private static <T extends BlockEntity> DeferredHolder<BlockEntityType<?>, BlockEntityType<T>> reg(
-            String id, BlockEntityType.BlockEntitySupplier<T> factory, Supplier<? extends Block> block
+            String id, BlockEntityType.BlockEntitySupplier<T> factory, Supplier<? extends Block>... blocks
     ) {
         return BLOCK_ENTITY_TYPES.register(id,
-                () -> BlockEntityType.Builder.of(factory, block.get()).build(NO_DFU));
+                () -> BlockEntityType.Builder.of(
+                        factory,
+                        java.util.Arrays.stream(blocks)
+                                .map(Supplier::get)
+                                .toArray(Block[]::new)
+                ).build(NO_DFU));
     }
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MageLightTorchBlockEntity>> MAGE_LIGHT_TORCH = reg(
@@ -70,7 +76,7 @@ public final class BlockEntityRegistry {
     );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SpellDispenserBlockEntity>> SPELL_DISPENSER = reg(
-            "spell_dispenser", SpellDispenserBlockEntity::new, BlockRegistry.SPELL_DISPENSER
+            "spell_dispenser", SpellDispenserBlockEntity::new, BlockRegistry.SPELL_DISPENSER, BlockRegistry.CREATIVE_SPELL_DISPENSER
     );
 
     public static void register(IEventBus eventBus) {

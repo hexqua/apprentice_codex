@@ -59,6 +59,9 @@ public final class BlockRegistry {
     public static final DeferredHolder<Block, Block> ARCANUM_IN_A_JAR =
             BLOCKS.register("arcanum_in_a_jar", () -> new ArcanumInAJar());
 
+    public static final DeferredHolder<Block, Block> CREATIVE_SPELL_DISPENSER =
+            BLOCKS.register("creative_spell_dispenser", SpellDispenser::newCreative);
+
     public static final DeferredHolder<Block, Block> ESSENCE_SMOKER =
             BLOCKS.register("essence_smoker", () -> new EssenceSmoker());
 

@@ -208,6 +208,11 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> SPELL_DISPENSER =
             ITEMS.register("spell_dispenser",
                     () -> new SpellDispenserItem(BlockRegistry.SPELL_DISPENSER.get(), new Item.Properties()));
+
+    public static final DeferredHolder<Item, Item> CREATIVE_SPELL_DISPENSER =
+            ITEMS.register("creative_spell_dispenser",
+                    () -> new SpellDispenserItem(BlockRegistry.CREATIVE_SPELL_DISPENSER.get(), new Item.Properties(), true));
+
     public static final DeferredHolder<Item, Item> ARCANUM_IN_A_JAR =
             ITEMS.register("arcanum_in_a_jar",
                     () -> new ArcanumInAJarItem(BlockRegistry.ARCANUM_IN_A_JAR.get(), new Item.Properties()));

@@ -32,6 +32,7 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaFlu
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserVariant;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
@@ -2403,6 +2404,135 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(spellDispenser.hasOwnerProfile(), "Spell Dispenser placement did not store the owner profile");
         });
     }
+
+    static void creativeSpellDispenserPlacementStartsAtZeroManaAndSkipsOwnerProfile(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var pos = new BlockPos(0, 1, 0);
+            var absolutePos = helper.absolutePos(pos);
+            helper.setBlock(pos, BlockRegistry.CREATIVE_SPELL_DISPENSER.get());
+
+            var blockEntity = level.getBlockEntity(absolutePos);
+            helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Creative Spell Dispenser block entity was not created");
+            var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+
+            var player = createSpellDispenserPlacer(helper, new BlockPos(0, 2, 0), "creative_spell_dispenser_place_test");
+            var state = level.getBlockState(absolutePos);
+            ((SpellDispenser) state.getBlock()).setPlacedBy(level, absolutePos, state, player, new ItemStack(ItemRegistry.CREATIVE_SPELL_DISPENSER.get()));
+
+            helper.assertTrue(spellDispenser.getCurrentMana() == 0,
+                    "Creative Spell Dispenser placement should start at zero mana: " + spellDispenser.getCurrentMana());
+            helper.assertFalse(spellDispenser.hasOwnerProfile(), "Creative Spell Dispenser placement stored an owner profile");
+        });
+    }
+
+    static void creativeSpellDispenserIgnoresOwnerProfileNbt(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var ownerProfile = createSpellDispenserOwnerProfile("creative_spell_dispenser_owner_nbt_test");
+            var originalTag = new net.minecraft.nbt.CompoundTag();
+            SpellDispenserBlockEntity.saveOwnerProfile(originalTag, ownerProfile);
+
+            var creative = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.CREATIVE_SPELL_DISPENSER.get().defaultBlockState());
+            creative.load(originalTag);
+            helper.assertFalse(creative.hasOwnerProfile(), "Creative Spell Dispenser restored owner profile from NBT");
+
+            creative.setOwnerProfile(ownerProfile);
+            helper.assertFalse(creative.getUpdateTag().hasUUID("OwnerUuid"),
+                    "Creative Spell Dispenser saved owner UUID into update NBT");
+        });
+    }
+
+    static void creativeSpellDispenserUsesCreativeManaConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var pos = new BlockPos(0, 1, 0);
+            helper.setBlock(pos, BlockRegistry.CREATIVE_SPELL_DISPENSER.get());
+            var blockEntity = helper.getBlockEntity(pos);
+            helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Creative Spell Dispenser block entity was not created");
+            var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var scrollStack = createSpellScroll(spell);
+            spellDispenser.getInventory().setStackInSlot(0, scrollStack.copy());
+            spellDispenser.setCurrentMana(0);
+
+            try (var ignored = ApprenticeCodexServerConfig.useCreativeSpellDispenserConfigOverrideForGameTest(false, 0.1D)) {
+                var castResult = spellDispenser.tryActivate();
+                helper.assertTrue(castResult.succeeded(), "Creative Spell Dispenser consumed mana while creative mana cost was disabled");
+                helper.assertTrue(spellDispenser.getCurrentMana() == 0,
+                        "Creative Spell Dispenser changed mana while creative mana cost was disabled: " + spellDispenser.getCurrentMana());
+            }
+
+            spellDispenser.clearCooldown();
+            try (var ignored = ApprenticeCodexServerConfig.useCreativeSpellDispenserConfigOverrideForGameTest(true, 0.1D)) {
+                var castResult = spellDispenser.tryActivate();
+                helper.assertTrue(!castResult.succeeded(), "Creative Spell Dispenser cast without mana while creative mana cost was enabled");
+                helper.assertTrue(castResult.insufficientMana(), "Creative Spell Dispenser returned the wrong failure with creative mana cost enabled");
+            }
+
+            assertNoSpellDispenserProxy(helper, pos, scrollStack, "Creative Spell Dispenser mana config test left proxy state behind");
+        });
+    }
+
+    static void creativeSpellDispenserAllowsZeroCooldownMultiplier(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var pos = new BlockPos(0, 1, 0);
+            helper.setBlock(pos, BlockRegistry.CREATIVE_SPELL_DISPENSER.get());
+            var blockEntity = helper.getBlockEntity(pos);
+            helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Creative Spell Dispenser block entity was not created");
+            var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var scrollStack = createSpellScroll(spell);
+            spellDispenser.getInventory().setStackInSlot(0, scrollStack.copy());
+            spellDispenser.setCurrentMana(SpellDispenserManaHelper.MAX_MANA);
+
+            try (var ignored = ApprenticeCodexServerConfig.useCreativeSpellDispenserConfigOverrideForGameTest(true, 0.0D)) {
+                var castResult = spellDispenser.tryActivate();
+                helper.assertTrue(castResult.succeeded(), "Creative Spell Dispenser failed to cast with zero cooldown multiplier");
+                helper.assertTrue(castResult.cooldownTicks() == 0,
+                        "Creative Spell Dispenser did not allow zero cooldown multiplier: " + castResult.cooldownTicks());
+                helper.assertFalse(spellDispenser.isCoolingDown(), "Creative Spell Dispenser entered cooldown with zero cooldown multiplier");
+            }
+
+            assertNoSpellDispenserProxy(helper, pos, scrollStack, "Creative Spell Dispenser cooldown config test left proxy state behind");
+        });
+    }
+
+    static void creativeSpellDispenserDropsNoStoredItems(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var pos = new BlockPos(0, 1, 0);
+            var absolutePos = helper.absolutePos(pos);
+            helper.setBlock(pos, BlockRegistry.CREATIVE_SPELL_DISPENSER.get());
+
+            var blockEntity = helper.getBlockEntity(pos);
+            helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Creative Spell Dispenser block entity was not created");
+            var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+            spellDispenser.getInventory().setStackInSlot(SpellDispenserBlockEntity.SPELL_SLOT_INDEX, scrollStack);
+            spellDispenser.getInventory().setStackInSlot(SpellDispenserBlockEntity.FLASK_SLOT_START, new ItemStack(Items.GLASS_BOTTLE));
+
+            level.setBlock(absolutePos, Blocks.AIR.defaultBlockState(), 3);
+            var drops = getFreshItemDrops(level, absolutePos, 1.5D);
+            helper.assertTrue(drops.isEmpty(), "Creative Spell Dispenser dropped stored items: " + drops.size());
+        });
+    }
+
+    static void creativeSpellDispenserRestrictsMenuAccess(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var survivalPlayer = createSpellDispenserPlacer(helper, new BlockPos(0, 2, 0), "creative_spell_dispenser_menu_survival");
+            var creativePlayer = createSpellDispenserPlacer(helper, new BlockPos(0, 2, 0), "creative_spell_dispenser_menu_creative");
+            creativePlayer.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+
+            helper.assertFalse(
+                    SpellDispenserVariant.canUseCreativeVariant(survivalPlayer),
+                    "Creative Spell Dispenser menu allowed a survival player without permissions"
+            );
+            helper.assertTrue(
+                    SpellDispenserVariant.canUseCreativeVariant(creativePlayer),
+                    "Creative Spell Dispenser menu rejected a creative player"
+            );
+        });
+    }
+
     static void spellDispenserSneakPlacementStartsAtZeroMana(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = (ServerLevel) helper.getLevel();
@@ -2954,6 +3084,15 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser is missing create:contraption_controlled and cannot be selected by Contraption Controls");
         });
     }
+
+    static void creativeSpellDispenserIsTaggedForContraptionControls(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spellDispenserStack = new ItemStack(ItemRegistry.CREATIVE_SPELL_DISPENSER.get());
+            helper.assertTrue(spellDispenserStack.is(CREATE_CONTRAPTION_CONTROLLED),
+                    "Creative Spell Dispenser is missing create:contraption_controlled and cannot be selected by Contraption Controls");
+        });
+    }
+
     static void spellDispenserOwnerProfileCanBeReadFromSavedTag(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var ownerProfile = createSpellDispenserOwnerProfile("spell_dispenser_owner_tag_test");
@@ -3105,6 +3244,7 @@ public final class ApprenticeCodexGameTestScenarios {
             placeAndAssertBlockEntity(helper, new BlockPos(0, 1, 1), BlockRegistry.ESSENCE_SMOKER.get(), BlockEntityRegistry.ESSENCE_SMOKER.get());
             placeAndAssertBlockEntity(helper, new BlockPos(1, 1, 1), BlockRegistry.ATELIER_STATION.get(), BlockEntityRegistry.ATELIER_STATION.get());
             placeAndAssertBlockEntity(helper, new BlockPos(2, 1, 1), BlockRegistry.SPELL_DISPENSER.get(), BlockEntityRegistry.SPELL_DISPENSER.get());
+            placeAndAssertBlockEntity(helper, new BlockPos(3, 1, 1), BlockRegistry.CREATIVE_SPELL_DISPENSER.get(), BlockEntityRegistry.SPELL_DISPENSER.get());
             var level = helper.getLevel();
             for (var entityEntry : EntityRegistry.ENTITIES.getEntries()) {
                 var entity = entityEntry.get().create(level);
