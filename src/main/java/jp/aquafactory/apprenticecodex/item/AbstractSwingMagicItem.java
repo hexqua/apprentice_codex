@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeaponItem
-        implements RestrictedSpellImbuableItem, CastAnimationOverrideItem, IPresetSpellContainer {
+        implements RestrictedSpellImbuableItem, CastAnimationOverrideItem, IPresetSpellContainer, SwingTriggeredMagicItem {
 
     protected AbstractSwingMagicItem(
             Properties properties,
@@ -225,6 +225,11 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
 
         var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
         return tryCastSpell(player, stack, spell, spellLevel, magicData, resolveSpellSelectionSlot(hand));
+    }
+
+    @Override
+    public final boolean tryTriggerSpellOnSwing(Player player, InteractionHand hand, boolean bypassChargeCheck) {
+        return tryTriggerImbuedSpellOnSwing(player, hand, bypassChargeCheck);
     }
 
     private boolean matchesImbuedSpell(ItemStack stack, @Nullable AbstractSpell spell) {

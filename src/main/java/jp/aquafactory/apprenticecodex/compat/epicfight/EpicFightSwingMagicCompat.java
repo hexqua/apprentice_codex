@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.compat.epicfight;
 
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -207,7 +208,7 @@ public final class EpicFightSwingMagicCompat {
             int triggerIndex
     ) {
         var stack = player.getItemInHand(hand);
-        if (!(stack.getItem() instanceof AbstractSwingMagicItem)
+        if (!(stack.getItem() instanceof SwingTriggeredMagicItem)
                 && !(stack.getItem() instanceof MultipurposeStaffrifle)) {
             return;
         }
@@ -219,8 +220,8 @@ public final class EpicFightSwingMagicCompat {
             return;
         }
 
-        if (stack.getItem() instanceof AbstractSwingMagicItem swingMagicItem) {
-            swingMagicItem.tryTriggerImbuedSpellOnSwing(player, hand, true);
+        if (stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem) {
+            swingTriggeredMagicItem.tryTriggerSpellOnSwing(player, hand, true);
         } else if (hand == InteractionHand.MAIN_HAND
                 && player instanceof ServerPlayer serverPlayer
                 && stack.getItem() instanceof MultipurposeStaffrifle staffrifle) {
@@ -268,7 +269,7 @@ public final class EpicFightSwingMagicCompat {
     }
 
     private static boolean isSupportedAttackTriggeredItem(net.minecraft.world.item.ItemStack stack) {
-        return stack.getItem() instanceof AbstractSwingMagicItem
+        return stack.getItem() instanceof SwingTriggeredMagicItem
                 || stack.getItem() instanceof MultipurposeStaffrifle;
     }
 

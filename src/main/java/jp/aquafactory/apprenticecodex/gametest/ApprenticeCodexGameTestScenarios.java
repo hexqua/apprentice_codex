@@ -59,6 +59,7 @@ import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
+import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfile;
@@ -9410,6 +9411,23 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
+
+    static void mithrilFreecastStaffBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
+            var item = (MithrilFreecastStaff) stack.getItem();
+            item.initializeSpellContainer(stack);
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+
+            helper.assertFalse(stack.getItem() instanceof RestrictedSpellImbuableItem,
+                    "Mithril Freecast Staff should not expose the restricted imbue API");
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
+                    "Mithril Freecast Staff should reject Arcane Anvil spell imbuing"
+            );
+        });
+    }
+
     static void elementalBowManaErrorUsesIronsSpellbooksTranslationKey(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var message = ElementalBow.createInsufficientManaMessage(
@@ -14885,6 +14903,9 @@ public final class ApprenticeCodexGameTestScenarios {
                 EnchantmentRegistry.TRANSCENDENCE,
                 EnchantmentRegistry.WISDOM
         ));
+        if (stack.getItem() instanceof MithrilFreecastStaff) {
+            expectedEnchantments.remove(ForgeRegistries.ENCHANTMENTS.getKey(EnchantmentRegistry.TRANSCENDENCE.get()));
+        }
         addExpectedMalumHauntedIfPresent(stack, expectedEnchantments);
         addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
         return expectedEnchantments;
