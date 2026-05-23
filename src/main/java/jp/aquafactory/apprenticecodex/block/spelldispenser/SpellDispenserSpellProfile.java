@@ -35,17 +35,6 @@ public record SpellDispenserSpellProfile(
             false
     );
 
-    public static final SpellDispenserSpellProfile CONE_BACKWARD = new SpellDispenserSpellProfile(
-            SpellDispenserCastAnchorMode.TRACKED_ANCHOR,
-            SpellDispenserCasterMode.AUTO,
-            -1.0D,
-            0.0D,
-            0.0D,
-            0.0F,
-            0.0F,
-            false
-    );
-
     public static final SpellDispenserSpellProfile OWNER_OPTIONAL = new SpellDispenserSpellProfile(
             SpellDispenserCastAnchorMode.AUTO,
             SpellDispenserCasterMode.AUTO,

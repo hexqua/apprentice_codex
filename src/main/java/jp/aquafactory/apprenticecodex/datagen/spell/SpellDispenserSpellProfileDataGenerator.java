@@ -66,7 +66,7 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.DRAGON_BREATH_SPELL),
-                                        SpellDispenserSpellProfile.CONE_BACKWARD
+                                        SpellDispenserSpellProfile.MINIMUM_CONE
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.MAGIC_ARROW_SPELL),
@@ -134,7 +134,7 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.FIRE_BREATH_SPELL),
-                                        SpellDispenserSpellProfile.CONE_BACKWARD
+                                        SpellDispenserSpellProfile.MINIMUM_CONE
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.FIREBALL_SPELL),
@@ -194,7 +194,7 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.CONE_OF_COLD_SPELL),
-                                        SpellDispenserSpellProfile.CONE_BACKWARD
+                                        SpellDispenserSpellProfile.MINIMUM_CONE
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.FROSTWAVE_SPELL),
@@ -266,7 +266,7 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.POISON_BREATH_SPELL),
-                                        SpellDispenserSpellProfile.CONE_BACKWARD
+                                        SpellDispenserSpellProfile.MINIMUM_CONE
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.POISON_SPLASH_SPELL),
