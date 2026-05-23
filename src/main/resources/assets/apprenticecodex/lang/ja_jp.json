@@ -417,6 +417,7 @@
   "container.apprenticecodex.spell_dispenser.owner.tooltip": "設置したユーザー: %1$s",
   "container.apprenticecodex.spell_dispenser.flask": "フラスコ置き場",
   "container.apprenticecodex.spell_dispenser.mana.tooltip": "含有マナ: %1$d/%2$d",
+  "container.apprenticecodex.spell_dispenser.spell.tooltip.creative": "クリエイティブバージョンはオーナー情報を保持しない。",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.owner_missing": "スペルディスペンサーを設置したプレイヤーの情報が存在しない",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.unsupported_cast": "対象の魔法の詠唱タイプが未対応",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.has_recast": "対象の魔法は再詠唱できるタイプのため使用できない",

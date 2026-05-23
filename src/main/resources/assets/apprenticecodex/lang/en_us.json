@@ -412,6 +412,7 @@
   "container.apprenticecodex.spell_dispenser.owner.tooltip": "Owner: %1$s",
   "container.apprenticecodex.spell_dispenser.flask": "Flask Storage",
   "container.apprenticecodex.spell_dispenser.mana.tooltip": "Contains Mana: %1$d/%2$d",
+  "container.apprenticecodex.spell_dispenser.spell.tooltip.creative": "The creative version does not retain owner data.",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.owner_missing": "Owner data for this Spell Dispenser is missing.",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.unsupported_cast": "This spell's cast type is not supported.",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.has_recast": "This spell cannot be used because it supports recasting.",

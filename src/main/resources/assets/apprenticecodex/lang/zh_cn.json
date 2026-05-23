@@ -412,6 +412,7 @@
   "container.apprenticecodex.spell_dispenser.owner.tooltip": "所有者：%1$s",
   "container.apprenticecodex.spell_dispenser.flask": "烧瓶存储",
   "container.apprenticecodex.spell_dispenser.mana.tooltip": "魔力储量：%1$d/%2$d",
+  "container.apprenticecodex.spell_dispenser.spell.tooltip.creative": "创造版不会保留所有者数据。",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.owner_missing": "该法术发射器的所有者数据丢失。",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.unsupported_cast": "该法术的施法类型不受支持。",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.has_recast": "该法术支持二次施法，无法使用。",

@@ -264,6 +264,14 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
         return SpellDispenserManaHelper.MAX_MANA;
     }
 
+    public boolean isCreativeVariant() {
+        var currentBlockEntity = getBlockEntity();
+        if (currentBlockEntity != null) {
+            return currentBlockEntity.getVariant().isCreative();
+        }
+        return variant.isCreative();
+    }
+
     public @Nullable SpellDispenserBlockEntity getBlockEntity() {
         if (mounted) {
             return null;
