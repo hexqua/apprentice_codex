@@ -12,6 +12,7 @@
   "block.apprenticecodex.comfort_berry_bush": "Comfort Berry Bush",
   "block.apprenticecodex.potted_comfort_berry_bush": "Potted Comfort Berry Bush",
   "block.apprenticecodex.spell_dispenser": "Spell Dispenser",
+  "block.apprenticecodex.creative_spell_dispenser": "Creative Spell Dispenser",
   "block.apprenticecodex.frost_rune_trap" : "Frost Rune",
   "block.apprenticecodex.spell_calibration_bench" : "Spell Calibration Bench",
 
@@ -126,6 +127,7 @@
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "Rare and below",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic": "Above Epic",
   "item.apprenticecodex.apprentice_desk.disabled_tooltip": "Only functional as a job site block for an Errand Mage.",
+  "item.apprenticecodex.spell_dispenser.creative_tooltip": "Creative version",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "Currently pointing at the lodestone.",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "Currently behaving according to the current dimension.",
   "item.apprenticecodex.elemental_bow.mode": "Current firing mode: %s",
@@ -701,6 +703,7 @@
   "ui.apprenticecodex.multicast_echo_staff.deny_list": "%1$s is denied by the world's reason, so it will be cast normally",
   "ui.apprenticecodex.multicast_echo_staff.insufficient_mana": "Multicasting was interrupted because your mana ran dry!",
   "ui.apprenticecodex.multicast_echo_staff.cancel_by_item_change": "The staff to receive the echoing mana isn't in your hands!",
+  "ui.apprenticecodex.spell_dispenser.creative_version.deny_open": "Only creative players or operators can open this Spell Dispenser.",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "This item does not allow spell extraction",

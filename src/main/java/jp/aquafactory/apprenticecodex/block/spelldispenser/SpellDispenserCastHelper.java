@@ -165,7 +165,7 @@ public final class SpellDispenserCastHelper {
         var spellCaster = resolveSpellCaster(proxy, trackedAnchor);
 
         var magicData = MagicData.getPlayerMagicData(proxy);
-        var cooldownTicks = resolveCooldownTicks(spellData, proxy);
+        var cooldownTicks = resolveCooldownTicks(spellData, proxy, manaAccess);
         CastResult result;
         try {
             try {
@@ -355,7 +355,7 @@ public final class SpellDispenserCastHelper {
         var trackedAnchor = createTrackedAnchorForExplicitProfile(level, proxy, profile, spell.getCastType());
         var spellCaster = resolveSpellCaster(proxy, trackedAnchor);
         var magicData = MagicData.getPlayerMagicData(proxy);
-        var cooldownTicks = resolveCooldownTicks(spellData, proxy);
+        var cooldownTicks = resolveCooldownTicks(spellData, proxy, manaAccess);
         try {
             magicData.setSyncedData(new SyncedSpellData(proxy));
             var castDuration = castDurationOverrideTicks != null
@@ -568,6 +568,16 @@ public final class SpellDispenserCastHelper {
             CastResult result,
             Map<String, Long> recentFailureNoticeTicks
     ) {
+        notifyFailureToNearbyPlayers(level, pos, result, recentFailureNoticeTicks, false);
+    }
+
+    public static void notifyFailureToNearbyPlayers(
+            ServerLevel level,
+            BlockPos pos,
+            CastResult result,
+            Map<String, Long> recentFailureNoticeTicks,
+            boolean restrictTargets
+    ) {
         if (!result.shouldNotifyPlayers()) {
             return;
         }
@@ -584,6 +594,9 @@ public final class SpellDispenserCastHelper {
         var center = Vec3.atCenterOf(pos);
         var noticeBox = new AABB(center, center).inflate(FAILURE_NOTICE_RANGE);
         for (var player : level.getEntitiesOfClass(ServerPlayer.class, noticeBox)) {
+            if (restrictTargets && !SpellDispenserVariant.canUseCreativeVariant(player)) {
+                continue;
+            }
             for (var message : result.createFailureMessages(player)) {
                 player.sendSystemMessage(message);
             }
@@ -757,7 +770,11 @@ public final class SpellDispenserCastHelper {
                 && !ownerProfile.getName().isBlank();
     }
 
-    private static int resolveCooldownTicks(SpellData spellData, @Nullable LivingEntity spellCaster) {
+    private static int resolveCooldownTicks(
+            SpellData spellData,
+            @Nullable LivingEntity spellCaster,
+            @Nullable SpellDispenserManaHelper.ManaAccess manaAccess
+    ) {
         if (spellData == SpellData.EMPTY) {
             return 0;
         }
@@ -767,15 +784,24 @@ public final class SpellDispenserCastHelper {
         if (spell.getCastType() == CastType.LONG) {
             cooldownTicks += Math.max(0, spell.getEffectiveCastTime(spellData.getLevel(), spellCaster));
         }
-        return scaleCooldownTicks(cooldownTicks);
+        return scaleCooldownTicks(cooldownTicks, manaAccess != null
+                ? manaAccess.cooldownMultiplier()
+                : ApprenticeCodexServerConfig.spellDispenserCooldownMultiplier());
     }
 
     public static int scaleCooldownTicks(int cooldownTicks) {
+        return scaleCooldownTicks(cooldownTicks, ApprenticeCodexServerConfig.spellDispenserCooldownMultiplier());
+    }
+
+    public static int scaleCooldownTicks(int cooldownTicks, double multiplier) {
         if (cooldownTicks <= 0) {
             return 0;
         }
 
-        var scaled = Math.ceil(cooldownTicks * Math.max(0.1D, ApprenticeCodexServerConfig.spellDispenserCooldownMultiplier()));
+        var scaled = Math.ceil(cooldownTicks * Math.max(0.0D, multiplier));
+        if (scaled <= 0) {
+            return 0;
+        }
         if (scaled >= Integer.MAX_VALUE) {
             return Integer.MAX_VALUE;
         }

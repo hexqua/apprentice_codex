@@ -43,6 +43,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.SPELLCASTER_WORKBENCH.get());
         output.accept(ItemRegistry.SPELL_CALIBRATION_BENCH.get());
         output.accept(ItemRegistry.SPELL_DISPENSER.get());
+        output.accept(ItemRegistry.CREATIVE_SPELL_DISPENSER.get());
         output.accept(ItemRegistry.ARCANUM_IN_A_JAR.get());
         output.accept(ItemRegistry.ESSENCE_SMOKER.get());
         output.accept(ItemRegistry.ATELIER_STATION.get());

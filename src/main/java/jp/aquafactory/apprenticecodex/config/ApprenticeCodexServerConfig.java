@@ -105,6 +105,14 @@ public final class ApprenticeCodexServerConfig {
         return BLOCKS_CONFIG.spellDispenserCooldownMultiplier();
     }
 
+    public static boolean creativeSpellDispenserManaConsumption() {
+        return BLOCKS_CONFIG.creativeSpellDispenserManaConsumption();
+    }
+
+    public static double creativeSpellDispenserCooldownMultiplier() {
+        return BLOCKS_CONFIG.creativeSpellDispenserCooldownMultiplier();
+    }
+
     public static GameTestConfigOverride useSpellDispenserConfigOverrideForGameTest(
             boolean enable,
             boolean enableSpellAllowlist,
@@ -126,6 +134,20 @@ public final class ApprenticeCodexServerConfig {
                 previousEnable,
                 previousEnableSpellAllowlist,
                 previousSpellAllowlist,
+                previousCooldownMultiplier
+        );
+    }
+
+    public static GameTestConfigOverride useCreativeSpellDispenserConfigOverrideForGameTest(
+            boolean manaConsumption,
+            double cooldownMultiplier
+    ) {
+        var previousManaConsumption = BLOCKS_CONFIG.creativeSpellDispenserManaConsumption();
+        var previousCooldownMultiplier = BLOCKS_CONFIG.creativeSpellDispenserCooldownMultiplier();
+
+        BLOCKS_CONFIG.setCreativeSpellDispenserConfigForGameTest(manaConsumption, cooldownMultiplier);
+        return () -> BLOCKS_CONFIG.setCreativeSpellDispenserConfigForGameTest(
+                previousManaConsumption,
                 previousCooldownMultiplier
         );
     }

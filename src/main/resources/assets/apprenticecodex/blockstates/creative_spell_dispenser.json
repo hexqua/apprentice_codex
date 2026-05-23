@@ -1,0 +1,46 @@
+{
+  "variants": {
+    "facing=down,triggered=false": {
+      "model": "apprenticecodex:block/creative_spell_dispenser_vertical_down"
+    },
+    "facing=down,triggered=true": {
+      "model": "apprenticecodex:block/creative_spell_dispenser_vertical_down"
+    },
+    "facing=east,triggered=false": {
+      "model": "apprenticecodex:block/creative_spell_dispenser_horizontal",
+      "y": 90
+    },
+    "facing=east,triggered=true": {
+      "model": "apprenticecodex:block/creative_spell_dispenser_horizontal",
+      "y": 90
+    },
+    "facing=north,triggered=false": {
+      "model": "apprenticecodex:block/creative_spell_dispenser_horizontal"
+    },
+    "facing=north,triggered=true": {
+      "model": "apprenticecodex:block/creative_spell_dispenser_horizontal"
+    },
+    "facing=south,triggered=false": {
+      "model": "apprenticecodex:block/creative_spell_dispenser_horizontal",
+      "y": 180
+    },
+    "facing=south,triggered=true": {
+      "model": "apprenticecodex:block/creative_spell_dispenser_horizontal",
+      "y": 180
+    },
+    "facing=up,triggered=false": {
+      "model": "apprenticecodex:block/creative_spell_dispenser_vertical_up"
+    },
+    "facing=up,triggered=true": {
+      "model": "apprenticecodex:block/creative_spell_dispenser_vertical_up"
+    },
+    "facing=west,triggered=false": {
+      "model": "apprenticecodex:block/creative_spell_dispenser_horizontal",
+      "y": 270
+    },
+    "facing=west,triggered=true": {
+      "model": "apprenticecodex:block/creative_spell_dispenser_horizontal",
+      "y": 270
+    }
+  }
+}

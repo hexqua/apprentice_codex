@@ -82,6 +82,10 @@ public final class SpellDispenserManaHelper {
         return currentMana >= getSpellManaCost(spellData);
     }
 
+    public static boolean canAffordSpell(@NotNull ManaAccess manaAccess, SpellData spellData) {
+        return manaAccess.isManaConsumptionExempt() || canAffordSpell(manaAccess.getCurrentMana(), spellData);
+    }
+
     public static boolean tryConsumeSpellMana(@NotNull ManaAccess manaAccess, SpellData spellData) {
         if (manaAccess.isManaConsumptionExempt()) {
             return true;
@@ -218,6 +222,10 @@ public final class SpellDispenserManaHelper {
 
         default boolean isManaConsumptionExempt() {
             return false;
+        }
+
+        default double cooldownMultiplier() {
+            return jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig.spellDispenserCooldownMultiplier();
         }
     }
 

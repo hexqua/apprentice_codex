@@ -14,6 +14,7 @@
   "block.apprenticecodex.comfort_berry_bush" : "安楽の果実の低木",
   "block.apprenticecodex.potted_comfort_berry_bush" : "鉢植えの安楽の果実の低木",
   "block.apprenticecodex.spell_dispenser" : "スペルディスペンサー",
+  "block.apprenticecodex.creative_spell_dispenser" : "クリエイティブスペルディスペンサー",
   "block.apprenticecodex.frost_rune_trap" : "氷のルーン",
   "block.apprenticecodex.spell_calibration_bench" : "術式調整台",
 
@@ -130,6 +131,7 @@
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic": "エピック以上",
 
   "item.apprenticecodex.apprentice_desk.disabled_tooltip": "使い走り魔術師の職業ブロックとしてのみ機能する。",
+  "item.apprenticecodex.spell_dispenser.creative_tooltip": "クリエイティブバージョン",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "この杖は現在ロードストーンを指し示している。",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "この杖は現在次元に合わせた振る舞いをしている。",
   "item.apprenticecodex.elemental_bow.mode": "現在の射撃モード: %s",
@@ -711,6 +713,7 @@
   "ui.apprenticecodex.multicast_echo_staff.deny_list": "%1$sは世界の理から拒絶されているため通常詠唱となる",
   "ui.apprenticecodex.multicast_echo_staff.insufficient_mana": "魔力が枯渇したため多重詠唱が中断された！",
   "ui.apprenticecodex.multicast_echo_staff.cancel_by_item_change": "魔力の残響を受け止める杖が手元にない！",
+  "ui.apprenticecodex.spell_dispenser.creative_version.deny_open": "このスペルディスペンサーは創造の力によって開くことできない！",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "このアイテムからは魔法は取り出せない",
