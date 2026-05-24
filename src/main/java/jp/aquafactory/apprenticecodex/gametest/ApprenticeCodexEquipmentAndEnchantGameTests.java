@@ -389,6 +389,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void betterCombatOffhandOnlyGauntletDoesNotForceDualWielding(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.betterCombatOffhandOnlyGauntletDoesNotForceDualWielding(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void betterCombatOffhandRescueIncludesEnchantAndImbueDerivedModifiers(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.betterCombatOffhandRescueIncludesEnchantAndImbueDerivedModifiers(helper);
     }

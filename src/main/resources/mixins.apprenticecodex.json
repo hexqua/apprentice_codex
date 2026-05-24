@@ -9,6 +9,7 @@
     "AbstractSpellMixin",
     "AbstractFurnaceBlockEntityMixin",
     "ArcaneAnvilMenuMixin",
+    "BetterCombatPlayerAttackHelperMixin",
     "BowItemSpellcasterQuiverMixin",
     "CombatTrackerAccessor",
     "EasyMagicModEnchantmentMenuMixin",
