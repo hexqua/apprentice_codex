@@ -62,8 +62,77 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
+idea {
+    project {
+        jdkName = '21'
+        languageLevel = JavaVersion.VERSION_21
+    }
+}
+
 def gameTestServerWorldName = 'codex_gametest_clean'
 def gameTestServerWorldDir = layout.projectDirectory.dir("run/${gameTestServerWorldName}")
+def requiredOptionalModsProperty = 'apprenticecodex.requiredOptionalMods'
+
+def optionalRuntimeModuleConfigurations = [
+        farmers_delight: 'farmersDelightRuntimeOnly',
+        create         : 'createRuntimeOnly',
+        puzzles_lib    : 'puzzlesLibRuntimeOnly',
+        easy_magic     : 'easyMagicRuntimeOnly',
+        cloth_config   : 'clothConfigRuntimeOnly',
+        better_combat  : 'betterCombatRuntimeOnly',
+        epic_fight     : 'epicFightRuntimeOnly',
+        lodestone      : 'lodestoneRuntimeOnly',
+        malum          : 'malumRuntimeOnly',
+]
+
+def optionalRuntimeProfileModules = [
+        compat            : ['farmers_delight', 'create', 'lodestone', 'malum'],
+        easy_magic        : ['puzzles_lib', 'easy_magic'],
+        better_combat     : ['cloth_config', 'better_combat'],
+        epic_fight        : ['epic_fight'],
+        compat_easy_better: ['farmers_delight', 'create', 'lodestone', 'malum', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
+]
+
+def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
+        farmersdelight: ['farmers_delight'],
+        farmer        : ['farmers_delight'],
+        puzzleslib    : ['puzzles_lib'],
+        easymagic     : ['puzzles_lib', 'easy_magic'],
+        bettercombat  : ['cloth_config', 'better_combat'],
+        epicfight     : ['epic_fight'],
+        create        : ['create'],
+        lodestone     : ['lodestone'],
+        malum         : ['lodestone', 'malum'],
+]
+
+def optionalRuntimeRequiredModIds = [
+        compat       : 'farmersdelight,create,lodestone,malum',
+        easy_magic   : 'puzzleslib,easymagic',
+        better_combat: 'cloth_config,bettercombat',
+        epic_fight   : 'epicfight',
+]
+
+def expandOptionalRuntimeModules = { Collection<String> selectors ->
+    selectors.collectMany { selector ->
+        def normalizedSelector = selector.trim().toLowerCase(Locale.ROOT).replace('-', '_')
+        def modules = optionalRuntimeSelectorModules[normalizedSelector]
+        if (modules == null) {
+            throw new GradleException("Unknown optional runtime MOD/profile '${selector}'. Available: ${optionalRuntimeSelectorModules.keySet().sort().join(', ')}")
+        }
+        modules
+    }.unique()
+}
+
+def extendRunJavaClasspath = { String runName, Collection<String> modules ->
+    def runTaskName = "run${runName.capitalize()}"
+    tasks.named(runTaskName).configure { task ->
+        def runtimeConfigurations = modules.collect { module ->
+            configurations.named(optionalRuntimeModuleConfigurations[module])
+        }
+        task.getClasspathProvider().from runtimeConfigurations
+        task.classpath runtimeConfigurations
+    }
+}
 
 neoForge {
     version = project.neo_version
@@ -88,6 +157,59 @@ neoForge {
         gameTestServer {
             type = "gameTestServer"
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            programArguments.addAll '--world', gameTestServerWorldName
+        }
+
+        clientCompat {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        clientEasyMagic {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        clientBetterCombat {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        clientEpicFight {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        clientCompatEasyBetter {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        gameTestServerCompat {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty requiredOptionalModsProperty, optionalRuntimeRequiredModIds.compat
+            programArguments.addAll '--world', gameTestServerWorldName
+        }
+
+        gameTestServerEasyMagic {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty requiredOptionalModsProperty, optionalRuntimeRequiredModIds.easy_magic
+            programArguments.addAll '--world', gameTestServerWorldName
+        }
+
+        gameTestServerBetterCombat {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty requiredOptionalModsProperty, optionalRuntimeRequiredModIds.better_combat
+            programArguments.addAll '--world', gameTestServerWorldName
+        }
+
+        gameTestServerEpicFight {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty requiredOptionalModsProperty, optionalRuntimeRequiredModIds.epic_fight
             programArguments.addAll '--world', gameTestServerWorldName
         }
 
@@ -117,12 +239,35 @@ tasks.register('cleanGameTestServerWorld', Delete) {
     delete gameTestServerWorldDir
 }
 
-tasks.matching { it.name == 'runGameTestServer' }.configureEach {
+tasks.matching { it.name.startsWith('runGameTestServer') }.configureEach {
     dependsOn tasks.named('cleanGameTestServerWorld')
 }
 
 configurations {
     runtimeClasspath.extendsFrom localRuntime
+    optionalRuntimeModuleConfigurations.values().each { configurationName ->
+        create(configurationName) {
+            canBeConsumed = false
+            canBeResolved = true
+            transitive = true
+        }
+    }
+}
+
+extendRunJavaClasspath('clientCompat', expandOptionalRuntimeModules(['compat']))
+extendRunJavaClasspath('clientEasyMagic', expandOptionalRuntimeModules(['easy_magic']))
+extendRunJavaClasspath('clientBetterCombat', expandOptionalRuntimeModules(['better_combat']))
+extendRunJavaClasspath('clientEpicFight', expandOptionalRuntimeModules(['epic_fight']))
+extendRunJavaClasspath('clientCompatEasyBetter', expandOptionalRuntimeModules(['compat_easy_better']))
+extendRunJavaClasspath('gameTestServerCompat', expandOptionalRuntimeModules(['compat']))
+extendRunJavaClasspath('gameTestServerEasyMagic', expandOptionalRuntimeModules(['easy_magic']))
+extendRunJavaClasspath('gameTestServerBetterCombat', expandOptionalRuntimeModules(['better_combat']))
+extendRunJavaClasspath('gameTestServerEpicFight', expandOptionalRuntimeModules(['epic_fight']))
+
+def devRuntimeMods = providers.gradleProperty('devRuntimeMods').orNull
+if (devRuntimeMods != null && !devRuntimeMods.trim().isEmpty()) {
+    def devRuntimeModules = expandOptionalRuntimeModules(devRuntimeMods.split(',').collect { it.trim() }.findAll { !it.isEmpty() })
+    extendRunJavaClasspath('client', devRuntimeModules)
 }
 
 dependencies {
@@ -142,44 +287,43 @@ dependencies {
 
     // Create.
     // Create 連携のコンパイル用.
-    // ランタイム検証時のみ必要に応じてON.
+    // ランタイム検証では compat profile から読み込む.
     compileOnly "curse.maven:create-328085:7178775"
     compileOnly "com.tterrag.registrate:Registrate:${registrate_version}"
-    // runtimeOnly "curse.maven:create-328085:7178775"
+    add(optionalRuntimeModuleConfigurations.create, "curse.maven:create-328085:7178775")
 
     // EasyMagic.
-    // 必要に応じてON、デフォルトは入れない(前提にはしないため)
-    // localRuntime "maven.modrinth:puzzles-lib:v21.1.39-1.21.1-NeoForge"
-    // localRuntime "maven.modrinth:easy-magic:v21.1.4-1.21.1-NeoForge"
+    // easy_magic profile から読み込む。通常開発ではエンチャント挙動の変化を避ける.
+    add(optionalRuntimeModuleConfigurations.puzzles_lib, "maven.modrinth:puzzles-lib:v21.1.39-1.21.1-NeoForge")
+    add(optionalRuntimeModuleConfigurations.easy_magic, "maven.modrinth:easy-magic:v21.1.4-1.21.1-NeoForge")
 
     // Farmer's Delight.
-    // 必要に応じてON、デフォルトは入れない(前提にはしないため)
-    // HarvestMoon の互換回帰を GameTest で検証するため、開発環境では読み込む.
+    // HarvestMoon の互換回帰を既存の標準 GameTest で検証するため、開発環境では読み込む.
     runtimeOnly "maven.modrinth:farmers-delight:cYqC3svy"
 
     // Better Combat.
     // Better Combat の攻撃開始フックへ接続する互換コードのコンパイル用.
-    // ランタイムは必要に応じてON(1.20.1と異なり前提が増えている点に注意)
+    // better_combat profile では前提である Cloth Config も合わせて読み込む.
     compileOnly "maven.modrinth:better-combat:2NyTus6V"
-    // runtimeOnly "maven.modrinth:cloth-config:DqgODWcH"
-    // runtimeOnly "maven.modrinth:better-combat:2NyTus6V"
+    add(optionalRuntimeModuleConfigurations.cloth_config, "maven.modrinth:cloth-config:DqgODWcH")
+    add(optionalRuntimeModuleConfigurations.better_combat, "maven.modrinth:better-combat:2NyTus6V")
 
     // Epic Fight.
     // 武器関連対応、特殊武器アクション(e.g. 打撃詠唱杖の魔法発動)のコード接続用に参照も含める.
-    // 必要に応じてON、デフォルトは入れない(必須前提にはしないため)
+    // ランタイムは epic_fight profile から読み込む.
     compileOnly "maven.modrinth:epic-fight:${epicfight_version}"
-    // runtimeOnly "maven.modrinth:epic-fight:${epicfight_version}"
+    add(optionalRuntimeModuleConfigurations.epic_fight, "maven.modrinth:epic-fight:${epicfight_version}")
 
     // Lootr.
     // TreasureDivination が Lootr の個人開封済み判定へ接続するためのコンパイル用.
     compileOnly "noobanidus.mods.lootr:lootr-neoforge:${lootr_version}"
 
     // Lodestone / Malum.
-    // 必要に応じてランタイムはONにする.
+    // compat profile から読み込む。通常開発では追加要素による調査ノイズを避ける.
     compileOnly "curse.maven:lodestone-616457:7264731"
     compileOnly "curse.maven:malum-484064:7307339"
-    //runtimeOnly "curse.maven:lodestone-616457:7264731"
-    //runtimeOnly "curse.maven:malum-484064:7307339"
+    add(optionalRuntimeModuleConfigurations.lodestone, "curse.maven:lodestone-616457:7264731")
+    add(optionalRuntimeModuleConfigurations.malum, "curse.maven:malum-484064:7307339")
 
     // JEI.
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
