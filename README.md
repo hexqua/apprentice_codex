@@ -64,6 +64,20 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
 ```
 
 - `runGameTestServer` は専用 world `run/codex_gametest_clean` を毎回初期化してから起動します。通常の手動確認用 `run/world` は削除しません。
+- optional MOD 連携を含む GameTest は、通常 CI には入れず必要時に個別実行します。
+
+```powershell
+./gradlew.bat runGameTestServerCompat
+./gradlew.bat runGameTestServerEasyMagic
+./gradlew.bat runGameTestServerBetterCombat
+./gradlew.bat runGameTestServerEpicFight
+```
+
+- `runGameTestServerCompat` は Farmer's Delight / Create / Lodestone / Malum 連携を確認します。
+- `runGameTestServerEasyMagic` は Puzzles Lib / Easy Magic 連携を確認します。
+- `runGameTestServerBetterCombat` は Cloth Config / Better Combat 連携を確認します。
+- `runGameTestServerEpicFight` は Epic Fight 連携を確認します。
+- これらの特殊 GameTest では、対象 optional MOD が読み込まれていない場合に失敗します。
 - `runGameTestServer` では現在、次の項目を確認します。
 - Registry と動的登録の確認:
   item / block / block entity / entity / mob effect / enchantment / attribute / potion / recipe serializer / recipe type / creative tab / apprenticecodex の spell / School Affinity の動的 effect・potion・catalyst
@@ -76,9 +90,38 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
 - 注意:
   これらはサーバー側の起動・読込・登録ミスの検知が主目的です。renderer や screen など client 専用の起動不良は別途 `runClient` で確認が必要です。
 
+### optional MOD 付き client 起動
+
+- IntelliJ IDEA で実行構成を同期する場合:
+
+```powershell
+.\scripts\use-java.ps1
+./gradlew.bat neoForgeIdeSync
+```
+
+- IDEA から起動して `Unsupported major.minor version 65.0` が出る場合は、IDEA が Java 17 の Project SDK / Gradle JVM / 古い実行構成を掴んでいます。Project SDK と Gradle JVM を JDK 21 にしてから `neoForgeIdeSync` を再実行し、必要なら古い Minecraft run configuration を削除して再生成してください。
+- Gradle 同期後、通常の `runClient` に加えて次の client 構成を使えます。
+  - `runClientCompat`
+  - `runClientEasyMagic`
+  - `runClientBetterCombat`
+  - `runClientEpicFight`
+  - `runClientCompatEasyBetter`
+- `runClientCompatEasyBetter` は compat + Easy Magic + Better Combat を入れた実環境寄りの手動バランス確認用です。Epic Fight は含めず、自動テスト対象にもしていません。
+- 一時的な組み合わせ確認では Gradle プロパティでも追加できます。
+
+```powershell
+./gradlew.bat runClient "-PdevRuntimeMods=create,malum"
+./gradlew.bat runClient "-PdevRuntimeMods=epic_fight"
+```
+
+- `devRuntimeMods` には `compat`, `easy_magic`, `better_combat`, `epic_fight`, `compat_easy_better` または個別名（`create`, `lodestone`, `malum` など）をカンマ区切りで指定できます。
+- Botania は 1.21.1 側で API 依存を置いていないため、optional MOD profile には含めていません。
+- Better Combat と Epic Fight は干渉が大きいため、同時投入は通常確認では避けます。
+
 ## PR 運用
 
 - `1.21.1-main` への取り込みは PR 経由で行い、`PR CI / build-and-gametest` の成功を必須とします。
+- optional MOD 付きの特殊 GameTest / client 起動は required CI に含めません。必要な変更ではローカルまたは Codex 実行結果を PR コメントや最終報告に残します。
 - Codex Cloud のスマートトリガーレビューをレビュー補助として使います。人間の判断と CI 通過を置き換えるものではありません。
 - GitHub Actions は `pull_request` でのみ実行し、`pull_request_target` は使いません。
 - CI では secrets を使いません。workflow 権限は read-only に固定します。

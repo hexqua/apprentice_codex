@@ -39,10 +39,36 @@
 .\scripts\use-java.ps1
 ./gradlew.bat runGameTestServer
 ```
+- optional MOD 連携 GameTest:
+```powershell
+.\scripts\use-java.ps1
+./gradlew.bat runGameTestServerCompat
+./gradlew.bat runGameTestServerEasyMagic
+./gradlew.bat runGameTestServerBetterCombat
+./gradlew.bat runGameTestServerEpicFight
+```
 - 開発クライアント:
 ```powershell
 .\scripts\use-java.ps1
 ./gradlew.bat runClient
+```
+- optional MOD 付き開発クライアント:
+```powershell
+.\scripts\use-java.ps1
+./gradlew.bat runClientCompat
+./gradlew.bat runClientEasyMagic
+./gradlew.bat runClientBetterCombat
+./gradlew.bat runClientEpicFight
+./gradlew.bat runClientCompatEasyBetter
+```
+- 一時的な optional MOD 追加:
+```powershell
+./gradlew.bat runClient "-PdevRuntimeMods=create,malum"
+```
+- IntelliJ IDEA 実行構成の同期:
+```powershell
+.\scripts\use-java.ps1
+./gradlew.bat neoForgeIdeSync
 ```
 - Datagen 再生成:
 ```powershell
@@ -56,6 +82,15 @@ Get-ChildItem build\libs\*.jar
 - `runClient` は GUI を起動するため、CI やヘッドレス環境では実行しない。
 - `runGameTestServer` はサーバー側の登録、データ読込、レシピ、生成まわりの検証に使う。renderer / screen など client 専用の起動不良は別途 `runClient` で確認する。
 - `runGameTestServer` は専用 world `run/codex_gametest_clean` を毎回初期化してから起動する。通常の手動確認用 `run/world` は削除しない。
+- `runGameTestServerCompat` は Farmer's Delight / Create / Lodestone / Malum 連携の確認に使う。
+- `runGameTestServerEasyMagic` は Puzzles Lib / Easy Magic 連携の確認に使う。
+- `runGameTestServerBetterCombat` は Cloth Config / Better Combat 連携の確認に使う。
+- `runGameTestServerEpicFight` は Epic Fight 連携の確認に使う。
+- `runClientCompatEasyBetter` は compat + Easy Magic + Better Combat を入れた実環境寄りの手動バランス確認用。Epic Fight は含めず、自動テスト対象にも含めない。
+- IntelliJ IDEA から client 構成を起動して `Unsupported major.minor version 65.0` が出る場合は、Project SDK / Gradle JVM / 古い実行構成が Java 17 を参照している。IDEA 側を JDK 21 にそろえ、`neoForgeIdeSync` を再実行し、必要なら古い Minecraft run configuration を削除して再生成する。
+- Botania は 1.21.1 側で API 依存を置いていないため、optional MOD profile には含めない。
+- Better Combat と Epic Fight は干渉が大きいため、通常確認では同時投入しない。
+- optional MOD の runtime 切替は Gradle の実行構成または `-PdevRuntimeMods=...` で行う。`build.gradle` の `runtimeOnly` / `localRuntime` コメントアウト解除運用は使わない。
 - 通常確認で `clean` は付けない。必要時のみ `./gradlew.bat clean build` を使う。
 - `runData` の出力先は `src/generated/resources` であり、`src/generated/resources/.cache` に記録された生成物だけが再生成・差分管理される前提で扱う。
 - `src/generated/resources/.cache` は Git 管理外のため、branch 切替・`cherry-pick`・手動コピーで持ち込んだ古い JSON は `runData` だけでは削除されない場合がある。
@@ -78,16 +113,24 @@ Get-ChildItem build\libs\*.jar
 4. コード、リソース、依存、datagen に影響する変更では `./gradlew.bat build` を成功させる。このビルドには明らかな文字化けと UTF-8 BOM の検査も含める。ドキュメントのみの変更では省略してよいが、最終報告に理由を残す。
 5. サーバー側の登録、データ読込、レシピ、生成、GameTest 対象構造に影響する変更では `./gradlew.bat runGameTestServer` を成功させる。
 6. `main` から `1.21.1-main` への forward-port では、実装内容に関係なく `./gradlew.bat runGameTestServer` と `./gradlew.bat build` を成功させる。
-7. client 専用 UI、renderer、screen、入力操作に影響する変更では必要に応じて `./gradlew.bat runClient` で確認する。
-8. コミットはレビューしやすく、forward-port しやすい粒度に分ける。無関係な整形や広域整理を混ぜない。
-9. `1.21.1-main` へ取り込む変更は必ずブランチ + PR で流し、直 push しない。
-10. PR では GitHub Actions の `PR CI / build-and-gametest`、Codex Cloud のスマートトリガーレビュー、人間のレビューを確認してから取り込む。スマートトリガーレビューは補助であり、CI と人間の判断を置き換えない。
-11. 通常は merge commit で取り込む。バージョン更新だけは rebase merge を使ってよい。squash merge は使わない。
+7. optional MOD 連携に影響する変更では、対象に応じて特殊 GameTest / client 構成を追加実行する。
+   - Create / Lodestone / Malum / Farmer's Delight: `./gradlew.bat runGameTestServerCompat`
+   - Easy Magic / エンチャントメニュー: `./gradlew.bat runGameTestServerEasyMagic`
+   - Better Combat / offhand / weapon_attributes: `./gradlew.bat runGameTestServerBetterCombat`
+   - Epic Fight / mixin / capabilities / item_skins: `./gradlew.bat runGameTestServerEpicFight`
+   - client 側の連携確認: 対応する `runClient...` 構成
+   - 組み合わせバランス確認: `./gradlew.bat runClientCompatEasyBetter`
+8. client 専用 UI、renderer、screen、入力操作に影響する変更では必要に応じて `./gradlew.bat runClient` で確認する。
+9. コミットはレビューしやすく、forward-port しやすい粒度に分ける。無関係な整形や広域整理を混ぜない。
+10. `1.21.1-main` へ取り込む変更は必ずブランチ + PR で流し、直 push しない。
+11. PR では GitHub Actions の `PR CI / build-and-gametest`、Codex Cloud のスマートトリガーレビュー、人間のレビューを確認してから取り込む。スマートトリガーレビューは補助であり、CI と人間の判断を置き換えない。
+12. 通常は merge commit で取り込む。バージョン更新だけは rebase merge を使ってよい。squash merge は使わない。
 
 ## 6. レビューチェックリスト
 - Java 21 環境で必要な検証が通っていること。コード/リソース変更では `./gradlew.bat build` を必須とする。
 - サーバー側の登録、データ読込、レシピ、生成に影響する変更では `./gradlew.bat runGameTestServer` が成功していること。
 - `main` から `1.21.1-main` への forward-port では、実装内容に関係なく `./gradlew.bat runGameTestServer` と `./gradlew.bat build` が成功していること。
+- optional MOD 連携に影響する変更では、該当する `runGameTestServerCompat` / `runGameTestServerEasyMagic` / `runGameTestServerBetterCombat` / `runGameTestServerEpicFight`、または対応する `runClient...` の実行結果が説明されていること。
 - `1.21.1-main` 向け PR では GitHub Actions の `PR CI / build-and-gametest` が成功していること。
 - Codex Cloud のスマートトリガーレビューで指摘が出ている場合、対応または明示的な見送り理由があること。
 - 追加・変更した要素の登録漏れ（Registry/EventBus）がないこと。
