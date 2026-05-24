@@ -16,6 +16,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void requiredOptionalModsAreLoaded(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.requiredOptionalModsAreLoaded(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void registriesAndDynamicContentAreRegistered(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.registriesAndDynamicContentAreRegistered(helper);
     }

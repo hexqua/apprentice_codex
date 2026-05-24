@@ -280,6 +280,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -297,6 +298,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
     private static final String CREATE_GAMETEST_HOOKS_CLASS =
             "jp.aquafactory.apprenticecodex.gametest.create.CreateGameTestHooks";
+    private static final String REQUIRED_OPTIONAL_MODS_PROPERTY = "apprenticecodex.requiredOptionalMods";
     private static final String VANILLA_NAMESPACE = "minecraft";
     private static final String FARMERS_DELIGHT_MOD_ID = "farmersdelight";
     private static final String LODESTONE_MOD_ID = "lodestone";
@@ -349,6 +351,24 @@ public final class ApprenticeCodexGameTestScenarios {
 
     private ApprenticeCodexGameTestScenarios() {
     }
+
+    static void requiredOptionalModsAreLoaded(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var requiredModsProperty = System.getProperty(REQUIRED_OPTIONAL_MODS_PROPERTY, "").trim();
+            if (requiredModsProperty.isEmpty()) {
+                return;
+            }
+
+            var missingModIds = Arrays.stream(requiredModsProperty.split(","))
+                    .map(String::trim)
+                    .filter(modId -> !modId.isEmpty())
+                    .filter(modId -> !ModList.get().isLoaded(modId))
+                    .toList();
+            helper.assertTrue(missingModIds.isEmpty(),
+                    "Required optional MODs are missing for this GameTest run: " + missingModIds);
+        });
+    }
+
     static void registriesAndDynamicContentAreRegistered(GameTestHelper helper) {
         helper.succeedIf(() -> {
             assertForgeRegistryEntries(helper, "item", net.minecraftforge.registries.ForgeRegistries.ITEMS, ItemRegistry.ITEMS.getEntries());

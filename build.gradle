@@ -20,6 +20,83 @@ println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty '
 
 def gameTestServerWorldName = 'codex_gametest_clean'
 def gameTestServerWorldDir = layout.projectDirectory.dir("run/${gameTestServerWorldName}")
+def requiredOptionalModsProperty = 'apprenticecodex.requiredOptionalMods'
+
+def optionalRuntimeModuleConfigurations = [
+        farmers_delight: 'farmersDelightRuntimeOnly',
+        create         : 'createRuntimeOnly',
+        botania        : 'botaniaRuntimeOnly',
+        puzzles_lib    : 'puzzlesLibRuntimeOnly',
+        easy_magic     : 'easyMagicRuntimeOnly',
+        cloth_config   : 'clothConfigRuntimeOnly',
+        better_combat  : 'betterCombatRuntimeOnly',
+        epic_fight     : 'epicFightRuntimeOnly',
+        lodestone      : 'lodestoneRuntimeOnly',
+        malum          : 'malumRuntimeOnly',
+]
+
+def optionalRuntimeProfileModules = [
+        compat              : ['farmers_delight', 'create', 'botania', 'lodestone', 'malum'],
+        easy_magic          : ['puzzles_lib', 'easy_magic'],
+        better_combat       : ['cloth_config', 'better_combat'],
+        epic_fight          : ['epic_fight'],
+        compat_easy_better  : ['farmers_delight', 'create', 'botania', 'lodestone', 'malum', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
+]
+
+def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
+        farmersdelight: ['farmers_delight'],
+        farmer        : ['farmers_delight'],
+        puzzleslib    : ['puzzles_lib'],
+        easymagic     : ['puzzles_lib', 'easy_magic'],
+        bettercombat  : ['cloth_config', 'better_combat'],
+        epicfight     : ['epic_fight'],
+        create        : ['create'],
+        botania       : ['botania'],
+        lodestone     : ['lodestone'],
+        malum         : ['lodestone', 'malum'],
+]
+
+def optionalRuntimeRequiredModIds = [
+        compat        : 'farmersdelight,create,botania,lodestone,malum',
+        easy_magic    : 'puzzleslib,easymagic',
+        better_combat : 'cloth_config,bettercombat',
+        epic_fight    : 'epicfight',
+]
+
+def optionalRuntimeModuleModIds = [
+        farmers_delight: 'farmersdelight',
+        create         : 'create',
+        botania        : 'botania',
+        puzzles_lib    : 'puzzleslib',
+        easy_magic     : 'easymagic',
+        cloth_config   : 'cloth_config',
+        better_combat  : 'bettercombat',
+        epic_fight     : 'epicfight',
+        lodestone      : 'lodestone',
+        malum          : 'malum',
+]
+
+def expandOptionalRuntimeModules = { Collection<String> selectors ->
+    selectors.collectMany { selector ->
+        def normalizedSelector = selector.trim().toLowerCase(Locale.ROOT).replace('-', '_')
+        def modules = optionalRuntimeSelectorModules[normalizedSelector]
+        if (modules == null) {
+            throw new GradleException("Unknown optional runtime MOD/profile '${selector}'. Available: ${optionalRuntimeSelectorModules.keySet().sort().join(', ')}")
+        }
+        modules
+    }.unique()
+}
+
+def optionalRuntimeModClassesTokenForModules = { Collection<String> modules ->
+    { ->
+        modules.findAll { module -> module != 'farmers_delight' }.collectMany { module ->
+            def modId = optionalRuntimeModuleModIds[module]
+            configurations.named(optionalRuntimeModuleConfigurations[module]).get().files.collect { file ->
+                "${modId}%%${file.absolutePath}"
+            }
+        }.join(File.pathSeparator)
+    }
+}
 
 minecraft {
     mappings channel: mapping_channel, version: mapping_version
@@ -54,6 +131,73 @@ minecraft {
             args '--world', gameTestServerWorldName
         }
 
+        clientCompat {
+            parent null, 'client'
+            taskName 'runClientCompat'
+            lazyToken 'optional_mod_classes', optionalRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['compat']))
+            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{optional_mod_classes}"
+        }
+
+        clientEasyMagic {
+            parent null, 'client'
+            taskName 'runClientEasyMagic'
+            lazyToken 'optional_mod_classes', optionalRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['easy_magic']))
+            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{optional_mod_classes}"
+        }
+
+        clientBetterCombat {
+            parent null, 'client'
+            taskName 'runClientBetterCombat'
+            lazyToken 'optional_mod_classes', optionalRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['better_combat']))
+            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{optional_mod_classes}"
+        }
+
+        clientEpicFight {
+            parent null, 'client'
+            taskName 'runClientEpicFight'
+            lazyToken 'optional_mod_classes', optionalRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['epic_fight']))
+            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{optional_mod_classes}"
+        }
+
+        clientCompatEasyBetter {
+            parent null, 'client'
+            taskName 'runClientCompatEasyBetter'
+            lazyToken 'optional_mod_classes', optionalRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['compat_easy_better']))
+            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{optional_mod_classes}"
+        }
+
+        gameTestServerCompat {
+            parent null, 'gameTestServer'
+            taskName 'runGameTestServerCompat'
+            property requiredOptionalModsProperty, optionalRuntimeRequiredModIds.compat
+            lazyToken 'optional_mod_classes', optionalRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['compat']))
+            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{optional_mod_classes}"
+        }
+
+        gameTestServerEasyMagic {
+            parent null, 'gameTestServer'
+            taskName 'runGameTestServerEasyMagic'
+            property requiredOptionalModsProperty, optionalRuntimeRequiredModIds.easy_magic
+            lazyToken 'optional_mod_classes', optionalRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['easy_magic']))
+            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{optional_mod_classes}"
+        }
+
+        gameTestServerBetterCombat {
+            parent null, 'gameTestServer'
+            taskName 'runGameTestServerBetterCombat'
+            property requiredOptionalModsProperty, optionalRuntimeRequiredModIds.better_combat
+            lazyToken 'optional_mod_classes', optionalRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['better_combat']))
+            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{optional_mod_classes}"
+        }
+
+        gameTestServerEpicFight {
+            parent null, 'gameTestServer'
+            taskName 'runGameTestServerEpicFight'
+            property requiredOptionalModsProperty, optionalRuntimeRequiredModIds.epic_fight
+            lazyToken 'optional_mod_classes', optionalRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['epic_fight']))
+            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{optional_mod_classes}"
+        }
+
         data {
             workingDirectory project.file('run-data')
             args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
@@ -63,14 +207,33 @@ minecraft {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+configurations {
+    optionalRuntimeModuleConfigurations.values().each { configurationName ->
+        create(configurationName) {
+            canBeConsumed = false
+            canBeResolved = true
+            transitive = true
+        }
+    }
+}
+
 tasks.register('cleanGameTestServerWorld', Delete) {
     group = 'verification'
     description = 'Deletes the dedicated GameTest world so runGameTestServer starts from clean world state.'
     delete gameTestServerWorldDir
 }
 
-tasks.matching { it.name == 'runGameTestServer' }.configureEach {
+tasks.matching { it.name.startsWith('runGameTestServer') }.configureEach {
     dependsOn tasks.named('cleanGameTestServerWorld')
+}
+
+def devRuntimeMods = providers.gradleProperty('devRuntimeMods').orNull
+if (devRuntimeMods != null && !devRuntimeMods.trim().isEmpty()) {
+    def devRuntimeModules = expandOptionalRuntimeModules(devRuntimeMods.split(',').collect { it.trim() }.findAll { !it.isEmpty() })
+    minecraft.runs.named('client').configure {
+        lazyToken 'optional_mod_classes', optionalRuntimeModClassesTokenForModules(devRuntimeModules)
+        environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{optional_mod_classes}"
+    }
 }
 
 // 依存のmavenをココに追加していく.
@@ -144,49 +307,49 @@ dependencies {
 
     // Create.
     // Create 連携のコンパイル用.
-    // ランタイム検証時のみ必要に応じてON.
+    // ランタイム検証では compat profile から読み込む.
     compileOnly fg.deobf("curse.maven:create-328085:7178761")
     compileOnly fg.deobf("com.tterrag.registrate:Registrate:MC1.20-1.3.3")
-    // runtimeOnly fg.deobf("curse.maven:create-328085:7178761")
+    add(optionalRuntimeModuleConfigurations.create, fg.deobf("curse.maven:create-328085:7178761"))
 
     // Botania.
     // Solegnolia 判定だけを optional compat から参照する。
     compileOnly fg.deobf("vazkii.botania:Botania:${botania_version}:api")
-    // runtimeOnly fg.deobf("vazkii.botania:Botania:${botania_version}")
+    add(optionalRuntimeModuleConfigurations.botania, fg.deobf("vazkii.botania:Botania:${botania_version}"))
 
     // EasyMagic.
-    // 必要に応じてON、デフォルトは入れない(前提にはしないため)
-    // runtimeOnly fg.deobf("maven.modrinth:puzzles-lib:V4g0yKzo")
-    // runtimeOnly fg.deobf("maven.modrinth:easy-magic:W2xPEG9I")
+    // easy_magic profile から読み込む。通常開発ではエンチャント挙動の変化を避ける.
+    add(optionalRuntimeModuleConfigurations.puzzles_lib, fg.deobf("maven.modrinth:puzzles-lib:V4g0yKzo"))
+    add(optionalRuntimeModuleConfigurations.easy_magic, fg.deobf("maven.modrinth:easy-magic:W2xPEG9I"))
 
     // Farmer's Delight.
-    // 必要に応じてON、デフォルトは入れない(前提にはしないため)
-    // HarvestMoon の互換回帰を GameTest で検証するため、開発環境では読み込む.
+    // HarvestMoon の互換回帰を既存の標準 GameTest で検証するため、開発環境では読み込む.
+    add(optionalRuntimeModuleConfigurations.farmers_delight, fg.deobf("maven.modrinth:farmers-delight:bCtijHxU"))
     runtimeOnly fg.deobf("maven.modrinth:farmers-delight:bCtijHxU")
 
     // Better Combat.
     // Better Combat の攻撃開始フックへ接続する互換コードのコンパイル用.
-    // ランタイム検証時は Better Combat の前提である Cloth Config も合わせて入れる.
+    // better_combat profile では前提である Cloth Config も合わせて読み込む.
     compileOnly fg.deobf("maven.modrinth:better-combat:rnhiaw3t")
-    // runtimeOnly fg.deobf("maven.modrinth:cloth-config:t8TXrZvZ")
-    // runtimeOnly fg.deobf("maven.modrinth:better-combat:rnhiaw3t")
+    add(optionalRuntimeModuleConfigurations.cloth_config, fg.deobf("maven.modrinth:cloth-config:t8TXrZvZ"))
+    add(optionalRuntimeModuleConfigurations.better_combat, fg.deobf("maven.modrinth:better-combat:rnhiaw3t"))
 
     // Epic Fight.
     // コンパイルは最低対応版に固定し、新しいAPIの誤使用を検出する.
-    // ランタイムは20.14系最新を使い、通常の起動確認では最新側の挙動を見る.
+    // ランタイムは epic_fight profile で20.14系最新を使い、最新側の挙動を見る.
     compileOnly fg.deobf("maven.modrinth:epic-fight:${epicfight_compile_version}")
-    // runtimeOnly fg.deobf("curse.maven:epic-fight-mod-405076:${epicfight_runtime_file_id}")
+    add(optionalRuntimeModuleConfigurations.epic_fight, fg.deobf("curse.maven:epic-fight-mod-405076:${epicfight_runtime_file_id}"))
 
     // Lootr.
     // TreasureDivination が Lootr の個人開封済み判定へ接続するためのコンパイル用.
     compileOnly fg.deobf("noobanidus.mods.lootr:lootr-${minecraft_version}:${lootr_version}")
 
     // Lodestone / Malum.
-    // 必要に応じてON、デフォルトは入れない(必須前提にはしないため)
+    // compat profile から読み込む。通常開発では追加要素による調査ノイズを避ける.
     compileOnly fg.deobf("curse.maven:lodestone-616457:6213794")
     compileOnly fg.deobf("curse.maven:malum-484064:6646111")
-    // runtimeOnly fg.deobf("curse.maven:lodestone-616457:6213794")
-    // runtimeOnly fg.deobf("curse.maven:malum-484064:6646111")
+    add(optionalRuntimeModuleConfigurations.lodestone, fg.deobf("curse.maven:lodestone-616457:6213794"))
+    add(optionalRuntimeModuleConfigurations.malum, fg.deobf("curse.maven:malum-484064:6646111"))
 
     // JEI.
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
