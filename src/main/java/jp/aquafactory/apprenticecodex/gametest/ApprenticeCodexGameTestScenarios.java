@@ -5953,6 +5953,46 @@ public final class ApprenticeCodexGameTestScenarios {
                             + spellPowerBonus + " modifiers=" + describeModifiers(amplifierEvent.getModifiers()));
         });
     }
+
+    static void betterCombatOffhandOnlyGauntletDoesNotForceDualWielding(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded("bettercombat")) {
+                return;
+            }
+
+            var swordStack = new ItemStack(Items.DIAMOND_SWORD);
+            var gauntletStack = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            helper.assertTrue(net.bettercombat.logic.WeaponRegistry.getAttributes(swordStack) != null,
+                    "Better Combat diamond sword attributes should be present for offhand Gauntlet test");
+            helper.assertTrue(net.bettercombat.logic.WeaponRegistry.getAttributes(gauntletStack) != null,
+                    "Better Combat Scrollcaster Gauntlet attributes should be present for offhand Gauntlet test");
+
+            var swordMainPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "better_combat_offhand_gauntlet_no_dual_test");
+            swordMainPlayer.setItemInHand(InteractionHand.MAIN_HAND, swordStack);
+            swordMainPlayer.setItemInHand(InteractionHand.OFF_HAND, gauntletStack.copy());
+
+            helper.assertFalse(net.bettercombat.logic.PlayerAttackHelper.isDualWielding(swordMainPlayer),
+                    "Offhand-only Scrollcaster Gauntlet should not make a normal mainhand weapon dual wield");
+            var secondSwordAttack = net.bettercombat.logic.PlayerAttackHelper.getCurrentAttack(swordMainPlayer, 1);
+            helper.assertTrue(secondSwordAttack != null && !secondSwordAttack.isOffHand(),
+                    "Offhand-only Scrollcaster Gauntlet should keep Better Combat attacks on mainhand but got "
+                            + secondSwordAttack);
+
+            var dualGauntletPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "better_combat_dual_gauntlet_stays_dual_test");
+            dualGauntletPlayer.setItemInHand(InteractionHand.MAIN_HAND, gauntletStack.copy());
+            dualGauntletPlayer.setItemInHand(InteractionHand.OFF_HAND, gauntletStack.copy());
+
+            helper.assertTrue(net.bettercombat.logic.PlayerAttackHelper.isDualWielding(dualGauntletPlayer),
+                    "Two Scrollcaster Gauntlets should keep the previous Better Combat dual wield behavior");
+            var secondGauntletAttack = net.bettercombat.logic.PlayerAttackHelper.getCurrentAttack(dualGauntletPlayer, 1);
+            helper.assertTrue(secondGauntletAttack != null && secondGauntletAttack.isOffHand(),
+                    "Dual Scrollcaster Gauntlets should still select offhand on the second attack but got "
+                            + secondGauntletAttack);
+        });
+    }
+
     static void chargedTwinBladeStaffUpgradeMergesMainhandMeleeDamage(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (ChargedTwinBladeStaff) ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get();
