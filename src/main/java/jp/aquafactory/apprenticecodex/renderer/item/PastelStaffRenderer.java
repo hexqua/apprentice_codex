@@ -15,7 +15,7 @@ import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 public class PastelStaffRenderer extends GeoItemRenderer<PastelStaff> {
     private static final String STONE_TINT_BONE = "stone_tint";
@@ -58,23 +58,23 @@ public class PastelStaffRenderer extends GeoItemRenderer<PastelStaff> {
     @Override
     public void postRender(PoseStack poseStack, PastelStaff animatable, BakedGeoModel model,
                            MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                           int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                           int packedLight, int packedOverlay, int colour) {
         super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight,
-                packedOverlay, red, green, blue, alpha);
+                packedOverlay, colour);
 
         if (isReRender) {
             return;
         }
 
         renderSpecialPass(model, poseStack, bufferSource, animatable, SpecialPass.ORB_PROJECT,
-                ORB_PROJECT_RENDER_TYPE, partialTick, LightTexture.FULL_BRIGHT, red, green, blue, alpha);
+                ORB_PROJECT_RENDER_TYPE, partialTick, LightTexture.FULL_BRIGHT, colour);
     }
 
     @Override
     public void renderRecursively(PoseStack poseStack, PastelStaff animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
                                   float partialTick, int packedLight, int packedOverlay,
-                                  float red, float green, float blue, float alpha) {
+                                  int colour) {
         var starBone = isBoneOrChildOf(bone, STAR_BONE);
         var orbProjectBone = isBoneOrChildOf(bone, ORB_PROJECT_BONE);
 
@@ -94,10 +94,7 @@ public class PastelStaffRenderer extends GeoItemRenderer<PastelStaff> {
                     partialTick,
                     starBone ? raiseBlockLightFloor(packedLight, STAR_MIN_BLOCK_LIGHT) : packedLight,
                     packedOverlay,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    colour
             );
             return;
         }
@@ -105,7 +102,7 @@ public class PastelStaffRenderer extends GeoItemRenderer<PastelStaff> {
         if (this.specialPass == SpecialPass.ORB_PROJECT) {
             renderSpecialPassBone(
                     poseStack, animatable, bone, orbProjectBone, renderType, bufferSource, buffer, isReRender,
-                    partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                    partialTick, packedLight, packedOverlay, colour
             );
         }
     }
@@ -138,7 +135,7 @@ public class PastelStaffRenderer extends GeoItemRenderer<PastelStaff> {
 
     private void renderSpecialPass(BakedGeoModel model, PoseStack poseStack, MultiBufferSource bufferSource,
                                    PastelStaff animatable, SpecialPass pass, RenderType renderType,
-                                   float partialTick, int packedLight, float red, float green, float blue, float alpha) {
+                                   float partialTick, int packedLight, int colour) {
         this.specialPass = pass;
         try {
             this.reRender(
@@ -151,10 +148,7 @@ public class PastelStaffRenderer extends GeoItemRenderer<PastelStaff> {
                     partialTick,
                     packedLight,
                     OverlayTexture.NO_OVERLAY,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    colour
             );
         } finally {
             this.specialPass = SpecialPass.NONE;
@@ -164,34 +158,34 @@ public class PastelStaffRenderer extends GeoItemRenderer<PastelStaff> {
     private void renderSpecialPassBone(PoseStack poseStack, PastelStaff animatable, GeoBone bone,
                                        boolean targetBone, RenderType renderType, MultiBufferSource bufferSource,
                                        VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight,
-                                       int packedOverlay, float red, float green, float blue, float alpha) {
+                                       int packedOverlay, int colour) {
         if (targetBone) {
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         renderChildBonesOnly(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
     private void renderChildBonesOnly(PoseStack poseStack, PastelStaff animatable, GeoBone bone,
                                       RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                       boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                      float red, float green, float blue, float alpha) {
+                                      int colour) {
         poseStack.pushPose();
 
         if (bone.isTrackingMatrices()) {
             Matrix4f poseState = new Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
         }
 
-        RenderUtils.prepMatrixForBone(poseStack, bone);
+        RenderUtil.prepMatrixForBone(poseStack, bone);
         renderChildBones(
                 poseStack,
                 animatable,
@@ -203,10 +197,7 @@ public class PastelStaffRenderer extends GeoItemRenderer<PastelStaff> {
                 partialTick,
                 packedLight,
                 packedOverlay,
-                red,
-                green,
-                blue,
-                alpha
+                colour
         );
         poseStack.popPose();
     }
