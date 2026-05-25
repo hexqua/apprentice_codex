@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.event;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretEntity;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
@@ -23,5 +24,6 @@ public final class ModEntityAttributeEvent {
         event.put(EntityRegistry.HEALING_BLOOM.get(), HealingBloomEntity.createAttributes().build());
         event.put(EntityRegistry.SEARCH_BEACON.get(), SearchBeaconEntity.createAttributes().build());
         event.put(EntityRegistry.SPELL_DISPENSER_ANCHOR.get(), SpellDispenserAnchorEntity.createAttributes().build());
+        event.put(EntityRegistry.REMOTE_OWNER_CAST_ANCHOR.get(), RemoteOwnerCastAnchorEntity.createAttributes().build());
     }
 }

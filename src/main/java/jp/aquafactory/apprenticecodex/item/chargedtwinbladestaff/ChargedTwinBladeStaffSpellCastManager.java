@@ -28,6 +28,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -120,6 +121,45 @@ public final class ChargedTwinBladeStaffSpellCastManager {
         );
         var ownerProfile = owner.getGameProfile();
         if (spell.getCastType() == CastType.CONTINUOUS) {
+            if (ApprenticeCodexServerConfig.chargedTwinBladeStaffUsesRemoteOwnerProfiles()) {
+                var remoteProfile = RemoteOwnerCastProfileManager.getUsableProfile(
+                        spell,
+                        RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT
+                );
+                if (remoteProfile.isPresent()) {
+                    var remoteStartResult = RemoteOwnerCastRunner.tryStartContinuousCast(
+                            level,
+                            owner,
+                            sourceStack,
+                            spellData,
+                            remoteProfile.get(),
+                            RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT,
+                            impactPosition,
+                            forward,
+                            castSource,
+                            payload.castingSlot(),
+                            CONTINUOUS_IMPACT_CAST_TICKS,
+                            false
+                    );
+                    if (remoteStartResult.handled()) {
+                        if (!remoteStartResult.succeeded() || remoteStartResult.session() == null) {
+                            return false;
+                        }
+
+                        ACTIVE_CONTINUOUS_CASTS.computeIfAbsent(level, key -> new ArrayList<>()).add(
+                                new ContinuousImpactCastRuntime(
+                                        owner.getUUID(),
+                                        impactPosition,
+                                        forward,
+                                        ActiveContinuousCastSession.remote(remoteStartResult.session()),
+                                        level.getGameTime() + CONTINUOUS_IMPACT_CAST_TICKS
+                                )
+                        );
+                        return true;
+                    }
+                }
+            }
+
             // 1.20.1 では位置固定の継続魔法 owner を client が追跡できない spell があるため、
             // tracked anchor を含む Spell Dispenser の継続詠唱方式をそのまま流用する。
             var startResult = SpellDispenserCastHelper.tryStartContinuousCast(
@@ -143,7 +183,7 @@ public final class ChargedTwinBladeStaffSpellCastManager {
                             owner.getUUID(),
                             impactPosition,
                             forward,
-                            startResult.session(),
+                            ActiveContinuousCastSession.spellDispenser(startResult.session()),
                             level.getGameTime() + CONTINUOUS_IMPACT_CAST_TICKS
                     )
             );
@@ -221,15 +261,15 @@ public final class ChargedTwinBladeStaffSpellCastManager {
             var runtime = iterator.next();
             var owner = level.getPlayerByUUID(runtime.ownerId());
             if (!(owner instanceof ServerPlayer serverPlayer) || serverPlayer.isDeadOrDying() || serverPlayer.isSpectator()) {
-                SpellDispenserCastHelper.finishContinuousCast(level, runtime.session(), true);
+                runtime.session().finish(level, null, true);
                 iterator.remove();
                 continue;
             }
 
-            SpellDispenserCastHelper.syncContinuousCastTransform(runtime.session(), runtime.position(), runtime.forward());
+            runtime.session().syncTransform(runtime.position(), runtime.forward());
             if (level.getGameTime() >= runtime.finishAtGameTime()) {
-                SpellDispenserCastHelper.finishContinuousCast(level, runtime.session(), false);
-            } else if (SpellDispenserCastHelper.tickContinuousCast(level, runtime.session())) {
+                runtime.session().finish(level, serverPlayer, false);
+            } else if (runtime.session().tick(level, serverPlayer)) {
                 continue;
             }
 
@@ -242,12 +282,18 @@ public final class ChargedTwinBladeStaffSpellCastManager {
         }
     }
 
-    private static void applyCooldownIfNeeded(ServerPlayer owner, SpellDispenserCastHelper.ContinuousCastSession session) {
+    private static void applyCooldownIfNeeded(ServerPlayer owner, ActiveContinuousCastSession session) {
         if (session.consumeFinishedCooldownTicks() <= 0) {
             return;
         }
 
-        addCooldownIfNeeded(owner, session.validation().spellData(), session.castSource());
+        var spellData = session.spellData();
+        var castSource = session.castSource();
+        if (spellData == null || castSource == null) {
+            return;
+        }
+
+        addCooldownIfNeeded(owner, spellData, castSource);
     }
 
     private static void addCooldownIfNeeded(ServerPlayer owner, SpellData spellData, CastSource castSource) {
@@ -263,9 +309,70 @@ public final class ChargedTwinBladeStaffSpellCastManager {
             UUID ownerId,
             Vec3 position,
             Vec3 forward,
-            SpellDispenserCastHelper.ContinuousCastSession session,
+            ActiveContinuousCastSession session,
             long finishAtGameTime
     ) {
+    }
+
+    private record ActiveContinuousCastSession(
+            @Nullable SpellDispenserCastHelper.ContinuousCastSession spellDispenser,
+            @Nullable RemoteOwnerCastRunner.ContinuousCastSession remoteOwner
+    ) {
+        private static ActiveContinuousCastSession spellDispenser(SpellDispenserCastHelper.ContinuousCastSession session) {
+            return new ActiveContinuousCastSession(session, null);
+        }
+
+        private static ActiveContinuousCastSession remote(RemoteOwnerCastRunner.ContinuousCastSession session) {
+            return new ActiveContinuousCastSession(null, session);
+        }
+
+        private void syncTransform(Vec3 position, Vec3 forward) {
+            if (remoteOwner != null) {
+                RemoteOwnerCastRunner.syncContinuousCastTransform(remoteOwner, position, forward);
+            } else if (spellDispenser != null) {
+                SpellDispenserCastHelper.syncContinuousCastTransform(spellDispenser, position, forward);
+            }
+        }
+
+        private boolean tick(ServerLevel level, ServerPlayer owner) {
+            if (remoteOwner != null) {
+                return RemoteOwnerCastRunner.tickContinuousCast(level, owner, remoteOwner);
+            }
+            return spellDispenser != null && SpellDispenserCastHelper.tickContinuousCast(level, spellDispenser);
+        }
+
+        private void finish(ServerLevel level, @Nullable ServerPlayer owner, boolean cancelled) {
+            if (remoteOwner != null) {
+                if (owner != null) {
+                    RemoteOwnerCastRunner.finishContinuousCast(level, owner, remoteOwner, cancelled);
+                } else {
+                    RemoteOwnerCastRunner.cancelContinuousCastWithoutOwner(remoteOwner);
+                }
+            } else if (spellDispenser != null) {
+                SpellDispenserCastHelper.finishContinuousCast(level, spellDispenser, cancelled);
+            }
+        }
+
+        private int consumeFinishedCooldownTicks() {
+            if (remoteOwner != null) {
+                return remoteOwner.consumeFinishedCooldownTicks();
+            }
+            return spellDispenser == null ? 0 : spellDispenser.consumeFinishedCooldownTicks();
+        }
+
+        private @Nullable SpellData spellData() {
+            if (remoteOwner != null) {
+                return remoteOwner.spellData();
+            }
+            return spellDispenser == null ? null : spellDispenser.validation().spellData();
+        }
+
+        private @Nullable CastSource castSource() {
+            if (remoteOwner != null) {
+                return remoteOwner.castSource();
+            }
+            return spellDispenser == null ? null : spellDispenser.castSource();
+        }
     }
 
     private static final class PlayerManaAccess implements SpellDispenserManaHelper.ManaAccess {

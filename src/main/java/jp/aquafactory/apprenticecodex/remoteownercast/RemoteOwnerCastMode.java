@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 public enum RemoteOwnerCastMode implements StringRepresentable {
     REMOTE_PLAYER_GEOMETRY("remote_player_geometry"),
     PROXY_OWNER_MAGIC("proxy_owner_magic"),
+    REMOTE_ANCHOR_OWNER_MAGIC("remote_anchor_owner_magic"),
     PLAYER_SELF("player_self"),
     LEGACY_SPELL_DISPENSER("legacy_spell_dispenser");
 
