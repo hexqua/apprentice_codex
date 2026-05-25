@@ -37,7 +37,12 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
     protected void gather() {
         unconditional(
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "profiles"),
-                new SpellDispenserSpellProfileList(List.of(
+                new SpellDispenserSpellProfileList(createProfileDefinitions())
+        );
+    }
+
+    public static List<SpellDispenserSpellProfileDefinition> createProfileDefinitions() {
+        return List.of(
                         profile("irons_spellbooks", "acupuncture", SpellDispenserSpellProfile.PROXY_NEUTRAL),
                         profile("irons_spellbooks", "blood_needles", SpellDispenserSpellProfile.PROXY_NEUTRAL),
                         profile("irons_spellbooks", "blood_slash", SpellDispenserSpellProfile.PROXY_NEUTRAL),
@@ -130,7 +135,6 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                         profile(ApprenticeCodex.MODID, "silent_assassin", SpellDispenserSpellProfile.OWNER_OPTIONAL),
                         profile(ApprenticeCodex.MODID, "magic_spear", SpellDispenserSpellProfile.OWNER_OPTIONAL),
                         profile(ApprenticeCodex.MODID, "frost_rune", SpellDispenserSpellProfile.OWNER_OPTIONAL)
-                ))
         );
     }
 

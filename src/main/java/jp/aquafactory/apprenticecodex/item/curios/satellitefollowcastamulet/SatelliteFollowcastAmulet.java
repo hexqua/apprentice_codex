@@ -15,7 +15,8 @@ import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunSpellListManager;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownPolicyItem;
-import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellProfileManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -113,6 +114,7 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
                 && !SpellGunSpellListManager.isDenylisted(spell)
                 && !SpellDispenserSpellListManager.isDenylisted(spell)
                 && !ApprenticeCodexServerConfig.isSatelliteFollowcastAmuletSpellDenied(spell.getSpellResource())
+                && !ApprenticeCodexServerConfig.isRemoteOwnerCastSpellDenied(spell.getSpellResource())
                 && hasSupportedProxyCastProfile(spell);
     }
 
@@ -275,8 +277,9 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
     }
 
     private static boolean hasSupportedProxyCastProfile(AbstractSpell spell) {
-        return SpellDispenserSpellProfileManager.getProfile(spell).isPresent()
-                || ChargedTwinBladeStaffSpellProfileManager.getProfile(spell).isPresent();
+        return ApprenticeCodexServerConfig.satelliteFollowcastUsesRemoteOwnerProfiles()
+                && RemoteOwnerCastProfileManager.isSupportedByRemoteOwnerCast(spell, RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST)
+                || SpellDispenserSpellProfileManager.getProfile(spell).isPresent();
     }
 
     @Override

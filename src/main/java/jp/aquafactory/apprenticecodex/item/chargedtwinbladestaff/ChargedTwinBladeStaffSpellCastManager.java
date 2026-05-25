@@ -1,32 +1,30 @@
 package jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff;
 
-import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
-import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfileManager;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRunner;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.common.util.FakePlayerFactory;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
@@ -68,21 +66,37 @@ public final class ChargedTwinBladeStaffSpellCastManager {
         if (ownerMagicData == null) {
             return false;
         }
+        if (ApprenticeCodexServerConfig.isRemoteOwnerCastSpellDenied(spell.getSpellResource())) {
+            return false;
+        }
 
-        var staffProfile = ChargedTwinBladeStaffSpellProfileManager.getProfile(spell);
-        if (staffProfile.isPresent()) {
-            return tryCastWithStaffProfile(
-                    level,
-                    owner,
-                    sourceStack,
-                    spellData,
-                    staffProfile.get(),
-                    ownerMagicData,
-                    impactPosition,
-                    forward,
-                    castSource,
-                    payload.castingSlot()
+        if (ApprenticeCodexServerConfig.chargedTwinBladeStaffUsesRemoteOwnerProfiles()
+                && spell.getCastType() != CastType.CONTINUOUS) {
+            var remoteProfile = RemoteOwnerCastProfileManager.getUsableProfile(
+                    spell,
+                    RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT
             );
+            if (remoteProfile.isPresent()) {
+                var result = RemoteOwnerCastRunner.tryCast(
+                        level,
+                        owner,
+                        sourceStack,
+                        spellData,
+                        remoteProfile.get(),
+                        RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT,
+                        impactPosition,
+                        forward,
+                        castSource,
+                        payload.castingSlot(),
+                        true
+                );
+                if (result.handled()) {
+                    if (result.succeeded()) {
+                        addCooldownIfNeeded(owner, spellData, castSource);
+                    }
+                    return result.succeeded();
+                }
+            }
         }
 
         if (SpellDispenserSpellProfileManager.getProfile(spell).isEmpty()) {
@@ -155,117 +169,6 @@ public final class ChargedTwinBladeStaffSpellCastManager {
         return true;
     }
 
-    private static boolean tryCastWithStaffProfile(
-            ServerLevel level,
-            ServerPlayer owner,
-            ItemStack sourceStack,
-            SpellData spellData,
-            ChargedTwinBladeStaffSpellProfile profile,
-            MagicData ownerMagicData,
-            Vec3 impactPosition,
-            Vec3 forward,
-            CastSource castSource,
-            String castingSlot
-    ) {
-        var spell = spellData.getSpell();
-        if (spell.getCastType() == CastType.CONTINUOUS) {
-            // 専用プロファイル v1 は単発用途だけを対象にする。継続魔法は Spell Dispenser プロファイルへ明示登録して扱う。
-            return false;
-        }
-        if (spell.getRecastCount(spellData.getLevel(), owner) > 0) {
-            if (!profile.allowInitialRecast()) {
-                return false;
-            }
-            if (ownerMagicData.getPlayerRecasts().hasRecastForSpell(spell)) {
-                return false;
-            }
-        }
-
-        var spellCaster = switch (profile.castMode()) {
-            case PLAYER_SELF -> owner;
-            case IMPACT_PROXY_OWNER_MAGIC -> createImpactProxy(level, owner, impactPosition, forward);
-        };
-        var manaAccess = new PlayerManaAccess(owner);
-        if (!canOwnerCastWithManaAccess(owner, spellData, castSource, ownerMagicData, manaAccess)) {
-            return false;
-        }
-
-        if (NeoForge.EVENT_BUS.post(new SpellPreCastEvent(owner, spell.getSpellId(), spellData.getLevel(), spell.getSchoolType(), castSource)).isCanceled()) {
-            return false;
-        }
-
-        var originalMana = ownerMagicData.getMana();
-        var restoreManaAfterCast = manaAccess.isManaConsumptionExempt();
-        var originalSyncedData = ownerMagicData.getSyncedData();
-        try {
-            // Iron's の一部 spell は MagicData の詠唱状態と casting item を参照する。
-            // SyncedSpellData はホイール選択も保持するため、代理 caster 用の一時データは必ず元へ戻す。
-            ownerMagicData.setSyncedData(new SyncedSpellData(spellCaster));
-            ownerMagicData.initiateCast(spell, spellData.getLevel(), 0, castSource, castingSlot);
-            ownerMagicData.setPlayerCastingItem(sourceStack.copy());
-            syncOwnerManaForImpactCast(manaAccess, ownerMagicData);
-            if (!spell.checkPreCastConditions(level, spellData.getLevel(), spellCaster, ownerMagicData)) {
-                return false;
-            }
-            syncOwnerManaForImpactCast(manaAccess, ownerMagicData);
-            spell.onServerPreCast(level, spellData.getLevel(), spellCaster, ownerMagicData);
-
-            if (!SpellDispenserManaHelper.tryConsumeSpellMana(manaAccess, spellData)) {
-                return false;
-            }
-
-            syncOwnerManaForImpactCast(manaAccess, ownerMagicData);
-            spell.onCast(level, spellData.getLevel(), spellCaster, castSource, ownerMagicData);
-            syncOwnerManaForImpactCast(manaAccess, ownerMagicData);
-            spell.onServerCastComplete(level, spellData.getLevel(), spellCaster, ownerMagicData, false);
-        } catch (RuntimeException exception) {
-            ApprenticeCodex.LOGGER.warn(
-                    "Charged Twin Blade Staff impact cast exception: spell={}, castMode={}",
-                    spell.getSpellResource(),
-                    profile.castMode().getSerializedName(),
-                    exception
-            );
-            return false;
-        } finally {
-            try {
-                ownerMagicData.resetCastingState();
-            } finally {
-                if (restoreManaAfterCast) {
-                    ownerMagicData.setMana(originalMana);
-                }
-                ownerMagicData.setSyncedData(originalSyncedData);
-                originalSyncedData.syncToPlayer(owner);
-            }
-        }
-
-        addCooldownIfNeeded(owner, spellData, castSource);
-        return true;
-    }
-
-    private static FakePlayer createImpactProxy(
-            ServerLevel level,
-            ServerPlayer owner,
-            Vec3 impactPosition,
-            Vec3 forward
-    ) {
-        var proxy = FakePlayerFactory.get(level, new GameProfile(owner.getUUID(), owner.getGameProfile().getName()));
-        proxy.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
-        proxy.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-        proxy.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
-
-        var normalizedForward = forward.lengthSqr() > 1.0E-6D ? forward.normalize() : owner.getLookAngle();
-        var yaw = (float) Mth.wrapDegrees(Mth.atan2(-normalizedForward.x, normalizedForward.z) * Mth.RAD_TO_DEG);
-        var horizontal = Math.sqrt(normalizedForward.x * normalizedForward.x + normalizedForward.z * normalizedForward.z);
-        var pitch = (float) Mth.wrapDegrees(-Mth.atan2(normalizedForward.y, horizontal) * Mth.RAD_TO_DEG);
-        var feetY = impactPosition.y - proxy.getEyeHeight(proxy.getPose());
-        proxy.moveTo(impactPosition.x, feetY, impactPosition.z, yaw, pitch);
-        proxy.setYBodyRot(yaw);
-        proxy.setYHeadRot(yaw);
-        proxy.yBodyRotO = yaw;
-        proxy.yHeadRotO = yaw;
-        proxy.xRotO = pitch;
-        return proxy;
-    }
 
     private static boolean canOwnerCastWithManaAccess(
             ServerPlayer owner,
