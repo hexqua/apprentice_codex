@@ -1,26 +1,38 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.datagen.spell.RemoteOwnerCastSpellProfileDataGenerator;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmulet;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorAttributes;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastContext;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -115,6 +127,72 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void remoteOwnerCastContextOverridesRotationApis(GameTestHelper helper) {
+        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "remote_owner_rotation_context_test"));
+        player.setYRot(90.0F);
+        player.setYHeadRot(90.0F);
+        player.setYBodyRot(90.0F);
+        player.setXRot(10.0F);
+
+        var remoteForward = new Vec3(1.0D, -0.25D, 0.5D).normalize();
+        try (var ignored = RemoteOwnerCastContext.push(
+                player,
+                new Vec3(3.0D, 5.0D, 7.0D),
+                remoteForward,
+                RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT
+        )) {
+            assertVecClose(helper, player.getLookAngle(), remoteForward,
+                    "Remote Owner Cast context should override getLookAngle");
+            assertVecClose(helper, player.getViewVector(1.0F), remoteForward,
+                    "Remote Owner Cast context should override getViewVector");
+            assertVecClose(helper, player.getForward(), remoteForward,
+                    "Remote Owner Cast context should override getForward");
+            assertVecClose(helper, Vec3.directionFromRotation(player.getXRot(), player.getYRot()).normalize(), remoteForward,
+                    "Remote Owner Cast context should override getXRot/getYRot consistently");
+        }
+
+        helper.assertTrue(Math.abs(player.getYRot() - 90.0F) < 1.0E-4F,
+                "Remote Owner Cast context should restore the original yaw after close: " + player.getYRot());
+        helper.assertTrue(Math.abs(player.getXRot() - 10.0F) < 1.0E-4F,
+                "Remote Owner Cast context should restore the original pitch after close: " + player.getXRot());
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void remoteOwnerCastAnchorRegistersAndSyncsIronAttributes(GameTestHelper helper) {
+        var owner = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "remote_owner_anchor_attribute_test"));
+        var anchor = new RemoteOwnerCastAnchorEntity(EntityRegistry.REMOTE_OWNER_CAST_ANCHOR.get(), helper.getLevel());
+        var expectedValues = new LinkedHashMap<Attribute, Double>();
+
+        for (var schoolType : SchoolRegistry.REGISTRY.get().getValues()) {
+            var schoolPower = MagicTools.resolveSchoolPowerAttribute(schoolType);
+            helper.assertTrue(schoolPower != null,
+                    "Remote Owner Cast should resolve school power attribute for " + schoolType.getId());
+            var schoolResist = MagicTools.resolveSchoolResistAttribute(schoolType);
+            helper.assertTrue(schoolResist != null,
+                    "Remote Owner Cast should resolve school resist attribute for " + schoolType.getId());
+
+            expectedValues.putIfAbsent(schoolPower, 1.25D + expectedValues.size() * 0.01D);
+            expectedValues.putIfAbsent(schoolResist, 1.25D + expectedValues.size() * 0.01D);
+        }
+
+        helper.assertTrue(!expectedValues.isEmpty(),
+                "Remote Owner Cast dynamic school attribute test should find registered Iron's schools");
+        for (var entry : expectedValues.entrySet()) {
+            setAttributeBaseValue(helper, owner, entry.getKey(), entry.getValue(), "owner school attribute");
+            helper.assertTrue(anchor.getAttribute(entry.getKey()) != null,
+                    "Remote Owner Cast anchor should register dynamic school attribute: " + entry.getKey());
+        }
+
+        RemoteOwnerCastAnchorAttributes.syncFromOwner(owner, anchor);
+        for (var entry : expectedValues.entrySet()) {
+            assertAttributeValue(helper, anchor, entry.getKey(), entry.getValue(),
+                    "Remote Owner Cast anchor should copy dynamic school attribute");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void remoteOwnerCastDatagenIncludesRaiseDeadImpactProfile(GameTestHelper helper) {
         var raiseDeadId = requireId(SpellRegistry.RAISE_DEAD_SPELL.getId());
         var profile = RemoteOwnerCastSpellProfileDataGenerator.createProfileDefinitions().stream()
@@ -150,6 +228,36 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
         }
 
         helper.succeed();
+    }
+
+    private static void setAttributeBaseValue(
+            GameTestHelper helper,
+            FakePlayer player,
+            Attribute attribute,
+            double value,
+            String context
+    ) {
+        var instance = player.getAttribute(attribute);
+        helper.assertTrue(instance != null, "Missing " + context + " attribute on test player");
+        instance.setBaseValue(value);
+    }
+
+    private static void assertAttributeValue(
+            GameTestHelper helper,
+            RemoteOwnerCastAnchorEntity anchor,
+            Attribute attribute,
+            double expected,
+            String message
+    ) {
+        var instance = anchor.getAttribute(attribute);
+        helper.assertTrue(instance != null, message + ": missing attribute");
+        helper.assertTrue(Math.abs(instance.getValue() - expected) < 1.0E-6D,
+                message + ": " + instance.getValue() + " / expected " + expected);
+    }
+
+    private static void assertVecClose(GameTestHelper helper, Vec3 actual, Vec3 expected, String message) {
+        helper.assertTrue(actual.distanceTo(expected) < 2.0E-4D,
+                message + ": " + actual + " / expected " + expected);
     }
 
     private static ResourceLocation requireId(ResourceLocation id) {

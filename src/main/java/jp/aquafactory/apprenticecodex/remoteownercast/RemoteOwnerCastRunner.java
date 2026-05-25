@@ -3,7 +3,6 @@ package jp.aquafactory.apprenticecodex.remoteownercast;
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ICastData;
@@ -23,49 +22,17 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayerFactory;
-import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 public final class RemoteOwnerCastRunner {
     private static final int CONTINUOUS_CAST_TICK_INTERVAL = 10;
-    private static final List<RegistryObject<Attribute>> ANCHOR_SYNC_ATTRIBUTES = List.of(
-            AttributeRegistry.MAX_MANA,
-            AttributeRegistry.MANA_REGEN,
-            AttributeRegistry.COOLDOWN_REDUCTION,
-            AttributeRegistry.SPELL_POWER,
-            AttributeRegistry.SPELL_RESIST,
-            AttributeRegistry.CAST_TIME_REDUCTION,
-            AttributeRegistry.SUMMON_DAMAGE,
-            AttributeRegistry.CASTING_MOVESPEED,
-            AttributeRegistry.FIRE_MAGIC_RESIST,
-            AttributeRegistry.ICE_MAGIC_RESIST,
-            AttributeRegistry.LIGHTNING_MAGIC_RESIST,
-            AttributeRegistry.HOLY_MAGIC_RESIST,
-            AttributeRegistry.ENDER_MAGIC_RESIST,
-            AttributeRegistry.BLOOD_MAGIC_RESIST,
-            AttributeRegistry.EVOCATION_MAGIC_RESIST,
-            AttributeRegistry.NATURE_MAGIC_RESIST,
-            AttributeRegistry.ELDRITCH_MAGIC_RESIST,
-            AttributeRegistry.FIRE_SPELL_POWER,
-            AttributeRegistry.ICE_SPELL_POWER,
-            AttributeRegistry.LIGHTNING_SPELL_POWER,
-            AttributeRegistry.HOLY_SPELL_POWER,
-            AttributeRegistry.ENDER_SPELL_POWER,
-            AttributeRegistry.BLOOD_SPELL_POWER,
-            AttributeRegistry.EVOCATION_SPELL_POWER,
-            AttributeRegistry.NATURE_SPELL_POWER,
-            AttributeRegistry.ELDRITCH_SPELL_POWER
-    );
 
     private RemoteOwnerCastRunner() {
     }
@@ -452,13 +419,7 @@ public final class RemoteOwnerCastRunner {
     }
 
     private static void syncAnchorAttributesFromOwner(ServerPlayer owner, RemoteOwnerCastAnchorEntity anchor) {
-        for (var attributeRef : ANCHOR_SYNC_ATTRIBUTES) {
-            var attribute = attributeRef.get();
-            var anchorAttribute = anchor.getAttribute(attribute);
-            if (anchorAttribute != null) {
-                anchorAttribute.setBaseValue(owner.getAttributeValue(attribute));
-            }
-        }
+        RemoteOwnerCastAnchorAttributes.syncFromOwner(owner, anchor);
     }
 
     private static boolean shouldUseRemoteAnchor(@Nullable ICastData castData) {
@@ -623,9 +584,9 @@ public final class RemoteOwnerCastRunner {
         proxy.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
 
         var normalizedForward = forward.lengthSqr() > 1.0E-6D ? forward.normalize() : owner.getLookAngle();
-        var yaw = (float) Mth.wrapDegrees(Mth.atan2(-normalizedForward.x, normalizedForward.z) * Mth.RAD_TO_DEG);
-        var horizontal = Math.sqrt(normalizedForward.x * normalizedForward.x + normalizedForward.z * normalizedForward.z);
-        var pitch = (float) Mth.wrapDegrees(-Mth.atan2(normalizedForward.y, horizontal) * Mth.RAD_TO_DEG);
+        var rotation = RemoteOwnerCastGeometry.rotationFromForward(normalizedForward);
+        var yaw = rotation.yaw();
+        var pitch = rotation.pitch();
         var feetY = eyePosition.y - proxy.getEyeHeight(proxy.getPose());
         proxy.moveTo(eyePosition.x, feetY, eyePosition.z, yaw, pitch);
         proxy.setYBodyRot(yaw);
