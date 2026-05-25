@@ -109,13 +109,14 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
     public boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel) {
         return spell != null
                 && spell != io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()
-                && spell.getCastType() != CastType.CONTINUOUS
                 && spell.getRecastCount(spellLevel, null) <= 0
                 && !SpellGunSpellListManager.isDenylisted(spell)
                 && !SpellDispenserSpellListManager.isDenylisted(spell)
                 && !ApprenticeCodexServerConfig.isSatelliteFollowcastAmuletSpellDenied(spell.getSpellResource())
                 && !ApprenticeCodexServerConfig.isRemoteOwnerCastSpellDenied(spell.getSpellResource())
-                && hasSupportedProxyCastProfile(spell);
+                && hasSupportedProxyCastProfile(spell)
+                && (spell.getCastType() != CastType.CONTINUOUS
+                        || SpellDispenserSpellProfileManager.getProfile(spell).isPresent());
     }
 
     @Override
