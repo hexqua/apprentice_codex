@@ -62,8 +62,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.FOCUS_STAFFBOW.get()
         );
         // Iron's Spells の JEI は Imbue 候補収集時に spell_container 未初期化スタックを落とすため、
-        // Autocast Amulet は whitelist へ明示登録して JEI 上でも Arcane Anvil 対象として拾わせる。
-        tag(IRONS_IMBUE_WHITELIST).add(ItemRegistry.AUTOCAST_AMULET.get());
+        // 後付系Curiosアクセ は whitelist へ明示登録して JEI 上でも Arcane Anvil 対象として拾わせる。
+        tag(IRONS_IMBUE_WHITELIST).add(
+                ItemRegistry.AUTOCAST_AMULET.get(),
+                ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get()
+        );
 
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
 
@@ -150,7 +153,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(CURIOS_BACK).add(ItemRegistry.SPELLCASTER_QUIVER.get());
         tag(CURIOS_NECKLACE).add(
                 ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get(),
-                ItemRegistry.AUTOCAST_AMULET.get()
+                ItemRegistry.AUTOCAST_AMULET.get(),
+                ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get()
         );
         tag(CURIOS_HEAD).add(
                 ItemRegistry.ASHEN_CIRCLET.get(),

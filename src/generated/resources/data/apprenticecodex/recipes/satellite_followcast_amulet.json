@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "apprenticecodex:spellstained_arcane_ingot"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "I": {
+      "item": "minecraft:chain"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    }
+  },
+  "pattern": [
+    "I I",
+    "ADA",
+    " M "
+  ],
+  "result": {
+    "item": "apprenticecodex:satellite_followcast_amulet"
+  },
+  "show_notification": true
+}
