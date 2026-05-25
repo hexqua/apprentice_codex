@@ -1,24 +1,33 @@
 package jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet;
 
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellListManager;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfileManager;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
+import jp.aquafactory.apprenticecodex.item.SpellGunSpellListManager;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownPolicyItem;
+import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellProfileManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,8 +42,14 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
     public static final int MAX_SPELL_SLOTS = 2;
     public static final ResourceLocation LESSER_SPELL_SLOT_UPGRADE_ID =
             ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "lesser_spell_slot_upgrade");
+    public static final double CRYSTAL_ORBIT_RADIUS = 1.35D;
+    public static final double CRYSTAL_ORBIT_HEIGHT = 1.05D;
+    public static final double CRYSTAL_ORBIT_SPEED = Math.PI / 60.0D;
+    public static final double CRYSTAL_FLOAT_SPEED = Math.PI / 24.0D;
+    public static final double CRYSTAL_FLOAT_RANGE = 0.12D;
 
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.satellite_followcast_amulet.desc_";
+    private static final String NEXT_SEARCH_INDEX_TAG = ApprenticeCodex.MODID + ":satellite_followcast_next_search_index";
 
     private final String slotIdentifier;
 
@@ -91,9 +106,14 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
 
     @Override
     public boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel) {
-        // todo: swingcast辺りと合わせる.
         return spell != null
-                && spell != io.redspace.ironsspellbooks.api.registry.SpellRegistry.none();
+                && spell != io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()
+                && spell.getCastType() != CastType.CONTINUOUS
+                && spell.getRecastCount(spellLevel, null) <= 0
+                && !SpellGunSpellListManager.isDenylisted(spell)
+                && !SpellDispenserSpellListManager.isDenylisted(spell)
+                && !ApprenticeCodexServerConfig.isSatelliteFollowcastAmuletSpellDenied(spell.getSpellResource())
+                && hasSupportedProxyCastProfile(spell);
     }
 
     @Override
@@ -204,6 +224,59 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
     public static boolean isSupportedSpellSlotUpgrade(SpellSlotUpgradeItem upgradeItem) {
         var itemId = ForgeRegistries.ITEMS.getKey(upgradeItem);
         return LESSER_SPELL_SLOT_UPGRADE_ID.equals(itemId);
+    }
+
+    public static SpellData getSpellAtIndex(ItemStack stack, int slotIndex) {
+        if (stack == null || stack.isEmpty() || slotIndex < 0 || !ISpellContainer.isSpellContainer(stack)) {
+            return SpellData.EMPTY;
+        }
+
+        var spellContainer = ISpellContainer.get(stack);
+        if (spellContainer == null || slotIndex >= spellContainer.getMaxSpellCount()) {
+            return SpellData.EMPTY;
+        }
+
+        return spellContainer.getSpellAtIndex(slotIndex);
+    }
+
+    public static int getMaxSpellSlots(ItemStack stack) {
+        if (stack == null || stack.isEmpty() || !ISpellContainer.isSpellContainer(stack)) {
+            return MIN_SPELL_SLOTS;
+        }
+
+        var spellContainer = ISpellContainer.get(stack);
+        if (spellContainer == null) {
+            return MIN_SPELL_SLOTS;
+        }
+
+        return clampSpellSlotCount(spellContainer.getMaxSpellCount());
+    }
+
+    public static int advanceAndGetSearchStartIndex(ItemStack stack, int maxSpellSlots) {
+        var clampedSlots = clampSpellSlotCount(maxSpellSlots);
+        var tag = stack.getOrCreateTag();
+        var current = tag.contains(NEXT_SEARCH_INDEX_TAG) ? tag.getInt(NEXT_SEARCH_INDEX_TAG) : -1;
+        var next = Math.floorMod(current + 1, clampedSlots);
+        tag.putInt(NEXT_SEARCH_INDEX_TAG, next);
+        return next;
+    }
+
+    public static Vec3 getCrystalOffset(LivingEntity owner, int slotIndex, int maxSpellSlots, float partialTick) {
+        var clampedSlots = Math.max(1, clampSpellSlotCount(maxSpellSlots));
+        var time = owner.tickCount + partialTick;
+        var angle = (Math.PI * 2.0D * slotIndex / clampedSlots) + time * CRYSTAL_ORBIT_SPEED;
+        var floatOffset = Math.sin(time * CRYSTAL_FLOAT_SPEED + slotIndex * 0.7D) * CRYSTAL_FLOAT_RANGE;
+        var height = owner.getBbHeight() * 0.6D + CRYSTAL_ORBIT_HEIGHT + floatOffset;
+        return new Vec3(Math.cos(angle) * CRYSTAL_ORBIT_RADIUS, height, Math.sin(angle) * CRYSTAL_ORBIT_RADIUS);
+    }
+
+    public static Vec3 getCrystalPosition(LivingEntity owner, int slotIndex, int maxSpellSlots, float partialTick) {
+        return owner.position().add(getCrystalOffset(owner, slotIndex, maxSpellSlots, partialTick));
+    }
+
+    private static boolean hasSupportedProxyCastProfile(AbstractSpell spell) {
+        return SpellDispenserSpellProfileManager.getProfile(spell).isPresent()
+                || ChargedTwinBladeStaffSpellProfileManager.getProfile(spell).isPresent();
     }
 
     @Override

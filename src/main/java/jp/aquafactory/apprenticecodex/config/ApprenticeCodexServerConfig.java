@@ -172,6 +172,22 @@ public final class ApprenticeCodexServerConfig {
         return BLOCKS_CONFIG.apprenticeDeskDisableCommonRarityConversion();
     }
 
+    public static boolean isSatelliteFollowcastAmuletSpellDenied(ResourceLocation spellId) {
+        return ITEMS_CONFIG.isSatelliteFollowcastAmuletSpellDenied(spellId);
+    }
+
+    public static List<String> satelliteFollowcastAmuletSpellDenylist() {
+        return ITEMS_CONFIG.satelliteFollowcastAmuletSpellDenylist();
+    }
+
+    public static GameTestConfigOverride useSatelliteFollowcastAmuletSpellDenylistOverrideForGameTest(
+            List<String> spellDenylist
+    ) {
+        var previousSpellDenylist = ITEMS_CONFIG.satelliteFollowcastAmuletSpellDenylist();
+        ITEMS_CONFIG.setSatelliteFollowcastAmuletSpellDenylistForGameTest(spellDenylist);
+        return () -> ITEMS_CONFIG.setSatelliteFollowcastAmuletSpellDenylistForGameTest(previousSpellDenylist);
+    }
+
     public static float scarletThirstRequiredHealth() {
         return ITEMS_CONFIG.scarletThirstRequiredHealth();
     }
