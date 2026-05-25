@@ -4,7 +4,6 @@ import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.MagicHelper;
-import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
@@ -199,7 +198,7 @@ public final class SatelliteFollowcastAmuletCastEvent {
                     if (!result.succeeded()) {
                         return CastAttemptResult.BLOCKED;
                     }
-                    addFollowcastCooldown(player, spell, FOLLOWCAST_SOURCE, slotResult.stack());
+                    addFollowcastCooldown(player, spellData, FOLLOWCAST_SOURCE, slotResult.stack());
                     return CastAttemptResult.CASTED;
                 }
             }
@@ -210,7 +209,7 @@ public final class SatelliteFollowcastAmuletCastEvent {
             return CastAttemptResult.BLOCKED;
         }
 
-        addFollowcastCooldown(player, spell, FOLLOWCAST_SOURCE, slotResult.stack());
+        addFollowcastCooldown(player, spellData, FOLLOWCAST_SOURCE, slotResult.stack());
         return CastAttemptResult.CASTED;
     }
 
@@ -346,20 +345,32 @@ public final class SatelliteFollowcastAmuletCastEvent {
                 player,
                 event.getCastSource(),
                 pendingCooldown.castingStack()
-        ));
+        ) + pendingCooldown.extraCooldownTicks());
     }
 
-    private static void addFollowcastCooldown(ServerPlayer player, AbstractSpell spell, CastSource castSource, ItemStack castingStack) {
+    private static void addFollowcastCooldown(ServerPlayer player, SpellData spellData, CastSource castSource, ItemStack castingStack) {
+        var spell = spellData.getSpell();
         PENDING_FOLLOWCAST_COOLDOWNS.put(player.getUUID(), new PendingFollowcastCooldown(
                 spell.getSpellId(),
                 castSource,
-                castingStack.copy()
+                castingStack.copy(),
+                resolveLongCastCooldownExtensionTicks(player, spellData)
         ));
         try {
             MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, castSource);
         } finally {
             PENDING_FOLLOWCAST_COOLDOWNS.remove(player.getUUID());
         }
+    }
+
+    private static int resolveLongCastCooldownExtensionTicks(ServerPlayer player, SpellData spellData) {
+        var spell = spellData.getSpell();
+        if (spell.getCastType() != CastType.LONG) {
+            return 0;
+        }
+
+        var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
+        return Math.max(0, spell.getEffectiveCastTime(spellLevel, player));
     }
 
     private static boolean tryCastWithSpellDispenserProfile(
@@ -420,7 +431,7 @@ public final class SatelliteFollowcastAmuletCastEvent {
             if (runtime.session().consumeFinishedCooldownTicks() > 0) {
                 addFollowcastCooldown(
                         owner,
-                        runtime.session().validation().spellData().getSpell(),
+                        runtime.session().validation().spellData(),
                         runtime.session().castSource(),
                         runtime.sourceStack()
                 );
@@ -465,7 +476,8 @@ public final class SatelliteFollowcastAmuletCastEvent {
         }
 
         player.connection.send(new ClientboundSetActionBarTextPacket(
-                Component.translatable("ui.irons_spellbooks.mana_insufficient").withStyle(ChatFormatting.RED)
+                Component.translatable("ui.irons_spellbooks.cast_error_mana", spell.getDisplayName(player))
+                        .withStyle(ChatFormatting.RED)
         ));
         event.setCanceled(true);
     }
@@ -532,7 +544,7 @@ public final class SatelliteFollowcastAmuletCastEvent {
         }
     }
 
-    private record PendingFollowcastCooldown(String spellId, CastSource castSource, ItemStack castingStack) {
+    private record PendingFollowcastCooldown(String spellId, CastSource castSource, ItemStack castingStack, int extraCooldownTicks) {
     }
 
     private record ContinuousFollowcastKey(UUID ownerId, String slotIdentifier, int curiosSlotIndex, int spellSlotIndex) {

@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellLi
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfileManager;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunSpellListManager;
@@ -27,6 +28,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -35,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiInfoItem, RestrictedSpellImbuableItem,
@@ -93,6 +96,13 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
                 .append(Component.translatable(getDescriptionId() + ".desc_1"))
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
         return tooltips;
+    }
+
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
+                                @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, level, lines, flag);
+        appendFollowcastTooltip(lines);
     }
 
     @Override
@@ -281,6 +291,48 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
         return ApprenticeCodexServerConfig.satelliteFollowcastUsesRemoteOwnerProfiles()
                 && RemoteOwnerCastProfileManager.isSupportedByRemoteOwnerCast(spell, RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST)
                 || SpellDispenserSpellProfileManager.getProfile(spell).isPresent();
+    }
+
+    private static void appendFollowcastTooltip(List<Component> lines) {
+        ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
+        if (ImbueTooltipHelper.appendHintIfDetailsHidden(lines)) {
+            return;
+        }
+
+        ImbueTooltipHelper.appendTooltipSection(
+                lines,
+                collectFollowcastAbilityTooltipSection(),
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_title",
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_none"
+        );
+        ImbueTooltipHelper.appendTooltipSection(
+                lines,
+                collectFollowcastRestrictTooltipSection(),
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_title",
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_none"
+        );
+    }
+
+    private static List<Component> collectFollowcastAbilityTooltipSection() {
+        var translatedLines = new ArrayList<Component>();
+        translatedLines.add(ImbueTooltipHelper.translatableGray(
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant"
+        ));
+        translatedLines.add(ImbueTooltipHelper.translatableGray(
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_extend_cooldown"
+        ));
+        return translatedLines;
+    }
+
+    private static List<Component> collectFollowcastRestrictTooltipSection() {
+        var translatedLines = new ArrayList<Component>();
+        translatedLines.add(ImbueTooltipHelper.translatableGray(
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_no_recast"
+        ));
+        translatedLines.add(ImbueTooltipHelper.translatableGray(
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_by_profile"
+        ));
+        return translatedLines;
     }
 
     @Override
