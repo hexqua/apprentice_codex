@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.config.item.MultipurposeStaffrifleServerCo
 import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.AbsorptionAmplifyAmuletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArcaneCinderServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SatelliteFollowcastAmuletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScarletThirstServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScrollcasterGauntletServerConfig;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
@@ -39,6 +40,7 @@ final class ItemsServerConfig {
     private final FocusStaffbowServerConfig focusStaffbowConfig;
     private final ElementalBowServerConfig elementalBowConfig;
     private final ScrollcasterGauntletServerConfig scrollcasterGauntletConfig;
+    private final SatelliteFollowcastAmuletServerConfig satelliteFollowcastAmuletConfig;
 
     private ItemsServerConfig(
             ArcaneCinderServerConfig arcaneCinderConfig,
@@ -56,7 +58,8 @@ final class ItemsServerConfig {
             MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig,
             FocusStaffbowServerConfig focusStaffbowConfig,
             ElementalBowServerConfig elementalBowConfig,
-            ScrollcasterGauntletServerConfig scrollcasterGauntletConfig
+            ScrollcasterGauntletServerConfig scrollcasterGauntletConfig,
+            SatelliteFollowcastAmuletServerConfig satelliteFollowcastAmuletConfig
     ) {
         this.arcaneCinderConfig = arcaneCinderConfig;
         this.absorptionAmplifyAmuletConfig = absorptionAmplifyAmuletConfig;
@@ -74,6 +77,7 @@ final class ItemsServerConfig {
         this.focusStaffbowConfig = focusStaffbowConfig;
         this.elementalBowConfig = elementalBowConfig;
         this.scrollcasterGauntletConfig = scrollcasterGauntletConfig;
+        this.satelliteFollowcastAmuletConfig = satelliteFollowcastAmuletConfig;
     }
 
     static ItemsServerConfig define(ModConfigSpec.Builder builder) {
@@ -94,6 +98,7 @@ final class ItemsServerConfig {
         var focusStaffbowConfig = FocusStaffbowServerConfig.define(builder);
         var elementalBowConfig = ElementalBowServerConfig.define(builder);
         var scrollcasterGauntletConfig = ScrollcasterGauntletServerConfig.define(builder);
+        var satelliteFollowcastAmuletConfig = SatelliteFollowcastAmuletServerConfig.define(builder);
         builder.pop();
 
         return new ItemsServerConfig(
@@ -112,7 +117,8 @@ final class ItemsServerConfig {
                 multipurposeStaffrifleConfig,
                 focusStaffbowConfig,
                 elementalBowConfig,
-                scrollcasterGauntletConfig
+                scrollcasterGauntletConfig,
+                satelliteFollowcastAmuletConfig
         );
     }
 
@@ -472,6 +478,14 @@ final class ItemsServerConfig {
         return scrollcasterGauntletConfig.compatAdditionalAllowedEnchantments();
     }
 
+    boolean isSatelliteFollowcastAmuletSpellDenied(ResourceLocation spellId) {
+        return satelliteFollowcastAmuletConfig.isSpellDenied(spellId);
+    }
+
+    List<String> satelliteFollowcastAmuletSpellDenylist() {
+        return satelliteFollowcastAmuletConfig.spellDenylist();
+    }
+
     List<String> multipurposeStaffrifleSpellDenylist() {
         return multipurposeStaffrifleConfig.spellDenylist();
     }
@@ -637,6 +651,10 @@ final class ItemsServerConfig {
             List<String> compatAdditionalAllowedEnchantments
     ) {
         scrollcasterGauntletConfig.setForGameTest(deniedEnchantments, compatAdditionalAllowedEnchantments);
+    }
+
+    void setSatelliteFollowcastAmuletSpellDenylistForGameTest(List<String> spellDenylist) {
+        satelliteFollowcastAmuletConfig.setSpellDenylistForGameTest(spellDenylist);
     }
 }
 
