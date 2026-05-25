@@ -126,6 +126,7 @@
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_not_continuous": "- 詠唱し続ける必要が無い",
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_cooldown": "- クールダウンが%s秒以下",
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_no_recast": "- 再詠唱の必要が無い",
+  "item.apprenticecodex.spellgun.tooltip.restrict_restrict_by_profile": "- 事前にデータの理で調整済みのもの",
   "item.apprenticecodex.spellgun.tooltip.ammo_title": "使用弾薬:",
   "item.apprenticecodex.spellgun.tooltip.ammo_none": "- 特に無し",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "レア以下",
@@ -411,7 +412,6 @@
   "entity.apprenticecodex.silent_assassin_rifle": "マジックスナイパーライフル",
   "entity.apprenticecodex.tiro_volley_musket": "魔法のマスケット銃",
   "entity.apprenticecodex.magic_spear_missile": "SAAM",
-  "entity.apprenticecodex.satellite_followcast_crystal": "術式の込められた結晶",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "使い走り魔術師",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "使い走り魔術師",
@@ -489,7 +489,6 @@
   "jade.apprenticecodex.healing_bloom.next_fruit": "次に実るまで: %1$d秒",
   "jade.apprenticecodex.remaining_ammo": "残り弾数: %1$d",
   "jade.apprenticecodex.search_beacon.targets": "探索対象: %1$s",
-  "jade.apprenticecodex.satellite_followcast_amulet.imbue": "魔法: %1$s",
 
   "skill.apprenticecodex.wind_leap": "ウィンドリープ",
   "skill.apprenticecodex.wind_leap.tooltip": "強打を行えるほど高く跳躍し、着地寸前に殴打を行う。この跳躍自体が落下を保護することはない。",
