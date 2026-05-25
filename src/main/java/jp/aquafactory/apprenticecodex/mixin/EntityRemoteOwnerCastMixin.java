@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastContext;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastGeometry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -42,6 +43,30 @@ public abstract class EntityRemoteOwnerCastMixin {
         var context = apprentice_codex$remoteOwnerCastContext();
         if (context != null) {
             cir.setReturnValue(context.forward());
+        }
+    }
+
+    @Inject(method = "getForward()Lnet/minecraft/world/phys/Vec3;", at = @At("HEAD"), cancellable = true)
+    private void apprentice_codex$remoteOwnerCastForward(CallbackInfoReturnable<Vec3> cir) {
+        var context = apprentice_codex$remoteOwnerCastContext();
+        if (context != null) {
+            cir.setReturnValue(context.forward());
+        }
+    }
+
+    @Inject(method = "getXRot()F", at = @At("HEAD"), cancellable = true)
+    private void apprentice_codex$remoteOwnerCastXRot(CallbackInfoReturnable<Float> cir) {
+        var rotation = apprentice_codex$remoteOwnerCastRotation();
+        if (rotation != null) {
+            cir.setReturnValue(rotation.pitch());
+        }
+    }
+
+    @Inject(method = "getYRot()F", at = @At("HEAD"), cancellable = true)
+    private void apprentice_codex$remoteOwnerCastYRot(CallbackInfoReturnable<Float> cir) {
+        var rotation = apprentice_codex$remoteOwnerCastRotation();
+        if (rotation != null) {
+            cir.setReturnValue(rotation.yaw());
         }
     }
 
@@ -101,6 +126,12 @@ public abstract class EntityRemoteOwnerCastMixin {
         }
         var self = (Entity) (Object) this;
         return context.eyePosition().subtract(0.0D, self.getEyeHeight(), 0.0D);
+    }
+
+    @Unique
+    private RemoteOwnerCastGeometry.Rotation apprentice_codex$remoteOwnerCastRotation() {
+        var context = apprentice_codex$remoteOwnerCastContext();
+        return context == null ? null : RemoteOwnerCastGeometry.rotationFromForward(context.forward());
     }
 
     @Unique

@@ -11,4 +11,7 @@ import java.util.function.Supplier;
 public interface SchoolTypeAccessor {
     @Accessor(value = "powerAttribute", remap = false)
     Supplier<Attribute> apprenticecodex$getPowerAttribute();
+
+    @Accessor(value = "resistanceAttribute", remap = false)
+    Supplier<Attribute> apprenticecodex$getResistanceAttribute();
 }

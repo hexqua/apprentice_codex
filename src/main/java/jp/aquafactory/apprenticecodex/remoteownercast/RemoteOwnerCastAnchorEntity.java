@@ -2,7 +2,6 @@ package jp.aquafactory.apprenticecodex.remoteownercast;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -20,7 +19,7 @@ public final class RemoteOwnerCastAnchorEntity extends ArmorStand {
     private UUID boundOwnerId;
 
     public static AttributeSupplier.Builder createAttributes() {
-        return LivingEntity.createLivingAttributes();
+        return RemoteOwnerCastAnchorAttributes.addSyncAttributes(LivingEntity.createLivingAttributes());
     }
 
     public RemoteOwnerCastAnchorEntity(EntityType<? extends RemoteOwnerCastAnchorEntity> entityType, Level level) {
@@ -44,10 +43,9 @@ public final class RemoteOwnerCastAnchorEntity extends ArmorStand {
     }
 
     public void syncFromRemoteGeometry(Vec3 eyePosition, Vec3 forward) {
-        var normalizedForward = forward.lengthSqr() > 1.0E-6D ? forward.normalize() : new Vec3(0.0D, 0.0D, 1.0D);
-        var yaw = (float) Mth.wrapDegrees(Mth.atan2(-normalizedForward.x, normalizedForward.z) * Mth.RAD_TO_DEG);
-        var horizontal = Math.sqrt(normalizedForward.x * normalizedForward.x + normalizedForward.z * normalizedForward.z);
-        var pitch = (float) Mth.wrapDegrees(-Mth.atan2(normalizedForward.y, horizontal) * Mth.RAD_TO_DEG);
+        var rotation = RemoteOwnerCastGeometry.rotationFromForward(forward);
+        var yaw = rotation.yaw();
+        var pitch = rotation.pitch();
         var feetY = eyePosition.y - this.getEyeHeight();
 
         this.moveTo(eyePosition.x, feetY, eyePosition.z, yaw, pitch);
