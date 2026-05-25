@@ -84,7 +84,9 @@ public final class SatelliteFollowcastAmuletRenderEvent {
                         bufferSource,
                         partialTick,
                         player,
-                        slotResult.stack()
+                        slotResult.stack(),
+                        slotResult.slotContext().identifier(),
+                        slotResult.slotContext().index()
                 )));
     }
 
@@ -93,7 +95,9 @@ public final class SatelliteFollowcastAmuletRenderEvent {
             MultiBufferSource bufferSource,
             float partialTick,
             Player player,
-            ItemStack stack
+            ItemStack stack,
+            String slotIdentifier,
+            int curiosSlotIndex
     ) {
         if (!ISpellContainer.isSpellContainer(stack)) {
             return;
@@ -111,7 +115,17 @@ public final class SatelliteFollowcastAmuletRenderEvent {
                 continue;
             }
 
-            renderCrystal(poseStack, bufferSource, partialTick, player, spellData, slotIndex, maxSpellSlots);
+            renderCrystal(
+                    poseStack,
+                    bufferSource,
+                    partialTick,
+                    player,
+                    spellData,
+                    slotIdentifier,
+                    curiosSlotIndex,
+                    slotIndex,
+                    maxSpellSlots
+            );
         }
     }
 
@@ -121,12 +135,22 @@ public final class SatelliteFollowcastAmuletRenderEvent {
             float partialTick,
             Player player,
             SpellData spellData,
+            String slotIdentifier,
+            int curiosSlotIndex,
             int slotIndex,
             int maxSpellSlots
     ) {
         var offset = SatelliteFollowcastAmulet.getCrystalOffset(player, slotIndex, maxSpellSlots, partialTick);
         var time = player.tickCount + partialTick;
-        var color = resolveCrystalColor(player, spellData, slotIndex, maxSpellSlots, time);
+        var color = resolveCrystalColor(
+                player,
+                spellData,
+                slotIdentifier,
+                curiosSlotIndex,
+                slotIndex,
+                maxSpellSlots,
+                time
+        );
 
         poseStack.pushPose();
         poseStack.translate(offset.x, offset.y, offset.z);
@@ -149,10 +173,23 @@ public final class SatelliteFollowcastAmuletRenderEvent {
     private static Color resolveCrystalColor(
             Player player,
             SpellData spellData,
+            String slotIdentifier,
+            int curiosSlotIndex,
             int slotIndex,
             int maxSpellSlots,
             float time
     ) {
+        var schoolColor = toColor(MagicTools.resolveSchoolTintColor(spellData.getSpell().getSchoolType()));
+        if (SatelliteFollowcastAmuletClientState.isContinuousActive(
+                player.getId(),
+                slotIdentifier,
+                curiosSlotIndex,
+                slotIndex,
+                player.level().getGameTime()
+        )) {
+            return schoolColor;
+        }
+
         if (isClientCooldownActive(player, spellData)) {
             var blink = 0.25F + 0.25F * (0.5F + 0.5F * (float) Math.sin(time * Math.PI / 5.0D));
             return new Color(blink, 0.0F, 0.0F);
@@ -166,7 +203,6 @@ public final class SatelliteFollowcastAmuletRenderEvent {
 
         var pulseProgress = local / SCHOOL_PULSE_DURATION_TICKS;
         var tintWeight = (float) Math.sin(Math.PI * pulseProgress);
-        var schoolColor = toColor(MagicTools.resolveSchoolTintColor(spellData.getSpell().getSchoolType()));
         return Color.lerp(Color.WHITE, schoolColor, tintWeight);
     }
 
