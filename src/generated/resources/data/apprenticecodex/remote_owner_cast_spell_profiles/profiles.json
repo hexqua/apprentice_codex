@@ -50,7 +50,7 @@
     },
     {
       "profile": {
-        "cast_mode": "remote_player_geometry"
+        "cast_mode": "remote_anchor_owner_magic"
       },
       "spell": "irons_spellbooks:dragon_breath"
     },
@@ -152,7 +152,7 @@
     },
     {
       "profile": {
-        "cast_mode": "remote_player_geometry"
+        "cast_mode": "remote_anchor_owner_magic"
       },
       "spell": "irons_spellbooks:fire_breath"
     },
@@ -254,7 +254,7 @@
     },
     {
       "profile": {
-        "cast_mode": "remote_player_geometry"
+        "cast_mode": "remote_anchor_owner_magic"
       },
       "spell": "irons_spellbooks:cone_of_cold"
     },
@@ -308,7 +308,7 @@
     },
     {
       "profile": {
-        "cast_mode": "remote_player_geometry"
+        "cast_mode": "remote_anchor_owner_magic"
       },
       "spell": "irons_spellbooks:electrocute"
     },
@@ -366,7 +366,7 @@
     },
     {
       "profile": {
-        "cast_mode": "remote_player_geometry"
+        "cast_mode": "remote_anchor_owner_magic"
       },
       "spell": "irons_spellbooks:poison_breath"
     },

@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.datagen.spell;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfile;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
@@ -56,7 +57,9 @@ public final class RemoteOwnerCastSpellProfileDataGenerator extends JsonCodecPro
         var profiles = new LinkedHashMap<ResourceLocation, RemoteOwnerCastProfile>();
 
         for (var definition : SpellDispenserSpellProfileDataGenerator.createProfileDefinitions()) {
-            profiles.put(definition.spell(), RemoteOwnerCastProfile.REMOTE_PLAYER_GEOMETRY);
+            profiles.put(definition.spell(), definition.profile().equals(SpellDispenserSpellProfile.MINIMUM_CONE)
+                    ? remoteAnchorOwnerProfile(false)
+                    : RemoteOwnerCastProfile.REMOTE_PLAYER_GEOMETRY);
         }
 
         putChargedStaffOnlyProfile(profiles, SpellRegistry.BLOOD_STEP_SPELL, playerSelfProfile(false));
@@ -126,6 +129,16 @@ public final class RemoteOwnerCastSpellProfileDataGenerator extends JsonCodecPro
                 RemoteOwnerOriginMode.PROVIDED_ORIGIN,
                 RemoteOwnerDirectionMode.PROVIDED_FORWARD,
                 Optional.of(List.of(RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT)),
+                allowInitialRecast
+        );
+    }
+
+    private static RemoteOwnerCastProfile remoteAnchorOwnerProfile(boolean allowInitialRecast) {
+        return new RemoteOwnerCastProfile(
+                RemoteOwnerCastMode.REMOTE_ANCHOR_OWNER_MAGIC,
+                RemoteOwnerOriginMode.PROVIDED_ORIGIN,
+                RemoteOwnerDirectionMode.PROVIDED_FORWARD,
+                Optional.empty(),
                 allowInitialRecast
         );
     }

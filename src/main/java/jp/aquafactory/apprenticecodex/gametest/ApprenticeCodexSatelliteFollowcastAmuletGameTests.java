@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectile;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -12,11 +13,13 @@ import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.Sate
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmuletCastEvent;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
@@ -121,6 +124,25 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
             SatelliteFollowcastAmuletCastEvent.onSpellPreCast(createSpellPreCastEvent(player, mageLight));
             helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(mageLight),
                     "Satellite Followcast Amulet should skip the active continuous crystal and cast the other crystal.");
+        });
+
+        helper.runAtTickTime(20, () -> {
+            var searchCenter = SatelliteFollowcastAmulet.getCrystalPosition(
+                    player,
+                    0,
+                    SatelliteFollowcastAmulet.MAX_SPELL_SLOTS,
+                    0.0F
+            );
+            var projectiles = level.getEntitiesOfClass(FireBreathProjectile.class, new AABB(searchCenter, searchCenter).inflate(16.0D));
+            var anchorOwner = projectiles.stream()
+                    .map(FireBreathProjectile::getOwner)
+                    .filter(RemoteOwnerCastAnchorEntity.class::isInstance)
+                    .map(RemoteOwnerCastAnchorEntity.class::cast)
+                    .findFirst();
+            helper.assertTrue(anchorOwner.isPresent(),
+                    "Satellite Followcast Amulet CONTINUOUS casts should use a Remote Owner anchor for Fire Breath owner tracking.");
+            helper.assertTrue(anchorOwner.get().getDisplayName().getString().equals(player.getDisplayName().getString()),
+                    "Satellite Followcast Remote Owner anchor should expose the player name for death messages.");
         });
 
         helper.succeedWhen(() -> helper.assertFalse(

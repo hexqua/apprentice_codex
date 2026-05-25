@@ -130,6 +130,28 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
         helper.succeed();
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void remoteOwnerCastDatagenUsesAnchorOwnerForConeProfiles(GameTestHelper helper) {
+        for (var spellId : List.of(
+                requireId(SpellRegistry.DRAGON_BREATH_SPELL.getId()),
+                requireId(SpellRegistry.FIRE_BREATH_SPELL.getId()),
+                requireId(SpellRegistry.CONE_OF_COLD_SPELL.getId()),
+                requireId(SpellRegistry.ELECTROCUTE_SPELL.getId()),
+                requireId(SpellRegistry.POISON_BREATH_SPELL.getId())
+        )) {
+            var profile = RemoteOwnerCastSpellProfileDataGenerator.createProfileDefinitions().stream()
+                    .filter(definition -> definition.spell().equals(spellId))
+                    .map(definition -> definition.profile())
+                    .findFirst();
+            helper.assertTrue(profile.isPresent(),
+                    "Remote Owner Cast datagen should include cone spell: " + spellId);
+            helper.assertTrue(profile.get().castMode() == RemoteOwnerCastMode.REMOTE_ANCHOR_OWNER_MAGIC,
+                    "Cone spell should use Remote Owner anchor owner mode: " + spellId);
+        }
+
+        helper.succeed();
+    }
+
     private static ResourceLocation requireId(ResourceLocation id) {
         if (id == null) {
             throw new IllegalStateException("Missing spell id");

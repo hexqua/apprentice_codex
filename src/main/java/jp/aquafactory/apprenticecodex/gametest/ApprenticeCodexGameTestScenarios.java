@@ -52,6 +52,7 @@ import jp.aquafactory.apprenticecodex.event.ErrandMageVillagerTradesEvent;
 import jp.aquafactory.apprenticecodex.event.errandmage.ErrandMageTradeManager;
 import jp.aquafactory.apprenticecodex.event.ScrollcasterGauntletGrindstoneEvent;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
@@ -10194,6 +10195,15 @@ public final class ApprenticeCodexGameTestScenarios {
             var projectiles = level.getEntitiesOfClass(FireBreathProjectile.class, new AABB(impactPos, impactPos).inflate(16.0D));
             helper.assertTrue(!projectiles.isEmpty(),
                     "Charged Twin Blade Staff CONTINUOUS impact cast did not spawn Fire Breath projectiles");
+            var anchorOwner = projectiles.stream()
+                    .map(FireBreathProjectile::getOwner)
+                    .filter(RemoteOwnerCastAnchorEntity.class::isInstance)
+                    .map(RemoteOwnerCastAnchorEntity.class::cast)
+                    .findFirst();
+            helper.assertTrue(anchorOwner.isPresent(),
+                    "Charged Twin Blade Staff CONTINUOUS impact cast should use a Remote Owner anchor for Fire Breath owner tracking");
+            helper.assertTrue(anchorOwner.get().getDisplayName().getString().equals(player.getDisplayName().getString()),
+                    "Remote Owner anchor should expose the player name for death messages");
         });
     }
     static void chargedTwinBladeStaffImpactCastManagerSkipsWhenOwnerCannotCast(GameTestHelper helper) {
