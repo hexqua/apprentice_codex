@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.config.item.ManaShieldCharmServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MulticastEchoStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MultipurposeStaffrifleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.RemoteOwnerCastServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.AbsorptionAmplifyAmuletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArcaneCinderServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SatelliteFollowcastAmuletServerConfig;
@@ -41,6 +42,7 @@ final class ItemsServerConfig {
     private final ElementalBowServerConfig elementalBowConfig;
     private final ScrollcasterGauntletServerConfig scrollcasterGauntletConfig;
     private final SatelliteFollowcastAmuletServerConfig satelliteFollowcastAmuletConfig;
+    private final RemoteOwnerCastServerConfig remoteOwnerCastConfig;
 
     private ItemsServerConfig(
             ArcaneCinderServerConfig arcaneCinderConfig,
@@ -59,7 +61,8 @@ final class ItemsServerConfig {
             FocusStaffbowServerConfig focusStaffbowConfig,
             ElementalBowServerConfig elementalBowConfig,
             ScrollcasterGauntletServerConfig scrollcasterGauntletConfig,
-            SatelliteFollowcastAmuletServerConfig satelliteFollowcastAmuletConfig
+            SatelliteFollowcastAmuletServerConfig satelliteFollowcastAmuletConfig,
+            RemoteOwnerCastServerConfig remoteOwnerCastConfig
     ) {
         this.arcaneCinderConfig = arcaneCinderConfig;
         this.absorptionAmplifyAmuletConfig = absorptionAmplifyAmuletConfig;
@@ -78,6 +81,7 @@ final class ItemsServerConfig {
         this.elementalBowConfig = elementalBowConfig;
         this.scrollcasterGauntletConfig = scrollcasterGauntletConfig;
         this.satelliteFollowcastAmuletConfig = satelliteFollowcastAmuletConfig;
+        this.remoteOwnerCastConfig = remoteOwnerCastConfig;
     }
 
     static ItemsServerConfig define(ForgeConfigSpec.Builder builder) {
@@ -99,6 +103,7 @@ final class ItemsServerConfig {
         var elementalBowConfig = ElementalBowServerConfig.define(builder);
         var scrollcasterGauntletConfig = ScrollcasterGauntletServerConfig.define(builder);
         var satelliteFollowcastAmuletConfig = SatelliteFollowcastAmuletServerConfig.define(builder);
+        var remoteOwnerCastConfig = RemoteOwnerCastServerConfig.define(builder);
         builder.pop();
 
         return new ItemsServerConfig(
@@ -118,7 +123,8 @@ final class ItemsServerConfig {
                 focusStaffbowConfig,
                 elementalBowConfig,
                 scrollcasterGauntletConfig,
-                satelliteFollowcastAmuletConfig
+                satelliteFollowcastAmuletConfig,
+                remoteOwnerCastConfig
         );
     }
 
@@ -486,6 +492,38 @@ final class ItemsServerConfig {
         return satelliteFollowcastAmuletConfig.spellDenylist();
     }
 
+    boolean remoteOwnerCastEnableRemotePlayerGeometry() {
+        return remoteOwnerCastConfig.enableRemotePlayerGeometry();
+    }
+
+    boolean remoteOwnerCastForceProxyOwnerMagic() {
+        return remoteOwnerCastConfig.forceProxyOwnerMagic();
+    }
+
+    boolean isRemotePlayerGeometrySpellDenied(ResourceLocation spellId) {
+        return remoteOwnerCastConfig.isRemotePlayerGeometrySpellDenied(spellId);
+    }
+
+    boolean isRemoteOwnerCastSpellDenied(ResourceLocation spellId) {
+        return remoteOwnerCastConfig.isRemoteOwnerCastSpellDenied(spellId);
+    }
+
+    List<String> remotePlayerGeometryDenylist() {
+        return remoteOwnerCastConfig.remotePlayerGeometryDenylist();
+    }
+
+    List<String> remoteOwnerCastDenylist() {
+        return remoteOwnerCastConfig.remoteOwnerCastDenylist();
+    }
+
+    boolean satelliteFollowcastUsesRemoteOwnerProfiles() {
+        return remoteOwnerCastConfig.satelliteFollowcastUsesRemoteOwnerProfiles();
+    }
+
+    boolean chargedTwinBladeStaffUsesRemoteOwnerProfiles() {
+        return remoteOwnerCastConfig.chargedTwinBladeStaffUsesRemoteOwnerProfiles();
+    }
+
     List<String> multipurposeStaffrifleSpellDenylist() {
         return multipurposeStaffrifleConfig.spellDenylist();
     }
@@ -655,5 +693,23 @@ final class ItemsServerConfig {
 
     void setSatelliteFollowcastAmuletSpellDenylistForGameTest(List<String> spellDenylist) {
         satelliteFollowcastAmuletConfig.setSpellDenylistForGameTest(spellDenylist);
+    }
+
+    void setRemoteOwnerCastConfigForGameTest(
+            boolean enableRemotePlayerGeometry,
+            boolean forceProxyOwnerMagic,
+            List<String> remotePlayerGeometryDenylist,
+            List<String> remoteOwnerCastDenylist,
+            boolean satelliteFollowcastUsesRemoteOwnerProfiles,
+            boolean chargedTwinBladeStaffUsesRemoteOwnerProfiles
+    ) {
+        remoteOwnerCastConfig.setForGameTest(
+                enableRemotePlayerGeometry,
+                forceProxyOwnerMagic,
+                remotePlayerGeometryDenylist,
+                remoteOwnerCastDenylist,
+                satelliteFollowcastUsesRemoteOwnerProfiles,
+                chargedTwinBladeStaffUsesRemoteOwnerProfiles
+        );
     }
 }

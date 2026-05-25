@@ -1,16 +1,13 @@
 package jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet;
 
-import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
-import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
-import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
 import io.redspace.ironsspellbooks.config.ServerConfigs;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
@@ -19,21 +16,19 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHel
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfileManager;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
-import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffCastMode;
-import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellProfile;
-import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellProfileManager;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRunner;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -151,10 +146,37 @@ public final class SatelliteFollowcastAmuletCastEvent {
         var forward = player.getLookAngle();
         var manaAccess = new PlayerManaAccess(player);
 
-        var casted = SpellDispenserSpellProfileManager.getProfile(spell).isPresent()
-                ? tryCastWithSpellDispenserProfile(level, player, slotResult.stack(), spellData, crystalPosition, forward, manaAccess, castingSlot)
-                : tryCastWithChargedTwinBladeStaffProfile(level, player, slotResult.stack(), spellData, crystalPosition, forward, manaAccess, castingSlot);
-        if (!casted) {
+        if (ApprenticeCodexServerConfig.satelliteFollowcastUsesRemoteOwnerProfiles()) {
+            var remoteProfile = RemoteOwnerCastProfileManager.getUsableProfile(
+                    spell,
+                    RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST
+            );
+            if (remoteProfile.isPresent()) {
+                var result = RemoteOwnerCastRunner.tryCast(
+                        level,
+                        player,
+                        slotResult.stack(),
+                        spellData,
+                        remoteProfile.get(),
+                        RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST,
+                        crystalPosition,
+                        forward,
+                        FOLLOWCAST_SOURCE,
+                        castingSlot,
+                        false
+                );
+                if (result.handled()) {
+                    if (!result.succeeded()) {
+                        return CastAttemptResult.BLOCKED;
+                    }
+                    addFollowcastCooldown(player, spell, FOLLOWCAST_SOURCE, slotResult.stack());
+                    return CastAttemptResult.CASTED;
+                }
+            }
+        }
+
+        if (SpellDispenserSpellProfileManager.getProfile(spell).isEmpty()
+                || !tryCastWithSpellDispenserProfile(level, player, slotResult.stack(), spellData, crystalPosition, forward, manaAccess, castingSlot)) {
             return CastAttemptResult.BLOCKED;
         }
 
@@ -223,121 +245,6 @@ public final class SatelliteFollowcastAmuletCastEvent {
                 castingSlot
         );
         return result.succeeded();
-    }
-
-    private static boolean tryCastWithChargedTwinBladeStaffProfile(
-            ServerLevel level,
-            ServerPlayer owner,
-            ItemStack sourceStack,
-            SpellData spellData,
-            Vec3 crystalPosition,
-            Vec3 forward,
-            PlayerManaAccess manaAccess,
-            String castingSlot
-    ) {
-        var profile = ChargedTwinBladeStaffSpellProfileManager.getProfile(spellData.getSpell()).orElse(null);
-        if (profile == null || spellData.getSpell().getCastType() == CastType.CONTINUOUS) {
-            return false;
-        }
-
-        var spellCaster = profile.castMode() == ChargedTwinBladeStaffCastMode.PLAYER_SELF
-                ? owner
-                : createImpactProxy(level, owner.getGameProfile(), crystalPosition, forward);
-        return runOwnerMagicInstantCast(level, owner, spellCaster, sourceStack, spellData, manaAccess, castingSlot, profile);
-    }
-
-    private static boolean runOwnerMagicInstantCast(
-            ServerLevel level,
-            ServerPlayer owner,
-            net.minecraft.world.entity.LivingEntity spellCaster,
-            ItemStack sourceStack,
-            SpellData spellData,
-            PlayerManaAccess manaAccess,
-            String castingSlot,
-            ChargedTwinBladeStaffSpellProfile profile
-    ) {
-        var spell = spellData.getSpell();
-        var ownerMagicData = MagicData.getPlayerMagicData(owner);
-        if (ownerMagicData == null) {
-            return false;
-        }
-        if (spell.getRecastCount(spellData.getLevel(), owner) > 0 && !profile.allowInitialRecast()) {
-            return false;
-        }
-
-        var originalMana = ownerMagicData.getMana();
-        var restoreManaAfterCast = manaAccess.isManaConsumptionExempt();
-        var originalSyncedData = ownerMagicData.getSyncedData();
-        try {
-            ownerMagicData.setSyncedData(new SyncedSpellData(spellCaster));
-            ownerMagicData.initiateCast(spell, spellData.getLevel(), 0, FOLLOWCAST_SOURCE, castingSlot);
-            ownerMagicData.setPlayerCastingItem(sourceStack.copy());
-            syncOwnerManaForProxyCast(manaAccess, ownerMagicData);
-            if (!spell.checkPreCastConditions(level, spellData.getLevel(), spellCaster, ownerMagicData)) {
-                return false;
-            }
-            syncOwnerManaForProxyCast(manaAccess, ownerMagicData);
-            spell.onServerPreCast(level, spellData.getLevel(), spellCaster, ownerMagicData);
-
-            if (!SpellDispenserManaHelper.tryConsumeSpellMana(manaAccess, spellData)) {
-                return false;
-            }
-
-            syncOwnerManaForProxyCast(manaAccess, ownerMagicData);
-            spell.onCast(level, spellData.getLevel(), spellCaster, FOLLOWCAST_SOURCE, ownerMagicData);
-            syncOwnerManaForProxyCast(manaAccess, ownerMagicData);
-            spell.onServerCastComplete(level, spellData.getLevel(), spellCaster, ownerMagicData, false);
-            return true;
-        } catch (RuntimeException exception) {
-            ApprenticeCodex.LOGGER.warn(
-                    "Satellite Followcast Amulet cast exception: spell={}",
-                    spell.getSpellResource(),
-                    exception
-            );
-            return false;
-        } finally {
-            try {
-                ownerMagicData.resetCastingState();
-            } finally {
-                if (restoreManaAfterCast) {
-                    ownerMagicData.setMana(originalMana);
-                }
-                ownerMagicData.setSyncedData(originalSyncedData);
-                originalSyncedData.syncToPlayer(owner);
-            }
-        }
-    }
-
-    private static net.minecraftforge.common.util.FakePlayer createImpactProxy(
-            ServerLevel level,
-            GameProfile ownerProfile,
-            Vec3 crystalPosition,
-            Vec3 forward
-    ) {
-        var proxy = FakePlayerFactory.get(level, new GameProfile(ownerProfile.getId(), ownerProfile.getName()));
-        proxy.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
-        proxy.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-        proxy.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
-
-        var normalizedForward = forward.lengthSqr() > 1.0E-6D ? forward.normalize() : new Vec3(0.0D, 0.0D, 1.0D);
-        var yaw = (float) Mth.wrapDegrees(Mth.atan2(-normalizedForward.x, normalizedForward.z) * Mth.RAD_TO_DEG);
-        var horizontal = Math.sqrt(normalizedForward.x * normalizedForward.x + normalizedForward.z * normalizedForward.z);
-        var pitch = (float) Mth.wrapDegrees(-Mth.atan2(normalizedForward.y, horizontal) * Mth.RAD_TO_DEG);
-        var feetY = crystalPosition.y - proxy.getEyeHeight(proxy.getPose());
-        proxy.moveTo(crystalPosition.x, feetY, crystalPosition.z, yaw, pitch);
-        proxy.setYBodyRot(yaw);
-        proxy.setYHeadRot(yaw);
-        proxy.yBodyRotO = yaw;
-        proxy.yHeadRotO = yaw;
-        proxy.setXRot(pitch);
-        proxy.xRotO = pitch;
-        return proxy;
-    }
-
-    private static void syncOwnerManaForProxyCast(PlayerManaAccess manaAccess, MagicData magicData) {
-        magicData.setMana(manaAccess.isManaConsumptionExempt()
-                ? SpellDispenserManaHelper.MAX_MANA
-                : manaAccess.getCurrentMana());
     }
 
     private static void cancelOriginalCastIfManaBecameInsufficient(

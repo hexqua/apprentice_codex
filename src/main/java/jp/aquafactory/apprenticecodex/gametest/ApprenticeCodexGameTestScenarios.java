@@ -9332,6 +9332,9 @@ public final class ApprenticeCodexGameTestScenarios {
             );
             helper.assertTrue(!instantProjectiles.isEmpty(),
                     "Charged Twin Blade Staff INSTANT impact cast did not spawn Magic Missile projectiles");
+            helper.assertTrue(instantProjectiles.stream().anyMatch(projectile -> projectile.position().distanceTo(impactPos) < 2.0D),
+                    "Charged Twin Blade Staff INSTANT impact cast spawned Magic Missile away from the impact point: "
+                            + instantProjectiles.stream().map(projectile -> projectile.position().toString()).toList());
 
             var longPayload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
                     ResourceLocation.fromNamespaceAndPath("apprenticecodex", "compound_phial"),
