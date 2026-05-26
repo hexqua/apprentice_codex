@@ -34,10 +34,10 @@ public class MistForm extends AbstractSpell {
             .build();
 
     public MistForm() {
-        baseSpellPower = 100;
-        spellPowerPerLevel = 20;
-        baseManaCost = 100;
-        manaCostPerLevel = 40;
+        baseSpellPower = 50;
+        spellPowerPerLevel = 15;
+        baseManaCost = 150;
+        manaCostPerLevel = 30;
         castTime = 30;
     }
 
