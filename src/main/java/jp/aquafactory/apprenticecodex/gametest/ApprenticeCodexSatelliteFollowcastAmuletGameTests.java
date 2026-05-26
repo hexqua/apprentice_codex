@@ -14,6 +14,11 @@ import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.Sate
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastMode;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
+import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
+import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrowerEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -26,6 +31,7 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import net.minecraftforge.common.util.FakePlayer;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @GameTestHolder(ApprenticeCodex.MODID)
@@ -157,8 +163,117 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         ));
     }
 
+    @GameTest(template = TEMPLATE, timeoutTicks = 40)
+    public static void satelliteFollowcastAmuletLongSummonWeaponUsesRemoteOwnerAnchor(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "satellite_followcast_precision_jack_test");
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Satellite Followcast Precision Jack test could not resolve player mana data.");
+        magicData.setMana(500.0F);
+
+        var precisionJack = SpellRegistry.PRECISION_JACK.get();
+        var triggerSpell = SpellRegistry.MAGE_LIGHT.get();
+        magicData.getSyncedData().learnSpell(precisionJack, false);
+        magicData.getSyncedData().learnSpell(triggerSpell, false);
+        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(precisionJack));
+
+        var profile = RemoteOwnerCastProfile.REMOTE_PLAYER_GEOMETRY.withCastMode(RemoteOwnerCastMode.REMOTE_ANCHOR_OWNER_MAGIC);
+        helper.runAtTickTime(1, () -> {
+            try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(precisionJack.getSpellResource(), profile));
+                 var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
+                         true,
+                         false,
+                         List.of(),
+                         List.of(),
+                         true,
+                         true
+                 )) {
+                SatelliteFollowcastAmuletCastEvent.onSpellPreCast(createSpellPreCastEvent(player, triggerSpell));
+            }
+        });
+
+        helper.runAtTickTime(3, () -> {
+            var searchCenter = SatelliteFollowcastAmulet.getCrystalPosition(player, 0, SatelliteFollowcastAmulet.MIN_SPELL_SLOTS, 0.0F);
+            var knives = level.getEntitiesOfClass(PrecisionJackKnifeEntity.class, new AABB(player.position(), player.position()).inflate(32.0D));
+            var anchorOwner = knives.stream()
+                    .map(PrecisionJackKnifeEntity::getOwner)
+                    .filter(RemoteOwnerCastAnchorEntity.class::isInstance)
+                    .map(RemoteOwnerCastAnchorEntity.class::cast)
+                    .findFirst();
+            helper.assertTrue(anchorOwner.isPresent(),
+                    "Satellite Followcast Precision Jack should keep the summoned knife owned by a Remote Owner anchor.");
+            helper.assertTrue(anchorOwner.get().position().distanceTo(searchCenter) < 2.0D,
+                    "Satellite Followcast Precision Jack anchor should remain near the initial crystal position.");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 140)
+    public static void satelliteFollowcastAmuletContinuousSummonWeaponUsesRemoteOwnerAnchor(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "satellite_followcast_thermal_process_test");
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Satellite Followcast Thermal Process test could not resolve player mana data.");
+        magicData.setMana(500.0F);
+
+        var thermalProcess = SpellRegistry.THERMAL_PROCESS.get();
+        var triggerSpell = SpellRegistry.MAGE_LIGHT.get();
+        magicData.getSyncedData().learnSpell(thermalProcess, false);
+        magicData.getSyncedData().learnSpell(triggerSpell, false);
+        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(thermalProcess));
+
+        var profile = RemoteOwnerCastProfile.REMOTE_PLAYER_GEOMETRY.withCastMode(RemoteOwnerCastMode.REMOTE_ANCHOR_OWNER_MAGIC);
+        helper.runAtTickTime(1, () -> {
+            try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(thermalProcess.getSpellResource(), profile));
+                 var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
+                         true,
+                         false,
+                         List.of(),
+                         List.of(),
+                         true,
+                         true
+                 )) {
+                SatelliteFollowcastAmuletCastEvent.onSpellPreCast(createSpellPreCastEvent(player, triggerSpell));
+            }
+        });
+
+        helper.runAtTickTime(25, () -> {
+            var searchCenter = SatelliteFollowcastAmulet.getCrystalPosition(player, 0, SatelliteFollowcastAmulet.MIN_SPELL_SLOTS, 0.0F);
+            var throwers = level.getEntitiesOfClass(ThermalProcessThrowerEntity.class, new AABB(player.position(), player.position()).inflate(32.0D));
+            var anchorOwner = throwers.stream()
+                    .map(ThermalProcessThrowerEntity::getOwner)
+                    .filter(RemoteOwnerCastAnchorEntity.class::isInstance)
+                    .map(RemoteOwnerCastAnchorEntity.class::cast)
+                    .findFirst();
+            helper.assertTrue(anchorOwner.isPresent(),
+                    "Satellite Followcast Thermal Process should keep the thrower owned by a Remote Owner anchor.");
+            helper.assertTrue(anchorOwner.get().position().distanceTo(searchCenter) < 2.0D,
+                    "Satellite Followcast Thermal Process anchor should remain near the active crystal position.");
+        });
+
+        helper.succeedWhen(() -> helper.assertFalse(
+                SatelliteFollowcastAmuletCastEvent.hasActiveContinuousFollowcastForGameTest(
+                        level,
+                        player,
+                        io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT,
+                        0,
+                        0
+                ),
+                "Satellite Followcast Thermal Process continuous crystal should finish."
+        ));
+    }
+
     private static SpellPreCastEvent createSpellPreCastEvent(FakePlayer player, io.redspace.ironsspellbooks.api.spells.AbstractSpell spell) {
         return new SpellPreCastEvent(player, spell.getSpellId(), 1, spell.getSchoolType(), CastSource.SPELLBOOK);
+    }
+
+    private static ItemStack createAmuletStack(io.redspace.ironsspellbooks.api.spells.AbstractSpell spell) {
+        var amulet = (SatelliteFollowcastAmulet) ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get();
+        var amuletStack = new ItemStack(amulet);
+        var spells = ISpellContainer.create(SatelliteFollowcastAmulet.MIN_SPELL_SLOTS, false, false).mutableCopy();
+        spells.addSpellAtIndex(spell, 1, 0, false);
+        ISpellContainer.set(amuletStack, spells.toImmutable());
+        return amuletStack;
     }
 
     private static FakePlayer createTrackedEquipmentTestPlayer(GameTestHelper helper, BlockPos pos, String profileName) {

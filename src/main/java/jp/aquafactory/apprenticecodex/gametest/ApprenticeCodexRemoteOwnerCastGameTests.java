@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.datagen.spell.RemoteOwnerCastSpellProfileDataGenerator;
+import jp.aquafactory.apprenticecodex.datagen.spell.SpellDispenserSpellProfileDataGenerator;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmulet;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -18,6 +19,7 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
+import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -226,6 +228,38 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
             helper.assertTrue(profile.get().castMode() == RemoteOwnerCastMode.REMOTE_ANCHOR_OWNER_MAGIC,
                     "Cone spell should use Remote Owner anchor owner mode: " + spellId);
         }
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void remoteOwnerCastDatagenUsesAnchorOwnerForSummonWeaponProfiles(GameTestHelper helper) {
+        var remoteOwnerProfiles = RemoteOwnerCastSpellProfileDataGenerator.createProfileDefinitions().stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        definition -> definition.spell(),
+                        definition -> definition.profile()
+                ));
+        var spellDispenserProfileSpells = SpellDispenserSpellProfileDataGenerator.createProfileDefinitions().stream()
+                .map(definition -> definition.spell())
+                .collect(java.util.stream.Collectors.toSet());
+        var assertedAny = false;
+
+        for (var spellEntry : jp.aquafactory.apprenticecodex.registry.SpellRegistry.SPELLS.getEntries()) {
+            var spell = spellEntry.get();
+            var spellId = spell.getSpellResource();
+            if (!(spell instanceof AbstractSummonWeaponSpell) || !spellDispenserProfileSpells.contains(spellId)) {
+                continue;
+            }
+
+            assertedAny = true;
+            var profile = Optional.ofNullable(remoteOwnerProfiles.get(spellId));
+            helper.assertTrue(profile.isPresent(),
+                    "Remote Owner Cast datagen should include summon weapon spell: " + spellId);
+            helper.assertTrue(profile.get().castMode() == RemoteOwnerCastMode.REMOTE_ANCHOR_OWNER_MAGIC,
+                    "Owner-following summon weapon should use Remote Owner anchor owner mode: " + spellId);
+        }
+
+        helper.assertTrue(assertedAny, "Remote Owner Cast datagen test did not find summon weapon profiles.");
 
         helper.succeed();
     }

@@ -2,9 +2,11 @@ package jp.aquafactory.apprenticecodex.remoteownercast;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.TraceableEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.level.Level;
@@ -17,6 +19,8 @@ import java.util.UUID;
 public final class RemoteOwnerCastAnchorEntity extends ArmorStand {
     @Nullable
     private UUID boundOwnerId;
+    @Nullable
+    private UUID retainedEntityId;
 
     public static AttributeSupplier.Builder createAttributes() {
         return RemoteOwnerCastAnchorAttributes.addSyncAttributes(LivingEntity.createLivingAttributes());
@@ -40,6 +44,7 @@ public final class RemoteOwnerCastAnchorEntity extends ArmorStand {
         this.setInvisible(true);
         this.setInvulnerable(true);
         this.setDeltaMovement(0.0D, 0.0D, 0.0D);
+        discardIfRetainedEntityEnded();
     }
 
     public void syncFromRemoteGeometry(Vec3 eyePosition, Vec3 forward) {
@@ -66,6 +71,25 @@ public final class RemoteOwnerCastAnchorEntity extends ArmorStand {
 
     public boolean isBoundOwner(Entity entity) {
         return boundOwnerId != null && boundOwnerId.equals(entity.getUUID());
+    }
+
+    public void retainWhileOwnerOf(Entity entity) {
+        retainedEntityId = entity.getUUID();
+    }
+
+    private void discardIfRetainedEntityEnded() {
+        if (retainedEntityId == null || !(level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        var retainedEntity = serverLevel.getEntity(retainedEntityId);
+        if (retainedEntity instanceof TraceableEntity traceable
+                && !retainedEntity.isRemoved()
+                && traceable.getOwner() == this) {
+            return;
+        }
+
+        discard();
     }
 
     @Override

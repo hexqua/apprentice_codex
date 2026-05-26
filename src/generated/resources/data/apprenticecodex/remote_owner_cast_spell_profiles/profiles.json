@@ -408,13 +408,13 @@
     },
     {
       "profile": {
-        "cast_mode": "remote_player_geometry"
+        "cast_mode": "remote_anchor_owner_magic"
       },
       "spell": "apprenticecodex:slash_blade"
     },
     {
       "profile": {
-        "cast_mode": "remote_player_geometry"
+        "cast_mode": "remote_anchor_owner_magic"
       },
       "spell": "apprenticecodex:precision_jack"
     },
@@ -426,7 +426,7 @@
     },
     {
       "profile": {
-        "cast_mode": "remote_player_geometry"
+        "cast_mode": "remote_anchor_owner_magic"
       },
       "spell": "apprenticecodex:thermal_process"
     },
@@ -462,19 +462,19 @@
     },
     {
       "profile": {
-        "cast_mode": "remote_player_geometry"
+        "cast_mode": "remote_anchor_owner_magic"
       },
       "spell": "apprenticecodex:breaching_enemy"
     },
     {
       "profile": {
-        "cast_mode": "remote_player_geometry"
+        "cast_mode": "remote_anchor_owner_magic"
       },
       "spell": "apprenticecodex:bullet_stream"
     },
     {
       "profile": {
-        "cast_mode": "remote_player_geometry"
+        "cast_mode": "remote_anchor_owner_magic"
       },
       "spell": "apprenticecodex:fly_swatter"
     },
@@ -492,19 +492,19 @@
     },
     {
       "profile": {
-        "cast_mode": "remote_player_geometry"
+        "cast_mode": "remote_anchor_owner_magic"
       },
       "spell": "apprenticecodex:tiny_lumberjack"
     },
     {
       "profile": {
-        "cast_mode": "remote_player_geometry"
+        "cast_mode": "remote_anchor_owner_magic"
       },
       "spell": "apprenticecodex:graced_rain"
     },
     {
       "profile": {
-        "cast_mode": "remote_player_geometry"
+        "cast_mode": "remote_anchor_owner_magic"
       },
       "spell": "apprenticecodex:world_flatter"
     },
@@ -516,7 +516,7 @@
     },
     {
       "profile": {
-        "cast_mode": "remote_player_geometry"
+        "cast_mode": "remote_anchor_owner_magic"
       },
       "spell": "apprenticecodex:grind_runner"
     },
@@ -528,7 +528,7 @@
     },
     {
       "profile": {
-        "cast_mode": "remote_player_geometry"
+        "cast_mode": "remote_anchor_owner_magic"
       },
       "spell": "apprenticecodex:moon_light"
     },
@@ -540,7 +540,7 @@
     },
     {
       "profile": {
-        "cast_mode": "remote_player_geometry"
+        "cast_mode": "remote_anchor_owner_magic"
       },
       "spell": "apprenticecodex:silent_assassin"
     },
