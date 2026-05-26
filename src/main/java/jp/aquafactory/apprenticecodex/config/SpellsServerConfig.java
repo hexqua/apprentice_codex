@@ -3,9 +3,11 @@ package jp.aquafactory.apprenticecodex.config;
 import jp.aquafactory.apprenticecodex.config.spell.AutoMagnetServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.DemicreatorWingsServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.ForceFieldServerConfig;
+import jp.aquafactory.apprenticecodex.config.spell.MistFormServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.RemoteEyeServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.RiftHoleServerConfig;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 import java.util.List;
@@ -14,6 +16,7 @@ public final class SpellsServerConfig {
     private final AutoMagnetServerConfig autoMagnetConfig;
     private final DemicreatorWingsServerConfig demicreatorWingsConfig;
     private final ForceFieldServerConfig forceFieldConfig;
+    private final MistFormServerConfig mistFormConfig;
     private final RemoteEyeServerConfig remoteEyeConfig;
     private final RiftHoleServerConfig riftHoleConfig;
 
@@ -21,12 +24,14 @@ public final class SpellsServerConfig {
             AutoMagnetServerConfig autoMagnetConfig,
             DemicreatorWingsServerConfig demicreatorWingsConfig,
             ForceFieldServerConfig forceFieldConfig,
+            MistFormServerConfig mistFormConfig,
             RemoteEyeServerConfig remoteEyeConfig,
             RiftHoleServerConfig riftHoleConfig
     ) {
         this.autoMagnetConfig = autoMagnetConfig;
         this.demicreatorWingsConfig = demicreatorWingsConfig;
         this.forceFieldConfig = forceFieldConfig;
+        this.mistFormConfig = mistFormConfig;
         this.remoteEyeConfig = remoteEyeConfig;
         this.riftHoleConfig = riftHoleConfig;
     }
@@ -36,6 +41,7 @@ public final class SpellsServerConfig {
         var autoMagnetConfig = AutoMagnetServerConfig.define(builder);
         var demicreatorWingsConfig = DemicreatorWingsServerConfig.define(builder);
         var forceFieldConfig = ForceFieldServerConfig.define(builder);
+        var mistFormConfig = MistFormServerConfig.define(builder);
         var remoteEyeConfig = RemoteEyeServerConfig.define(builder);
         var riftHoleConfig = RiftHoleServerConfig.define(builder);
         builder.pop();
@@ -44,6 +50,7 @@ public final class SpellsServerConfig {
                 autoMagnetConfig,
                 demicreatorWingsConfig,
                 forceFieldConfig,
+                mistFormConfig,
                 remoteEyeConfig,
                 riftHoleConfig
         );
@@ -79,6 +86,18 @@ public final class SpellsServerConfig {
 
     float forceFieldDrainManaBasePerHit() {
         return forceFieldConfig.drainManaBasePerHit();
+    }
+
+    boolean isMistFormPassableBlockDenied(BlockState state) {
+        return mistFormConfig.isPassableBlockDenied(state);
+    }
+
+    List<String> mistFormPassableBlockDenylist() {
+        return mistFormConfig.passableBlockDenylist();
+    }
+
+    void setMistFormPassableBlockDenylistForGameTest(List<String> passableBlockDenylist) {
+        mistFormConfig.setPassableBlockDenylistForGameTest(passableBlockDenylist);
     }
 
     boolean isRemoteEyeDimensionAllowed(ResourceLocation dimensionId) {
