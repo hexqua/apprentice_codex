@@ -73,7 +73,7 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = CONFIG_BATCH)
-    public static void remoteOwnerCastConfigDenylistBlocksFollowcast(GameTestHelper helper) {
+    public static void remoteOwnerCastConfigDenylistAllowsFollowcastFallback(GameTestHelper helper) {
         var spellId = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get().getSpellResource();
         var profile = RemoteOwnerCastProfile.REMOTE_PLAYER_GEOMETRY;
 
@@ -87,8 +87,8 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
                      true
              )) {
             var amulet = (SatelliteFollowcastAmulet) ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get();
-            helper.assertFalse(amulet.canImbueSpell(jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get(), 1),
-                    "Remote Owner Cast denylist should block Satellite Followcast Amulet imbue.");
+            helper.assertTrue(amulet.canImbueSpell(jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get(), 1),
+                    "Remote Owner Cast denylist should still allow Satellite Followcast Amulet Spell Dispenser fallback.");
         }
 
         helper.succeed();
