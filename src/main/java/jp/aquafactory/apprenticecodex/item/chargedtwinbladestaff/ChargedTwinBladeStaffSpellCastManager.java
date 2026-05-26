@@ -67,9 +67,6 @@ public final class ChargedTwinBladeStaffSpellCastManager {
         if (ownerMagicData == null) {
             return false;
         }
-        if (ApprenticeCodexServerConfig.isRemoteOwnerCastSpellDenied(spell.getSpellResource())) {
-            return false;
-        }
 
         if (ApprenticeCodexServerConfig.chargedTwinBladeStaffUsesRemoteOwnerProfiles()
                 && spell.getCastType() != CastType.CONTINUOUS) {

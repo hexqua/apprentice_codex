@@ -127,7 +127,6 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
                 && !SpellGunSpellListManager.isDenylisted(spell)
                 && !SpellDispenserSpellListManager.isDenylisted(spell)
                 && !ApprenticeCodexServerConfig.isSatelliteFollowcastAmuletSpellDenied(spell.getSpellResource())
-                && !ApprenticeCodexServerConfig.isRemoteOwnerCastSpellDenied(spell.getSpellResource())
                 && hasSupportedProxyCastProfile(spell)
                 && (spell.getCastType() != CastType.CONTINUOUS
                         || SpellDispenserSpellProfileManager.getProfile(spell).isPresent());

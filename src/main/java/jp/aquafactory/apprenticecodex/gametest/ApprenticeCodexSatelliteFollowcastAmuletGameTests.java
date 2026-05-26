@@ -76,6 +76,41 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void satelliteFollowcastAmuletRemoteOwnerDenylistFallsBackToDispenserProfile(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "satellite_followcast_remote_denylist_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Satellite Followcast remote denylist fallback test could not resolve player mana data.");
+            magicData.setMana(500.0F);
+
+            var followcastSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var triggerSpell = SpellRegistry.MAGE_LIGHT.get();
+            magicData.getSyncedData().learnSpell(followcastSpell, false);
+            magicData.getSyncedData().learnSpell(triggerSpell, false);
+            equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(followcastSpell));
+
+            try (var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
+                    true,
+                    false,
+                    List.of(),
+                    List.of(followcastSpell.getSpellResource().toString()),
+                    true,
+                    true
+            )) {
+                SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell));
+            }
+
+            var projectiles = level.getEntitiesOfClass(
+                    io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
+                    new AABB(player.position(), player.position()).inflate(16.0D)
+            );
+            helper.assertTrue(!projectiles.isEmpty(),
+                    "Satellite Followcast Amulet should fall back to Spell Dispenser profile when Remote Owner Cast is denylisted.");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void satelliteFollowcastAmuletLesserUpgradeStopsAtTwoSlots(GameTestHelper helper) {
         var amulet = (SatelliteFollowcastAmulet) ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get();
         var stack = new ItemStack(amulet);
