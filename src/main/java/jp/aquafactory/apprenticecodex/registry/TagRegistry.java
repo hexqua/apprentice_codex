@@ -42,6 +42,8 @@ public final class TagRegistry {
                 createBlockTag("tiny_lumberjack_forced_leaves");
         public static final TagKey<Block> MIST_FORM_PASSABLE =
                 createBlockTag("mist_form_passable");
+        public static final TagKey<Block> MIST_FORM_IGNORES_MOVEMENT_RESTRICTION =
+                createBlockTag("mist_form_ignores_movement_restriction");
     }
 
     public static final class Items {

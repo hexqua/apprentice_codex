@@ -427,4 +427,14 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     public static void mistFormWaterloggedPassableBlockDoesNotSnapUp(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.mistFormWaterloggedPassableBlockDoesNotSnapUp(helper);
     }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormIgnoresTaggedMovementRestrictions(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormIgnoresTaggedMovementRestrictions(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormMovementRestrictionIgnoreKeepsBlockEffects(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormMovementRestrictionIgnoreKeepsBlockEffects(helper);
+    }
 }

@@ -79,5 +79,11 @@ public final class BlockTagGenerator extends BlockTagsProvider {
                 .addTag(BlockTags.DOORS)
                 .addTag(BlockTags.TRAPDOORS)
                 .addTag(BlockTags.LEAVES);
+
+        tag(TagRegistry.Blocks.MIST_FORM_IGNORES_MOVEMENT_RESTRICTION).add(
+                Blocks.COBWEB,
+                Blocks.POWDER_SNOW,
+                Blocks.SWEET_BERRY_BUSH
+        );
     }
 }

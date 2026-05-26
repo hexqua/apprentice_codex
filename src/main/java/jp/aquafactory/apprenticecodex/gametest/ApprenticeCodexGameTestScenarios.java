@@ -209,6 +209,7 @@ import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -15119,6 +15120,46 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void mistFormIgnoresTaggedMovementRestrictions(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var normalPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "mist_form_stuck_normal_test");
+            var mistPlayer = createEquipmentTestPlayer(helper, new BlockPos(3, 2, 0),
+                    "mist_form_stuck_ignore_test");
+            mistPlayer.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+
+            for (var sample : MIST_FORM_MOVEMENT_RESTRICTION_SAMPLES) {
+                resetPlayerPosition(helper, normalPlayer, new BlockPos(0, 2, 0));
+                resetPlayerPosition(helper, mistPlayer, new BlockPos(3, 2, 0));
+
+                var normalMove = moveAfterStuckInBlock(normalPlayer, sample.state(), sample.motionMultiplier());
+                var mistMove = moveAfterStuckInBlock(mistPlayer, sample.state(), sample.motionMultiplier());
+
+                helper.assertTrue(normalMove <= sample.motionMultiplier().x + 0.01D,
+                        "Movement restriction sample should slow normal player: " + sample.name()
+                                + " move=" + normalMove);
+                helper.assertTrue(mistMove > 0.99D,
+                        "Mist Form should ignore movement restriction sample: " + sample.name()
+                                + " move=" + mistMove);
+            }
+        });
+    }
+
+    static void mistFormMovementRestrictionIgnoreKeepsBlockEffects(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var powderPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "mist_form_powder_effect_test");
+            powderPlayer.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            var powderPos = powderPlayer.blockPosition();
+            helper.getLevel().setBlock(powderPos, Blocks.POWDER_SNOW.defaultBlockState(), 3);
+            Blocks.POWDER_SNOW.defaultBlockState().entityInside(helper.getLevel(), powderPos, powderPlayer);
+            helper.assertTrue(powderPlayer.isInPowderSnow,
+                    "Mist Form should ignore powder snow movement restriction without removing powder snow state");
+
+            // makeStuckInBlock だけを止めるため、entityInside の後続処理が消えないことを粉雪で代表確認する。
+        });
+    }
+
     private static void assertMistFormModifierAmount(
             GameTestHelper helper,
             net.minecraft.world.effect.MobEffect effect,
@@ -15154,6 +15195,41 @@ public final class ApprenticeCodexGameTestScenarios {
     );
 
     private record MistFormCollisionSample(String name, BlockState state) {
+    }
+
+    private static double moveAfterStuckInBlock(Player player, BlockState state, Vec3 motionMultiplier) {
+        player.setDeltaMovement(Vec3.ZERO);
+        var beforeX = player.getX();
+        player.makeStuckInBlock(state, motionMultiplier);
+        player.move(MoverType.SELF, new Vec3(1.0D, 0.0D, 0.0D));
+        return player.getX() - beforeX;
+    }
+
+    private static void resetPlayerPosition(GameTestHelper helper, Player player, BlockPos pos) {
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        player.setDeltaMovement(Vec3.ZERO);
+    }
+
+    private static final List<MistFormMovementRestrictionSample> MIST_FORM_MOVEMENT_RESTRICTION_SAMPLES = List.of(
+            new MistFormMovementRestrictionSample(
+                    "cobweb",
+                    Blocks.COBWEB.defaultBlockState(),
+                    new Vec3(0.25D, 0.05D, 0.25D)
+            ),
+            new MistFormMovementRestrictionSample(
+                    "powder_snow",
+                    Blocks.POWDER_SNOW.defaultBlockState(),
+                    new Vec3(0.9D, 1.5D, 0.9D)
+            ),
+            new MistFormMovementRestrictionSample(
+                    "sweet_berry_bush",
+                    Blocks.SWEET_BERRY_BUSH.defaultBlockState(),
+                    new Vec3(0.8D, 0.75D, 0.8D)
+            )
+    );
+
+    private record MistFormMovementRestrictionSample(String name, BlockState state, Vec3 motionMultiplier) {
     }
 
     private static net.minecraft.world.entity.monster.Zombie createTargetingZombie(
