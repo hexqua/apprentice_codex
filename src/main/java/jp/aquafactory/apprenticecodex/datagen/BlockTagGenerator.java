@@ -70,5 +70,14 @@ public final class BlockTagGenerator extends BlockTagsProvider {
                 Blocks.WARPED_WART_BLOCK,
                 Blocks.SHROOMLIGHT
         );
+
+        // MistForm 中だけ霧が抜けても不自然でない薄い/隙間のあるブロックを通過対象にする。
+        tag(TagRegistry.Blocks.MIST_FORM_PASSABLE)
+                .add(Blocks.IRON_BARS)
+                .addTag(BlockTags.FENCES)
+                .addTag(BlockTags.FENCE_GATES)
+                .addTag(BlockTags.DOORS)
+                .addTag(BlockTags.TRAPDOORS)
+                .addTag(BlockTags.LEAVES);
     }
 }

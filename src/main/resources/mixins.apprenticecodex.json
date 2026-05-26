@@ -11,6 +11,7 @@
     "AbstractFurnaceBlockEntityMixin",
     "ArcaneAnvilMenuMixin",
     "BetterCombatPlayerAttackHelperMixin",
+    "BlockStateBaseMistFormCollisionMixin",
     "BowItemSpellcasterQuiverMixin",
     "CombatTrackerAccessor",
     "EntityRemoteOwnerCastMixin",

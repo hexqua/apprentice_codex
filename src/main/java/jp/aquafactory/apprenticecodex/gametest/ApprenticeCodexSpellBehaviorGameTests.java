@@ -412,4 +412,19 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     public static void mistFormStandsOnLiquidAndSneakSinks(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.mistFormStandsOnLiquidAndSneakSinks(helper);
     }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormPassesTaggedBlocksAndRejectsGlass(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormPassesTaggedBlocksAndRejectsGlass(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormPassableBlockDenylistBlocksIdsAndTags(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormPassableBlockDenylistBlocksIdsAndTags(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormWaterloggedPassableBlockDoesNotSnapUp(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormWaterloggedPassableBlockDoesNotSnapUp(helper);
+    }
 }

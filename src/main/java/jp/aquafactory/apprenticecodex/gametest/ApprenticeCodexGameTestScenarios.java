@@ -15053,6 +15053,72 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void mistFormPassesTaggedBlocksAndRejectsGlass(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var normalPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mist_form_collision_normal_test");
+            var mistPlayer = createEquipmentTestPlayer(helper, new BlockPos(1, 2, 0), "mist_form_collision_pass_test");
+            mistPlayer.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+
+            for (var sample : MIST_FORM_PASSABLE_COLLISION_SAMPLES) {
+                helper.assertFalse(isCollisionShapeEmptyForPlayer(helper, sample.state(), normalPlayer),
+                        "Mist Form passable sample should still collide without Mist Form: " + sample.name());
+                helper.assertTrue(isCollisionShapeEmptyForPlayer(helper, sample.state(), mistPlayer),
+                        "Mist Form should remove collision from passable sample: " + sample.name());
+            }
+
+            helper.assertFalse(isCollisionShapeEmptyForPlayer(helper, Blocks.GLASS.defaultBlockState(), mistPlayer),
+                    "Mist Form should not remove glass collision");
+        });
+    }
+
+    static void mistFormPassableBlockDenylistBlocksIdsAndTags(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mist_form_collision_deny_test");
+            player.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+
+            try (var ignored = ApprenticeCodexServerConfig.useMistFormPassableBlockDenylistOverrideForGameTest(
+                    List.of("minecraft:iron_bars")
+            )) {
+                helper.assertFalse(isCollisionShapeEmptyForPlayer(helper, Blocks.IRON_BARS.defaultBlockState(), player),
+                        "Mist Form server denylist should block a configured block ID");
+                helper.assertTrue(isCollisionShapeEmptyForPlayer(helper, Blocks.OAK_LEAVES.defaultBlockState(), player),
+                        "Mist Form server denylist should not block unrelated passable blocks");
+            }
+
+            try (var ignored = ApprenticeCodexServerConfig.useMistFormPassableBlockDenylistOverrideForGameTest(
+                    List.of("#minecraft:leaves")
+            )) {
+                helper.assertFalse(isCollisionShapeEmptyForPlayer(helper, Blocks.OAK_LEAVES.defaultBlockState(), player),
+                        "Mist Form server denylist should block a configured block tag");
+                helper.assertTrue(isCollisionShapeEmptyForPlayer(helper, Blocks.IRON_BARS.defaultBlockState(), player),
+                        "Mist Form server denylist should not block unrelated passable IDs");
+            }
+        });
+    }
+
+    static void mistFormWaterloggedPassableBlockDoesNotSnapUp(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 3, 0), "mist_form_waterlogged_passable_test");
+            var waterloggedTrapdoorPos = player.blockPosition();
+            helper.getLevel().setBlock(
+                    waterloggedTrapdoorPos,
+                    Blocks.OAK_TRAPDOOR.defaultBlockState()
+                            .setValue(net.minecraft.world.level.block.TrapDoorBlock.WATERLOGGED, true),
+                    3
+            );
+            player.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            player.setDeltaMovement(0.0D, -0.2D, 0.0D);
+
+            var yBeforeTick = player.getY();
+            jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
+                    new TickEvent.PlayerTickEvent(TickEvent.Phase.START, player)
+            );
+
+            helper.assertTrue(Math.abs(player.getY() - yBeforeTick) < 1.0E-9D,
+                    "Mist Form should not snap upward while touching fluid inside a passable waterlogged block");
+        });
+    }
+
     private static void assertMistFormModifierAmount(
             GameTestHelper helper,
             net.minecraft.world.effect.MobEffect effect,
@@ -15072,6 +15138,22 @@ public final class ApprenticeCodexGameTestScenarios {
                 message + ": expected level 0 amount " + expectedAmount);
         helper.assertTrue(Math.abs(effect.getAttributeModifierValue(9, modifier) - expectedAmount) < 1.0E-9D,
                 message + ": expected level 9 amount to remain " + expectedAmount);
+    }
+
+    private static boolean isCollisionShapeEmptyForPlayer(GameTestHelper helper, BlockState state, Player player) {
+        return state.getCollisionShape(helper.getLevel(), helper.absolutePos(BlockPos.ZERO), CollisionContext.of(player)).isEmpty();
+    }
+
+    private static final List<MistFormCollisionSample> MIST_FORM_PASSABLE_COLLISION_SAMPLES = List.of(
+            new MistFormCollisionSample("fence", Blocks.OAK_FENCE.defaultBlockState()),
+            new MistFormCollisionSample("fence_gate", Blocks.OAK_FENCE_GATE.defaultBlockState()),
+            new MistFormCollisionSample("door", Blocks.OAK_DOOR.defaultBlockState()),
+            new MistFormCollisionSample("iron_bars", Blocks.IRON_BARS.defaultBlockState()),
+            new MistFormCollisionSample("trapdoor", Blocks.OAK_TRAPDOOR.defaultBlockState()),
+            new MistFormCollisionSample("leaves", Blocks.OAK_LEAVES.defaultBlockState())
+    );
+
+    private record MistFormCollisionSample(String name, BlockState state) {
     }
 
     private static net.minecraft.world.entity.monster.Zombie createTargetingZombie(
