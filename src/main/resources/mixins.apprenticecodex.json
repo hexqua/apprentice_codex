@@ -15,6 +15,7 @@
     "BowItemSpellcasterQuiverMixin",
     "CombatTrackerAccessor",
     "EnchantRandomlyFunctionMixin",
+    "EntityMistFormMovementRestrictionMixin",
     "EntityRemoteOwnerCastMixin",
     "EasyMagicModEnchantmentMenuMixin",
     "EnchantmentMenuMixin",
