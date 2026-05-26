@@ -251,7 +251,7 @@ public final class EntityRegistry {
             reg("spell_dispenser_anchor", SpellDispenserAnchorEntity::new, MobCategory.MISC,
                     0.6f, 1.8f, 32, 1, false);
 
-    public static final RegistryObject<EntityType<RemoteOwnerCastAnchorEntity>> REMOTE_OWNER_CAST_ANCHOR =
+    public static final DeferredHolder<EntityType<?>, EntityType<RemoteOwnerCastAnchorEntity>> REMOTE_OWNER_CAST_ANCHOR =
             reg("remote_owner_cast_anchor", RemoteOwnerCastAnchorEntity::new, MobCategory.MISC,
                     0.6f, 1.8f, 32, 1, false);
 

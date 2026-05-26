@@ -21,14 +21,15 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.gametest.GameTestHolder;
-import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -166,7 +167,7 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
         var anchor = new RemoteOwnerCastAnchorEntity(EntityRegistry.REMOTE_OWNER_CAST_ANCHOR.get(), helper.getLevel());
         var expectedValues = new LinkedHashMap<Attribute, Double>();
 
-        for (var schoolType : SchoolRegistry.REGISTRY.get().getValues()) {
+        for (var schoolType : SchoolRegistry.REGISTRY) {
             var schoolPower = MagicTools.resolveSchoolPowerAttribute(schoolType);
             helper.assertTrue(schoolPower != null,
                     "Remote Owner Cast should resolve school power attribute for " + schoolType.getId());
@@ -182,7 +183,7 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
                 "Remote Owner Cast dynamic school attribute test should find registered Iron's schools");
         for (var entry : expectedValues.entrySet()) {
             setAttributeBaseValue(helper, owner, entry.getKey(), entry.getValue(), "owner school attribute");
-            helper.assertTrue(anchor.getAttribute(entry.getKey()) != null,
+            helper.assertTrue(anchor.getAttribute(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(entry.getKey())) != null,
                     "Remote Owner Cast anchor should register dynamic school attribute: " + entry.getKey());
         }
 
@@ -196,7 +197,7 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void remoteOwnerCastDatagenIncludesRaiseDeadImpactProfile(GameTestHelper helper) {
-        var raiseDeadId = requireId(SpellRegistry.RAISE_DEAD_SPELL.getId());
+        var raiseDeadId = requireId(SpellRegistry.RAISE_DEAD_SPELL.get().getSpellResource());
         var profile = RemoteOwnerCastSpellProfileDataGenerator.createProfileDefinitions().stream()
                 .filter(definition -> definition.spell().equals(raiseDeadId))
                 .map(definition -> definition.profile())
@@ -213,11 +214,11 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
     @GameTest(template = TEMPLATE)
     public static void remoteOwnerCastDatagenUsesAnchorOwnerForConeProfiles(GameTestHelper helper) {
         for (var spellId : List.of(
-                requireId(SpellRegistry.DRAGON_BREATH_SPELL.getId()),
-                requireId(SpellRegistry.FIRE_BREATH_SPELL.getId()),
-                requireId(SpellRegistry.CONE_OF_COLD_SPELL.getId()),
-                requireId(SpellRegistry.ELECTROCUTE_SPELL.getId()),
-                requireId(SpellRegistry.POISON_BREATH_SPELL.getId())
+                requireId(SpellRegistry.DRAGON_BREATH_SPELL.get().getSpellResource()),
+                requireId(SpellRegistry.FIRE_BREATH_SPELL.get().getSpellResource()),
+                requireId(SpellRegistry.CONE_OF_COLD_SPELL.get().getSpellResource()),
+                requireId(SpellRegistry.ELECTROCUTE_SPELL.get().getSpellResource()),
+                requireId(SpellRegistry.POISON_BREATH_SPELL.get().getSpellResource())
         )) {
             var profile = RemoteOwnerCastSpellProfileDataGenerator.createProfileDefinitions().stream()
                     .filter(definition -> definition.spell().equals(spellId))
@@ -271,7 +272,7 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
             double value,
             String context
     ) {
-        var instance = player.getAttribute(attribute);
+        var instance = player.getAttribute(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute));
         helper.assertTrue(instance != null, "Missing " + context + " attribute on test player");
         instance.setBaseValue(value);
     }
@@ -283,7 +284,7 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
             double expected,
             String message
     ) {
-        var instance = anchor.getAttribute(attribute);
+        var instance = anchor.getAttribute(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute));
         helper.assertTrue(instance != null, message + ": missing attribute");
         helper.assertTrue(Math.abs(instance.getValue() - expected) < 1.0E-6D,
                 message + ": " + instance.getValue() + " / expected " + expected);

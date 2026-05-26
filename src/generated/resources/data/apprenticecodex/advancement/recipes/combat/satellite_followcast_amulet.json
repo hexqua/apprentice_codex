@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "apprenticecodex:spellstained_arcane_ingot"
-            ]
+            "items": "apprenticecodex:spellstained_arcane_ingot"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_spellstained_arcane_ingot",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_spellstained_arcane_ingot"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:satellite_followcast_amulet"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

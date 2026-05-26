@@ -15,15 +15,15 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.client.event.RenderPlayerEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.client.event.RenderPlayerEvent;
 import top.theillusivec4.curios.api.CuriosApi;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class SatelliteFollowcastAmuletRenderEvent {
     private static final ResourceLocation CRYSTAL_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/satellite_followcast_crystal.png");
@@ -57,7 +57,8 @@ public final class SatelliteFollowcastAmuletRenderEvent {
         }
 
         var cameraPosition = event.getCamera().getPosition();
-        var playerPosition = player.getPosition(event.getPartialTick());
+        var partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(true);
+        var playerPosition = player.getPosition(partialTick);
         var bufferSource = minecraft.renderBuffers().bufferSource();
         var poseStack = event.getPoseStack();
 
@@ -67,18 +68,14 @@ public final class SatelliteFollowcastAmuletRenderEvent {
                 playerPosition.y - cameraPosition.y,
                 playerPosition.z - cameraPosition.z
         );
-        renderEquippedAmuletCrystals(poseStack, bufferSource, event.getPartialTick(), player);
+        renderEquippedAmuletCrystals(poseStack, bufferSource, partialTick, player);
         poseStack.popPose();
 
         bufferSource.endBatch();
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
+    public static void onClientTick(ClientTickEvent.Post event) {
         var minecraft = Minecraft.getInstance();
         if (minecraft.level == null || minecraft.player == null) {
             SatelliteFollowcastAmuletClientState.clear();

@@ -21,7 +21,7 @@
     " M "
   ],
   "result": {
-    "item": "apprenticecodex:satellite_followcast_amulet"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:satellite_followcast_amulet"
+  }
 }

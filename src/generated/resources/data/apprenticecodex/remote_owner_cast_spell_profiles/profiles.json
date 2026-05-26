@@ -410,6 +410,12 @@
       "profile": {
         "cast_mode": "remote_anchor_owner_magic"
       },
+      "spell": "apprenticecodex:feather_rush"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
       "spell": "apprenticecodex:slash_blade"
     },
     {
@@ -423,6 +429,12 @@
         "cast_mode": "remote_player_geometry"
       },
       "spell": "apprenticecodex:auto_turret"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:search_beacon"
     },
     {
       "profile": {

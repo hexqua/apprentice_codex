@@ -1,21 +1,21 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.List;
 import java.util.Objects;
 
 public final class SatelliteFollowcastAmuletServerConfig {
-    private final ForgeConfigSpec.ConfigValue<List<? extends String>> spellDenylist;
+    private final ModConfigSpec.ConfigValue<List<? extends String>> spellDenylist;
 
     private List<String> spellDenylistOverride;
 
-    private SatelliteFollowcastAmuletServerConfig(ForgeConfigSpec.ConfigValue<List<? extends String>> spellDenylist) {
+    private SatelliteFollowcastAmuletServerConfig(ModConfigSpec.ConfigValue<List<? extends String>> spellDenylist) {
         this.spellDenylist = spellDenylist;
     }
 
-    public static SatelliteFollowcastAmuletServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static SatelliteFollowcastAmuletServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("SatelliteFollowcastAmulet");
         var spellDenylist = builder
                 .comment("Spell IDs blocked only for Satellite Followcast Amulet imbue and followcast. Entries use \"modid:path\".")

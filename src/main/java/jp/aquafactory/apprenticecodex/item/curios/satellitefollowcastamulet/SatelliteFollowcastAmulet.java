@@ -19,6 +19,8 @@ import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownPolicyItem;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
@@ -29,9 +31,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.SlotContext;
@@ -89,7 +91,7 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
     }
 
     @Override
-    public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
+    public List<Component> getSlotsTooltip(List<Component> tooltips, Item.@NotNull TooltipContext context, ItemStack stack) {
         tooltips.add(Component.empty());
         tooltips.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
         tooltips.add(Component.literal(" ")
@@ -103,9 +105,9 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+        super.appendHoverText(stack, context, lines, flag);
         appendFollowcastTooltip(lines);
     }
 
@@ -238,7 +240,7 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
     }
 
     public static boolean isSupportedSpellSlotUpgrade(SpellSlotUpgradeItem upgradeItem) {
-        var itemId = ForgeRegistries.ITEMS.getKey(upgradeItem);
+        var itemId = BuiltInRegistries.ITEM.getKey(upgradeItem);
         return LESSER_SPELL_SLOT_UPGRADE_ID.equals(itemId);
     }
 
@@ -270,10 +272,11 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
 
     public static int advanceAndGetSearchStartIndex(ItemStack stack, int maxSpellSlots) {
         var clampedSlots = clampSpellSlotCount(maxSpellSlots);
-        var tag = stack.getOrCreateTag();
-        var current = tag.contains(NEXT_SEARCH_INDEX_TAG) ? tag.getInt(NEXT_SEARCH_INDEX_TAG) : -1;
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        var tag = customData == null ? null : customData.copyTag();
+        var current = tag != null && tag.contains(NEXT_SEARCH_INDEX_TAG) ? tag.getInt(NEXT_SEARCH_INDEX_TAG) : -1;
         var next = Math.floorMod(current + 1, clampedSlots);
-        tag.putInt(NEXT_SEARCH_INDEX_TAG, next);
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, nextTag -> nextTag.putInt(NEXT_SEARCH_INDEX_TAG, next));
         return next;
     }
 

@@ -90,9 +90,9 @@ public final class MagicTools {
         }
 
         if (schoolType instanceof SchoolTypeAccessor accessor) {
-            var supplier = accessor.apprenticecodex$getResistanceAttribute();
-            if (supplier != null) {
-                var resolved = supplier.get();
+            var holder = accessor.apprenticecodex$getResistanceAttribute();
+            if (holder != null) {
+                var resolved = holder.value();
                 if (resolved != null) {
                     return resolved;
                 }
@@ -102,7 +102,7 @@ public final class MagicTools {
         var schoolId = schoolType.getId();
         var fallbackAttributeId = SCHOOL_RESIST_ATTRIBUTE_FALLBACK_MAP.get(schoolId);
         if (fallbackAttributeId != null) {
-            var fallbackAttribute = ForgeRegistries.ATTRIBUTES.getValue(fallbackAttributeId);
+            var fallbackAttribute = BuiltInRegistries.ATTRIBUTE.getOptional(fallbackAttributeId).orElse(null);
             if (fallbackAttribute != null) {
                 return fallbackAttribute;
             }
@@ -113,7 +113,7 @@ public final class MagicTools {
                 schoolId.getNamespace(),
                 schoolId.getPath() + "_magic_resist"
         );
-        return ForgeRegistries.ATTRIBUTES.getValue(guessedAttributeId);
+        return BuiltInRegistries.ATTRIBUTE.getOptional(guessedAttributeId).orElse(null);
     }
 
     public static int resolveSchoolTintColor(@Nullable SchoolType schoolType) {

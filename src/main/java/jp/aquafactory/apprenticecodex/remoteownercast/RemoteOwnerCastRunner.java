@@ -10,7 +10,6 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
 import io.redspace.ironsspellbooks.entity.spells.AbstractConeProjectile;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
-import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import io.redspace.ironsspellbooks.spells.EntityCastData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
@@ -28,8 +27,10 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.util.FakePlayerFactory;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.util.FakePlayerFactory;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -180,7 +181,7 @@ public final class RemoteOwnerCastRunner {
             return ContinuousCastStartResult.failed();
         }
         if (postSpellPreCastEvent
-                && MinecraftForge.EVENT_BUS.post(new SpellPreCastEvent(owner, spell.getSpellId(), spellData.getLevel(), spell.getSchoolType(), castSource))) {
+                && NeoForge.EVENT_BUS.post(new SpellPreCastEvent(owner, spell.getSpellId(), spellData.getLevel(), spell.getSchoolType(), castSource)).isCanceled()) {
             return ContinuousCastStartResult.failed();
         }
 
@@ -545,7 +546,7 @@ public final class RemoteOwnerCastRunner {
             return CastResult.failed();
         }
         if (postSpellPreCastEvent
-                && MinecraftForge.EVENT_BUS.post(new SpellPreCastEvent(owner, spell.getSpellId(), spellData.getLevel(), spell.getSchoolType(), castSource))) {
+                && NeoForge.EVENT_BUS.post(new SpellPreCastEvent(owner, spell.getSpellId(), spellData.getLevel(), spell.getSchoolType(), castSource)).isCanceled()) {
             discardAnchorIfUnused(spellCasterAnchor);
             return CastResult.failed();
         }
@@ -657,7 +658,7 @@ public final class RemoteOwnerCastRunner {
         }
     }
 
-    private static net.minecraftforge.common.util.FakePlayer createProxy(
+    private static FakePlayer createProxy(
             ServerLevel level,
             ServerPlayer owner,
             Vec3 eyePosition,

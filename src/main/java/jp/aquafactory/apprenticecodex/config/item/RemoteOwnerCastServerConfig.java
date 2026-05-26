@@ -1,18 +1,18 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.List;
 import java.util.Objects;
 
 public final class RemoteOwnerCastServerConfig {
-    private final ForgeConfigSpec.BooleanValue enableRemotePlayerGeometry;
-    private final ForgeConfigSpec.BooleanValue forceProxyOwnerMagic;
-    private final ForgeConfigSpec.ConfigValue<List<? extends String>> remotePlayerGeometryDenylist;
-    private final ForgeConfigSpec.ConfigValue<List<? extends String>> remoteOwnerCastDenylist;
-    private final ForgeConfigSpec.BooleanValue satelliteFollowcastUsesRemoteOwnerProfiles;
-    private final ForgeConfigSpec.BooleanValue chargedTwinBladeStaffUsesRemoteOwnerProfiles;
+    private final ModConfigSpec.BooleanValue enableRemotePlayerGeometry;
+    private final ModConfigSpec.BooleanValue forceProxyOwnerMagic;
+    private final ModConfigSpec.ConfigValue<List<? extends String>> remotePlayerGeometryDenylist;
+    private final ModConfigSpec.ConfigValue<List<? extends String>> remoteOwnerCastDenylist;
+    private final ModConfigSpec.BooleanValue satelliteFollowcastUsesRemoteOwnerProfiles;
+    private final ModConfigSpec.BooleanValue chargedTwinBladeStaffUsesRemoteOwnerProfiles;
 
     private Boolean enableRemotePlayerGeometryOverride;
     private Boolean forceProxyOwnerMagicOverride;
@@ -22,12 +22,12 @@ public final class RemoteOwnerCastServerConfig {
     private Boolean chargedTwinBladeStaffUsesRemoteOwnerProfilesOverride;
 
     private RemoteOwnerCastServerConfig(
-            ForgeConfigSpec.BooleanValue enableRemotePlayerGeometry,
-            ForgeConfigSpec.BooleanValue forceProxyOwnerMagic,
-            ForgeConfigSpec.ConfigValue<List<? extends String>> remotePlayerGeometryDenylist,
-            ForgeConfigSpec.ConfigValue<List<? extends String>> remoteOwnerCastDenylist,
-            ForgeConfigSpec.BooleanValue satelliteFollowcastUsesRemoteOwnerProfiles,
-            ForgeConfigSpec.BooleanValue chargedTwinBladeStaffUsesRemoteOwnerProfiles
+            ModConfigSpec.BooleanValue enableRemotePlayerGeometry,
+            ModConfigSpec.BooleanValue forceProxyOwnerMagic,
+            ModConfigSpec.ConfigValue<List<? extends String>> remotePlayerGeometryDenylist,
+            ModConfigSpec.ConfigValue<List<? extends String>> remoteOwnerCastDenylist,
+            ModConfigSpec.BooleanValue satelliteFollowcastUsesRemoteOwnerProfiles,
+            ModConfigSpec.BooleanValue chargedTwinBladeStaffUsesRemoteOwnerProfiles
     ) {
         this.enableRemotePlayerGeometry = enableRemotePlayerGeometry;
         this.forceProxyOwnerMagic = forceProxyOwnerMagic;
@@ -37,7 +37,7 @@ public final class RemoteOwnerCastServerConfig {
         this.chargedTwinBladeStaffUsesRemoteOwnerProfiles = chargedTwinBladeStaffUsesRemoteOwnerProfiles;
     }
 
-    public static RemoteOwnerCastServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static RemoteOwnerCastServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("RemoteOwnerCast");
         var enableRemotePlayerGeometry = builder
                 .comment("Enables remote_player_geometry casts. Disable this to downgrade those profiles to proxy_owner_magic before casting.")
