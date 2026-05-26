@@ -30,6 +30,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatState
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSchoolAffinityAssignmentsPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncSatelliteFollowcastAmuletStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSmashcastScepterReadyStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncTamersPocketCountPacket;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -42,7 +43,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "30";
+    private static final String PROTOCOL_VERSION = "31";
 
     private Networks() {
     }
@@ -202,6 +203,11 @@ public final class Networks {
                 SyncSmashcastScepterReadyStatePacket.TYPE,
                 SyncSmashcastScepterReadyStatePacket.STREAM_CODEC,
                 SyncSmashcastScepterReadyStatePacket::handle
+        );
+        registrar.playToClient(
+                SyncSatelliteFollowcastAmuletStatePacket.TYPE,
+                SyncSatelliteFollowcastAmuletStatePacket.STREAM_CODEC,
+                SyncSatelliteFollowcastAmuletStatePacket::handle
         );
         registrar.playToClient(
                 SenseEvilHighlightsPacket.TYPE,

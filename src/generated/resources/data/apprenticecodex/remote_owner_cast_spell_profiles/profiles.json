@@ -1,0 +1,914 @@
+{
+  "values": [
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:acupuncture"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:blood_needles"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:blood_slash"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:devour"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:wither_skull"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:sculk_tentacles"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:sonic_boom"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:black_hole"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "irons_spellbooks:dragon_breath"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:magic_arrow"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:magic_missile"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:shadow_slash"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:starfall"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:arrow_volley"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:chain_creeper"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:fang_strike"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:fang_ward"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:firecracker"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:gust"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:lob_creeper"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:shield"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:slow"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:spectral_hammer"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:blaze_storm"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:fire_arrow"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "irons_spellbooks:fire_breath"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:fireball"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:firebolt"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:flaming_strike"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:magma_bomb"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:scorch"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:blessing_of_life"
+    },
+    {
+      "profile": {
+        "allow_initial_recast": true,
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:cleanse"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:divine_smite"
+    },
+    {
+      "profile": {
+        "allow_initial_recast": true,
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:fortify"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:guiding_bolt"
+    },
+    {
+      "profile": {
+        "allow_initial_recast": true,
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:haste"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:healing_circle"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:sunbeam"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:wisp"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "irons_spellbooks:cone_of_cold"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:frostwave"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:ice_block"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:ice_spikes"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:icicle"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:ray_of_frost"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:snowball"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:ball_lightning"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:chain_lightning"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "irons_spellbooks:electrocute"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:lightning_bolt"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:lightning_lance"
+    },
+    {
+      "profile": {
+        "allow_initial_recast": true,
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:shockwave"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:acid_orb"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:blight"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:earthquake"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:firefly_swarm"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:poison_arrow"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "irons_spellbooks:poison_breath"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:poison_splash"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:root"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:stomp"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:touch_dig"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:arcane_blast"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:arcane_beam"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "apprenticecodex:feather_rush"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "apprenticecodex:slash_blade"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "apprenticecodex:precision_jack"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:auto_turret"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:search_beacon"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "apprenticecodex:thermal_process"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:mage_light"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:force_field"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:illuminate_stellar"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:unite_luna"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:sky_edge"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "apprenticecodex:breaching_enemy"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "apprenticecodex:bullet_stream"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "apprenticecodex:fly_swatter"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:shock"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:compound_phial"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "apprenticecodex:tiny_lumberjack"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "apprenticecodex:graced_rain"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "apprenticecodex:world_flatter"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:earth_forge"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "apprenticecodex:grind_runner"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:harvest_moon"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "apprenticecodex:moon_light"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:tiro_volley"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "apprenticecodex:silent_assassin"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:magic_spear"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:frost_rune"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:blood_step"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:heartstop"
+    },
+    {
+      "profile": {
+        "allow_initial_recast": true,
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:raise_dead"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:planar_sight"
+    },
+    {
+      "profile": {
+        "allow_initial_recast": true,
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:counterspell"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:echoing_strikes"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:evasion"
+    },
+    {
+      "profile": {
+        "allow_initial_recast": true,
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:summon_swords"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:invisibility"
+    },
+    {
+      "profile": {
+        "allow_initial_recast": true,
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:summon_horse"
+    },
+    {
+      "profile": {
+        "allow_initial_recast": true,
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:summon_vex"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:burning_dash"
+    },
+    {
+      "profile": {
+        "allow_initial_recast": true,
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:heat_surge"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:angel_wing"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:greater_heal"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:heal"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:ice_tomb"
+    },
+    {
+      "profile": {
+        "allow_initial_recast": true,
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "irons_spellbooks:summon_polar_bear"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:ascension"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:charge"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:volt_strike"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:gluttony"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:oakskin"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:spider_aspect"
+    },
+    {
+      "profile": {
+        "allow_initial_recast": true,
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:archer_multiple"
+    },
+    {
+      "profile": {
+        "allow_initial_recast": true,
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:higanbana"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "apprenticecodex:auto_magnet"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "apprenticecodex:companion_trunk"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "apprenticecodex:sense_evil"
+    },
+    {
+      "profile": {
+        "allow_initial_recast": true,
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:commence_fire"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "apprenticecodex:deep_sensor"
+    },
+    {
+      "profile": {
+        "allowed_cast_origins": [
+          "charged_twin_blade_staff_impact"
+        ],
+        "cast_mode": "player_self",
+        "direction_mode": "player_look",
+        "origin_mode": "player_self"
+      },
+      "spell": "apprenticecodex:spectral_wing"
+    }
+  ]
+}

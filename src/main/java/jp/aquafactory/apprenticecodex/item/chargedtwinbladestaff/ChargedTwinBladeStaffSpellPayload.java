@@ -3,13 +3,21 @@ package jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfileManager;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 public record ChargedTwinBladeStaffSpellPayload(
         @Nullable ResourceLocation spellId,
@@ -84,9 +92,14 @@ public record ChargedTwinBladeStaffSpellPayload(
             return EMPTY;
         }
 
-        var profile = ChargedTwinBladeStaffSpellProfileManager.getProfile(spell);
+        var remoteProfile = ApprenticeCodexServerConfig.chargedTwinBladeStaffUsesRemoteOwnerProfiles()
+                ? RemoteOwnerCastProfileManager.getUsableProfile(
+                        spell,
+                        RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT
+                )
+                : Optional.<RemoteOwnerCastProfile>empty();
         var hasRecast = spell.getRecastCount(selection.spellData.getLevel(), player) > 0;
-        if (hasRecast && profile.filter(ChargedTwinBladeStaffSpellProfile::allowInitialRecast).isEmpty()) {
+        if (hasRecast && !canStartInitialRecast(spell, remoteProfile)) {
             return EMPTY;
         }
         if (hasRecast && MagicData.getPlayerMagicData(player).getPlayerRecasts().hasRecastForSpell(spell)) {
@@ -99,5 +112,12 @@ public record ChargedTwinBladeStaffSpellPayload(
                 selection.getCastSource().name(),
                 selection.slot
         );
+    }
+
+    private static boolean canStartInitialRecast(AbstractSpell spell, Optional<RemoteOwnerCastProfile> remoteProfile) {
+        if (remoteProfile.isPresent()) {
+            return remoteProfile.get().allowInitialRecast();
+        }
+        return SpellDispenserSpellProfileManager.getProfile(spell).isPresent();
     }
 }

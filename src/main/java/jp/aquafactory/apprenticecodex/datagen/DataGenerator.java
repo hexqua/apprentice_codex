@@ -7,7 +7,6 @@ import jp.aquafactory.apprenticecodex.datagen.recipe.MalumSpiritRepairRecipeData
 import jp.aquafactory.apprenticecodex.datagen.recipe.SpellcasterWorkbenchRecipeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.ElementalBowModeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.AutocastAmuletSpellListDataGenerator;
-import jp.aquafactory.apprenticecodex.datagen.spell.ChargedTwinBladeStaffSpellProfileDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.ScrollcasterSchoolRuneOverrideDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SchoolAffinityCatalystOverrideDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SchoolAffinitySelectionPolicyDataGenerator;
@@ -15,6 +14,7 @@ import jp.aquafactory.apprenticecodex.datagen.spell.SearchBeaconTargetDataGenera
 import jp.aquafactory.apprenticecodex.datagen.spell.SenseEvilHighlightDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.MulticastEchoStaffAttackProfileDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.MulticastEchoStaffMobEffectProfileDataGenerator;
+import jp.aquafactory.apprenticecodex.datagen.spell.RemoteOwnerCastSpellProfileDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SpellDispenserSpellListDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SpellDispenserSpellProfileDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SpellGunSpellListDataGenerator;
@@ -47,7 +47,7 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), new EnchantmentTagGenerator(output, datapackProvider.getRegistryProvider(), existing));
         generator.addProvider(event.includeServer(), new SpellDispenserSpellListDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new SpellDispenserSpellProfileDataGenerator(output, lookupProvider, existing));
-        generator.addProvider(event.includeServer(), new ChargedTwinBladeStaffSpellProfileDataGenerator(output, lookupProvider, existing));
+        generator.addProvider(event.includeServer(), new RemoteOwnerCastSpellProfileDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new MulticastEchoStaffAttackProfileDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new MulticastEchoStaffMobEffectProfileDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new SpellGunSpellListDataGenerator(output, lookupProvider, existing));

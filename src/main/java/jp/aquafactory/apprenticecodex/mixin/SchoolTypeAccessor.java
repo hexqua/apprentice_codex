@@ -10,4 +10,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface SchoolTypeAccessor {
     @Accessor(value = "powerAttribute", remap = false)
     Holder<Attribute> apprenticecodex$getPowerAttribute();
+
+    @Accessor(value = "resistanceAttribute", remap = false)
+    Holder<Attribute> apprenticecodex$getResistanceAttribute();
 }

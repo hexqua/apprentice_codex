@@ -535,7 +535,20 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
-    options.compilerArgs.addAll(['-Xlint:removal', '-Werror'])
+}
+
+tasks.register('checkProjectRemovalWarnings', JavaCompile) {
+    group = 'verification'
+    description = 'Fails on @Deprecated(forRemoval = true) API usage in project Java sources only.'
+
+    source = sourceSets.main.java
+    classpath = sourceSets.main.compileClasspath
+    destinationDirectory = layout.buildDirectory.dir('tmp/checkProjectRemovalWarnings/classes')
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    options.encoding = 'UTF-8'
+    options.compilerArgs.addAll(['-proc:none', '-Xlint:none', '-Xlint:removal', '-Werror'])
 }
 
 def removalWarningSuppressionFiles = fileTree(layout.projectDirectory.dir('src/main/java')) {
@@ -577,6 +590,7 @@ tasks.register('checkRemovalWarningSuppressions') {
 }
 
 tasks.named('check').configure {
+    dependsOn tasks.named('checkProjectRemovalWarnings')
     dependsOn tasks.named('checkRemovalWarningSuppressions')
 }
 
