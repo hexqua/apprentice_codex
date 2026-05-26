@@ -12,6 +12,7 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
@@ -45,6 +46,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
@@ -97,6 +99,7 @@ import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDe
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightManaCostDiscountEvent;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightSpellSupport;
 import jp.aquafactory.apprenticecodex.item.curios.manashieldcharm.ManaShieldCharm;
+import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverPickupEvent;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
@@ -161,6 +164,7 @@ import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
@@ -4011,6 +4015,147 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Isekai Travel Guidebook should not add spellbook attributes: " + modifiers);
         });
     }
+
+    static void spellStainedRunicTabletUsesDefaultServerConfigValues(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (SpellStainedRunicTablet) ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get();
+            var stack = createSpellStainedRunicTabletStack(
+                    helper,
+                    spellEntry(SpellRegistry.HIGANBANA.get(), SpellRarity.COMMON),
+                    spellEntry(SpellRegistry.FROST_RUNE.get(), SpellRarity.UNCOMMON),
+                    spellEntry(SpellRegistry.THERMAL_PROCESS.get(), SpellRarity.RARE),
+                    spellEntry(SpellRegistry.FORCE_FIELD.get(), SpellRarity.EPIC),
+                    spellEntry(SpellRegistry.PALETTE_SHIFT.get(), SpellRarity.LEGENDARY),
+                    spellEntry(SpellRegistry.QUICK_ARMS.get(), SpellRarity.COMMON)
+            );
+            var slotContext = createSpellbookSlotContext(helper);
+            var expected = resolveExpectedSpellStainedRunicTabletAttributes(helper, stack);
+
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA,
+                    expected.maxMana(),
+                    AttributeModifier.Operation.ADD_VALUE,
+                    "Spell-stained Runic Tablet max mana default config mismatch"
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER,
+                    expected.generalSpellPower(),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                    "Spell-stained Runic Tablet general spell power default config mismatch"
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION,
+                    expected.cooldownReduction(),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                    "Spell-stained Runic Tablet cooldown reduction default config mismatch"
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION,
+                    expected.castTimeReduction(),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                    "Spell-stained Runic Tablet cast time reduction should not start below duplicate threshold"
+            );
+            for (var entry : expected.schoolSpellPower().entrySet()) {
+                assertCurioModifierAmount(
+                        helper,
+                        item,
+                        slotContext,
+                        stack,
+                        entry.getKey(),
+                        entry.getValue(),
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                        "Spell-stained Runic Tablet school spell power default config mismatch"
+                );
+            }
+        });
+    }
+
+    static void spellStainedRunicTabletAcceptsNegativeServerConfigValues(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var values = new SpellStainedRunicTabletServerConfig.Values(
+                    sameRarityBonuses(-2.0D),
+                    sameRarityBonuses(-0.07D),
+                    sameRarityBonuses(-0.08D),
+                    new SpellStainedRunicTabletServerConfig.ScalingBonus(1, -0.25D, 0.0D),
+                    new SpellStainedRunicTabletServerConfig.ScalingBonus(1, -0.50D, 0.0D)
+            );
+
+            try (var ignored = ApprenticeCodexServerConfig.useSpellStainedRunicTabletConfigOverrideForGameTest(values)) {
+                var item = (SpellStainedRunicTablet) ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get();
+                var stack = createSpellStainedRunicTabletStack(
+                        helper,
+                        spellEntry(SpellRegistry.HIGANBANA.get(), SpellRarity.COMMON)
+                );
+                var slotContext = createSpellbookSlotContext(helper);
+
+                assertCurioModifierAmount(
+                        helper,
+                        item,
+                        slotContext,
+                        stack,
+                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA,
+                        -2.0D,
+                        AttributeModifier.Operation.ADD_VALUE,
+                        "Spell-stained Runic Tablet negative max mana config mismatch"
+                );
+                assertCurioModifierAmount(
+                        helper,
+                        item,
+                        slotContext,
+                        stack,
+                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER,
+                        -0.08D,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                        "Spell-stained Runic Tablet negative general spell power config mismatch"
+                );
+                assertCurioModifierAmount(
+                        helper,
+                        item,
+                        slotContext,
+                        stack,
+                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION,
+                        -0.25D,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                        "Spell-stained Runic Tablet negative cooldown reduction config mismatch"
+                );
+                assertCurioModifierAmount(
+                        helper,
+                        item,
+                        slotContext,
+                        stack,
+                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION,
+                        -0.50D,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                        "Spell-stained Runic Tablet negative cast time reduction config mismatch"
+                );
+                assertSpellStainedRunicTabletSchoolPower(
+                        helper,
+                        item,
+                        slotContext,
+                        stack,
+                        SpellRegistry.HIGANBANA.get(),
+                        -0.07D
+                );
+            }
+        });
+    }
+
     static void explorersCodexGuidebookTransferRecipeMovesFixedSpellsAndKeepsExplorersData(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var recipe = getExplorersCodexGuidebookTransferRecipe(helper);
@@ -16546,6 +16691,140 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
                 message + ": expected stacked amount " + expectedAmount + " but got " + actualAmount
                         + " modifiers=" + describeModifiers(modifiers));
+    }
+
+    private static void assertSpellStainedRunicTabletSchoolPower(
+            GameTestHelper helper,
+            SpellStainedRunicTablet item,
+            top.theillusivec4.curios.api.SlotContext slotContext,
+            ItemStack stack,
+            AbstractSpell spell,
+            double expectedAmount
+    ) {
+        var attribute = MagicTools.resolveSchoolPowerAttribute(spell.getSchoolType());
+        helper.assertTrue(attribute != null, "Could not resolve school spell power attribute for " + spell.getSpellResource());
+        assertCurioModifierAmount(
+                helper,
+                item,
+                slotContext,
+                stack,
+                BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute),
+                expectedAmount,
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                "Spell-stained Runic Tablet school spell power mismatch for " + spell.getSpellResource()
+        );
+    }
+
+    private static ItemStack createSpellStainedRunicTabletStack(GameTestHelper helper, SpellEntry... entries) {
+        var item = (SpellStainedRunicTablet) ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get();
+        var stack = new ItemStack(item);
+        item.initializeSpellContainer(stack);
+        helper.assertTrue(ISpellContainer.isSpellContainer(stack),
+                "Spell-stained Runic Tablet did not initialize a spell container");
+
+        var spellContainer = ISpellContainer.get(stack);
+        helper.assertTrue(spellContainer != null, "Spell-stained Runic Tablet spell container is null");
+        helper.assertTrue(spellContainer.getMaxSpellCount() >= entries.length,
+                "Spell-stained Runic Tablet test needs " + entries.length + " slots but got "
+                        + spellContainer.getMaxSpellCount());
+
+        var mutable = spellContainer.mutableCopy();
+        for (var index = 0; index < entries.length; ++index) {
+            var entry = entries[index];
+            var level = entry.spell().getMinLevelForRarity(entry.rarity());
+            helper.assertTrue(level > 0,
+                    "Cannot prepare " + entry.rarity() + " rarity for " + entry.spell().getSpellResource());
+            helper.assertTrue(mutable.addSpellAtIndex(entry.spell(), level, index, false),
+                    "Failed to add Spell-stained Runic Tablet test spell " + entry.spell().getSpellResource()
+                            + " at index " + index);
+        }
+        ISpellContainer.set(stack, mutable.toImmutable());
+
+        var preparedContainer = ISpellContainer.get(stack);
+        helper.assertTrue(preparedContainer != null, "Prepared Spell-stained Runic Tablet spell container is null");
+        for (var index = 0; index < entries.length; ++index) {
+            var spellData = preparedContainer.getSpellAtIndex(index);
+            var expected = entries[index];
+            helper.assertTrue(spellData.getSpell() == expected.spell(),
+                    "Prepared Spell-stained Runic Tablet spell mismatch at index " + index
+                            + ": expected " + expected.spell().getSpellResource()
+                            + " but got " + spellData.getSpell().getSpellResource() + " " + spellData.getRarity());
+        }
+
+        return stack;
+    }
+
+    private static ExpectedSpellStainedRunicTabletAttributes resolveExpectedSpellStainedRunicTabletAttributes(
+            GameTestHelper helper,
+            ItemStack stack
+    ) {
+        var spellContainer = ISpellContainer.get(stack);
+        helper.assertTrue(spellContainer != null, "Missing Spell-stained Runic Tablet spell container for expected attributes");
+        var values = ApprenticeCodexServerConfig.spellStainedRunicTabletConfig();
+        double maxMana = 0.0D;
+        double generalSpellPower = 0.0D;
+        var schoolSpellPower = new LinkedHashMap<Holder<Attribute>, Double>();
+        var schoolSpellCounts = new LinkedHashMap<String, Integer>();
+
+        for (var spellSlot : spellContainer.getActiveSpells()) {
+            var spellData = spellSlot.spellData();
+            var rarity = spellData.getRarity();
+            var schoolType = spellData.getSpell().getSchoolType();
+            maxMana += values.maxMana().forRarity(rarity);
+            generalSpellPower += values.generalSpellPower().forRarity(rarity);
+            schoolSpellCounts.merge(schoolType.getId().toString(), 1, Integer::sum);
+
+            var schoolAttribute = MagicTools.resolveSchoolPowerAttribute(schoolType);
+            if (schoolAttribute != null) {
+                schoolSpellPower.merge(
+                        BuiltInRegistries.ATTRIBUTE.wrapAsHolder(schoolAttribute),
+                        values.schoolSpellPower().forRarity(rarity),
+                        Double::sum
+                );
+            }
+        }
+
+        var topSchoolCount = schoolSpellCounts.values().stream()
+                .mapToInt(Integer::intValue)
+                .max()
+                .orElse(0);
+        return new ExpectedSpellStainedRunicTabletAttributes(
+                maxMana,
+                generalSpellPower,
+                schoolSpellPower,
+                values.cooldownReduction().resolve(schoolSpellCounts.size()),
+                values.castTimeReduction().resolve(topSchoolCount)
+        );
+    }
+
+    private static top.theillusivec4.curios.api.SlotContext createSpellbookSlotContext(GameTestHelper helper) {
+        return new top.theillusivec4.curios.api.SlotContext(
+                io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
+                helper.spawn(net.minecraft.world.entity.EntityType.PIG, new BlockPos(0, 2, 0)),
+                0,
+                false,
+                true
+        );
+    }
+
+    private static SpellEntry spellEntry(AbstractSpell spell, SpellRarity rarity) {
+        return new SpellEntry(spell, rarity);
+    }
+
+    private static SpellStainedRunicTabletServerConfig.RarityBonuses sameRarityBonuses(double value) {
+        return new SpellStainedRunicTabletServerConfig.RarityBonuses(value, value, value, value, value, value);
+    }
+
+    private record SpellEntry(AbstractSpell spell, SpellRarity rarity) {
+    }
+
+    private record ExpectedSpellStainedRunicTabletAttributes(
+            double maxMana,
+            double generalSpellPower,
+            Map<Holder<Attribute>, Double> schoolSpellPower,
+            double cooldownReduction,
+            double castTimeReduction
+    ) {
     }
 
     private static void assertScrollcasterGauntletSpellPower(
