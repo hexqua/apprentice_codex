@@ -115,6 +115,16 @@ public final class ApprenticeCodexFlaskAndGuidebookGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellStainedRunicTabletUsesDefaultServerConfigValues(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellStainedRunicTabletUsesDefaultServerConfigValues(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellStainedRunicTabletAcceptsNegativeServerConfigValues(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellStainedRunicTabletAcceptsNegativeServerConfigValues(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void explorersCodexGuidebookTransferRecipeMovesFixedSpellsAndKeepsExplorersData(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.explorersCodexGuidebookTransferRecipeMovesFixedSpellsAndKeepsExplorersData(helper);
     }

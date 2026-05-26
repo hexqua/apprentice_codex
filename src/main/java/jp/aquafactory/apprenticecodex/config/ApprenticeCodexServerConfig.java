@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.config;
 
+import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -589,6 +590,10 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.isScrollcasterGauntletCompatAdditionalAllowedEnchantment(enchantmentId);
     }
 
+    public static SpellStainedRunicTabletServerConfig.Values spellStainedRunicTabletConfig() {
+        return ITEMS_CONFIG.spellStainedRunicTabletConfig();
+    }
+
     public static GameTestConfigOverride useFocusStaffbowConfigOverrideForGameTest(
             boolean enableContinuousFocusedCast,
             boolean enableManaLoan,
@@ -891,6 +896,14 @@ public final class ApprenticeCodexServerConfig {
                 previousDeniedEnchantments,
                 previousCompatAdditionalAllowedEnchantments
         );
+    }
+
+    public static GameTestConfigOverride useSpellStainedRunicTabletConfigOverrideForGameTest(
+            SpellStainedRunicTabletServerConfig.Values values
+    ) {
+        var previousValues = ITEMS_CONFIG.spellStainedRunicTabletConfig();
+        ITEMS_CONFIG.setSpellStainedRunicTabletConfigForGameTest(values);
+        return () -> ITEMS_CONFIG.setSpellStainedRunicTabletConfigForGameTest(previousValues);
     }
 
     public static float forceFieldDrainManaBasePerHit() {
