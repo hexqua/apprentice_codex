@@ -4,10 +4,10 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
-import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.item.SpellBook;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -22,16 +22,6 @@ import java.util.UUID;
 public class SpellStainedRunicTablet extends SpellBook implements IJeiInfoItem {
     private static final String MODIFIER_NAME_PREFIX = "apprenticecodex.spellstained_runic_tablet.";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.spellstained_runic_tablet.desc_";
-    private static final double BASE_MAX_MANA_PER_SPELL = 15.0D;
-    private static final double EPIC_MAX_MANA_PER_SPELL = 20.0D;
-    private static final double LEGENDARY_MAX_MANA_PER_SPELL = 25.0D;
-    private static final double BASE_SCHOOL_POWER_PER_SPELL = 0.02D;
-    private static final double LEGENDARY_SCHOOL_POWER_PER_SPELL = 0.03D;
-    private static final double LEGENDARY_GLOBAL_SPELL_POWER_PER_SPELL = 0.01D;
-    private static final double COOLDOWN_REDUCTION_PER_SCHOOL = 0.03D;
-    private static final double CAST_TIME_REDUCTION_AT_LV1 = 0.10D;
-    private static final double CAST_TIME_REDUCTION_AT_LV2 = 0.25D;
-    private static final double CAST_TIME_REDUCTION_AT_LV3 = 0.50D;
 
     public SpellStainedRunicTablet() {
         super(8);
@@ -82,6 +72,7 @@ public class SpellStainedRunicTablet extends SpellBook implements IJeiInfoItem {
         double globalSpellPowerBonus = 0.0D;
         var schoolSpellPowerBonuses = new HashMap<Attribute, Double>();
         var schoolSpellCounts = new HashMap<String, Integer>();
+        var config = ApprenticeCodexServerConfig.spellStainedRunicTabletConfig();
 
         for (var spellSlot : activeSpells) {
             var spellData = spellSlot.spellData();
@@ -90,32 +81,25 @@ public class SpellStainedRunicTablet extends SpellBook implements IJeiInfoItem {
             var schoolType = spell.getSchoolType();
             var schoolAttribute = MagicTools.resolveSchoolPowerAttribute(schoolType);
 
-            maxManaBonus += switch (rarity) {
-                case LEGENDARY -> LEGENDARY_MAX_MANA_PER_SPELL;
-                case EPIC -> EPIC_MAX_MANA_PER_SPELL;
-                default -> BASE_MAX_MANA_PER_SPELL;
-            };
+            maxManaBonus += config.maxMana().forRarity(rarity);
 
             if (schoolAttribute != null) {
-                var schoolSpellPowerBonus = rarity == SpellRarity.LEGENDARY
-                        ? LEGENDARY_SCHOOL_POWER_PER_SPELL
-                        : BASE_SCHOOL_POWER_PER_SPELL;
+                var schoolSpellPowerBonus = config.schoolSpellPower().forRarity(rarity);
                 schoolSpellPowerBonuses.merge(schoolAttribute, schoolSpellPowerBonus, Double::sum);
             }
 
-            if (rarity == SpellRarity.LEGENDARY) {
-                globalSpellPowerBonus += LEGENDARY_GLOBAL_SPELL_POWER_PER_SPELL;
-            }
+            globalSpellPowerBonus += config.generalSpellPower().forRarity(rarity);
 
             var schoolId = schoolType.getId().toString();
             schoolSpellCounts.merge(schoolId, 1, Integer::sum);
         }
 
-        double cooldownReductionBonus = schoolSpellCounts.size() >= 2
-                ? schoolSpellCounts.size() * COOLDOWN_REDUCTION_PER_SCHOOL
-                : 0.0D;
+        double cooldownReductionBonus = config.cooldownReduction().resolve(schoolSpellCounts.size());
         double castTimeReductionBonus = schoolSpellCounts.values().stream()
-                .mapToDouble(this::resolveCastTimeReductionBonus)
+                .mapToInt(Integer::intValue)
+                .max()
+                .stream()
+                .mapToDouble(config.castTimeReduction()::resolve)
                 .sum();
 
         var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
@@ -169,19 +153,6 @@ public class SpellStainedRunicTablet extends SpellBook implements IJeiInfoItem {
         }
 
         return builder.build();
-    }
-
-    private double resolveCastTimeReductionBonus(int spellCount) {
-        if (spellCount >= 12) {
-            return CAST_TIME_REDUCTION_AT_LV3;
-        }
-        if (spellCount >= 8) {
-            return CAST_TIME_REDUCTION_AT_LV2;
-        }
-        if (spellCount >= 4) {
-            return CAST_TIME_REDUCTION_AT_LV1;
-        }
-        return 0.0D;
     }
 
     private void addModifier(

@@ -18,6 +18,7 @@ import jp.aquafactory.apprenticecodex.config.item.ArcaneCinderServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SatelliteFollowcastAmuletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScarletThirstServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScrollcasterGauntletServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -41,6 +42,7 @@ final class ItemsServerConfig {
     private final FocusStaffbowServerConfig focusStaffbowConfig;
     private final ElementalBowServerConfig elementalBowConfig;
     private final ScrollcasterGauntletServerConfig scrollcasterGauntletConfig;
+    private final SpellStainedRunicTabletServerConfig spellStainedRunicTabletConfig;
     private final SatelliteFollowcastAmuletServerConfig satelliteFollowcastAmuletConfig;
     private final RemoteOwnerCastServerConfig remoteOwnerCastConfig;
 
@@ -61,6 +63,7 @@ final class ItemsServerConfig {
             FocusStaffbowServerConfig focusStaffbowConfig,
             ElementalBowServerConfig elementalBowConfig,
             ScrollcasterGauntletServerConfig scrollcasterGauntletConfig,
+            SpellStainedRunicTabletServerConfig spellStainedRunicTabletConfig,
             SatelliteFollowcastAmuletServerConfig satelliteFollowcastAmuletConfig,
             RemoteOwnerCastServerConfig remoteOwnerCastConfig
     ) {
@@ -80,6 +83,7 @@ final class ItemsServerConfig {
         this.focusStaffbowConfig = focusStaffbowConfig;
         this.elementalBowConfig = elementalBowConfig;
         this.scrollcasterGauntletConfig = scrollcasterGauntletConfig;
+        this.spellStainedRunicTabletConfig = spellStainedRunicTabletConfig;
         this.satelliteFollowcastAmuletConfig = satelliteFollowcastAmuletConfig;
         this.remoteOwnerCastConfig = remoteOwnerCastConfig;
     }
@@ -102,6 +106,7 @@ final class ItemsServerConfig {
         var focusStaffbowConfig = FocusStaffbowServerConfig.define(builder);
         var elementalBowConfig = ElementalBowServerConfig.define(builder);
         var scrollcasterGauntletConfig = ScrollcasterGauntletServerConfig.define(builder);
+        var spellStainedRunicTabletConfig = SpellStainedRunicTabletServerConfig.define(builder);
         var satelliteFollowcastAmuletConfig = SatelliteFollowcastAmuletServerConfig.define(builder);
         var remoteOwnerCastConfig = RemoteOwnerCastServerConfig.define(builder);
         builder.pop();
@@ -123,6 +128,7 @@ final class ItemsServerConfig {
                 focusStaffbowConfig,
                 elementalBowConfig,
                 scrollcasterGauntletConfig,
+                spellStainedRunicTabletConfig,
                 satelliteFollowcastAmuletConfig,
                 remoteOwnerCastConfig
         );
@@ -484,6 +490,10 @@ final class ItemsServerConfig {
         return scrollcasterGauntletConfig.compatAdditionalAllowedEnchantments();
     }
 
+    SpellStainedRunicTabletServerConfig.Values spellStainedRunicTabletConfig() {
+        return spellStainedRunicTabletConfig.values();
+    }
+
     boolean isSatelliteFollowcastAmuletSpellDenied(ResourceLocation spellId) {
         return satelliteFollowcastAmuletConfig.isSpellDenied(spellId);
     }
@@ -689,6 +699,10 @@ final class ItemsServerConfig {
             List<String> compatAdditionalAllowedEnchantments
     ) {
         scrollcasterGauntletConfig.setForGameTest(deniedEnchantments, compatAdditionalAllowedEnchantments);
+    }
+
+    void setSpellStainedRunicTabletConfigForGameTest(SpellStainedRunicTabletServerConfig.Values values) {
+        spellStainedRunicTabletConfig.setForGameTest(values);
     }
 
     void setSatelliteFollowcastAmuletSpellDenylistForGameTest(List<String> spellDenylist) {
