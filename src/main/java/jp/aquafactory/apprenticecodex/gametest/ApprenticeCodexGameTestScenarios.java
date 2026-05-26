@@ -10130,6 +10130,45 @@ public final class ApprenticeCodexGameTestScenarios {
             ).forEach(net.minecraft.world.entity.Entity::discard);
         });
     }
+    static void chargedTwinBladeStaffPayloadKeepsRecastFallbackWhenRemoteProfilesDisabled(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_recast_fallback_payload_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Charged Twin Blade Staff recast fallback payload test could not resolve player mana data");
+            magicData.setMana(500.0F);
+
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.RAISE_DEAD_SPELL.get();
+            var amplifierStack = new ItemStack(ItemRegistry.COPPER_SPELL_AMPLIFIER.get());
+            var mutable = ISpellContainer.create(1, true, false).mutableCopy();
+            helper.assertTrue(mutable.addSpellAtIndex(spell, 1, 0, false),
+                    "Failed to prepare Raise Dead wheel spell for recast fallback payload test");
+            ISpellContainer.set(amplifierStack, mutable.toImmutable());
+            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+            magicData.getSyncedData().setSpellSelection(new io.redspace.ironsspellbooks.gui.overlays.SpellSelection(
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND,
+                    0
+            ));
+
+            try (var ignoredProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of(
+                    spell.getSpellResource(),
+                    SpellDispenserSpellProfile.DEFAULT
+            )); var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
+                    true,
+                    false,
+                    List.of(),
+                    List.of(),
+                    true,
+                    false
+            )) {
+                var selection = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player).getSelection();
+                helper.assertTrue(selection != null && selection.spellData.getSpell() == spell,
+                        "Recast fallback payload test should select Raise Dead but got " + selection);
+                var payload = jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload.capture(selection, player);
+                helper.assertTrue(payload.isPresent(),
+                        "Charged Twin Blade Staff should keep recast payload when Remote Owner profiles are disabled and a Spell Dispenser profile can handle the spell");
+            }
+        });
+    }
     static void chargedTwinBladeStaffRaiseDeadPreservesWheelSelectionAfterRecast(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = (ServerLevel) helper.getLevel();
