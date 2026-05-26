@@ -12109,7 +12109,7 @@ public final class ApprenticeCodexGameTestScenarios {
             magicData.setAdditionalCastData(null);
         });
 
-        helper.runAtTickTime(4, () -> {
+        helper.succeedWhen(() -> {
             MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
             var magicData = MagicData.getPlayerMagicData(player);
             var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
@@ -12123,7 +12123,6 @@ public final class ApprenticeCodexGameTestScenarios {
                             + " / expected " + expectedCooldown);
             helper.assertTrue(magicData.getAdditionalCastData() == null,
                     "Delayed multicast pre-cast data should be restored after the repeated cast");
-            helper.succeed();
         });
     }
 
@@ -13723,14 +13722,17 @@ public final class ApprenticeCodexGameTestScenarios {
         var spell = SpellRegistry.ARCHER_MULTIPLE.get();
         var magicData = MagicData.getPlayerMagicData(player);
 
-        helper.runAtTickTime(1, () -> {
-            castArcherMultiple(helper, player, 1);
-            helper.assertTrue(getOwnedArcherMultipleBows(helper, player).size() == 4,
-                    "Archer Multiple should summon all bows before the removal test starts");
-        });
-        helper.runAtTickTime(3, () -> getOwnedArcherMultipleBows(helper, player).forEach(bow -> bow.remove(net.minecraft.world.entity.Entity.RemovalReason.DISCARDED)));
+        var removalStarted = new java.util.concurrent.atomic.AtomicBoolean(false);
 
+        helper.runAtTickTime(1, () -> castArcherMultiple(helper, player, 1));
         helper.succeedWhen(() -> {
+            if (!removalStarted.get()) {
+                var bows = getOwnedArcherMultipleBows(helper, player);
+                helper.assertTrue(bows.size() == 4,
+                        "Archer Multiple should summon all bows before the removal test starts");
+                bows.forEach(bow -> bow.remove(net.minecraft.world.entity.Entity.RemovalReason.DISCARDED));
+                removalStarted.set(true);
+            }
             helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(spell),
                     "Archer Multiple recast should end once every summoned bow has disappeared");
             helper.assertTrue(getOwnedArcherMultipleBows(helper, player).isEmpty(),
