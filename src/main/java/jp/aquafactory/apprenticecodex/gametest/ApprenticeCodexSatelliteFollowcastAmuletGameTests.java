@@ -441,6 +441,59 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         ));
     }
 
+    @GameTest(template = TEMPLATE, timeoutTicks = 40)
+    public static void satelliteFollowcastAmuletDimensionResetCancelsOldRuntimeWithoutOwner(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "satellite_followcast_dimension_reset_test");
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Satellite Followcast dimension reset test could not resolve player mana data.");
+        magicData.setMana(500.0F);
+
+        var thermalProcess = SpellRegistry.THERMAL_PROCESS.get();
+        var triggerSpell = SpellRegistry.MAGE_LIGHT.get();
+        magicData.getSyncedData().learnSpell(thermalProcess, false);
+        magicData.getSyncedData().learnSpell(triggerSpell, false);
+        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(thermalProcess));
+
+        var profile = RemoteOwnerCastProfile.REMOTE_PLAYER_GEOMETRY.withCastMode(RemoteOwnerCastMode.REMOTE_ANCHOR_OWNER_MAGIC);
+        helper.runAtTickTime(1, () -> {
+            try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(thermalProcess.getSpellResource(), profile));
+                 var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
+                         true,
+                         false,
+                         List.of(),
+                         List.of(),
+                         true,
+                         true
+                 )) {
+                SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell));
+            }
+        });
+
+        helper.runAtTickTime(25, () -> {
+            var throwers = level.getEntitiesOfClass(ThermalProcessThrowerEntity.class, new AABB(player.position(), player.position()).inflate(32.0D));
+            helper.assertTrue(!throwers.isEmpty(),
+                    "Satellite Followcast dimension reset test should have an active continuous summon before reset.");
+
+            SatelliteFollowcastAmuletCastEvent.clearPlayerStateForGameTest(player, null);
+
+            var remainingThrowers = level.getEntitiesOfClass(ThermalProcessThrowerEntity.class, new AABB(player.position(), player.position()).inflate(32.0D));
+            helper.assertTrue(!remainingThrowers.isEmpty(),
+                    "Old-dimension continuous runtime should be cancelled without owner completion.");
+            helper.assertFalse(
+                    SatelliteFollowcastAmuletCastEvent.hasActiveContinuousFollowcastForGameTest(
+                            level,
+                            player,
+                            io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT,
+                            0,
+                            0
+                    ),
+                    "Satellite Followcast dimension reset should clear old-dimension runtime."
+            );
+            helper.succeed();
+        });
+    }
+
     private static SpellOnCastEvent createSpellOnCastEvent(FakePlayer player, io.redspace.ironsspellbooks.api.spells.AbstractSpell spell) {
         return createSpellOnCastEvent(player, spell, spell.getManaCost(1));
     }
