@@ -18,6 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import top.theillusivec4.curios.api.CuriosApi;
@@ -26,6 +27,7 @@ import top.theillusivec4.curios.api.CuriosApi;
 public final class SatelliteFollowcastAmuletRenderEvent {
     private static final ResourceLocation CRYSTAL_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/satellite_followcast_crystal.png");
+    private static final int UNLEARNED_CRYSTAL_LIGHT = LightTexture.pack(4, 4);
     private static final int SCHOOL_PULSE_PERIOD_TICKS = 20 * 10;
     private static final int SCHOOL_PULSE_DURATION_TICKS = 20;
 
@@ -69,6 +71,18 @@ public final class SatelliteFollowcastAmuletRenderEvent {
         poseStack.popPose();
 
         bufferSource.endBatch();
+    }
+
+    @SubscribeEvent
+    public static void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) {
+            return;
+        }
+
+        var minecraft = Minecraft.getInstance();
+        if (minecraft.level == null || minecraft.player == null) {
+            SatelliteFollowcastAmuletClientState.clear();
+        }
     }
 
     private static void renderEquippedAmuletCrystals(
@@ -142,15 +156,22 @@ public final class SatelliteFollowcastAmuletRenderEvent {
     ) {
         var offset = SatelliteFollowcastAmulet.getCrystalOffset(player, slotIndex, maxSpellSlots, partialTick);
         var time = player.tickCount + partialTick;
-        var color = resolveCrystalColor(
-                player,
-                spellData,
-                slotIdentifier,
-                curiosSlotIndex,
-                slotIndex,
-                maxSpellSlots,
-                time
-        );
+        var unlearned = isClientUnlearned(player, spellData);
+        var color = unlearned
+                ? Color.WHITE
+                : resolveCrystalColor(
+                        player,
+                        spellData,
+                        slotIdentifier,
+                        curiosSlotIndex,
+                        slotIndex,
+                        maxSpellSlots,
+                        time
+                );
+        var packedLight = unlearned ? UNLEARNED_CRYSTAL_LIGHT : LightTexture.FULL_BRIGHT;
+        var renderMode = unlearned
+                ? ExtrudedSpriteRenderer.RenderMode.DEFAULT
+                : ExtrudedSpriteRenderer.RenderMode.ADDITIVE_COLOR_ONLY;
 
         poseStack.pushPose();
         poseStack.translate(offset.x, offset.y, offset.z);
@@ -159,15 +180,20 @@ public final class SatelliteFollowcastAmuletRenderEvent {
         ExtrudedSpriteRenderer.renderCenteredWithIndependentRotation(
                 poseStack,
                 bufferSource,
-                LightTexture.FULL_BRIGHT,
+                packedLight,
                 CRYSTAL_TEXTURE,
-                ExtrudedSpriteRenderer.RenderMode.ADDITIVE_COLOR_ONLY,
+                renderMode,
                 color.red(),
                 color.green(),
                 color.blue(),
                 1.0F
         );
         poseStack.popPose();
+    }
+
+    private static boolean isClientUnlearned(Player player, SpellData spellData) {
+        var spell = spellData.getSpell();
+        return spell.requiresLearning() && !spell.isLearned(player);
     }
 
     private static Color resolveCrystalColor(

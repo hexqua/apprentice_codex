@@ -1,13 +1,15 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
-import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
+import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectile;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmuletCastEvent;
@@ -91,6 +93,141 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         helper.succeed();
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void satelliteFollowcastAmuletKeepsOriginalSpellManaReserved(GameTestHelper helper) {
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "satellite_followcast_mana_reserve_test");
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Satellite Followcast Amulet mana reserve test could not resolve player mana data.");
+
+        var triggerSpell = SpellRegistry.MAGE_LIGHT.get();
+        var followSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        magicData.getSyncedData().learnSpell(triggerSpell, false);
+        magicData.getSyncedData().learnSpell(followSpell, false);
+        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(followSpell));
+
+        var originalManaCost = triggerSpell.getManaCost(1);
+        var followManaCost = SpellDispenserManaHelper.getSpellManaCost(new io.redspace.ironsspellbooks.api.spells.SpellData(followSpell, 1));
+        var initialMana = originalManaCost + followManaCost - 1;
+        magicData.setMana(initialMana);
+
+        SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell, originalManaCost));
+
+        helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(followSpell),
+                "Satellite Followcast Amulet should not spend mana needed by the original spell.");
+        helper.assertTrue(magicData.getMana() == initialMana,
+                "Satellite Followcast Amulet should leave mana untouched when the original spell reserve would be broken.");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void satelliteFollowcastAmuletConsumesFollowcastWhenOriginalManaRemains(GameTestHelper helper) {
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "satellite_followcast_mana_success_test");
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Satellite Followcast Amulet mana success test could not resolve player mana data.");
+
+        var triggerSpell = SpellRegistry.MAGE_LIGHT.get();
+        var followSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        magicData.getSyncedData().learnSpell(triggerSpell, false);
+        magicData.getSyncedData().learnSpell(followSpell, false);
+        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(followSpell));
+
+        var originalManaCost = triggerSpell.getManaCost(1);
+        var followManaCost = SpellDispenserManaHelper.getSpellManaCost(new io.redspace.ironsspellbooks.api.spells.SpellData(followSpell, 1));
+        magicData.setMana(originalManaCost + followManaCost);
+
+        SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell, originalManaCost));
+
+        helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(followSpell),
+                "Satellite Followcast Amulet should cast when mana remains for the original spell.");
+        helper.assertTrue(magicData.getMana() == originalManaCost,
+                "Satellite Followcast Amulet should only consume the followcast mana before the original spell resolves.");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void satelliteFollowcastAmuletRetriesAfterUnaffordableSlot(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "satellite_followcast_retry_test");
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Satellite Followcast Amulet retry test could not resolve player mana data.");
+
+        var unaffordableSpell = SpellRegistry.PRECISION_JACK.get();
+        var fallbackSpell = SpellRegistry.THERMAL_PROCESS.get();
+        var triggerSpell = SpellRegistry.MAGE_LIGHT.get();
+        magicData.setMana(triggerSpell.getManaCost(1) + SpellDispenserManaHelper.getSpellManaCost(
+                new io.redspace.ironsspellbooks.api.spells.SpellData(fallbackSpell, 1)
+        ));
+        magicData.getSyncedData().learnSpell(triggerSpell, false);
+        magicData.getSyncedData().learnSpell(unaffordableSpell, false);
+        magicData.getSyncedData().learnSpell(fallbackSpell, false);
+
+        var amulet = (SatelliteFollowcastAmulet) ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get();
+        var amuletStack = new ItemStack(amulet);
+        var spells = ISpellContainer.create(SatelliteFollowcastAmulet.MAX_SPELL_SLOTS, false, false).mutableCopy();
+        spells.addSpellAtIndex(unaffordableSpell, 1, 0, false);
+        spells.addSpellAtIndex(fallbackSpell, 1, 1, false);
+        ISpellContainer.set(amuletStack, spells.toImmutable());
+        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, amuletStack);
+
+        SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell));
+
+        helper.assertTrue(
+                SatelliteFollowcastAmuletCastEvent.hasActiveContinuousFollowcastForGameTest(
+                        level,
+                        player,
+                        io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT,
+                        0,
+                        1
+                ),
+                "Satellite Followcast Amulet should retry the next crystal after an unaffordable spell."
+        );
+        helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(unaffordableSpell),
+                "Satellite Followcast Amulet should not cast or cool down the unaffordable crystal.");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void satelliteFollowcastAmuletKeepsOriginalContinuousCastState(GameTestHelper helper) {
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "satellite_followcast_continuous_state_test");
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Satellite Followcast Amulet continuous state test could not resolve player mana data.");
+        magicData.setMana(500.0F);
+
+        var triggerSpell = SpellRegistry.MYSTIC_SHIELD.get();
+        var followSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get();
+        magicData.getSyncedData().learnSpell(triggerSpell, false);
+        magicData.getSyncedData().learnSpell(followSpell, false);
+        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(followSpell));
+
+        magicData.getSyncedData();
+        magicData.initiateCast(
+                triggerSpell,
+                1,
+                triggerSpell.getEffectiveCastTime(1, player),
+                CastSource.SWORD,
+                SpellSelectionManager.MAINHAND
+        );
+
+        try (var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
+                true,
+                false,
+                List.of(),
+                List.of(),
+                true,
+                true
+        )) {
+            SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell));
+        }
+
+        helper.assertTrue(magicData.isCasting(),
+                "Satellite Followcast Amulet should not clear the original continuous cast state.");
+        helper.assertTrue(magicData.getCastingSpellId().equals(triggerSpell.getSpellId()),
+                "Satellite Followcast Amulet should preserve the original continuous spell id.");
+        helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(followSpell),
+                "Satellite Followcast Amulet should still cast Magic Arrow through the safe fallback path.");
+        helper.succeed();
+    }
+
     @GameTest(template = TEMPLATE, timeoutTicks = 140)
     public static void satelliteFollowcastAmuletContinuousRuntimeSkipsOnlyActiveCrystal(GameTestHelper helper) {
         var level = (ServerLevel) helper.getLevel();
@@ -113,7 +250,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, amuletStack);
 
         helper.runAtTickTime(1, () -> {
-            SatelliteFollowcastAmuletCastEvent.onSpellPreCast(createSpellPreCastEvent(player, mageLight));
+            SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, mageLight));
             helper.assertTrue(
                     SatelliteFollowcastAmuletCastEvent.hasActiveContinuousFollowcastForGameTest(
                             level,
@@ -127,7 +264,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
             helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(fireBreath),
                     "Satellite Followcast Amulet should not apply continuous cooldown at start.");
 
-            SatelliteFollowcastAmuletCastEvent.onSpellPreCast(createSpellPreCastEvent(player, mageLight));
+            SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, mageLight));
             helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(mageLight),
                     "Satellite Followcast Amulet should skip the active continuous crystal and cast the other crystal.");
         });
@@ -163,6 +300,47 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         ));
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void satelliteFollowcastAmuletClearsContinuousRuntimeForOwnerStateReset(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "satellite_followcast_clear_test");
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Satellite Followcast Amulet clear test could not resolve player mana data.");
+        magicData.setMana(500.0F);
+
+        var fireBreath = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
+        var triggerSpell = SpellRegistry.MAGE_LIGHT.get();
+        magicData.getSyncedData().learnSpell(fireBreath, false);
+        magicData.getSyncedData().learnSpell(triggerSpell, false);
+        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(fireBreath));
+
+        SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell));
+        helper.assertTrue(
+                SatelliteFollowcastAmuletCastEvent.hasActiveContinuousFollowcastForGameTest(
+                        level,
+                        player,
+                        io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT,
+                        0,
+                        0
+                ),
+                "Satellite Followcast Amulet should start a continuous runtime before the clear path is tested."
+        );
+
+        SatelliteFollowcastAmuletCastEvent.clearPlayerStateForGameTest(player);
+
+        helper.assertFalse(
+                SatelliteFollowcastAmuletCastEvent.hasActiveContinuousFollowcastForGameTest(
+                        level,
+                        player,
+                        io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT,
+                        0,
+                        0
+                ),
+                "Satellite Followcast Amulet should clear active continuous runtime for owner state reset."
+        );
+        helper.succeed();
+    }
+
     @GameTest(template = TEMPLATE, timeoutTicks = 40)
     public static void satelliteFollowcastAmuletLongSummonWeaponUsesRemoteOwnerAnchor(GameTestHelper helper) {
         var level = (ServerLevel) helper.getLevel();
@@ -188,7 +366,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
                          true,
                          true
                  )) {
-                SatelliteFollowcastAmuletCastEvent.onSpellPreCast(createSpellPreCastEvent(player, triggerSpell));
+                SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell));
             }
         });
 
@@ -233,7 +411,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
                          true,
                          true
                  )) {
-                SatelliteFollowcastAmuletCastEvent.onSpellPreCast(createSpellPreCastEvent(player, triggerSpell));
+                SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell));
             }
         });
 
@@ -263,8 +441,16 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         ));
     }
 
-    private static SpellPreCastEvent createSpellPreCastEvent(FakePlayer player, io.redspace.ironsspellbooks.api.spells.AbstractSpell spell) {
-        return new SpellPreCastEvent(player, spell.getSpellId(), 1, spell.getSchoolType(), CastSource.SPELLBOOK);
+    private static SpellOnCastEvent createSpellOnCastEvent(FakePlayer player, io.redspace.ironsspellbooks.api.spells.AbstractSpell spell) {
+        return createSpellOnCastEvent(player, spell, spell.getManaCost(1));
+    }
+
+    private static SpellOnCastEvent createSpellOnCastEvent(
+            FakePlayer player,
+            io.redspace.ironsspellbooks.api.spells.AbstractSpell spell,
+            int manaCost
+    ) {
+        return new SpellOnCastEvent(player, spell.getSpellId(), 1, manaCost, spell.getSchoolType(), CastSource.SPELLBOOK);
     }
 
     private static ItemStack createAmuletStack(io.redspace.ironsspellbooks.api.spells.AbstractSpell spell) {
