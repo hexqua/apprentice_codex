@@ -44,6 +44,10 @@ public final class SatelliteFollowcastAmuletClientState {
         return true;
     }
 
+    public static void clear() {
+        ACTIVE_CRYSTALS.clear();
+    }
+
     private record CrystalKey(int ownerEntityId, String slotIdentifier, int curiosSlotIndex, int spellSlotIndex) {
     }
 }

@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet;
 
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
-import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
+import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
@@ -23,15 +23,14 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncSatelliteFollowcastAmul
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRunner;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -61,12 +60,11 @@ public final class SatelliteFollowcastAmuletCastEvent {
 
     private enum CastAttemptResult {
         NONE,
-        CASTED,
-        BLOCKED
+        CASTED
     }
 
-    @SubscribeEvent(priority = EventPriority.NORMAL)
-    public static void onSpellPreCast(SpellPreCastEvent event) {
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onSpellCast(SpellOnCastEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
             return;
         }
@@ -76,6 +74,7 @@ public final class SatelliteFollowcastAmuletCastEvent {
             return;
         }
 
+        var reservedOriginalManaCost = resolveReservedOriginalManaCost(event, player);
         var equippedAmulets = getEquippedAmulets(player);
         for (var slotResult : equippedAmulets) {
             var stack = slotResult.stack();
@@ -86,12 +85,9 @@ public final class SatelliteFollowcastAmuletCastEvent {
             amulet.initializeSpellContainer(stack);
             amulet.normalizeImbuedSpellContainer(stack);
 
-            var result = tryFollowcast(level, player, magicData, slotResult, amulet);
+            var result = tryFollowcast(level, player, magicData, slotResult, amulet, reservedOriginalManaCost);
             if (result == CastAttemptResult.NONE) {
                 continue;
-            }
-            if (result == CastAttemptResult.CASTED) {
-                cancelOriginalCastIfManaBecameInsufficient(event, player, magicData);
             }
             return;
         }
@@ -102,7 +98,8 @@ public final class SatelliteFollowcastAmuletCastEvent {
             ServerPlayer player,
             MagicData ownerMagicData,
             SlotResult slotResult,
-            SatelliteFollowcastAmulet amulet
+            SatelliteFollowcastAmulet amulet,
+            int reservedOriginalManaCost
     ) {
         var stack = slotResult.stack();
         var spellContainer = ISpellContainer.get(stack);
@@ -128,8 +125,26 @@ public final class SatelliteFollowcastAmuletCastEvent {
             if (ownerMagicData.getPlayerCooldowns().isOnCooldown(spell)) {
                 continue;
             }
+            if (!canConsumeFollowcastManaAfterOriginal(player, ownerMagicData, spellData, reservedOriginalManaCost)) {
+                continue;
+            }
 
-            return tryCastSelectedSpell(level, player, ownerMagicData, slotResult, spellData, slotIndex, maxSpellSlots, key);
+            try {
+                var result = tryCastSelectedSpell(level, player, ownerMagicData, slotResult, spellData, slotIndex, maxSpellSlots, key);
+                if (result == CastAttemptResult.CASTED) {
+                    return result;
+                }
+            } catch (RuntimeException exception) {
+                ApprenticeCodex.LOGGER.warn(
+                        "Failed to cast satellite followcast spell {} for player {} from {}[{}]/{}",
+                        spell.getSpellId(),
+                        player.getGameProfile().getName(),
+                        slotResult.slotContext().identifier(),
+                        slotResult.slotContext().index(),
+                        slotIndex,
+                        exception
+                );
+            }
         }
 
         return CastAttemptResult.NONE;
@@ -148,10 +163,10 @@ public final class SatelliteFollowcastAmuletCastEvent {
         var spell = spellData.getSpell();
         var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
         if (spell.requiresLearning() && !spell.isLearned(player)) {
-            return CastAttemptResult.BLOCKED;
+            return CastAttemptResult.NONE;
         }
         if (!spell.canBeCastedBy(spellLevel, FOLLOWCAST_SOURCE, ownerMagicData, player).isSuccess()) {
-            return CastAttemptResult.BLOCKED;
+            return CastAttemptResult.NONE;
         }
 
         var castingSlot = "satellite_followcast_amulet_" + slotResult.slotContext().identifier()
@@ -175,7 +190,8 @@ public final class SatelliteFollowcastAmuletCastEvent {
             );
         }
 
-        if (ApprenticeCodexServerConfig.satelliteFollowcastUsesRemoteOwnerProfiles()) {
+        if (canUseNonContinuousRemoteOwnerCast(ownerMagicData)
+                && ApprenticeCodexServerConfig.satelliteFollowcastUsesRemoteOwnerProfiles()) {
             var remoteProfile = RemoteOwnerCastProfileManager.getUsableProfile(
                     spell,
                     RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST
@@ -196,7 +212,7 @@ public final class SatelliteFollowcastAmuletCastEvent {
                 );
                 if (result.handled()) {
                     if (!result.succeeded()) {
-                        return CastAttemptResult.BLOCKED;
+                        return CastAttemptResult.NONE;
                     }
                     addFollowcastCooldown(player, spellData, FOLLOWCAST_SOURCE, slotResult.stack());
                     return CastAttemptResult.CASTED;
@@ -206,11 +222,17 @@ public final class SatelliteFollowcastAmuletCastEvent {
 
         if (SpellDispenserSpellProfileManager.getProfile(spell).isEmpty()
                 || !tryCastWithSpellDispenserProfile(level, player, slotResult.stack(), spellData, crystalPosition, forward, manaAccess, castingSlot)) {
-            return CastAttemptResult.BLOCKED;
+            return CastAttemptResult.NONE;
         }
 
         addFollowcastCooldown(player, spellData, FOLLOWCAST_SOURCE, slotResult.stack());
         return CastAttemptResult.CASTED;
+    }
+
+    private static boolean canUseNonContinuousRemoteOwnerCast(MagicData ownerMagicData) {
+        // Iron's の SpellOnCastEvent は元の詠唱状態が残ったまま発火する。
+        // 非継続 RemoteOwner 発動は所有者の MagicData を一時利用して reset するため、元の詠唱を壊さない場面だけ許可する。
+        return !ownerMagicData.isCasting();
     }
 
     private static CastAttemptResult tryStartContinuousFollowcast(
@@ -251,7 +273,7 @@ public final class SatelliteFollowcastAmuletCastEvent {
                 );
                 if (remoteStartResult.handled()) {
                     if (!remoteStartResult.succeeded() || remoteStartResult.session() == null) {
-                        return CastAttemptResult.BLOCKED;
+                        return CastAttemptResult.NONE;
                     }
 
                     ACTIVE_CONTINUOUS_CASTS.computeIfAbsent(level, ignored -> new ArrayList<>()).add(
@@ -269,7 +291,7 @@ public final class SatelliteFollowcastAmuletCastEvent {
         }
 
         if (SpellDispenserSpellProfileManager.getProfile(spell).isEmpty()) {
-            return CastAttemptResult.BLOCKED;
+            return CastAttemptResult.NONE;
         }
 
         var validation = new SpellDispenserSpellValidator.ValidationResult(
@@ -290,7 +312,7 @@ public final class SatelliteFollowcastAmuletCastEvent {
                 castDuration
         );
         if (!startResult.result().succeeded() || startResult.session() == null) {
-            return CastAttemptResult.BLOCKED;
+            return CastAttemptResult.NONE;
         }
 
         ACTIVE_CONTINUOUS_CASTS.computeIfAbsent(level, ignored -> new ArrayList<>()).add(
@@ -404,6 +426,47 @@ public final class SatelliteFollowcastAmuletCastEvent {
         }
     }
 
+    @SubscribeEvent
+    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            clearPlayerState(player, true);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            clearPlayerState(player, true);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onLivingDeath(LivingDeathEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            clearPlayerState(player, true);
+        }
+    }
+
+    private static int resolveReservedOriginalManaCost(SpellOnCastEvent event, ServerPlayer player) {
+        if (!event.getCastSource().consumesMana() || (player.isCreative() && !ServerConfigs.CREATIVE_MANA_COST.get())) {
+            return 0;
+        }
+        return Math.max(0, event.getManaCost());
+    }
+
+    private static boolean canConsumeFollowcastManaAfterOriginal(
+            ServerPlayer player,
+            MagicData ownerMagicData,
+            SpellData spellData,
+            int reservedOriginalManaCost
+    ) {
+        if (player.isCreative()) {
+            return true;
+        }
+        var followcastManaCost = Math.max(0, SpellDispenserManaHelper.getSpellManaCost(spellData));
+        return ownerMagicData.getMana() >= reservedOriginalManaCost + followcastManaCost;
+    }
+
     private static int resolveLongCastCooldownExtensionTicks(ServerPlayer player, SpellData spellData) {
         var spell = spellData.getSpell();
         if (spell.getCastType() != CastType.LONG) {
@@ -504,32 +567,6 @@ public final class SatelliteFollowcastAmuletCastEvent {
         ));
     }
 
-    private static void cancelOriginalCastIfManaBecameInsufficient(
-            SpellPreCastEvent event,
-            ServerPlayer player,
-            MagicData magicData
-    ) {
-        if (!event.getCastSource().consumesMana() || (player.isCreative() && !ServerConfigs.CREATIVE_MANA_COST.get())) {
-            return;
-        }
-
-        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(event.getSpellId());
-        if (spell == null || spell == io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()) {
-            return;
-        }
-
-        var requiredMana = spell.getManaCost(event.getSpellLevel());
-        if (requiredMana <= magicData.getMana()) {
-            return;
-        }
-
-        player.connection.send(new ClientboundSetActionBarTextPacket(
-                Component.translatable("ui.irons_spellbooks.cast_error_mana", spell.getDisplayName(player))
-                        .withStyle(ChatFormatting.RED)
-        ));
-        event.setCanceled(true);
-    }
-
     private static List<SlotResult> getEquippedAmulets(ServerPlayer player) {
         return CuriosApi.getCuriosInventory(player)
                 .map(inventory -> inventory.findCurios(stack -> stack.getItem() instanceof SatelliteFollowcastAmulet).stream()
@@ -551,6 +588,32 @@ public final class SatelliteFollowcastAmuletCastEvent {
                 level,
                 new ContinuousFollowcastKey(player.getUUID(), slotIdentifier, curiosSlotIndex, spellSlotIndex)
         );
+    }
+
+    public static void clearPlayerStateForGameTest(ServerPlayer player) {
+        clearPlayerState(player, true);
+    }
+
+    private static void clearPlayerState(ServerPlayer player, boolean cancelled) {
+        PENDING_FOLLOWCAST_COOLDOWNS.remove(player.getUUID());
+        var levelIterator = ACTIVE_CONTINUOUS_CASTS.entrySet().iterator();
+        while (levelIterator.hasNext()) {
+            var levelEntry = levelIterator.next();
+            var level = levelEntry.getKey();
+            var runtimes = levelEntry.getValue();
+            var runtimeIterator = runtimes.iterator();
+            while (runtimeIterator.hasNext()) {
+                var runtime = runtimeIterator.next();
+                if (!runtime.key().ownerId().equals(player.getUUID())) {
+                    continue;
+                }
+                finishContinuousFollowcast(level, runtime, player, cancelled);
+                runtimeIterator.remove();
+            }
+            if (runtimes.isEmpty()) {
+                levelIterator.remove();
+            }
+        }
     }
 
     private static final class PlayerManaAccess implements SpellDispenserManaHelper.ManaAccess {
