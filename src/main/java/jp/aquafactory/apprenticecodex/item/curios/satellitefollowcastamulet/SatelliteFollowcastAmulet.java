@@ -92,16 +92,17 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
 
     @Override
     public List<Component> getSlotsTooltip(List<Component> tooltips, Item.@NotNull TooltipContext context, ItemStack stack) {
-        tooltips.add(Component.empty());
-        tooltips.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
-        tooltips.add(Component.literal(" ")
+        var result = new ArrayList<>(tooltips);
+        result.add(Component.empty());
+        result.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
+        result.add(Component.literal(" ")
                 .append(Component.translatable(getDescriptionId() + ".desc_1"))
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-        tooltips.add(Component.literal(" ")
+        result.add(Component.literal(" ")
                 .append(Component.translatable(getDescriptionId() + ".desc_2"))
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-        tooltips.add(Component.empty());
-        return tooltips;
+        result.add(Component.empty());
+        return result;
     }
 
     @Override
