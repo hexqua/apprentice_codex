@@ -31,6 +31,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatState
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSchoolAffinityAssignmentsPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncSatelliteFollowcastAmuletStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSmashcastScepterReadyStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncTamersPocketCountPacket;
 import net.minecraft.resources.ResourceLocation;
@@ -43,7 +44,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "30";
+    private static final String PROTOCOL_VERSION = "31";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -266,6 +267,13 @@ public final class Networks {
                 SyncMultipurposeStaffrifleFireEffectPacket::encode,
                 SyncMultipurposeStaffrifleFireEffectPacket::decode,
                 SyncMultipurposeStaffrifleFireEffectPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncSatelliteFollowcastAmuletStatePacket.class,
+                SyncSatelliteFollowcastAmuletStatePacket::encode,
+                SyncSatelliteFollowcastAmuletStatePacket::decode,
+                SyncSatelliteFollowcastAmuletStatePacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

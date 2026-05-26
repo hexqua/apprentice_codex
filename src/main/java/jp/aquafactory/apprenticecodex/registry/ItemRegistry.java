@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.Absorp
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.explorerscodex.ExplorersCodex;
 import jp.aquafactory.apprenticecodex.item.curios.isekaitravelguidebook.IsekaiTravelGuidebook;
+import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
@@ -210,6 +211,8 @@ public final class ItemRegistry {
             ITEMS.register("absorption_amplify_amulet", AbsorptionAmplifyAmulet::new);
     public static final RegistryObject<Item> AUTOCAST_AMULET =
             ITEMS.register("autocast_amulet", AutocastAmulet::new);
+    public static final RegistryObject<Item> SATELLITE_FOLLOWCAST_AMULET =
+            ITEMS.register("satellite_followcast_amulet", SatelliteFollowcastAmulet::new);
     public static final RegistryObject<Item> ASHEN_CIRCLET =
             ITEMS.register("ashen_circlet", AshenCirclet::new);
     public static final RegistryObject<Item> ENCHANTED_CIRCLET =

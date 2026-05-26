@@ -26,6 +26,7 @@ public final class MagicTools {
     // 規約外の属性 ID を使う拡張学派がある場合はここで明示対応する.
     // 現状メイン1.20.1環境で使っているアドオンは対応できている.
     private static final Map<ResourceLocation, ResourceLocation> SCHOOL_POWER_ATTRIBUTE_FALLBACK_MAP = Map.of();
+    private static final Map<ResourceLocation, ResourceLocation> SCHOOL_RESIST_ATTRIBUTE_FALLBACK_MAP = Map.of();
 
 
     @Nullable
@@ -78,6 +79,39 @@ public final class MagicTools {
         var guessedAttributeId = ResourceLocation.fromNamespaceAndPath(
                 schoolId.getNamespace(),
                 schoolId.getPath() + "_spell_power"
+        );
+        return ForgeRegistries.ATTRIBUTES.getValue(guessedAttributeId);
+    }
+
+    @Nullable
+    public static Attribute resolveSchoolResistAttribute(@Nullable SchoolType schoolType) {
+        if (schoolType == null) {
+            return null;
+        }
+
+        if (schoolType instanceof SchoolTypeAccessor accessor) {
+            var supplier = accessor.apprenticecodex$getResistanceAttribute();
+            if (supplier != null) {
+                var resolved = supplier.get();
+                if (resolved != null) {
+                    return resolved;
+                }
+            }
+        }
+
+        var schoolId = schoolType.getId();
+        var fallbackAttributeId = SCHOOL_RESIST_ATTRIBUTE_FALLBACK_MAP.get(schoolId);
+        if (fallbackAttributeId != null) {
+            var fallbackAttribute = ForgeRegistries.ATTRIBUTES.getValue(fallbackAttributeId);
+            if (fallbackAttribute != null) {
+                return fallbackAttribute;
+            }
+        }
+
+        // Iron's 本体と多くの拡張学派は "<school_id>_magic_resist" 命名に従う.
+        var guessedAttributeId = ResourceLocation.fromNamespaceAndPath(
+                schoolId.getNamespace(),
+                schoolId.getPath() + "_magic_resist"
         );
         return ForgeRegistries.ATTRIBUTES.getValue(guessedAttributeId);
     }

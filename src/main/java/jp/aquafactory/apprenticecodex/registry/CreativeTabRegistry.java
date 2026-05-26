@@ -121,6 +121,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.SPELLCASTER_QUIVER.get());
         output.accept(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get());
         output.accept(ItemRegistry.AUTOCAST_AMULET.get().getDefaultInstance());
+        output.accept(ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get().getDefaultInstance());
         output.accept(ItemRegistry.ASHEN_CIRCLET.get());
         output.accept(ItemRegistry.ENCHANTED_CIRCLET.get());
         output.accept(ItemRegistry.MANA_SHIELD_CHARM.get());

@@ -51,6 +51,7 @@ import jp.aquafactory.apprenticecodex.event.ErrandMageVillagerTradesEvent;
 import jp.aquafactory.apprenticecodex.event.errandmage.ErrandMageTradeManager;
 import jp.aquafactory.apprenticecodex.event.ScrollcasterGauntletGrindstoneEvent;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
@@ -9332,6 +9333,9 @@ public final class ApprenticeCodexGameTestScenarios {
             );
             helper.assertTrue(!instantProjectiles.isEmpty(),
                     "Charged Twin Blade Staff INSTANT impact cast did not spawn Magic Missile projectiles");
+            helper.assertTrue(instantProjectiles.stream().anyMatch(projectile -> projectile.position().distanceTo(impactPos) < 2.0D),
+                    "Charged Twin Blade Staff INSTANT impact cast spawned Magic Missile away from the impact point: "
+                            + instantProjectiles.stream().map(projectile -> projectile.position().toString()).toList());
 
             var longPayload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
                     ResourceLocation.fromNamespaceAndPath("apprenticecodex", "compound_phial"),
@@ -9348,6 +9352,51 @@ public final class ApprenticeCodexGameTestScenarios {
             var longProjectiles = level.getEntitiesOfClass(CompoundPhialProjectileEntity.class, new AABB(impactPos, impactPos).inflate(12.0D));
             helper.assertTrue(!longProjectiles.isEmpty(),
                     "Charged Twin Blade Staff LONG impact cast did not spawn Compound Phial projectiles");
+        });
+    }
+    static void chargedTwinBladeStaffRemoteOwnerDenylistFallsBackToDispenserProfile(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_remote_denylist_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Charged Twin Blade Staff remote denylist fallback test could not resolve player mana data");
+            magicData.setMana(200.0F);
+            var sourceStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+            var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
+            var forward = new Vec3(0.0D, 0.0D, 1.0D);
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
+                    spell.getSpellResource(),
+                    1,
+                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+            );
+
+            try (var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
+                    true,
+                    false,
+                    List.of(),
+                    List.of(spell.getSpellResource().toString()),
+                    true,
+                    true
+            )) {
+                helper.assertTrue(
+                        jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                                level, player, sourceStack, payload, impactPos, forward
+                        ),
+                        "Charged Twin Blade Staff should fall back to Spell Dispenser profile when Remote Owner Cast is denylisted"
+                );
+            }
+
+            var projectiles = level.getEntitiesOfClass(
+                    io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
+                    new AABB(impactPos, impactPos).inflate(12.0D)
+            );
+            helper.assertTrue(!projectiles.isEmpty(),
+                    "Charged Twin Blade Staff Remote Owner denylist fallback did not spawn Magic Missile projectiles");
+            helper.assertTrue(projectiles.stream().anyMatch(projectile -> projectile.position().distanceTo(impactPos) < 2.0D),
+                    "Charged Twin Blade Staff Remote Owner denylist fallback spawned Magic Missile away from the impact point: "
+                            + projectiles.stream().map(projectile -> projectile.position().toString()).toList());
         });
     }
     static void chargedTwinBladeStaffImpactCastManagerCastsPlayerSelfProfile(GameTestHelper helper) {
@@ -9627,6 +9676,15 @@ public final class ApprenticeCodexGameTestScenarios {
             var projectiles = level.getEntitiesOfClass(FireBreathProjectile.class, new AABB(impactPos, impactPos).inflate(16.0D));
             helper.assertTrue(!projectiles.isEmpty(),
                     "Charged Twin Blade Staff CONTINUOUS impact cast did not spawn Fire Breath projectiles");
+            var anchorOwner = projectiles.stream()
+                    .map(FireBreathProjectile::getOwner)
+                    .filter(RemoteOwnerCastAnchorEntity.class::isInstance)
+                    .map(RemoteOwnerCastAnchorEntity.class::cast)
+                    .findFirst();
+            helper.assertTrue(anchorOwner.isPresent(),
+                    "Charged Twin Blade Staff CONTINUOUS impact cast should use a Remote Owner anchor for Fire Breath owner tracking");
+            helper.assertTrue(anchorOwner.get().getDisplayName().getString().equals(player.getDisplayName().getString()),
+                    "Remote Owner anchor should expose the player name for death messages");
         });
     }
     static void chargedTwinBladeStaffImpactCastManagerSkipsWhenOwnerCannotCast(GameTestHelper helper) {

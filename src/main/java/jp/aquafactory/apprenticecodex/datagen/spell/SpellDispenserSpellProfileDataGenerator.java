@@ -31,7 +31,13 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                 SpellDispenserSpellProfileList.CODEC,
                 Map.of(
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "profiles"),
-                        new SpellDispenserSpellProfileList(List.of(
+                        new SpellDispenserSpellProfileList(createProfileDefinitions())
+                )
+        );
+    }
+
+    public static List<SpellDispenserSpellProfileDefinition> createProfileDefinitions() {
+        return List.of(
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.ACUPUNCTURE_SPELL),
                                         SpellDispenserSpellProfile.PROXY_NEUTRAL
@@ -392,9 +398,7 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                         getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.FROST_RUNE),
                                         SpellDispenserSpellProfile.OWNER_OPTIONAL
                                 )
-                        ))
-                )
-        );
+                        );
     }
 
     private static ResourceLocation getResourceLocationRegistry(RegistryObject<AbstractSpell> spellRegistryObject) {
