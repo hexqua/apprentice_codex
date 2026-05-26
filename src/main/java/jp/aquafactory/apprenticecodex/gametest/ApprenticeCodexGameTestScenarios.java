@@ -14518,6 +14518,227 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void mistFormAppliesEffectAndFixedAttributes(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mist_form_attribute_test");
+            var spell = (jp.aquafactory.apprenticecodex.spell.mistform.MistForm) SpellRegistry.MIST_FORM.get();
+            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
+
+            var instance = player.getEffect(EffectRegistry.MIST_FORM.get());
+            helper.assertTrue(instance != null, "Mist Form cast should apply the Mist Form effect");
+            var expectedDuration = Math.round(10 * 20 * spell.getSpellPower(1, player) / 100.0F);
+            helper.assertTrue(instance != null && instance.getDuration() == expectedDuration,
+                    "Mist Form effect duration should use existing spell power duration: "
+                            + (instance == null ? "null" : instance.getDuration()) + " / " + expectedDuration);
+
+            var effect = EffectRegistry.MIST_FORM.get();
+            assertMistFormModifierAmount(helper, effect, Attributes.MOVEMENT_SPEED,
+                    AttributeModifier.Operation.MULTIPLY_TOTAL,
+                    jp.aquafactory.apprenticecodex.effect.MistFormEffect.MOVEMENT_SPEED_BONUS,
+                    "Mist Form should provide fixed movement speed");
+            assertMistFormModifierAmount(helper, effect, net.minecraftforge.common.ForgeMod.STEP_HEIGHT_ADDITION.get(),
+                    AttributeModifier.Operation.ADDITION,
+                    jp.aquafactory.apprenticecodex.effect.MistFormEffect.STEP_HEIGHT_ADDITION,
+                    "Mist Form should provide fixed step assist");
+            assertMistFormModifierAmount(helper, effect,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_MAGIC_RESIST.get(),
+                    AttributeModifier.Operation.ADDITION,
+                    jp.aquafactory.apprenticecodex.effect.MistFormEffect.SCHOOL_RESIST_WEAKNESS,
+                    "Mist Form should provide fixed fire weakness");
+            assertMistFormModifierAmount(helper, effect,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.HOLY_MAGIC_RESIST.get(),
+                    AttributeModifier.Operation.ADDITION,
+                    jp.aquafactory.apprenticecodex.effect.MistFormEffect.SCHOOL_RESIST_WEAKNESS,
+                    "Mist Form should provide fixed holy weakness");
+        });
+    }
+
+    static void mistFormSuppressesAwarenessWithinThirtyTwoBlocks(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mist_form_awareness_test");
+            var nearZombie = createTargetingZombie(helper, new BlockPos(4, 2, 0), player, "near");
+            var farZombie = createTargetingZombie(helper, new BlockPos(36, 2, 0), player, "far");
+
+            SpellRegistry.MIST_FORM.get().onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
+
+            helper.assertTrue(nearZombie.getTarget() == null,
+                    "Mist Form should clear nearby mob target within 32 blocks");
+            helper.assertTrue(nearZombie.getLastHurtByMob() == null,
+                    "Mist Form should clear nearby mob last hurt by mob within 32 blocks");
+            helper.assertTrue(farZombie.getTarget() == player,
+                    "Mist Form should not clear mob target outside 32 blocks");
+            helper.assertTrue(farZombie.getLastHurtByMob() == player,
+                    "Mist Form should not clear mob last hurt by mob outside 32 blocks");
+        });
+    }
+
+    static void mistFormDamageToLivingTargetRemovesEffect(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mist_form_damage_test");
+            player.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            var target = createTargetingZombie(helper, new BlockPos(2, 2, 0), player, "damage_target");
+
+            target.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F);
+
+            helper.assertFalse(player.hasEffect(EffectRegistry.MIST_FORM.get()),
+                    "Mist Form should be removed when the caster damages a living target");
+        });
+    }
+
+    static void mistFormSlowsFallingWithoutAmplifierScaling(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 8, 0), "mist_form_fall_test");
+            player.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 9, false, false, true));
+            player.fallDistance = 12.0F;
+            player.hurtMarked = false;
+            player.setDeltaMovement(0.12D, -0.7D, -0.08D);
+
+            jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
+                    new TickEvent.PlayerTickEvent(TickEvent.Phase.START, player)
+            );
+
+            helper.assertTrue(Math.abs(player.getDeltaMovement().y + 0.08D) < 1.0E-9D,
+                    "Mist Form should clamp falling speed without amplifier scaling: " + player.getDeltaMovement().y);
+            helper.assertTrue(Math.abs(player.getDeltaMovement().x - 0.12D) < 1.0E-9D
+                            && Math.abs(player.getDeltaMovement().z + 0.08D) < 1.0E-9D,
+                    "Mist Form slow falling should preserve horizontal movement: " + player.getDeltaMovement());
+            helper.assertFalse(player.hurtMarked,
+                    "Mist Form slow falling should not force velocity sync that overwrites client horizontal input");
+            helper.assertTrue(player.fallDistance == 0.0F,
+                    "Mist Form should reset fall distance while slowing descent");
+        });
+    }
+
+    static void mistFormStandsOnLiquidAndSneakSinks(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var waterWalker = createEquipmentTestPlayer(helper, new BlockPos(0, 3, 0), "mist_form_water_walk_test");
+            var waterSupportPos = waterWalker.blockPosition().below();
+            placeAbsoluteFluidTestBasin(helper.getLevel(), waterSupportPos, Blocks.WATER.defaultBlockState());
+            waterWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            waterWalker.setDeltaMovement(0.1D, -0.2D, 0.0D);
+            jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
+                    new TickEvent.PlayerTickEvent(TickEvent.Phase.START, waterWalker)
+            );
+            helper.assertTrue(waterWalker.onGround() && waterWalker.getDeltaMovement().y == 0.0D,
+                    "Mist Form should hold the player on liquid surface without downward motion: onGround="
+                            + waterWalker.onGround()
+                            + ", y=" + waterWalker.getY()
+                            + ", dy=" + waterWalker.getDeltaMovement().y);
+            helper.assertTrue(Math.abs(waterWalker.getDeltaMovement().x - 0.1D) < 1.0E-9D,
+                    "Mist Form liquid standing should preserve horizontal movement on water");
+
+            var sneakingWalker = createEquipmentTestPlayer(helper, new BlockPos(0, 3, 0), "mist_form_sneak_sink_test");
+            sneakingWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            sneakingWalker.setShiftKeyDown(true);
+            sneakingWalker.setOnGround(false);
+            sneakingWalker.setDeltaMovement(0.0D, -0.2D, 0.0D);
+            jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
+                    new TickEvent.PlayerTickEvent(TickEvent.Phase.START, sneakingWalker)
+            );
+            helper.assertFalse(sneakingWalker.onGround(),
+                    "Mist Form should not hold the player on liquid while sneaking");
+
+            var lavaWalker = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 0), "mist_form_lava_walk_test");
+            placeAbsoluteFluidTestBasin(helper.getLevel(), lavaWalker.blockPosition().below(), Blocks.LAVA.defaultBlockState());
+            lavaWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            lavaWalker.setDeltaMovement(0.0D, -0.2D, 0.0D);
+            jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
+                    new TickEvent.PlayerTickEvent(TickEvent.Phase.START, lavaWalker)
+            );
+            helper.assertTrue(lavaWalker.onGround() && !lavaWalker.isInLava(),
+                    "Mist Form should stand on lava by avoiding liquid contact, not by granting fire resistance");
+
+            var flowingWaterWalker = createEquipmentTestPlayer(helper, new BlockPos(4, 3, 0), "mist_form_flowing_water_walk_test");
+            placeAbsoluteFluidTestBasin(helper.getLevel(), flowingWaterWalker.blockPosition().below(),
+                    Blocks.WATER.defaultBlockState().setValue(LiquidBlock.LEVEL, 1));
+            flowingWaterWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            flowingWaterWalker.setDeltaMovement(0.1D, -0.2D, 0.0D);
+            jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
+                    new TickEvent.PlayerTickEvent(TickEvent.Phase.START, flowingWaterWalker)
+            );
+            helper.assertTrue(flowingWaterWalker.onGround()
+                            && flowingWaterWalker.getDeltaMovement().y == 0.0D
+                            && Math.abs(flowingWaterWalker.getDeltaMovement().x - 0.1D) < 1.0E-9D,
+                    "Mist Form should stand on flowing liquid without crushing horizontal movement: "
+                            + flowingWaterWalker.getDeltaMovement());
+
+            var swimmer = createEquipmentTestPlayer(helper, new BlockPos(6, 3, 0), "mist_form_swimming_test");
+            placeAbsoluteFluidTestBasin(helper.getLevel(), swimmer.blockPosition(), Blocks.WATER.defaultBlockState());
+            swimmer.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            swimmer.setDeltaMovement(0.0D, 0.2D, 0.0D);
+            jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
+                    new TickEvent.PlayerTickEvent(TickEvent.Phase.START, swimmer)
+            );
+            helper.assertFalse(swimmer.onGround(),
+                    "Mist Form should not force liquid standing while the player is touching liquid");
+            helper.assertTrue(Math.abs(swimmer.getDeltaMovement().y - 0.2D) < 1.0E-9D,
+                    "Mist Form should preserve upward swimming movement while touching liquid: "
+                            + swimmer.getDeltaMovement());
+
+            var cooldownWalker = createEquipmentTestPlayer(helper, new BlockPos(8, 3, 0), "mist_form_fluid_cooldown_test");
+            placeAbsoluteFluidTestBasin(helper.getLevel(), cooldownWalker.blockPosition(), Blocks.WATER.defaultBlockState());
+            cooldownWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            cooldownWalker.tickCount = 100;
+            helper.assertFalse(jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.canStandOnFluid(cooldownWalker),
+                    "Mist Form should disable liquid standing immediately after touching liquid");
+
+            helper.getLevel().setBlock(cooldownWalker.blockPosition(), Blocks.AIR.defaultBlockState(), 3);
+            placeAbsoluteFluidTestBasin(helper.getLevel(), cooldownWalker.blockPosition().below(), Blocks.WATER.defaultBlockState());
+            cooldownWalker.tickCount = 120;
+            helper.assertFalse(jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.canStandOnFluid(cooldownWalker),
+                    "Mist Form should keep liquid standing disabled for 20 ticks after leaving liquid");
+            cooldownWalker.tickCount = 121;
+            helper.assertTrue(jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.canStandOnFluid(cooldownWalker),
+                    "Mist Form should re-enable liquid standing after the 20 tick liquid-contact delay");
+        });
+    }
+
+    private static void assertMistFormModifierAmount(
+            GameTestHelper helper,
+            net.minecraft.world.effect.MobEffect effect,
+            Attribute attribute,
+            AttributeModifier.Operation operation,
+            double expectedAmount,
+            String message
+    ) {
+        var modifier = effect.getAttributeModifiers().get(attribute);
+        helper.assertTrue(modifier != null, message + ": missing modifier for " + attribute.getDescriptionId());
+        if (modifier == null) {
+            return;
+        }
+        helper.assertTrue(modifier.getOperation() == operation,
+                message + ": expected operation " + operation + " but got " + modifier.getOperation());
+        helper.assertTrue(Math.abs(effect.getAttributeModifierValue(0, modifier) - expectedAmount) < 1.0E-9D,
+                message + ": expected level 0 amount " + expectedAmount);
+        helper.assertTrue(Math.abs(effect.getAttributeModifierValue(9, modifier) - expectedAmount) < 1.0E-9D,
+                message + ": expected level 9 amount to remain " + expectedAmount);
+    }
+
+    private static net.minecraft.world.entity.monster.Zombie createTargetingZombie(
+            GameTestHelper helper,
+            BlockPos pos,
+            Player target,
+            String name
+    ) {
+        var level = helper.getLevel();
+        var zombie = new net.minecraft.world.entity.monster.Zombie(EntityType.ZOMBIE, level);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        zombie.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        zombie.setCustomName(Component.literal(name));
+        zombie.setTarget(target);
+        zombie.setLastHurtByMob(target);
+        level.addFreshEntity(zombie);
+        return zombie;
+    }
+
+    private static void placeAbsoluteFluidTestBasin(ServerLevel level, BlockPos fluidPos, BlockState fluidState) {
+        level.setBlock(fluidPos.below(), Blocks.STONE.defaultBlockState(), 3);
+        for (var direction : Direction.Plane.HORIZONTAL) {
+            level.setBlock(fluidPos.relative(direction), Blocks.STONE.defaultBlockState(), 3);
+        }
+        level.setBlock(fluidPos, fluidState, 3);
+    }
+
     private static FakePlayer createHarvestMoonPlayer(GameTestHelper helper, BlockPos pos, ItemStack mainHandStack) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "harvest_moon_test"));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
