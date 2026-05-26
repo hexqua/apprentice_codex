@@ -7,11 +7,14 @@ import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.utility.SummonedFirearmTools;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 
@@ -19,6 +22,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class MistForm extends AbstractSpell {
+    private static final double AWARENESS_SUPPRESSION_RADIUS = 32.0D;
+
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "mist_form");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -80,6 +85,17 @@ public class MistForm extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        if (!level.isClientSide) {
+            entity.addEffect(new MobEffectInstance(
+                    EffectRegistry.MIST_FORM.get(),
+                    getDuration(spellLevel, entity),
+                    0,
+                    false,
+                    false,
+                    true
+            ));
+            SummonedFirearmTools.suppressNearbyAwareness(level, entity, entity, AWARENESS_SUPPRESSION_RADIUS);
+        }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 }

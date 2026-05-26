@@ -25,6 +25,7 @@
     "ItemCombinerMenuAccessor",
     "MagicDataAccessor",
     "LivingEntityAccessor",
+    "LivingEntityMistFormMixin",
     "LivingEntityPhalanxGuardMixin",
     "PotionContentsMixin",
     "LivingEntitySpectralWingMixin",

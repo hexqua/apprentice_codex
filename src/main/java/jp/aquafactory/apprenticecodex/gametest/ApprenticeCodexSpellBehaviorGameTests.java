@@ -28,6 +28,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String MULTICAST_ECHO_STAFF_COOLDOWN_CAP_BATCH = "apprenticecodex.multicast_echo_staff_cooldown_cap";
     private static final String MULTICAST_ECHO_STAFF_BASE_COOLDOWN_CAP_BATCH = "apprenticecodex.multicast_echo_staff_base_cooldown_cap";
     private static final String ECHO_CAST_MULTICAST_LIMIT_BATCH = "apprenticecodex.echo_cast_multicast_limit";
+    private static final String MIST_FORM_ISOLATED_BATCH = "apprenticecodex.mist_form_isolated";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
     }
@@ -385,5 +386,30 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = ECHO_CAST_MULTICAST_LIMIT_BATCH, timeoutTicks = 40)
     public static void echoCastStopsAtConfiguredMulticastLimit(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.echoCastStopsAtConfiguredMulticastLimit(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormAppliesEffectAndFixedAttributes(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormAppliesEffectAndFixedAttributes(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormSuppressesAwarenessWithinThirtyTwoBlocks(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormSuppressesAwarenessWithinThirtyTwoBlocks(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormDamageToLivingTargetRemovesEffect(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormDamageToLivingTargetRemovesEffect(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormSlowsFallingWithoutAmplifierScaling(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormSlowsFallingWithoutAmplifierScaling(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormStandsOnLiquidAndSneakSinks(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormStandsOnLiquidAndSneakSinks(helper);
     }
 }
