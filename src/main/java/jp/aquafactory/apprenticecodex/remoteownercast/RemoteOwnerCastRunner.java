@@ -17,11 +17,13 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHel
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.TraceableEntity;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
@@ -85,6 +87,7 @@ public final class RemoteOwnerCastRunner {
                     level,
                     owner,
                     owner,
+                    null,
                     sourceStack,
                     spellData,
                     profile,
@@ -99,6 +102,7 @@ public final class RemoteOwnerCastRunner {
                     level,
                     owner,
                     createProxy(level, owner, origin, forward),
+                    null,
                     sourceStack,
                     spellData,
                     profile,
@@ -109,10 +113,24 @@ public final class RemoteOwnerCastRunner {
                     castingSlot,
                     postSpellPreCastEvent
             );
-            case REMOTE_ANCHOR_OWNER_MAGIC, REMOTE_PLAYER_GEOMETRY -> tryOwnerMagicCast(
+            case REMOTE_ANCHOR_OWNER_MAGIC -> tryRemoteAnchorOwnerMagicCast(
+                    level,
+                    owner,
+                    sourceStack,
+                    spellData,
+                    profile,
+                    castOrigin,
+                    origin,
+                    forward,
+                    castSource,
+                    castingSlot,
+                    postSpellPreCastEvent
+            );
+            case REMOTE_PLAYER_GEOMETRY -> tryOwnerMagicCast(
                     level,
                     owner,
                     owner,
+                    null,
                     sourceStack,
                     spellData,
                     profile,
@@ -468,10 +486,42 @@ public final class RemoteOwnerCastRunner {
         return result.succeeded() ? CastResult.success() : CastResult.failed();
     }
 
+    private static CastResult tryRemoteAnchorOwnerMagicCast(
+            ServerLevel level,
+            ServerPlayer owner,
+            ItemStack sourceStack,
+            SpellData spellData,
+            RemoteOwnerCastProfile profile,
+            RemoteOwnerCastOrigin castOrigin,
+            Vec3 contextOrigin,
+            Vec3 contextForward,
+            CastSource castSource,
+            String castingSlot,
+            boolean postSpellPreCastEvent
+    ) {
+        var anchor = createRemoteOwnerAnchor(level, owner, contextOrigin, contextForward);
+        return tryOwnerMagicCast(
+                level,
+                owner,
+                anchor,
+                anchor,
+                sourceStack,
+                spellData,
+                profile,
+                castOrigin,
+                contextOrigin,
+                contextForward,
+                castSource,
+                castingSlot,
+                postSpellPreCastEvent
+        );
+    }
+
     private static CastResult tryOwnerMagicCast(
             ServerLevel level,
             ServerPlayer owner,
             LivingEntity spellCaster,
+            @Nullable RemoteOwnerCastAnchorEntity spellCasterAnchor,
             ItemStack sourceStack,
             SpellData spellData,
             RemoteOwnerCastProfile profile,
@@ -485,21 +535,25 @@ public final class RemoteOwnerCastRunner {
         var spell = spellData.getSpell();
         var ownerMagicData = MagicData.getPlayerMagicData(owner);
         if (ownerMagicData == null) {
+            discardAnchorIfUnused(spellCasterAnchor);
             return CastResult.failed();
         }
 
         var manaAccess = new PlayerManaAccess(owner);
         if (!canOwnerCastWithManaAccess(owner, spellData, castSource, ownerMagicData, manaAccess)) {
+            discardAnchorIfUnused(spellCasterAnchor);
             return CastResult.failed();
         }
         if (postSpellPreCastEvent
                 && MinecraftForge.EVENT_BUS.post(new SpellPreCastEvent(owner, spell.getSpellId(), spellData.getLevel(), spell.getSchoolType(), castSource))) {
+            discardAnchorIfUnused(spellCasterAnchor);
             return CastResult.failed();
         }
 
         var originalMana = ownerMagicData.getMana();
         var restoreManaAfterCast = manaAccess.isManaConsumptionExempt();
         var originalSyncedData = ownerMagicData.getSyncedData();
+        var retainAnchor = false;
         try {
             ownerMagicData.setSyncedData(new SyncedSpellData(spellCaster));
             ownerMagicData.initiateCast(spell, spellData.getLevel(), 0, castSource, castingSlot);
@@ -528,8 +582,12 @@ public final class RemoteOwnerCastRunner {
 
                 syncOwnerManaForCast(manaAccess, ownerMagicData);
                 spell.onCast(level, spellData.getLevel(), spellCaster, castSource, ownerMagicData);
+                retainAnchor = retainAnchorForSummonWeapon(level, ownerMagicData.getAdditionalCastData(), spellCasterAnchor);
                 syncOwnerManaForCast(manaAccess, ownerMagicData);
                 spell.onServerCastComplete(level, spellData.getLevel(), spellCaster, ownerMagicData, false);
+                if (!retainAnchor) {
+                    retainAnchor = retainAnchorForSummonWeapon(level, ownerMagicData.getAdditionalCastData(), spellCasterAnchor);
+                }
             }
             return CastResult.success();
         } catch (RuntimeException exception) {
@@ -550,7 +608,34 @@ public final class RemoteOwnerCastRunner {
                 }
                 ownerMagicData.setSyncedData(originalSyncedData);
                 originalSyncedData.syncToPlayer(owner);
+                if (!retainAnchor && spellCasterAnchor != null && !spellCasterAnchor.isRemoved()) {
+                    spellCasterAnchor.discard();
+                }
             }
+        }
+    }
+
+    private static boolean retainAnchorForSummonWeapon(
+            ServerLevel level,
+            @Nullable ICastData castData,
+            @Nullable RemoteOwnerCastAnchorEntity anchor
+    ) {
+        if (anchor == null || !(castData instanceof AbstractSummonWeaponSpell.SummonWeaponSpellCastData summonCastData)) {
+            return false;
+        }
+
+        var summon = summonCastData.getEntity(level);
+        if (!(summon instanceof TraceableEntity traceable) || traceable.getOwner() != anchor) {
+            return false;
+        }
+
+        anchor.retainWhileOwnerOf(summon);
+        return true;
+    }
+
+    private static void discardAnchorIfUnused(@Nullable RemoteOwnerCastAnchorEntity anchor) {
+        if (anchor != null && !anchor.isRemoved()) {
+            anchor.discard();
         }
     }
 

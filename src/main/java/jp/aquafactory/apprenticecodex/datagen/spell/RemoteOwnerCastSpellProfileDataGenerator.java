@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileList
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
+import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
@@ -58,6 +59,7 @@ public final class RemoteOwnerCastSpellProfileDataGenerator extends JsonCodecPro
 
         for (var definition : SpellDispenserSpellProfileDataGenerator.createProfileDefinitions()) {
             profiles.put(definition.spell(), definition.profile().equals(SpellDispenserSpellProfile.MINIMUM_CONE)
+                            || usesOwnerFollowingSummonWeapon(definition.spell())
                     ? remoteAnchorOwnerProfile(false)
                     : RemoteOwnerCastProfile.REMOTE_PLAYER_GEOMETRY);
         }
@@ -111,6 +113,13 @@ public final class RemoteOwnerCastSpellProfileDataGenerator extends JsonCodecPro
             RemoteOwnerCastProfile profile
     ) {
         profiles.put(getResourceLocationRegistry(spell), profile);
+    }
+
+    private static boolean usesOwnerFollowingSummonWeapon(ResourceLocation spellId) {
+        return jp.aquafactory.apprenticecodex.registry.SpellRegistry.SPELLS.getEntries().stream()
+                .map(Supplier::get)
+                .filter(spell -> spellId.equals(spell.getSpellResource()))
+                .anyMatch(AbstractSummonWeaponSpell.class::isInstance);
     }
 
     private static RemoteOwnerCastProfile playerSelfProfile(boolean allowInitialRecast) {
