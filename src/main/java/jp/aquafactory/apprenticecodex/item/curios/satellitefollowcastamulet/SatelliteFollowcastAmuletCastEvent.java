@@ -594,7 +594,15 @@ public final class SatelliteFollowcastAmuletCastEvent {
         clearPlayerState(player, true);
     }
 
+    public static void clearPlayerStateForGameTest(ServerPlayer player, @Nullable ServerLevel ownerLevel) {
+        clearPlayerState(player, true, ownerLevel);
+    }
+
     private static void clearPlayerState(ServerPlayer player, boolean cancelled) {
+        clearPlayerState(player, cancelled, player.serverLevel());
+    }
+
+    private static void clearPlayerState(ServerPlayer player, boolean cancelled, @Nullable ServerLevel ownerLevel) {
         PENDING_FOLLOWCAST_COOLDOWNS.remove(player.getUUID());
         var levelIterator = ACTIVE_CONTINUOUS_CASTS.entrySet().iterator();
         while (levelIterator.hasNext()) {
@@ -607,7 +615,7 @@ public final class SatelliteFollowcastAmuletCastEvent {
                 if (!runtime.key().ownerId().equals(player.getUUID())) {
                     continue;
                 }
-                finishContinuousFollowcast(level, runtime, player, cancelled);
+                finishContinuousFollowcast(level, runtime, level == ownerLevel ? player : null, cancelled);
                 runtimeIterator.remove();
             }
             if (runtimes.isEmpty()) {
