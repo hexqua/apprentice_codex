@@ -35,6 +35,7 @@ import jp.aquafactory.apprenticecodex.spell.manacharge.ManaCharge;
 import jp.aquafactory.apprenticecodex.spell.manifestationgrimoire.ManifestationGrimoire;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeap;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlash;
+import jp.aquafactory.apprenticecodex.spell.mistform.MistForm;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLight;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShield;
 import jp.aquafactory.apprenticecodex.spell.paletteshift.PaletteShift;
@@ -80,6 +81,7 @@ public final class SpellRegistry {
 
     // 血.
     public static final RegistryObject<AbstractSpell> HIGANBANA = reg("higanbana", Higanbana::new);
+    public static final RegistryObject<AbstractSpell> MIST_FORM = reg("mist_form", MistForm::new);
 
     // エンダー.
     public static final RegistryObject<AbstractSpell> ARCANE_BLAST = reg("arcane_blast", ArcaneBlast::new);

@@ -28,6 +28,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String MULTICAST_ECHO_STAFF_BASE_COOLDOWN_CAP_BATCH = "apprenticecodex.multicast_echo_staff_base_cooldown_cap";
     private static final String ECHO_CAST_MULTICAST_LIMIT_BATCH = "apprenticecodex.echo_cast_multicast_limit";
     private static final String MYSTIC_SHIELD_ISOLATED_BATCH = "apprenticecodex.mystic_shield_isolated";
+    private static final String MIST_FORM_ISOLATED_BATCH = "apprenticecodex.mist_form_isolated";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
     }
@@ -375,5 +376,55 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = MYSTIC_SHIELD_ISOLATED_BATCH)
     public static void mysticShieldReceivesProtectionSpellSupporterBenefits(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.mysticShieldReceivesProtectionSpellSupporterBenefits(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormAppliesEffectAndFixedAttributes(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormAppliesEffectAndFixedAttributes(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormSuppressesAwarenessWithinThirtyTwoBlocks(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormSuppressesAwarenessWithinThirtyTwoBlocks(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormDamageToLivingTargetRemovesEffect(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormDamageToLivingTargetRemovesEffect(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormSlowsFallingWithoutAmplifierScaling(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormSlowsFallingWithoutAmplifierScaling(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormStandsOnLiquidAndSneakSinks(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormStandsOnLiquidAndSneakSinks(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormPassesTaggedBlocksAndRejectsGlass(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormPassesTaggedBlocksAndRejectsGlass(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormPassableBlockDenylistBlocksIdsAndTags(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormPassableBlockDenylistBlocksIdsAndTags(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormWaterloggedPassableBlockDoesNotSnapUp(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormWaterloggedPassableBlockDoesNotSnapUp(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormIgnoresTaggedMovementRestrictions(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormIgnoresTaggedMovementRestrictions(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
+    public static void mistFormMovementRestrictionIgnoreKeepsBlockEffects(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mistFormMovementRestrictionIgnoreKeepsBlockEffects(helper);
     }
 }

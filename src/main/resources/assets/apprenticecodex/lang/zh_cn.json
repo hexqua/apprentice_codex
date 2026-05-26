@@ -552,6 +552,7 @@
   "spell.apprenticecodex.frost_rune": "冰霜符文",
   "spell.apprenticecodex.echo_cast": "回响施法",
   "spell.apprenticecodex.mystic_shield": "秘术护盾",
+  "spell.apprenticecodex.mist_form": "迷雾形态",
 
   "spell.apprenticecodex.sky_edge.guide": "召唤一把武器朝你的视线方向发射。该法术有蓄力时间，且不造成击退，但可以无视目标的无敌帧。",
   "spell.apprenticecodex.archer_multiple.guide": "召唤一把跟随你的魔法弓，持续射击直至弹药耗尽，优先攻击你锁定的目标或附近的敌人。",
@@ -609,6 +610,7 @@
   "spell.apprenticecodex.frost_rune.guide": "在地形上刻下冰霜符文。除施法者外，任何生物触碰都会引爆，攻击范围内的目标。隐匿魔法使其难以被发现，但完全无法骗过翡翠之眼。",
   "spell.apprenticecodex.echo_cast.guide": "多重施法回响法杖专属潜在法术。令魔力产生回响，使下一次用此法杖施放的法术多重发动。令该法术自身回响时会增加次数。",
   "spell.apprenticecodex.mystic_shield.guide": "展开一道魔法屏障吸收攻击。只能防御来自前方的攻击，但解除屏障时，会根据吸收的攻击发射反击弹。",
+  "spell.apprenticecodex.mist_form.guide": "使自身化为迷雾般的状态，并短暂转移敌人的注意。处于迷雾状态时，移动能力略有提升，并能穿过部分方块。发动攻击会使迷雾变得不稳定，可能解除该状态，且会变得极其脆弱，尤其惧怕火焰和神圣系法术。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "爆头伤害倍率：%d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "潜行伤害倍率：%d%%",
@@ -748,6 +750,7 @@
  "effect.apprenticecodex.spectral_wing": "幽影之翼",
  "effect.apprenticecodex.penetrated_armor": "护甲穿透",
  "effect.apprenticecodex.frost_trapped": "冰霜禁锢",
+ "effect.apprenticecodex.mist_form": "迷雾形态",
  "effect.apprenticecodex.school_affinity": "魔法亲和",
  "effect.apprenticecodex.school_affinity.dynamic": "%s 亲和",
  "effect.apprenticecodex.arcane_charge.description": "提升法术威力。",
@@ -765,6 +768,7 @@
  "effect.apprenticecodex.spectral_wing.description": "你正借助具象化的魔法之翼滑翔。",
  "effect.apprenticecodex.penetrated_armor.description": "护甲被钻头穿透，大幅降低护甲值与护甲韧性。",
  "effect.apprenticecodex.frost_trapped.description": "被魔法冰系法术冻结，持续受到冰霜伤害。",
+ "effect.apprenticecodex.mist_form.description": "提升移动能力并获得缓降状态。在此状态下对生物造成伤害时会被强制解除。",
 
  "item.minecraft.potion.effect.intelligence": "智慧药水",
  "item.minecraft.potion.effect.meditation": "冥想药水",
@@ -950,6 +954,8 @@
  "subtitle.apprenticecodex.sound.mystic_shield_deploy": "秘术护盾展开",
  "subtitle.apprenticecodex.sound.mystic_shield_block": "秘术护盾格挡",
  "subtitle.apprenticecodex.sound.mystic_shield_shoot": "秘术护盾释放",
+ "subtitle.apprenticecodex.sound.mist_form_start": "迷雾升起",
+ "subtitle.apprenticecodex.sound.mist_form_finished": "迷雾消散",
  "subtitle.apprenticecodex.sound.smashcast_scepter_smash_air": "权杖猛击",
  "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground": "权杖击打地面",
  "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground_heavy": "权杖重击落下",

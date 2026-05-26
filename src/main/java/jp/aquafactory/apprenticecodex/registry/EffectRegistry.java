@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.effect.FrostTrapped;
 import jp.aquafactory.apprenticecodex.effect.Intelligence;
 import jp.aquafactory.apprenticecodex.effect.LongStrideMobility;
 import jp.aquafactory.apprenticecodex.effect.ManaRegeneration;
+import jp.aquafactory.apprenticecodex.effect.MistFormEffect;
 import jp.aquafactory.apprenticecodex.effect.PaletteReception;
 import jp.aquafactory.apprenticecodex.effect.PenetratedArmor;
 import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
@@ -39,6 +40,8 @@ public final class EffectRegistry {
             EFFECTS.register("long_stride_mobility", LongStrideMobility::new);
     public static final RegistryObject<MobEffect> MANA_REGENERATION =
             EFFECTS.register("mana_regeneration", ManaRegeneration::new);
+    public static final RegistryObject<MobEffect> MIST_FORM =
+            EFFECTS.register("mist_form", MistFormEffect::new);
     public static final RegistryObject<MobEffect> PALETTE_RECEPTION =
             EFFECTS.register("palette_reception", PaletteReception::new);
     public static final RegistryObject<MobEffect> ECHO_SPELL =

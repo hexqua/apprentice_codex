@@ -319,6 +319,20 @@
       "apprenticecodex:mystic_shield_shoot"
     ]
   },
+  "mist_form_start": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.mist_form_start",
+    "sounds": [
+      "apprenticecodex:mist_form_start"
+    ]
+  },
+  "mist_form_finished": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.mist_form_finished",
+    "sounds": [
+      "apprenticecodex:mist_form_finished"
+    ]
+  },
 
   "smashcast_scepter_smash_air": {
     "_apprentice_codex_note": "ベースはSoundEvents.PLAYER_ATTACK_CRIT",

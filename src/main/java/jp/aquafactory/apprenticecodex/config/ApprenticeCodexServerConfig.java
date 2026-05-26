@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.config;
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 import java.util.List;
@@ -908,6 +909,22 @@ public final class ApprenticeCodexServerConfig {
 
     public static float forceFieldDrainManaBasePerHit() {
         return SPELLS_CONFIG.forceFieldDrainManaBasePerHit();
+    }
+
+    public static boolean isMistFormPassableBlockDenied(BlockState state) {
+        return SPELLS_CONFIG.isMistFormPassableBlockDenied(state);
+    }
+
+    public static List<String> mistFormPassableBlockDenylist() {
+        return SPELLS_CONFIG.mistFormPassableBlockDenylist();
+    }
+
+    public static GameTestConfigOverride useMistFormPassableBlockDenylistOverrideForGameTest(
+            List<String> passableBlockDenylist
+    ) {
+        var previousPassableBlockDenylist = SPELLS_CONFIG.mistFormPassableBlockDenylist();
+        SPELLS_CONFIG.setMistFormPassableBlockDenylistForGameTest(passableBlockDenylist);
+        return () -> SPELLS_CONFIG.setMistFormPassableBlockDenylistForGameTest(previousPassableBlockDenylist);
     }
 
     public static boolean autoMagnetDisableCollectManaCost() {
