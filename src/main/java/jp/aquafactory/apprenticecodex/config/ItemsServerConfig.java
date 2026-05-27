@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.RemoteOwnerCastServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.AbsorptionAmplifyAmuletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArcaneCinderServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SatelliteFollowcastAmuletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScarletThirstServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScrollcasterGauntletServerConfig;
@@ -43,6 +44,7 @@ final class ItemsServerConfig {
     private final ElementalBowServerConfig elementalBowConfig;
     private final ScrollcasterGauntletServerConfig scrollcasterGauntletConfig;
     private final SpellStainedRunicTabletServerConfig spellStainedRunicTabletConfig;
+    private final ArchivistsGrimoireServerConfig archivistsGrimoireConfig;
     private final SatelliteFollowcastAmuletServerConfig satelliteFollowcastAmuletConfig;
     private final RemoteOwnerCastServerConfig remoteOwnerCastConfig;
 
@@ -64,6 +66,7 @@ final class ItemsServerConfig {
             ElementalBowServerConfig elementalBowConfig,
             ScrollcasterGauntletServerConfig scrollcasterGauntletConfig,
             SpellStainedRunicTabletServerConfig spellStainedRunicTabletConfig,
+            ArchivistsGrimoireServerConfig archivistsGrimoireConfig,
             SatelliteFollowcastAmuletServerConfig satelliteFollowcastAmuletConfig,
             RemoteOwnerCastServerConfig remoteOwnerCastConfig
     ) {
@@ -84,6 +87,7 @@ final class ItemsServerConfig {
         this.elementalBowConfig = elementalBowConfig;
         this.scrollcasterGauntletConfig = scrollcasterGauntletConfig;
         this.spellStainedRunicTabletConfig = spellStainedRunicTabletConfig;
+        this.archivistsGrimoireConfig = archivistsGrimoireConfig;
         this.satelliteFollowcastAmuletConfig = satelliteFollowcastAmuletConfig;
         this.remoteOwnerCastConfig = remoteOwnerCastConfig;
     }
@@ -107,6 +111,7 @@ final class ItemsServerConfig {
         var elementalBowConfig = ElementalBowServerConfig.define(builder);
         var scrollcasterGauntletConfig = ScrollcasterGauntletServerConfig.define(builder);
         var spellStainedRunicTabletConfig = SpellStainedRunicTabletServerConfig.define(builder);
+        var archivistsGrimoireConfig = ArchivistsGrimoireServerConfig.define(builder);
         var satelliteFollowcastAmuletConfig = SatelliteFollowcastAmuletServerConfig.define(builder);
         var remoteOwnerCastConfig = RemoteOwnerCastServerConfig.define(builder);
         builder.pop();
@@ -129,6 +134,7 @@ final class ItemsServerConfig {
                 elementalBowConfig,
                 scrollcasterGauntletConfig,
                 spellStainedRunicTabletConfig,
+                archivistsGrimoireConfig,
                 satelliteFollowcastAmuletConfig,
                 remoteOwnerCastConfig
         );
@@ -494,6 +500,14 @@ final class ItemsServerConfig {
         return spellStainedRunicTabletConfig.values();
     }
 
+    int archivistsGrimoireInitialRows() {
+        return archivistsGrimoireConfig.initialRows();
+    }
+
+    int archivistsGrimoireEffectiveMaxRows() {
+        return archivistsGrimoireConfig.effectiveMaxRows();
+    }
+
     boolean isSatelliteFollowcastAmuletSpellDenied(ResourceLocation spellId) {
         return satelliteFollowcastAmuletConfig.isSpellDenied(spellId);
     }
@@ -703,6 +717,10 @@ final class ItemsServerConfig {
 
     void setSpellStainedRunicTabletConfigForGameTest(SpellStainedRunicTabletServerConfig.Values values) {
         spellStainedRunicTabletConfig.setForGameTest(values);
+    }
+
+    void setArchivistsGrimoireConfigForGameTest(ArchivistsGrimoireServerConfig.Values values) {
+        archivistsGrimoireConfig.setForGameTest(values);
     }
 
     void setSatelliteFollowcastAmuletSpellDenylistForGameTest(List<String> spellDenylist) {
