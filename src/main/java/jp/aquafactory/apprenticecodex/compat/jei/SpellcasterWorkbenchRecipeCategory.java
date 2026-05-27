@@ -1,16 +1,23 @@
 package jp.aquafactory.apprenticecodex.compat.jei;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprenticeCodexRecipeCategory<SpellcasterWorkbenchRecipe> {
+    public static final ResourceLocation ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_RECIPE_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "archivists_grimoire_row_upgrade");
+    private static final Component ARCHIVISTS_GRIMOIRE_UPGRADE_HINT =
+            Component.translatable("jei.apprenticecodex.archivists_grimoire.upgrade_hint");
     private static final int WIDTH = 134;
-    private static final int HEIGHT = 44;
+    private static final int HEIGHT = 56;
     private static final int[][] INPUT_POSITIONS = {
             {4, 5},
             {24, 15},
@@ -67,5 +74,8 @@ public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprentice
             double mouseY
     ) {
         recipeArrow.draw(guiGraphics, ARROW_X, ARROW_Y);
+        if (ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_RECIPE_ID.equals(recipe.getId())) {
+            drawLabel(guiGraphics, ARCHIVISTS_GRIMOIRE_UPGRADE_HINT, 74, 36);
+        }
     }
 }

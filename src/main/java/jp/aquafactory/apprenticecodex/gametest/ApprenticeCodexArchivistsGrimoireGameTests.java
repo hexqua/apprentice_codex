@@ -30,8 +30,28 @@ public final class ApprenticeCodexArchivistsGrimoireGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void archivistsGrimoireLockedRowsHideLegacyScrolls(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.archivistsGrimoireLockedRowsHideLegacyScrolls(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void archivistsGrimoireTooltipShowsInscribeHintOnlyWhenEmpty(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.archivistsGrimoireTooltipShowsInscribeHintOnlyWhenEmpty(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void archivistsGrimoireTooltipWarnsAboutLockedScrolls(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.archivistsGrimoireTooltipWarnsAboutLockedScrolls(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void archivistsGrimoireWorkbenchUpgradePreservesStoredScrolls(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.archivistsGrimoireWorkbenchUpgradePreservesStoredScrolls(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void archivistsGrimoireConfigMaxRowsCannotFallBelowInitialRows(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.archivistsGrimoireConfigMaxRowsCannotFallBelowInitialRows(helper);
     }
 
     @GameTest(template = TEMPLATE)

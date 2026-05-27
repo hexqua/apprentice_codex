@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
@@ -163,8 +164,12 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         return getBlockedWorkbenchImbueReason() == WorkbenchImbueBlockReason.UNSUPPORTED_EQUIPMENT;
     }
 
+    public boolean isBlockedByArchivistsGrimoireMaxSlotReached() {
+        return getBlockedGrimoireUpgradeReason() == GrimoireUpgradeBlockReason.MAX_SLOT_REACHED;
+    }
+
     public boolean isResultBlocked() {
-        return isSpellExtractionBlocked() || isBlockedByUnsupportedWorkbenchImbue();
+        return isSpellExtractionBlocked() || isBlockedByUnsupportedWorkbenchImbue() || isBlockedByArchivistsGrimoireMaxSlotReached();
     }
 
     @Override
@@ -511,6 +516,18 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             return;
         }
 
+        var grimoireUpgrade = getActiveGrimoireUpgrade();
+        if (grimoireUpgrade != null) {
+            craftedStack.onCraftedBy(player.level(), player, craftedStack.getCount());
+            if (!consumeGrimoireUpgradeInputs(grimoireUpgrade)) {
+                return;
+            }
+
+            playCraftSound();
+            setupResultSlot();
+            return;
+        }
+
         var extraction = getActiveSpellExtraction();
         if (extraction != null) {
             craftedStack.onCraftedBy(player.level(), player, craftedStack.getCount());
@@ -621,6 +638,10 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         return buildWorkbenchImbue();
     }
 
+    private @Nullable GrimoireUpgrade getActiveGrimoireUpgrade() {
+        return buildGrimoireUpgrade();
+    }
+
     private @Nullable FlaskParticleToggle getActiveFlaskParticleToggle() {
         return buildFlaskParticleToggle();
     }
@@ -634,6 +655,11 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         var workbenchImbue = getActiveWorkbenchImbue();
         if (workbenchImbue != null) {
             return workbenchImbue.resultTemplate().copy();
+        }
+
+        var grimoireUpgrade = getActiveGrimoireUpgrade();
+        if (grimoireUpgrade != null) {
+            return grimoireUpgrade.resultTemplate().copy();
         }
 
         var extraction = getActiveSpellExtraction();
@@ -756,6 +782,63 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     private @Nullable WorkbenchImbueBlockReason getBlockedWorkbenchImbueReason() {
         var context = getWorkbenchImbueContext();
         return context == null ? null : context.blockReason();
+    }
+
+    private @Nullable GrimoireUpgradeBlockReason getBlockedGrimoireUpgradeReason() {
+        var context = getGrimoireUpgradeContext();
+        return context == null ? null : context.blockReason();
+    }
+
+    private @Nullable GrimoireUpgrade buildGrimoireUpgrade() {
+        var context = getGrimoireUpgradeContext();
+        if (context == null || context.blockReason() != null) {
+            return null;
+        }
+
+        var resultStack = ArchivistsGrimoire.createUpgradeResult(container.getItem(context.grimoireSlotIndex()));
+        if (resultStack.isEmpty()) {
+            return null;
+        }
+        return new GrimoireUpgrade(context.grimoireSlotIndex(), context.catalystSlotIndex(), context.materialSlotIndex(), resultStack);
+    }
+
+    private @Nullable GrimoireUpgradeContext getGrimoireUpgradeContext() {
+        var grimoireSlotIndex = -1;
+        var catalystSlotIndex = -1;
+        var materialSlotIndex = -1;
+        for (var slotIndex = 0; slotIndex < INPUT_SLOT_COUNT; ++slotIndex) {
+            var inputStack = container.getItem(slotIndex);
+            if (inputStack.isEmpty()) {
+                return null;
+            }
+
+            if (inputStack.getItem() instanceof ArchivistsGrimoire) {
+                if (grimoireSlotIndex >= 0) {
+                    return null;
+                }
+                grimoireSlotIndex = slotIndex;
+            } else if (inputStack.is(TagRegistry.Items.ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_CATALYSTS)) {
+                if (catalystSlotIndex >= 0) {
+                    return null;
+                }
+                catalystSlotIndex = slotIndex;
+            } else if (inputStack.is(TagRegistry.Items.ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_MATERIALS)) {
+                if (materialSlotIndex >= 0) {
+                    return null;
+                }
+                materialSlotIndex = slotIndex;
+            } else {
+                return null;
+            }
+        }
+
+        if (grimoireSlotIndex < 0 || catalystSlotIndex < 0 || materialSlotIndex < 0) {
+            return null;
+        }
+
+        var grimoireStack = container.getItem(grimoireSlotIndex);
+        var blockReason = ArchivistsGrimoire.canUpgrade(grimoireStack) ? null : GrimoireUpgradeBlockReason.MAX_SLOT_REACHED;
+        return new GrimoireUpgradeContext(grimoireSlotIndex, catalystSlotIndex, materialSlotIndex, blockReason);
     }
 
     private @Nullable WorkbenchImbueContext getWorkbenchImbueContext() {
@@ -1068,6 +1151,39 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         return true;
     }
 
+    private boolean consumeGrimoireUpgradeInputs(GrimoireUpgrade upgrade) {
+        if (upgrade.grimoireSlotIndex() < 0 || upgrade.grimoireSlotIndex() >= INPUT_SLOT_COUNT
+                || upgrade.catalystSlotIndex() < 0 || upgrade.catalystSlotIndex() >= INPUT_SLOT_COUNT
+                || upgrade.materialSlotIndex() < 0 || upgrade.materialSlotIndex() >= INPUT_SLOT_COUNT) {
+            return false;
+        }
+
+        var grimoireStack = container.getItem(upgrade.grimoireSlotIndex());
+        var catalystStack = container.getItem(upgrade.catalystSlotIndex());
+        var materialStack = container.getItem(upgrade.materialSlotIndex());
+        if (!(grimoireStack.getItem() instanceof ArchivistsGrimoire)
+                || !catalystStack.is(TagRegistry.Items.ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_CATALYSTS)
+                || !materialStack.is(TagRegistry.Items.ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_MATERIALS)
+                || !ArchivistsGrimoire.canUpgrade(grimoireStack)) {
+            return false;
+        }
+
+        grimoireStack.shrink(1);
+        catalystStack.shrink(1);
+        materialStack.shrink(1);
+        if (grimoireStack.isEmpty()) {
+            container.setItem(upgrade.grimoireSlotIndex(), ItemStack.EMPTY);
+        }
+        if (catalystStack.isEmpty()) {
+            container.setItem(upgrade.catalystSlotIndex(), ItemStack.EMPTY);
+        }
+        if (materialStack.isEmpty()) {
+            container.setItem(upgrade.materialSlotIndex(), ItemStack.EMPTY);
+        }
+        container.setChanged();
+        return true;
+    }
+
     private static void rememberClearedPresetSpellState(ItemStack stack) {
         var item = stack.getItem();
         if (item instanceof AbstractSpellGunItem
@@ -1245,6 +1361,14 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     ) {
     }
 
+    private record GrimoireUpgrade(
+            int grimoireSlotIndex,
+            int catalystSlotIndex,
+            int materialSlotIndex,
+            ItemStack resultTemplate
+    ) {
+    }
+
     private record SpellExtractionContext(
             int sourceSlotIndex,
             int spellIndex,
@@ -1266,6 +1390,10 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         UNSUPPORTED_EQUIPMENT
     }
 
+    private enum GrimoireUpgradeBlockReason {
+        MAX_SLOT_REACHED
+    }
+
     private record WorkbenchImbueContext(
             int sourceSlotIndex,
             int scrollSlotIndex,
@@ -1273,6 +1401,14 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             ItemStack normalizedBaseStack,
             SpellData spellData,
             @Nullable WorkbenchImbueBlockReason blockReason
+    ) {
+    }
+
+    private record GrimoireUpgradeContext(
+            int grimoireSlotIndex,
+            int catalystSlotIndex,
+            int materialSlotIndex,
+            @Nullable GrimoireUpgradeBlockReason blockReason
     ) {
     }
 

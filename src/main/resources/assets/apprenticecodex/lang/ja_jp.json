@@ -228,6 +228,7 @@
   "item.apprenticecodex.special_spellbook.inscribe_hint": "この魔法書は銘刻台で刻み込む代わりに手に持って使ってスクロールを入れる。",
   "item.apprenticecodex.archivists_grimoire.tooltip.current_page": "選択中のページ: %1$d/%2$d",
   "item.apprenticecodex.archivists_grimoire.tooltip.other_scroll_count": "他のページのスクロール数: %d",
+  "item.apprenticecodex.archivists_grimoire.tooltip.warning_legacy_slot": "使用できないスロットにスクロールがセットされている",
   "item.apprenticecodex.reflectcast_shield.hint": "即座に構える事ができる。",
   "item.apprenticecodex.reflectcast_shield.cast_hint": "構えた直後に攻撃をブロックすると注入した魔法を詠唱する。",
   "item.apprenticecodex.multipurpose_staffrifle.desc_1": "[%1$s]で魔法を射撃詠唱する。",
@@ -308,6 +309,7 @@
   "jei.apprenticecodex.archivists_grimoire.desc_1": "銘刻台で刻み込む代わりに手に持って使うことでスクロールを入れられる魔法書。",
   "jei.apprenticecodex.archivists_grimoire.desc_2": "全てが同時に使えるわけではなく、一度に使える魔法はインベントリの1行分と同じ9スロットまで。",
   "jei.apprenticecodex.archivists_grimoire.desc_3": "魔法選択画面を出した状態でマウスホイールを操作することで使用するインベントリの行を切り替えられる。",
+  "jei.apprenticecodex.archivists_grimoire.desc_4": "初期状態で使用できるインベントリは制限されており、詠唱者の作業台で拡張を行う必要がある。",
   "jei.apprenticecodex.focus_staffbow.desc_1": "利き手で握って使用することで魔法を溜めて詠唱することができる。",
   "jei.apprenticecodex.focus_staffbow.desc_2": "最大3倍(継続して詠唱するものは2倍)まで溜めることができるが、その分消費マナが大幅に上昇する。",
   "jei.apprenticecodex.focus_staffbow.desc_3": "消費マナが現在マナを上回っていてもそのまま詠唱はできるが、足りなかったマナが回復するまでは常に杖にマナが奪われ、その間は溜めて詠唱することができない。",
@@ -336,6 +338,8 @@
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_6": "- 系統のルーン：魔法力のボーナスを全属性から系統のルーンに特化させる。",
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_7": "- エンチャント本系アイテム：アイテムの一番上に記載されているエンチャントをガントレットに適用する。",
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_8": "エンチャントは同時に付呪できないものは一つのみが適用され、剣・ツルハシ・魔法詠唱補助具のいずれかに付呪できるものが適用できる。",
+
+  "jei.apprenticecodex.archivists_grimoire.upgrade_hint": "スロット数が9増加",
 
   "enchantment.apprenticecodex.reflux": "還流",
   "enchantment.apprenticecodex.reservoir": "貯蔵",
@@ -459,6 +463,8 @@
   "container.apprenticecodex.atelier_station.fluid.count": "(%d回分)",
   "container.apprenticecodex.companion_trunk.default": "コンパニオントランク",
   "container.apprenticecodex.archivists_grimoire.default": "司書の魔導書",
+  "container.apprenticecodex.archivists_grimoire.tooltip.unable_scroll_slot.empty": "詠唱者の作業台で拡張する必要がある",
+  "container.apprenticecodex.archivists_grimoire.tooltip.unable_scroll_slot.scroll": "このスロットのスクロールは使用できない",
   "container.apprenticecodex.spell_calibration_bench": "術式調整台",
   "container.apprenticecodex.spell_calibration_bench.scroll_label": "スクロールスロット",
   "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_title": "下記のアイテムを受け付ける：",
@@ -744,6 +750,7 @@
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_exist": "取り出す魔法が存在しない",
   "ui.apprenticecodex.spellcaster_workbench.warning_remove_not_allow": "このアイテムに注入した魔法は後から取り出せない",
   "ui.apprenticecodex.spellcaster_workbench.cant_imbue_unsupported_equipment": "この作業台では対応できないため、秘術の金床を使う必要があるようだ",
+  "ui.apprenticecodex.spellcaster_workbench.warning_max_slot_reached": "このアイテムは既に最大まで拡張されている",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
   "effect.apprenticecodex.casting_mobility": "詠唱移動補助",

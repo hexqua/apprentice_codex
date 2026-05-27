@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.config;
 
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
@@ -905,6 +906,25 @@ public final class ApprenticeCodexServerConfig {
         var previousValues = ITEMS_CONFIG.spellStainedRunicTabletConfig();
         ITEMS_CONFIG.setSpellStainedRunicTabletConfigForGameTest(values);
         return () -> ITEMS_CONFIG.setSpellStainedRunicTabletConfigForGameTest(previousValues);
+    }
+
+    public static int archivistsGrimoireInitialRows() {
+        return ITEMS_CONFIG.archivistsGrimoireInitialRows();
+    }
+
+    public static int archivistsGrimoireEffectiveMaxRows() {
+        return ITEMS_CONFIG.archivistsGrimoireEffectiveMaxRows();
+    }
+
+    public static GameTestConfigOverride useArchivistsGrimoireConfigOverrideForGameTest(
+            ArchivistsGrimoireServerConfig.Values values
+    ) {
+        var previousValues = new ArchivistsGrimoireServerConfig.Values(
+                ITEMS_CONFIG.archivistsGrimoireInitialRows(),
+                ITEMS_CONFIG.archivistsGrimoireEffectiveMaxRows()
+        );
+        ITEMS_CONFIG.setArchivistsGrimoireConfigForGameTest(values);
+        return () -> ITEMS_CONFIG.setArchivistsGrimoireConfigForGameTest(previousValues);
     }
 
     public static float forceFieldDrainManaBasePerHit() {
