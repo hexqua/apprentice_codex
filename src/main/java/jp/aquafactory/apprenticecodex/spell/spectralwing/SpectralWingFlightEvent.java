@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SpectralWingState;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -16,6 +17,14 @@ public final class SpectralWingFlightEvent {
     private static final int WATER_DEACTIVATE_GRACE_TICKS = 4;
 
     private SpectralWingFlightEvent() {
+    }
+
+    public static void onSpectralWingEffectRemoved(LivingEntity entity) {
+        if (!(entity instanceof Player player) || player.level().isClientSide) {
+            return;
+        }
+
+        clearWingState(player);
     }
 
     @SubscribeEvent
@@ -97,9 +106,7 @@ public final class SpectralWingFlightEvent {
     }
 
     private static void deactivate(Player player, CodexSpellData spellData, SpectralWingState state) {
-        if (player.isFallFlying()) {
-            player.stopFallFlying();
-        }
+        stopFallFlying(player);
 
         player.removeEffect(EffectRegistry.SPECTRAL_WING.get());
         if (!state.active && !state.startedBySpell && state.launchGraceTicks == 0) {
@@ -112,6 +119,20 @@ public final class SpectralWingFlightEvent {
     private static void clearLingeringVisual(Player player) {
         if (player.hasEffect(EffectRegistry.SPECTRAL_WING.get())) {
             player.removeEffect(EffectRegistry.SPECTRAL_WING.get());
+        }
+    }
+
+    private static void clearWingState(Player player) {
+        stopFallFlying(player);
+        var spellData = Capabilities.getSpellDataOrNull(player);
+        if (spellData != null) {
+            spellData.edit(CodexSpellStateTypeRegister.SPECTRAL_WING_STATE, SpectralWingState::reset);
+        }
+    }
+
+    private static void stopFallFlying(Player player) {
+        if (player.isFallFlying()) {
+            player.stopFallFlying();
         }
     }
 }

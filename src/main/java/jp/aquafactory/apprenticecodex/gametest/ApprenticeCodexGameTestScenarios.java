@@ -16,6 +16,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.effect.MagicMobEffect;
 import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectile;
 import io.redspace.ironsspellbooks.entity.spells.fireball.SmallMagicFireball;
 import io.redspace.ironsspellbooks.entity.spells.spectral_hammer.SpectralHammer;
@@ -202,6 +203,7 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -14714,6 +14716,50 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertBlockProperty(waterloggedStairPos, StairBlock.WATERLOGGED, true);
             helper.assertBlockPresent(Blocks.LAVA, lavaPos);
             helper.assertBlockPresent(Blocks.LAVA, changedToLavaPos);
+        });
+    }
+
+    static void counterspellCompatMagicMobEffectsAreMagicMobEffects(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertMagicMobEffect(helper, EffectRegistry.ARCANE_CHARGE.get(), "ArcaneCharge");
+            assertMagicMobEffect(helper, EffectRegistry.SENSE_SENSOR.get(), "SenseSensor");
+            assertMagicMobEffect(helper, EffectRegistry.ECHO_SPELL.get(), "EchoSpell");
+            assertMagicMobEffect(helper, EffectRegistry.MIST_FORM.get(), "MistFormEffect");
+            assertMagicMobEffect(helper, EffectRegistry.PALETTE_RECEPTION.get(), "PaletteReception");
+            assertMagicMobEffect(helper, EffectRegistry.SPECTRAL_WING.get(), "SpectralWingEffect");
+        });
+    }
+
+    private static void assertMagicMobEffect(GameTestHelper helper, MobEffect effect, String effectName) {
+        helper.assertTrue(effect instanceof MagicMobEffect,
+                effectName + " should be removable by Counterspell as MagicMobEffect");
+    }
+
+    static void spectralWingEffectRemovalClearsFlightState(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 8, 0), "spectral_wing_counterspell_test");
+            SpellRegistry.SPECTRAL_WING.get().onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
+
+            var spellData = Capabilities.getSpellDataOrNull(player);
+            helper.assertTrue(spellData != null, "Spectral Wing test player should have Codex spell data");
+            var state = spellData.get(CodexSpellStateTypeRegister.SPECTRAL_WING_STATE);
+            helper.assertTrue(state.active && state.startedBySpell,
+                    "Spectral Wing cast should activate flight state before effect removal");
+            helper.assertTrue(player.hasEffect(EffectRegistry.SPECTRAL_WING.get()),
+                    "Spectral Wing cast should apply visual MagicMobEffect before removal");
+
+            player.removeEffect(EffectRegistry.SPECTRAL_WING.get());
+            jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWingFlightEvent.onPlayerTick(
+                    new TickEvent.PlayerTickEvent(TickEvent.Phase.START, player)
+            );
+
+            state = spellData.get(CodexSpellStateTypeRegister.SPECTRAL_WING_STATE);
+            helper.assertFalse(player.hasEffect(EffectRegistry.SPECTRAL_WING.get()),
+                    "Removing Spectral Wing effect should not be refreshed from stale state");
+            helper.assertFalse(state.active || state.startedBySpell || state.launchGraceTicks != 0 || state.waterGraceTicks != 0,
+                    "Removing Spectral Wing effect should clear flight state");
+            helper.assertFalse(player.isFallFlying(),
+                    "Removing Spectral Wing effect should stop fall flying");
         });
     }
 

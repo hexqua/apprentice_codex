@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.effect;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
-import net.minecraft.world.effect.MobEffect;
+import io.redspace.ironsspellbooks.effect.MagicMobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -9,7 +9,7 @@ import net.minecraftforge.common.ForgeMod;
 
 import java.util.UUID;
 
-public class MistFormEffect extends MobEffect {
+public class MistFormEffect extends MagicMobEffect {
     public static final double MOVEMENT_SPEED_BONUS = 0.20D;
     public static final double STEP_HEIGHT_ADDITION = 0.5D;
     public static final double SCHOOL_RESIST_WEAKNESS = -1.0D;
