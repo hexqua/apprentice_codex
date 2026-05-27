@@ -8,11 +8,14 @@ import io.redspace.ironsspellbooks.fluids.PotionFluid;
 import io.redspace.ironsspellbooks.jei.AlchemistCauldronJeiRecipe;
 import io.redspace.ironsspellbooks.jei.AlchemistCauldronRecipeCategory;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.potion.SchoolAffinityPotion;
+import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -201,7 +204,7 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         );
         registration.addRecipes(
                 ApprenticeCodexJeiRecipeTypes.SPELLCASTER_WORKBENCH,
-                recipeManager.getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get())
+                collectSpellcasterWorkbenchJeiRecipes(recipeManager)
         );
         registration.addRecipes(
                 RecipeTypes.SMITHING,
@@ -210,6 +213,28 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                                 || recipe instanceof jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe)
                         .map(SmithingRecipe.class::cast)
                         .toList()
+        );
+    }
+
+    private static List<SpellcasterWorkbenchRecipe> collectSpellcasterWorkbenchJeiRecipes(RecipeManager recipeManager) {
+        var recipes = new ArrayList<>(recipeManager.getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get()));
+        if (ApprenticeCodexServerConfig.archivistsGrimoireInitialRows()
+                < ApprenticeCodexServerConfig.archivistsGrimoireEffectiveMaxRows()) {
+            recipes.add(createArchivistsGrimoireUpgradeJeiRecipe());
+        }
+        return recipes;
+    }
+
+    private static SpellcasterWorkbenchRecipe createArchivistsGrimoireUpgradeJeiRecipe() {
+        return new SpellcasterWorkbenchRecipe(
+                SpellcasterWorkbenchRecipeCategory.ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_RECIPE_ID,
+                List.of(
+                        new SpellcasterWorkbenchRecipe.SizedIngredient(Ingredient.of(ItemRegistry.ARCHIVISTS_GRIMOIRE.get()), 1),
+                        new SpellcasterWorkbenchRecipe.SizedIngredient(Ingredient.of(TagRegistry.Items.ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_CATALYSTS), 1),
+                        new SpellcasterWorkbenchRecipe.SizedIngredient(Ingredient.of(TagRegistry.Items.ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_MATERIALS), 1)
+                ),
+                List.of(new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get())),
+                -10
         );
     }
 

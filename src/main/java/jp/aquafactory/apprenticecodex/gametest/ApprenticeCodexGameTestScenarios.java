@@ -42,6 +42,7 @@ import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWork
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
@@ -3999,6 +4000,7 @@ public final class ApprenticeCodexGameTestScenarios {
     static void archivistsGrimoireSelectedRowNavigationUsesPopulatedRowsOnly(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+            ArchivistsGrimoire.setUpgradeCount(grimoireStack, 5);
             var inventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack);
             inventory.setStackInSlot(
                     ArchivistsGrimoire.COLUMN_COUNT * 2 + 4,
@@ -4039,6 +4041,7 @@ public final class ApprenticeCodexGameTestScenarios {
     static void archivistsGrimoireVisibleSpellsExposeOnlySelectedRow(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+            ArchivistsGrimoire.setUpgradeCount(grimoireStack, 5);
             var inventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack);
             inventory.setStackInSlot(
                     ArchivistsGrimoire.COLUMN_COUNT,
@@ -4088,6 +4091,42 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void archivistsGrimoireLockedRowsHideLegacyScrolls(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+            var inventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack);
+            inventory.setStackInSlot(
+                    ArchivistsGrimoire.COLUMN_COUNT * 2,
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())
+            );
+            ArchivistsGrimoire.setSelectedRow(grimoireStack, 2);
+
+            helper.assertTrue(ArchivistsGrimoire.getUnlockedRowCount(grimoireStack) == 1,
+                    "NBT-less Archivist's Grimoire should start with one unlocked row");
+            helper.assertTrue(ArchivistsGrimoire.getSelectedRow(grimoireStack) == 0,
+                    "Locked selected rows should normalize into the unlocked row range");
+            helper.assertTrue(ArchivistsGrimoire.getVisibleSpell(grimoireStack, 0) == SpellData.EMPTY,
+                    "Locked-row legacy scrolls must not be exposed as usable spells");
+            helper.assertFalse(ArchivistsGrimoire.ensureSelectedRowHasScroll(grimoireStack),
+                    "Locked-row legacy scrolls must not make the selected row usable");
+            helper.assertTrue(ArchivistsGrimoire.hasScrollInLockedSlot(grimoireStack),
+                    "Locked-row legacy scroll should be detectable for warnings");
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "archivists_grimoire_locked_slot_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, grimoireStack);
+            var menu = new jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoireMenu(
+                    0,
+                    player.getInventory(),
+                    InteractionHand.MAIN_HAND
+            );
+            var lockedSlot = menu.getSlot(ArchivistsGrimoire.COLUMN_COUNT * 2);
+            helper.assertFalse(lockedSlot.mayPlace(createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get())),
+                    "Locked Archivist's Grimoire slots should reject new scroll insertion");
+            helper.assertTrue(lockedSlot.mayPickup(player),
+                    "Locked Archivist's Grimoire slots should still allow legacy scroll extraction");
+        });
+    }
+
     static void archivistsGrimoireTooltipShowsInscribeHintOnlyWhenEmpty(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
@@ -4105,6 +4144,101 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Archivist's Grimoire should show the special inscription hint again after becoming empty");
         });
     }
+
+    static void archivistsGrimoireTooltipWarnsAboutLockedScrolls(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+            var inventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack);
+            inventory.setStackInSlot(
+                    ArchivistsGrimoire.COLUMN_COUNT + 2,
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())
+            );
+
+            assertTooltipTranslationKey(
+                    helper,
+                    grimoireStack,
+                    "item.apprenticecodex.archivists_grimoire.tooltip.warning_legacy_slot",
+                    true,
+                    "Archivist's Grimoire should warn when a locked slot stores a scroll"
+            );
+
+            inventory.setStackInSlot(ArchivistsGrimoire.COLUMN_COUNT + 2, ItemStack.EMPTY);
+            assertTooltipTranslationKey(
+                    helper,
+                    grimoireStack,
+                    "item.apprenticecodex.archivists_grimoire.tooltip.warning_legacy_slot",
+                    false,
+                    "Archivist's Grimoire should remove the locked-slot warning after the scroll is removed"
+            );
+        });
+    }
+
+    static void archivistsGrimoireWorkbenchUpgradePreservesStoredScrolls(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "archivists_grimoire_upgrade_test");
+            var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+            var inventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack);
+            inventory.setStackInSlot(
+                    ArchivistsGrimoire.COLUMN_COUNT,
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())
+            );
+
+            var menu = createSpellcasterWorkbenchMenuWithInputs(
+                    player,
+                    grimoireStack,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get())
+            );
+            var result = menu.quickMoveStack(player, SpellcasterWorkbenchMenu.RESULT_SLOT);
+            helper.assertFalse(result.isEmpty(), "Archivist's Grimoire row upgrade should produce a result");
+            helper.assertTrue(ArchivistsGrimoire.getUpgradeCount(result) == 1,
+                    "Archivist's Grimoire row upgrade should increment the upgrade count");
+            helper.assertTrue(ArchivistsGrimoire.getUnlockedRowCount(result) == 2,
+                    "Archivist's Grimoire row upgrade should unlock exactly one additional row");
+            assertScrollSpell(
+                    helper,
+                    new ArchivistsGrimoire.ScrollInventory(result).getStackInSlot(ArchivistsGrimoire.COLUMN_COUNT),
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(),
+                    "Archivist's Grimoire row upgrade should preserve stored scrolls"
+            );
+            helper.assertTrue(menu.getSlot(0).getItem().isEmpty()
+                            && menu.getSlot(1).getItem().isEmpty()
+                            && menu.getSlot(2).getItem().isEmpty(),
+                    "Archivist's Grimoire row upgrade should consume all three inputs");
+
+            var maxedGrimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+            ArchivistsGrimoire.setUpgradeCount(maxedGrimoireStack, 5);
+            var maxedMenu = createSpellcasterWorkbenchMenuWithInputs(
+                    player,
+                    maxedGrimoireStack,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get())
+            );
+            helper.assertTrue(maxedMenu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem().isEmpty(),
+                    "Maxed Archivist's Grimoire should not expose another upgrade result");
+            helper.assertTrue(maxedMenu.isBlockedByArchivistsGrimoireMaxSlotReached(),
+                    "Maxed Archivist's Grimoire should expose a max-slot warning state");
+        });
+    }
+
+    static void archivistsGrimoireConfigMaxRowsCannotFallBelowInitialRows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useArchivistsGrimoireConfigOverrideForGameTest(
+                    new ArchivistsGrimoireServerConfig.Values(4, 2)
+            )) {
+                var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+                helper.assertTrue(ApprenticeCodexServerConfig.archivistsGrimoireInitialRows() == 4,
+                        "Archivist's Grimoire initialRows override mismatch");
+                helper.assertTrue(ApprenticeCodexServerConfig.archivistsGrimoireEffectiveMaxRows() == 4,
+                        "Archivist's Grimoire maxRows lower than initialRows should resolve to initialRows");
+                helper.assertTrue(ArchivistsGrimoire.getUnlockedRowCount(grimoireStack) == 4,
+                        "Archivist's Grimoire should use the resolved row bounds");
+                helper.assertFalse(ArchivistsGrimoire.canUpgrade(grimoireStack),
+                        "Archivist's Grimoire should not upgrade when resolved maxRows equals initialRows");
+            }
+        });
+    }
+
     static void archivistsGrimoireCurioAndUpgradeContractsStayRegistered(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
@@ -4158,6 +4292,7 @@ public final class ApprenticeCodexGameTestScenarios {
     static void archivistsGrimoireSpellSelectionManagerReadsVisibleRow(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+            ArchivistsGrimoire.setUpgradeCount(grimoireStack, 5);
             var inventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack);
             inventory.setStackInSlot(0, createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get()));
             inventory.setStackInSlot(
@@ -17118,12 +17253,22 @@ public final class ApprenticeCodexGameTestScenarios {
             boolean expected,
             String message
     ) {
+        assertTooltipTranslationKey(helper, stack, "item.apprenticecodex.special_spellbook.inscribe_hint", expected, message);
+    }
+
+    private static void assertTooltipTranslationKey(
+            GameTestHelper helper,
+            ItemStack stack,
+            String translationKey,
+            boolean expected,
+            String message
+    ) {
         var tooltipLines = new ArrayList<Component>();
         stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
-        var hasHint = tooltipLines.stream()
+        var hasKey = tooltipLines.stream()
                 .anyMatch(component -> component.getContents() instanceof TranslatableContents translatableContents
-                        && "item.apprenticecodex.special_spellbook.inscribe_hint".equals(translatableContents.getKey()));
-        helper.assertTrue(hasHint == expected, message);
+                        && translationKey.equals(translatableContents.getKey()));
+        helper.assertTrue(hasKey == expected, message);
     }
 
     private static void assertScrollSpell(
@@ -17343,6 +17488,15 @@ public final class ApprenticeCodexGameTestScenarios {
         var menu = new SpellcasterWorkbenchMenu(0, player.getInventory());
         menu.getSlot(0).set(first);
         menu.getSlot(1).set(second);
+        return menu;
+    }
+
+    private static SpellcasterWorkbenchMenu createSpellcasterWorkbenchMenuWithInputs(Player player, ItemStack first, ItemStack second,
+                                                                                     ItemStack third) {
+        var menu = new SpellcasterWorkbenchMenu(0, player.getInventory());
+        menu.getSlot(0).set(first);
+        menu.getSlot(1).set(second);
+        menu.getSlot(2).set(third);
         return menu;
     }
 

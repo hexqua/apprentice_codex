@@ -224,6 +224,7 @@
   "item.apprenticecodex.special_spellbook.inscribe_hint": "Use this spellbook in hand to add scrolls instead of inscribing them at an Inscription Table.",
   "item.apprenticecodex.archivists_grimoire.tooltip.current_page": "Current Page: %1$d/%2$d",
   "item.apprenticecodex.archivists_grimoire.tooltip.other_scroll_count": "Other Page Scroll Count: %d",
+  "item.apprenticecodex.archivists_grimoire.tooltip.warning_legacy_slot": "A scroll is set in an unavailable slot",
   "item.apprenticecodex.reflectcast_shield.hint": "Can be cast instantly.",
   "item.apprenticecodex.reflectcast_shield.cast_hint": "When blocking an attack immediately after casting, imbued spells will be cast.",
   "item.apprenticecodex.multipurpose_staffrifle.desc_1": "Cast the selected spell with [%1$s].",
@@ -304,6 +305,7 @@
   "jei.apprenticecodex.archivists_grimoire.desc_1": "A spellbook that accepts scrolls when used in hand, instead of being inscribed at an Inscription Table.",
   "jei.apprenticecodex.archivists_grimoire.desc_2": "Not every stored spell can be used at once; only up to 9 slots, the same as one inventory row, are available at a time.",
   "jei.apprenticecodex.archivists_grimoire.desc_3": "With the spell selection screen open, use the mouse wheel to switch which inventory row is active.",
+  "jei.apprenticecodex.archivists_grimoire.desc_4": "Only part of its inventory is available at first, and it must be expanded at a Spellcaster Workbench.",
   "jei.apprenticecodex.focus_staffbow.desc_1": "Use it in the main hand to charge up spells before casting them.",
   "jei.apprenticecodex.focus_staffbow.desc_2": "Spells can be charged up to 3x, or 2x for continuous-cast spells, but the mana cost rises sharply.",
   "jei.apprenticecodex.focus_staffbow.desc_3": "You can cast even if the mana cost exceeds your current mana, but the staff will keep draining mana until the shortage is repaid, and charged casting cannot be used during that time.",
@@ -332,6 +334,8 @@
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_6": "- School Rune: Changes the spell power bonus from general spell power to that rune's school.",
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_7": "- Enchantment book items: Applies the first enchantment listed on the item to the gauntlet.",
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_8": "Only one mutually incompatible enchantment is applied; enchantments for swords, pickaxes, or spellcasting aids are supported.",
+
+  "jei.apprenticecodex.archivists_grimoire.upgrade_hint": "Adds 9 slots",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",
@@ -454,6 +458,8 @@
   "container.apprenticecodex.atelier_station.fluid.count": "(%d uses)",
   "container.apprenticecodex.companion_trunk.default": "Companion Trunk",
   "container.apprenticecodex.archivists_grimoire.default": "Archivist's Grimoire",
+  "container.apprenticecodex.archivists_grimoire.tooltip.unable_scroll_slot.empty": "Upgrade at a Spellcaster Workbench to unlock this slot",
+  "container.apprenticecodex.archivists_grimoire.tooltip.unable_scroll_slot.scroll": "The scroll in this slot is unavailable",
   "container.apprenticecodex.spell_calibration_bench": "Spell Calibration Bench",
   "container.apprenticecodex.spell_calibration_bench.scroll_label": "Scroll Slots",
   "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_title": "Acceptable Items :",
@@ -735,6 +741,7 @@
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_exist": "This item does not contain any spell",
   "ui.apprenticecodex.spellcaster_workbench.warning_remove_not_allow": "Spells imbued into this item cannot be extracted later",
   "ui.apprenticecodex.spellcaster_workbench.cant_imbue_unsupported_equipment": "This workbench does not support imbuing this item. Use an Arcane Anvil instead",
+  "ui.apprenticecodex.spellcaster_workbench.warning_max_slot_reached": "This item has already been upgraded to its maximum",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
   "effect.apprenticecodex.casting_mobility": "Casting Mobility",

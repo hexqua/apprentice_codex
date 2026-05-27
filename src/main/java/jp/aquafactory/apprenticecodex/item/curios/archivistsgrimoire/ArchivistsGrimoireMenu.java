@@ -46,7 +46,7 @@ public final class ArchivistsGrimoireMenu extends AbstractContainerMenu {
                 addSlot(new SlotItemHandler(grimoireInventory, slot, CONTAINER_X + col * 18, CONTAINER_Y + row * 18) {
                     @Override
                     public boolean mayPlace(@NotNull ItemStack stack) {
-                        return ArchivistsGrimoire.isScroll(stack);
+                        return ArchivistsGrimoire.isSlotEnabled(grimoireStack, slot) && ArchivistsGrimoire.isScroll(stack);
                     }
                 });
             }
@@ -76,7 +76,7 @@ public final class ArchivistsGrimoireMenu extends AbstractContainerMenu {
             }
         } else if (slotIndex >= PLAYER_INVENTORY_START && slotIndex < HOTBAR_END) {
             if (!ArchivistsGrimoire.isScroll(stack)
-                    || !moveItemStackTo(stack, GRIMOIRE_SLOT_START, GRIMOIRE_SLOT_END, false)) {
+                    || !moveItemStackTo(stack, GRIMOIRE_SLOT_START, getGrimoireEnabledSlotEnd(), false)) {
                 return ItemStack.EMPTY;
             }
         } else {
@@ -123,5 +123,20 @@ public final class ArchivistsGrimoireMenu extends AbstractContainerMenu {
 
     public ItemStack getGrimoireStack() {
         return grimoireStack;
+    }
+
+    public boolean isScrollSlotEnabled(int slot) {
+        return ArchivistsGrimoire.isSlotEnabled(grimoireStack, slot);
+    }
+
+    public ItemStack getScrollItem(int slot) {
+        if (slot < GRIMOIRE_SLOT_START || slot >= GRIMOIRE_SLOT_END) {
+            return ItemStack.EMPTY;
+        }
+        return slots.get(GRIMOIRE_SLOT_START + slot).getItem();
+    }
+
+    private int getGrimoireEnabledSlotEnd() {
+        return GRIMOIRE_SLOT_START + ArchivistsGrimoire.getUnlockedRowCount(grimoireStack) * ArchivistsGrimoire.COLUMN_COUNT;
     }
 }
