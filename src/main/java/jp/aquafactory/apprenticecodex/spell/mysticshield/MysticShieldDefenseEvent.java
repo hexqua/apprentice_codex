@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.mysticshield;
 
+import io.redspace.ironsspellbooks.api.events.CounterSpellEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
@@ -31,6 +32,7 @@ public final class MysticShieldDefenseEvent {
     private static final String ACCUMULATED_DAMAGE_TAG = "ApprenticeCodexMysticShieldAccumulatedDamage";
     private static final String SOURCE_COOLDOWNS_TAG = "ApprenticeCodexMysticShieldSourceCooldowns";
     private static final String SHIELD_ENTITY_ID_TAG = "ApprenticeCodexMysticShieldEntityId";
+    private static final String COUNTERSPELL_INTERRUPTED_TAG = "ApprenticeCodexMysticShieldCounterspellInterrupted";
 
     private MysticShieldDefenseEvent() {
     }
@@ -38,7 +40,6 @@ public final class MysticShieldDefenseEvent {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onLivingAttack(LivingAttackEvent event) {
         var target = event.getEntity();
-        //noinspection resource
         if (target.level().isClientSide) {
             return;
         }
@@ -60,6 +61,19 @@ public final class MysticShieldDefenseEvent {
         spawnBlockEffect(target, source);
         discardDirectProjectile(source);
         AudioTools.playSoundFromEntity(target.level(), target, SoundRegistry.MYSTIC_SHIELD_BLOCK.get(), SoundSource.PLAYERS, 0.75f, 1.0f, 0.05f);
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onCounterSpell(CounterSpellEvent event) {
+        if (!(event.target instanceof LivingEntity target)) {
+            return;
+        }
+
+        if (getActiveMysticShield(target) == null) {
+            return;
+        }
+
+        target.getPersistentData().putBoolean(COUNTERSPELL_INTERRUPTED_TAG, true);
     }
 
     public static void resetStoredDamage(LivingEntity entity) {
@@ -85,8 +99,13 @@ public final class MysticShieldDefenseEvent {
 
     public static void releaseStoredDamage(Level level, int spellLevel, LivingEntity caster, boolean cancelled) {
         fadeStoredShieldEntity(level, caster);
+        var interruptedByCounterspell = consumeCounterspellInterrupted(caster);
         var accumulatedDamage = getStoredDamage(caster);
         resetStoredDamage(caster);
+
+        if (interruptedByCounterspell) {
+            return;
+        }
 
         if (level.isClientSide || accumulatedDamage <= 0.0f) {
             return;
@@ -115,6 +134,13 @@ public final class MysticShieldDefenseEvent {
 
     static float getStoredDamage(LivingEntity entity) {
         return entity.getPersistentData().getFloat(ACCUMULATED_DAMAGE_TAG);
+    }
+
+    private static boolean consumeCounterspellInterrupted(LivingEntity entity) {
+        var tag = entity.getPersistentData();
+        var interrupted = tag.getBoolean(COUNTERSPELL_INTERRUPTED_TAG);
+        tag.remove(COUNTERSPELL_INTERRUPTED_TAG);
+        return interrupted;
     }
 
     private static void fadeStoredShieldEntity(Level level, LivingEntity caster) {
@@ -154,7 +180,6 @@ public final class MysticShieldDefenseEvent {
             return true;
         }
 
-        //noinspection resource
         var now = defender.level().getGameTime();
         var cooldowns = defender.getPersistentData().getCompound(SOURCE_COOLDOWNS_TAG);
         var lastTick = cooldowns.getLong(sourceKey);

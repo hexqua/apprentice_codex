@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.healingbloom;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
@@ -57,7 +59,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.UUID;
 
-public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
+public class HealingBloomEntity extends PathfinderMob implements GeoEntity, AntiMagicSusceptible {
     public static final float WIDTH = 0.85f;
     public static final float HEIGHT = 1.8f;
     private static final int ACTIVATION_DELAY_TICK = 40;
@@ -369,6 +371,22 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
     public void dieFromReplacement() {
         if (level() instanceof ServerLevel serverLevel) {
             dieFromAnchorLoss(serverLevel);
+        }
+    }
+
+    @Override
+    public void onAntiMagic(MagicData playerMagicData) {
+        if (level().isClientSide || isRemoved() || isDeadOrDying()) {
+            return;
+        }
+
+        if (level() instanceof ServerLevel serverLevel) {
+            var owner = getOwner();
+            if (owner instanceof ServerPlayer serverPlayer) {
+                HealingBloomManager.onBloomRemoved(serverPlayer, this);
+            }
+            setHealth(0.0f);
+            die(serverLevel.damageSources().genericKill());
         }
     }
 

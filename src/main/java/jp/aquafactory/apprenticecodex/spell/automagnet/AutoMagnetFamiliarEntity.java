@@ -1,12 +1,14 @@
 package jp.aquafactory.apprenticecodex.spell.automagnet;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.compat.botania.BotaniaSolegnoliaCompatBridge;
 import jp.aquafactory.apprenticecodex.entity.PersistentSummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.mixin.ItemEntityAccessor;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
@@ -31,7 +33,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.UUID;
 
-public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity implements GeoEntity {
+public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity implements GeoEntity, AntiMagicSusceptible {
     private static final double ORBIT_RADIUS = 1.4;
     private static final double ORBIT_HEIGHT = 1.2;
     private static final double ORBIT_SPEED = Math.PI / 45.0;
@@ -180,6 +182,20 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
+    }
+
+    @Override
+    public void onAntiMagic(MagicData playerMagicData) {
+        if (level().isClientSide || isRemoved()) {
+            return;
+        }
+
+        if (getOwner() instanceof ServerPlayer owner) {
+            AutoMagnetFamiliarManager.deactivate(owner);
+            return;
+        }
+
+        discard();
     }
 
     public double getPickupRange() {
