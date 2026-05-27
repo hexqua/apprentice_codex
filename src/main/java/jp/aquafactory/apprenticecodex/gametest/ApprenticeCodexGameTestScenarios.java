@@ -6611,6 +6611,69 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
+    static void betterCombatScrollcasterGauntletRescueUsesPhysicalOffhandInventoryStack(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded("bettercombat")) {
+                return;
+            }
+
+            var spellbreaker = ForgeRegistries.ITEMS.getValue(
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "spellbreaker")
+            );
+            helper.assertTrue(spellbreaker != null, "Missing irons_spellbooks:spellbreaker for Better Combat Scrollcaster test");
+
+            var expectedSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(expectedSpell));
+            ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
+
+            var player = createBetterCombatHiddenOffhandPlayer(
+                    helper,
+                    new ItemStack(spellbreaker),
+                    gauntlet,
+                    "better_combat_hidden_scrollcaster_spell_test"
+            );
+            helper.assertTrue(player.getOffhandItem().isEmpty(),
+                    "Better Combat should hide getOffhandItem() for spellbreaker Scrollcaster test but returned "
+                            + player.getOffhandItem());
+            helper.assertFalse(
+                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat
+                            .isRescueActive(player),
+                    "Scrollcaster Gauntlet should not join the Better Combat attribute rescue path"
+            );
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScrollcasterGauntletCompat
+                            .isRescueActive(player),
+                    "Scrollcaster Gauntlet should join only the Better Combat magic-holder rescue path"
+            );
+
+            var resolvedStack =
+                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScrollcasterGauntletCompat
+                            .getResolvedHeldStack(player, InteractionHand.OFF_HAND);
+            helper.assertTrue(resolvedStack.is(ItemRegistry.SCROLLCASTER_GAUNTLET.get()),
+                    "Scrollcaster resolver should return the physical offhand gauntlet but got " + resolvedStack);
+
+            var selectionManager = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player);
+            var offhandSelections = selectionManager.getSpellsForSlot(
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND
+            );
+            helper.assertTrue(offhandSelections.size() == 1,
+                    "Better Combat Scrollcaster rescue should add exactly one selected offhand spell but got "
+                            + offhandSelections.size() + " selections=" + offhandSelections);
+
+            var rescuedSpell = selectionManager.getSpellForSlot(
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND,
+                    0
+            );
+            helper.assertTrue(
+                    rescuedSpell != SpellData.EMPTY
+                            && rescuedSpell.getSpell().equals(expectedSpell)
+                            && rescuedSpell.getLevel() == 1,
+                    "Better Combat Scrollcaster rescue should restore selected spell "
+                            + expectedSpell.getSpellResource() + " but got " + rescuedSpell
+            );
+        });
+    }
     static void castingMoveSpeedAdjustmentStopsAtNormalSpeedWithoutNegativeCorrections(GameTestHelper helper) {
         helper.succeedIf(() -> {
             assertCastingMoveSpeedAdjustment(helper, 0.0D, 0.8D, "No external bonus should keep full cancellation");

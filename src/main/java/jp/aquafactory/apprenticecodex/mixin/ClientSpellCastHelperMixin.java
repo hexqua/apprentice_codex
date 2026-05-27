@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.render.animation.AnimationHelper;
 import jp.aquafactory.apprenticecodex.event.client.ClientPlacementPreviewManager;
 import jp.aquafactory.apprenticecodex.event.client.ClientMultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.event.client.ClientSwingcastStaffCastContext;
+import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScrollcasterGauntletCompat;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
@@ -30,11 +31,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import net.minecraftforge.fml.ModList;
 
 import java.util.UUID;
 
 @Mixin(value = ClientSpellCastHelper.class, remap = false)
 public abstract class ClientSpellCastHelperMixin {
+    @Unique
+    private static final String apprentice_codex$BETTER_COMBAT_MOD_ID = "bettercombat";
 
     // 特殊アイテム発動時だけ開始アニメーションを差し替え、音や入力抑制など他の前処理は元の spell 実装へ委ねる.
     @Inject(
@@ -207,7 +211,7 @@ public abstract class ClientSpellCastHelperMixin {
             return player.getMainHandItem();
         }
         if (SpellSelectionManager.OFFHAND.equals(castingSlot)) {
-            return player.getOffhandItem();
+            return apprentice_codex$resolveOffhandStack(player);
         }
         return ItemStack.EMPTY;
     }
@@ -254,7 +258,7 @@ public abstract class ClientSpellCastHelperMixin {
             return mainHand;
         }
 
-        var offHand = player.getOffhandItem();
+        var offHand = apprentice_codex$resolveOffhandStack(player);
         if (offHand != castingStack && apprentice_codex$hasCastStartAnimationOverride(player, offHand, spell)) {
             return offHand;
         }
@@ -291,12 +295,21 @@ public abstract class ClientSpellCastHelperMixin {
             return mainHand;
         }
 
-        var offHand = player.getOffhandItem();
+        var offHand = apprentice_codex$resolveOffhandStack(player);
         if (offHand != castingStack && apprentice_codex$hasCastAnimationOverride(player, offHand, spell)) {
             return offHand;
         }
 
         return ItemStack.EMPTY;
+    }
+
+    @Unique
+    private static ItemStack apprentice_codex$resolveOffhandStack(Player player) {
+        if (ModList.get().isLoaded(apprentice_codex$BETTER_COMBAT_MOD_ID)
+                && BetterCombatScrollcasterGauntletCompat.isRescueActive(player)) {
+            return BetterCombatScrollcasterGauntletCompat.getPhysicalOffhandStack(player);
+        }
+        return player.getOffhandItem();
     }
 
     @Unique

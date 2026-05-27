@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat;
+import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScrollcasterGauntletCompat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
@@ -44,7 +45,8 @@ public final class BetterCombatOffhandSpellSelectionRefreshEvent {
             return;
         }
 
-        var rescueActive = BetterCombatOffhandAttributeRescueCompat.isRescueActive(player);
+        var rescueActive = BetterCombatOffhandAttributeRescueCompat.isRescueActive(player)
+                || BetterCombatScrollcasterGauntletCompat.isRescueActive(player);
         if (!rescueActive && !wasRescueActive) {
             lastOffhandSnapshot = null;
             return;
@@ -53,7 +55,7 @@ public final class BetterCombatOffhandSpellSelectionRefreshEvent {
         // Better Combat 1.20.1 は両手武器中の getOffhandItem() を空へ差し替えるため、
         // spell wheel の再構築判定だけは物理 offhand スロットを直接監視する。
         var currentOffhandSnapshot = rescueActive
-                ? OffhandSnapshot.capture(BetterCombatOffhandAttributeRescueCompat.getPhysicalOffhandStack(player))
+                ? OffhandSnapshot.capture(BetterCombatScrollcasterGauntletCompat.getPhysicalOffhandStack(player))
                 : null;
         if (rescueActive != wasRescueActive || !Objects.equals(lastOffhandSnapshot, currentOffhandSnapshot)) {
             ClientMagicData.updateSpellSelectionManager();
