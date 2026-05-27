@@ -73,11 +73,7 @@ public final class MysticShieldDefenseEvent {
             return;
         }
 
-        if (getActiveMysticShield(target) == null) {
-            return;
-        }
-
-        target.getPersistentData().putBoolean(COUNTERSPELL_INTERRUPTED_TAG, true);
+        interruptByCounterspell(target);
     }
 
     public static void resetStoredDamage(LivingEntity entity) {
@@ -138,6 +134,18 @@ public final class MysticShieldDefenseEvent {
 
     static float getStoredDamage(LivingEntity entity) {
         return entity.getPersistentData().getFloat(ACCUMULATED_DAMAGE_TAG);
+    }
+
+    private static boolean interruptByCounterspell(LivingEntity entity) {
+        if (getActiveMysticShield(entity) == null) {
+            return false;
+        }
+
+        entity.getPersistentData().putBoolean(COUNTERSPELL_INTERRUPTED_TAG, true);
+        // Iron's 側の詠唱キャンセル完了を待たず、その場で防御判定と反射用ダメージを消す。
+        resetStoredDamage(entity);
+        fadeStoredShieldEntity(entity.level(), entity);
+        return true;
     }
 
     private static boolean consumeCounterspellInterrupted(LivingEntity entity) {
