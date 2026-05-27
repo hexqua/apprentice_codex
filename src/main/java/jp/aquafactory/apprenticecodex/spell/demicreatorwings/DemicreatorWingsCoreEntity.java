@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.demicreatorwings;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
@@ -23,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class DemicreatorWingsCoreEntity extends Entity implements TraceableEntity {
+public class DemicreatorWingsCoreEntity extends Entity implements TraceableEntity, AntiMagicSusceptible {
     private static final int NO_OWNER_ENTITY_ID = -1;
     private static final EntityDataAccessor<Integer> ALLOWED_RADIUS =
             SynchedEntityData.defineId(DemicreatorWingsCoreEntity.class, EntityDataSerializers.INT);
@@ -148,6 +150,20 @@ public class DemicreatorWingsCoreEntity extends Entity implements TraceableEntit
     @Override
     public @NotNull PushReaction getPistonPushReaction() {
         return PushReaction.IGNORE;
+    }
+
+    @Override
+    public void onAntiMagic(MagicData playerMagicData) {
+        if (level().isClientSide || isRemoved()) {
+            return;
+        }
+
+        if (getOwner() instanceof ServerPlayer owner) {
+            DemicreatorWingsManager.deactivate(owner, true);
+            return;
+        }
+
+        discard();
     }
 
     private void tickServer(ServerLevel level) {

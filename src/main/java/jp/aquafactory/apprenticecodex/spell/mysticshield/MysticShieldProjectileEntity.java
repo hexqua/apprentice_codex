@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.mysticshield;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
@@ -24,7 +26,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
-public class MysticShieldProjectileEntity extends Projectile {
+public class MysticShieldProjectileEntity extends Projectile implements AntiMagicSusceptible {
     private static final int LIFE_TICKS = 60;
     private static final double SPEED = 1.55;
     private static final double TRAIL_INTERPOLATION_STEP = 0.24;
@@ -119,6 +121,15 @@ public class MysticShieldProjectileEntity extends Projectile {
         if (!level().isClientSide) {
             discard();
         }
+    }
+
+    @Override
+    public void onAntiMagic(MagicData playerMagicData) {
+        if (level().isClientSide || isRemoved()) {
+            return;
+        }
+
+        discard();
     }
 
     @Override

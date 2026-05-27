@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.uniteluna;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
@@ -35,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 
-public class UniteLunaMoonEntity extends Projectile {
+public class UniteLunaMoonEntity extends Projectile implements AntiMagicSusceptible {
     public static final float CUBE_SIZE = 1.5f;
 
     private static final int PHASE_DECELERATE = 0;
@@ -69,6 +71,9 @@ public class UniteLunaMoonEntity extends Projectile {
     private static final double MIN_DIRECTION_LENGTH_SQR = 1.0e-6;
     private static final float MIN_BURST_CUBE_SIZE = 7.0f;
     private static final float MAX_BURST_CUBE_SIZE = 11.0f;
+    private static final float COUNTERSPELL_BURST_CUBE_SIZE = MAX_BURST_CUBE_SIZE * 2.0f;
+    private static final float COUNTERSPELL_DAMAGE_MULTIPLIER = 3.0f;
+    private static final int COUNTERSPELL_BURST_PARTICLE_MULTIPLIER = 2;
 
     private static final float SPARK_RED = 0.9f;
     private static final float SPARK_GREEN = 0.97f;
@@ -174,6 +179,16 @@ public class UniteLunaMoonEntity extends Projectile {
     }
 
     @Override
+    public void onAntiMagic(MagicData playerMagicData) {
+        if (level().isClientSide || isRemoved() || getPhase() == PHASE_BURST) {
+            return;
+        }
+
+        // Counterspell を受けても無害化せず、吸収した魔力で爆発を過熱させる。
+        explodeByAntiMagic(position());
+    }
+
+    @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putFloat("Damage", damage);
@@ -205,7 +220,7 @@ public class UniteLunaMoonEntity extends Projectile {
             entityData.set(DATA_SPIN_DIRECTION, spinDirection);
         }
         if (tag.contains("BurstCubeSize")) {
-            burstCubeSize = Mth.clamp(tag.getFloat("BurstCubeSize"), MIN_BURST_CUBE_SIZE, MAX_BURST_CUBE_SIZE);
+            burstCubeSize = Mth.clamp(tag.getFloat("BurstCubeSize"), MIN_BURST_CUBE_SIZE, COUNTERSPELL_BURST_CUBE_SIZE);
             entityData.set(DATA_BURST_CUBE_SIZE, burstCubeSize);
         }
         if (tag.contains("MovementDirectionX") && tag.contains("MovementDirectionY") && tag.contains("MovementDirectionZ")) {
@@ -356,23 +371,33 @@ public class UniteLunaMoonEntity extends Projectile {
     }
 
     private void explode(Vec3 center) {
-        startBurst(BURST_KIND_EXPLOSION, center);
-        applyBurstDamage(center);
+        startBurst(BURST_KIND_EXPLOSION, center, pickNormalBurstCubeSize());
+        applyBurstDamage(center, 1.0f);
         AudioTools.playSoundFromEntity(level(), this, SoundRegistry.STELLAR_EXPLODE.get(), SoundSource.PLAYERS, 1.5f, 0.92f, 0.04f);
     }
 
     private void startBurst(int burstKind, Vec3 center) {
+        startBurst(burstKind, center, burstKind == BURST_KIND_EXPLOSION ? pickNormalBurstCubeSize() : MIN_BURST_CUBE_SIZE);
+    }
+
+    private void explodeByAntiMagic(Vec3 center) {
+        startBurst(BURST_KIND_EXPLOSION, center, COUNTERSPELL_BURST_CUBE_SIZE);
+        applyBurstDamage(center, COUNTERSPELL_DAMAGE_MULTIPLIER);
+        AudioTools.playSoundFromEntity(level(), this, SoundRegistry.STELLAR_EXPLODE.get(), SoundSource.PLAYERS, 1.8f, 0.78f, 0.04f);
+    }
+
+    private void startBurst(int burstKind, Vec3 center, float newBurstCubeSize) {
         setPhase(PHASE_BURST);
         setBurstKind(burstKind);
         phaseTicks = 0;
-        if (burstKind == BURST_KIND_EXPLOSION) {
-            burstCubeSize = Mth.lerp(level().random.nextFloat(), MIN_BURST_CUBE_SIZE, MAX_BURST_CUBE_SIZE);
-        } else {
-            burstCubeSize = MIN_BURST_CUBE_SIZE;
-        }
+        burstCubeSize = Mth.clamp(newBurstCubeSize, MIN_BURST_CUBE_SIZE, COUNTERSPELL_BURST_CUBE_SIZE);
         entityData.set(DATA_BURST_CUBE_SIZE, burstCubeSize);
         setDeltaMovement(Vec3.ZERO);
         setPos(center.x, center.y, center.z);
+    }
+
+    private float pickNormalBurstCubeSize() {
+        return Mth.lerp(level().random.nextFloat(), MIN_BURST_CUBE_SIZE, MAX_BURST_CUBE_SIZE);
     }
 
     private boolean moveWithImpactCheck(double speed) {
@@ -422,7 +447,7 @@ public class UniteLunaMoonEntity extends Projectile {
         return blockHit.getType() == HitResult.Type.BLOCK ? blockHit : null;
     }
 
-    private void applyBurstDamage(Vec3 center) {
+    private void applyBurstDamage(Vec3 center, float damageMultiplier) {
         var owner = getOwner();
         var source = CombatTools.getDamageSource(level(), this, owner, DamageTypes.UNITE_LUNA);
         var burstHalfExtent = burstCubeSize * 0.5f;
@@ -437,7 +462,7 @@ public class UniteLunaMoonEntity extends Projectile {
             if (target == owner || !damagedIds.add(target.getId())) {
                 continue;
             }
-            CombatTools.applyDamage(target, damage, source, SpellRegistry.UNITE_LUNA.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+            CombatTools.applyDamage(target, damage * damageMultiplier, source, SpellRegistry.UNITE_LUNA.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
         }
     }
 
@@ -557,7 +582,11 @@ public class UniteLunaMoonEntity extends Projectile {
 
     private void spawnBurstParticles() {
         var random = level().random;
-        for (var i = 0; i < BURST_PARTICLE_COUNT_PER_TICK; ++i) {
+        var particleCount = BURST_PARTICLE_COUNT_PER_TICK;
+        if (getBurstCubeSize() > MAX_BURST_CUBE_SIZE) {
+            particleCount *= COUNTERSPELL_BURST_PARTICLE_MULTIPLIER;
+        }
+        for (var i = 0; i < particleCount; ++i) {
             var offset = createBurstShellOffset(random);
             var velocity = normalizeOrFallback(offset, movementDirection).scale(0.03 + random.nextDouble() * 0.14).add(
                     (random.nextDouble() - 0.5) * 0.015,

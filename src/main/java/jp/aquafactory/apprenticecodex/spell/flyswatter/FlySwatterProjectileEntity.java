@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.flyswatter;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
@@ -31,7 +33,7 @@ import net.minecraft.world.phys.*;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
-public class FlySwatterProjectileEntity extends Projectile {
+public class FlySwatterProjectileEntity extends Projectile implements AntiMagicSusceptible {
     private static final EntityDataAccessor<Integer> STANDBY_TICK =
             SynchedEntityData.defineId(FlySwatterProjectileEntity.class, EntityDataSerializers.INT);
 
@@ -169,6 +171,15 @@ public class FlySwatterProjectileEntity extends Projectile {
         }
     }
 
+    @Override
+    public void onAntiMagic(MagicData playerMagicData) {
+        if (level().isClientSide || isRemoved()) {
+            return;
+        }
+
+        fizzleByAntiMagic();
+    }
+
     private void onImpact(Level level, Entity directHitTarget){
         var position = position();
 
@@ -239,6 +250,19 @@ public class FlySwatterProjectileEntity extends Projectile {
                 e.push(dir.x * EXPLOSION_KNOCKBACK * scale, EXPLOSION_KNOCKBACK_UP * scale, dir.z * EXPLOSION_KNOCKBACK * scale);
             }
         }
+    }
+
+    private void fizzleByAntiMagic() {
+        var position = position();
+        if (level() instanceof ServerLevel server) {
+            server.sendParticles(ParticleTypes.POOF, position.x, position.y, position.z,
+                    18, 0.25, 0.18, 0.25, 0.08);
+            server.sendParticles(ParticleTypes.LARGE_SMOKE, position.x, position.y, position.z,
+                    8, 0.2, 0.12, 0.2, 0.01);
+            server.playSound(null, BlockPos.containing(position), SoundEvents.FIRE_EXTINGUISH,
+                    SoundSource.PLAYERS, 0.7f, 0.9f + level().random.nextFloat() * 0.2f);
+        }
+        discard();
     }
 
     @Override

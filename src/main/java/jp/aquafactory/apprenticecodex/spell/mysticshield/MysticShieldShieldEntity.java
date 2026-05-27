@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+// Counterspell は AntiMagicSusceptible を raycast の有効対象にするため、盾ではなく術者本体で受ける。
 public class MysticShieldShieldEntity extends Entity implements TraceableEntity {
     static final int FADE_TICKS = 4;
 

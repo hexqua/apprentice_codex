@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.assistwings;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
@@ -15,7 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-public class AssistWingsWingEntity extends SummonWeaponEntity {
+public class AssistWingsWingEntity extends SummonWeaponEntity implements AntiMagicSusceptible {
 
     private int KeepTick = 10;
 
@@ -108,5 +110,38 @@ public class AssistWingsWingEntity extends SummonWeaponEntity {
 
     public Vec3 getBackPosition(LivingEntity owner){
         return RotationTools.calculateBehindPosition(owner, 0.25, 0, -0.4);
+    }
+
+    @Override
+    public void onAntiMagic(MagicData playerMagicData) {
+        if (level().isClientSide || isRemoved()) {
+            return;
+        }
+
+        if (getOwner() instanceof Player owner) {
+            clearManagedState(owner);
+            removeOwnSlowFalling(owner);
+        }
+        discard();
+    }
+
+    private void clearManagedState(Player owner) {
+        Capabilities.withSpellData(owner, data -> data.edit(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE, state -> {
+            if (state.localEntityId == getId()) {
+                state.localEntityId = -1;
+            }
+        }));
+    }
+
+    private static void removeOwnSlowFalling(Player owner) {
+        var effect = owner.getEffect(MobEffects.SLOW_FALLING);
+        if (effect != null
+                && effect.getAmplifier() == 0
+                && effect.getDuration() <= 20
+                && effect.isAmbient()
+                && !effect.isVisible()
+                && !effect.showIcon()) {
+            owner.removeEffect(MobEffects.SLOW_FALLING);
+        }
     }
 }
