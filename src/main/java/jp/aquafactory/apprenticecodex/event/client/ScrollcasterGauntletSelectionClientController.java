@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.event.client;
 
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScrollcasterGauntletCompat;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmScrollcasterGauntletIndexPacket;
@@ -15,6 +16,7 @@ import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderGuiEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,6 +24,7 @@ import java.util.List;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ScrollcasterGauntletSelectionClientController {
+    private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/gui/scrollcaster_gauntlet.png");
     private static final int TEXTURE_SIZE = 64;
@@ -140,7 +143,7 @@ public final class ScrollcasterGauntletSelectionClientController {
     }
 
     private static void openSelection(net.minecraft.world.entity.player.Player player, InteractionHand hand) {
-        var stack = player.getItemInHand(hand);
+        var stack = resolveHeldGauntletStack(player, hand);
         var views = ScrollcasterGauntlet.getSelectionViews(stack);
         if (views.isEmpty()) {
             return;
@@ -155,7 +158,7 @@ public final class ScrollcasterGauntletSelectionClientController {
         }
 
         var selectedScrollIndex = activeState.selectedView().scrollIndex();
-        var refreshedViews = ScrollcasterGauntlet.getSelectionViews(player.getItemInHand(activeState.hand()));
+        var refreshedViews = ScrollcasterGauntlet.getSelectionViews(resolveHeldGauntletStack(player, activeState.hand()));
         if (refreshedViews.isEmpty()) {
             clearState();
             return;
@@ -200,6 +203,10 @@ public final class ScrollcasterGauntletSelectionClientController {
         if (player.getMainHandItem().getItem() instanceof ScrollcasterGauntlet) {
             return InteractionHand.MAIN_HAND;
         }
+        if (ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)
+                && BetterCombatScrollcasterGauntletCompat.isRescueActive(player)) {
+            return InteractionHand.OFF_HAND;
+        }
         if (player.getOffhandItem().getItem() instanceof ScrollcasterGauntlet) {
             return InteractionHand.OFF_HAND;
         }
@@ -207,7 +214,17 @@ public final class ScrollcasterGauntletSelectionClientController {
     }
 
     private static boolean isValidHeldGauntlet(net.minecraft.world.entity.player.Player player, InteractionHand hand) {
-        return player.getItemInHand(hand).getItem() instanceof ScrollcasterGauntlet;
+        return resolveHeldGauntletStack(player, hand).getItem() instanceof ScrollcasterGauntlet;
+    }
+
+    private static net.minecraft.world.item.ItemStack resolveHeldGauntletStack(
+            net.minecraft.world.entity.player.Player player,
+            InteractionHand hand
+    ) {
+        if (ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)) {
+            return BetterCombatScrollcasterGauntletCompat.getResolvedHeldStack(player, hand);
+        }
+        return player.getItemInHand(hand);
     }
 
     private static int findInitialViewIndex(List<ScrollcasterGauntlet.ScrollSelectionView> views) {

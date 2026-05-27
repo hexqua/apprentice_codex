@@ -45,6 +45,8 @@
   ],
   "client": [
     "ArcaneAnvilJeiRecipeMixin",
+    "BetterCombatItemInHandLayerMixin",
+    "BetterCombatItemInHandRendererMixin",
     "ClientPlayerEventsAutocastAmuletTooltipMixin",
     "ClientPlayerEventsFocusStaffbowMixin",
     "ClientPlayerRecastsMixin",
