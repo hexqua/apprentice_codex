@@ -29,6 +29,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String MULTICAST_ECHO_STAFF_BASE_COOLDOWN_CAP_BATCH = "apprenticecodex.multicast_echo_staff_base_cooldown_cap";
     private static final String ECHO_CAST_MULTICAST_LIMIT_BATCH = "apprenticecodex.echo_cast_multicast_limit";
     private static final String MIST_FORM_ISOLATED_BATCH = "apprenticecodex.mist_form_isolated";
+    private static final String COUNTERSPELL_COMPAT_ISOLATED_BATCH = "apprenticecodex.counterspell_compat_isolated";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
     }
@@ -386,6 +387,16 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = ECHO_CAST_MULTICAST_LIMIT_BATCH, timeoutTicks = 40)
     public static void echoCastStopsAtConfiguredMulticastLimit(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.echoCastStopsAtConfiguredMulticastLimit(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = COUNTERSPELL_COMPAT_ISOLATED_BATCH)
+    public static void counterspellCompatMagicMobEffectsAreMagicMobEffects(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.counterspellCompatMagicMobEffectsAreMagicMobEffects(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = COUNTERSPELL_COMPAT_ISOLATED_BATCH)
+    public static void spectralWingEffectRemovalClearsFlightState(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spectralWingEffectRemovalClearsFlightState(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
