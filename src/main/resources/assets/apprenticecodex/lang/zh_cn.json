@@ -600,7 +600,7 @@
   "spell.apprenticecodex.spectral_wing.guide": "借助魔力翅膀升空，并立即进入滑翔状态。飞行时再次施法，会朝你注视的方向猛冲。落地或接触水后翅膀消失。",
   "spell.apprenticecodex.auto_turret.guide": "召唤自动炮塔，使用弩攻击附近敌人。弹药耗尽或耐久用尽后消失。",
   "spell.apprenticecodex.illuminate_stellar.guide": "辉耀星法杖专属被动法术。挥舞法杖，散播闪烁星光，飞向怀有恶意的实体。",
-  "spell.apprenticecodex.unite_luna.guide": "融月法杖专属被动法术。挥舞法杖，生成新月之力，消灭侵扰的实体。",
+  "spell.apprenticecodex.unite_luna.guide": "融月法杖专属被动法术。挥舞法杖，生成新月之力，消灭侵扰的实体。若有人试图抵消其魔力，它会利用那股力量进一步增强威力。",
   "spell.apprenticecodex.demicreator_wings.guide": "在当前位置放置一个造物者核心，仅在核心范围内获得创造模式飞行。再次施法、计时结束或离开范围会收回翅膀。",
   "spell.apprenticecodex.companion_trunk.guide": "召唤一个奥术宝箱跟随你。容量与普通箱子相当，距离过远时可召回身边，消失时会尝试将内容物存入箱子。",
   "spell.apprenticecodex.treasure_divination.guide": "集中魔力，感知最近的贵重物品距离。探测到的物品不一定真正贵重，且可探测目标有限。",

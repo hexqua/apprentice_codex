@@ -143,6 +143,7 @@ import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackJob;
+import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonEntity;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillEntity;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
@@ -14861,6 +14862,39 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Repeated anti-magic should not restart Magic Spear harmless burst lifetime");
             assertHealthUnchanged(helper, target, targetHealth,
                     "Magic Spear harmless anti-magic burst should not damage nearby targets");
+        });
+    }
+
+    static void uniteLunaAntiMagicAmplifiesBurst(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var caster = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "unite_luna_antimagic_test");
+            var target = EntityType.SHEEP.create(level);
+            helper.assertTrue(target != null, "Failed to create Unite Luna anti-magic target");
+            target.setNoAi(true);
+            spawnCounterspellTestEntity(helper, target, new Vec3(10.0D, 2.0D, 2.5D));
+            var targetHealth = target.getHealth();
+
+            var moon = new UniteLunaMoonEntity(EntityRegistry.UNITE_LUNA_MOON.get(), level, caster);
+            moon.setDamage(2.0F);
+            spawnCounterspellTestEntity(helper, moon, new Vec3(2.5D, 2.0D, 2.5D));
+
+            helper.assertTrue(moon instanceof AntiMagicSusceptible,
+                    "Unite Luna moon should implement AntiMagicSusceptible");
+            ((AntiMagicSusceptible) moon).onAntiMagic(MagicData.getPlayerMagicData(caster));
+
+            helper.assertTrue(moon.getBurstKind() == UniteLunaMoonEntity.BURST_KIND_EXPLOSION,
+                    "Unite Luna anti-magic should force explosion burst");
+            helper.assertTrue(Math.abs(moon.getBurstCubeSize() - 22.0F) < 0.001F,
+                    "Unite Luna anti-magic burst cube size should be doubled max: " + moon.getBurstCubeSize());
+            var damageTaken = targetHealth - target.getHealth();
+            helper.assertTrue(Math.abs(damageTaken - 6.0F) < 0.1F,
+                    "Unite Luna anti-magic should triple damage inside doubled range: " + damageTaken);
+
+            var healthAfterFirstBurst = target.getHealth();
+            ((AntiMagicSusceptible) moon).onAntiMagic(MagicData.getPlayerMagicData(caster));
+            helper.assertTrue(Math.abs(target.getHealth() - healthAfterFirstBurst) < 0.001F,
+                    "Repeated Unite Luna anti-magic should not reapply burst damage");
         });
     }
 

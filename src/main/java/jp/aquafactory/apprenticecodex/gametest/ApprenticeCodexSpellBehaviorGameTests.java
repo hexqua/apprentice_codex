@@ -399,6 +399,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.magicSpearAntiMagicBurstDoesNotRestart(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = COUNTERSPELL_COMPAT_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void uniteLunaAntiMagicAmplifiesBurst(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.uniteLunaAntiMagicAmplifiesBurst(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
     public static void mistFormAppliesEffectAndFixedAttributes(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.mistFormAppliesEffectAndFixedAttributes(helper);
