@@ -15188,11 +15188,6 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(demicreatorMagicData.getPlayerRecasts().hasRecastForSpell(demicreatorSpell),
                     "Demicreator Wings anti-magic should remove its recast");
 
-            var shieldOwner = createEquipmentTestPlayer(helper, new BlockPos(6, 2, 0), "mystic_shield_entity_antimagic_owner_test");
-            var shield = new MysticShieldShieldEntity(EntityRegistry.MYSTIC_SHIELD_SHIELD.get(), level, shieldOwner);
-            level.addFreshEntity(shield);
-            ((AntiMagicSusceptible) shield).onAntiMagic(counterMagicData);
-            helper.assertTrue(shield.isFading(), "Mystic Shield entity should start fading after anti-magic");
         });
     }
 
@@ -15373,11 +15368,24 @@ public final class ApprenticeCodexGameTestScenarios {
             );
             helper.assertTrue(frontAttack.isCanceled(), "Mystic Shield setup should store front damage before Counterspell");
 
+            var mysticShieldEntity = level.getEntitiesOfClass(
+                            MysticShieldShieldEntity.class,
+                            mysticCaster.getBoundingBox().inflate(4.0D)
+                    ).stream()
+                    .filter(entity -> entity.getOwner() == mysticCaster)
+                    .findFirst()
+                    .orElse(null);
+            helper.assertTrue(mysticShieldEntity != null, "Mystic Shield cast should spawn a shield entity before Counterspell");
+            helper.assertFalse(mysticShieldEntity instanceof AntiMagicSusceptible,
+                    "Mystic Shield shield entity should not be a direct Counterspell target");
+
             var counterCaster = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 5), "mystic_shield_counterspell_caster_test");
             var mysticCounterspell = new CounterSpellEvent(counterCaster, mysticCaster);
             MysticShieldDefenseEvent.onCounterSpell(mysticCounterspell);
             helper.assertFalse(mysticCounterspell.isCanceled(),
                     "Mystic Shield should not cancel the CounterSpellEvent itself");
+            helper.assertTrue(mysticShieldEntity.isFading(),
+                    "Mystic Shield should break its shield entity immediately when Counterspell hits the caster");
             completeMysticShieldCast(level, mysticCaster, 1, true);
             var reflected = level.getEntitiesOfClass(MysticShieldProjectileEntity.class, mysticCaster.getBoundingBox().inflate(4.0D));
             helper.assertTrue(reflected.isEmpty(),
