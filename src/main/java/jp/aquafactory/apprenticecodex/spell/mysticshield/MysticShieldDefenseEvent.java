@@ -63,8 +63,12 @@ public final class MysticShieldDefenseEvent {
         AudioTools.playSoundFromEntity(target.level(), target, SoundRegistry.MYSTIC_SHIELD_BLOCK.get(), SoundSource.PLAYERS, 0.75f, 1.0f, 0.05f);
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onCounterSpell(CounterSpellEvent event) {
+        if (event.isCanceled()) {
+            return;
+        }
+
         if (!(event.target instanceof LivingEntity target)) {
             return;
         }

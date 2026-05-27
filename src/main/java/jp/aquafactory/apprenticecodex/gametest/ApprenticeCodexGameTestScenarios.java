@@ -15421,6 +15421,42 @@ public final class ApprenticeCodexGameTestScenarios {
             PhalanxCounterSpellEvent.onCounterSpell(normalCounterspell);
             helper.assertFalse(normalCounterspell.isCanceled(),
                     "Unenhanced Phalanx stance should not cancel Counterspell");
+
+            var phalanxMysticTarget = createTrackedEquipmentTestPlayer(helper, new BlockPos(12, 2, 0), "mystic_shield_phalanx_cancel_target_test");
+            phalanxMysticTarget.setYRot(0.0f);
+            phalanxMysticTarget.setXRot(0.0f);
+            phalanxMysticTarget.addEffect(new MobEffectInstance(
+                    EffectRegistry.PHALANX_STANCE.get(),
+                    20,
+                    PhalanxStance.MOVE_SPEED_ENABLED_AMPLIFIER,
+                    false,
+                    false,
+                    true
+            ));
+            beginMysticShieldCast(level, phalanxMysticTarget, 1);
+            var phalanxMysticAttacker = helper.spawn(EntityType.ZOMBIE, new BlockPos(12, 2, 3));
+            var phalanxMysticFrontAttack = postLivingAttackEventForGameTest(
+                    phalanxMysticTarget,
+                    CombatTools.getDamageSource(level, phalanxMysticAttacker, DamageTypes.SHOCK),
+                    8.0f
+            );
+            helper.assertTrue(phalanxMysticFrontAttack.isCanceled(),
+                    "Mystic Shield setup should store front damage before a Phalanx-canceled Counterspell");
+
+            var phalanxMysticCounterCaster = createEquipmentTestPlayer(helper, new BlockPos(12, 2, 5), "mystic_shield_phalanx_cancel_caster_test");
+            var phalanxCanceledCounterspell = new CounterSpellEvent(phalanxMysticCounterCaster, phalanxMysticTarget);
+            PhalanxCounterSpellEvent.onCounterSpell(phalanxCanceledCounterspell);
+            helper.assertTrue(phalanxCanceledCounterspell.isCanceled(),
+                    "Enhanced Phalanx stance should cancel Counterspell before Mystic Shield observes it");
+            MysticShieldDefenseEvent.onCounterSpell(phalanxCanceledCounterspell);
+            completeMysticShieldCast(level, phalanxMysticTarget, 1, false);
+            var reflectedAfterCanceledCounterspell = level.getEntitiesOfClass(
+                    MysticShieldProjectileEntity.class,
+                    phalanxMysticTarget.getBoundingBox().inflate(4.0D)
+            );
+            helper.assertTrue(reflectedAfterCanceledCounterspell.size() == 1,
+                    "Mystic Shield should keep stored reflection when Counterspell is canceled but got "
+                            + reflectedAfterCanceledCounterspell.size());
         });
     }
 
