@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.skyedge;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -25,7 +27,7 @@ import net.minecraft.world.phys.*;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
-public class SkyEdgeProjectileEntity extends Projectile
+public class SkyEdgeProjectileEntity extends Projectile implements AntiMagicSusceptible
 {
     private static final int LIFE_TICKS = 20 * 5;
     private static final RandomSource RNG = RandomSource.create();
@@ -135,6 +137,16 @@ public class SkyEdgeProjectileEntity extends Projectile
             onImpact(level, 0.1, false);
             discard();
         }
+    }
+
+    @Override
+    public void onAntiMagic(MagicData playerMagicData) {
+        if (level().isClientSide || isRemoved()) {
+            return;
+        }
+
+        onImpact(level(), 0.1, false);
+        discard();
     }
 
     @Override

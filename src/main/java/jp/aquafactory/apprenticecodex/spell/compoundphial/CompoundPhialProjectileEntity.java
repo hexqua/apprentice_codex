@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.compoundphial;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
@@ -24,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 
-public class CompoundPhialProjectileEntity extends ThrowableProjectile {
+public class CompoundPhialProjectileEntity extends ThrowableProjectile implements AntiMagicSusceptible {
     private static final float FULL_DAMAGE_RADIUS_SCALE = 0.5f;
     private static final float MIN_SPLASH_DAMAGE_SCALE = 0.6f;
 
@@ -142,6 +144,15 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
     protected void onHitBlock(@NotNull BlockHitResult hit) {
         onImpact(level());
         super.onHitBlock(hit);
+        discard();
+    }
+
+    @Override
+    public void onAntiMagic(MagicData playerMagicData) {
+        if (level().isClientSide || isRemoved()) {
+            return;
+        }
+
         discard();
     }
 
