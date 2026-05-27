@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.illuminatestellar;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
@@ -34,9 +36,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
-// 多すぎるのでこの弾は大本で潰す.
-@SuppressWarnings("resource")
-public class IlluminateStellarStarEntity extends Projectile {
+public class IlluminateStellarStarEntity extends Projectile implements AntiMagicSusceptible {
     private static final int PHASE_DRIFT = 0;
     private static final int PHASE_WAIT = 1;
     private static final int PHASE_LAUNCH = 2;
@@ -270,6 +270,15 @@ public class IlluminateStellarStarEntity extends Projectile {
         if (!level().isClientSide) {
             triggerImpactAndDiscard();
         }
+    }
+
+    @Override
+    public void onAntiMagic(MagicData playerMagicData) {
+        if (level().isClientSide || isRemoved()) {
+            return;
+        }
+
+        triggerImpactAndDiscard();
     }
 
     @Override

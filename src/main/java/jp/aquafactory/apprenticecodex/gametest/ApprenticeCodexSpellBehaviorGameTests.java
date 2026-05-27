@@ -399,6 +399,16 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.spectralWingEffectRemovalClearsFlightState(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = COUNTERSPELL_COMPAT_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void counterspellCompatProjectilesFizzleHarmlessly(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.counterspellCompatProjectilesFizzleHarmlessly(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = COUNTERSPELL_COMPAT_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void magicSpearAntiMagicBurstDoesNotRestart(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.magicSpearAntiMagicBurstDoesNotRestart(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
     public static void mistFormAppliesEffectAndFixedAttributes(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.mistFormAppliesEffectAndFixedAttributes(helper);

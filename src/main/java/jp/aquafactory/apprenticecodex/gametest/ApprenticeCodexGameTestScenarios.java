@@ -17,6 +17,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.effect.MagicMobEffect;
+import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectile;
 import io.redspace.ironsspellbooks.entity.spells.fireball.SmallMagicFireball;
 import io.redspace.ironsspellbooks.entity.spells.spectral_hammer.SpectralHammer;
@@ -123,11 +124,15 @@ import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEnti
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
 import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
+import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.harvestmoon.HarvestMoon;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
+import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarStarEntity;
+import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileEntity;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShield;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldProjectileEntity;
@@ -138,6 +143,7 @@ import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
+import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackBlockClassifier;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackJob;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillEntity;
@@ -238,6 +244,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -15122,6 +15130,119 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(player.isFallFlying(),
                     "Removing Spectral Wing effect should stop fall flying");
         });
+    }
+
+    static void counterspellCompatProjectilesFizzleHarmlessly(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var caster = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "counterspell_projectile_fizzle_test");
+            var target = EntityType.SHEEP.create(level);
+            helper.assertTrue(target != null, "Failed to create Counterspell projectile harmless target");
+            spawnCounterspellTestEntity(helper, target, new Vec3(2.5D, 2.0D, 2.5D));
+            var targetHealth = target.getHealth();
+
+            var compoundPhial = new CompoundPhialProjectileEntity(EntityRegistry.COMPOUND_PHIAL_PROJECTILE.get(), level, caster);
+            compoundPhial.setDamage(20.0F);
+            compoundPhial.setSplashRadius(4.0F);
+            compoundPhial.setPotionColorRandom(level);
+            spawnCounterspellTestEntity(helper, compoundPhial, new Vec3(2.5D, 2.0D, 2.5D));
+            assertAntiMagicDiscard(helper, caster, compoundPhial, "Compound Phial");
+
+            var extract = new ExtractPotionProjectileEntity(EntityRegistry.EXTRACT_POTION_PROJECTILE.get(), level, caster);
+            extract.setItem(PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), Potions.POISON));
+            spawnCounterspellTestEntity(helper, extract, new Vec3(2.5D, 2.0D, 2.5D));
+            assertAntiMagicDiscard(helper, caster, extract, "Extract potion");
+
+            var flySwatter = new FlySwatterProjectileEntity(EntityRegistry.FLY_SWATTER_PROJECTILE.get(), level, caster);
+            flySwatter.setDamage(20.0F);
+            flySwatter.setRadius(4.0F);
+            spawnCounterspellTestEntity(helper, flySwatter, new Vec3(2.5D, 2.0D, 2.5D));
+            assertAntiMagicDiscard(helper, caster, flySwatter, "Fly Swatter");
+
+            var stellar = new IlluminateStellarStarEntity(EntityRegistry.ILLUMINATE_STELLAR_STAR.get(), level, caster);
+            stellar.setDamage(20.0F);
+            stellar.setDriftProfile(new Vec3(1.0D, 0.0D, 0.0D));
+            stellar.setFallbackTarget(target);
+            spawnCounterspellTestEntity(helper, stellar, new Vec3(2.5D, 2.0D, 2.5D));
+            assertAntiMagicDiscard(helper, caster, stellar, "Illuminate Stellar");
+
+            var manaSlash = new ManaSlashProjectileEntity(EntityRegistry.MANA_SLASH_PROJECTILE.get(), level, caster);
+            manaSlash.setDamage(20.0F);
+            manaSlash.shoot(new Vec3(1.0D, 0.0D, 0.0D));
+            spawnCounterspellTestEntity(helper, manaSlash, new Vec3(2.5D, 2.0D, 2.5D));
+            assertAntiMagicDiscard(helper, caster, manaSlash, "Mana Slash");
+
+            var mysticShield = new MysticShieldProjectileEntity(EntityRegistry.MYSTIC_SHIELD_PROJECTILE.get(), level, caster);
+            mysticShield.setDamage(20.0F);
+            mysticShield.shoot(new Vec3(1.0D, 0.0D, 0.0D));
+            spawnCounterspellTestEntity(helper, mysticShield, new Vec3(2.5D, 2.0D, 2.5D));
+            assertAntiMagicDiscard(helper, caster, mysticShield, "Mystic Shield projectile");
+
+            var skyEdge = new SkyEdgeProjectileEntity(EntityRegistry.SKY_EDGE_PROJECTILE.get(), level, caster);
+            skyEdge.setDamage(20.0F);
+            skyEdge.setProjectileVelocity(new Vec3(1.0D, 0.0D, 0.0D), 1.0D);
+            spawnCounterspellTestEntity(helper, skyEdge, new Vec3(2.5D, 2.0D, 2.5D));
+            assertAntiMagicDiscard(helper, caster, skyEdge, "Sky Edge");
+
+            assertHealthUnchanged(helper, target, targetHealth,
+                    "Counterspell projectile fizzle should not damage nearby targets");
+            helper.assertFalse(target.hasEffect(MobEffects.POISON),
+                    "Counterspell projectile fizzle should not apply potion effects");
+        });
+    }
+
+    static void magicSpearAntiMagicBurstDoesNotRestart(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var caster = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "magic_spear_antimagic_repeat_test");
+            var target = EntityType.SHEEP.create(level);
+            helper.assertTrue(target != null, "Failed to create Magic Spear anti-magic target");
+            spawnCounterspellTestEntity(helper, target, new Vec3(2.5D, 2.0D, 2.5D));
+            var targetHealth = target.getHealth();
+
+            var spear = new MagicSpearMissileEntity(EntityRegistry.MAGIC_SPEAR_MISSILE.get(), level, caster);
+            spear.setup(20.0F, new Vec3(1.0D, 0.0D, 0.0D), new Vec3(0.0D, 0.0D, 1.0D), target);
+            spawnCounterspellTestEntity(helper, spear, new Vec3(2.5D, 2.0D, 2.5D));
+
+            var magicData = MagicData.getPlayerMagicData(caster);
+            ((AntiMagicSusceptible) spear).onAntiMagic(magicData);
+            helper.assertTrue(spear.isBursting(), "Magic Spear should enter harmless burst state after anti-magic");
+
+            for (var i = 0; i < 7 && !spear.isRemoved(); ++i) {
+                spear.tick();
+            }
+
+            ((AntiMagicSusceptible) spear).onAntiMagic(magicData);
+            helper.assertTrue(spear.isBursting(), "Repeated anti-magic should not leave harmless burst state");
+
+            for (var i = 0; i < 7 && !spear.isRemoved(); ++i) {
+                spear.tick();
+            }
+
+            helper.assertTrue(spear.isRemoved(),
+                    "Repeated anti-magic should not restart Magic Spear harmless burst lifetime");
+            assertHealthUnchanged(helper, target, targetHealth,
+                    "Magic Spear harmless anti-magic burst should not damage nearby targets");
+        });
+    }
+
+    private static void assertAntiMagicDiscard(GameTestHelper helper, FakePlayer caster, net.minecraft.world.entity.Entity entity, String entityName) {
+        helper.assertTrue(entity instanceof AntiMagicSusceptible,
+                entityName + " should implement AntiMagicSusceptible");
+        ((AntiMagicSusceptible) entity).onAntiMagic(MagicData.getPlayerMagicData(caster));
+        helper.assertTrue(entity.isRemoved(), entityName + " should be discarded by anti-magic");
+    }
+
+    private static void assertHealthUnchanged(GameTestHelper helper, net.minecraft.world.entity.LivingEntity target, float expectedHealth, String message) {
+        helper.assertTrue(Math.abs(target.getHealth() - expectedHealth) < 0.001F,
+                message + ": expected=" + expectedHealth + ", actual=" + target.getHealth());
+    }
+
+    private static void spawnCounterspellTestEntity(GameTestHelper helper, net.minecraft.world.entity.Entity entity, Vec3 localPos) {
+        var absolutePos = helper.absoluteVec(localPos);
+        entity.moveTo(absolutePos.x, absolutePos.y, absolutePos.z, 0.0F, 0.0F);
+        entity.setDeltaMovement(Vec3.ZERO);
+        helper.getLevel().addFreshEntity(entity);
     }
 
     static void mistFormAppliesEffectAndFixedAttributes(GameTestHelper helper) {
