@@ -399,6 +399,16 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.spectralWingEffectRemovalClearsFlightState(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = COUNTERSPELL_COMPAT_ISOLATED_BATCH)
+    public static void counterspellCompatMagicConstructsDeactivateSafely(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.counterspellCompatMagicConstructsDeactivateSafely(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = COUNTERSPELL_COMPAT_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void healingBloomAntiMagicUsesDeathCleanup(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.healingBloomAntiMagicUsesDeathCleanup(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = COUNTERSPELL_COMPAT_ISOLATED_BATCH, timeoutTicks = 40)
     public static void counterspellCompatProjectilesFizzleHarmlessly(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.counterspellCompatProjectilesFizzleHarmlessly(helper);
@@ -412,6 +422,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = COUNTERSPELL_COMPAT_ISOLATED_BATCH, timeoutTicks = 40)
     public static void uniteLunaAntiMagicAmplifiesBurst(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.uniteLunaAntiMagicAmplifiesBurst(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = COUNTERSPELL_COMPAT_ISOLATED_BATCH)
+    public static void counterspellCompatSpecialPlayerTargetBehaviors(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.counterspellCompatSpecialPlayerTargetBehaviors(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)

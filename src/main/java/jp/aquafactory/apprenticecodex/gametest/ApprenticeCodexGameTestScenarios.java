@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.api.events.CounterSpellEvent;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.item.UpgradeData;
@@ -53,6 +54,7 @@ import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerC
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
 import jp.aquafactory.apprenticecodex.event.ErrandMageVillagerTradesEvent;
 import jp.aquafactory.apprenticecodex.event.errandmage.ErrandMageTradeManager;
 import jp.aquafactory.apprenticecodex.event.ScrollcasterGauntletGrindstoneEvent;
@@ -123,6 +125,7 @@ import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsMan
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
+import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarManager;
 import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
 import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
@@ -135,9 +138,12 @@ import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarS
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileEntity;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShield;
+import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldDefenseEvent;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldShieldEntity;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
+import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxCounterSpellEvent;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
 import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
@@ -15133,6 +15139,97 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void counterspellCompatMagicConstructsDeactivateSafely(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var counterCaster = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "counterspell_construct_caster_test");
+            var counterMagicData = MagicData.getPlayerMagicData(counterCaster);
+
+            var assistOwner = createEquipmentTestPlayer(helper, new BlockPos(0, 4, 0), "assist_wings_antimagic_owner_test");
+            var assistWing = new AssistWingsWingEntity(EntityRegistry.ASSIST_WINGS_WING.get(), level, assistOwner);
+            level.addFreshEntity(assistWing);
+            setAssistWingsState(assistOwner, 1, assistWing.getId());
+            assistOwner.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 20, 0, true, false, false));
+            ((AntiMagicSusceptible) assistWing).onAntiMagic(counterMagicData);
+            var assistState = Capabilities.getSpellDataOrNull(assistOwner).get(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE);
+            helper.assertTrue(assistWing.isRemoved(), "Assist Wings wing should be discarded by anti-magic");
+            helper.assertTrue(assistState.localEntityId == -1 && assistState.doneJump == 1,
+                    "Assist Wings anti-magic should clear only the managed wing id");
+            helper.assertFalse(assistOwner.hasEffect(MobEffects.SLOW_FALLING),
+                    "Assist Wings anti-magic should remove its own short slow-falling effect");
+
+            var magnetOwner = createEquipmentTestPlayer(helper, new BlockPos(2, 2, 0), "auto_magnet_antimagic_owner_test");
+            AutoMagnetFamiliarManager.activate(magnetOwner, 6.0D, 0.0D);
+            var familiar = level.getEntitiesOfClass(AutoMagnetFamiliarEntity.class, magnetOwner.getBoundingBox().inflate(4.0D))
+                    .stream()
+                    .filter(entity -> entity.getOwner() == magnetOwner)
+                    .findFirst()
+                    .orElse(null);
+            helper.assertTrue(familiar != null, "AutoMagnet anti-magic test should spawn a familiar");
+            ((AntiMagicSusceptible) familiar).onAntiMagic(counterMagicData);
+            var magnetState = Capabilities.getSpellDataOrNull(magnetOwner).get(CodexSpellStateTypeRegister.AUTO_MAGNET_STATE);
+            helper.assertTrue(familiar.isRemoved(), "AutoMagnet familiar should be discarded by anti-magic");
+            helper.assertFalse(magnetState.active || magnetState.getFamiliarUuid() != null,
+                    "AutoMagnet anti-magic should clear active state and familiar UUID");
+
+            var demicreatorOwner = createEquipmentTestPlayer(helper, new BlockPos(4, 2, 0), "demicreator_wings_antimagic_owner_test");
+            var demicreatorSpell = (DemicreatorWings) SpellRegistry.DEMICREATOR_WINGS.get();
+            var demicreatorMagicData = MagicData.getPlayerMagicData(demicreatorOwner);
+            DemicreatorWingsManager.activate(demicreatorOwner, 1, CastSource.SPELLBOOK, demicreatorMagicData, demicreatorSpell);
+            DemicreatorWingsManager.ensureFlightGranted(demicreatorOwner);
+            var core = DemicreatorWingsManager.getManagedCore(demicreatorOwner);
+            helper.assertTrue(core instanceof AntiMagicSusceptible, "Demicreator Wings core should be anti-magic susceptible");
+            ((AntiMagicSusceptible) core).onAntiMagic(counterMagicData);
+            var demicreatorState = Capabilities.getSpellDataOrNull(demicreatorOwner).get(CodexSpellStateTypeRegister.DEMICREATOR_WINGS_STATE);
+            helper.assertFalse(demicreatorState.active || demicreatorState.coreEntityId >= 0 || demicreatorState.wingEntityId >= 0 || demicreatorState.grantedFlight,
+                    "Demicreator Wings anti-magic should reset managed state");
+            helper.assertFalse(demicreatorOwner.getAbilities().mayfly || demicreatorOwner.getAbilities().flying,
+                    "Demicreator Wings anti-magic should strip granted flight");
+            helper.assertFalse(demicreatorMagicData.getPlayerRecasts().hasRecastForSpell(demicreatorSpell),
+                    "Demicreator Wings anti-magic should remove its recast");
+
+            var shieldOwner = createEquipmentTestPlayer(helper, new BlockPos(6, 2, 0), "mystic_shield_entity_antimagic_owner_test");
+            var shield = new MysticShieldShieldEntity(EntityRegistry.MYSTIC_SHIELD_SHIELD.get(), level, shieldOwner);
+            level.addFreshEntity(shield);
+            ((AntiMagicSusceptible) shield).onAntiMagic(counterMagicData);
+            helper.assertTrue(shield.isFading(), "Mystic Shield entity should start fading after anti-magic");
+        });
+    }
+
+    static void healingBloomAntiMagicUsesDeathCleanup(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var owner = createHealingBloomPlayer(helper, new BlockPos(0, 2, 0), "healing_bloom_antimagic_owner_test");
+        var anchorPos = new BlockPos(0, 2, 0);
+        var absoluteAnchorPos = helper.absolutePos(anchorPos);
+        helper.setBlock(anchorPos.below(), Blocks.STONE);
+        castHealingBloom(helper, owner, 1, anchorPos, false);
+        var bloom = getSingleLivingHealingBloom(helper, owner);
+        setHealingBloomFruitCount(bloom, 2);
+        bloom.setOwner(owner);
+        level.setBlockAndUpdate(absoluteAnchorPos.above(), BlockRegistry.HEALING_BLOOM_LIGHT.get().defaultBlockState());
+
+        var counterCaster = createEquipmentTestPlayer(helper, new BlockPos(2, 2, 0), "healing_bloom_antimagic_caster_test");
+        ((AntiMagicSusceptible) bloom).onAntiMagic(MagicData.getPlayerMagicData(counterCaster));
+
+        helper.runAtTickTime(3, () -> {
+            var spellData = Capabilities.getSpellDataOrNull(owner);
+            helper.assertTrue(spellData != null, "Healing Bloom anti-magic test should resolve owner spell data");
+            helper.assertTrue(getOwnedHealingBlooms(helper, owner).isEmpty(),
+                    "Healing Bloom anti-magic should leave no living managed bloom");
+            helper.assertTrue(spellData.get(CodexSpellStateTypeRegister.HEALING_BLOOM_STATE).getBloomUuid() == null,
+                    "Healing Bloom anti-magic should clear managed bloom UUID");
+            helper.assertTrue(!level.getBlockState(absoluteAnchorPos.above()).is(BlockRegistry.HEALING_BLOOM_LIGHT.get()),
+                    "Healing Bloom anti-magic should remove its light block");
+            var droppedBerries = level.getEntitiesOfClass(ItemEntity.class, new AABB(absoluteAnchorPos).inflate(1.5D)).stream()
+                    .filter(itemEntity -> itemEntity.getItem().is(ItemRegistry.COMFORT_BERRIES.get()))
+                    .mapToInt(itemEntity -> itemEntity.getItem().getCount())
+                    .sum();
+            helper.assertTrue(droppedBerries == 2,
+                    "Healing Bloom anti-magic should use normal death drops for stored fruit");
+            helper.succeed();
+        });
+    }
+
     static void counterspellCompatProjectilesFizzleHarmlessly(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = (ServerLevel) helper.getLevel();
@@ -15257,6 +15354,73 @@ public final class ApprenticeCodexGameTestScenarios {
             ((AntiMagicSusceptible) moon).onAntiMagic(MagicData.getPlayerMagicData(caster));
             helper.assertTrue(Math.abs(target.getHealth() - healthAfterFirstBurst) < 0.001F,
                     "Repeated Unite Luna anti-magic should not reapply burst damage");
+        });
+    }
+
+    static void counterspellCompatSpecialPlayerTargetBehaviors(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+
+            var mysticCaster = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mystic_shield_counterspell_target_test");
+            mysticCaster.setYRot(0.0f);
+            mysticCaster.setXRot(0.0f);
+            var attacker = helper.spawn(EntityType.ZOMBIE, new BlockPos(0, 2, 3));
+            beginMysticShieldCast(level, mysticCaster, 1);
+            var frontAttack = postLivingAttackEventForGameTest(
+                    mysticCaster,
+                    CombatTools.getDamageSource(level, attacker, DamageTypes.SHOCK),
+                    8.0f
+            );
+            helper.assertTrue(frontAttack.isCanceled(), "Mystic Shield setup should store front damage before Counterspell");
+
+            var counterCaster = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 5), "mystic_shield_counterspell_caster_test");
+            var mysticCounterspell = new CounterSpellEvent(counterCaster, mysticCaster);
+            MysticShieldDefenseEvent.onCounterSpell(mysticCounterspell);
+            helper.assertFalse(mysticCounterspell.isCanceled(),
+                    "Mystic Shield should not cancel the CounterSpellEvent itself");
+            completeMysticShieldCast(level, mysticCaster, 1, true);
+            var reflected = level.getEntitiesOfClass(MysticShieldProjectileEntity.class, mysticCaster.getBoundingBox().inflate(4.0D));
+            helper.assertTrue(reflected.isEmpty(),
+                    "Mystic Shield interrupted by Counterspell should clear stored damage without firing a reflection");
+
+            var phalanxTarget = createEquipmentTestPlayer(helper, new BlockPos(4, 2, 0), "phalanx_counterspell_target_test");
+            phalanxTarget.setYRot(0.0f);
+            phalanxTarget.setXRot(0.0f);
+            phalanxTarget.addEffect(new MobEffectInstance(
+                    EffectRegistry.PHALANX_STANCE.get(),
+                    20,
+                    PhalanxStance.MOVE_SPEED_ENABLED_AMPLIFIER,
+                    false,
+                    false,
+                    true
+            ));
+            var phalanxFrontCaster = createEquipmentTestPlayer(helper, new BlockPos(4, 2, 3), "phalanx_counterspell_front_test");
+            var frontCounterspell = new CounterSpellEvent(phalanxFrontCaster, phalanxTarget);
+            PhalanxCounterSpellEvent.onCounterSpell(frontCounterspell);
+            helper.assertTrue(frontCounterspell.isCanceled(),
+                    "Enhanced Phalanx stance should cancel Counterspell from the front");
+
+            var phalanxBackCaster = createEquipmentTestPlayer(helper, new BlockPos(4, 2, -3), "phalanx_counterspell_back_test");
+            var backCounterspell = new CounterSpellEvent(phalanxBackCaster, phalanxTarget);
+            PhalanxCounterSpellEvent.onCounterSpell(backCounterspell);
+            helper.assertFalse(backCounterspell.isCanceled(),
+                    "Enhanced Phalanx stance should not cancel Counterspell from behind");
+
+            var normalPhalanxTarget = createEquipmentTestPlayer(helper, new BlockPos(8, 2, 0), "phalanx_counterspell_normal_target_test");
+            normalPhalanxTarget.setYRot(0.0f);
+            normalPhalanxTarget.addEffect(new MobEffectInstance(
+                    EffectRegistry.PHALANX_STANCE.get(),
+                    20,
+                    PhalanxStance.FIXED_AMPLIFIER,
+                    false,
+                    false,
+                    true
+            ));
+            var normalFrontCaster = createEquipmentTestPlayer(helper, new BlockPos(8, 2, 3), "phalanx_counterspell_normal_front_test");
+            var normalCounterspell = new CounterSpellEvent(normalFrontCaster, normalPhalanxTarget);
+            PhalanxCounterSpellEvent.onCounterSpell(normalCounterspell);
+            helper.assertFalse(normalCounterspell.isCanceled(),
+                    "Unenhanced Phalanx stance should not cancel Counterspell");
         });
     }
 

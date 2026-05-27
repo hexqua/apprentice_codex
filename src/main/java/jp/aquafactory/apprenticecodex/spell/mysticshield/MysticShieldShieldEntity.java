@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.mysticshield;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import net.minecraft.nbt.CompoundTag;
@@ -22,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class MysticShieldShieldEntity extends Entity implements TraceableEntity {
+public class MysticShieldShieldEntity extends Entity implements TraceableEntity, AntiMagicSusceptible {
     static final int FADE_TICKS = 4;
 
     private static final EntityDataAccessor<Boolean> DATA_FADING =
@@ -171,6 +173,15 @@ public class MysticShieldShieldEntity extends Entity implements TraceableEntity 
 
     public boolean isFading() {
         return entityData.get(DATA_FADING);
+    }
+
+    @Override
+    public void onAntiMagic(MagicData playerMagicData) {
+        if (level().isClientSide || isRemoved()) {
+            return;
+        }
+
+        startFade();
     }
 
     private void spawnBreakParticles() {
