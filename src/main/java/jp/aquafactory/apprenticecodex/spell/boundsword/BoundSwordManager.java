@@ -17,17 +17,28 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fml.ModList;
 
 import java.util.UUID;
 
 public final class BoundSwordManager {
+    private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
+    private static final String EPIC_FIGHT_MOD_ID = "epicfight";
+
     private BoundSwordManager() {
     }
 
     public static void activate(ServerPlayer player, int spellLevel, CastSource castSource, MagicData magicData,
                                 BoundSword spell, float displayDamage) {
+        activate(player, spellLevel, castSource, magicData, spell, displayDamage, false);
+    }
+
+    public static void activate(ServerPlayer player, int spellLevel, CastSource castSource, MagicData magicData,
+                                BoundSword spell, float displayDamage, boolean forceTryDualWield) {
         deactivate(player, true);
 
         var spellData = Capabilities.getSpellDataOrNull(player);
@@ -37,15 +48,22 @@ public final class BoundSwordManager {
 
         var instanceId = UUID.randomUUID();
         var originalMainhand = player.getMainHandItem().copy();
-        var sword = BoundSwordItem.create(instanceId, displayDamage);
+        var originalOffhand = getPhysicalOffhandStack(player).copy();
+        var shouldGenerateOffhand = shouldGenerateOffhandSword(player, forceTryDualWield);
+        var sword = BoundSwordItem.create(instanceId, displayDamage, EquipmentSlot.MAINHAND);
+        var offhandSword = BoundSwordItem.create(instanceId, displayDamage, EquipmentSlot.OFFHAND);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, sword);
+        var offhandSwordGenerated = shouldGenerateOffhand && setPhysicalOffhandStack(player, offhandSword);
 
         spellData.edit(CodexSpellStateTypeRegister.BOUND_SWORD_STATE, state -> {
             state.active = true;
             state.setInstanceId(instanceId);
             state.setStoredMainhandStack(originalMainhand);
+            state.setStoredOffhandStack(offhandSwordGenerated ? originalOffhand : ItemStack.EMPTY);
+            state.setOffhandSwordGenerated(offhandSwordGenerated);
             state.displayDamage = displayDamage;
         });
-        player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, sword);
         player.containerMenu.broadcastFullState();
         syncSpellSelection(player);
 
@@ -76,11 +94,16 @@ public final class BoundSwordManager {
 
         var instanceId = state.getInstanceId();
         var storedMainhandStack = state.getStoredMainhandStack().copy();
+        var storedOffhandStack = state.getStoredOffhandStack().copy();
+        var offhandSwordGenerated = state.isOffhandSwordGenerated();
         removeGeneratedSword(player, instanceId);
         spellData.edit(CodexSpellStateTypeRegister.BOUND_SWORD_STATE, BoundSwordState::reset);
 
         if (!storedMainhandStack.isEmpty()) {
             restoreStoredMainhand(player, storedMainhandStack);
+        }
+        if (offhandSwordGenerated && !storedOffhandStack.isEmpty()) {
+            restoreStoredOffhand(player, storedOffhandStack);
         }
 
         if (removeRecast) {
@@ -99,6 +122,8 @@ public final class BoundSwordManager {
                 state.active,
                 state.getInstanceId(),
                 state.getStoredMainhandStack(),
+                state.getStoredOffhandStack(),
+                state.isOffhandSwordGenerated(),
                 state.displayDamage
         ));
     }
@@ -171,7 +196,7 @@ public final class BoundSwordManager {
             return;
         }
 
-        if (isInAllowedSlot(player, instanceId)) {
+        if (areExpectedSwordsInAllowedSlots(player, instanceId, state.isOffhandSwordGenerated())) {
             return;
         }
 
@@ -182,16 +207,72 @@ public final class BoundSwordManager {
         return (buttonNum >= 0 && buttonNum <= 8) || buttonNum == 40;
     }
 
-    private static boolean isInAllowedSlot(ServerPlayer player, UUID instanceId) {
+    public static boolean hasDualWieldCompat() {
+        return ModList.get().isLoaded(BETTER_COMBAT_MOD_ID) || ModList.get().isLoaded(EPIC_FIGHT_MOD_ID);
+    }
+
+    private static boolean shouldGenerateOffhandSword(ServerPlayer player, boolean forceTryDualWield) {
+        if (!hasDualWieldCompat()) {
+            return false;
+        }
+
+        // Better Combat 1.20.1 は両手武器中に getOffhandItem() を空へ見せるため、
+        // 二刀流生成の可否は実インベントリの offhand スロットから判定する。
+        return forceTryDualWield || getPhysicalOffhandStack(player).isEmpty();
+    }
+
+    private static ItemStack getPhysicalOffhandStack(ServerPlayer player) {
+        var offhand = player.getInventory().offhand;
+        return offhand.isEmpty() ? ItemStack.EMPTY : offhand.get(0);
+    }
+
+    private static boolean setPhysicalOffhandStack(ServerPlayer player, ItemStack stack) {
+        var offhand = player.getInventory().offhand;
+        if (offhand.isEmpty()) {
+            return false;
+        }
+
+        offhand.set(0, stack);
+        player.getInventory().setChanged();
+        return true;
+    }
+
+    private static boolean areExpectedSwordsInAllowedSlots(ServerPlayer player, UUID instanceId,
+                                                          boolean offhandSwordGenerated) {
+        var expectedCount = offhandSwordGenerated ? 2 : 1;
+        return countAllowedGeneratedSwords(player, instanceId) >= expectedCount
+                && !hasGeneratedSwordOutsideAllowedSlots(player, instanceId);
+    }
+
+    private static int countAllowedGeneratedSwords(ServerPlayer player, UUID instanceId) {
+        var count = 0;
         var inventory = player.getInventory();
         for (var slot = 0; slot < 9; ++slot) {
+            if (BoundSwordItem.hasInstanceId(inventory.items.get(slot), instanceId)) {
+                ++count;
+            }
+        }
+
+        if (!inventory.offhand.isEmpty()
+                && BoundSwordItem.hasInstanceId(inventory.offhand.get(0), instanceId)) {
+            ++count;
+        }
+        return count;
+    }
+
+    private static boolean hasGeneratedSwordOutsideAllowedSlots(ServerPlayer player, UUID instanceId) {
+        var inventory = player.getInventory();
+        for (var slot = 9; slot < inventory.items.size(); ++slot) {
             if (BoundSwordItem.hasInstanceId(inventory.items.get(slot), instanceId)) {
                 return true;
             }
         }
-
-        return !inventory.offhand.isEmpty()
-                && BoundSwordItem.hasInstanceId(inventory.offhand.get(0), instanceId);
+        for (var slot = 0; slot < inventory.armor.size(); ++slot) {
+            if (BoundSwordItem.hasInstanceId(inventory.armor.get(slot), instanceId)) {
+                return true;
+            }
+        }
+        return BoundSwordItem.hasInstanceId(player.containerMenu.getCarried(), instanceId);
     }
 
     private static void removeGeneratedSword(ServerPlayer player, UUID instanceId) {
@@ -244,6 +325,15 @@ public final class BoundSwordManager {
         } else {
             player.getInventory().placeItemBackInInventory(storedMainhandStack);
         }
+        player.getInventory().setChanged();
+    }
+
+    private static void restoreStoredOffhand(ServerPlayer player, ItemStack storedOffhandStack) {
+        if (getPhysicalOffhandStack(player).isEmpty() && setPhysicalOffhandStack(player, storedOffhandStack)) {
+            return;
+        }
+
+        player.getInventory().placeItemBackInInventory(storedOffhandStack);
         player.getInventory().setChanged();
     }
 

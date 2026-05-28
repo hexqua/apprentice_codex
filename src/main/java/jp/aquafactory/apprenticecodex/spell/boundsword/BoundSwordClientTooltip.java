@@ -31,7 +31,13 @@ public final class BoundSwordClientTooltip {
         var result = new AtomicReference<Component>();
         player.getCapability(Capabilities.SPELL_DATA).ifPresent(data -> {
             var state = data.get(CodexSpellStateTypeRegister.BOUND_SWORD_STATE);
-            if (state.active && instanceId.equals(state.getInstanceId()) && state.hasStoredMainhandStack()) {
+            if (!state.active || !instanceId.equals(state.getInstanceId())) {
+                return;
+            }
+
+            if (BoundSwordItem.isGeneratedForOffhand(stack) && state.hasStoredOffhandStack()) {
+                result.set(state.getStoredOffhandStack().getHoverName());
+            } else if (state.hasStoredMainhandStack()) {
                 result.set(state.getStoredMainhandStack().getHoverName());
             }
         });

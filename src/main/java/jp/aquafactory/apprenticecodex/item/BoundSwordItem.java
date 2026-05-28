@@ -33,6 +33,8 @@ public class BoundSwordItem extends SwordItem {
     public static final double ATTACK_SPEED_MODIFIER_AMOUNT = -2.0D;
     public static final String INSTANCE_ID_TAG = "apprenticecodex:bound_sword_instance_id";
     public static final String DISPLAY_DAMAGE_TAG = "apprenticecodex:bound_sword_display_damage";
+    public static final String EQUIPMENT_SLOT_TAG = "apprenticecodex:bound_sword_equipment_slot";
+    public static final String OFFHAND_SLOT_VALUE = "offhand";
 
     public BoundSwordItem() {
         super(Tiers.GOLD, 0, (float) ATTACK_SPEED_MODIFIER_AMOUNT,
@@ -40,9 +42,16 @@ public class BoundSwordItem extends SwordItem {
     }
 
     public static ItemStack create(UUID instanceId, float displayDamage) {
+        return create(instanceId, displayDamage, EquipmentSlot.MAINHAND);
+    }
+
+    public static ItemStack create(UUID instanceId, float displayDamage, EquipmentSlot equipmentSlot) {
         var stack = new ItemStack(jp.aquafactory.apprenticecodex.registry.ItemRegistry.BOUND_SWORD.get());
         stack.getOrCreateTag().putUUID(INSTANCE_ID_TAG, instanceId);
         stack.getOrCreateTag().putFloat(DISPLAY_DAMAGE_TAG, displayDamage);
+        if (equipmentSlot == EquipmentSlot.OFFHAND) {
+            stack.getOrCreateTag().putString(EQUIPMENT_SLOT_TAG, OFFHAND_SLOT_VALUE);
+        }
         return stack;
     }
 
@@ -74,6 +83,11 @@ public class BoundSwordItem extends SwordItem {
     public static float getDisplayDamage(ItemStack stack) {
         var tag = stack.getTag();
         return tag == null ? 0.0F : tag.getFloat(DISPLAY_DAMAGE_TAG);
+    }
+
+    public static boolean isGeneratedForOffhand(ItemStack stack) {
+        var tag = stack.getTag();
+        return tag != null && OFFHAND_SLOT_VALUE.equals(tag.getString(EQUIPMENT_SLOT_TAG));
     }
 
     @Override

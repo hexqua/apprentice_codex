@@ -18,13 +18,17 @@ public class SyncBoundSwordStatePacket {
     private final boolean active;
     private final @Nullable UUID instanceId;
     private final ItemStack storedMainhandStack;
+    private final ItemStack storedOffhandStack;
+    private final boolean offhandSwordGenerated;
     private final float displayDamage;
 
     public SyncBoundSwordStatePacket(boolean active, @Nullable UUID instanceId, ItemStack storedMainhandStack,
-                                     float displayDamage) {
+                                     ItemStack storedOffhandStack, boolean offhandSwordGenerated, float displayDamage) {
         this.active = active;
         this.instanceId = instanceId;
         this.storedMainhandStack = storedMainhandStack.copy();
+        this.storedOffhandStack = storedOffhandStack.copy();
+        this.offhandSwordGenerated = offhandSwordGenerated;
         this.displayDamage = displayDamage;
     }
 
@@ -35,6 +39,8 @@ public class SyncBoundSwordStatePacket {
             buffer.writeUUID(packet.instanceId);
         }
         buffer.writeItem(packet.storedMainhandStack);
+        buffer.writeItem(packet.storedOffhandStack);
+        buffer.writeBoolean(packet.offhandSwordGenerated);
         buffer.writeFloat(packet.displayDamage);
     }
 
@@ -42,8 +48,17 @@ public class SyncBoundSwordStatePacket {
         var active = buffer.readBoolean();
         UUID instanceId = buffer.readBoolean() ? buffer.readUUID() : null;
         var storedMainhandStack = buffer.readItem();
+        var storedOffhandStack = buffer.readItem();
+        var offhandSwordGenerated = buffer.readBoolean();
         var displayDamage = buffer.readFloat();
-        return new SyncBoundSwordStatePacket(active, instanceId, storedMainhandStack, displayDamage);
+        return new SyncBoundSwordStatePacket(
+                active,
+                instanceId,
+                storedMainhandStack,
+                storedOffhandStack,
+                offhandSwordGenerated,
+                displayDamage
+        );
     }
 
     public static void handle(SyncBoundSwordStatePacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
@@ -70,6 +85,8 @@ public class SyncBoundSwordStatePacket {
                         state.active = packet.active;
                         state.setInstanceId(packet.instanceId);
                         state.setStoredMainhandStack(packet.storedMainhandStack);
+                        state.setStoredOffhandStack(packet.storedOffhandStack);
+                        state.setOffhandSwordGenerated(packet.offhandSwordGenerated);
                         state.displayDamage = packet.displayDamage;
                     })
             );
