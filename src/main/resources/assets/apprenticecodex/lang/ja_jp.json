@@ -86,6 +86,7 @@
   "item.apprenticecodex.alchemists_flask": "錬金術師のフラスコ",
   "item.apprenticecodex.elemental_bow": "エレメンタルボウ",
   "item.apprenticecodex.scrollcaster_gauntlet": "術式装填ガントレット",
+  "item.apprenticecodex.bound_sword": "錬成剣",
   "item.apprenticecodex.apprentice_mage_scarf": "見習い魔術師のスカーフ",
   "item.apprenticecodex.apprentice_mage_torso": "見習い魔術師のローブ",
   "item.apprenticecodex.apprentice_mage_leggings": "見習い魔術師のズボン",
@@ -238,6 +239,8 @@
   "item.apprenticecodex.scrollcaster_gauntlet.desc_1": "このガントレットは盾を優先的に使用できる。",
   "item.apprenticecodex.scrollcaster_gauntlet.desc_2": "[%1$s]で詠唱時、常にこのガントレットで選択されている魔法を詠唱する。",
   "item.apprenticecodex.scrollcaster_gauntlet.school_rune": "このガントレットは\"%s\"の系統に調律されている。",
+  "item.apprenticecodex.bound_sword.contain_item.item": "\"%s\"が封じ込まれている。",
+  "item.apprenticecodex.bound_sword.contain_item.hint": "手放すことで中のアイテムが復元される。",
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "かまど・溶鉱炉・燻製器の燃料として使用することで加工速度が上昇する。",
   "jei.apprenticecodex.arcane_cinder.desc_2": "それ以外の機材では効果を発揮しない。",
@@ -567,6 +570,7 @@
   "spell.apprenticecodex.echo_cast": "エコーキャスト",
   "spell.apprenticecodex.mystic_shield": "ミスティックシールド",
   "spell.apprenticecodex.mist_form": "ミストフォーム",
+  "spell.apprenticecodex.bound_sword": "魔力の剣",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -625,6 +629,7 @@
   "spell.apprenticecodex.echo_cast.guide": "多重詠唱の残響の杖の固有の潜在魔法。魔力を残響させ、次にこの杖で振るう魔法を多重で発動させる。この魔法自身を残響させると回数が増加する。",
   "spell.apprenticecodex.mystic_shield.guide": "魔法の障壁を展開し攻撃を吸収する。前方からの攻撃しか防げないが、障壁を解除した際に吸収した攻撃に応じた反撃弾を発射する。",
   "spell.apprenticecodex.mist_form.guide": "自身を霧のような状態へと変化させ、同時に一瞬敵の注意を逸らす。霧の状態では移動能力がやや向上し、一部のブロックをすり抜けられる。攻撃を行うと霧として不安定となって解除されることがある上に、火や聖属性の魔法に非常に弱くなる。",
+  "spell.apprenticecodex.bound_sword.guide": "破魔の効果を持った魔力の剣を一時的に錬成する。通常の剣と比べて軽いため素早く攻撃が行える。錬成時に手に持っていた武器は一時的に剣の中に封じ込まれ、手放すなどで剣が自壊した際に手元に戻る。戦闘に関する理が存在する場合、二刀流として錬成を試みる。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -658,6 +663,7 @@
   "ui.apprenticecodex.search_beacon.addition_distance": "アイテム追加時の追加検索距離: %dブロック/アイテム",
   "ui.apprenticecodex.tamers_pocket.current_count": "格納しているペットの数: %d",
   "ui.apprenticecodex.extract.amplify_level": "ポーションの効果増幅: +%d",
+  "ui.apprenticecodex.bound_sword.sword_damage_attribute": "錬成剣の攻撃力: %d",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",
@@ -717,6 +723,7 @@
   "ui.apprenticecodex.echo_cast.current_count": "%d回分の魔力が辺りに残響している...",
   "ui.apprenticecodex.echo_cast.max_reached": "残響している魔力が飽和しきった！",
   "ui.apprenticecodex.echo_cast.cannot_echo_more": "これ以上は魔力を残響させられない！",
+  "ui.apprenticecodex.bound_sword.force_try_dual_wield": "強制的に二刀流錬成を実行...",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "射撃モードを%sに設定",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "オーバーヒートで消費マナが%sに増加している！",
