@@ -64,7 +64,7 @@ public final class ApprenticeCodexBoundBowGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void boundBowCanMoveToOffhandButNotMainInventory(GameTestHelper helper) {
+    public static void boundBowCanMoveWithinInventoryAndCursor(GameTestHelper helper) {
         var player = createBoundBowTestPlayer(helper, "bound_bow_move_test");
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.EMERALD));
 
@@ -82,10 +82,24 @@ public final class ApprenticeCodexBoundBowGameTests {
         player.getInventory().items.set(10, movedBow);
         BoundBowManager.validateActiveBowLocation(player);
 
-        helper.assertTrue(!player.getInventory().items.get(10).is(ItemRegistry.BOUND_BOW.get()),
-                "Moving Bound Bow outside hotbar/offhand should remove it");
+        helper.assertTrue(player.getInventory().items.get(10).is(ItemRegistry.BOUND_BOW.get()),
+                "Moving Bound Bow inside the player inventory should keep it active");
+        helper.assertTrue(Capabilities.getSpellDataOrNull(player)
+                        .get(CodexSpellStateTypeRegister.BOUND_BOW_STATE).active,
+                "Bound Bow state should stay active while the generated bow remains in player inventory");
+
+        var carriedBow = player.getInventory().items.get(10).copy();
+        player.getInventory().items.set(10, ItemStack.EMPTY);
+        player.containerMenu.setCarried(carriedBow);
+        BoundBowManager.validateActiveBowLocation(player);
+
+        helper.assertTrue(player.containerMenu.getCarried().is(ItemRegistry.BOUND_BOW.get()),
+                "Bound Bow should stay active while held by the cursor");
+        BoundBowManager.deactivate(player, true);
+        helper.assertTrue(player.containerMenu.getCarried().isEmpty(),
+                "Deactivation should remove a cursor-held Bound Bow");
         helper.assertTrue(player.getMainHandItem().is(Items.EMERALD),
-                "Invalid Bound Bow movement should restore the stored item");
+                "Deactivation should restore the stored item");
         helper.succeed();
     }
 
