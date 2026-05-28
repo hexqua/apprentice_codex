@@ -12,14 +12,19 @@ import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
+import net.minecraft.ChatFormatting;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -99,13 +104,46 @@ public class BoundSword extends AbstractSpell {
     }
 
     @Override
+    public ICastDataSerializable getEmptyCastData() {
+        return new BoundSwordCastData();
+    }
+
+    @Override
+    public void onServerPreCast(Level level, int spellLevel, LivingEntity entity,
+                                @Nullable MagicData playerMagicData) {
+        super.onServerPreCast(level, spellLevel, entity, playerMagicData);
+
+        if (!(entity instanceof ServerPlayer serverPlayer) || playerMagicData == null) {
+            return;
+        }
+
+        var forceTryDualWield = !playerMagicData.getPlayerRecasts().hasRecastForSpell(this)
+                && BoundSwordManager.hasDualWieldCompat()
+                && serverPlayer.isShiftKeyDown();
+        var castData = playerMagicData.getAdditionalCastData() instanceof BoundSwordCastData data
+                ? data
+                : new BoundSwordCastData();
+        castData.forceTryDualWield = forceTryDualWield;
+        playerMagicData.setAdditionalCastData(castData);
+
+        if (forceTryDualWield) {
+            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                    Component.translatable("ui.apprenticecodex.bound_sword.force_try_dual_wield")
+                            .withStyle(ChatFormatting.YELLOW)
+            ));
+        }
+    }
+
+    @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (!level.isClientSide && entity instanceof ServerPlayer serverPlayer) {
             if (playerMagicData.getPlayerRecasts().hasRecastForSpell(this)) {
                 BoundSwordManager.deactivate(serverPlayer, true);
             } else {
+                var forceTryDualWield = playerMagicData.getAdditionalCastData() instanceof BoundSwordCastData castData
+                        && castData.forceTryDualWield;
                 BoundSwordManager.activate(serverPlayer, spellLevel, castSource, playerMagicData, this,
-                        getWeaponDamage(spellLevel, entity));
+                        getWeaponDamage(spellLevel, entity), forceTryDualWield);
             }
         }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
@@ -121,5 +159,36 @@ public class BoundSword extends AbstractSpell {
                                  ICastDataSerializable castDataSerializable) {
         BoundSwordManager.deactivate(serverPlayer, false);
         super.onRecastFinished(serverPlayer, recastInstance, recastResult, castDataSerializable);
+    }
+
+    public static class BoundSwordCastData implements ICastDataSerializable {
+        private boolean forceTryDualWield;
+
+        @Override
+        public void writeToBuffer(FriendlyByteBuf friendlyByteBuf) {
+            friendlyByteBuf.writeBoolean(forceTryDualWield);
+        }
+
+        @Override
+        public void readFromBuffer(FriendlyByteBuf friendlyByteBuf) {
+            forceTryDualWield = friendlyByteBuf.readBoolean();
+        }
+
+        @Override
+        public void reset() {
+            forceTryDualWield = false;
+        }
+
+        @Override
+        public CompoundTag serializeNBT() {
+            var tag = new CompoundTag();
+            tag.putBoolean("ForceTryDualWield", forceTryDualWield);
+            return tag;
+        }
+
+        @Override
+        public void deserializeNBT(CompoundTag nbt) {
+            forceTryDualWield = nbt.getBoolean("ForceTryDualWield");
+        }
     }
 }
