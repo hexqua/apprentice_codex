@@ -61,8 +61,11 @@
     "MinecraftMixin",
     "EntityMixin",
     "GuiGraphicsItemInventoryOverlayMixin",
+    "ItemRendererBoundSwordGlintMixin",
     "ItemRendererClientItemRenderContextMixin",
     "QuickCastPacketAccessor",
+    "RenderBuffersBoundSwordGlintMixin",
+    "SpellWheelOverlayMixin",
     "TooltipsUtilsMixin"
   ],
   "injectors": {

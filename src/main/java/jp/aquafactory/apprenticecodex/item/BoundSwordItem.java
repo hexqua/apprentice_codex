@@ -145,6 +145,11 @@ public class BoundSwordItem extends SwordItem {
     }
 
     @Override
+    public boolean isFoil(@NotNull ItemStack stack) {
+        return true;
+    }
+
+    @Override
     public boolean canPerformAction(@NotNull ItemStack stack, @NotNull ToolAction toolAction) {
         return ToolActions.SWORD_SWEEP == toolAction || super.canPerformAction(stack, toolAction);
     }
