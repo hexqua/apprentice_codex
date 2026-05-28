@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "apprenticecodex:item/bound_weapon_sword"
+  }
+}

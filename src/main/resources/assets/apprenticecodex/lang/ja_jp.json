@@ -663,7 +663,7 @@
   "ui.apprenticecodex.search_beacon.addition_distance": "アイテム追加時の追加検索距離: %dブロック/アイテム",
   "ui.apprenticecodex.tamers_pocket.current_count": "格納しているペットの数: %d",
   "ui.apprenticecodex.extract.amplify_level": "ポーションの効果増幅: +%d",
-  "ui.apprenticecodex.bound_sword.sword_damage_attribute": "錬成剣の攻撃力: %d",
+  "ui.apprenticecodex.bound_sword.sword_damage_attribute": "錬成剣の攻撃力: %s",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",

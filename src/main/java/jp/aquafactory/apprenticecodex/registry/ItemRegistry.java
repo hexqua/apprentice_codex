@@ -86,6 +86,7 @@ public final class ItemRegistry {
     }
 
     public static final RegistryObject<Item> SKY_EDGE_SWORD = simple("sky_edge_sword");
+    public static final RegistryObject<Item> BOUND_SWORD = ITEMS.register("bound_sword", BoundSwordItem::new);
     public static final RegistryObject<Item> COMMENCE_FIRE_RIFLE = simple("commence_fire_rifle");
     public static final RegistryObject<Item> QUICK_ARMS_HANDGUN = simple("quick_arms_handgun");
     public static final RegistryObject<Item> BREACHING_ENEMY_SHOTGUN = simple("breaching_enemy_shotgun");
