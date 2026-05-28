@@ -38,6 +38,7 @@
     "PlayerRemoteOwnerCastMixin",
     "PlayerRecastsMixin",
     "RecastInstanceAccessor",
+    "ServerGamePacketListenerImplBoundSwordMixin",
     "SinglePoolElementAccessor",
     "SpectralHammerMixin",
     "StructureTemplatePoolAccessor",

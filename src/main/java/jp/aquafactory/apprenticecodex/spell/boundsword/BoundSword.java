@@ -10,11 +10,15 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -96,6 +100,26 @@ public class BoundSword extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        if (!level.isClientSide && entity instanceof ServerPlayer serverPlayer) {
+            if (playerMagicData.getPlayerRecasts().hasRecastForSpell(this)) {
+                BoundSwordManager.deactivate(serverPlayer, true);
+            } else {
+                BoundSwordManager.activate(serverPlayer, spellLevel, castSource, playerMagicData, this,
+                        getWeaponDamage(spellLevel, entity));
+            }
+        }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    }
+
+    @Override
+    public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        return entity instanceof Player && super.checkPreCastConditions(level, spellLevel, entity, playerMagicData);
+    }
+
+    @Override
+    public void onRecastFinished(ServerPlayer serverPlayer, RecastInstance recastInstance, RecastResult recastResult,
+                                 ICastDataSerializable castDataSerializable) {
+        BoundSwordManager.deactivate(serverPlayer, false);
+        super.onRecastFinished(serverPlayer, recastInstance, recastResult, castDataSerializable);
     }
 }
