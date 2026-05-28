@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.mixin;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
+import jp.aquafactory.apprenticecodex.item.BoundBowItem;
 import jp.aquafactory.apprenticecodex.item.BoundSwordItem;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -16,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(value = ItemRenderer.class, priority = 900)
-public abstract class ItemRendererBoundSwordGlintMixin {
+public abstract class ItemRendererBoundWeaponGlintMixin {
     @Redirect(
             method = "render(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;IILnet/minecraft/client/resources/model/BakedModel;)V",
             at = @At(
@@ -25,19 +26,19 @@ public abstract class ItemRendererBoundSwordGlintMixin {
             ),
             require = 0
     )
-    private VertexConsumer apprentice_codex$getBoundSwordFoilBuffer(MultiBufferSource bufferSource,
-                                                                    RenderType renderType,
-                                                                    boolean isItem,
-                                                                    boolean glint,
-                                                                    ItemStack stack,
-                                                                    ItemDisplayContext displayContext,
-                                                                    boolean leftHand,
-                                                                    PoseStack poseStack,
-                                                                    MultiBufferSource renderBufferSource,
-                                                                    int combinedLight,
-                                                                    int combinedOverlay,
-                                                                    BakedModel model) {
-        if (glint && BoundSwordItem.isBoundSword(stack)
+    private VertexConsumer apprentice_codex$getBoundWeaponFoilBuffer(MultiBufferSource bufferSource,
+                                                                     RenderType renderType,
+                                                                     boolean isItem,
+                                                                     boolean glint,
+                                                                     ItemStack stack,
+                                                                     ItemDisplayContext displayContext,
+                                                                     boolean leftHand,
+                                                                     PoseStack poseStack,
+                                                                     MultiBufferSource renderBufferSource,
+                                                                     int combinedLight,
+                                                                     int combinedOverlay,
+                                                                     BakedModel model) {
+        if (glint && (BoundBowItem.isBoundBow(stack) || BoundSwordItem.isBoundSword(stack))
                 && ApprenticeRenderTypes.areBoundSpellWeaponGlintBuffersRegistered()) {
             return VertexMultiConsumer.create(
                     bufferSource.getBuffer(ApprenticeRenderTypes.boundSpellWeaponGlint()),
@@ -55,19 +56,19 @@ public abstract class ItemRendererBoundSwordGlintMixin {
             ),
             require = 0
     )
-    private VertexConsumer apprentice_codex$getBoundSwordFoilBufferDirect(MultiBufferSource bufferSource,
-                                                                          RenderType renderType,
-                                                                          boolean isItem,
-                                                                          boolean glint,
-                                                                          ItemStack stack,
-                                                                          ItemDisplayContext displayContext,
-                                                                          boolean leftHand,
-                                                                          PoseStack poseStack,
-                                                                          MultiBufferSource renderBufferSource,
-                                                                          int combinedLight,
-                                                                          int combinedOverlay,
-                                                                          BakedModel model) {
-        if (glint && BoundSwordItem.isBoundSword(stack)
+    private VertexConsumer apprentice_codex$getBoundWeaponFoilBufferDirect(MultiBufferSource bufferSource,
+                                                                           RenderType renderType,
+                                                                           boolean isItem,
+                                                                           boolean glint,
+                                                                           ItemStack stack,
+                                                                           ItemDisplayContext displayContext,
+                                                                           boolean leftHand,
+                                                                           PoseStack poseStack,
+                                                                           MultiBufferSource renderBufferSource,
+                                                                           int combinedLight,
+                                                                           int combinedOverlay,
+                                                                           BakedModel model) {
+        if (glint && (BoundBowItem.isBoundBow(stack) || BoundSwordItem.isBoundSword(stack))
                 && ApprenticeRenderTypes.areBoundSpellWeaponGlintBuffersRegistered()) {
             return VertexMultiConsumer.create(
                     bufferSource.getBuffer(ApprenticeRenderTypes.boundSpellWeaponGlintDirect()),

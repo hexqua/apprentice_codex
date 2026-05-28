@@ -627,8 +627,8 @@
   "spell.apprenticecodex.mystic_shield.guide": "魔法の障壁を展開し攻撃を吸収する。前方からの攻撃しか防げないが、障壁を解除した際に吸収した攻撃に応じた反撃弾を発射する。",
   "spell.apprenticecodex.echo_cast.guide": "多重詠唱の残響の杖の固有の潜在魔法。魔力を残響させ、次にこの杖で振るう魔法を多重で発動させる。この魔法自身を残響させると回数が増加する。",
   "spell.apprenticecodex.mist_form.guide": "自身を霧のような状態へと変化させ、同時に一瞬敵の注意を逸らす。霧の状態では移動能力がやや向上し、一部のブロックをすり抜けられる。攻撃を行うと霧として不安定となって解除されることがある上に、火や聖属性の魔法に非常に弱くなる。",
-  "spell.apprenticecodex.bound_sword.guide": "魔力の剣を一時的に手元に錬成する。通常の剣と比べて軽いため素早く攻撃が行える。錬成時に手に持っていた武器は一時的に剣の中に封じ込まれ、手放すなどで剣が自壊した際に手元に戻る。戦闘に関する理が存在する場合、二刀流として錬成を試みる。",
-  "spell.apprenticecodex.bound_bow.guide": "魔力の弓を一時的に手元に錬成する。矢を持っていない状況でもマナを消費して矢を錬成できる。錬成時に手に持っていた武器は一時的に弓の中に封じ込まれ、手放すなどで剣が自壊した際に手元に戻る。",
+  "spell.apprenticecodex.bound_sword.guide": "魔力の剣を一時的に手元に錬成する。通常の剣と比べて軽いため素早く攻撃が行える。錬成時に手に持っていた武器は一時的に剣の中に封じ込まれ、手放すなどで剣が自壊した際に手元に戻る。戦闘に関する理が存在する場合、二刀流として錬成を試みる。他の錬成武器と同時に存在できない。",
+  "spell.apprenticecodex.bound_bow.guide": "魔力の弓を一時的に手元に錬成する。矢を持っていない状況でもマナを消費して矢を錬成できる。錬成時に手に持っていた武器は一時的に弓の中に封じ込まれ、手放すなどで弓が自壊した際に手元に戻る。他の錬成武器と同時に存在できない。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -664,7 +664,7 @@
   "ui.apprenticecodex.extract.amplify_level": "ポーションの効果増幅: +%d",
   "ui.apprenticecodex.bound_sword.sword_damage_attribute": "錬成剣の攻撃力: %s",
   "ui.apprenticecodex.bound_bow.enchantment_power_level": "錬成弓に付呪される射撃ダメージ増加レベル : %s",
-  "ui.apprenticecodex.bound_bow.forge_arrow_mana_cost": "矢の錬成に必要なマナ: %d",
+  "ui.apprenticecodex.bound_bow.forge_arrow_mana_cost": "矢の錬成に必要なマナ: %s",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",

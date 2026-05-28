@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
+import jp.aquafactory.apprenticecodex.spell.boundbow.BoundBowManager;
 import jp.aquafactory.apprenticecodex.spell.boundsword.BoundSwordManager;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
@@ -21,7 +22,8 @@ public abstract class ServerGamePacketListenerImplBoundSwordMixin {
             ServerboundContainerClickPacket packet,
             CallbackInfo ci
     ) {
-        if (BoundSwordManager.handleContainerClick(player, packet)) {
+        if (BoundBowManager.handleContainerClick(player, packet)
+                || BoundSwordManager.handleContainerClick(player, packet)) {
             ci.cancel();
         }
     }
@@ -31,7 +33,8 @@ public abstract class ServerGamePacketListenerImplBoundSwordMixin {
             ServerboundPlayerActionPacket packet,
             CallbackInfo ci
     ) {
-        if (BoundSwordManager.handlePlayerAction(player, packet)) {
+        if (BoundBowManager.handlePlayerAction(player, packet)
+                || BoundSwordManager.handlePlayerAction(player, packet)) {
             ci.cancel();
         }
     }

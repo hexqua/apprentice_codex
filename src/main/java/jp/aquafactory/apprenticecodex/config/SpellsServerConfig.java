@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.config;
 
 import jp.aquafactory.apprenticecodex.config.spell.AutoMagnetServerConfig;
+import jp.aquafactory.apprenticecodex.config.spell.BoundBowServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.DemicreatorWingsServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.ForceFieldServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.MistFormServerConfig;
@@ -14,6 +15,7 @@ import java.util.List;
 
 public final class SpellsServerConfig {
     private final AutoMagnetServerConfig autoMagnetConfig;
+    private final BoundBowServerConfig boundBowConfig;
     private final DemicreatorWingsServerConfig demicreatorWingsConfig;
     private final ForceFieldServerConfig forceFieldConfig;
     private final MistFormServerConfig mistFormConfig;
@@ -22,6 +24,7 @@ public final class SpellsServerConfig {
 
     private SpellsServerConfig(
             AutoMagnetServerConfig autoMagnetConfig,
+            BoundBowServerConfig boundBowConfig,
             DemicreatorWingsServerConfig demicreatorWingsConfig,
             ForceFieldServerConfig forceFieldConfig,
             MistFormServerConfig mistFormConfig,
@@ -29,6 +32,7 @@ public final class SpellsServerConfig {
             RiftHoleServerConfig riftHoleConfig
     ) {
         this.autoMagnetConfig = autoMagnetConfig;
+        this.boundBowConfig = boundBowConfig;
         this.demicreatorWingsConfig = demicreatorWingsConfig;
         this.forceFieldConfig = forceFieldConfig;
         this.mistFormConfig = mistFormConfig;
@@ -39,6 +43,7 @@ public final class SpellsServerConfig {
     static SpellsServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("Spells");
         var autoMagnetConfig = AutoMagnetServerConfig.define(builder);
+        var boundBowConfig = BoundBowServerConfig.define(builder);
         var demicreatorWingsConfig = DemicreatorWingsServerConfig.define(builder);
         var forceFieldConfig = ForceFieldServerConfig.define(builder);
         var mistFormConfig = MistFormServerConfig.define(builder);
@@ -48,6 +53,7 @@ public final class SpellsServerConfig {
 
         return new SpellsServerConfig(
                 autoMagnetConfig,
+                boundBowConfig,
                 demicreatorWingsConfig,
                 forceFieldConfig,
                 mistFormConfig,
@@ -58,6 +64,18 @@ public final class SpellsServerConfig {
 
     boolean autoMagnetDisableCollectManaCost() {
         return autoMagnetConfig.disableCollectManaCost();
+    }
+
+    int boundBowMaxPowerEnchantmentLevel() {
+        return boundBowConfig.maxPowerEnchantmentLevel();
+    }
+
+    float boundBowForgeArrowManaCost() {
+        return boundBowConfig.forgeArrowManaCost();
+    }
+
+    void setBoundBowConfigForGameTest(int maxPowerEnchantmentLevel, float forgeArrowManaCost) {
+        boundBowConfig.setForGameTest(maxPowerEnchantmentLevel, forgeArrowManaCost);
     }
 
     boolean isDemicreatorWingsDimensionAllowed(ResourceLocation dimensionId) {

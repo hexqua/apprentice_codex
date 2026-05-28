@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/bow",
+  "textures": {
+    "layer0": "apprenticecodex:item/bound_weapon_bow_2"
+  }
+}

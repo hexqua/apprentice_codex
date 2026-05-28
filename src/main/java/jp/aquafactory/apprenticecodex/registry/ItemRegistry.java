@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.item.ArcaneCinderItem;
 import jp.aquafactory.apprenticecodex.item.ArcanumInAJarItem;
 import jp.aquafactory.apprenticecodex.item.ApprenticeDeskItem;
 import jp.aquafactory.apprenticecodex.item.AtelierStationItem;
+import jp.aquafactory.apprenticecodex.item.BoundBowItem;
 import jp.aquafactory.apprenticecodex.item.BoundSwordItem;
 import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.CircuitHeatStaff;
@@ -111,6 +112,7 @@ public final class ItemRegistry {
 
     public static final DeferredHolder<Item, Item> SKY_EDGE_SWORD = simple("sky_edge_sword");
     public static final DeferredHolder<Item, Item> BOUND_SWORD = ITEMS.register("bound_sword", BoundSwordItem::new);
+    public static final DeferredHolder<Item, Item> BOUND_BOW = ITEMS.register("bound_bow", BoundBowItem::new);
     public static final DeferredHolder<Item, Item> COMMENCE_FIRE_RIFLE = simple("commence_fire_rifle");
     public static final DeferredHolder<Item, Item> QUICK_ARMS_HANDGUN = simple("quick_arms_handgun");
     public static final DeferredHolder<Item, Item> BREACHING_ENEMY_SHOTGUN = simple("breaching_enemy_shotgun");

@@ -194,6 +194,7 @@ public final class ClientModBusEvents {
                 ResourceLocation.withDefaultNamespace("throwing"),
                 (stack, level, living, seed) -> living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F
         ));
+        event.enqueueWork(ClientModBusEvents::registerBoundBowItemProperties);
         event.enqueueWork(() -> {
             if (ModList.get().isLoaded(BetterCombatClientCompat.MOD_ID)) {
                 BetterCombatClientCompat.register();
@@ -204,6 +205,24 @@ public final class ClientModBusEvents {
                 EpicFightClientCompat.register();
             }
         });
+    }
+
+    private static void registerBoundBowItemProperties() {
+        ItemProperties.register(
+                ItemRegistry.BOUND_BOW.get(),
+                ResourceLocation.withDefaultNamespace("pulling"),
+                (stack, level, living, seed) -> living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F
+        );
+        ItemProperties.register(
+                ItemRegistry.BOUND_BOW.get(),
+                ResourceLocation.withDefaultNamespace("pull"),
+                (stack, level, living, seed) -> {
+                    if (living == null || living.getUseItem() != stack) {
+                        return 0.0F;
+                    }
+                    return (float) (stack.getUseDuration(living) - living.getUseItemRemainingTicks()) / 20.0F;
+                }
+        );
     }
 
     private static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
