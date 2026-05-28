@@ -166,7 +166,7 @@ public final class ApprenticeCodexBoundSwordGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void boundSwordDualWieldLosingOneSwordEndsBoth(GameTestHelper helper) {
+    public static void boundSwordDualWieldMovingOneSwordWithinInventoryKeepsEffect(GameTestHelper helper) {
         if (!BoundSwordManager.hasDualWieldCompat()) {
             helper.succeed();
             return;
@@ -182,15 +182,21 @@ public final class ApprenticeCodexBoundSwordGameTests {
 
         BoundSwordManager.validateActiveSwordLocation(player);
 
-        helper.assertTrue(player.getMainHandItem().is(Items.DIAMOND),
-                "Losing one dual-wield Bound Sword should restore the stored mainhand item");
+        helper.assertTrue(player.getMainHandItem().is(ItemRegistry.BOUND_SWORD.get()),
+                "Moving one dual-wield Bound Sword inside the player inventory should keep the mainhand sword active");
         helper.assertTrue(player.getOffhandItem().isEmpty(),
-                "Losing one dual-wield Bound Sword should remove the remaining offhand sword");
-        helper.assertTrue(!player.getInventory().items.get(10).is(ItemRegistry.BOUND_SWORD.get()),
-                "Losing one dual-wield Bound Sword should remove moved generated swords too");
-        helper.assertTrue(!Capabilities.getSpellDataOrNull(player)
+                "Moving the generated offhand sword should leave the offhand slot empty");
+        helper.assertTrue(player.getInventory().items.get(10).is(ItemRegistry.BOUND_SWORD.get()),
+                "Moving one dual-wield Bound Sword inside the player inventory should keep the moved sword");
+        helper.assertTrue(Capabilities.getSpellDataOrNull(player)
                         .get(CodexSpellStateTypeRegister.BOUND_SWORD_STATE).active,
-                "Losing one dual-wield Bound Sword should end the effect");
+                "Moving one dual-wield Bound Sword inside the player inventory should keep the effect active");
+
+        BoundSwordManager.deactivate(player, true);
+        helper.assertTrue(player.getMainHandItem().is(Items.DIAMOND),
+                "Deactivation should restore the stored mainhand item");
+        helper.assertTrue(!player.getInventory().items.get(10).is(ItemRegistry.BOUND_SWORD.get()),
+                "Deactivation should remove moved generated swords");
         helper.succeed();
     }
 
@@ -207,7 +213,7 @@ public final class ApprenticeCodexBoundSwordGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void boundSwordInvalidInventoryMoveEndsEffect(GameTestHelper helper) {
+    public static void boundSwordCanMoveWithinInventoryAndCursor(GameTestHelper helper) {
         var player = createBoundSwordTestPlayer(helper, "bound_sword_invalid_move_test");
         var original = new ItemStack(Items.EMERALD);
         player.setItemInHand(InteractionHand.MAIN_HAND, original.copy());
@@ -219,13 +225,24 @@ public final class ApprenticeCodexBoundSwordGameTests {
 
         BoundSwordManager.validateActiveSwordLocation(player);
 
-        helper.assertTrue(!player.getInventory().items.get(10).is(ItemRegistry.BOUND_SWORD.get()),
-                "Moving Bound Sword outside hotbar/offhand should remove it");
-        helper.assertTrue(player.getMainHandItem().is(Items.EMERALD),
-                "Invalid Bound Sword movement should restore the stored item");
-        helper.assertTrue(!Capabilities.getSpellDataOrNull(player)
+        helper.assertTrue(player.getInventory().items.get(10).is(ItemRegistry.BOUND_SWORD.get()),
+                "Moving Bound Sword inside the player inventory should keep it active");
+        helper.assertTrue(Capabilities.getSpellDataOrNull(player)
                         .get(CodexSpellStateTypeRegister.BOUND_SWORD_STATE).active,
-                "Invalid Bound Sword movement should end the effect");
+                "Bound Sword state should stay active while the generated sword remains in player inventory");
+
+        var carriedSword = player.getInventory().items.get(10).copy();
+        player.getInventory().items.set(10, ItemStack.EMPTY);
+        player.containerMenu.setCarried(carriedSword);
+        BoundSwordManager.validateActiveSwordLocation(player);
+
+        helper.assertTrue(player.containerMenu.getCarried().is(ItemRegistry.BOUND_SWORD.get()),
+                "Bound Sword should stay active while held by the cursor");
+        BoundSwordManager.deactivate(player, true);
+        helper.assertTrue(player.containerMenu.getCarried().isEmpty(),
+                "Deactivation should remove a cursor-held Bound Sword");
+        helper.assertTrue(player.getMainHandItem().is(Items.EMERALD),
+                "Deactivation should restore the stored item");
         helper.succeed();
     }
 

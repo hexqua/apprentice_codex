@@ -110,27 +110,62 @@ public final class BoundBowManager {
         }
 
         var menu = player.containerMenu;
+        var slotId = packet.getSlotNum();
+        var clickedPlayerInventorySlot = isPlayerInventorySlot(player, slotId);
         if (BoundBowItem.isGeneratedBoundBow(menu.getCarried())) {
+            if (clickedPlayerInventorySlot && isAllowedPlayerInventoryClick(packet.getClickType())) {
+                return false;
+            }
             deactivate(player, true);
             return true;
         }
 
-        var slotId = packet.getSlotNum();
         if (!menu.isValidSlotIndex(slotId) || slotId < 0 || slotId >= menu.slots.size()) {
             return false;
         }
 
         var clickedStack = menu.slots.get(slotId).getItem();
-        if (!BoundBowItem.isGeneratedBoundBow(clickedStack)) {
-            return false;
+        if (BoundBowItem.isGeneratedBoundBow(clickedStack)) {
+            if (clickedPlayerInventorySlot && isAllowedPlayerInventoryClick(packet.getClickType())) {
+                return false;
+            }
+            deactivate(player, true);
+            return true;
         }
 
-        if (packet.getClickType() == ClickType.SWAP && isAllowedDirectSwapButton(packet.getButtonNum())) {
-            return false;
+        if (packet.getClickType() == ClickType.SWAP
+                && BoundBowItem.isGeneratedBoundBow(getSwapButtonStack(player, packet.getButtonNum()))) {
+            if (clickedPlayerInventorySlot) {
+                return false;
+            }
+            deactivate(player, true);
+            return true;
         }
 
-        deactivate(player, true);
-        return true;
+        return false;
+    }
+
+    private static boolean isAllowedPlayerInventoryClick(ClickType clickType) {
+        return clickType == ClickType.PICKUP || clickType == ClickType.SWAP;
+    }
+
+    private static boolean isPlayerInventorySlot(ServerPlayer player, int slotId) {
+        var menu = player.containerMenu;
+        return menu.isValidSlotIndex(slotId)
+                && slotId >= 0
+                && slotId < menu.slots.size()
+                && menu.slots.get(slotId).container == player.getInventory();
+    }
+
+    private static ItemStack getSwapButtonStack(ServerPlayer player, int buttonNum) {
+        var inventory = player.getInventory();
+        if (buttonNum >= 0 && buttonNum <= 8) {
+            return inventory.items.get(buttonNum);
+        }
+        if (buttonNum == 40 && !inventory.offhand.isEmpty()) {
+            return inventory.offhand.get(0);
+        }
+        return ItemStack.EMPTY;
     }
 
     public static boolean handlePlayerAction(ServerPlayer player, ServerboundPlayerActionPacket packet) {
@@ -177,14 +212,10 @@ public final class BoundBowManager {
         PacketDistributor.sendToPlayer(player, new EquipmentChangedPacket());
     }
 
-    private static boolean isAllowedDirectSwapButton(int buttonNum) {
-        return (buttonNum >= 0 && buttonNum <= 8) || buttonNum == 40;
-    }
-
     private static int countAllowedGeneratedBows(ServerPlayer player, UUID instanceId) {
         var count = 0;
         var inventory = player.getInventory();
-        for (var slot = 0; slot < 9; ++slot) {
+        for (var slot = 0; slot < inventory.items.size(); ++slot) {
             if (BoundBowItem.hasInstanceId(inventory.items.get(slot), instanceId)) {
                 ++count;
             }
@@ -194,22 +225,20 @@ public final class BoundBowManager {
                 && BoundBowItem.hasInstanceId(inventory.offhand.get(0), instanceId)) {
             ++count;
         }
+        if (BoundBowItem.hasInstanceId(player.containerMenu.getCarried(), instanceId)) {
+            ++count;
+        }
         return count;
     }
 
     private static boolean hasGeneratedBowOutsideAllowedSlots(ServerPlayer player, UUID instanceId) {
         var inventory = player.getInventory();
-        for (var slot = 9; slot < inventory.items.size(); ++slot) {
-            if (BoundBowItem.hasInstanceId(inventory.items.get(slot), instanceId)) {
-                return true;
-            }
-        }
         for (var slot = 0; slot < inventory.armor.size(); ++slot) {
             if (BoundBowItem.hasInstanceId(inventory.armor.get(slot), instanceId)) {
                 return true;
             }
         }
-        return BoundBowItem.hasInstanceId(player.containerMenu.getCarried(), instanceId);
+        return false;
     }
 
     private static void removeGeneratedBow(ServerPlayer player, UUID instanceId) {
