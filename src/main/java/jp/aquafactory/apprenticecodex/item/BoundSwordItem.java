@@ -125,11 +125,11 @@ public class BoundSwordItem extends SwordItem {
 
         BoundSwordClientTooltip.getStoredItemName(stack).ifPresent(storedItemName -> {
             lines.add(Component.translatable(
-                    "item." + ApprenticeCodex.MODID + ".bound_sword.contain_item.item",
+                    "item." + ApprenticeCodex.MODID + ".bound_weapon.contain_item.item",
                     storedItemName
             ).withStyle(ChatFormatting.GRAY));
             lines.add(Component.translatable(
-                    "item." + ApprenticeCodex.MODID + ".bound_sword.contain_item.hint"
+                    "item." + ApprenticeCodex.MODID + ".bound_weapon.contain_item.hint"
             ).withStyle(ChatFormatting.DARK_GRAY));
         });
     }

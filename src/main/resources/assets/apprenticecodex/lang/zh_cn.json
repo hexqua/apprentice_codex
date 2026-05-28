@@ -235,8 +235,8 @@
   "item.apprenticecodex.scrollcaster_gauntlet.desc_1": "该臂铠会优先使用盾牌。",
   "item.apprenticecodex.scrollcaster_gauntlet.desc_2": "使用[%1$s]施法时，总是施放该臂铠上选中的法术。",
   "item.apprenticecodex.scrollcaster_gauntlet.school_rune": "该臂铠已调律至“%s”学派。",
-  "item.apprenticecodex.bound_sword.contain_item.item": "“%s”被封入其中。",
-  "item.apprenticecodex.bound_sword.contain_item.hint": "放开这把剑即可复原其中的物品。",
+  "item.apprenticecodex.bound_weapon.contain_item.item": "“%s”被封入其中。",
+  "item.apprenticecodex.bound_weapon.contain_item.hint": "放开这把剑即可复原其中的物品。",
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "作为熔炉、高炉、烟熏炉燃料时，可提升加工速度。",
   "jei.apprenticecodex.arcane_cinder.desc_2": "在其他机器中无效果。",

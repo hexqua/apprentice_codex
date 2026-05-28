@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultiple;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWings;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnet;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurret;
+import jp.aquafactory.apprenticecodex.spell.boundbow.BoundBow;
 import jp.aquafactory.apprenticecodex.spell.boundsword.BoundSword;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemy;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStream;
@@ -110,6 +111,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> SILENT_ASSASSIN = reg("silent_assassin", SilentAssassin::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> TIRO_VOLLEY = reg("tiro_volley", TiroVolley::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> BOUND_SWORD = reg("bound_sword", BoundSword::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> BOUND_BOW = reg("bound_bow", BoundBow::new);
 
     // 炎.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);
