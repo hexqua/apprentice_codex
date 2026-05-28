@@ -56,7 +56,7 @@ public class BoundSword extends AbstractSpell {
     }
 
     private float getWeaponDamage(int spellLevel, LivingEntity entity) {
-        var rawDamage = 6 * getSpellPower(spellLevel, entity) / 100.0f;
+        var rawDamage = 3 + 3 * getSpellPower(spellLevel, entity) / 100.0f;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.BOUND_SWORD);
     }
 
