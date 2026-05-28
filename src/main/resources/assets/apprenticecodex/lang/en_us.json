@@ -235,8 +235,8 @@
   "item.apprenticecodex.scrollcaster_gauntlet.desc_1": "This gauntlet prioritizes shield usage.",
   "item.apprenticecodex.scrollcaster_gauntlet.desc_2": "When casting with [%1$s], it always casts the spell selected on this gauntlet.",
   "item.apprenticecodex.scrollcaster_gauntlet.school_rune": "This gauntlet is tuned to the \"%s\" school.",
-  "item.apprenticecodex.bound_sword.contain_item.item": "\"%s\" is sealed inside.",
-  "item.apprenticecodex.bound_sword.contain_item.hint": "Let go of the sword to restore the item inside.",
+  "item.apprenticecodex.bound_weapon.contain_item.item": "\"%s\" is sealed inside.",
+  "item.apprenticecodex.bound_weapon.contain_item.hint": "Let go of the sword to restore the item inside.",
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "Using it as fuel in a furnace, blast furnace, or smoker increases processing speed.",
   "jei.apprenticecodex.arcane_cinder.desc_2": "It has no effect in other machines.",
