@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverBowAmmoResolver;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.boundbow.BoundBowClientTooltip;
 import net.minecraft.ChatFormatting;
@@ -87,8 +88,8 @@ public class BoundBowItem extends BowItem {
 
         var canFireWithoutAmmo = player.getAbilities().instabuild
                 || stack.getEnchantmentLevel(Enchantments.INFINITY_ARROWS) > 0;
-        var ammoStack = player.getProjectile(stack);
-        var hasAmmo = !ammoStack.isEmpty();
+        var ammoSource = SpellcasterQuiverBowAmmoResolver.resolveBowAmmo(player, stack);
+        var hasAmmo = ammoSource != null;
         var shouldForgeArrow = !hasAmmo && !canFireWithoutAmmo && canForgeArrow(player);
         var drawDuration = getUseDuration(stack) - timeLeft;
         drawDuration = ForgeEventFactory.onArrowLoose(
@@ -102,16 +103,15 @@ public class BoundBowItem extends BowItem {
             return;
         }
 
-        if (ammoStack.isEmpty()) {
-            ammoStack = new ItemStack(Items.ARROW);
-        }
+        var ammoStack = hasAmmo ? ammoSource.stack() : new ItemStack(Items.ARROW);
 
         var power = getPowerForTime(drawDuration);
         if (power < 0.1F) {
             return;
         }
 
-        var infiniteAmmo = player.getAbilities().instabuild
+        var infiniteAmmo = ammoSource != null && ammoSource.isInfinite(stack, player)
+                || player.getAbilities().instabuild
                 || ammoStack.getItem() instanceof ArrowItem infiniteArrowItem
                 && infiniteArrowItem.isInfinite(ammoStack, stack, player);
         if (!level.isClientSide) {
@@ -154,11 +154,8 @@ public class BoundBowItem extends BowItem {
 
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ARROW_SHOOT,
                 SoundSource.PLAYERS, 1.0F, 1.0F / (level.getRandom().nextFloat() * 0.4F + 1.2F) + power * 0.5F);
-        if (!infiniteAmmo && !player.getAbilities().instabuild && hasAmmo) {
-            ammoStack.shrink(1);
-            if (ammoStack.isEmpty()) {
-                player.getInventory().removeItem(ammoStack);
-            }
+        if (!infiniteAmmo && !player.getAbilities().instabuild && ammoSource != null) {
+            ammoSource.consume();
         }
 
         player.awardStat(Stats.ITEM_USED.get(this));
@@ -168,7 +165,7 @@ public class BoundBowItem extends BowItem {
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player,
                                                            @NotNull InteractionHand hand) {
         var stack = player.getItemInHand(hand);
-        var hasAmmo = !player.getProjectile(stack).isEmpty();
+        var hasAmmo = SpellcasterQuiverBowAmmoResolver.resolveBowAmmo(player, stack) != null;
         var canFireWithoutAmmo = player.getAbilities().instabuild
                 || stack.getEnchantmentLevel(Enchantments.INFINITY_ARROWS) > 0;
         var canStart = hasAmmo || canFireWithoutAmmo || canForgeArrow(player);
