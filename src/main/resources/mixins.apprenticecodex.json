@@ -60,7 +60,7 @@
     "MinecraftMixin",
     "EntityMixin",
     "GuiGraphicsItemInventoryOverlayMixin",
-    "ItemRendererBoundSwordGlintMixin",
+    "ItemRendererBoundWeaponGlintMixin",
     "ItemRendererClientItemRenderContextMixin",
     "QuickCastPacketAccessor",
     "RenderBuffersBoundSwordGlintMixin",

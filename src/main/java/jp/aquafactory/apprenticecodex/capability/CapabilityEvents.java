@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellDataProvider;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.AbsorptionAmplifyAmuletState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.BoundBowState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.BoundSwordState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowCastState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowLoanState;
@@ -58,6 +59,7 @@ public class CapabilityEvents {
                             newSpellData.loadAll(oldSpellData.saveAll());
                             if (event.isWasDeath()) {
                                 newSpellData.edit(CodexSpellStateTypeRegister.ABSORPTION_AMPLIFY_AMULET_STATE, AbsorptionAmplifyAmuletState::reset);
+                                newSpellData.edit(CodexSpellStateTypeRegister.BOUND_BOW_STATE, BoundBowState::reset);
                                 newSpellData.edit(CodexSpellStateTypeRegister.BOUND_SWORD_STATE, BoundSwordState::reset);
                                 newSpellData.edit(CodexSpellStateTypeRegister.COMPANION_TRUNK_STATE, state -> {
                                     state.active = false;

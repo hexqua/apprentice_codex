@@ -1,32 +1,38 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.BoundBowItem;
 import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.Item;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ComputeFovModifierEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
-public final class ElementalBowFovModifierEvent {
-    private ElementalBowFovModifierEvent() {
+public final class BowDrawFovModifierEvent {
+    private BowDrawFovModifierEvent() {
     }
 
     @SubscribeEvent
     public static void onComputeFovModifier(ComputeFovModifierEvent event) {
         var player = event.getPlayer();
-        if (!player.isUsingItem() || !(player.getUseItem().getItem() instanceof ElementalBow)) {
+        if (!player.isUsingItem() || !shouldApplyVanillaBowDrawFov(player.getUseItem().getItem())) {
             return;
         }
 
         // 1.20.1 の弓 FOV 縮小は BowItem 継承ではなく Items.BOW 固定判定なので、
-        // ElementalBow 側でバニラ弓と同じ補正式を client event で補う。
+        // バニラ弓相当のカスタム弓だけ client event で同じ補正式を補う。
         float adjustedFovModifier = event.getFovModifier() * resolveBowDrawFovModifier(player.getTicksUsingItem());
         float fovEffectScale = Minecraft.getInstance().options.fovEffectScale().get().floatValue();
         event.setNewFovModifier(Mth.lerp(fovEffectScale, 1.0F, adjustedFovModifier));
+    }
+
+    private static boolean shouldApplyVanillaBowDrawFov(Item item) {
+        return item instanceof ElementalBow || item instanceof BoundBowItem;
     }
 
     private static float resolveBowDrawFovModifier(int ticksUsingItem) {
