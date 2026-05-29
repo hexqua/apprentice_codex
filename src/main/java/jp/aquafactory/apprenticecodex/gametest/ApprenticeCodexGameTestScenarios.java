@@ -5099,6 +5099,12 @@ public final class ApprenticeCodexGameTestScenarios {
                             && afterRemovalContainer.getSpellAtIndex(0) == SpellData.EMPTY
                             && afterRemovalContainer.getSpellAtIndex(1) != SpellData.EMPTY,
                     "Calibration Bench should not compact spell slots while removing a scroll");
+            createSpellCalibrationBenchMenuWithTarget(player, twoSlotAmulet);
+            var afterReinsertContainer = ISpellContainer.get(twoSlotAmulet);
+            helper.assertTrue(afterReinsertContainer != null
+                            && afterReinsertContainer.getSpellAtIndex(0) == SpellData.EMPTY
+                            && afterReinsertContainer.getSpellAtIndex(1) != SpellData.EMPTY,
+                    "Calibration Bench should preserve empty spell slots when opening an existing target");
 
             var manaForceBlade = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
             var unsupportedMenu = new SpellCalibrationBenchMenu(0, player.getInventory());

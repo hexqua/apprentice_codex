@@ -82,7 +82,6 @@ public final class SpellCalibrationImbueHelper {
 
         repairExtractablePresetSpellContainerIfNeeded(stack);
         initializePresetSpellContainerIfNeeded(stack);
-        compactSpellContainer(stack);
     }
 
     public static int getSpellSlotCount(@NotNull ItemStack stack) {
@@ -300,33 +299,6 @@ public final class SpellCalibrationImbueHelper {
         var scrollStack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
         ISpellContainer.createScrollContainer(spellData.getSpell(), spellData.getLevel(), scrollStack);
         return scrollStack;
-    }
-
-    private static void compactSpellContainer(@NotNull ItemStack stack) {
-        var spellContainer = ISpellContainer.get(stack);
-        if (spellContainer == null || spellContainer.getMaxSpellCount() <= 1) {
-            return;
-        }
-
-        var compacted = ISpellContainer.create(
-                spellContainer.getMaxSpellCount(),
-                spellContainer.isSpellWheel(),
-                spellContainer.mustEquip()
-        ).mutableCopy();
-        compacted.setImproved(spellContainer.isImproved());
-
-        var nextSlot = 0;
-        for (var slot = 0; slot < spellContainer.getMaxSpellCount(); ++slot) {
-            var spellData = spellContainer.getSpellAtIndex(slot);
-            if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
-                continue;
-            }
-
-            compacted.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), nextSlot, spellData.isLocked());
-            ++nextSlot;
-        }
-
-        ISpellContainer.set(stack, compacted.toImmutable());
     }
 
     private static boolean isAllowedExtractionItem(ItemStack stack) {
