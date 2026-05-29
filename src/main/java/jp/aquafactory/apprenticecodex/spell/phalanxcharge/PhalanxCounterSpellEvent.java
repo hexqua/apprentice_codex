@@ -4,14 +4,15 @@ import io.redspace.ironsspellbooks.api.events.CounterSpellEvent;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class PhalanxCounterSpellEvent {
     private static final double FRONT_DOT_THRESHOLD = 0.25;
 
@@ -24,7 +25,7 @@ public final class PhalanxCounterSpellEvent {
             return;
         }
 
-        var stance = target.getEffect(EffectRegistry.PHALANX_STANCE.get());
+        var stance = target.getEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.PHALANX_STANCE.get()));
         if (stance == null || stance.getAmplifier() < PhalanxStance.MOVE_SPEED_ENABLED_AMPLIFIER) {
             return;
         }

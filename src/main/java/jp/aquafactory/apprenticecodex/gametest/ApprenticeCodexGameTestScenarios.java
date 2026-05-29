@@ -251,7 +251,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
@@ -15121,16 +15120,16 @@ public final class ApprenticeCodexGameTestScenarios {
             var state = spellData.get(CodexSpellStateTypeRegister.SPECTRAL_WING_STATE);
             helper.assertTrue(state.active && state.startedBySpell,
                     "Spectral Wing cast should activate flight state before effect removal");
-            helper.assertTrue(player.hasEffect(EffectRegistry.SPECTRAL_WING.get()),
+            helper.assertTrue(player.hasEffect(EffectRegistry.SPECTRAL_WING),
                     "Spectral Wing cast should apply visual MagicMobEffect before removal");
 
-            player.removeEffect(EffectRegistry.SPECTRAL_WING.get());
+            player.removeEffect(EffectRegistry.SPECTRAL_WING);
             jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWingFlightEvent.onPlayerTick(
-                    new TickEvent.PlayerTickEvent(TickEvent.Phase.START, player)
+                    new PlayerTickEvent.Pre(player)
             );
 
             state = spellData.get(CodexSpellStateTypeRegister.SPECTRAL_WING_STATE);
-            helper.assertFalse(player.hasEffect(EffectRegistry.SPECTRAL_WING.get()),
+            helper.assertFalse(player.hasEffect(EffectRegistry.SPECTRAL_WING),
                     "Removing Spectral Wing effect should not be refreshed from stale state");
             helper.assertFalse(state.active || state.startedBySpell || state.launchGraceTicks != 0 || state.waterGraceTicks != 0,
                     "Removing Spectral Wing effect should clear flight state");
@@ -15242,7 +15241,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertAntiMagicDiscard(helper, caster, compoundPhial, "Compound Phial");
 
             var extract = new ExtractPotionProjectileEntity(EntityRegistry.EXTRACT_POTION_PROJECTILE.get(), level, caster);
-            extract.setItem(PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), Potions.POISON));
+            extract.setItem(PotionContentsHelper.createPotionStack(Items.SPLASH_POTION, Potions.POISON.value()));
             spawnCounterspellTestEntity(helper, extract, new Vec3(2.5D, 2.0D, 2.5D));
             assertAntiMagicDiscard(helper, caster, extract, "Extract potion");
 
@@ -15395,7 +15394,7 @@ public final class ApprenticeCodexGameTestScenarios {
             phalanxTarget.setYRot(0.0f);
             phalanxTarget.setXRot(0.0f);
             phalanxTarget.addEffect(new MobEffectInstance(
-                    EffectRegistry.PHALANX_STANCE.get(),
+                    BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.PHALANX_STANCE.get()),
                     20,
                     PhalanxStance.MOVE_SPEED_ENABLED_AMPLIFIER,
                     false,
@@ -15417,7 +15416,7 @@ public final class ApprenticeCodexGameTestScenarios {
             var normalPhalanxTarget = createEquipmentTestPlayer(helper, new BlockPos(8, 2, 0), "phalanx_counterspell_normal_target_test");
             normalPhalanxTarget.setYRot(0.0f);
             normalPhalanxTarget.addEffect(new MobEffectInstance(
-                    EffectRegistry.PHALANX_STANCE.get(),
+                    BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.PHALANX_STANCE.get()),
                     20,
                     PhalanxStance.FIXED_AMPLIFIER,
                     false,
@@ -15434,7 +15433,7 @@ public final class ApprenticeCodexGameTestScenarios {
             phalanxMysticTarget.setYRot(0.0f);
             phalanxMysticTarget.setXRot(0.0f);
             phalanxMysticTarget.addEffect(new MobEffectInstance(
-                    EffectRegistry.PHALANX_STANCE.get(),
+                    BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.PHALANX_STANCE.get()),
                     20,
                     PhalanxStance.MOVE_SPEED_ENABLED_AMPLIFIER,
                     false,
