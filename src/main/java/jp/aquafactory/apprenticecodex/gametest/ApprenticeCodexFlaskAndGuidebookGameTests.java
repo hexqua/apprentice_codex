@@ -125,6 +125,11 @@ public final class ApprenticeCodexFlaskAndGuidebookGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellStainedRunicTabletFiltersSchoolPowerByConfiguredThresholds(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellStainedRunicTabletFiltersSchoolPowerByConfiguredThresholds(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void explorersCodexGuidebookTransferRecipeMovesFixedSpellsAndKeepsExplorersData(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.explorersCodexGuidebookTransferRecipeMovesFixedSpellsAndKeepsExplorersData(helper);
     }
