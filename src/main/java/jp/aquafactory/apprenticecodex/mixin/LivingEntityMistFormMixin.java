@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class LivingEntityMistFormMixin {
     @Inject(method = "getJumpBoostPower", at = @At("RETURN"), cancellable = true)
     private void apprenticecodex$addMistFormJumpPower(CallbackInfoReturnable<Float> cir) {
-        if ((Object) this instanceof LivingEntity livingEntity && livingEntity.hasEffect(EffectRegistry.MIST_FORM.get())) {
+        if ((Object) this instanceof LivingEntity livingEntity && livingEntity.hasEffect(EffectRegistry.MIST_FORM)) {
             cir.setReturnValue(cir.getReturnValue() + MistFormEffect.JUMP_POWER_ADDITION);
         }
     }

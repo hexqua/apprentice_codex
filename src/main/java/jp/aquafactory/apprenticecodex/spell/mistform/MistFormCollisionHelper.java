@@ -18,7 +18,7 @@ public final class MistFormCollisionHelper {
             return false;
         }
 
-        return player.hasEffect(EffectRegistry.MIST_FORM.get())
+        return player.hasEffect(EffectRegistry.MIST_FORM)
                 && state.is(TagRegistry.Blocks.MIST_FORM_PASSABLE)
                 && !ApprenticeCodexServerConfig.isMistFormPassableBlockDenied(state);
     }

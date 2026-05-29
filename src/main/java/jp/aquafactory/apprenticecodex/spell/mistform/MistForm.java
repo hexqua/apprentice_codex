@@ -87,7 +87,7 @@ public class MistForm extends AbstractSpell {
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (!level.isClientSide) {
             entity.addEffect(new MobEffectInstance(
-                    EffectRegistry.MIST_FORM.get(),
+                    EffectRegistry.MIST_FORM,
                     getDuration(spellLevel, entity),
                     0,
                     false,

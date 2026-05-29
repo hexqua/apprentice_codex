@@ -12,7 +12,7 @@ public final class MistFormMovementRestrictionHelper {
 
     public static boolean ignoresMovementRestriction(Entity entity, BlockState state) {
         return entity instanceof Player player
-                && player.hasEffect(EffectRegistry.MIST_FORM.get())
+                && player.hasEffect(EffectRegistry.MIST_FORM)
                 && state.is(TagRegistry.Blocks.MIST_FORM_IGNORES_MOVEMENT_RESTRICTION);
     }
 }

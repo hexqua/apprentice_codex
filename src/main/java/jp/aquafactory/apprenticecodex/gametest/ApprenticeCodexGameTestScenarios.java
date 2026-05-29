@@ -213,6 +213,7 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -14885,30 +14886,30 @@ public final class ApprenticeCodexGameTestScenarios {
             var spell = (jp.aquafactory.apprenticecodex.spell.mistform.MistForm) SpellRegistry.MIST_FORM.get();
             spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
 
-            var instance = player.getEffect(EffectRegistry.MIST_FORM.get());
+            var instance = player.getEffect(EffectRegistry.MIST_FORM);
             helper.assertTrue(instance != null, "Mist Form cast should apply the Mist Form effect");
             var expectedDuration = Math.round(10 * 20 * spell.getSpellPower(1, player) / 100.0F);
             helper.assertTrue(instance != null && instance.getDuration() == expectedDuration,
                     "Mist Form effect duration should use existing spell power duration: "
                             + (instance == null ? "null" : instance.getDuration()) + " / " + expectedDuration);
 
-            var effect = EffectRegistry.MIST_FORM.get();
+            var effect = EffectRegistry.MIST_FORM;
             assertMistFormModifierAmount(helper, effect, Attributes.MOVEMENT_SPEED,
-                    AttributeModifier.Operation.MULTIPLY_TOTAL,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL,
                     jp.aquafactory.apprenticecodex.effect.MistFormEffect.MOVEMENT_SPEED_BONUS,
                     "Mist Form should provide fixed movement speed");
-            assertMistFormModifierAmount(helper, effect, net.minecraftforge.common.ForgeMod.STEP_HEIGHT_ADDITION.get(),
-                    AttributeModifier.Operation.ADDITION,
+            assertMistFormModifierAmount(helper, effect, Attributes.STEP_HEIGHT,
+                    AttributeModifier.Operation.ADD_VALUE,
                     jp.aquafactory.apprenticecodex.effect.MistFormEffect.STEP_HEIGHT_ADDITION,
                     "Mist Form should provide fixed step assist");
             assertMistFormModifierAmount(helper, effect,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_MAGIC_RESIST.get(),
-                    AttributeModifier.Operation.ADDITION,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_MAGIC_RESIST,
+                    AttributeModifier.Operation.ADD_VALUE,
                     jp.aquafactory.apprenticecodex.effect.MistFormEffect.SCHOOL_RESIST_WEAKNESS,
                     "Mist Form should provide fixed fire weakness");
             assertMistFormModifierAmount(helper, effect,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.HOLY_MAGIC_RESIST.get(),
-                    AttributeModifier.Operation.ADDITION,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.HOLY_MAGIC_RESIST,
+                    AttributeModifier.Operation.ADD_VALUE,
                     jp.aquafactory.apprenticecodex.effect.MistFormEffect.SCHOOL_RESIST_WEAKNESS,
                     "Mist Form should provide fixed holy weakness");
         });
@@ -14936,12 +14937,12 @@ public final class ApprenticeCodexGameTestScenarios {
     static void mistFormDamageToLivingTargetRemovesEffect(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mist_form_damage_test");
-            player.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            player.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM, 200, 0, false, false, true));
             var target = createTargetingZombie(helper, new BlockPos(2, 2, 0), player, "damage_target");
 
             target.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F);
 
-            helper.assertFalse(player.hasEffect(EffectRegistry.MIST_FORM.get()),
+            helper.assertFalse(player.hasEffect(EffectRegistry.MIST_FORM),
                     "Mist Form should be removed when the caster damages a living target");
         });
     }
@@ -14949,13 +14950,13 @@ public final class ApprenticeCodexGameTestScenarios {
     static void mistFormSlowsFallingWithoutAmplifierScaling(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 8, 0), "mist_form_fall_test");
-            player.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 9, false, false, true));
+            player.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM, 200, 9, false, false, true));
             player.fallDistance = 12.0F;
             player.hurtMarked = false;
             player.setDeltaMovement(0.12D, -0.7D, -0.08D);
 
             jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
-                    new TickEvent.PlayerTickEvent(TickEvent.Phase.START, player)
+                    new PlayerTickEvent.Pre(player)
             );
 
             helper.assertTrue(Math.abs(player.getDeltaMovement().y + 0.08D) < 1.0E-9D,
@@ -14975,10 +14976,10 @@ public final class ApprenticeCodexGameTestScenarios {
             var waterWalker = createEquipmentTestPlayer(helper, new BlockPos(0, 3, 0), "mist_form_water_walk_test");
             var waterSupportPos = waterWalker.blockPosition().below();
             placeAbsoluteFluidTestBasin(helper.getLevel(), waterSupportPos, Blocks.WATER.defaultBlockState());
-            waterWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            waterWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM, 200, 0, false, false, true));
             waterWalker.setDeltaMovement(0.1D, -0.2D, 0.0D);
             jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
-                    new TickEvent.PlayerTickEvent(TickEvent.Phase.START, waterWalker)
+                    new PlayerTickEvent.Pre(waterWalker)
             );
             helper.assertTrue(waterWalker.onGround() && waterWalker.getDeltaMovement().y == 0.0D,
                     "Mist Form should hold the player on liquid surface without downward motion: onGround="
@@ -14989,22 +14990,22 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Mist Form liquid standing should preserve horizontal movement on water");
 
             var sneakingWalker = createEquipmentTestPlayer(helper, new BlockPos(0, 3, 0), "mist_form_sneak_sink_test");
-            sneakingWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            sneakingWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM, 200, 0, false, false, true));
             sneakingWalker.setShiftKeyDown(true);
             sneakingWalker.setOnGround(false);
             sneakingWalker.setDeltaMovement(0.0D, -0.2D, 0.0D);
             jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
-                    new TickEvent.PlayerTickEvent(TickEvent.Phase.START, sneakingWalker)
+                    new PlayerTickEvent.Pre(sneakingWalker)
             );
             helper.assertFalse(sneakingWalker.onGround(),
                     "Mist Form should not hold the player on liquid while sneaking");
 
             var lavaWalker = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 0), "mist_form_lava_walk_test");
             placeAbsoluteFluidTestBasin(helper.getLevel(), lavaWalker.blockPosition().below(), Blocks.LAVA.defaultBlockState());
-            lavaWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            lavaWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM, 200, 0, false, false, true));
             lavaWalker.setDeltaMovement(0.0D, -0.2D, 0.0D);
             jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
-                    new TickEvent.PlayerTickEvent(TickEvent.Phase.START, lavaWalker)
+                    new PlayerTickEvent.Pre(lavaWalker)
             );
             helper.assertTrue(lavaWalker.onGround() && !lavaWalker.isInLava(),
                     "Mist Form should stand on lava by avoiding liquid contact, not by granting fire resistance");
@@ -15012,10 +15013,10 @@ public final class ApprenticeCodexGameTestScenarios {
             var flowingWaterWalker = createEquipmentTestPlayer(helper, new BlockPos(4, 3, 0), "mist_form_flowing_water_walk_test");
             placeAbsoluteFluidTestBasin(helper.getLevel(), flowingWaterWalker.blockPosition().below(),
                     Blocks.WATER.defaultBlockState().setValue(LiquidBlock.LEVEL, 1));
-            flowingWaterWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            flowingWaterWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM, 200, 0, false, false, true));
             flowingWaterWalker.setDeltaMovement(0.1D, -0.2D, 0.0D);
             jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
-                    new TickEvent.PlayerTickEvent(TickEvent.Phase.START, flowingWaterWalker)
+                    new PlayerTickEvent.Pre(flowingWaterWalker)
             );
             helper.assertTrue(flowingWaterWalker.onGround()
                             && flowingWaterWalker.getDeltaMovement().y == 0.0D
@@ -15025,10 +15026,10 @@ public final class ApprenticeCodexGameTestScenarios {
 
             var swimmer = createEquipmentTestPlayer(helper, new BlockPos(6, 3, 0), "mist_form_swimming_test");
             placeAbsoluteFluidTestBasin(helper.getLevel(), swimmer.blockPosition(), Blocks.WATER.defaultBlockState());
-            swimmer.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            swimmer.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM, 200, 0, false, false, true));
             swimmer.setDeltaMovement(0.0D, 0.2D, 0.0D);
             jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
-                    new TickEvent.PlayerTickEvent(TickEvent.Phase.START, swimmer)
+                    new PlayerTickEvent.Pre(swimmer)
             );
             helper.assertFalse(swimmer.onGround(),
                     "Mist Form should not force liquid standing while the player is touching liquid");
@@ -15038,7 +15039,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
             var cooldownWalker = createEquipmentTestPlayer(helper, new BlockPos(8, 3, 0), "mist_form_fluid_cooldown_test");
             placeAbsoluteFluidTestBasin(helper.getLevel(), cooldownWalker.blockPosition(), Blocks.WATER.defaultBlockState());
-            cooldownWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            cooldownWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM, 200, 0, false, false, true));
             cooldownWalker.tickCount = 100;
             helper.assertFalse(jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.canStandOnFluid(cooldownWalker),
                     "Mist Form should disable liquid standing immediately after touching liquid");
@@ -15058,7 +15059,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var normalPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mist_form_collision_normal_test");
             var mistPlayer = createEquipmentTestPlayer(helper, new BlockPos(1, 2, 0), "mist_form_collision_pass_test");
-            mistPlayer.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            mistPlayer.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM, 200, 0, false, false, true));
 
             for (var sample : MIST_FORM_PASSABLE_COLLISION_SAMPLES) {
                 helper.assertFalse(isCollisionShapeEmptyForPlayer(helper, sample.state(), normalPlayer),
@@ -15075,7 +15076,7 @@ public final class ApprenticeCodexGameTestScenarios {
     static void mistFormPassableBlockDenylistBlocksIdsAndTags(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mist_form_collision_deny_test");
-            player.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            player.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM, 200, 0, false, false, true));
 
             try (var ignored = ApprenticeCodexServerConfig.useMistFormPassableBlockDenylistOverrideForGameTest(
                     List.of("minecraft:iron_bars")
@@ -15107,12 +15108,12 @@ public final class ApprenticeCodexGameTestScenarios {
                             .setValue(net.minecraft.world.level.block.TrapDoorBlock.WATERLOGGED, true),
                     3
             );
-            player.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            player.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM, 200, 0, false, false, true));
             player.setDeltaMovement(0.0D, -0.2D, 0.0D);
 
             var yBeforeTick = player.getY();
             jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
-                    new TickEvent.PlayerTickEvent(TickEvent.Phase.START, player)
+                    new PlayerTickEvent.Pre(player)
             );
 
             helper.assertTrue(Math.abs(player.getY() - yBeforeTick) < 1.0E-9D,
@@ -15126,7 +15127,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "mist_form_stuck_normal_test");
             var mistPlayer = createEquipmentTestPlayer(helper, new BlockPos(3, 2, 0),
                     "mist_form_stuck_ignore_test");
-            mistPlayer.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            mistPlayer.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM, 200, 0, false, false, true));
 
             for (var sample : MIST_FORM_MOVEMENT_RESTRICTION_SAMPLES) {
                 resetPlayerPosition(helper, normalPlayer, new BlockPos(0, 2, 0));
@@ -15149,7 +15150,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var powderPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
                     "mist_form_powder_effect_test");
-            powderPlayer.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
+            powderPlayer.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM, 200, 0, false, false, true));
             var powderPos = powderPlayer.blockPosition();
             helper.getLevel().setBlock(powderPos, Blocks.POWDER_SNOW.defaultBlockState(), 3);
             Blocks.POWDER_SNOW.defaultBlockState().entityInside(helper.getLevel(), powderPos, powderPlayer);
@@ -15162,22 +15163,38 @@ public final class ApprenticeCodexGameTestScenarios {
 
     private static void assertMistFormModifierAmount(
             GameTestHelper helper,
-            net.minecraft.world.effect.MobEffect effect,
-            Attribute attribute,
+            Holder<MobEffect> effect,
+            Holder<Attribute> attribute,
             AttributeModifier.Operation operation,
             double expectedAmount,
             String message
     ) {
-        var modifier = effect.getAttributeModifiers().get(attribute);
-        helper.assertTrue(modifier != null, message + ": missing modifier for " + attribute.getDescriptionId());
-        if (modifier == null) {
+        var modifiers = new ArrayList<AttributeModifier>();
+        effect.value().createModifiers(0, (modifierAttribute, modifier) -> {
+            if (modifierAttribute.equals(attribute) && modifier.operation() == operation) {
+                modifiers.add(modifier);
+            }
+        });
+        helper.assertTrue(!modifiers.isEmpty(), message + ": missing modifier for " + attribute.value().getDescriptionId());
+        if (modifiers.isEmpty()) {
             return;
         }
-        helper.assertTrue(modifier.getOperation() == operation,
-                message + ": expected operation " + operation + " but got " + modifier.getOperation());
-        helper.assertTrue(Math.abs(effect.getAttributeModifierValue(0, modifier) - expectedAmount) < 1.0E-9D,
+        var modifier = modifiers.get(0);
+        helper.assertTrue(Math.abs(modifier.amount() - expectedAmount) < 1.0E-9D,
                 message + ": expected level 0 amount " + expectedAmount);
-        helper.assertTrue(Math.abs(effect.getAttributeModifierValue(9, modifier) - expectedAmount) < 1.0E-9D,
+
+        var amplifiedModifiers = new ArrayList<AttributeModifier>();
+        effect.value().createModifiers(9, (modifierAttribute, amplifiedModifier) -> {
+            if (modifierAttribute.equals(attribute) && amplifiedModifier.operation() == operation) {
+                amplifiedModifiers.add(amplifiedModifier);
+            }
+        });
+        helper.assertTrue(!amplifiedModifiers.isEmpty(),
+                message + ": missing level 9 modifier for " + attribute.value().getDescriptionId());
+        if (amplifiedModifiers.isEmpty()) {
+            return;
+        }
+        helper.assertTrue(Math.abs(amplifiedModifiers.get(0).amount() - expectedAmount) < 1.0E-9D,
                 message + ": expected level 9 amount to remain " + expectedAmount);
     }
 

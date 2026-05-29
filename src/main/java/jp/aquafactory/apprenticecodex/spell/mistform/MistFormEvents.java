@@ -9,11 +9,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.CollisionGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class MistFormEvents {
     private static final double MAX_FALL_SPEED = -0.08D;
     private static final double FLUID_SURFACE_EPSILON = 0.02D;
@@ -39,13 +39,9 @@ public final class MistFormEvents {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) {
-            return;
-        }
-
-        var player = event.player;
-        if (!player.hasEffect(EffectRegistry.MIST_FORM.get())) {
+    public static void onPlayerTick(PlayerTickEvent.Pre event) {
+        var player = event.getEntity();
+        if (!player.hasEffect(EffectRegistry.MIST_FORM)) {
             FLUID_STANDING_DISABLED_UNTIL_TICK.remove(player);
             return;
         }
@@ -56,24 +52,24 @@ public final class MistFormEvents {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onLivingDamage(LivingDamageEvent event) {
-        if (event.getAmount() <= 0.0F) {
+    public static void onLivingDamage(LivingDamageEvent.Post event) {
+        if (event.getNewDamage() <= 0.0F) {
             return;
         }
 
         if (!(event.getSource().getEntity() instanceof net.minecraft.world.entity.LivingEntity attacker)) {
             return;
         }
-        if (attacker == event.getEntity() || !attacker.hasEffect(EffectRegistry.MIST_FORM.get())) {
+        if (attacker == event.getEntity() || !attacker.hasEffect(EffectRegistry.MIST_FORM)) {
             return;
         }
 
-        attacker.removeEffect(EffectRegistry.MIST_FORM.get());
+        attacker.removeEffect(EffectRegistry.MIST_FORM);
     }
 
     public static boolean canStandOnFluid(Player player) {
         if (player.isShiftKeyDown() || player.isSpectator() || player.isPassenger()
-                || !player.hasEffect(EffectRegistry.MIST_FORM.get())) {
+                || !player.hasEffect(EffectRegistry.MIST_FORM)) {
             return false;
         }
 
