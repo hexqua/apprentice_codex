@@ -12,13 +12,14 @@ public class ApprenticeRenderTypes extends RenderStateShard {
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/bound_spell_weapon_glint.png");
     private static final RenderType BOUND_SPELL_WEAPON_GLINT = createBoundSpellWeaponGlint(
             "bound_spell_weapon_glint",
-            RenderStateShard.RENDERTYPE_GLINT_SHADER
+            RenderStateShard.RENDERTYPE_GLINT_SHADER,
+            RenderStateShard.GLINT_TEXTURING
     );
     private static final RenderType BOUND_SPELL_WEAPON_GLINT_DIRECT = createBoundSpellWeaponGlint(
             "bound_spell_weapon_glint_direct",
-            RenderStateShard.RENDERTYPE_ENTITY_GLINT_DIRECT_SHADER
+            RenderStateShard.RENDERTYPE_ENTITY_GLINT_DIRECT_SHADER,
+            RenderStateShard.ENTITY_GLINT_TEXTURING
     );
-    private static boolean boundSpellWeaponGlintBuffersRegistered = true;
 
     public ApprenticeRenderTypes(String pName, Runnable pSetupState, Runnable pClearState) {
         super(pName, pSetupState, pClearState);
@@ -32,21 +33,14 @@ public class ApprenticeRenderTypes extends RenderStateShard {
         return BOUND_SPELL_WEAPON_GLINT_DIRECT;
     }
 
-    public static void markBoundSpellWeaponGlintBuffersRegistered() {
-        boundSpellWeaponGlintBuffersRegistered = true;
-    }
-
-    public static boolean areBoundSpellWeaponGlintBuffersRegistered() {
-        return boundSpellWeaponGlintBuffersRegistered;
-    }
-
     private static RenderType createBoundSpellWeaponGlint(String renderTypeName,
-                                                          RenderStateShard.ShaderStateShard shaderState) {
+                                                          RenderStateShard.ShaderStateShard shaderState,
+                                                          RenderStateShard.TexturingStateShard texturingState) {
         return RenderType.create(
                 renderTypeName,
                 DefaultVertexFormat.POSITION_TEX,
                 VertexFormat.Mode.QUADS,
-                256,
+                1536,
                 false,
                 false,
                 RenderType.CompositeState.builder()
@@ -56,7 +50,7 @@ public class ApprenticeRenderTypes extends RenderStateShard {
                         .setCullState(RenderStateShard.NO_CULL)
                         .setDepthTestState(RenderStateShard.EQUAL_DEPTH_TEST)
                         .setTransparencyState(RenderStateShard.GLINT_TRANSPARENCY)
-                        .setTexturingState(RenderStateShard.GLINT_TEXTURING)
+                        .setTexturingState(texturingState)
                         .createCompositeState(false)
         );
     }

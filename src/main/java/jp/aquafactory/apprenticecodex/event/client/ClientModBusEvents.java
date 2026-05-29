@@ -31,6 +31,7 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import jp.aquafactory.apprenticecodex.renderer.ManaForceBladeSheathLayer;
 import jp.aquafactory.apprenticecodex.renderer.curio.AshenCircletCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.CircletCurioRenderer;
@@ -132,6 +133,7 @@ import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.client.event.RegisterRenderBuffersEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.fml.ModList;
@@ -153,6 +155,7 @@ public final class ClientModBusEvents {
         modEventBus.addListener(ClientModBusEvents::addLayers);
         modEventBus.addListener(ClientModBusEvents::registerTooltipComponentFactories);
         modEventBus.addListener(ClientModBusEvents::registerItemColors);
+        modEventBus.addListener(ClientModBusEvents::registerRenderBuffers);
     }
 
     private static void onClientSetup(FMLClientSetupEvent event) {
@@ -528,6 +531,11 @@ public final class ClientModBusEvents {
 
     private static void registerItemColors(RegisterColorHandlersEvent.Item event) {
         event.register(SpellcastersFlask::getItemTintColor, ItemRegistry.SPELLCASTERS_FLASK.get(), ItemRegistry.ALCHEMISTS_FLASK.get());
+    }
+
+    private static void registerRenderBuffers(RegisterRenderBuffersEvent event) {
+        event.registerRenderBuffer(ApprenticeRenderTypes.boundSpellWeaponGlint());
+        event.registerRenderBuffer(ApprenticeRenderTypes.boundSpellWeaponGlintDirect());
     }
 
     private static void applyMultipurposeStaffrifleNormalHandTransform(PoseStack poseStack, HumanoidArm arm,
