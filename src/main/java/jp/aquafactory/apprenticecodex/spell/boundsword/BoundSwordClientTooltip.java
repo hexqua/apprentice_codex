@@ -6,8 +6,8 @@ import jp.aquafactory.apprenticecodex.item.BoundSwordItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -29,7 +29,7 @@ public final class BoundSwordClientTooltip {
         }
 
         var result = new AtomicReference<Component>();
-        player.getCapability(Capabilities.SPELL_DATA).ifPresent(data -> {
+        Capabilities.getSpellData(player).ifPresent(data -> {
             var state = data.get(CodexSpellStateTypeRegister.BOUND_SWORD_STATE);
             if (!state.active || !instanceId.equals(state.getInstanceId())) {
                 return;

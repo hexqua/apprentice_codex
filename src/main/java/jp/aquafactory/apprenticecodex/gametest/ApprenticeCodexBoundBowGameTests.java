@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.boundbow.BoundBow;
 import jp.aquafactory.apprenticecodex.spell.boundbow.BoundBowManager;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.core.BlockPos;
@@ -20,12 +21,13 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.gametest.GameTestHolder;
-import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.util.UUID;
 
@@ -47,7 +49,7 @@ public final class ApprenticeCodexBoundBowGameTests {
 
         var bow = player.getMainHandItem();
         helper.assertTrue(bow.is(ItemRegistry.BOUND_BOW.get()), "Bound Bow should replace the mainhand item");
-        helper.assertTrue(bow.getEnchantmentLevel(Enchantments.POWER_ARROWS) == 3,
+        helper.assertTrue(getPowerLevel(helper, bow) == 3,
                 "Bound Bow should keep the resolved Power level");
 
         var state = Capabilities.getSpellDataOrNull(player).get(CodexSpellStateTypeRegister.BOUND_BOW_STATE);
@@ -118,11 +120,11 @@ public final class ApprenticeCodexBoundBowGameTests {
         var magicData = resolveMagicData(helper, player);
         try (var ignored = ApprenticeCodexServerConfig.useBoundBowConfigOverrideForGameTest(6, 25.0F)) {
             magicData.setMana(40.0F);
-            var bow = BoundBowItem.create(UUID.randomUUID(), 0);
+            var bow = BoundBowItem.create(UUID.randomUUID(), 0, helper.getLevel().registryAccess());
             player.setItemInHand(InteractionHand.MAIN_HAND, bow);
 
             var beforeArrows = countArrows(helper, player);
-            bow.getItem().releaseUsing(bow, helper.getLevel(), player, bow.getUseDuration() - 20);
+            bow.getItem().releaseUsing(bow, helper.getLevel(), player, bow.getUseDuration(player) - 20);
 
             helper.assertTrue(magicData.getMana() == 15.0F,
                     "Bound Bow should consume configured mana when forging an arrow");
@@ -138,7 +140,7 @@ public final class ApprenticeCodexBoundBowGameTests {
         var magicData = resolveMagicData(helper, player);
         try (var ignored = ApprenticeCodexServerConfig.useBoundBowConfigOverrideForGameTest(6, 25.0F)) {
             magicData.setMana(10.0F);
-            var bow = BoundBowItem.create(UUID.randomUUID(), 0);
+            var bow = BoundBowItem.create(UUID.randomUUID(), 0, helper.getLevel().registryAccess());
             player.setItemInHand(InteractionHand.MAIN_HAND, bow);
 
             var result = bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
@@ -154,12 +156,12 @@ public final class ApprenticeCodexBoundBowGameTests {
         var magicData = resolveMagicData(helper, player);
         try (var ignored = ApprenticeCodexServerConfig.useBoundBowConfigOverrideForGameTest(6, 25.0F)) {
             magicData.setMana(40.0F);
-            var bow = BoundBowItem.create(UUID.randomUUID(), 0);
+            var bow = BoundBowItem.create(UUID.randomUUID(), 0, helper.getLevel().registryAccess());
             var arrows = new ItemStack(Items.ARROW, 2);
             player.setItemInHand(InteractionHand.MAIN_HAND, bow);
             player.getInventory().items.set(1, arrows);
 
-            bow.getItem().releaseUsing(bow, helper.getLevel(), player, bow.getUseDuration() - 20);
+            bow.getItem().releaseUsing(bow, helper.getLevel(), player, bow.getUseDuration(player) - 20);
 
             helper.assertTrue(magicData.getMana() == 40.0F,
                     "Bound Bow should not consume mana while a vanilla arrow is available");
@@ -191,5 +193,11 @@ public final class ApprenticeCodexBoundBowGameTests {
 
     private static BoundBow boundBow() {
         return (BoundBow) SpellRegistry.BOUND_BOW.get();
+    }
+
+    private static int getPowerLevel(GameTestHelper helper, ItemStack stack) {
+        var power = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(Enchantments.POWER);
+        return EnchantmentHelper.getEnchantmentsForCrafting(stack).getLevel(power);
     }
 }

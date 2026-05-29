@@ -2,17 +2,20 @@ package jp.aquafactory.apprenticecodex.item;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
-import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverBowAmmoResolver;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.boundbow.BoundBowClientTooltip;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -27,11 +30,14 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.fml.DistExecutor;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.event.EventHooks;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,11 +53,12 @@ public class BoundBowItem extends BowItem {
         super(new Item.Properties().stacksTo(1).durability(DURABILITY).rarity(Rarity.RARE));
     }
 
-    public static ItemStack create(UUID instanceId, int powerLevel) {
+    public static ItemStack create(UUID instanceId, int powerLevel, HolderLookup.Provider registries) {
         var stack = new ItemStack(ItemRegistry.BOUND_BOW.get());
-        stack.getOrCreateTag().putUUID(INSTANCE_ID_TAG, instanceId);
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putUUID(INSTANCE_ID_TAG, instanceId));
         if (powerLevel > 0) {
-            stack.enchant(Enchantments.POWER_ARROWS, powerLevel);
+            registries.lookupOrThrow(Registries.ENCHANTMENT).get(Enchantments.POWER)
+                    .ifPresent(power -> stack.enchant(power, powerLevel));
         }
         return stack;
     }
@@ -68,7 +75,7 @@ public class BoundBowItem extends BowItem {
         if (!isBoundBow(stack)) {
             return Optional.empty();
         }
-        CompoundTag tag = stack.getTag();
+        CompoundTag tag = getCustomDataTag(stack);
         return tag != null && tag.hasUUID(INSTANCE_ID_TAG)
                 ? Optional.of(tag.getUUID(INSTANCE_ID_TAG))
                 : Optional.empty();
@@ -89,12 +96,12 @@ public class BoundBowItem extends BowItem {
         }
 
         var canFireWithoutAmmo = player.getAbilities().instabuild
-                || stack.getEnchantmentLevel(Enchantments.INFINITY_ARROWS) > 0;
+                || hasEnchantment(stack, Enchantments.INFINITY);
         var ammoSource = SpellcasterQuiverBowAmmoResolver.resolveBowAmmo(player, stack);
         var hasAmmo = ammoSource != null;
         var shouldForgeArrow = !hasAmmo && !canFireWithoutAmmo && canForgeArrow(player);
-        var drawDuration = getUseDuration(stack) - timeLeft;
-        drawDuration = ForgeEventFactory.onArrowLoose(
+        var drawDuration = stack.getUseDuration(player) - timeLeft;
+        drawDuration = EventHooks.onArrowLoose(
                 stack,
                 level,
                 player,
@@ -120,28 +127,17 @@ public class BoundBowItem extends BowItem {
             var arrowItem = ammoStack.getItem() instanceof ArrowItem resolvedArrowItem
                     ? resolvedArrowItem
                     : (ArrowItem) Items.ARROW;
-            var arrow = arrowItem.createArrow(level, ammoStack, player);
-            arrow = customArrow(arrow);
+            var arrow = arrowItem.createArrow(level, ammoStack, player, stack);
+            arrow = customArrow(arrow, ammoStack, stack);
             arrow.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, power * 3.0F, 1.0F);
             if (power == 1.0F) {
                 arrow.setCritArrow(true);
             }
 
-            var powerLevel = stack.getEnchantmentLevel(Enchantments.POWER_ARROWS);
-            if (powerLevel > 0) {
-                arrow.setBaseDamage(arrow.getBaseDamage() + (double) powerLevel * 0.5D + 0.5D);
-            }
+            EnchantmentHelper.onProjectileSpawned((ServerLevel) level, stack, arrow, ignored -> {
+            });
 
-            var punchLevel = stack.getEnchantmentLevel(Enchantments.PUNCH_ARROWS);
-            if (punchLevel > 0) {
-                arrow.setKnockback(punchLevel);
-            }
-
-            if (stack.getEnchantmentLevel(Enchantments.FLAMING_ARROWS) > 0) {
-                arrow.setSecondsOnFire(100);
-            }
-
-            stack.hurtAndBreak(1, player, bowUser -> bowUser.broadcastBreakEvent(player.getUsedItemHand()));
+            stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(player.getUsedItemHand()));
             if (infiniteAmmo || shouldForgeArrow
                     || player.getAbilities().instabuild && (ammoStack.is(Items.SPECTRAL_ARROW) || ammoStack.is(Items.TIPPED_ARROW))) {
                 // マナから錬成した矢を拾えるとアイテム生成になってしまうため、弾道だけ通常矢として扱う。
@@ -169,9 +165,9 @@ public class BoundBowItem extends BowItem {
         var stack = player.getItemInHand(hand);
         var hasAmmo = SpellcasterQuiverBowAmmoResolver.resolveBowAmmo(player, stack) != null;
         var canFireWithoutAmmo = player.getAbilities().instabuild
-                || stack.getEnchantmentLevel(Enchantments.INFINITY_ARROWS) > 0;
+                || hasEnchantment(stack, Enchantments.INFINITY);
         var canStart = hasAmmo || canFireWithoutAmmo || canForgeArrow(player);
-        var nockResult = ForgeEventFactory.onArrowNock(stack, level, player, hand, canStart);
+        var nockResult = EventHooks.onArrowNock(stack, level, player, hand, canStart);
         if (nockResult != null) {
             return nockResult;
         }
@@ -185,8 +181,18 @@ public class BoundBowItem extends BowItem {
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return Items.BOW.canApplyAtEnchantingTable(new ItemStack(Items.BOW), enchantment);
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull net.minecraft.core.Holder<Enchantment> enchantment) {
+        return Items.BOW.supportsEnchantment(new ItemStack(Items.BOW), enchantment);
+    }
+
+    @Override
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull net.minecraft.core.Holder<Enchantment> enchantment) {
+        return Items.BOW.isPrimaryItemFor(new ItemStack(Items.BOW), enchantment) || supportsEnchantment(stack, enchantment);
+    }
+
+    @Override
+    public boolean isBookEnchantable(@NotNull ItemStack stack, @NotNull ItemStack book) {
+        return Items.BOW.isBookEnchantable(new ItemStack(Items.BOW), book);
     }
 
     @Override
@@ -200,20 +206,21 @@ public class BoundBowItem extends BowItem {
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
-                                @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context,
+                                @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, context, lines, flag);
 
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
-                BoundBowClientTooltip.getStoredItemName(stack).ifPresent(storedItemName -> {
-                    lines.add(Component.translatable(
-                            "item." + ApprenticeCodex.MODID + ".bound_weapon.contain_item.item",
-                            storedItemName
-                    ).withStyle(ChatFormatting.GRAY));
-                    lines.add(Component.translatable(
-                            "item." + ApprenticeCodex.MODID + ".bound_weapon.contain_item.hint"
-                    ).withStyle(ChatFormatting.DARK_GRAY));
-                }));
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            BoundBowClientTooltip.getStoredItemName(stack).ifPresent(storedItemName -> {
+                lines.add(Component.translatable(
+                        "item." + ApprenticeCodex.MODID + ".bound_weapon.contain_item.item",
+                        storedItemName
+                ).withStyle(ChatFormatting.GRAY));
+                lines.add(Component.translatable(
+                        "item." + ApprenticeCodex.MODID + ".bound_weapon.contain_item.hint"
+                ).withStyle(ChatFormatting.DARK_GRAY));
+            });
+        }
     }
 
     private static boolean canForgeArrow(Player player) {
@@ -241,5 +248,28 @@ public class BoundBowItem extends BowItem {
         if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
             PacketDistributor.sendToPlayer(serverPlayer, new SyncManaPacket(magicData));
         }
+    }
+
+    private static boolean hasEnchantment(ItemStack stack, net.minecraft.resources.ResourceKey<Enchantment> enchantmentKey) {
+        return getEnchantmentLevel(stack, enchantmentKey) > 0;
+    }
+
+    private static int getEnchantmentLevel(ItemStack stack, net.minecraft.resources.ResourceKey<Enchantment> enchantmentKey) {
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
+        if (enchantments.isEmpty()) {
+            return 0;
+        }
+
+        for (var holder : enchantments.keySet()) {
+            if (holder.is(enchantmentKey)) {
+                return enchantments.getLevel(holder);
+            }
+        }
+        return 0;
+    }
+
+    private static @Nullable CompoundTag getCustomDataTag(ItemStack stack) {
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        return customData == null ? null : customData.copyTag();
     }
 }

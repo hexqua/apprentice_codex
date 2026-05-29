@@ -220,6 +220,13 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         vanillaWeaponEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         vanillaDurabilityEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
+
+        // Bound Sword は一時生成アイテムだが、1.21.1 の enchantment JSON/tag 判定にも剣相当として参加させる。
+        vanillaSwordEnchantableTag.add(ItemRegistry.BOUND_SWORD.get());
+        vanillaFireAspectEnchantableTag.add(ItemRegistry.BOUND_SWORD.get());
+        vanillaSharpWeaponEnchantableTag.add(ItemRegistry.BOUND_SWORD.get());
+        vanillaWeaponEnchantableTag.add(ItemRegistry.BOUND_SWORD.get());
+        vanillaDurabilityEnchantableTag.add(ItemRegistry.BOUND_SWORD.get());
         // Iron's 側の upgrade 判定タグは実アイテム列挙なので、抽象基底クラス継承分を自動収集して取りこぼしを防ぐ。
         for (var itemEntry : ItemRegistry.ITEMS.getEntries()) {
             var item = itemEntry.get();
@@ -348,6 +355,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
         // Elemental Bow は bow tag に参加させ、バニラ弓と同じ enchantment JSON 面を使う。
         tag(MINECRAFT_ENCHANTABLE_BOW).add(ItemRegistry.ELEMENTAL_BOW.get());
+        tag(MINECRAFT_ENCHANTABLE_BOW).add(ItemRegistry.BOUND_BOW.get());
+        vanillaDurabilityEnchantableTag.add(ItemRegistry.BOUND_BOW.get());
         // Elemental Bow は 1.21.1 でも Wisdom / Transcendence / Plunder / Synthesis を個別許可したいが、
         // spell_gun_enchantable に混ぜると Attunement まで通ってしまうため専用タグ側へ明示追加する。
         transcendenceEnchantableTag.add(ItemRegistry.ELEMENTAL_BOW.get());

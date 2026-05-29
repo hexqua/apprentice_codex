@@ -38,8 +38,7 @@ public abstract class ItemRendererBoundWeaponGlintMixin {
                                                                      int combinedLight,
                                                                      int combinedOverlay,
                                                                      BakedModel model) {
-        if (glint && (BoundBowItem.isBoundBow(stack) || BoundSwordItem.isBoundSword(stack))
-                && ApprenticeRenderTypes.areBoundSpellWeaponGlintBuffersRegistered()) {
+        if (glint && (BoundBowItem.isBoundBow(stack) || BoundSwordItem.isBoundSword(stack))) {
             return VertexMultiConsumer.create(
                     bufferSource.getBuffer(ApprenticeRenderTypes.boundSpellWeaponGlint()),
                     bufferSource.getBuffer(renderType)
@@ -68,8 +67,7 @@ public abstract class ItemRendererBoundWeaponGlintMixin {
                                                                            int combinedLight,
                                                                            int combinedOverlay,
                                                                            BakedModel model) {
-        if (glint && (BoundBowItem.isBoundBow(stack) || BoundSwordItem.isBoundSword(stack))
-                && ApprenticeRenderTypes.areBoundSpellWeaponGlintBuffersRegistered()) {
+        if (glint && (BoundBowItem.isBoundBow(stack) || BoundSwordItem.isBoundSword(stack))) {
             return VertexMultiConsumer.create(
                     bufferSource.getBuffer(ApprenticeRenderTypes.boundSpellWeaponGlintDirect()),
                     bufferSource.getBuffer(renderType)

@@ -16,11 +16,13 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.gametest.GameTestHolder;
-import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.util.UUID;
 
@@ -204,10 +206,14 @@ public final class ApprenticeCodexBoundSwordGameTests {
     public static void boundSwordOffhandDoesNotApplyVanillaAttackModifiers(GameTestHelper helper) {
         var stack = BoundSwordItem.create(UUID.randomUUID(), 9.0F, EquipmentSlot.OFFHAND);
 
-        var modifiers = stack.getAttributeModifiers(EquipmentSlot.OFFHAND);
-        helper.assertTrue(modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE).isEmpty(),
+        var modifiers = stack.getAttributeModifiers().modifiers();
+        helper.assertTrue(modifiers.stream()
+                        .noneMatch(entry -> entry.slot().equals(EquipmentSlotGroup.OFFHAND)
+                                && entry.attribute().equals(Attributes.ATTACK_DAMAGE)),
                 "Bound Sword offhand should not stack vanilla attack damage on the player");
-        helper.assertTrue(modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED).isEmpty(),
+        helper.assertTrue(modifiers.stream()
+                        .noneMatch(entry -> entry.slot().equals(EquipmentSlotGroup.OFFHAND)
+                                && entry.attribute().equals(Attributes.ATTACK_SPEED)),
                 "Bound Sword offhand should not stack vanilla attack speed and break combat cooldown");
         helper.succeed();
     }

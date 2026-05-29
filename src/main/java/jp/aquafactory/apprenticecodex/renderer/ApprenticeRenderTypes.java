@@ -16,9 +16,9 @@ public class ApprenticeRenderTypes extends RenderStateShard {
     );
     private static final RenderType BOUND_SPELL_WEAPON_GLINT_DIRECT = createBoundSpellWeaponGlint(
             "bound_spell_weapon_glint_direct",
-            RenderStateShard.RENDERTYPE_GLINT_DIRECT_SHADER
+            RenderStateShard.RENDERTYPE_ENTITY_GLINT_DIRECT_SHADER
     );
-    private static boolean boundSpellWeaponGlintBuffersRegistered = false;
+    private static boolean boundSpellWeaponGlintBuffersRegistered = true;
 
     public ApprenticeRenderTypes(String pName, Runnable pSetupState, Runnable pClearState) {
         super(pName, pSetupState, pClearState);

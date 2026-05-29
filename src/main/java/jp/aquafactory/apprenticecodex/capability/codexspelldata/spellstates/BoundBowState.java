@@ -1,6 +1,9 @@
 package jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates;
 
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.ICodexSpellState;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -8,6 +11,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 public class BoundBowState implements ICodexSpellState {
+    private static final HolderLookup.Provider SERIALIZATION_LOOKUP =
+            RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     private static final String ACTIVE_TAG = "Active";
     private static final String INSTANCE_ID_TAG = "InstanceId";
     private static final String STORED_MAINHAND_STACK_TAG = "StoredMainhandStack";
@@ -53,7 +58,7 @@ public class BoundBowState implements ICodexSpellState {
             tag.putUUID(INSTANCE_ID_TAG, instanceId);
         }
         if (!storedMainhandStack.isEmpty()) {
-            tag.put(STORED_MAINHAND_STACK_TAG, storedMainhandStack.save(new CompoundTag()));
+            tag.put(STORED_MAINHAND_STACK_TAG, storedMainhandStack.saveOptional(SERIALIZATION_LOOKUP));
         }
         tag.putInt(POWER_LEVEL_TAG, powerLevel);
         return tag;
@@ -64,7 +69,7 @@ public class BoundBowState implements ICodexSpellState {
         active = tag.getBoolean(ACTIVE_TAG);
         instanceId = tag.hasUUID(INSTANCE_ID_TAG) ? tag.getUUID(INSTANCE_ID_TAG) : null;
         storedMainhandStack = tag.contains(STORED_MAINHAND_STACK_TAG)
-                ? ItemStack.of(tag.getCompound(STORED_MAINHAND_STACK_TAG))
+                ? ItemStack.parseOptional(SERIALIZATION_LOOKUP, tag.getCompound(STORED_MAINHAND_STACK_TAG))
                 : ItemStack.EMPTY;
         powerLevel = tag.getInt(POWER_LEVEL_TAG);
     }

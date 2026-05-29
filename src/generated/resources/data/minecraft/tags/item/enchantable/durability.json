@@ -1,6 +1,7 @@
 {
   "values": [
     "apprenticecodex:mana_force_blade",
+    "apprenticecodex:bound_sword",
     "apprenticecodex:apprentice_mage_scarf",
     "apprenticecodex:apprentice_mage_torso",
     "apprenticecodex:apprentice_mage_leggings",
@@ -18,6 +19,7 @@
     "apprenticecodex:chromatic_magia_dress_leggings",
     "apprenticecodex:chromatic_magia_dress_boots",
     "apprenticecodex:elemental_bow",
-    "apprenticecodex:reflectcast_shield"
+    "apprenticecodex:reflectcast_shield",
+    "apprenticecodex:bound_bow"
   ]
 }

@@ -1,20 +1,20 @@
 package jp.aquafactory.apprenticecodex.config.spell;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class BoundBowServerConfig {
-    private final ForgeConfigSpec.IntValue maxPowerEnchantmentLevel;
-    private final ForgeConfigSpec.DoubleValue forgeArrowManaCost;
+    private final ModConfigSpec.IntValue maxPowerEnchantmentLevel;
+    private final ModConfigSpec.DoubleValue forgeArrowManaCost;
 
     private BoundBowServerConfig(
-            ForgeConfigSpec.IntValue maxPowerEnchantmentLevel,
-            ForgeConfigSpec.DoubleValue forgeArrowManaCost
+            ModConfigSpec.IntValue maxPowerEnchantmentLevel,
+            ModConfigSpec.DoubleValue forgeArrowManaCost
     ) {
         this.maxPowerEnchantmentLevel = maxPowerEnchantmentLevel;
         this.forgeArrowManaCost = forgeArrowManaCost;
     }
 
-    public static BoundBowServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static BoundBowServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("BoundBow");
 
         var maxPowerEnchantmentLevel = builder.defineInRange("maxPowerEnchantmentLevel", 6, 0, 255);

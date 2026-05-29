@@ -5,7 +5,6 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import io.redspace.ironsspellbooks.network.EquipmentChangedPacket;
-import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.BoundBowState;
@@ -21,6 +20,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.UUID;
 
@@ -40,7 +40,7 @@ public final class BoundBowManager {
 
         var instanceId = UUID.randomUUID();
         var originalMainhand = player.getMainHandItem().copy();
-        var bow = BoundBowItem.create(instanceId, powerLevel);
+        var bow = BoundBowItem.create(instanceId, powerLevel, player.registryAccess());
 
         player.setItemInHand(InteractionHand.MAIN_HAND, bow);
         spellData.edit(CodexSpellStateTypeRegister.BOUND_BOW_STATE, state -> {

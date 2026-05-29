@@ -1,20 +1,29 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
-import java.util.function.Supplier;
 
-public class SyncBoundSwordStatePacket {
+public final class SyncBoundSwordStatePacket implements CustomPacketPayload {
+    public static final Type<SyncBoundSwordStatePacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_bound_sword_state"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, SyncBoundSwordStatePacket> STREAM_CODEC =
+            StreamCodec.of((buffer, packet) -> encode(packet, buffer), SyncBoundSwordStatePacket::decode);
+
     private final boolean active;
     private final @Nullable UUID instanceId;
     private final ItemStack storedMainhandStack;
@@ -32,23 +41,28 @@ public class SyncBoundSwordStatePacket {
         this.displayDamage = displayDamage;
     }
 
-    public static void encode(SyncBoundSwordStatePacket packet, FriendlyByteBuf buffer) {
+    @Override
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void encode(SyncBoundSwordStatePacket packet, RegistryFriendlyByteBuf buffer) {
         buffer.writeBoolean(packet.active);
         buffer.writeBoolean(packet.instanceId != null);
         if (packet.instanceId != null) {
             buffer.writeUUID(packet.instanceId);
         }
-        buffer.writeItem(packet.storedMainhandStack);
-        buffer.writeItem(packet.storedOffhandStack);
+        ItemStack.OPTIONAL_STREAM_CODEC.encode(buffer, packet.storedMainhandStack);
+        ItemStack.OPTIONAL_STREAM_CODEC.encode(buffer, packet.storedOffhandStack);
         buffer.writeBoolean(packet.offhandSwordGenerated);
         buffer.writeFloat(packet.displayDamage);
     }
 
-    public static SyncBoundSwordStatePacket decode(FriendlyByteBuf buffer) {
+    public static SyncBoundSwordStatePacket decode(RegistryFriendlyByteBuf buffer) {
         var active = buffer.readBoolean();
         UUID instanceId = buffer.readBoolean() ? buffer.readUUID() : null;
-        var storedMainhandStack = buffer.readItem();
-        var storedOffhandStack = buffer.readItem();
+        var storedMainhandStack = ItemStack.OPTIONAL_STREAM_CODEC.decode(buffer);
+        var storedOffhandStack = ItemStack.OPTIONAL_STREAM_CODEC.decode(buffer);
         var offhandSwordGenerated = buffer.readBoolean();
         var displayDamage = buffer.readFloat();
         return new SyncBoundSwordStatePacket(
@@ -61,12 +75,12 @@ public class SyncBoundSwordStatePacket {
         );
     }
 
-    public static void handle(SyncBoundSwordStatePacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
-        var context = contextSupplier.get();
-        context.enqueueWork(() ->
-                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientHandler.handle(packet))
-        );
-        context.setPacketHandled(true);
+    public static void handle(SyncBoundSwordStatePacket packet, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (FMLEnvironment.dist == Dist.CLIENT) {
+                ClientHandler.handle(packet);
+            }
+        });
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -80,7 +94,7 @@ public class SyncBoundSwordStatePacket {
                 return;
             }
 
-            player.getCapability(Capabilities.SPELL_DATA).ifPresent(data ->
+            Capabilities.getSpellData(player).ifPresent(data ->
                     data.edit(CodexSpellStateTypeRegister.BOUND_SWORD_STATE, state -> {
                         state.active = packet.active;
                         state.setInstanceId(packet.instanceId);

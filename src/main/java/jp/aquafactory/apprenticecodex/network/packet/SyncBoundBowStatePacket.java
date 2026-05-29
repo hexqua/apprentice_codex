@@ -1,20 +1,29 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
-import java.util.function.Supplier;
 
-public class SyncBoundBowStatePacket {
+public final class SyncBoundBowStatePacket implements CustomPacketPayload {
+    public static final Type<SyncBoundBowStatePacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_bound_bow_state"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, SyncBoundBowStatePacket> STREAM_CODEC =
+            StreamCodec.of((buffer, packet) -> encode(packet, buffer), SyncBoundBowStatePacket::decode);
+
     private final boolean active;
     private final @Nullable UUID instanceId;
     private final ItemStack storedMainhandStack;
@@ -28,30 +37,35 @@ public class SyncBoundBowStatePacket {
         this.powerLevel = powerLevel;
     }
 
-    public static void encode(SyncBoundBowStatePacket packet, FriendlyByteBuf buffer) {
+    @Override
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void encode(SyncBoundBowStatePacket packet, RegistryFriendlyByteBuf buffer) {
         buffer.writeBoolean(packet.active);
         buffer.writeBoolean(packet.instanceId != null);
         if (packet.instanceId != null) {
             buffer.writeUUID(packet.instanceId);
         }
-        buffer.writeItem(packet.storedMainhandStack);
+        ItemStack.OPTIONAL_STREAM_CODEC.encode(buffer, packet.storedMainhandStack);
         buffer.writeInt(packet.powerLevel);
     }
 
-    public static SyncBoundBowStatePacket decode(FriendlyByteBuf buffer) {
+    public static SyncBoundBowStatePacket decode(RegistryFriendlyByteBuf buffer) {
         var active = buffer.readBoolean();
         UUID instanceId = buffer.readBoolean() ? buffer.readUUID() : null;
-        var storedMainhandStack = buffer.readItem();
+        var storedMainhandStack = ItemStack.OPTIONAL_STREAM_CODEC.decode(buffer);
         var powerLevel = buffer.readInt();
         return new SyncBoundBowStatePacket(active, instanceId, storedMainhandStack, powerLevel);
     }
 
-    public static void handle(SyncBoundBowStatePacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
-        var context = contextSupplier.get();
-        context.enqueueWork(() ->
-                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientHandler.handle(packet))
-        );
-        context.setPacketHandled(true);
+    public static void handle(SyncBoundBowStatePacket packet, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (FMLEnvironment.dist == Dist.CLIENT) {
+                ClientHandler.handle(packet);
+            }
+        });
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -65,7 +79,7 @@ public class SyncBoundBowStatePacket {
                 return;
             }
 
-            player.getCapability(Capabilities.SPELL_DATA).ifPresent(data ->
+            Capabilities.getSpellData(player).ifPresent(data ->
                     data.edit(CodexSpellStateTypeRegister.BOUND_BOW_STATE, state -> {
                         state.active = packet.active;
                         state.setInstanceId(packet.instanceId);
