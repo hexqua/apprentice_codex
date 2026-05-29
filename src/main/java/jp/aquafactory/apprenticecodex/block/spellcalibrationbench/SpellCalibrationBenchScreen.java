@@ -26,9 +26,22 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/gui/spell_calibration_bench.png");
     private static final int DISABLED_SLOT_U = 176;
     private static final int DISABLED_SLOT_V = 0;
+    private static final int RESTRICTED_SLOT_U = 192;
+    private static final int RESTRICTED_SLOT_V = 0;
+    private static final int BLOCKED_SLOT_U = 177;
+    private static final int BLOCKED_SLOT_V = 16;
+    private static final int BLOCKED_SLOT_SIZE = 15;
     private static final int SLOT_SIZE = 16;
     private static final int SLOT_SPACING = 18;
     private static final int SCROLL_COLUMNS = 5;
+    private static final Component DEFAULT_SPELL_HINT =
+            Component.translatable("ui.apprenticecodex.spell_calibration_bench.hint_default_spell");
+    private static final Component CANT_REMOVE_NOT_ALLOW =
+            Component.translatable("ui.apprenticecodex.spell_calibration_bench.cant_remove_not_allow");
+    private static final Component CANT_IMBUE_UNSUPPORTED_EQUIPMENT =
+            Component.translatable("ui.apprenticecodex.spell_calibration_bench.cant_imbue_unsupported_equipment");
+    private static final Component WARNING_RESTRICT_IMBUE_CONDITION =
+            Component.translatable("ui.apprenticecodex.spell_calibration_bench.warning_restrict_imbue_condition");
     private static final Component SCROLL_LABEL =
             Component.translatable("container.apprenticecodex.spell_calibration_bench.scroll_label");
     private static final Component SLOT_UPGRADE_GROUP =
@@ -58,8 +71,10 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
     @Override
     protected void renderBg(@NotNull GuiGraphics gui, float partialTicks, int mouseX, int mouseY) {
         gui.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        renderRestrictedSlotWarnings(gui);
         renderLockedPreviewScrolls(gui);
         renderDisabledSlotOverlays(gui);
+        renderUnsupportedImbueOverlays(gui);
     }
 
     @Override
@@ -80,6 +95,29 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
                     )
                     : Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.unable_scroll_slot.scroll");
             gui.renderTooltip(font, tooltip, mouseX, mouseY);
+            return;
+        }
+
+        var unsupportedSlot = findHoveredUnsupportedImbueSlot(mouseX, mouseY);
+        if (unsupportedSlot >= 0) {
+            var tooltip = menu.hasTargetSpellAt(unsupportedSlot)
+                    ? CANT_REMOVE_NOT_ALLOW
+                    : CANT_IMBUE_UNSUPPORTED_EQUIPMENT;
+            gui.renderTooltip(font, tooltip, mouseX, mouseY);
+            return;
+        }
+
+        if (findHoveredLockedPreviewScrollSlot(mouseX, mouseY) >= 0) {
+            gui.renderTooltip(font, DEFAULT_SPELL_HINT, mouseX, mouseY);
+            return;
+        }
+
+        var restrictedSlot = findHoveredRestrictedSlot(mouseX, mouseY);
+        if (restrictedSlot >= 0) {
+            var tooltip = new ArrayList<Component>();
+            tooltip.add(WARNING_RESTRICT_IMBUE_CONDITION);
+            tooltip.addAll(menu.getImbueRestrictionTooltipLines());
+            gui.renderComponentTooltip(font, tooltip, mouseX, mouseY);
             return;
         }
 
@@ -118,6 +156,44 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
         gui.blit(TEXTURE, leftPos + x, topPos + y, DISABLED_SLOT_U, DISABLED_SLOT_V, SLOT_SIZE, SLOT_SIZE);
     }
 
+    private void renderRestrictedSlotWarnings(GuiGraphics gui) {
+        if (menu.getImbueRestrictionTooltipLines().isEmpty()) {
+            return;
+        }
+
+        for (var slot = 0; slot < ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOT_COUNT; ++slot) {
+            if (!isRestrictedWarningSlot(slot)) {
+                continue;
+            }
+            renderRestrictedSlotWarning(
+                    gui,
+                    SpellCalibrationBenchMenu.SCROLL_SLOT_X + slot % SCROLL_COLUMNS * SLOT_SPACING,
+                    SpellCalibrationBenchMenu.SCROLL_SLOT_Y + slot / SCROLL_COLUMNS * SLOT_SPACING
+            );
+        }
+    }
+
+    private void renderRestrictedSlotWarning(GuiGraphics gui, int x, int y) {
+        gui.blit(TEXTURE, leftPos + x, topPos + y, RESTRICTED_SLOT_U, RESTRICTED_SLOT_V, SLOT_SIZE, SLOT_SIZE);
+    }
+
+    private void renderUnsupportedImbueOverlays(GuiGraphics gui) {
+        for (var slot = 0; slot < ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOT_COUNT; ++slot) {
+            if (!menu.shouldRenderUnsupportedImbueOverlay(slot)) {
+                continue;
+            }
+            renderUnsupportedImbueOverlay(
+                    gui,
+                    SpellCalibrationBenchMenu.SCROLL_SLOT_X + slot % SCROLL_COLUMNS * SLOT_SPACING,
+                    SpellCalibrationBenchMenu.SCROLL_SLOT_Y + slot / SCROLL_COLUMNS * SLOT_SPACING
+            );
+        }
+    }
+
+    private void renderUnsupportedImbueOverlay(GuiGraphics gui, int x, int y) {
+        gui.blit(TEXTURE, leftPos + x, topPos + y, BLOCKED_SLOT_U, BLOCKED_SLOT_V, BLOCKED_SLOT_SIZE, BLOCKED_SLOT_SIZE);
+    }
+
     private void renderLockedPreviewScrolls(GuiGraphics gui) {
         RenderSystem.enableBlend();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 0.45F);
@@ -154,6 +230,56 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
             }
         }
         return -1;
+    }
+
+    private int findHoveredUnsupportedImbueSlot(int mouseX, int mouseY) {
+        for (var slot = 0; slot < ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOT_COUNT; ++slot) {
+            if (!menu.shouldRenderUnsupportedImbueOverlay(slot) || !isHoveringScrollSlot(slot, mouseX, mouseY)) {
+                continue;
+            }
+            return slot;
+        }
+        return -1;
+    }
+
+    private int findHoveredLockedPreviewScrollSlot(int mouseX, int mouseY) {
+        if (!menu.getImbueRestrictionTooltipLines().isEmpty()) {
+            return -1;
+        }
+
+        for (var slot = 0; slot < ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOT_COUNT; ++slot) {
+            if (menu.getLockedPreviewScrollItem(slot).isEmpty() || !isHoveringScrollSlot(slot, mouseX, mouseY)) {
+                continue;
+            }
+            return slot;
+        }
+        return -1;
+    }
+
+    private int findHoveredRestrictedSlot(int mouseX, int mouseY) {
+        if (menu.getImbueRestrictionTooltipLines().isEmpty()) {
+            return -1;
+        }
+
+        for (var slot = 0; slot < ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOT_COUNT; ++slot) {
+            if (!isRestrictedWarningSlot(slot) || !isHoveringScrollSlot(slot, mouseX, mouseY)) {
+                continue;
+            }
+            return slot;
+        }
+        return -1;
+    }
+
+    private boolean isRestrictedWarningSlot(int slot) {
+        return menu.isScrollSlotEnabled(slot)
+                && menu.getScrollItem(slot).isEmpty();
+    }
+
+    private boolean isHoveringScrollSlot(int slot, int mouseX, int mouseY) {
+        var slotX = leftPos + SpellCalibrationBenchMenu.SCROLL_SLOT_X + slot % SCROLL_COLUMNS * SLOT_SPACING;
+        var slotY = topPos + SpellCalibrationBenchMenu.SCROLL_SLOT_Y + slot / SCROLL_COLUMNS * SLOT_SPACING;
+        return mouseX >= slotX && mouseX < slotX + SLOT_SIZE
+                && mouseY >= slotY && mouseY < slotY + SLOT_SIZE;
     }
 
     private int findHoveredEmptyAdjustmentSlot(int mouseX, int mouseY) {

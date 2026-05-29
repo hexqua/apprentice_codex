@@ -779,6 +779,11 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return translatedLines;
     }
 
+    @Override
+    public final List<Component> getImbueRestrictionTooltipLines() {
+        return collectSpellGunRestrictTooltipSection();
+    }
+
     private void appendSpellGunAmmoTooltipSection(
             ItemStack stack,
             List<Component> lines,

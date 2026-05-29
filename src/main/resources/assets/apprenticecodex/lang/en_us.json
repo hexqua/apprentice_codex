@@ -745,11 +745,10 @@
   "ui.apprenticecodex.multicast_echo_staff.cancel_by_item_change": "The staff to receive the echoing mana isn't in your hands!",
   "ui.apprenticecodex.spell_dispenser.creative_version.deny_open": "Only creative players or operators can open this Spell Dispenser.",
 
-  "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
-  "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "This item does not allow spell extraction",
-  "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_exist": "This item does not contain any spell",
-  "ui.apprenticecodex.spellcaster_workbench.warning_remove_not_allow": "Spells imbued into this item cannot be extracted later",
-  "ui.apprenticecodex.spellcaster_workbench.cant_imbue_unsupported_equipment": "This workbench does not support imbuing this item. Use an Arcane Anvil instead",
+  "ui.apprenticecodex.spell_calibration_bench.hint_default_spell": "Default imbued spells cannot be extracted",
+  "ui.apprenticecodex.spell_calibration_bench.cant_remove_not_allow": "Scrolls cannot be extracted from this item",
+  "ui.apprenticecodex.spell_calibration_bench.cant_imbue_unsupported_equipment": "Use an Arcane Anvil to imbue this item",
+  "ui.apprenticecodex.spell_calibration_bench.warning_restrict_imbue_condition": "Only scrolls matching these conditions can be imbued",
   "ui.apprenticecodex.spellcaster_workbench.warning_max_slot_reached": "This item has already been upgraded to its maximum",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",

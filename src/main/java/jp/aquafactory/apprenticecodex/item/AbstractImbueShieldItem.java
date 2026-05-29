@@ -361,4 +361,9 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
         ImbueTooltipHelper.appendNoRecastRestrictionLine(translatedLines, true);
         return translatedLines;
     }
+
+    @Override
+    public List<Component> getImbueRestrictionTooltipLines() {
+        return collectRestrictTooltipSection();
+    }
 }

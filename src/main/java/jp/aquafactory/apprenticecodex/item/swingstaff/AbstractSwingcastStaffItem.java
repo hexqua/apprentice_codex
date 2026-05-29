@@ -408,6 +408,11 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
         return translatedLines;
     }
 
+    @Override
+    public List<Component> getImbueRestrictionTooltipLines() {
+        return collectSwingcastRestrictTooltipSection();
+    }
+
     private static AbstractRightClickMagicWeaponItem.AttributeBonus toAttributeBonus(SwingcastStaffTier.BonusSpec bonusSpec) {
         return bonus(
                 bonusSpec.attributeSupplier(),
