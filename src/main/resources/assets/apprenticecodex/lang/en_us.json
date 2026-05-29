@@ -306,6 +306,7 @@
   "jei.apprenticecodex.spellstained_runic_tablet.desc_4": "- Spell power for the inscribed scrolls' schools increases based on rarity.",
   "jei.apprenticecodex.spellstained_runic_tablet.desc_5": "- Inscribing scrolls from many schools reduces cooldown.",
   "jei.apprenticecodex.spellstained_runic_tablet.desc_6": "- Inscribing many scrolls from the same school reduces cast time based on the highest count.",
+  "jei.apprenticecodex.spellstained_runic_tablet.desc_7": "By default, school spell power totals only apply when they reach +5% or -5%.",
   "jei.apprenticecodex.archivists_grimoire.desc_1": "A spellbook that accepts scrolls when used in hand, instead of being inscribed at an Inscription Table.",
   "jei.apprenticecodex.archivists_grimoire.desc_2": "Not every stored spell can be used at once; only up to 9 slots, the same as one inventory row, are available at a time.",
   "jei.apprenticecodex.archivists_grimoire.desc_3": "With the spell selection screen open, use the mouse wheel to switch which inventory row is active.",
