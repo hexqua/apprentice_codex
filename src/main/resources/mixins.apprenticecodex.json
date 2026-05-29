@@ -37,6 +37,7 @@
     "PlayerRemoteOwnerCastMixin",
     "PlayerRecastsMixin",
     "RecastInstanceAccessor",
+    "ServerGamePacketListenerImplBoundSwordMixin",
     "SinglePoolElementAccessor",
     "SpectralHammerMixin",
     "StructureTemplatePoolAccessor",
@@ -59,8 +60,10 @@
     "MinecraftMixin",
     "EntityMixin",
     "GuiGraphicsItemInventoryOverlayMixin",
+    "ItemRendererBoundWeaponGlintMixin",
     "ItemRendererClientItemRenderContextMixin",
     "QuickCastPacketAccessor",
+    "RenderBuffersBoundSwordGlintMixin",
     "SpellWheelOverlayMixin",
     "TooltipsUtilsMixin"
   ],

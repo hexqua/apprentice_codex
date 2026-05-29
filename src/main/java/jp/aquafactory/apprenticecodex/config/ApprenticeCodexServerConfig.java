@@ -951,6 +951,28 @@ public final class ApprenticeCodexServerConfig {
         return SPELLS_CONFIG.autoMagnetDisableCollectManaCost();
     }
 
+    public static int boundBowMaxPowerEnchantmentLevel() {
+        return SPELLS_CONFIG.boundBowMaxPowerEnchantmentLevel();
+    }
+
+    public static float boundBowForgeArrowManaCost() {
+        return SPELLS_CONFIG.boundBowForgeArrowManaCost();
+    }
+
+    public static GameTestConfigOverride useBoundBowConfigOverrideForGameTest(
+            int maxPowerEnchantmentLevel,
+            float forgeArrowManaCost
+    ) {
+        var previousMaxPowerEnchantmentLevel = SPELLS_CONFIG.boundBowMaxPowerEnchantmentLevel();
+        var previousForgeArrowManaCost = SPELLS_CONFIG.boundBowForgeArrowManaCost();
+
+        SPELLS_CONFIG.setBoundBowConfigForGameTest(maxPowerEnchantmentLevel, forgeArrowManaCost);
+        return () -> SPELLS_CONFIG.setBoundBowConfigForGameTest(
+                previousMaxPowerEnchantmentLevel,
+                previousForgeArrowManaCost
+        );
+    }
+
     public static boolean isDemicreatorWingsDimensionAllowed(ResourceLocation dimensionId) {
         return SPELLS_CONFIG.isDemicreatorWingsDimensionAllowed(dimensionId);
     }
