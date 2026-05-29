@@ -5,12 +5,15 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprenticeCodexRecipeCategory<SpellcasterWorkbenchRecipe> {
+    private static final Component ARCHIVISTS_GRIMOIRE_UPGRADE_HINT =
+            Component.translatable("jei.apprenticecodex.archivists_grimoire.upgrade_hint");
     private static final int WIDTH = 134;
-    private static final int HEIGHT = 44;
+    private static final int HEIGHT = 56;
     private static final int[][] INPUT_POSITIONS = {
             {4, 5},
             {24, 15},
@@ -67,5 +70,15 @@ public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprentice
             double mouseY
     ) {
         recipeArrow.draw(guiGraphics, ARROW_X, ARROW_Y);
+        if (isArchivistsGrimoireRowUpgradeRecipe(recipe)) {
+            drawLabel(guiGraphics, ARCHIVISTS_GRIMOIRE_UPGRADE_HINT, 74, 36);
+        }
+    }
+
+    private static boolean isArchivistsGrimoireRowUpgradeRecipe(SpellcasterWorkbenchRecipe recipe) {
+        var outputs = recipe.getResultTemplates();
+        return outputs.size() == 1
+                && outputs.getFirst().is(ItemRegistry.ARCHIVISTS_GRIMOIRE.get())
+                && recipe.getSizedIngredients().size() == SpellcasterWorkbenchRecipe.INPUT_SLOT_COUNT;
     }
 }

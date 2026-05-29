@@ -500,6 +500,12 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 net.minecraft.world.item.Items.ENCHANTED_BOOK
         );
         tag(TagRegistry.Items.SCROLLCASTER_GAUNTLET_SCHOOL_RUNE_DENYLIST);
+        tag(TagRegistry.Items.ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_CATALYSTS).add(
+                io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()
+        );
+        tag(TagRegistry.Items.ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_MATERIALS).add(
+                io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()
+        );
 
         // 魔法召喚武器はダミー用途のため、JEIなどのレシピビューアから除外する.
         tag(HIDDEN_FROM_RECIPE_VIEWERS).add(

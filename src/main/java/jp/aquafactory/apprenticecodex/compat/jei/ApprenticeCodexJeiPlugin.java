@@ -4,11 +4,14 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.potion.SchoolAffinityPotion;
+import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityPotionBrewing;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
@@ -30,6 +33,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.SmithingRecipe;
 import org.jetbrains.annotations.NotNull;
@@ -201,9 +205,7 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         );
         registration.addRecipes(
                 ApprenticeCodexJeiRecipeTypes.SPELLCASTER_WORKBENCH,
-                recipeManager.getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get()).stream()
-                        .map(net.minecraft.world.item.crafting.RecipeHolder::value)
-                        .toList()
+                collectSpellcasterWorkbenchJeiRecipes(recipeManager)
         );
         registration.addRecipes(
                 RecipeTypes.SMITHING,
@@ -211,6 +213,30 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                         .filter(recipe -> recipe.value() instanceof jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe
                                 || recipe.value() instanceof jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe)
                         .toList()
+        );
+    }
+
+    private static List<SpellcasterWorkbenchRecipe> collectSpellcasterWorkbenchJeiRecipes(RecipeManager recipeManager) {
+        var recipes = new ArrayList<SpellcasterWorkbenchRecipe>();
+        for (var recipe : recipeManager.getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get())) {
+            recipes.add(recipe.value());
+        }
+        if (ApprenticeCodexServerConfig.archivistsGrimoireInitialRows()
+                < ApprenticeCodexServerConfig.archivistsGrimoireEffectiveMaxRows()) {
+            recipes.add(createArchivistsGrimoireUpgradeJeiRecipe());
+        }
+        return recipes;
+    }
+
+    private static SpellcasterWorkbenchRecipe createArchivistsGrimoireUpgradeJeiRecipe() {
+        return new SpellcasterWorkbenchRecipe(
+                List.of(
+                        new SpellcasterWorkbenchRecipe.SizedIngredient(Ingredient.of(ItemRegistry.ARCHIVISTS_GRIMOIRE.get()), 1),
+                        new SpellcasterWorkbenchRecipe.SizedIngredient(Ingredient.of(TagRegistry.Items.ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_CATALYSTS), 1),
+                        new SpellcasterWorkbenchRecipe.SizedIngredient(Ingredient.of(TagRegistry.Items.ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_MATERIALS), 1)
+                ),
+                List.of(new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get())),
+                -10
         );
     }
 

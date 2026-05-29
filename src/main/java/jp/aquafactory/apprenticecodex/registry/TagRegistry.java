@@ -66,6 +66,10 @@ public final class TagRegistry {
                 createItemTag("scrollcaster_gauntlet_enchantment_books");
         public static final TagKey<Item> SCROLLCASTER_GAUNTLET_SCHOOL_RUNE_DENYLIST =
                 createItemTag("scrollcaster_gauntlet_school_rune_denylist");
+        public static final TagKey<Item> ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_CATALYSTS =
+                createItemTag("archivists_grimoire_row_upgrade_catalysts");
+        public static final TagKey<Item> ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_MATERIALS =
+                createItemTag("archivists_grimoire_row_upgrade_materials");
     }
 
     public static final class EntityTypes {

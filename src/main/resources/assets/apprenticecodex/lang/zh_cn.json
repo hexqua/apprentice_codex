@@ -224,6 +224,7 @@
   "item.apprenticecodex.special_spellbook.inscribe_hint": "手持该法术书即可添加卷轴，无需在铭文台铭刻。",
   "item.apprenticecodex.archivists_grimoire.tooltip.current_page": "当前页码：%1$d/%2$d",
   "item.apprenticecodex.archivists_grimoire.tooltip.other_scroll_count": "其他页码卷轴数量：%d",
+  "item.apprenticecodex.archivists_grimoire.tooltip.warning_legacy_slot": "不可用槽位中设置了卷轴",
   "item.apprenticecodex.reflectcast_shield.hint": "可瞬发释放。",
   "item.apprenticecodex.reflectcast_shield.cast_hint": "释放后立即格挡攻击时，会释放注入的法术。",
   "item.apprenticecodex.multipurpose_staffrifle.desc_1": "按[%1$s]射击施放所选法术。",
@@ -304,6 +305,7 @@
   "jei.apprenticecodex.archivists_grimoire.desc_1": "手持该法术书即可添加卷轴，无需在铭文台铭刻。",
   "jei.apprenticecodex.archivists_grimoire.desc_2": "并非所有存储的法术都可同时使用，每次仅能使用最多9个槽位（相当于一行物品栏）。",
   "jei.apprenticecodex.archivists_grimoire.desc_3": "打开法术选择界面后，可通过鼠标滚轮切换激活的物品栏行。",
+  "jei.apprenticecodex.archivists_grimoire.desc_4": "初始状态下可用的物品栏区域受到限制，需要在施法工作台进行扩展。",
   "jei.apprenticecodex.focus_staffbow.desc_1": "主手使用可蓄力后释放法术。",
   "jei.apprenticecodex.focus_staffbow.desc_2": "法术最多可蓄力3倍（持续施法类法术为2倍），但魔力消耗会急剧增加。",
   "jei.apprenticecodex.focus_staffbow.desc_3": "即使魔力不足也可释放，但法杖会持续抽取魔力直至补足欠款，期间无法使用蓄力施法。",
@@ -332,6 +334,8 @@
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_6": "- 学派符文：将法术强度加成从全属性改为对应学派专精。",
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_7": "- 附魔书类物品：将物品中最上方列出的附魔应用到臂铠。",
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_8": "互斥附魔同时存在时只会应用一个；可应用于剑、镐或魔法施法辅助具的附魔可以生效。",
+
+  "jei.apprenticecodex.archivists_grimoire.upgrade_hint": "槽位数增加9",
 
   "enchantment.apprenticecodex.reflux": "回流",
   "enchantment.apprenticecodex.reservoir": "蓄能",
@@ -450,6 +454,8 @@
   "container.apprenticecodex.atelier_station.fluid.count": "（剩余%d次使用次数）",
   "container.apprenticecodex.companion_trunk.default": "伙伴箱",
   "container.apprenticecodex.archivists_grimoire.default": "档案管理员魔导书",
+  "container.apprenticecodex.archivists_grimoire.tooltip.unable_scroll_slot.empty": "需要在施法工作台扩展后才能使用",
+  "container.apprenticecodex.archivists_grimoire.tooltip.unable_scroll_slot.scroll": "该槽位中的卷轴当前不可使用",
   "container.apprenticecodex.spell_calibration_bench": "法术校准台",
   "container.apprenticecodex.spell_calibration_bench.scroll_label": "卷轴槽位",
   "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_title": "可放入以下物品：",
@@ -731,6 +737,7 @@
  "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_exist": "该物品未包含任何法术",
  "ui.apprenticecodex.spellcaster_workbench.warning_remove_not_allow": "注入该物品的法术后续无法提取",
  "ui.apprenticecodex.spellcaster_workbench.cant_imbue_unsupported_equipment": "该工作台不支持为该物品注入法术，请使用奥术铁砧",
+ "ui.apprenticecodex.spellcaster_workbench.warning_max_slot_reached": "该物品已扩展至最大",
 
  "effect.apprenticecodex.arcane_charge": "奥术充能",
  "effect.apprenticecodex.casting_mobility": "施法机动",

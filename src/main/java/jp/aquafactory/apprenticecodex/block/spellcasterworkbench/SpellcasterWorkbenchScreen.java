@@ -29,6 +29,8 @@ public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<Sp
                     .withStyle(ChatFormatting.RED);
     private static final Component CANT_IMBUE_UNSUPPORTED_EQUIPMENT_TOOLTIP =
             Component.translatable("ui.apprenticecodex.spellcaster_workbench.cant_imbue_unsupported_equipment");
+    private static final Component WARNING_MAX_SLOT_REACHED_TOOLTIP =
+            Component.translatable("ui.apprenticecodex.spellcaster_workbench.warning_max_slot_reached");
     private static final int ICON_GRID_X = 121;
     private static final int ICON_GRID_Y = 16;
     private static final int ICON_COLUMNS = 2;
@@ -120,6 +122,11 @@ public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<Sp
 
             if (menu.isBlockedByUnsupportedWorkbenchImbue()) {
                 gui.renderTooltip(font, CANT_IMBUE_UNSUPPORTED_EQUIPMENT_TOOLTIP, mouseX, mouseY);
+                return;
+            }
+
+            if (menu.isBlockedByArchivistsGrimoireMaxSlotReached()) {
+                gui.renderTooltip(font, WARNING_MAX_SLOT_REACHED_TOOLTIP, mouseX, mouseY);
             }
         }
     }

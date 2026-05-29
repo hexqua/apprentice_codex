@@ -11,6 +11,7 @@ import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -52,6 +53,7 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.archivists_grimoire.desc_";
     private static final String INVENTORY_TAG = ApprenticeCodex.MODID + ":archivists_grimoire_inventory";
     private static final String SELECTED_ROW_TAG = ApprenticeCodex.MODID + ":archivists_grimoire_selected_row";
+    private static final String UPGRADE_COUNT_TAG = ApprenticeCodex.MODID + ":archivists_grimoire_upgrade_count";
     private static final String DEFAULT_CONTAINER_KEY = "container.apprenticecodex.archivists_grimoire.default";
     private static final AttributeContainer[] SPELLBOOK_ATTRIBUTES = {
             new AttributeContainer(
@@ -110,11 +112,11 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
         if (!tag.contains(SELECTED_ROW_TAG, Tag.TAG_INT)) {
             return 0;
         }
-        return Math.floorMod(tag.getInt(SELECTED_ROW_TAG), ROW_COUNT);
+        return Math.floorMod(tag.getInt(SELECTED_ROW_TAG), getUnlockedRowCount(stack));
     }
 
     public static int setSelectedRow(ItemStack stack, int row) {
-        var selectedRow = Math.floorMod(row, ROW_COUNT);
+        var selectedRow = Math.floorMod(row, getUnlockedRowCount(stack));
         CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putInt(SELECTED_ROW_TAG, selectedRow));
         return selectedRow;
     }
@@ -130,7 +132,8 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
             return true;
         }
 
-        for (var row = 0; row < ROW_COUNT; ++row) {
+        var unlockedRows = getUnlockedRowCount(stack);
+        for (var row = 0; row < unlockedRows; ++row) {
             if (hasScrollInRow(inventory, row)) {
                 setSelectedRow(stack, row);
                 return true;
@@ -145,8 +148,9 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
         }
 
         var inventory = new ScrollInventory(stack, registries);
-        for (var offset = 1; offset <= ROW_COUNT; ++offset) {
-            var row = Math.floorMod(getSelectedRow(stack) + delta * offset, ROW_COUNT);
+        var unlockedRows = getUnlockedRowCount(stack);
+        for (var offset = 1; offset <= unlockedRows; ++offset) {
+            var row = Math.floorMod(getSelectedRow(stack) + delta * offset, unlockedRows);
             if (hasScrollInRow(inventory, row)) {
                 setSelectedRow(stack, row);
                 return true;
@@ -157,6 +161,10 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
 
     public static SpellData getVisibleSpell(ItemStack grimoireStack, int visibleSlot, HolderLookup.Provider registries) {
         if (visibleSlot < 0 || visibleSlot >= COLUMN_COUNT) {
+            return SpellData.EMPTY;
+        }
+
+        if (!isRowEnabled(grimoireStack, getSelectedRow(grimoireStack))) {
             return SpellData.EMPTY;
         }
 
@@ -195,12 +203,13 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
         var selectedRow = getSelectedRow(itemStack);
         var visibleSpells = getVisibleSpells(itemStack, selectedRow, registries);
         var otherScrollCount = countScrollsOutsideRow(itemStack, selectedRow, registries);
+        var unlockedRows = getUnlockedRowCount(itemStack);
 
-        lines.add(Component.translatable("tooltip.irons_spellbooks.spellbook_spell_count", SLOT_COUNT).withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable("tooltip.irons_spellbooks.spellbook_spell_count", unlockedRows * COLUMN_COUNT).withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable(
                         "item.apprenticecodex.archivists_grimoire.tooltip.current_page",
                         selectedRow + 1,
-                        ROW_COUNT)
+                        unlockedRows)
                 .withStyle(ChatFormatting.GRAY));
         if (!hasStoredSpell(itemStack, registries)) {
             lines.add(Component.translatable("item.apprenticecodex.special_spellbook.inscribe_hint").withStyle(ChatFormatting.GRAY));
@@ -216,6 +225,10 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
                             "item.apprenticecodex.archivists_grimoire.tooltip.other_scroll_count",
                             otherScrollCount)
                     .withStyle(ChatFormatting.GRAY));
+            if (hasScrollInLockedSlot(itemStack, registries)) {
+                lines.add(Component.translatable("item.apprenticecodex.archivists_grimoire.tooltip.warning_legacy_slot")
+                        .withStyle(ChatFormatting.YELLOW));
+            }
         }
 
         super.appendHoverText(itemStack, context, lines, flag);
@@ -223,8 +236,12 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
 
     private static List<VisibleSpell> getVisibleSpells(ItemStack grimoireStack, int selectedRow, HolderLookup.Provider registries) {
         var visibleSpells = new ArrayList<VisibleSpell>();
+        if (!isRowEnabled(grimoireStack, selectedRow)) {
+            return visibleSpells;
+        }
+
         var inventory = new ScrollInventory(grimoireStack, registries);
-        var startSlot = Math.floorMod(selectedRow, ROW_COUNT) * COLUMN_COUNT;
+        var startSlot = Math.floorMod(selectedRow, getUnlockedRowCount(grimoireStack)) * COLUMN_COUNT;
         for (var visibleSlot = 0; visibleSlot < COLUMN_COUNT; ++visibleSlot) {
             var spellData = getSpellData(inventory.getStackInSlot(startSlot + visibleSlot));
             if (spellData != SpellData.EMPTY) {
@@ -274,6 +291,68 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
 
     static boolean isScroll(ItemStack stack) {
         return stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+    }
+
+    public static int getUpgradeCount(ItemStack stack) {
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return 0;
+        }
+
+        var tag = customData.copyTag();
+        if (!tag.contains(UPGRADE_COUNT_TAG, Tag.TAG_INT)) {
+            return 0;
+        }
+        return Math.max(0, tag.getInt(UPGRADE_COUNT_TAG));
+    }
+
+    public static void setUpgradeCount(ItemStack stack, int upgradeCount) {
+        var sanitizedCount = Math.max(0, upgradeCount);
+        if (sanitizedCount == 0) {
+            CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.remove(UPGRADE_COUNT_TAG));
+            return;
+        }
+
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putInt(UPGRADE_COUNT_TAG, sanitizedCount));
+    }
+
+    public static int getUnlockedRowCount(ItemStack stack) {
+        var initialRows = ApprenticeCodexServerConfig.archivistsGrimoireInitialRows();
+        var maxRows = ApprenticeCodexServerConfig.archivistsGrimoireEffectiveMaxRows();
+        return Math.max(1, Math.min(maxRows, initialRows + getUpgradeCount(stack)));
+    }
+
+    public static boolean isRowEnabled(ItemStack stack, int row) {
+        return row >= 0 && row < getUnlockedRowCount(stack);
+    }
+
+    public static boolean isSlotEnabled(ItemStack stack, int slot) {
+        return slot >= 0 && slot < getUnlockedRowCount(stack) * COLUMN_COUNT;
+    }
+
+    public static boolean canUpgrade(ItemStack stack) {
+        return getUnlockedRowCount(stack) < ApprenticeCodexServerConfig.archivistsGrimoireEffectiveMaxRows();
+    }
+
+    public static ItemStack createUpgradeResult(ItemStack stack) {
+        if (stack.isEmpty() || !(stack.getItem() instanceof ArchivistsGrimoire) || !canUpgrade(stack)) {
+            return ItemStack.EMPTY;
+        }
+
+        var resultStack = stack.copy();
+        resultStack.setCount(1);
+        setUpgradeCount(resultStack, getUpgradeCount(resultStack) + 1);
+        return resultStack;
+    }
+
+    public static boolean hasScrollInLockedSlot(ItemStack grimoireStack, HolderLookup.Provider registries) {
+        var inventory = new ScrollInventory(grimoireStack, registries);
+        for (var slot = getUnlockedRowCount(grimoireStack) * COLUMN_COUNT; slot < SLOT_COUNT; ++slot) {
+            if (isScroll(inventory.getStackInSlot(slot))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean hasScrollInRow(ScrollInventory inventory, int row) {
