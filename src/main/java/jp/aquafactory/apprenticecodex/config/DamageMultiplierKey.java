@@ -33,7 +33,8 @@ public enum DamageMultiplierKey {
     TIRO_VOLLEY("tiroVolley"),
     MAGIC_SPEAR("magicSpear"),
     FROST_RUNE("frostRune"),
-    MYSTIC_SHIELD("mysticShield")
+    MYSTIC_SHIELD("mysticShield"),
+    BOUND_SWORD("boundSword"),
     ;
 
     private final String configKey;

@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.capability.codexspelldata;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.AssistWingsState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.AbsorptionAmplifyAmuletState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.AutoMagnetState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.BoundBowState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.BoundSwordState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.CompanionTrunkState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.DemicreatorWingsState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FeatherRushState;
@@ -23,6 +25,8 @@ public final class CodexSpellStateTypeRegister {
     public static CodexSpellStateType<AbsorptionAmplifyAmuletState> ABSORPTION_AMPLIFY_AMULET_STATE;
     public static CodexSpellStateType<AssistWingsState> ASSIST_WINGS_STATE;
     public static CodexSpellStateType<AutoMagnetState> AUTO_MAGNET_STATE;
+    public static CodexSpellStateType<BoundBowState> BOUND_BOW_STATE;
+    public static CodexSpellStateType<BoundSwordState> BOUND_SWORD_STATE;
     public static CodexSpellStateType<CompanionTrunkState> COMPANION_TRUNK_STATE;
     public static CodexSpellStateType<DemicreatorWingsState> DEMICREATOR_WINGS_STATE;
     public static CodexSpellStateType<FeatherRushState> FEATHER_RUSH_STATE;
@@ -41,6 +45,8 @@ public final class CodexSpellStateTypeRegister {
         ABSORPTION_AMPLIFY_AMULET_STATE = CodexSpellStates.register("absorption_amplify_amulet", AbsorptionAmplifyAmuletState::new);
         ASSIST_WINGS_STATE = CodexSpellStates.register("assist_wings", AssistWingsState::new);
         AUTO_MAGNET_STATE = CodexSpellStates.register("auto_magnet", AutoMagnetState::new);
+        BOUND_BOW_STATE = CodexSpellStates.register("bound_bow", BoundBowState::new);
+        BOUND_SWORD_STATE = CodexSpellStates.register("bound_sword", BoundSwordState::new);
         COMPANION_TRUNK_STATE = CodexSpellStates.register("companion_trunk", CompanionTrunkState::new);
         DEMICREATOR_WINGS_STATE = CodexSpellStates.register("demicreator_wings", DemicreatorWingsState::new);
         FEATHER_RUSH_STATE = CodexSpellStates.register("feather_rush", FeatherRushState::new);

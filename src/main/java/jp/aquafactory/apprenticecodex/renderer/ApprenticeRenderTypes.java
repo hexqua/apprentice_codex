@@ -2,13 +2,57 @@ package jp.aquafactory.apprenticecodex.renderer;
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 
 public class ApprenticeRenderTypes extends RenderStateShard {
+    private static final ResourceLocation BOUND_SPELL_WEAPON_GLINT_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/bound_spell_weapon_glint.png");
+    private static final RenderType BOUND_SPELL_WEAPON_GLINT = createBoundSpellWeaponGlint(
+            "bound_spell_weapon_glint",
+            RenderStateShard.RENDERTYPE_GLINT_SHADER,
+            RenderStateShard.GLINT_TEXTURING
+    );
+    private static final RenderType BOUND_SPELL_WEAPON_GLINT_DIRECT = createBoundSpellWeaponGlint(
+            "bound_spell_weapon_glint_direct",
+            RenderStateShard.RENDERTYPE_ENTITY_GLINT_DIRECT_SHADER,
+            RenderStateShard.ENTITY_GLINT_TEXTURING
+    );
+
     public ApprenticeRenderTypes(String pName, Runnable pSetupState, Runnable pClearState) {
         super(pName, pSetupState, pClearState);
+    }
+
+    public static RenderType boundSpellWeaponGlint() {
+        return BOUND_SPELL_WEAPON_GLINT;
+    }
+
+    public static RenderType boundSpellWeaponGlintDirect() {
+        return BOUND_SPELL_WEAPON_GLINT_DIRECT;
+    }
+
+    private static RenderType createBoundSpellWeaponGlint(String renderTypeName,
+                                                          RenderStateShard.ShaderStateShard shaderState,
+                                                          RenderStateShard.TexturingStateShard texturingState) {
+        return RenderType.create(
+                renderTypeName,
+                DefaultVertexFormat.POSITION_TEX,
+                VertexFormat.Mode.QUADS,
+                1536,
+                false,
+                false,
+                RenderType.CompositeState.builder()
+                        .setShaderState(shaderState)
+                        .setTextureState(new RenderStateShard.TextureStateShard(BOUND_SPELL_WEAPON_GLINT_TEXTURE, true, false))
+                        .setWriteMaskState(RenderStateShard.COLOR_WRITE)
+                        .setCullState(RenderStateShard.NO_CULL)
+                        .setDepthTestState(RenderStateShard.EQUAL_DEPTH_TEST)
+                        .setTransparencyState(RenderStateShard.GLINT_TRANSPARENCY)
+                        .setTexturingState(texturingState)
+                        .createCompositeState(false)
+        );
     }
 
     public static RenderType beamNoCull(ResourceLocation tex) {
