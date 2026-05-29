@@ -6,11 +6,13 @@ import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import jp.aquafactory.apprenticecodex.utility.AdvancementTools;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -142,6 +144,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             slot.setChanged();
         }
         slot.onTake(player, stack);
+        if (stack.isEmpty() && isScrollMenuSlot(slotIndex)) {
+            awardImbueScrollExtraction(player, copy);
+        }
         return copy;
     }
 
@@ -285,6 +290,20 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         }
     }
 
+    private void awardImbueScrollExtraction(@NotNull Player player, @NotNull ItemStack extractedStack) {
+        if (hasGauntlet() || !isScroll(extractedStack) || !(player instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+
+        AdvancementTools.award(serverPlayer,
+                AdvancementTools.EXTRACT_SPELLCASTER_GUN_SCROLL,
+                AdvancementTools.EXTRACT_SPELLCASTER_GUN_SCROLL_CRITERION);
+    }
+
+    private static boolean isScrollMenuSlot(int slotIndex) {
+        return slotIndex >= SCROLL_SLOT_START && slotIndex < SCROLL_SLOT_END;
+    }
+
     private boolean hasSchoolRuneAdjustmentExcept(int excludedSlot) {
         for (var slot = 0; slot < ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
             if (slot == excludedSlot) {
@@ -424,8 +443,11 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             if (hasGauntlet()) {
                 return getScroll(slot);
             }
-            if (hasCalibrationTarget()) {
+            if (hasOperationalImbueTarget()) {
                 return SpellCalibrationImbueHelper.createScrollForSlot(getGauntletStack(), slot);
+            }
+            if (hasCalibrationTarget()) {
+                return ItemStack.EMPTY;
             }
             return fallbackItems.get(slot);
         }
@@ -554,7 +576,14 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPickup(@NotNull Player player) {
-            return hasCalibrationTarget() && (isScrollSlotEnabled(calibrationSlot) || hasGauntlet() && hasItem());
+            return hasGauntlet() && (isScrollSlotEnabled(calibrationSlot) || hasItem())
+                    || hasOperationalImbueTarget() && isScrollSlotEnabled(calibrationSlot);
+        }
+
+        @Override
+        public void onTake(@NotNull Player player, @NotNull ItemStack stack) {
+            awardImbueScrollExtraction(player, stack);
+            super.onTake(player, stack);
         }
 
         @Override

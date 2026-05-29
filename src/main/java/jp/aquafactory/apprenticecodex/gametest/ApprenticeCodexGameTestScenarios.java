@@ -5011,6 +5011,10 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Mana Force Blade should still be unsupported by Calibration Bench operations");
             helper.assertTrue(imbuedBladeMenu.hasTargetSpellAt(0),
                     "Imbued Mana Force Blade spell should be visible for unsupported slot hints");
+            helper.assertTrue(imbuedBladeMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).getItem().isEmpty(),
+                    "Unsupported Calibration Bench targets should not expose a real removable scroll");
+            helper.assertTrue(imbuedBladeMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).remove(1).isEmpty(),
+                    "Unsupported Calibration Bench targets should not allow scroll extraction");
 
             var emptyEnchantressRobe = new ItemStack(ItemRegistry.ENCHANTRESS_ROBE.get());
             helper.assertTrue(bladeMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(emptyEnchantressRobe),
@@ -5030,6 +5034,15 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(presetStaffMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START)
                             .mayPlace(createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())),
                     "Copper Swingcast Staff preset slot should accept a replacement scroll");
+            var uninitializedPresetStaff = new ItemStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get());
+            ISpellContainer.remove(uninitializedPresetStaff);
+            helper.assertFalse(ISpellContainer.isSpellContainer(uninitializedPresetStaff),
+                    "Prepared Copper Swingcast Staff test stack should not have spell_container");
+            helper.assertTrue(bladeMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(uninitializedPresetStaff),
+                    "Uninitialized preset spell containers should be accepted by Spell Calibration Bench");
+            createSpellCalibrationBenchMenuWithTarget(player, uninitializedPresetStaff);
+            helper.assertTrue(ISpellContainer.isSpellContainer(uninitializedPresetStaff),
+                    "Spell Calibration Bench should initialize accepted preset spell containers");
 
             var spellcastersFlaskMenu = createSpellcasterWorkbenchMenuWithSingleInput(
                     player,
@@ -5080,6 +5093,7 @@ public final class ApprenticeCodexGameTestScenarios {
             var removedScroll = twoSlotAmuletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).remove(1);
             helper.assertTrue(removedScroll.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
                     "Calibration Bench should return a scroll when removing an Autocast Amulet spell");
+            twoSlotAmuletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).onTake(player, removedScroll);
             var afterRemovalContainer = ISpellContainer.get(twoSlotAmulet);
             helper.assertTrue(afterRemovalContainer != null
                             && afterRemovalContainer.getSpellAtIndex(0) == SpellData.EMPTY

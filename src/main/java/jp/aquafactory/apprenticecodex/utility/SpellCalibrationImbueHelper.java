@@ -29,10 +29,18 @@ public final class SpellCalibrationImbueHelper {
     }
 
     public static boolean isVisibleImbueTarget(@NotNull ItemStack stack) {
-        return !stack.isEmpty()
-                && ISpellContainer.isSpellContainer(stack)
-                && Utils.canImbue(stack)
-                && !(stack.getItem() instanceof ArcaneAnvilImbueBlockItem);
+        if (stack.isEmpty() || stack.getItem() instanceof ArcaneAnvilImbueBlockItem) {
+            return false;
+        }
+
+        if (ISpellContainer.isSpellContainer(stack)) {
+            return Utils.canImbue(stack);
+        }
+
+        var probeStack = stack.copy();
+        probeStack.setCount(1);
+        prepareTarget(probeStack);
+        return ISpellContainer.isSpellContainer(probeStack) && Utils.canImbue(probeStack);
     }
 
     public static boolean isSupportedTarget(@NotNull ItemStack stack) {
