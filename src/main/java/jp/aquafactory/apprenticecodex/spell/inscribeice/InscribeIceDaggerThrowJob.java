@@ -25,6 +25,8 @@ public class InscribeIceDaggerThrowJob {
     private final float burstDamage;
     private final List<List<Integer>> releaseBuckets;
     private final long creationGameTime;
+    private final Vec3 fixedBasePosition;
+    private final Vec3 fixedForward;
     private int releaseTick;
     private long nextReleaseGameTime;
     private boolean complete;
@@ -37,6 +39,20 @@ public class InscribeIceDaggerThrowJob {
         releaseBuckets = createReleaseBuckets(projectileCount, level.random);
         creationGameTime = level.getGameTime();
         nextReleaseGameTime = creationGameTime;
+        fixedBasePosition = null;
+        fixedForward = null;
+    }
+
+    public InscribeIceDaggerThrowJob(ServerLevel level, LivingEntity caster, int projectileCount,
+                                     float damage, float burstDamage, Vec3 fixedBasePosition, Vec3 fixedForward) {
+        this.caster = caster;
+        this.damage = damage;
+        this.burstDamage = burstDamage;
+        releaseBuckets = createReleaseBuckets(projectileCount, level.random);
+        creationGameTime = level.getGameTime();
+        nextReleaseGameTime = creationGameTime;
+        this.fixedBasePosition = fixedBasePosition;
+        this.fixedForward = fixedForward.lengthSqr() > 1.0E-8D ? fixedForward.normalize() : new Vec3(0.0D, 0.0D, 1.0D);
     }
 
     public boolean isComplete() {
@@ -66,12 +82,14 @@ public class InscribeIceDaggerThrowJob {
             return;
         }
 
-        var forward = InscribeIce.getLookForward(caster);
+        var forward = fixedForward != null ? fixedForward : InscribeIce.getLookForward(caster);
         var right = InscribeIce.getRightVector(caster, forward);
         var up = right.cross(forward).normalize();
         var projectileCount = releaseBuckets.stream().mapToInt(List::size).sum();
         var arcDegrees = InscribeIce.getArcDegrees(projectileCount);
-        var basePosition = InscribeIce.calculateDaggerLaunchPosition(caster, forward);
+        var basePosition = fixedBasePosition != null
+                ? fixedBasePosition
+                : InscribeIce.calculateDaggerLaunchPosition(caster, forward);
 
         for (var index : releaseBuckets.get(releaseTick)) {
             spawnDagger(level, forward, right, up, basePosition, projectileCount, arcDegrees, index);

@@ -397,6 +397,10 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.FROST_RUNE),
                                         SpellDispenserSpellProfile.OWNER_OPTIONAL
+                                ),
+                                new SpellDispenserSpellProfileDefinition(
+                                        getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.INSCRIBE_ICE),
+                                        SpellDispenserSpellProfile.OWNER_OPTIONAL
                                 )
                         );
     }
