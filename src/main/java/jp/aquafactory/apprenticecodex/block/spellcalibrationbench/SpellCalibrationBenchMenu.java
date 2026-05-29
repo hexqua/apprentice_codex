@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -45,12 +46,15 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     private static final int HOTBAR_SLOT_START = PLAYER_INVENTORY_END;
     private static final int HOTBAR_SLOT_END = HOTBAR_SLOT_START + HOTBAR_SLOT_COUNT;
 
+    public static final int TARGET_MENU_SLOT = GAUNTLET_SLOT;
+    public static final int SCROLL_MENU_SLOT_START = SCROLL_SLOT_START;
+
     private final ContainerLevelAccess access;
     private final HolderLookup.Provider lookupProvider;
     private final ItemStackHandler gauntletInventory = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
-            refreshGauntletCalibration();
+            refreshTargetCalibration();
         }
     };
 
@@ -109,7 +113,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             if (!moveItemStackTo(stack, PLAYER_INVENTORY_START, HOTBAR_SLOT_END, true)) {
                 return ItemStack.EMPTY;
             }
-        } else if (isScrollcasterGauntlet(stack)) {
+        } else if (isCalibrationTarget(stack)) {
             if (!moveItemStackTo(stack, GAUNTLET_SLOT, GAUNTLET_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }
@@ -142,12 +146,19 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         return isScrollcasterGauntlet(getGauntletStack());
     }
 
+    public boolean hasCalibrationTarget() {
+        return hasGauntlet() || SpellCalibrationImbueHelper.isSupportedTarget(getGauntletStack());
+    }
+
     public int getEnabledScrollSlotCount() {
-        return ScrollcasterGauntlet.getEnabledCalibrationScrollSlotCount(getGauntletStack());
+        if (hasGauntlet()) {
+            return ScrollcasterGauntlet.getEnabledCalibrationScrollSlotCount(getGauntletStack());
+        }
+        return SpellCalibrationImbueHelper.getSpellSlotCount(getGauntletStack());
     }
 
     public boolean isScrollSlotEnabled(int slot) {
-        return hasGauntlet() && slot >= 0 && slot < getEnabledScrollSlotCount();
+        return hasCalibrationTarget() && slot >= 0 && slot < getEnabledScrollSlotCount();
     }
 
     public @NotNull ItemStack getScrollItem(int slot) {
@@ -156,6 +167,13 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
     public @NotNull ItemStack getAdjustmentItem(int slot) {
         return getAdjustment(slot);
+    }
+
+    public @NotNull ItemStack getLockedPreviewScrollItem(int slot) {
+        if (hasGauntlet() || !hasCalibrationTarget() || !isScrollSlotEnabled(slot)) {
+            return ItemStack.EMPTY;
+        }
+        return SpellCalibrationImbueHelper.createLockedPreviewScrollForSlot(getGauntletStack(), slot);
     }
 
     @Override
@@ -196,30 +214,46 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     private @NotNull ItemStack getScroll(int slot) {
-        return hasGauntlet()
-                ? ScrollcasterGauntlet.getCalibrationScroll(getGauntletStack(), slot, lookupProvider)
+        if (hasGauntlet()) {
+            return ScrollcasterGauntlet.getCalibrationScroll(getGauntletStack(), slot, lookupProvider);
+        }
+        return hasCalibrationTarget()
+                ? SpellCalibrationImbueHelper.createScrollForSlot(getGauntletStack(), slot)
                 : ItemStack.EMPTY;
     }
 
-    private void refreshGauntletCalibration() {
+    private void refreshTargetCalibration() {
         var gauntletStack = getGauntletStack();
-        if (!gauntletStack.isEmpty()) {
+        if (hasGauntlet()) {
             ScrollcasterGauntlet.refreshCalibrationEnchantments(gauntletStack, lookupProvider);
             ScrollcasterGauntlet.refreshResolvedCalibrationSchool(gauntletStack, lookupProvider);
             ScrollcasterGauntlet.refreshSelectedSpellContainer(gauntletStack, lookupProvider);
+        } else if (!gauntletStack.isEmpty()) {
+            SpellCalibrationImbueHelper.prepareTarget(gauntletStack);
         }
     }
 
     private void setScroll(int slot, @NotNull ItemStack stack) {
-        if (!hasGauntlet()) {
+        if (!hasCalibrationTarget()) {
             return;
         }
 
-        var storedStack = stack.copy();
-        if (!storedStack.isEmpty()) {
-            storedStack.setCount(1);
+        if (hasGauntlet()) {
+            var storedStack = stack.copy();
+            if (!storedStack.isEmpty()) {
+                storedStack.setCount(1);
+            }
+            ScrollcasterGauntlet.setCalibrationScroll(getGauntletStack(), slot, storedStack, lookupProvider);
+            return;
         }
-        ScrollcasterGauntlet.setCalibrationScroll(getGauntletStack(), slot, storedStack, lookupProvider);
+
+        if (stack.isEmpty()) {
+            SpellCalibrationImbueHelper.removeScrollAt(getGauntletStack(), slot);
+        } else {
+            var storedStack = stack.copy();
+            storedStack.setCount(1);
+            SpellCalibrationImbueHelper.setScrollAt(getGauntletStack(), slot, storedStack);
+        }
     }
 
     private boolean hasSchoolRuneAdjustmentExcept(int excludedSlot) {
@@ -256,6 +290,10 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
     private static boolean isScrollcasterGauntlet(@NotNull ItemStack stack) {
         return !stack.isEmpty() && stack.is(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+    }
+
+    private static boolean isCalibrationTarget(@NotNull ItemStack stack) {
+        return isScrollcasterGauntlet(stack) || SpellCalibrationImbueHelper.isSupportedTarget(stack);
     }
 
     private final class AdjustmentContainer implements Container {
@@ -354,7 +392,13 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
         @Override
         public @NotNull ItemStack getItem(int slot) {
-            return hasGauntlet() ? getScroll(slot) : fallbackItems.get(slot);
+            if (hasGauntlet()) {
+                return getScroll(slot);
+            }
+            if (hasCalibrationTarget()) {
+                return SpellCalibrationImbueHelper.createScrollForSlot(getGauntletStack(), slot);
+            }
+            return fallbackItems.get(slot);
         }
 
         @Override
@@ -384,7 +428,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
                 storedStack.setCount(1);
             }
 
-            if (!hasGauntlet()) {
+            if (!hasCalibrationTarget()) {
                 fallbackItems.set(slot, storedStack);
             } else {
                 setScroll(slot, storedStack);
@@ -415,7 +459,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            return isScrollcasterGauntlet(stack);
+            return isCalibrationTarget(stack);
         }
 
         @Override
@@ -472,12 +516,16 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            return hasGauntlet() && isScrollSlotEnabled(calibrationSlot) && isScroll(stack);
+            if (!hasCalibrationTarget() || !isScrollSlotEnabled(calibrationSlot) || !isScroll(stack)) {
+                return false;
+            }
+            return hasGauntlet()
+                    || SpellCalibrationImbueHelper.canPlaceScrollAt(getGauntletStack(), calibrationSlot, stack);
         }
 
         @Override
         public boolean mayPickup(@NotNull Player player) {
-            return hasGauntlet();
+            return hasCalibrationTarget() && (isScrollSlotEnabled(calibrationSlot) || hasGauntlet() && hasItem());
         }
 
         @Override
