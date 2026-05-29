@@ -30,6 +30,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String MYSTIC_SHIELD_ISOLATED_BATCH = "apprenticecodex.mystic_shield_isolated";
     private static final String MIST_FORM_ISOLATED_BATCH = "apprenticecodex.mist_form_isolated";
     private static final String COUNTERSPELL_COMPAT_ISOLATED_BATCH = "apprenticecodex.counterspell_compat_isolated";
+    private static final String INSCRIBE_ICE_ISOLATED_BATCH = "apprenticecodex.inscribe_ice_isolated";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
     }
@@ -417,6 +418,26 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = COUNTERSPELL_COMPAT_ISOLATED_BATCH)
     public static void counterspellCompatSpecialPlayerTargetBehaviors(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.counterspellCompatSpecialPlayerTargetBehaviors(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = INSCRIBE_ICE_ISOLATED_BATCH)
+    public static void inscribeIceCastUsesShortThrowJob(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.inscribeIceCastUsesShortThrowJob(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = INSCRIBE_ICE_ISOLATED_BATCH)
+    public static void notchedFrozenStacksAndBurstsOnThirdStack(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.notchedFrozenStacksAndBurstsOnThirdStack(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = INSCRIBE_ICE_ISOLATED_BATCH)
+    public static void notchedFrozenMaintainsExistingFreezeWithoutIceWeakness(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.notchedFrozenMaintainsExistingFreezeWithoutIceWeakness(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = INSCRIBE_ICE_ISOLATED_BATCH)
+    public static void inscribeIceBurstUsesHalfDamageForChainedBurstsAndSkipsPlayers(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.inscribeIceBurstUsesHalfDamageForChainedBurstsAndSkipsPlayers(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)

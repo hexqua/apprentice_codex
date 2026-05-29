@@ -333,6 +333,20 @@
       "apprenticecodex:mist_form_finished"
     ]
   },
+  "ice_dagger_throw": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.ice_dagger_throw",
+    "sounds": [
+      "apprenticecodex:ice_dagger_throw"
+    ]
+  },
+  "ice_dagger_hit": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.ice_dagger_hit",
+    "sounds": [
+      "apprenticecodex:ice_dagger_hit"
+    ]
+  },
 
   "smashcast_scepter_smash_air": {
     "_apprentice_codex_note": "ベースはSoundEvents.PLAYER_ATTACK_CRIT",
