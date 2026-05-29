@@ -260,10 +260,37 @@ public class SpellStainedRunicTablet extends SpellBook implements IJeiInfoItem {
         return new SpellStats(
                 maxManaBonus,
                 globalSpellPowerBonus,
-                Map.copyOf(schoolSpellPowerBonuses),
+                filterAppliedSchoolSpellPowerBonuses(schoolSpellPowerBonuses, config),
                 schoolSpellCounts.size(),
                 maxSchoolSpellCount
         );
+    }
+
+    private Map<Attribute, Double> filterAppliedSchoolSpellPowerBonuses(
+            Map<Attribute, Double> schoolSpellPowerBonuses,
+            SpellStainedRunicTabletServerConfig.Values config
+    ) {
+        var appliedBonuses = new HashMap<Attribute, Double>();
+        for (var entry : schoolSpellPowerBonuses.entrySet()) {
+            var bonus = entry.getValue();
+            if (shouldApplySchoolSpellPowerBonus(bonus, config)) {
+                appliedBonuses.put(entry.getKey(), bonus);
+            }
+        }
+        return Map.copyOf(appliedBonuses);
+    }
+
+    private boolean shouldApplySchoolSpellPowerBonus(
+            double bonus,
+            SpellStainedRunicTabletServerConfig.Values config
+    ) {
+        if (bonus > 0.0D) {
+            return bonus >= config.minimumAppliedPositiveBonus();
+        }
+        if (bonus < 0.0D) {
+            return Math.abs(bonus) >= config.minimumAppliedNegativePenalty();
+        }
+        return false;
     }
 
     private void addModifier(

@@ -306,6 +306,7 @@
   "jei.apprenticecodex.spellstained_runic_tablet.desc_4": "- 铭刻卷轴所属派系的法术强度会根据稀有度提升。",
   "jei.apprenticecodex.spellstained_runic_tablet.desc_5": "- 铭刻较多派系的卷轴会缩短冷却时间。",
   "jei.apprenticecodex.spellstained_runic_tablet.desc_6": "- 铭刻多个同派系卷轴时，会根据最高数量缩短施法时间。",
+  "jei.apprenticecodex.spellstained_runic_tablet.desc_7": "默认情况下，同一派系的法术强度合计达到+5%或-5%时才会作为属性生效。",
   "jei.apprenticecodex.archivists_grimoire.desc_1": "手持该法术书即可添加卷轴，无需在铭文台铭刻。",
   "jei.apprenticecodex.archivists_grimoire.desc_2": "并非所有存储的法术都可同时使用，每次仅能使用最多9个槽位（相当于一行物品栏）。",
   "jei.apprenticecodex.archivists_grimoire.desc_3": "打开法术选择界面后，可通过鼠标滚轮切换激活的物品栏行。",
