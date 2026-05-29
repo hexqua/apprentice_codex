@@ -18,11 +18,21 @@ import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.Sate
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 public final class SpellCalibrationImbueHelper {
     private SpellCalibrationImbueHelper() {
+    }
+
+    public static boolean isVisibleImbueTarget(@NotNull ItemStack stack) {
+        return !stack.isEmpty()
+                && ISpellContainer.isSpellContainer(stack)
+                && Utils.canImbue(stack)
+                && !(stack.getItem() instanceof ArcaneAnvilImbueBlockItem);
     }
 
     public static boolean isSupportedTarget(@NotNull ItemStack stack) {
@@ -68,7 +78,7 @@ public final class SpellCalibrationImbueHelper {
     }
 
     public static int getSpellSlotCount(@NotNull ItemStack stack) {
-        if (!isSupportedTarget(stack)) {
+        if (!isVisibleImbueTarget(stack)) {
             return 0;
         }
 
@@ -92,6 +102,17 @@ public final class SpellCalibrationImbueHelper {
         }
 
         return createScroll(spellData);
+    }
+
+    public static boolean hasSpellAt(@NotNull ItemStack targetStack, int slot) {
+        return getSpellDataAt(targetStack, slot) != SpellData.EMPTY;
+    }
+
+    public static @NotNull List<Component> getImbueRestrictionTooltipLines(@NotNull ItemStack targetStack) {
+        if (targetStack.getItem() instanceof RestrictedSpellImbuableItem spellImbueItem) {
+            return spellImbueItem.getImbueRestrictionTooltipLines();
+        }
+        return List.of();
     }
 
     public static boolean canPlaceScrollAt(@NotNull ItemStack targetStack, int slot, @NotNull ItemStack scrollStack) {
