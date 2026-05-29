@@ -16,6 +16,10 @@ public final class ApprenticeCodexClientConfig {
             SCROLLCASTER_GAUNTLET_OFFHAND_VISUAL_DISABLED_MAINHAND_CATEGORIES;
     private static final ModConfigSpec.ConfigValue<List<? extends String>>
             SCROLLCASTER_GAUNTLET_OFFHAND_VISUAL_DISABLED_MAINHAND_ITEMS;
+    private static final ModConfigSpec.BooleanValue ENABLE_BETTER_COMBAT_SCROLLCASTER_GAUNTLET_FIRST_PERSON_OFFHAND_VISUAL;
+    private static final ModConfigSpec.BooleanValue ENABLE_BETTER_COMBAT_SCROLLCASTER_GAUNTLET_THIRD_PERSON_OFFHAND_VISUAL;
+    private static final ModConfigSpec.ConfigValue<List<? extends String>>
+            BETTER_COMBAT_SCROLLCASTER_GAUNTLET_THIRD_PERSON_OFFHAND_VISUAL_DENIED_MAINHAND_ITEMS;
     private static final ModConfigSpec.BooleanValue DISABLE_ESSENCE_SMOKER_PARTICLE_TEXTURE_ANALYSIS;
 
     static {
@@ -58,6 +62,29 @@ public final class ApprenticeCodexClientConfig {
                                 "apprenticecodex:multipurpose_staffrifle"
                         ),
                         value -> value instanceof String text && ResourceLocation.tryParse(text) != null);
+        ENABLE_BETTER_COMBAT_SCROLLCASTER_GAUNTLET_FIRST_PERSON_OFFHAND_VISUAL = builder
+                .comment(
+                        "Render the offhand Scrollcaster Gauntlet in first person while casting through Better Combat's two-handed offhand hiding.",
+                        "This controls only the normal first-person hand renderer used for casting, not Better Combat attack animations.",
+                        "This affects only the client-side visual workaround and does not change combat behavior."
+                )
+                .define("enableBetterCombatScrollcasterGauntletFirstPersonOffhandVisual", true);
+        ENABLE_BETTER_COMBAT_SCROLLCASTER_GAUNTLET_THIRD_PERSON_OFFHAND_VISUAL = builder
+                .comment(
+                        "Render the offhand Scrollcaster Gauntlet in third person while Better Combat hides offhand equipment for two-handed weapons.",
+                        "Better Combat first-person attack animations can use the third-person player model, so this may also affect first-person attack animations.",
+                        "This affects only the client-side visual workaround and does not change combat behavior."
+                )
+                .define("enableBetterCombatScrollcasterGauntletThirdPersonOffhandVisual", true);
+        BETTER_COMBAT_SCROLLCASTER_GAUNTLET_THIRD_PERSON_OFFHAND_VISUAL_DENIED_MAINHAND_ITEMS = builder
+                .comment(
+                        "Main-hand item IDs that suppress Better Combat's third-person Scrollcaster Gauntlet offhand visual workaround.",
+                        "This denylist also applies when Better Combat renders first-person attack animations through the third-person player model.",
+                        "Use this only for specific weapons whose model visually conflicts with the gauntlet."
+                )
+                .defineList("betterCombatScrollcasterGauntletThirdPersonOffhandVisualDeniedMainhandItems",
+                        List.of(),
+                        value -> value instanceof String text && ResourceLocation.tryParse(text) != null);
         builder.pop();
 
         builder.push("Blocks");
@@ -99,6 +126,22 @@ public final class ApprenticeCodexClientConfig {
     public static boolean isScrollcasterGauntletOffhandVisualDisabledForMainhandItem(String itemId) {
         var normalizedItemId = normalizeResourceLocation(itemId);
         return SCROLLCASTER_GAUNTLET_OFFHAND_VISUAL_DISABLED_MAINHAND_ITEMS.get().stream()
+                .map(String::valueOf)
+                .map(ApprenticeCodexClientConfig::normalizeResourceLocation)
+                .anyMatch(normalizedItemId::equals);
+    }
+
+    public static boolean enableBetterCombatScrollcasterGauntletFirstPersonOffhandVisual() {
+        return ENABLE_BETTER_COMBAT_SCROLLCASTER_GAUNTLET_FIRST_PERSON_OFFHAND_VISUAL.get();
+    }
+
+    public static boolean enableBetterCombatScrollcasterGauntletThirdPersonOffhandVisual() {
+        return ENABLE_BETTER_COMBAT_SCROLLCASTER_GAUNTLET_THIRD_PERSON_OFFHAND_VISUAL.get();
+    }
+
+    public static boolean isBetterCombatScrollcasterGauntletThirdPersonOffhandVisualDeniedForMainhandItem(String itemId) {
+        var normalizedItemId = normalizeResourceLocation(itemId);
+        return BETTER_COMBAT_SCROLLCASTER_GAUNTLET_THIRD_PERSON_OFFHAND_VISUAL_DENIED_MAINHAND_ITEMS.get().stream()
                 .map(String::valueOf)
                 .map(ApprenticeCodexClientConfig::normalizeResourceLocation)
                 .anyMatch(normalizedItemId::equals);
