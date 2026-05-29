@@ -432,6 +432,7 @@
   "entity.apprenticecodex.silent_assassin_rifle": "マジックスナイパーライフル",
   "entity.apprenticecodex.tiro_volley_musket": "魔法のマスケット銃",
   "entity.apprenticecodex.magic_spear_missile": "SAAM",
+  "entity.apprenticecodex.inscribe_ice_dagger": "刻印ダガー",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "使い走り魔術師",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "使い走り魔術師",
@@ -574,6 +575,7 @@
   "spell.apprenticecodex.mist_form": "ミストフォーム",
   "spell.apprenticecodex.bound_sword": "魔力の剣",
   "spell.apprenticecodex.bound_bow": "魔力の弓",
+  "spell.apprenticecodex.inscribe_ice": "インスクライブアイス",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -634,6 +636,7 @@
   "spell.apprenticecodex.mist_form.guide": "自身を霧のような状態へと変化させ、同時に一瞬敵の注意を逸らす。霧の状態では移動能力がやや向上し、一部のブロックをすり抜けられる。攻撃を行うと霧として不安定となって解除されることがある上に、火や聖属性の魔法に非常に弱くなる。",
   "spell.apprenticecodex.bound_sword.guide": "魔力の剣を一時的に手元に錬成する。通常の剣と比べて軽いため素早く攻撃が行える。錬成時に手に持っていた武器は一時的に剣の中に封じ込まれ、手放すなどで剣が自壊した際に手元に戻る。戦闘に関する理が存在する場合、二刀流として錬成を試みる。他の錬成武器と同時に存在できない。",
   "spell.apprenticecodex.bound_bow.guide": "魔力の弓を一時的に手元に錬成する。矢を持っていない状況でもマナを消費して矢を錬成できる。錬成時に手に持っていた武器は一時的に弓の中に封じ込まれ、手放すなどで弓が自壊した際に手元に戻る。他の錬成武器と同時に存在できない。",
+  "spell.apprenticecodex.inscribe_ice.guide": "命中したモブに対して氷の魔力を刻み込む氷のダガーを生成して扇状に投擲する。氷の魔力は氷魔法に対する耐性を下げることができ、三回刻み込むと氷の魔力が炸裂し大ダメージを与える。この魔力の炸裂は近くの刻み込まれた氷の魔力の炸裂を誘発する。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -670,6 +673,7 @@
   "ui.apprenticecodex.bound_sword.sword_damage_attribute": "錬成剣の攻撃力: %s",
   "ui.apprenticecodex.bound_bow.enchantment_power_level": "錬成弓に付呪される射撃ダメージ増加レベル : %s",
   "ui.apprenticecodex.bound_bow.forge_arrow_mana_cost": "矢の錬成に必要なマナ: %s",
+  "ui.apprenticecodex.inscribe_ice.notched_frozen_damage": "魔力炸裂時のダメージ: %s",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",
@@ -779,6 +783,7 @@
   "effect.apprenticecodex.penetrated_armor": "装甲貫通",
   "effect.apprenticecodex.frost_trapped": "氷結",
   "effect.apprenticecodex.mist_form": "ミストフォーム",
+  "effect.apprenticecodex.notched_frozen": "氷の刻みつけ",
   "effect.apprenticecodex.school_affinity": "親和",
   "effect.apprenticecodex.school_affinity.dynamic": "%sへの親和",
 
@@ -798,6 +803,7 @@
   "effect.apprenticecodex.penetrated_armor.description": "ドリルによって装甲が貫かれた状態。防御力と防具強度を大きく低下させる。",
   "effect.apprenticecodex.frost_trapped.description": "氷の魔術で強制的に氷結されている状態。氷結ダメージを受け続ける。",
   "effect.apprenticecodex.mist_form.description": "移動能力が向上して低速落下状態になる。この状態でモブにダメージを与えると強制的に解除される。",
+  "effect.apprenticecodex.notched_frozen.description": "氷の魔力が刻み込まれた状態。氷結状態が解除されないほか、氷魔法の耐性が下がる。",
 
   "item.minecraft.potion.effect.intelligence": "知性のポーション",
   "item.minecraft.potion.effect.meditation": "瞑想のポーション",
@@ -846,6 +852,7 @@
   "death.attack.apprenticecodex.magic_spear": "%1$sは%2$sに撃墜された",
   "death.attack.apprenticecodex.frost_rune": "%1$sは警戒を怠ったことを後悔した",
   "death.attack.apprenticecodex.mystic_shield": "%1$sは%2$sのオカルト殺法に敗北した",
+  "death.attack.apprenticecodex.inscribe_ice": "%1$sは%2$sによって冷凍保存された",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",
