@@ -1,8 +1,10 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.datagen.spell.RemoteOwnerCastSpellProfileDataGenerator;
@@ -20,12 +22,15 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileMana
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
+import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerEntity;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -263,6 +268,66 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
         helper.assertTrue(assertedAny, "Remote Owner Cast datagen test did not find summon weapon profiles.");
 
         helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void remoteOwnerCastDatagenIncludesInscribeIceProfile(GameTestHelper helper) {
+        var spellId = jp.aquafactory.apprenticecodex.registry.SpellRegistry.INSCRIBE_ICE.get().getSpellResource();
+        var profile = RemoteOwnerCastSpellProfileDataGenerator.createProfileDefinitions().stream()
+                .filter(definition -> definition.spell().equals(spellId))
+                .map(definition -> definition.profile())
+                .findFirst();
+
+        helper.assertTrue(profile.isPresent(), "Remote Owner Cast datagen should include Inscribe Ice.");
+        helper.assertTrue(profile.get().castMode() == RemoteOwnerCastMode.REMOTE_PLAYER_GEOMETRY,
+                "Inscribe Ice should use remote player geometry so the real owner remains the projectile owner.");
+        helper.assertTrue(profile.get().allowsOrigin(RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST),
+                "Inscribe Ice should be available to Satellite Followcast RemoteOwnerCast.");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 40)
+    public static void remoteOwnerCastContextKeepsInscribeIceJobGeometry(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "inscribe_ice_remote_owner_test"));
+        owner.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var ownerPos = helper.absoluteVec(new Vec3(1.5D, 2.0D, 1.5D));
+        owner.setPos(ownerPos.x, ownerPos.y, ownerPos.z);
+        level.addFreshEntity(owner);
+
+        var spell = (InscribeIce) jp.aquafactory.apprenticecodex.registry.SpellRegistry.INSCRIBE_ICE.get();
+        var remoteOrigin = helper.absoluteVec(new Vec3(2.5D, 4.5D, 2.5D));
+        var remoteForward = new Vec3(1.0D, 0.0D, 0.0D);
+
+        try (var ignored = RemoteOwnerCastContext.push(
+                owner,
+                remoteOrigin,
+                remoteForward,
+                RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST
+        )) {
+            spell.onCast(level, 5, owner, CastSource.SWORD, MagicData.getPlayerMagicData(owner));
+        }
+
+        owner.setYRot(90.0F);
+        owner.setXRot(0.0F);
+
+        helper.runAfterDelay(3, () -> {
+            var expectedCount = spell.getProjectileCount(5, owner);
+            var daggers = level.getEntitiesOfClass(
+                    InscribeIceDaggerEntity.class,
+                    new AABB(remoteOrigin, remoteOrigin).inflate(16.0D),
+                    projectile -> projectile.getOwner() == owner
+            );
+            helper.assertTrue(daggers.size() == expectedCount,
+                    "Inscribe Ice RemoteOwnerCast should finish the short throw job: "
+                            + daggers.size() + " / " + expectedCount);
+            for (var dagger : daggers) {
+                helper.assertTrue(dagger.getDeltaMovement().x > 0.5D,
+                        "Inscribe Ice RemoteOwnerCast should keep the remote forward direction after context closes: "
+                                + dagger.getDeltaMovement());
+            }
+            helper.succeed();
+        });
     }
 
     private static void setAttributeBaseValue(

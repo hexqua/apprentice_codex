@@ -570,6 +570,12 @@
     },
     {
       "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:inscribe_ice"
+    },
+    {
+      "profile": {
         "allowed_cast_origins": [
           "charged_twin_blade_staff_impact"
         ],

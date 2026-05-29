@@ -9,12 +9,14 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastContext;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
@@ -97,7 +99,7 @@ public class InscribeIce extends AbstractSpell {
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (level instanceof ServerLevel serverLevel) {
             var projectileCount = getProjectileCount(spellLevel, entity);
-            var job = new InscribeIceDaggerThrowJob(
+            var job = createThrowJob(
                     serverLevel,
                     entity,
                     projectileCount,
@@ -108,6 +110,41 @@ public class InscribeIce extends AbstractSpell {
             InscribeIceDaggerThrowJobManager.submit(serverLevel, job);
         }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    }
+
+    private InscribeIceDaggerThrowJob createThrowJob(ServerLevel level, LivingEntity caster, int projectileCount,
+                                                     float damage, float burstDamage) {
+        var fixedGeometry = resolveFixedLaunchGeometry(caster);
+        if (fixedGeometry.isPresent()) {
+            var geometry = fixedGeometry.get();
+            return new InscribeIceDaggerThrowJob(
+                    level,
+                    caster,
+                    projectileCount,
+                    damage,
+                    burstDamage,
+                    geometry.basePosition(),
+                    geometry.forward()
+            );
+        }
+
+        return new InscribeIceDaggerThrowJob(level, caster, projectileCount, damage, burstDamage);
+    }
+
+    private Optional<FixedLaunchGeometry> resolveFixedLaunchGeometry(LivingEntity caster) {
+        if (caster instanceof ServerPlayer serverPlayer) {
+            var remoteContext = RemoteOwnerCastContext.get(serverPlayer);
+            if (remoteContext != null) {
+                // RemoteOwnerCast の context は onCast 中だけ有効なため、短命ジョブへ位置と向きを固定して引き継ぐ。
+                var forward = remoteContext.forward();
+                return Optional.of(new FixedLaunchGeometry(
+                        calculateDaggerLaunchPosition(remoteContext.eyePosition(), forward),
+                        forward
+                ));
+            }
+        }
+
+        return Optional.empty();
     }
 
     static float getArcDegrees(int projectileCount) {
@@ -132,7 +169,11 @@ public class InscribeIce extends AbstractSpell {
     }
 
     static Vec3 calculateDaggerLaunchPosition(LivingEntity entity, Vec3 forward) {
-        return entity.getEyePosition()
+        return calculateDaggerLaunchPosition(entity.getEyePosition(), forward);
+    }
+
+    static Vec3 calculateDaggerLaunchPosition(Vec3 eyePosition, Vec3 forward) {
+        return eyePosition
                 .add(forward.scale(0.4D))
                 .add(0.0D, -0.25D, 0.0D);
     }
@@ -146,5 +187,8 @@ public class InscribeIce extends AbstractSpell {
         var progress = (double) index / (projectileCount - 1);
         var angle = Mth.lerp(progress, halfArcRadians, -halfArcRadians);
         return forward.scale(Math.cos(angle)).add(right.scale(Math.sin(angle))).normalize();
+    }
+
+    private record FixedLaunchGeometry(Vec3 basePosition, Vec3 forward) {
     }
 }
