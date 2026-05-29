@@ -749,11 +749,10 @@
 "ui.apprenticecodex.multicast_echo_staff.cancel_by_item_change": "你手中没有能承接魔力回响的法杖！",
 "ui.apprenticecodex.spell_dispenser.creative_version.deny_open": "只有创造模式玩家或管理员才能打开这个法术发射器。",
 
- "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "无法移除默认注入法术",
- "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "该物品不允许提取法术",
- "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_exist": "该物品未包含任何法术",
- "ui.apprenticecodex.spellcaster_workbench.warning_remove_not_allow": "注入该物品的法术后续无法提取",
- "ui.apprenticecodex.spellcaster_workbench.cant_imbue_unsupported_equipment": "该工作台不支持为该物品注入法术，请使用奥术铁砧",
+ "ui.apprenticecodex.spell_calibration_bench.hint_default_spell": "默认注入的法术无法提取",
+ "ui.apprenticecodex.spell_calibration_bench.cant_remove_not_allow": "无法从该物品中提取卷轴",
+ "ui.apprenticecodex.spell_calibration_bench.cant_imbue_unsupported_equipment": "需要使用奥术铁砧为该物品注入法术",
+ "ui.apprenticecodex.spell_calibration_bench.warning_restrict_imbue_condition": "只能注入满足以下条件的法术卷轴",
  "ui.apprenticecodex.spellcaster_workbench.warning_max_slot_reached": "该物品已扩展至最大",
 
  "effect.apprenticecodex.arcane_charge": "奥术充能",
