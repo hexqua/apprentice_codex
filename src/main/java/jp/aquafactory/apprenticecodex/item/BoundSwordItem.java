@@ -19,8 +19,10 @@ import net.minecraft.world.item.Tiers;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.ToolAction;
 import net.minecraftforge.common.ToolActions;
+import net.minecraftforge.fml.DistExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -123,15 +125,16 @@ public class BoundSwordItem extends SwordItem {
                                 @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, level, lines, flag);
 
-        BoundSwordClientTooltip.getStoredItemName(stack).ifPresent(storedItemName -> {
-            lines.add(Component.translatable(
-                    "item." + ApprenticeCodex.MODID + ".bound_weapon.contain_item.item",
-                    storedItemName
-            ).withStyle(ChatFormatting.GRAY));
-            lines.add(Component.translatable(
-                    "item." + ApprenticeCodex.MODID + ".bound_weapon.contain_item.hint"
-            ).withStyle(ChatFormatting.DARK_GRAY));
-        });
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
+                BoundSwordClientTooltip.getStoredItemName(stack).ifPresent(storedItemName -> {
+                    lines.add(Component.translatable(
+                            "item." + ApprenticeCodex.MODID + ".bound_weapon.contain_item.item",
+                            storedItemName
+                    ).withStyle(ChatFormatting.GRAY));
+                    lines.add(Component.translatable(
+                            "item." + ApprenticeCodex.MODID + ".bound_weapon.contain_item.hint"
+                    ).withStyle(ChatFormatting.DARK_GRAY));
+                }));
     }
 
     @Override
