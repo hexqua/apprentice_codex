@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.manaslash;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -33,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ManaSlashProjectileEntity extends Projectile {
+public class ManaSlashProjectileEntity extends Projectile implements AntiMagicSusceptible {
     private static final EntityDataAccessor<Float> DATA_RADIUS =
             SynchedEntityData.defineId(ManaSlashProjectileEntity.class, EntityDataSerializers.FLOAT);
 
@@ -132,6 +134,15 @@ public class ManaSlashProjectileEntity extends Projectile {
         if (!level().isClientSide) {
             discard();
         }
+    }
+
+    @Override
+    public void onAntiMagic(MagicData playerMagicData) {
+        if (level().isClientSide || isRemoved()) {
+            return;
+        }
+
+        discard();
     }
 
     @Override

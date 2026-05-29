@@ -1,9 +1,9 @@
 package jp.aquafactory.apprenticecodex.effect;
 
-import net.minecraft.world.effect.MobEffect;
+import io.redspace.ironsspellbooks.effect.MagicMobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
-public class EchoSpell extends MobEffect {
+public class EchoSpell extends MagicMobEffect {
     public static final int DURATION_TICKS = 20 * 15;
 
     public EchoSpell() {

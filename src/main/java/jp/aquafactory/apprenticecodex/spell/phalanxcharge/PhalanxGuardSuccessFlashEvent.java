@@ -51,6 +51,15 @@ public final class PhalanxGuardSuccessFlashEvent {
             return;
         }
 
+        triggerGuardSuccess(player);
+    }
+
+    public static void triggerGuardSuccess(Player player) {
+        var level = player.level();
+        if (level.isClientSide) {
+            return;
+        }
+
         var box = player.getBoundingBox().inflate(SEARCH_RANGE);
         var entities = level.getEntitiesOfClass(
                 PhalanxWeaponryEntity.class,
@@ -65,7 +74,7 @@ public final class PhalanxGuardSuccessFlashEvent {
             return;
         }
 
-        LAST_GUARD_FLASH_TICK.put(player, currentTick);
+        LAST_GUARD_FLASH_TICK.put(player, player.tickCount);
 
         level.playSound(
                 null,

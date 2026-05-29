@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SpectralWingState;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -17,6 +18,14 @@ public final class SpectralWingFlightEvent {
     private static final int WATER_DEACTIVATE_GRACE_TICKS = 4;
 
     private SpectralWingFlightEvent() {
+    }
+
+    public static void onSpectralWingEffectRemoved(LivingEntity entity) {
+        if (!(entity instanceof Player player) || player.level().isClientSide) {
+            return;
+        }
+
+        clearWingState(player);
     }
 
     @SubscribeEvent
@@ -94,9 +103,7 @@ public final class SpectralWingFlightEvent {
     }
 
     private static void deactivate(Player player, CodexSpellData spellData, SpectralWingState state) {
-        if (player.isFallFlying()) {
-            player.stopFallFlying();
-        }
+        stopFallFlying(player);
 
         player.removeEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.SPECTRAL_WING.get()));
         if (!state.active && !state.startedBySpell && state.launchGraceTicks == 0) {
@@ -110,6 +117,20 @@ public final class SpectralWingFlightEvent {
         var spectralWing = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.SPECTRAL_WING.get());
         if (player.hasEffect(spectralWing)) {
             player.removeEffect(spectralWing);
+        }
+    }
+
+    private static void clearWingState(Player player) {
+        stopFallFlying(player);
+        var spellData = Capabilities.getSpellDataOrNull(player);
+        if (spellData != null) {
+            spellData.edit(CodexSpellStateTypeRegister.SPECTRAL_WING_STATE, SpectralWingState::reset);
+        }
+    }
+
+    private static void stopFallFlying(Player player) {
+        if (player.isFallFlying()) {
+            player.stopFallFlying();
         }
     }
 }

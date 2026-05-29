@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.magicspear;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
@@ -46,7 +48,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.HashSet;
 import java.util.UUID;
 
-public class MagicSpearMissileEntity extends Projectile implements GeoEntity {
+public class MagicSpearMissileEntity extends Projectile implements GeoEntity, AntiMagicSusceptible {
     private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
 
     private static final int PHASE_RELEASE = 0;
@@ -155,6 +157,16 @@ public class MagicSpearMissileEntity extends Projectile implements GeoEntity {
         if (!level().isClientSide && getPhase() != PHASE_BURST) {
             explode(hit.getLocation());
         }
+    }
+
+    @Override
+    public void onAntiMagic(MagicData playerMagicData) {
+        if (level().isClientSide || isRemoved() || getPhase() == PHASE_BURST) {
+            return;
+        }
+
+        // burst 表示は同一エンティティで残るため、二発目以降の Counterspell では再初期化しない。
+        burstWithoutDamage(position());
     }
 
     @Override
@@ -319,6 +331,18 @@ public class MagicSpearMissileEntity extends Projectile implements GeoEntity {
             server.sendParticles(ParticleTypes.EXPLOSION, center.x, center.y, center.z, 1, 0.0, 0.0, 0.0, 0.0);
             server.playSound(null, BlockPos.containing(center), SoundEvents.GENERIC_EXPLODE.value(),
                     SoundSource.PLAYERS, 0.95f, 1.15f + level().random.nextFloat() * 0.12f);
+        }
+    }
+
+    private void burstWithoutDamage(Vec3 center) {
+        setPhase(PHASE_BURST);
+        phaseTicks = 0;
+        setDeltaMovement(Vec3.ZERO);
+        setPos(center.x, center.y, center.z);
+        if (level() instanceof ServerLevel server) {
+            server.sendParticles(ParticleTypes.EXPLOSION, center.x, center.y, center.z, 1, 0.0, 0.0, 0.0, 0.0);
+            server.playSound(null, BlockPos.containing(center), SoundEvents.FIRE_EXTINGUISH,
+                    SoundSource.PLAYERS, 0.85f, 1.1f + level().random.nextFloat() * 0.12f);
         }
     }
 
