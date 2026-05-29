@@ -4109,6 +4109,8 @@ public final class ApprenticeCodexGameTestScenarios {
             var values = new SpellStainedRunicTabletServerConfig.Values(
                     sameRarityBonuses(-2.0D),
                     sameRarityBonuses(-0.07D),
+                    0.05D,
+                    0.05D,
                     sameRarityBonuses(-0.08D),
                     new SpellStainedRunicTabletServerConfig.ScalingBonus(1, -0.25D, 0.0D),
                     new SpellStainedRunicTabletServerConfig.ScalingBonus(1, -0.50D, 0.0D)
@@ -4172,6 +4174,55 @@ public final class ApprenticeCodexGameTestScenarios {
                 );
             }
         });
+    }
+
+    static void spellStainedRunicTabletFiltersSchoolPowerByConfiguredThresholds(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertSpellStainedRunicTabletThresholdScenario(helper, 0.04D, 0.05D, 0.05D, 0.0D,
+                    "Spell-stained Runic Tablet should ignore positive school spell power below threshold");
+            assertSpellStainedRunicTabletThresholdScenario(helper, 0.05D, 0.05D, 0.05D, 0.05D,
+                    "Spell-stained Runic Tablet should apply positive school spell power at threshold");
+            assertSpellStainedRunicTabletThresholdScenario(helper, -0.04D, 0.05D, 0.05D, 0.0D,
+                    "Spell-stained Runic Tablet should ignore negative school spell power below threshold");
+            assertSpellStainedRunicTabletThresholdScenario(helper, -0.05D, 0.05D, 0.05D, -0.05D,
+                    "Spell-stained Runic Tablet should apply negative school spell power at threshold");
+        });
+    }
+
+    private static void assertSpellStainedRunicTabletThresholdScenario(
+            GameTestHelper helper,
+            double configuredSchoolSpellPower,
+            double minimumAppliedPositiveBonus,
+            double minimumAppliedNegativePenalty,
+            double expectedSchoolSpellPower,
+            String message
+    ) {
+        var values = new SpellStainedRunicTabletServerConfig.Values(
+                sameRarityBonuses(0.0D),
+                sameRarityBonuses(configuredSchoolSpellPower),
+                minimumAppliedPositiveBonus,
+                minimumAppliedNegativePenalty,
+                sameRarityBonuses(0.0D),
+                new SpellStainedRunicTabletServerConfig.ScalingBonus(99, 0.0D, 0.0D),
+                new SpellStainedRunicTabletServerConfig.ScalingBonus(99, 0.0D, 0.0D)
+        );
+
+        try (var ignored = ApprenticeCodexServerConfig.useSpellStainedRunicTabletConfigOverrideForGameTest(values)) {
+            var item = (SpellStainedRunicTablet) ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get();
+            var stack = createSpellStainedRunicTabletStack(
+                    helper,
+                    spellEntry(SpellRegistry.HIGANBANA.get(), SpellRarity.COMMON)
+            );
+            assertSpellStainedRunicTabletSchoolPower(
+                    helper,
+                    item,
+                    createSpellbookSlotContext(helper),
+                    stack,
+                    SpellRegistry.HIGANBANA.get(),
+                    expectedSchoolSpellPower,
+                    message
+            );
+        }
     }
 
     static void explorersCodexGuidebookTransferRecipeMovesFixedSpellsAndKeepsExplorersData(GameTestHelper helper) {
@@ -17703,6 +17754,26 @@ public final class ApprenticeCodexGameTestScenarios {
             AbstractSpell spell,
             double expectedAmount
     ) {
+        assertSpellStainedRunicTabletSchoolPower(
+                helper,
+                item,
+                slotContext,
+                stack,
+                spell,
+                expectedAmount,
+                "Spell-stained Runic Tablet school spell power mismatch for " + spell.getSpellResource()
+        );
+    }
+
+    private static void assertSpellStainedRunicTabletSchoolPower(
+            GameTestHelper helper,
+            SpellStainedRunicTablet item,
+            top.theillusivec4.curios.api.SlotContext slotContext,
+            ItemStack stack,
+            AbstractSpell spell,
+            double expectedAmount,
+            String message
+    ) {
         var attribute = MagicTools.resolveSchoolPowerAttribute(spell.getSchoolType());
         helper.assertTrue(attribute != null, "Could not resolve school spell power attribute for " + spell.getSpellResource());
         assertCurioModifierAmount(
@@ -17713,7 +17784,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute),
                 expectedAmount,
                 AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                "Spell-stained Runic Tablet school spell power mismatch for " + spell.getSpellResource()
+                message
         );
     }
 
@@ -17793,10 +17864,36 @@ public final class ApprenticeCodexGameTestScenarios {
         return new ExpectedSpellStainedRunicTabletAttributes(
                 maxMana,
                 generalSpellPower,
-                schoolSpellPower,
+                filterExpectedSpellStainedRunicTabletSchoolPower(schoolSpellPower, values),
                 values.cooldownReduction().resolve(schoolSpellCounts.size()),
                 values.castTimeReduction().resolve(topSchoolCount)
         );
+    }
+
+    private static Map<Holder<Attribute>, Double> filterExpectedSpellStainedRunicTabletSchoolPower(
+            Map<Holder<Attribute>, Double> schoolSpellPower,
+            SpellStainedRunicTabletServerConfig.Values values
+    ) {
+        var filtered = new LinkedHashMap<Holder<Attribute>, Double>();
+        for (var entry : schoolSpellPower.entrySet()) {
+            if (shouldExpectSpellStainedRunicTabletSchoolPower(entry.getValue(), values)) {
+                filtered.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return filtered;
+    }
+
+    private static boolean shouldExpectSpellStainedRunicTabletSchoolPower(
+            double amount,
+            SpellStainedRunicTabletServerConfig.Values values
+    ) {
+        if (amount > 0.0D) {
+            return amount >= values.minimumAppliedPositiveBonus();
+        }
+        if (amount < 0.0D) {
+            return Math.abs(amount) >= values.minimumAppliedNegativePenalty();
+        }
+        return false;
     }
 
     private static top.theillusivec4.curios.api.SlotContext createSpellbookSlotContext(GameTestHelper helper) {
