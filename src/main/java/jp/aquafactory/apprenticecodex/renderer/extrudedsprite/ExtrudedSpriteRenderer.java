@@ -104,7 +104,7 @@ public final class ExtrudedSpriteRenderer {
     private static void render(ExtrudedSpriteMesh mesh, Matrix4f poseMatrix, Matrix3f normalMatrix, MultiBufferSource buffer, int packedLight,
                                ResourceLocation texture, RenderMode renderMode, float red, float green, float blue, float alpha) {
         var vc = buffer.getBuffer(resolveRenderType(texture, renderMode));
-        var resolvedLight = renderMode == RenderMode.DEFAULT ? packedLight : LightTexture.FULL_BRIGHT;
+        var resolvedLight = renderMode.usesPackedLight() ? packedLight : LightTexture.FULL_BRIGHT;
         var redByte = toColorByte(red);
         var greenByte = toColorByte(green);
         var blueByte = toColorByte(blue);
@@ -127,6 +127,7 @@ public final class ExtrudedSpriteRenderer {
     private static RenderType resolveRenderType(ResourceLocation texture, RenderMode renderMode) {
         return switch (renderMode) {
             case DEFAULT -> RenderType.entityCutoutNoCull(texture);
+            case TRANSLUCENT -> RenderType.entityTranslucent(texture);
             case EMISSIVE -> RenderType.entityTranslucent(texture);
             case ADDITIVE_COLOR_ONLY -> ApprenticeRenderTypes.entityAdditiveGlowNoCullColorOnly("extruded_sprite_additive_color_only", texture);
         };
@@ -138,7 +139,12 @@ public final class ExtrudedSpriteRenderer {
 
     public enum RenderMode {
         DEFAULT,
+        TRANSLUCENT,
         EMISSIVE,
-        ADDITIVE_COLOR_ONLY
+        ADDITIVE_COLOR_ONLY;
+
+        private boolean usesPackedLight() {
+            return this == DEFAULT || this == TRANSLUCENT;
+        }
     }
 }

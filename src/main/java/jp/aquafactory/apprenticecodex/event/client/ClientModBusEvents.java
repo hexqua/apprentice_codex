@@ -83,6 +83,7 @@ import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelRenderer
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomRenderer;
 import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaRenderer;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarStarRenderer;
+import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerRenderer;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileRenderer;
@@ -606,6 +607,7 @@ public final class ClientModBusEvents {
         event.registerBlockEntityRenderer(BlockEntityRegistry.RIFT_HOLE.get(), RiftHoleBlockEntityRenderer::new);
 
         event.registerEntityRenderer(EntityRegistry.SKY_EDGE_PROJECTILE.get(), SkyEdgeProjectileRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.INSCRIBE_ICE_DAGGER.get(), InscribeIceDaggerRenderer::new);
         event.registerEntityRenderer(EntityRegistry.MANA_FORCE_BLADE_PROJECTILE.get(), ManaForceBladeProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ARCHER_MULTIPLE_BOW.get(), ArcherMultipleBowRenderer::new);
         event.registerEntityRenderer(EntityRegistry.COMMENCE_FIRE_RIFLE.get(), CommenceFireRifleRenderer::new);
