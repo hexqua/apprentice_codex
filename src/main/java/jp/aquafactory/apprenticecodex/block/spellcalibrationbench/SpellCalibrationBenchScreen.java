@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.block.spellcalibrationbench;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
@@ -8,8 +9,8 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -56,6 +57,7 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
     @Override
     protected void renderBg(@NotNull GuiGraphics gui, float partialTicks, int mouseX, int mouseY) {
         gui.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        renderLockedPreviewScrolls(gui);
         renderDisabledSlotOverlays(gui);
     }
 
@@ -113,6 +115,24 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
 
     private void renderDisabledSlotOverlay(GuiGraphics gui, int x, int y) {
         gui.blit(TEXTURE, leftPos + x, topPos + y, DISABLED_SLOT_U, DISABLED_SLOT_V, SLOT_SIZE, SLOT_SIZE);
+    }
+
+    private void renderLockedPreviewScrolls(GuiGraphics gui) {
+        RenderSystem.enableBlend();
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 0.45F);
+        for (var slot = 0; slot < ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOT_COUNT; ++slot) {
+            var previewStack = menu.getLockedPreviewScrollItem(slot);
+            if (previewStack.isEmpty()) {
+                continue;
+            }
+
+            gui.renderItem(
+                    previewStack,
+                    leftPos + SpellCalibrationBenchMenu.SCROLL_SLOT_X + slot % SCROLL_COLUMNS * SLOT_SPACING,
+                    topPos + SpellCalibrationBenchMenu.SCROLL_SLOT_Y + slot / SCROLL_COLUMNS * SLOT_SPACING
+            );
+        }
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     private int findHoveredDisabledScrollSlot(int mouseX, int mouseY) {
