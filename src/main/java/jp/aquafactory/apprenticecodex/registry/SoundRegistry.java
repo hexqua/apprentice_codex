@@ -65,6 +65,8 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> MYSTIC_SHIELD_SHOOT = reg("mystic_shield_shoot");
     public static final RegistryObject<SoundEvent> MIST_FORM_START = reg("mist_form_start");
     public static final RegistryObject<SoundEvent> MIST_FORM_FINISHED = reg("mist_form_finished");
+    public static final RegistryObject<SoundEvent> ICE_DAGGER_THROW = reg("ice_dagger_throw");
+    public static final RegistryObject<SoundEvent> ICE_DAGGER_HIT = reg("ice_dagger_hit");
 
     public static final RegistryObject<SoundEvent> SMASHCAST_SCEPTER_SMASH_AIR = reg("smashcast_scepter_smash_air");
     public static final RegistryObject<SoundEvent> SMASHCAST_SCEPTER_SMASH_GROUND = reg("smashcast_scepter_smash_ground");

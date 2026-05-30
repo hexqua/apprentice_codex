@@ -133,6 +133,9 @@ import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarStarEntity;
+import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
+import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceBurst;
+import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerEntity;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileEntity;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShield;
@@ -213,6 +216,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -14997,6 +15001,13 @@ public final class ApprenticeCodexGameTestScenarios {
             spawnCounterspellTestEntity(helper, skyEdge, new Vec3(2.5D, 2.0D, 2.5D));
             assertAntiMagicDiscard(helper, caster, skyEdge, "Sky Edge");
 
+            var inscribeIce = new InscribeIceDaggerEntity(EntityRegistry.INSCRIBE_ICE_DAGGER.get(), level, caster);
+            inscribeIce.setDamage(20.0F);
+            inscribeIce.setBurstDamage(20.0F);
+            inscribeIce.setProjectileVelocity(new Vec3(1.0D, 0.0D, 0.0D), 1.0D);
+            spawnCounterspellTestEntity(helper, inscribeIce, new Vec3(2.5D, 2.0D, 2.5D));
+            assertAntiMagicDiscard(helper, caster, inscribeIce, "Inscribe Ice dagger");
+
             assertHealthUnchanged(helper, target, targetHealth,
                     "Counterspell projectile fizzle should not damage nearby targets");
             helper.assertFalse(target.hasEffect(MobEffects.POISON),
@@ -15207,6 +15218,160 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.getLevel().addFreshEntity(entity);
     }
 
+    static void inscribeIceCastUsesShortThrowJob(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "inscribe_ice_fan_test");
+        player.setYRot(0.0F);
+        player.setXRot(-30.0F);
+
+        var spell = (InscribeIce) SpellRegistry.INSCRIBE_ICE.get();
+        spell.onCast(level, 5, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
+
+        var expectedCount = spell.getProjectileCount(5, player);
+        var firstWave = level.getEntitiesOfClass(
+                InscribeIceDaggerEntity.class,
+                player.getBoundingBox().inflate(4.0D),
+                projectile -> projectile.getOwner() == player
+        );
+        helper.assertTrue(firstWave.size() > 0 && firstWave.size() < expectedCount,
+                "Inscribe Ice should spawn the first dagger wave immediately without creating all daggers: "
+                        + firstWave.size() + " / " + expectedCount);
+
+        var expectedSpawnPosition = player.getEyePosition()
+                .add(player.getLookAngle().normalize().scale(0.4D))
+                .add(0.0D, -0.25D, 0.0D);
+        for (var projectile : firstWave) {
+            assertInscribeIceDaggerLaunch(helper, projectile);
+            helper.assertTrue(projectile.position().distanceToSqr(expectedSpawnPosition) < 0.08D,
+                    "Inscribe Ice dagger should spawn near the centered magic missile style launch position");
+        }
+
+        helper.runAfterDelay(3, () -> {
+            var spawned = level.getEntitiesOfClass(
+                    InscribeIceDaggerEntity.class,
+                    player.getBoundingBox().inflate(16.0D),
+                    projectile -> projectile.getOwner() == player
+            );
+            helper.assertTrue(spawned.size() == expectedCount,
+                    "Inscribe Ice short throw job should finish within 3 ticks: "
+                            + spawned.size() + " / " + expectedCount);
+
+            var sorted = spawned.stream()
+                    .sorted(Comparator.comparingDouble(projectile -> -projectile.getDeltaMovement().x))
+                    .toList();
+            for (var projectile : sorted) {
+                assertInscribeIceDaggerLaunch(helper, projectile);
+            }
+
+            helper.assertTrue(sorted.get(0).getDeltaMovement().x > 0.01D,
+                    "Inscribe Ice should include the caster's right side of the fan");
+            helper.assertTrue(sorted.get(sorted.size() - 1).getDeltaMovement().x < -0.01D,
+                    "Inscribe Ice should include the caster's left side of the fan");
+            helper.succeed();
+        });
+    }
+
+    private static void assertInscribeIceDaggerLaunch(GameTestHelper helper, InscribeIceDaggerEntity projectile) {
+        helper.assertTrue(projectile.isNoGravity(), "Inscribe Ice dagger should not use gravity");
+        helper.assertTrue(projectile.getDeltaMovement().y > 0.1D,
+                "Inscribe Ice dagger should follow the caster's upward look direction");
+
+        var speed = projectile.getDeltaMovement().length();
+        helper.assertTrue(speed >= InscribeIceDaggerEntity.SPEED * 0.91D
+                        && speed <= InscribeIceDaggerEntity.SPEED * 1.09D,
+                "Inscribe Ice dagger speed should stay near 70% of Sky Edge baseline: " + speed);
+    }
+
+    static void notchedFrozenStacksAndBurstsOnThirdStack(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "notched_frozen_owner_test");
+            var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0));
+            setMaxHealthForDamageTest(target, 100.0F);
+
+            InscribeIceDaggerEntity.applyNotchedFrozenOrBurst(level, target, owner, owner, 4.0F);
+            assertNotchedFrozen(helper, target, 0);
+            InscribeIceDaggerEntity.applyNotchedFrozenOrBurst(level, target, owner, owner, 4.0F);
+            assertNotchedFrozen(helper, target, 1);
+            InscribeIceDaggerEntity.applyNotchedFrozenOrBurst(level, target, owner, owner, 4.0F);
+
+            helper.assertFalse(target.hasEffect(EffectRegistry.NOTCHED_FROZEN.get()),
+                    "Inscribe Ice should remove Notched Frozen when the third application succeeds");
+            helper.assertTrue(target.getHealth() < 100.0F,
+                    "Inscribe Ice burst should damage the detonated target");
+        });
+    }
+
+    static void notchedFrozenMaintainsExistingFreezeWithoutIceWeakness(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(0, 2, 0));
+            var effect = EffectRegistry.NOTCHED_FROZEN.get();
+            var modifier = effect.getAttributeModifiers().get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.ICE_MAGIC_RESIST.get());
+
+            helper.assertTrue(modifier == null, "Notched Frozen should not modify ice spell resistance while disabled");
+
+            target.setTicksFrozen(40);
+            effect.applyEffectTick(target, 0);
+            helper.assertTrue(target.getTicksFrozen() == 42,
+                    "Notched Frozen should offset natural frozen tick decay when freezing is already active");
+
+            target.setTicksFrozen(0);
+            effect.applyEffectTick(target, 0);
+            helper.assertTrue(target.getTicksFrozen() == 0,
+                    "Notched Frozen should not start freezing by itself");
+        });
+    }
+
+    static void inscribeIceBurstUsesHalfDamageForChainedBurstsAndSkipsPlayers(GameTestHelper helper) {
+        helper.runAfterDelay(3, () -> {
+            var level = helper.getLevel();
+            var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "inscribe_ice_burst_owner_test");
+            var directOrigin = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0));
+            var directTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 0));
+            var chainOrigin = helper.spawn(EntityType.ZOMBIE, new BlockPos(6, 2, 0));
+            var chainTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(7, 2, 0));
+            var playerTarget = createEquipmentTestPlayer(helper, new BlockPos(2, 2, 1), "inscribe_ice_burst_player_test");
+
+            setMaxHealthForDamageTest(directOrigin, 100.0F);
+            setMaxHealthForDamageTest(directTarget, 100.0F);
+            setMaxHealthForDamageTest(chainOrigin, 100.0F);
+            setMaxHealthForDamageTest(chainTarget, 100.0F);
+            playerTarget.getAttribute(Attributes.MAX_HEALTH).setBaseValue(100.0D);
+            playerTarget.setHealth(100.0F);
+
+            InscribeIceBurst.burstFromDagger(level, directOrigin, owner, owner, 10.0F);
+            InscribeIceBurst.burstChain(level, chainOrigin, owner, owner, 5.0F, new java.util.HashSet<>());
+
+            var directLoss = 100.0F - directTarget.getHealth();
+            var chainLoss = 100.0F - chainTarget.getHealth();
+            helper.assertTrue(directLoss > 0.0F && chainLoss > 0.0F,
+                    "Inscribe Ice direct and chained bursts should both damage nearby mobs");
+            helper.assertTrue(Math.abs(chainLoss * 2.0F - directLoss) < 0.25F,
+                    "Inscribe Ice chained burst damage should be half of direct burst damage: direct="
+                            + directLoss + ", chain=" + chainLoss);
+            helper.assertTrue(playerTarget.getHealth() == 100.0F,
+                    "Inscribe Ice burst should not damage players in the blast area");
+            helper.succeed();
+        });
+    }
+
+    private static void assertNotchedFrozen(GameTestHelper helper, LivingEntity target, int expectedAmplifier) {
+        var instance = target.getEffect(EffectRegistry.NOTCHED_FROZEN.get());
+        helper.assertTrue(instance != null, "Target should have Notched Frozen");
+        helper.assertTrue(instance != null && instance.getAmplifier() == expectedAmplifier,
+                "Notched Frozen amplifier mismatch: expected=" + expectedAmplifier
+                        + ", actual=" + (instance == null ? "missing" : instance.getAmplifier()));
+        helper.assertTrue(instance != null && instance.getDuration() == 20 * 15,
+                "Notched Frozen should refresh to 15 seconds");
+        helper.assertTrue(instance != null && !instance.isVisible(),
+                "Notched Frozen should suppress vanilla potion particles");
+    }
+
+    private static void setMaxHealthForDamageTest(LivingEntity target, float health) {
+        target.getAttribute(Attributes.MAX_HEALTH).setBaseValue(health);
+        target.setHealth(health);
+    }
+
     static void mistFormAppliesEffectAndFixedAttributes(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mist_form_attribute_test");
@@ -15299,7 +15464,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     static void mistFormStandsOnLiquidAndSneakSinks(GameTestHelper helper) {
-        helper.succeedIf(() -> {
+        helper.runAfterDelay(1, () -> {
             var waterWalker = createEquipmentTestPlayer(helper, new BlockPos(0, 3, 0), "mist_form_water_walk_test");
             var waterSupportPos = waterWalker.blockPosition().below();
             placeAbsoluteFluidTestBasin(helper.getLevel(), waterSupportPos, Blocks.WATER.defaultBlockState());
@@ -15379,6 +15544,7 @@ public final class ApprenticeCodexGameTestScenarios {
             cooldownWalker.tickCount = 121;
             helper.assertTrue(jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.canStandOnFluid(cooldownWalker),
                     "Mist Form should re-enable liquid standing after the 20 tick liquid-contact delay");
+            helper.succeed();
         });
     }
 

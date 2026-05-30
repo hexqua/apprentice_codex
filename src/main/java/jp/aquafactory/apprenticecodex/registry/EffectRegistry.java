@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.effect.Intelligence;
 import jp.aquafactory.apprenticecodex.effect.LongStrideMobility;
 import jp.aquafactory.apprenticecodex.effect.ManaRegeneration;
 import jp.aquafactory.apprenticecodex.effect.MistFormEffect;
+import jp.aquafactory.apprenticecodex.effect.NotchedFrozenEffect;
 import jp.aquafactory.apprenticecodex.effect.PaletteReception;
 import jp.aquafactory.apprenticecodex.effect.PenetratedArmor;
 import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
@@ -58,6 +59,8 @@ public final class EffectRegistry {
             EFFECTS.register("penetrated_armor", PenetratedArmor::new);
     public static final RegistryObject<MobEffect> FROST_TRAPPED =
             EFFECTS.register("frost_trapped", FrostTrapped::new);
+    public static final RegistryObject<MobEffect> NOTCHED_FROZEN =
+            EFFECTS.register("notched_frozen", NotchedFrozenEffect::new);
 
     public static void register(IEventBus eventBus) {
         EFFECTS.register(eventBus);

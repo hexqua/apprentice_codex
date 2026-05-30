@@ -35,6 +35,7 @@ public enum DamageMultiplierKey {
     FROST_RUNE("frostRune"),
     MYSTIC_SHIELD("mysticShield"),
     BOUND_SWORD("boundSword"),
+    INSCRIBE_ICE("inscribeIce"),
     ;
 
     private final String configKey;
