@@ -104,6 +104,10 @@
   "item.apprenticecodex.chromatic_magia_dress_coat": "彩色の魔術師礼装のコート",
   "item.apprenticecodex.chromatic_magia_dress_leggings": "彩色の魔術師礼装のズボン",
   "item.apprenticecodex.chromatic_magia_dress_boots": "彩色の魔術師礼装の靴",
+  "item.apprenticecodex.element_maiden_robe_ribbon": "元素の乙女のリボン",
+  "item.apprenticecodex.element_maiden_robe_robe": "元素の乙女の装束",
+  "item.apprenticecodex.element_maiden_robe_leggings": "元素の乙女の袴",
+  "item.apprenticecodex.element_maiden_robe_boots": "元素の乙女の草履",
 
   "item.apprenticecodex.spellgun.tooltip.hint": "シフトキーで詳細を表示",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "注入した魔法への特殊効果:",
@@ -161,6 +165,7 @@
   "item.apprenticecodex.chromatic_magia_dress_coat.desc": "この防具は再詠唱ができる魔法の\"色\"に染まる。",
   "item.apprenticecodex.chromatic_magia_dress_leggings.desc": "この防具は詠唱し続ける魔法の\"色\"に染まる。",
   "item.apprenticecodex.chromatic_magia_dress_boots.desc": "この防具は詠唱が不要な魔法の\"色\"に染まる。",
+  "item.apprenticecodex.element_maiden_robe.desc": "この防具は装備している魔法書の影響を受ける。",
   "item.apprenticecodex.charged_twin_blade_staff.desc.throwable": "%dマナを消費することで杖を複製して投擲できる。",
   "item.apprenticecodex.charged_twin_blade_staff.desc.reptide": "%dマナを消費することで激流が発動する。",
   "item.apprenticecodex.charged_twin_blade_staff.desc.channeling": "この杖を投げた先で魔法が発動する。",
@@ -576,6 +581,7 @@
   "spell.apprenticecodex.bound_sword": "魔力の剣",
   "spell.apprenticecodex.bound_bow": "魔力の弓",
   "spell.apprenticecodex.inscribe_ice": "インスクライブアイス",
+  "spell.apprenticecodex.divine_possession": "神降ろし",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -637,6 +643,7 @@
   "spell.apprenticecodex.bound_sword.guide": "魔力の剣を一時的に手元に錬成する。通常の剣と比べて軽いため素早く攻撃が行える。錬成時に手に持っていた武器は一時的に剣の中に封じ込まれ、手放すなどで剣が自壊した際に手元に戻る。戦闘に関する理が存在する場合、二刀流として錬成を試みる。他の錬成武器と同時に存在できない。",
   "spell.apprenticecodex.bound_bow.guide": "魔力の弓を一時的に手元に錬成する。矢を持っていない状況でもマナを消費して矢を錬成できる。錬成時に手に持っていた武器は一時的に弓の中に封じ込まれ、手放すなどで弓が自壊した際に手元に戻る。他の錬成武器と同時に存在できない。",
   "spell.apprenticecodex.inscribe_ice.guide": "命中したモブに対して氷の魔力を刻み込む氷のダガーを生成して扇状に投擲する。三回刻み込むと氷の魔力が炸裂し大ダメージを与える。この魔力の炸裂は近くの刻み込まれた氷の魔力の炸裂を誘発する。",
+  "spell.apprenticecodex.divine_possession.guide": "元素の乙女のローブの固有の潜在魔法。属性を司る存在をその身に降ろし、一定時間最も強い系統のボーナスを他の全ての系統に反映させる。その身に存在を降ろすためには全部位の元素の乙女の衣装を着込む必要がある。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -784,6 +791,7 @@
   "effect.apprenticecodex.frost_trapped": "氷結",
   "effect.apprenticecodex.mist_form": "ミストフォーム",
   "effect.apprenticecodex.notched_frozen": "氷の刻みつけ",
+  "effect.apprenticecodex.divine_possession": "神降ろし",
   "effect.apprenticecodex.school_affinity": "親和",
   "effect.apprenticecodex.school_affinity.dynamic": "%sへの親和",
 
@@ -804,6 +812,7 @@
   "effect.apprenticecodex.frost_trapped.description": "氷の魔術で強制的に氷結されている状態。氷結ダメージを受け続ける。",
   "effect.apprenticecodex.mist_form.description": "移動能力が向上して低速落下状態になる。この状態でモブにダメージを与えると強制的に解除される。",
   "effect.apprenticecodex.notched_frozen.description": "氷の魔力が刻み込まれた状態。氷結状態が解除されず、一定数刻み込まれると氷の魔力として炸裂する。",
+  "effect.apprenticecodex.divine_possession.description": "その身に元素の存在の力を宿した状態。最も高い系統ボーナスを他の系統全てに反映させる。",
 
   "item.minecraft.potion.effect.intelligence": "知性のポーション",
   "item.minecraft.potion.effect.meditation": "瞑想のポーション",
@@ -920,6 +929,8 @@
   "advancements.apprenticecodex.apprentice_codex.enchant_max_level.description": "エンチャントテーブルでレベル50のエンチャントを行う",
   "advancements.apprenticecodex.apprentice_codex.equip_chromatic_magia_dress.title": "CMYK",
   "advancements.apprenticecodex.apprentice_codex.equip_chromatic_magia_dress.description": "彩色の魔術師の礼装一式を着用する",
+  "advancements.apprenticecodex.apprentice_codex.equip_element_maiden_robe.title": "全知全能の神……オレ！",
+  "advancements.apprenticecodex.apprentice_codex.equip_element_maiden_robe.description": "元素の乙女の装束一式を着用する",
   "advancements.apprenticecodex.apprentice_codex.craft_absorption_amplify_amulet.title": "ラストエリクサー症候群への特効薬",
   "advancements.apprenticecodex.apprentice_codex.craft_absorption_amplify_amulet.description": "衝撃吸収増強のネックレスを作る",
   "advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.title": "魔法を手に入れる魔法がない",
@@ -995,6 +1006,7 @@
   "subtitle.apprenticecodex.sound.mist_form_finished": "霧が散る",
   "subtitle.apprenticecodex.sound.ice_dagger_throw": "ダガーが投擲される",
   "subtitle.apprenticecodex.sound.ice_dagger_hit": "ダガーが刺さる",
+  "subtitle.apprenticecodex.sound.kami": "属性の力を纏う",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_air": "セプターを振り下ろす",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground": "セプターが地面を打つ",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground_heavy": "セプターが激しく叩きつけられる",
