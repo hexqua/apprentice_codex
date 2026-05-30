@@ -293,11 +293,13 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
         owner.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var ownerPos = helper.absoluteVec(new Vec3(1.5D, 2.0D, 1.5D));
         owner.setPos(ownerPos.x, ownerPos.y, ownerPos.z);
+        owner.setYRot(0.0F);
+        owner.setXRot(0.0F);
         level.addFreshEntity(owner);
 
         var spell = (InscribeIce) jp.aquafactory.apprenticecodex.registry.SpellRegistry.INSCRIBE_ICE.get();
         var remoteOrigin = helper.absoluteVec(new Vec3(2.5D, 4.5D, 2.5D));
-        var remoteForward = new Vec3(1.0D, 0.0D, 0.0D);
+        var remoteForward = new Vec3(0.0D, 1.0D, 0.0D);
 
         try (var ignored = RemoteOwnerCastContext.push(
                 owner,
@@ -322,9 +324,13 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
                     "Inscribe Ice RemoteOwnerCast should finish the short throw job: "
                             + daggers.size() + " / " + expectedCount);
             for (var dagger : daggers) {
-                helper.assertTrue(dagger.getDeltaMovement().x > 0.5D,
-                        "Inscribe Ice RemoteOwnerCast should keep the remote forward direction after context closes: "
-                                + dagger.getDeltaMovement());
+                var movement = dagger.getDeltaMovement();
+                helper.assertTrue(movement.y > 0.5D,
+                        "Inscribe Ice RemoteOwnerCast should keep the remote vertical forward direction after context closes: "
+                                + movement);
+                helper.assertTrue(Math.abs(movement.z) < InscribeIceDaggerEntity.SPEED * 0.15D,
+                        "Inscribe Ice RemoteOwnerCast should keep the cast-time right direction for vertical launches: "
+                                + movement);
             }
             helper.succeed();
         });
