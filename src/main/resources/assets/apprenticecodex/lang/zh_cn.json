@@ -573,6 +573,7 @@
   "spell.apprenticecodex.mystic_shield": "秘术护盾",
   "spell.apprenticecodex.mist_form": "迷雾形态",
   "spell.apprenticecodex.inscribe_ice": "冰霜铭刻",
+  "spell.apprenticecodex.divine_possession": "神降临",
 
   "spell.apprenticecodex.sky_edge.guide": "召唤一把武器朝你的视线方向发射。该法术有蓄力时间，且不造成击退，但可以无视目标的无敌帧。",
   "spell.apprenticecodex.archer_multiple.guide": "召唤一把跟随你的魔法弓，持续射击直至弹药耗尽，优先攻击你锁定的目标或附近的敌人。",
@@ -634,6 +635,7 @@
   "spell.apprenticecodex.mystic_shield.guide": "展开一道魔法屏障吸收攻击。只能防御来自前方的攻击，但解除屏障时，会根据吸收的攻击发射反击弹。",
   "spell.apprenticecodex.mist_form.guide": "使自身化为迷雾般的状态，并短暂转移敌人的注意。处于迷雾状态时，移动能力略有提升，并能穿过部分方块。发动攻击会使迷雾变得不稳定，可能解除该状态，且会变得极其脆弱，尤其惧怕火焰和神圣系法术。",
   "spell.apprenticecodex.inscribe_ice.guide": "生成冰匕首并呈扇形投掷，向受到伤害的生物刻入冰之魔力。第三次成功刻印时，魔力会爆裂并造成大量伤害。该爆裂还会诱发附近已刻入的冰之魔力连锁爆裂。",
+  "spell.apprenticecodex.divine_possession.guide": "元素少女法袍专属潜在法术。让司掌元素的存在降临于身，在一定时间内将最高的学派加成反映到其他所有学派。若要让该存在降临于身，必须穿戴全套元素少女服装。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "爆头伤害倍率：%d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "潜行伤害倍率：%d%%",
@@ -781,6 +783,7 @@
 "effect.apprenticecodex.frost_trapped": "冰霜禁锢",
 "effect.apprenticecodex.mist_form": "迷雾形态",
 "effect.apprenticecodex.notched_frozen": "冰痕刻印",
+"effect.apprenticecodex.divine_possession": "神降临",
 "effect.apprenticecodex.school_affinity": "魔法亲和",
  "effect.apprenticecodex.school_affinity.dynamic": "%s 亲和",
  "effect.apprenticecodex.arcane_charge.description": "提升法术威力。",
@@ -800,6 +803,7 @@
 "effect.apprenticecodex.frost_trapped.description": "被魔法冰系法术冻结，持续受到冰霜伤害。",
 "effect.apprenticecodex.mist_form.description": "提升移动能力并获得缓降状态。在此状态下对生物造成伤害时会被强制解除。",
 "effect.apprenticecodex.notched_frozen.description": "被刻入冰之魔力的状态。已有的冻结状态不会消退，积累到一定刻印后会化为冰之魔力爆裂。",
+"effect.apprenticecodex.divine_possession.description": "体内寄宿元素存在之力的状态。将最高的学派加成反映到其他所有学派。",
 
  "item.minecraft.potion.effect.intelligence": "智慧药水",
  "item.minecraft.potion.effect.meditation": "冥想药水",
@@ -992,6 +996,7 @@
 "subtitle.apprenticecodex.sound.mist_form_finished": "迷雾消散",
 "subtitle.apprenticecodex.sound.ice_dagger_throw": "匕首投出",
 "subtitle.apprenticecodex.sound.ice_dagger_hit": "匕首刺中",
+"subtitle.apprenticecodex.sound.kami": "元素之力缠身",
 "subtitle.apprenticecodex.sound.smashcast_scepter_smash_air": "权杖猛击",
  "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground": "权杖击打地面",
  "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground_heavy": "权杖重击落下",
