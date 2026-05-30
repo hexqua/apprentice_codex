@@ -134,7 +134,8 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                         profile(ApprenticeCodex.MODID, "tiro_volley", SpellDispenserSpellProfile.OWNER_OPTIONAL),
                         profile(ApprenticeCodex.MODID, "silent_assassin", SpellDispenserSpellProfile.OWNER_OPTIONAL),
                         profile(ApprenticeCodex.MODID, "magic_spear", SpellDispenserSpellProfile.OWNER_OPTIONAL),
-                        profile(ApprenticeCodex.MODID, "frost_rune", SpellDispenserSpellProfile.OWNER_OPTIONAL)
+                        profile(ApprenticeCodex.MODID, "frost_rune", SpellDispenserSpellProfile.OWNER_OPTIONAL),
+                        profile(ApprenticeCodex.MODID, "inscribe_ice", SpellDispenserSpellProfile.OWNER_OPTIONAL)
         );
     }
 

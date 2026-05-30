@@ -590,6 +590,12 @@
         "owner_required": false
       },
       "spell": "apprenticecodex:frost_rune"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
+      "spell": "apprenticecodex:inscribe_ice"
     }
   ]
 }
