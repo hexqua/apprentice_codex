@@ -3,8 +3,11 @@ package jp.aquafactory.apprenticecodex.item;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public interface RestrictedSpellImbuableItem {
     boolean canImbueSpell(SpellData spellData);
@@ -26,5 +29,9 @@ public interface RestrictedSpellImbuableItem {
 
     default boolean canRemoveWorkbenchSpell(ItemStack stack, ISpellContainer spellContainer, int spellIndex, SpellData spellData) {
         return spellData.canRemove();
+    }
+
+    default List<Component> getImbueRestrictionTooltipLines() {
+        return List.of();
     }
 }

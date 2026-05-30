@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.block.spellcasterworkbench;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -18,17 +17,6 @@ import java.util.List;
 public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<SpellcasterWorkbenchMenu> {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/gui/spellcaster_workbench.png");
-    private static final Component CANT_REMOVE_DEFAULT_TOOLTIP =
-            Component.translatable("ui.apprenticecodex.spellcaster_workbench.cant_remove_default");
-    private static final Component CANT_REMOVE_NOT_ALLOW_TOOLTIP =
-            Component.translatable("ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow");
-    private static final Component CANT_REMOVE_NOT_EXIST_TOOLTIP =
-            Component.translatable("ui.apprenticecodex.spellcaster_workbench.cant_remove_not_exist");
-    private static final Component WARNING_REMOVE_NOT_ALLOW_TOOLTIP =
-            Component.translatable("ui.apprenticecodex.spellcaster_workbench.warning_remove_not_allow")
-                    .withStyle(ChatFormatting.RED);
-    private static final Component CANT_IMBUE_UNSUPPORTED_EQUIPMENT_TOOLTIP =
-            Component.translatable("ui.apprenticecodex.spellcaster_workbench.cant_imbue_unsupported_equipment");
     private static final Component WARNING_MAX_SLOT_REACHED_TOOLTIP =
             Component.translatable("ui.apprenticecodex.spellcaster_workbench.warning_max_slot_reached");
     private static final int ICON_GRID_X = 121;
@@ -100,31 +88,6 @@ public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<Sp
         }
 
         if (isHoveringResultSlot(mouseX, mouseY)) {
-            if (menu.isBlockedByDefaultSpellExtraction()) {
-                gui.renderTooltip(font, CANT_REMOVE_DEFAULT_TOOLTIP, mouseX, mouseY);
-                return;
-            }
-
-            if (menu.isBlockedByUnsupportedSpellExtraction()) {
-                gui.renderTooltip(font, CANT_REMOVE_NOT_ALLOW_TOOLTIP, mouseX, mouseY);
-                return;
-            }
-
-            if (menu.isBlockedByMissingSpellExtraction()) {
-                gui.renderTooltip(font, CANT_REMOVE_NOT_EXIST_TOOLTIP, mouseX, mouseY);
-                return;
-            }
-
-            if (menu.isWarnedByUnsupportedEmptySpellExtraction()) {
-                gui.renderTooltip(font, WARNING_REMOVE_NOT_ALLOW_TOOLTIP, mouseX, mouseY);
-                return;
-            }
-
-            if (menu.isBlockedByUnsupportedWorkbenchImbue()) {
-                gui.renderTooltip(font, CANT_IMBUE_UNSUPPORTED_EQUIPMENT_TOOLTIP, mouseX, mouseY);
-                return;
-            }
-
             if (menu.isBlockedByArchivistsGrimoireMaxSlotReached()) {
                 gui.renderTooltip(font, WARNING_MAX_SLOT_REACHED_TOOLTIP, mouseX, mouseY);
             }

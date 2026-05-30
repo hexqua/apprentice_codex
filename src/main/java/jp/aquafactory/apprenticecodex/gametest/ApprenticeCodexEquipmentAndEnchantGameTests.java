@@ -129,18 +129,18 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void photonSiphonWorkbenchRepairUnlocksLegacyReplacementOnly(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.photonSiphonWorkbenchRepairUnlocksLegacyReplacementOnly(helper);
+    public static void photonSiphonCalibrationRepairUnlocksLegacyReplacementOnly(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.photonSiphonCalibrationRepairUnlocksLegacyReplacementOnly(helper);
     }
 
     @GameTest(template = TEMPLATE)
-    public static void spellcasterWorkbenchExtractionWarningsMatchImbueState(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellcasterWorkbenchExtractionWarningsMatchImbueState(helper);
+    public static void spellCalibrationBenchTargetsExposeExpectedSlots(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellCalibrationBenchTargetsExposeExpectedSlots(helper);
     }
 
     @GameTest(template = TEMPLATE)
-    public static void spellcasterWorkbenchImbueOnlySupportsExtractableTargets(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellcasterWorkbenchImbueOnlySupportsExtractableTargets(helper);
+    public static void spellCalibrationBenchImbueOnlySupportsExtractableTargets(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellCalibrationBenchImbueOnlySupportsExtractableTargets(helper);
     }
 
     @GameTest(template = TEMPLATE)

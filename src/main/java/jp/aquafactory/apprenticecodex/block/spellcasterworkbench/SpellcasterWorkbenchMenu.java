@@ -1,33 +1,17 @@
 package jp.aquafactory.apprenticecodex.block.spellcasterworkbench;
 
-import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
-import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
-import io.redspace.ironsspellbooks.api.spells.SpellData;
-import io.redspace.ironsspellbooks.registries.ItemRegistry;
-import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
-import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
-import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
-import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
-import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
-import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
-import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
-import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipeInput;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
-import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
-import jp.aquafactory.apprenticecodex.utility.AdvancementTools;
-import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import jp.aquafactory.apprenticecodex.utility.ProcessingRecipeDenylist;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -142,36 +126,12 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         return selectedIconIndex.get();
     }
 
-    public boolean isBlockedByDefaultSpellExtraction() {
-        return getBlockedSpellExtractionReason() == SpellExtractionBlockReason.DEFAULT_SPELL;
-    }
-
-    public boolean isBlockedByUnsupportedSpellExtraction() {
-        return getBlockedSpellExtractionReason() == SpellExtractionBlockReason.NOT_ALLOWED;
-    }
-
-    public boolean isBlockedByMissingSpellExtraction() {
-        return getBlockedSpellExtractionReason() == SpellExtractionBlockReason.MISSING_SPELL;
-    }
-
-    public boolean isWarnedByUnsupportedEmptySpellExtraction() {
-        return getBlockedSpellExtractionReason() == SpellExtractionBlockReason.EMPTY_NOT_ALLOWED;
-    }
-
-    public boolean isSpellExtractionBlocked() {
-        return getBlockedSpellExtractionReason() != null;
-    }
-
-    public boolean isBlockedByUnsupportedWorkbenchImbue() {
-        return getBlockedWorkbenchImbueReason() == WorkbenchImbueBlockReason.UNSUPPORTED_EQUIPMENT;
-    }
-
     public boolean isBlockedByArchivistsGrimoireMaxSlotReached() {
         return getBlockedGrimoireUpgradeReason() == GrimoireUpgradeBlockReason.MAX_SLOT_REACHED;
     }
 
     public boolean isResultBlocked() {
-        return isSpellExtractionBlocked() || isBlockedByUnsupportedWorkbenchImbue() || isBlockedByArchivistsGrimoireMaxSlotReached();
+        return isBlockedByArchivistsGrimoireMaxSlotReached();
     }
 
     @Override
@@ -506,41 +466,11 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             return;
         }
 
-        var workbenchImbue = getActiveWorkbenchImbue();
-        if (workbenchImbue != null) {
-            craftedStack.onCraftedBy(player.level(), player, craftedStack.getCount());
-            if (!consumeWorkbenchImbueInputs(workbenchImbue.sourceSlotIndex(), workbenchImbue.scrollSlotIndex())) {
-                return;
-            }
-
-            playCraftSound();
-            setupResultSlot();
-            return;
-        }
-
         var grimoireUpgrade = getActiveGrimoireUpgrade();
         if (grimoireUpgrade != null) {
             craftedStack.onCraftedBy(player.level(), player, craftedStack.getCount());
             if (!consumeGrimoireUpgradeInputs(grimoireUpgrade)) {
                 return;
-            }
-
-            playCraftSound();
-            setupResultSlot();
-            return;
-        }
-
-        var extraction = getActiveSpellExtraction();
-        if (extraction != null) {
-            craftedStack.onCraftedBy(player.level(), player, craftedStack.getCount());
-            if (!removeSpellFromExtractableItem(extraction.sourceSlotIndex())) {
-                return;
-            }
-
-            if (player instanceof ServerPlayer serverPlayer) {
-                AdvancementTools.award(serverPlayer,
-                        AdvancementTools.EXTRACT_SPELLCASTER_GUN_SCROLL,
-                        AdvancementTools.EXTRACT_SPELLCASTER_GUN_SCROLL_CRITERION);
             }
 
             playCraftSound();
@@ -633,14 +563,6 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         return null;
     }
 
-    private @Nullable SpellExtraction getActiveSpellExtraction() {
-        return buildSpellExtraction();
-    }
-
-    private @Nullable WorkbenchImbue getActiveWorkbenchImbue() {
-        return buildWorkbenchImbue();
-    }
-
     private @Nullable GrimoireUpgrade getActiveGrimoireUpgrade() {
         return buildGrimoireUpgrade();
     }
@@ -655,19 +577,9 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             return activeRecipe.getPrimaryResultTemplate();
         }
 
-        var workbenchImbue = getActiveWorkbenchImbue();
-        if (workbenchImbue != null) {
-            return workbenchImbue.resultTemplate().copy();
-        }
-
         var grimoireUpgrade = getActiveGrimoireUpgrade();
         if (grimoireUpgrade != null) {
             return grimoireUpgrade.resultTemplate().copy();
-        }
-
-        var extraction = getActiveSpellExtraction();
-        if (extraction != null) {
-            return extraction.resultTemplate().copy();
         }
 
         var flaskToggle = getActiveFlaskParticleToggle();
@@ -721,41 +633,6 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
                 .toList();
     }
 
-    private @Nullable WorkbenchImbue buildWorkbenchImbue() {
-        var context = getWorkbenchImbueContext();
-        if (context == null || context.blockReason() != null || context.spellImbueItem() == null
-                || !hasAvailableSpellSlot(context.normalizedBaseStack())) {
-            return null;
-        }
-
-        var spellImbueItem = context.spellImbueItem();
-        var resultStack = spellImbueItem.createArcaneAnvilImbueResult(
-                context.normalizedBaseStack(),
-                context.spellData()
-        );
-        if (resultStack.isEmpty()) {
-            return null;
-        }
-
-        resultStack.setCount(1);
-        if (!canExtractWorkbenchImbuedSpell(spellImbueItem, resultStack, context.spellData())) {
-            return null;
-        }
-
-        return new WorkbenchImbue(context.sourceSlotIndex(), context.scrollSlotIndex(), resultStack);
-    }
-
-    private @Nullable SpellExtraction buildSpellExtraction() {
-        var extractionContext = getSpellExtractionContext();
-        if (extractionContext == null || extractionContext.blockReason() != null) {
-            return null;
-        }
-
-        var scrollStack = new ItemStack(ItemRegistry.SCROLL.get());
-        ISpellContainer.createScrollContainer(extractionContext.spellData().getSpell(), extractionContext.spellData().getLevel(), scrollStack);
-        return new SpellExtraction(extractionContext.sourceSlotIndex(), scrollStack);
-    }
-
     private @Nullable FlaskParticleToggle buildFlaskParticleToggle() {
         var sourceSlotIndex = findSingleOccupiedInputSlot();
         if (sourceSlotIndex < 0) {
@@ -773,19 +650,6 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         }
 
         return new FlaskParticleToggle(sourceSlotIndex, toggledStack);
-    }
-
-    private @Nullable SpellExtractionBlockReason getBlockedSpellExtractionReason() {
-        var extractionContext = getSpellExtractionContext();
-        if (extractionContext != null) {
-            return extractionContext.blockReason();
-        }
-        return getEmptySpellExtractionBlockReason();
-    }
-
-    private @Nullable WorkbenchImbueBlockReason getBlockedWorkbenchImbueReason() {
-        var context = getWorkbenchImbueContext();
-        return context == null ? null : context.blockReason();
     }
 
     private @Nullable GrimoireUpgradeBlockReason getBlockedGrimoireUpgradeReason() {
@@ -845,258 +709,6 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         return new GrimoireUpgradeContext(grimoireSlotIndex, catalystSlotIndex, materialSlotIndex, blockReason);
     }
 
-    private @Nullable WorkbenchImbueContext getWorkbenchImbueContext() {
-        var sourceSlotIndex = -1;
-        var scrollSlotIndex = -1;
-        for (var slotIndex = 0; slotIndex < INPUT_SLOT_COUNT; ++slotIndex) {
-            var inputStack = container.getItem(slotIndex);
-            if (inputStack.isEmpty()) {
-                continue;
-            }
-
-            if (inputStack.getItem() instanceof io.redspace.ironsspellbooks.item.Scroll) {
-                if (scrollSlotIndex >= 0) {
-                    return null;
-                }
-                scrollSlotIndex = slotIndex;
-                continue;
-            }
-
-            if (sourceSlotIndex >= 0) {
-                return null;
-            }
-            sourceSlotIndex = slotIndex;
-        }
-
-        if (sourceSlotIndex < 0 || scrollSlotIndex < 0) {
-            return null;
-        }
-
-        var inputStack = container.getItem(sourceSlotIndex);
-        var scrollStack = container.getItem(scrollSlotIndex);
-        var scrollContainer = ISpellContainer.get(scrollStack);
-        if (scrollContainer == null) {
-            return null;
-        }
-
-        var spellData = scrollContainer.getSpellAtIndex(0);
-        if (spellData == SpellData.EMPTY) {
-            return null;
-        }
-
-        var normalizedBaseStack = inputStack.copy();
-        normalizedBaseStack.setCount(1);
-        repairExtractablePresetSpellContainerIfNeeded(normalizedBaseStack);
-        initializePresetSpellContainerIfNeeded(normalizedBaseStack);
-        var spellImbueItem = inputStack.getItem() instanceof RestrictedSpellImbuableItem restrictedSpellImbuableItem
-                ? restrictedSpellImbuableItem
-                : null;
-
-        if (spellImbueItem == null) {
-            if (!ISpellContainer.isSpellContainer(normalizedBaseStack)) {
-                return null;
-            }
-
-            // 他 MOD の Imbue 対象は制約を判断できないため、Workbench ではなく Arcane Anvil へ誘導する。
-            return new WorkbenchImbueContext(
-                    sourceSlotIndex,
-                    scrollSlotIndex,
-                    null,
-                    normalizedBaseStack,
-                    spellData,
-                    WorkbenchImbueBlockReason.UNSUPPORTED_EQUIPMENT
-            );
-        }
-
-        if (!spellImbueItem.canImbueSpell(spellData)) {
-            return null;
-        }
-
-        spellImbueItem.normalizeImbuedSpellContainer(normalizedBaseStack);
-
-        if (!canCreateExtractableWorkbenchImbue(spellImbueItem, normalizedBaseStack, spellData)) {
-            return new WorkbenchImbueContext(
-                    sourceSlotIndex,
-                    scrollSlotIndex,
-                    spellImbueItem,
-                    normalizedBaseStack,
-                    spellData,
-                    WorkbenchImbueBlockReason.UNSUPPORTED_EQUIPMENT
-            );
-        }
-
-        return new WorkbenchImbueContext(sourceSlotIndex, scrollSlotIndex, spellImbueItem, normalizedBaseStack, spellData, null);
-    }
-
-    private static boolean canCreateExtractableWorkbenchImbue(
-            RestrictedSpellImbuableItem spellImbueItem,
-            ItemStack normalizedBaseStack,
-            SpellData spellData
-    ) {
-        if (!hasAvailableSpellSlot(normalizedBaseStack)) {
-            return true;
-        }
-
-        var resultStack = spellImbueItem.createArcaneAnvilImbueResult(normalizedBaseStack, spellData);
-        if (resultStack.isEmpty()) {
-            return false;
-        }
-
-        return canExtractWorkbenchImbuedSpell(spellImbueItem, resultStack, spellData);
-    }
-
-    private static boolean canCreateAnyExtractableWorkbenchImbue(
-            ItemStack stack,
-            RestrictedSpellImbuableItem spellImbueItem
-    ) {
-        var probeStack = createEmptyWorkbenchImbueProbe(stack, spellImbueItem);
-        if (!hasAvailableSpellSlot(probeStack)) {
-            return false;
-        }
-
-        for (var spell : io.redspace.ironsspellbooks.api.registry.SpellRegistry.getEnabledSpells()) {
-            for (var level = spell.getMinLevel(); level <= spell.getMaxLevel(); ++level) {
-                var spellData = new SpellData(spell, level);
-                if (spellImbueItem.canImbueSpell(spellData)
-                        && canCreateExtractableWorkbenchImbue(spellImbueItem, probeStack, spellData)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private static ItemStack createEmptyWorkbenchImbueProbe(
-            ItemStack stack,
-            RestrictedSpellImbuableItem spellImbueItem
-    ) {
-        var probeStack = stack.copy();
-        probeStack.setCount(1);
-        repairExtractablePresetSpellContainerIfNeeded(probeStack);
-        initializePresetSpellContainerIfNeeded(probeStack);
-
-        var spellContainer = ISpellContainer.get(probeStack);
-        var spellSlotCount = spellContainer == null ? 1 : Math.max(1, spellContainer.getMaxSpellCount());
-        ISpellContainer.set(probeStack, ISpellContainer.create(spellSlotCount, false, false));
-        // 実アイテムの正規化結果で、後から Workbench 抽出できる Imbue かを判定する。
-        spellImbueItem.normalizeImbuedSpellContainer(probeStack);
-        return probeStack;
-    }
-
-    private static boolean hasAvailableSpellSlot(ItemStack stack) {
-        var spellContainer = ISpellContainer.get(stack);
-        if (spellContainer == null) {
-            return false;
-        }
-
-        for (var index = 0; index < spellContainer.getMaxSpellCount(); ++index) {
-            if (spellContainer.getSpellAtIndex(index) == SpellData.EMPTY) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean canExtractWorkbenchImbuedSpell(
-            RestrictedSpellImbuableItem spellImbueItem,
-            ItemStack resultStack,
-            SpellData expectedSpellData
-    ) {
-        var spellContainer = ISpellContainer.get(resultStack);
-        if (spellContainer == null) {
-            return false;
-        }
-
-        for (var index = 0; index < spellContainer.getMaxSpellCount(); ++index) {
-            var spellData = spellContainer.getSpellAtIndex(index);
-            if (!isSameSpellData(spellData, expectedSpellData)) {
-                continue;
-            }
-            if (spellImbueItem.canRemoveWorkbenchSpell(resultStack, spellContainer, index, spellData)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean isSameSpellData(SpellData first, SpellData second) {
-        return first != SpellData.EMPTY
-                && second != SpellData.EMPTY
-                && first.getSpell() == second.getSpell()
-                && first.getLevel() == second.getLevel();
-    }
-
-    private @Nullable SpellExtractionContext getSpellExtractionContext() {
-        var sourceSlotIndex = findSingleOccupiedInputSlot();
-        if (sourceSlotIndex < 0) {
-            return null;
-        }
-
-        var inputStack = container.getItem(sourceSlotIndex);
-        repairExtractablePresetSpellContainerIfNeeded(inputStack);
-        initializePresetSpellContainerIfNeeded(inputStack);
-        if (!ISpellContainer.isSpellContainer(inputStack)) {
-            return null;
-        }
-
-        var spellContainer = ISpellContainer.get(inputStack);
-        if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
-            return null;
-        }
-
-        var extractionIndex = getSpellExtractionIndex(inputStack, spellContainer);
-        var spellData = spellContainer.getSpellAtIndex(extractionIndex);
-        if (spellData == SpellData.EMPTY) {
-            return null;
-        }
-
-        if (!isAllowedSpellExtractionItem(inputStack)) {
-            return new SpellExtractionContext(sourceSlotIndex, extractionIndex, inputStack, spellContainer, spellData, SpellExtractionBlockReason.NOT_ALLOWED);
-        }
-
-        if (!canRemoveExtractedSpell(inputStack, spellContainer, extractionIndex, spellData)) {
-            return new SpellExtractionContext(
-                    sourceSlotIndex,
-                    extractionIndex,
-                    inputStack,
-                    spellContainer,
-                    spellData,
-                    getUnsupportedSpellExtractionBlockReason(inputStack, spellData)
-            );
-        }
-
-        return new SpellExtractionContext(sourceSlotIndex, extractionIndex, inputStack, spellContainer, spellData, null);
-    }
-
-    private @Nullable SpellExtractionBlockReason getEmptySpellExtractionBlockReason() {
-        var sourceSlotIndex = findSingleOccupiedInputSlot();
-        if (sourceSlotIndex < 0) {
-            return null;
-        }
-
-        var inputStack = container.getItem(sourceSlotIndex);
-        repairExtractablePresetSpellContainerIfNeeded(inputStack);
-        initializePresetSpellContainerIfNeeded(inputStack);
-        if (!ISpellContainer.isSpellContainer(inputStack)) {
-            return null;
-        }
-
-        var spellContainer = ISpellContainer.get(inputStack);
-        if (spellContainer == null || spellContainer.getActiveSpellCount() > 0) {
-            return null;
-        }
-
-        if (inputStack.getItem() instanceof RestrictedSpellImbuableItem restrictedSpellImbuableItem) {
-            return canCreateAnyExtractableWorkbenchImbue(inputStack, restrictedSpellImbuableItem)
-                    ? SpellExtractionBlockReason.MISSING_SPELL
-                    : SpellExtractionBlockReason.EMPTY_NOT_ALLOWED;
-        }
-
-        return isAllowedSpellExtractionItem(inputStack)
-                ? SpellExtractionBlockReason.MISSING_SPELL
-                : SpellExtractionBlockReason.EMPTY_NOT_ALLOWED;
-    }
-
     private int findSingleOccupiedInputSlot() {
         var occupiedSlotIndex = -1;
         for (var slotIndex = 0; slotIndex < INPUT_SLOT_COUNT; ++slotIndex) {
@@ -1109,50 +721,6 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             occupiedSlotIndex = slotIndex;
         }
         return occupiedSlotIndex;
-    }
-
-    private boolean removeSpellFromExtractableItem(int sourceSlotIndex) {
-        var extractionContext = getSpellExtractionContext(sourceSlotIndex);
-        if (extractionContext == null || extractionContext.blockReason() != null) {
-            return false;
-        }
-
-        var mutable = extractionContext.spellContainer().mutableCopy();
-        if (!mutable.removeSpellAtIndex(extractionContext.spellIndex())) {
-            return false;
-        }
-
-        // 初期化済みアイテムから spell_container を消すと既定呪文が再生成され得るため、空コンテナを保持する。
-        ISpellContainer.set(extractionContext.inputStack(), mutable.toImmutable());
-        rememberClearedPresetSpellState(extractionContext.inputStack());
-        container.setChanged();
-        return true;
-    }
-
-    private boolean consumeWorkbenchImbueInputs(int sourceSlotIndex, int scrollSlotIndex) {
-        if (sourceSlotIndex < 0 || sourceSlotIndex >= INPUT_SLOT_COUNT
-                || scrollSlotIndex < 0 || scrollSlotIndex >= INPUT_SLOT_COUNT
-                || sourceSlotIndex == scrollSlotIndex) {
-            return false;
-        }
-
-        var sourceStack = container.getItem(sourceSlotIndex);
-        var scrollStack = container.getItem(scrollSlotIndex);
-        if (!(sourceStack.getItem() instanceof RestrictedSpellImbuableItem)
-                || !(scrollStack.getItem() instanceof io.redspace.ironsspellbooks.item.Scroll)) {
-            return false;
-        }
-
-        sourceStack.shrink(1);
-        scrollStack.shrink(1);
-        if (sourceStack.isEmpty()) {
-            container.setItem(sourceSlotIndex, ItemStack.EMPTY);
-        }
-        if (scrollStack.isEmpty()) {
-            container.setItem(scrollSlotIndex, ItemStack.EMPTY);
-        }
-        container.setChanged();
-        return true;
     }
 
     private boolean consumeGrimoireUpgradeInputs(GrimoireUpgrade upgrade) {
@@ -1186,131 +754,6 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         }
         container.setChanged();
         return true;
-    }
-
-    private static void rememberClearedPresetSpellState(ItemStack stack) {
-        var item = stack.getItem();
-        if (item instanceof AbstractSpellGunItem
-                || item instanceof jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem
-                || item instanceof AbstractImbueShieldItem) {
-            PresetSpellContainerStateHelper.rememberCleared(stack);
-        }
-    }
-
-    private static void repairExtractablePresetSpellContainerIfNeeded(ItemStack stack) {
-        if (stack.isEmpty()) {
-            return;
-        }
-
-        var item = stack.getItem();
-        switch (item) {
-            case AbstractSpellGunItem spellGunItem -> spellGunItem.repairPresetSpellContainerStateIfNeeded(stack);
-            case AbstractRightClickMagicWeaponItem magicWeaponItem ->
-                    magicWeaponItem.repairPresetSpellContainerStateIfNeeded(stack);
-            case AbstractImbueShieldItem imbueShieldItem ->
-                    imbueShieldItem.repairPresetSpellContainerStateIfNeeded(stack);
-            case PhotonSiphon photonSiphon -> {
-                // 昔のフォトンサイフォンはImbue入れ替え不可能アイテムだったため、それを変更した個体を救済する処理.
-                photonSiphon.repairWorkbenchLegacyLockedSpellIfNeeded(stack);
-            }
-            default -> {
-            }
-        }
-    }
-
-    private static void initializePresetSpellContainerIfNeeded(ItemStack stack) {
-        if (stack.isEmpty() || ISpellContainer.isSpellContainer(stack)) {
-            return;
-        }
-
-        if (stack.getItem() instanceof IPresetSpellContainer presetSpellContainer) {
-            presetSpellContainer.initializeSpellContainer(stack);
-        }
-    }
-
-    private @Nullable SpellExtractionContext getSpellExtractionContext(int sourceSlotIndex) {
-        if (sourceSlotIndex < 0 || sourceSlotIndex >= INPUT_SLOT_COUNT) {
-            return null;
-        }
-
-        var inputStack = container.getItem(sourceSlotIndex);
-        repairExtractablePresetSpellContainerIfNeeded(inputStack);
-        initializePresetSpellContainerIfNeeded(inputStack);
-        if (!ISpellContainer.isSpellContainer(inputStack)) {
-            return null;
-        }
-
-        var spellContainer = ISpellContainer.get(inputStack);
-        if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
-            return null;
-        }
-
-        var extractionIndex = getSpellExtractionIndex(inputStack, spellContainer);
-        var spellData = spellContainer.getSpellAtIndex(extractionIndex);
-        if (spellData == SpellData.EMPTY) {
-            return null;
-        }
-
-        if (!isAllowedSpellExtractionItem(inputStack)) {
-            return new SpellExtractionContext(sourceSlotIndex, extractionIndex, inputStack, spellContainer, spellData, SpellExtractionBlockReason.NOT_ALLOWED);
-        }
-
-        if (!canRemoveExtractedSpell(inputStack, spellContainer, extractionIndex, spellData)) {
-            return new SpellExtractionContext(
-                    sourceSlotIndex,
-                    extractionIndex,
-                    inputStack,
-                    spellContainer,
-                    spellData,
-                    getUnsupportedSpellExtractionBlockReason(inputStack, spellData)
-            );
-        }
-
-        return new SpellExtractionContext(sourceSlotIndex, extractionIndex, inputStack, spellContainer, spellData, null);
-    }
-
-    private static SpellExtractionBlockReason getUnsupportedSpellExtractionBlockReason(ItemStack stack, SpellData spellData) {
-        if (isAlchemistsFlaskDefaultExtract(stack, spellData)) {
-            return SpellExtractionBlockReason.DEFAULT_SPELL;
-        }
-
-        if (stack.getItem() instanceof RestrictedSpellImbuableItem restrictedSpellImbuableItem
-                && !canCreateAnyExtractableWorkbenchImbue(stack, restrictedSpellImbuableItem)) {
-            return SpellExtractionBlockReason.NOT_ALLOWED;
-        }
-        return SpellExtractionBlockReason.DEFAULT_SPELL;
-    }
-
-    private static boolean isAlchemistsFlaskDefaultExtract(ItemStack stack, SpellData spellData) {
-        return stack.getItem() instanceof AlchemistsFlask
-                && spellData != SpellData.EMPTY
-                && spellData.getSpell() == SpellRegistry.EXTRACT.get()
-                && spellData.getLevel() == 1;
-    }
-
-    private static boolean isAllowedSpellExtractionItem(ItemStack stack) {
-        var item = stack.getItem();
-        return item instanceof RestrictedSpellImbuableItem
-                || item instanceof AbstractSpellGunItem
-                || item instanceof AbstractRightClickMagicWeaponItem
-                || item instanceof AbstractImbueShieldItem
-                || item instanceof AbstractOffhandMagicItem
-                || item instanceof AlchemistsFlask
-                || stack.is(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE);
-    }
-
-    private static int getSpellExtractionIndex(ItemStack stack, ISpellContainer spellContainer) {
-        if (stack.getItem() instanceof RestrictedSpellImbuableItem restrictedSpellImbuableItem) {
-            return restrictedSpellImbuableItem.getWorkbenchSpellExtractionIndex(stack, spellContainer);
-        }
-        return 0;
-    }
-
-    private static boolean canRemoveExtractedSpell(ItemStack stack, ISpellContainer spellContainer, int spellIndex, SpellData spellData) {
-        if (stack.getItem() instanceof RestrictedSpellImbuableItem restrictedSpellImbuableItem) {
-            return restrictedSpellImbuableItem.canRemoveWorkbenchSpell(stack, spellContainer, spellIndex, spellData);
-        }
-        return spellData.canRemove();
     }
 
     private boolean consumeFlaskForParticleToggle(int sourceSlotIndex) {
@@ -1359,19 +802,6 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     ) {
     }
 
-    private record SpellExtraction(
-            int sourceSlotIndex,
-            ItemStack resultTemplate
-    ) {
-    }
-
-    private record WorkbenchImbue(
-            int sourceSlotIndex,
-            int scrollSlotIndex,
-            ItemStack resultTemplate
-    ) {
-    }
-
     private record GrimoireUpgrade(
             int grimoireSlotIndex,
             int catalystSlotIndex,
@@ -1380,39 +810,8 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     ) {
     }
 
-    private record SpellExtractionContext(
-            int sourceSlotIndex,
-            int spellIndex,
-            ItemStack inputStack,
-            ISpellContainer spellContainer,
-            SpellData spellData,
-            @Nullable SpellExtractionBlockReason blockReason
-    ) {
-    }
-
-    private enum SpellExtractionBlockReason {
-        DEFAULT_SPELL,
-        NOT_ALLOWED,
-        MISSING_SPELL,
-        EMPTY_NOT_ALLOWED
-    }
-
-    private enum WorkbenchImbueBlockReason {
-        UNSUPPORTED_EQUIPMENT
-    }
-
     private enum GrimoireUpgradeBlockReason {
         MAX_SLOT_REACHED
-    }
-
-    private record WorkbenchImbueContext(
-            int sourceSlotIndex,
-            int scrollSlotIndex,
-            @Nullable RestrictedSpellImbuableItem spellImbueItem,
-            ItemStack normalizedBaseStack,
-            SpellData spellData,
-            @Nullable WorkbenchImbueBlockReason blockReason
-    ) {
     }
 
     private record GrimoireUpgradeContext(
