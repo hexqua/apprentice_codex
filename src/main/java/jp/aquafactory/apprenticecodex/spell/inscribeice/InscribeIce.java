@@ -124,7 +124,8 @@ public class InscribeIce extends AbstractSpell {
                     damage,
                     burstDamage,
                     geometry.basePosition(),
-                    geometry.forward()
+                    geometry.forward(),
+                    geometry.right()
             );
         }
 
@@ -139,7 +140,8 @@ public class InscribeIce extends AbstractSpell {
                 var forward = remoteContext.forward();
                 return Optional.of(new FixedLaunchGeometry(
                         calculateDaggerLaunchPosition(remoteContext.eyePosition(), forward),
-                        forward
+                        forward,
+                        getRightVector(caster, forward)
                 ));
             }
         }
@@ -189,6 +191,6 @@ public class InscribeIce extends AbstractSpell {
         return forward.scale(Math.cos(angle)).add(right.scale(Math.sin(angle))).normalize();
     }
 
-    private record FixedLaunchGeometry(Vec3 basePosition, Vec3 forward) {
+    private record FixedLaunchGeometry(Vec3 basePosition, Vec3 forward, Vec3 right) {
     }
 }

@@ -27,6 +27,7 @@ public class InscribeIceDaggerThrowJob {
     private final long creationGameTime;
     private final Vec3 fixedBasePosition;
     private final Vec3 fixedForward;
+    private final Vec3 fixedRight;
     private int releaseTick;
     private long nextReleaseGameTime;
     private boolean complete;
@@ -41,10 +42,12 @@ public class InscribeIceDaggerThrowJob {
         nextReleaseGameTime = creationGameTime;
         fixedBasePosition = null;
         fixedForward = null;
+        fixedRight = null;
     }
 
     public InscribeIceDaggerThrowJob(ServerLevel level, LivingEntity caster, int projectileCount,
-                                     float damage, float burstDamage, Vec3 fixedBasePosition, Vec3 fixedForward) {
+                                     float damage, float burstDamage, Vec3 fixedBasePosition, Vec3 fixedForward,
+                                     Vec3 fixedRight) {
         this.caster = caster;
         this.damage = damage;
         this.burstDamage = burstDamage;
@@ -53,6 +56,9 @@ public class InscribeIceDaggerThrowJob {
         nextReleaseGameTime = creationGameTime;
         this.fixedBasePosition = fixedBasePosition;
         this.fixedForward = fixedForward.lengthSqr() > 1.0E-8D ? fixedForward.normalize() : new Vec3(0.0D, 0.0D, 1.0D);
+        this.fixedRight = fixedRight.lengthSqr() > 1.0E-8D
+                ? fixedRight.normalize()
+                : InscribeIce.getRightVector(caster, this.fixedForward);
     }
 
     public boolean isComplete() {
@@ -83,7 +89,7 @@ public class InscribeIceDaggerThrowJob {
         }
 
         var forward = fixedForward != null ? fixedForward : InscribeIce.getLookForward(caster);
-        var right = InscribeIce.getRightVector(caster, forward);
+        var right = fixedRight != null ? fixedRight : InscribeIce.getRightVector(caster, forward);
         var up = right.cross(forward).normalize();
         var projectileCount = releaseBuckets.stream().mapToInt(List::size).sum();
         var arcDegrees = InscribeIce.getArcDegrees(projectileCount);

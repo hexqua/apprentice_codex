@@ -15323,7 +15323,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     static void inscribeIceBurstUsesHalfDamageForChainedBurstsAndSkipsPlayers(GameTestHelper helper) {
-        helper.succeedIf(() -> {
+        helper.runAfterDelay(3, () -> {
             var level = helper.getLevel();
             var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "inscribe_ice_burst_owner_test");
             var directOrigin = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0));
@@ -15351,6 +15351,7 @@ public final class ApprenticeCodexGameTestScenarios {
                             + directLoss + ", chain=" + chainLoss);
             helper.assertTrue(playerTarget.getHealth() == 100.0F,
                     "Inscribe Ice burst should not damage players in the blast area");
+            helper.succeed();
         });
     }
 
@@ -15463,7 +15464,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     static void mistFormStandsOnLiquidAndSneakSinks(GameTestHelper helper) {
-        helper.succeedIf(() -> {
+        helper.runAfterDelay(1, () -> {
             var waterWalker = createEquipmentTestPlayer(helper, new BlockPos(0, 3, 0), "mist_form_water_walk_test");
             var waterSupportPos = waterWalker.blockPosition().below();
             placeAbsoluteFluidTestBasin(helper.getLevel(), waterSupportPos, Blocks.WATER.defaultBlockState());
@@ -15543,6 +15544,7 @@ public final class ApprenticeCodexGameTestScenarios {
             cooldownWalker.tickCount = 121;
             helper.assertTrue(jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.canStandOnFluid(cooldownWalker),
                     "Mist Form should re-enable liquid standing after the 20 tick liquid-contact delay");
+            helper.succeed();
         });
     }
 
