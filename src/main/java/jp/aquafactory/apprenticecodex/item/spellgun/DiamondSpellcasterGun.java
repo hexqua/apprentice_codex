@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.spellgun;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -23,9 +24,9 @@ import java.util.List;
 public class DiamondSpellcasterGun extends AbstractSpellGunItem implements GeoItem {
     private static final SpellGunConfig SPELL_GUN_CONFIG = new SpellGunConfig(
             EnumSet.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
-            20 * 30,
+            ApprenticeCodexServerConfig::diamondSpellgunMaxInstantImbueCooldownTicks,
             false,
-            80,
+            ApprenticeCodexServerConfig::diamondSpellgunOverriddenSpellCooldownTicks,
             0
     );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);

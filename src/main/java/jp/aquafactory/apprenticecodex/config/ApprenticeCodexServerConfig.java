@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.config;
 
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
@@ -403,6 +404,38 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.circuitHeatStaffCooldownBypassMaxRemainingTicks();
     }
 
+    public static int ironSpellgunMaxInstantImbueCooldownTicks() {
+        return ITEMS_CONFIG.ironSpellgunMaxInstantImbueCooldownTicks();
+    }
+
+    public static int ironSpellgunOverriddenSpellCooldownTicks() {
+        return ITEMS_CONFIG.ironSpellgunOverriddenSpellCooldownTicks();
+    }
+
+    public static int copperSpellgunMaxInstantImbueCooldownTicks() {
+        return ITEMS_CONFIG.copperSpellgunMaxInstantImbueCooldownTicks();
+    }
+
+    public static int copperSpellgunOverriddenSpellCooldownTicks() {
+        return ITEMS_CONFIG.copperSpellgunOverriddenSpellCooldownTicks();
+    }
+
+    public static int goldSpellgunMaxInstantImbueCooldownTicks() {
+        return ITEMS_CONFIG.goldSpellgunMaxInstantImbueCooldownTicks();
+    }
+
+    public static int goldSpellgunOverriddenSpellCooldownTicks() {
+        return ITEMS_CONFIG.goldSpellgunOverriddenSpellCooldownTicks();
+    }
+
+    public static int diamondSpellgunMaxInstantImbueCooldownTicks() {
+        return ITEMS_CONFIG.diamondSpellgunMaxInstantImbueCooldownTicks();
+    }
+
+    public static int diamondSpellgunOverriddenSpellCooldownTicks() {
+        return ITEMS_CONFIG.diamondSpellgunOverriddenSpellCooldownTicks();
+    }
+
     public static boolean isCircuitHeatStaffSpellDenied(ResourceLocation spellId) {
         return ITEMS_CONFIG.isCircuitHeatStaffSpellDenied(spellId);
     }
@@ -695,6 +728,12 @@ public final class ApprenticeCodexServerConfig {
         var previousSpellDenylist = ITEMS_CONFIG.multipurposeStaffrifleSpellDenylist();
         ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(spellDenylist);
         return () -> ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(previousSpellDenylist);
+    }
+
+    public static GameTestConfigOverride useSpellgunConfigOverrideForGameTest(SpellgunServerConfig.Values values) {
+        var previousValues = ITEMS_CONFIG.spellgunConfig();
+        ITEMS_CONFIG.setSpellgunConfigForGameTest(values);
+        return () -> ITEMS_CONFIG.setSpellgunConfigForGameTest(previousValues);
     }
 
     public static GameTestConfigOverride useManaShieldCharmConfigOverrideForGameTest(
