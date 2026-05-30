@@ -84,7 +84,7 @@ public final class CircuitHeatStaffServerConfig {
                 .defineInRange("cooldownBypassMaxRemainingTicks", 0, 0, 72000);
         var spellDenylist = builder
                 .comment("Spell IDs blocked only for Circuit Heat Staff cooldown bypass. Entries use \"modid:path\".")
-                .defineList("spellDenylist", List.<String>of(), CircuitHeatStaffServerConfig::isSpellId);
+                .defineListAllowEmpty("spellDenylist", List.<String>of(), CircuitHeatStaffServerConfig::isSpellId);
         var staffOverheatDurationMultiplier = builder
                 .comment("Multiplier applied to Circuit Heat Staff item overheat duration after failed mana coverage.")
                 .defineInRange("staffOverheatDurationMultiplier", 1.0D, 0.0D, 100.0D);
