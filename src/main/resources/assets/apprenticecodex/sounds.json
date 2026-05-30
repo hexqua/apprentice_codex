@@ -347,6 +347,13 @@
       "apprenticecodex:ice_dagger_hit"
     ]
   },
+  "kami": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.kami",
+    "sounds": [
+      "apprenticecodex:kami"
+    ]
+  },
 
   "smashcast_scepter_smash_air": {
     "_apprentice_codex_note": "ベースはSoundEvents.MACE_SMASH_AIR",

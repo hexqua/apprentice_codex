@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunk;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhial;
 import jp.aquafactory.apprenticecodex.spell.deepsensor.DeepSensor;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWings;
+import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossession;
 import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
 import jp.aquafactory.apprenticecodex.spell.echocast.EchoCast;
 import jp.aquafactory.apprenticecodex.spell.extract.Extract;
@@ -127,6 +128,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ILLUMINATE_STELLAR = reg("illuminate_stellar", IlluminateStellar::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> UNITE_LUNA = reg("unite_luna", UniteLuna::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MYSTIC_SHIELD = reg("mystic_shield", MysticShield::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> DIVINE_POSSESSION = reg("divine_possession", DivinePossession::new);
 
     // 氷.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> FROST_RUNE = reg("frost_rune", FrostRune::new);

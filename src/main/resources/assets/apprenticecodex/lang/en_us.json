@@ -102,6 +102,11 @@
   "item.apprenticecodex.chromatic_magia_dress_coat": "Chromatic Magia Dress Coat",
   "item.apprenticecodex.chromatic_magia_dress_leggings": "Chromatic Magia Dress Leggings",
   "item.apprenticecodex.chromatic_magia_dress_boots": "Chromatic Magia Dress Boots",
+  "item.apprenticecodex.element_maiden_robe_ribbon": "Maiden of Elemental Ribbon",
+  "item.apprenticecodex.element_maiden_robe_robe": "Maiden of Elemental Robe",
+  "item.apprenticecodex.element_maiden_robe_leggings": "Maiden of Elemental Hakama",
+  "item.apprenticecodex.element_maiden_robe_boots": "Maiden of Elemental Sandals",
+
   "item.apprenticecodex.spellgun.tooltip.hint": "Hold Shift for details.",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "Effects of imbued spell:",
   "item.apprenticecodex.spellgun.tooltip.ability_swingcast_title": "Effects when casting imbued spell with swing:",
