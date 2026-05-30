@@ -71,6 +71,16 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                                 .chest(ItemPredicate.Builder.item().of(ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get()).build())
                                 .legs(ItemPredicate.Builder.item().of(ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get()).build())
                                 .feet(ItemPredicate.Builder.item().of(ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()).build())
+                        .build())
+                        .build()
+        );
+        var elementMaidenRobeEquipPredicate = EntityPredicate.wrap(
+                EntityPredicate.Builder.entity()
+                        .equipment(EntityEquipmentPredicate.Builder.equipment()
+                                .head(ItemPredicate.Builder.item().of(ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get()).build())
+                                .chest(ItemPredicate.Builder.item().of(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()).build())
+                                .legs(ItemPredicate.Builder.item().of(ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get()).build())
+                                .feet(ItemPredicate.Builder.item().of(ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get()).build())
                                 .build())
                         .build()
         );
@@ -139,7 +149,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                 .addCriterion("equip_enchantress_robe", new PlayerTrigger.TriggerInstance(CriteriaTriggers.TICK.getId(), enchantressRobeEquipPredicate))
                 .save(saver, advancementId("equip_enchantress_robe"), existingFileHelper);
 
-        Advancement.Builder.advancement()
+        var chromaticMagiaDress = Advancement.Builder.advancement()
                 .parent(enchantressRobe)
                 .display(ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.equip_chromatic_magia_dress.title"),
@@ -151,6 +161,19 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         false)
                 .addCriterion("equip_chromatic_magia_dress", new PlayerTrigger.TriggerInstance(CriteriaTriggers.TICK.getId(), chromaticMagiaDressEquipPredicate))
                 .save(saver, advancementId("equip_chromatic_magia_dress"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(chromaticMagiaDress)
+                .display(ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.equip_element_maiden_robe.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.equip_element_maiden_robe.description"),
+                        null,
+                        FrameType.CHALLENGE,
+                        true,
+                        true,
+                        false)
+                .addCriterion("equip_element_maiden_robe", new PlayerTrigger.TriggerInstance(CriteriaTriggers.TICK.getId(), elementMaidenRobeEquipPredicate))
+                .save(saver, advancementId("equip_element_maiden_robe"), existingFileHelper);
 
         Advancement.Builder.advancement()
                 .parent(root)

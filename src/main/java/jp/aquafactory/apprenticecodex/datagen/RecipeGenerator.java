@@ -753,6 +753,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .save(recipeWriter, ItemRegistry.ENCHANTRESS_BOOTS.getId());
 
         saveChromaticMagiaDressSmithingRecipes(recipeWriter);
+        saveElementMaidenRobeSmithingRecipes(recipeWriter);
 
         SmithingTransformRecipeBuilder.smithing(
                         Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
@@ -823,6 +824,29 @@ public final class RecipeGenerator extends RecipeProvider {
         );
     }
 
+    private void saveElementMaidenRobeSmithingRecipes(@NotNull Consumer<FinishedRecipe> recipeWriter) {
+        saveElementMaidenRobeSmithingRecipe(
+                recipeWriter,
+                IRONS_WIZARD_BASE_HELMET,
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get()
+        );
+        saveElementMaidenRobeSmithingRecipe(
+                recipeWriter,
+                IRONS_WIZARD_BASE_CHESTPLATE,
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()
+        );
+        saveElementMaidenRobeSmithingRecipe(
+                recipeWriter,
+                IRONS_WIZARD_BASE_LEGGINGS,
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get()
+        );
+        saveElementMaidenRobeSmithingRecipe(
+                recipeWriter,
+                IRONS_WIZARD_BASE_BOOTS,
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get()
+        );
+    }
+
     private void saveChromaticMagiaDressSmithingRecipe(
             @NotNull Consumer<FinishedRecipe> recipeWriter,
             TagKey<Item> baseTag,
@@ -836,6 +860,22 @@ public final class RecipeGenerator extends RecipeProvider {
                         result
                 )
                 .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()))
+                .save(recipeWriter, ForgeRegistries.ITEMS.getKey(result));
+    }
+
+    private void saveElementMaidenRobeSmithingRecipe(
+            @NotNull Consumer<FinishedRecipe> recipeWriter,
+            TagKey<Item> baseTag,
+            Item result
+    ) {
+        SmithingTransformRecipeBuilder.smithing(
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.PROTECTION_RUNE.get()),
+                        Ingredient.of(baseTag),
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()),
+                        RecipeCategory.COMBAT,
+                        result
+                )
+                .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()))
                 .save(recipeWriter, ForgeRegistries.ITEMS.getKey(result));
     }
 
@@ -874,7 +914,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 )
         );
 
-        saveMalumSpiritRepairRecipe(
+        saveMithrilSpiritRepairRecipe(
                 recipeWriter,
                 "chromatic_magia_dress",
                 List.of(
@@ -882,15 +922,17 @@ public final class RecipeGenerator extends RecipeProvider {
                         ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
                         ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
                         ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()
-                ),
-                io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get(),
-                1,
-                1.0f,
+                )
+        );
+
+        saveMithrilSpiritRepairRecipe(
+                recipeWriter,
+                "element_maiden_robe",
                 List.of(
-                        new MalumSpiritCost("arcane", 16),
-                        new MalumSpiritCost("earth", 16),
-                        new MalumSpiritCost("sacred", 16),
-                        new MalumSpiritCost("eldritch", 4)
+                        ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
+                        ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
+                        ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
+                        ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get()
                 )
         );
 
@@ -925,6 +967,27 @@ public final class RecipeGenerator extends RecipeProvider {
                 1,
                 0.5f,
                 List.of(new MalumSpiritCost("arcane", 8))
+        );
+    }
+
+    private void saveMithrilSpiritRepairRecipe(
+            @NotNull Consumer<FinishedRecipe> recipeWriter,
+            @NotNull String name,
+            @NotNull List<Item> inputs
+    ) {
+        saveMalumSpiritRepairRecipe(
+                recipeWriter,
+                name,
+                inputs,
+                io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get(),
+                1,
+                1.0f,
+                List.of(
+                        new MalumSpiritCost("arcane", 16),
+                        new MalumSpiritCost("earth", 16),
+                        new MalumSpiritCost("sacred", 16),
+                        new MalumSpiritCost("eldritch", 4)
+                )
         );
     }
 
