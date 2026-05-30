@@ -16,12 +16,12 @@ public class NotchedFrozenEffect extends MobEffect {
     }
 
     @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         return true;
     }
 
     @Override
-    public void applyEffectTick(LivingEntity livingEntity, int amplifier) {
+    public boolean applyEffectTick(LivingEntity livingEntity, int amplifier) {
         var frozenTicks = livingEntity.getTicksFrozen();
         if (frozenTicks > 0) {
             livingEntity.setTicksFrozen(frozenTicks + 2);
@@ -35,6 +35,7 @@ public class NotchedFrozenEffect extends MobEffect {
             var z = box.minZ + random.nextDouble() * box.getZsize();
             serverLevel.sendParticles(createSparkParticle(), x, y, z, 1, 0.05D, 0.05D, 0.05D, 0.01D);
         }
+        return true;
     }
 
     private static AdditiveGlowParticleOptions createSparkParticle() {

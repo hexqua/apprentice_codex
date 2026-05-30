@@ -32,6 +32,8 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HAUNTED_BONUS;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HEALING_BLOOM;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HIGANBANA;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ILLUMINATE_STELLAR;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.INSCRIBE_ICE;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.INSCRIBE_ICE_BURST;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MAGIC_SPEAR;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANTIS_LEAP;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANA_FORCE_BLADE;

@@ -129,7 +129,16 @@ public class InscribeIce extends AbstractSpell {
             );
         }
 
-        return new InscribeIceDaggerThrowJob(level, caster, projectileCount, damage, burstDamage);
+        var forward = getLookForward(caster);
+        return new InscribeIceDaggerThrowJob(
+                level,
+                caster,
+                projectileCount,
+                damage,
+                burstDamage,
+                forward,
+                getRightVector(caster, forward)
+        );
     }
 
     private Optional<FixedLaunchGeometry> resolveFixedLaunchGeometry(LivingEntity caster) {

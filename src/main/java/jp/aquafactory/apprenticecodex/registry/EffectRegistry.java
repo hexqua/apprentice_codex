@@ -59,7 +59,7 @@ public final class EffectRegistry {
             EFFECTS.register("penetrated_armor", PenetratedArmor::new);
     public static final DeferredHolder<MobEffect, MobEffect> FROST_TRAPPED =
             EFFECTS.register("frost_trapped", FrostTrapped::new);
-    public static final RegistryObject<MobEffect> NOTCHED_FROZEN =
+    public static final DeferredHolder<MobEffect, MobEffect> NOTCHED_FROZEN =
             EFFECTS.register("notched_frozen", NotchedFrozenEffect::new);
 
     public static void register(IEventBus eventBus) {

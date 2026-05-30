@@ -12,11 +12,12 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.util.Mth;
-import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -31,8 +32,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
+import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,6 +44,7 @@ import java.util.WeakHashMap;
 public class InscribeIceDaggerEntity extends Projectile implements AntiMagicSusceptible {
     public static final double SPEED = 1.68D;
     private static final int LIFE_TICKS = 20 * 5;
+    private static final int BLOCK_COLLISION_GRACE_TICKS = 4;
     private static final byte EVENT_IMPACT_BURST = 62;
     private static final UUID UNKNOWN_OWNER_SOUND_KEY = new UUID(0L, 0L);
     private static final Map<ServerLevel, Map<UUID, Long>> LAST_HIT_SOUND_TICKS = new WeakHashMap<>();
@@ -62,6 +65,7 @@ public class InscribeIceDaggerEntity extends Projectile implements AntiMagicSusc
 
     private float damage;
     private float burstDamage;
+    private @Nullable Entity fallbackOwner;
 
     public InscribeIceDaggerEntity(EntityType<? extends InscribeIceDaggerEntity> entityType, Level level) {
         super(entityType, level);
@@ -72,6 +76,18 @@ public class InscribeIceDaggerEntity extends Projectile implements AntiMagicSusc
     public InscribeIceDaggerEntity(EntityType<? extends InscribeIceDaggerEntity> entityType, Level level, LivingEntity owner) {
         this(entityType, level);
         setOwner(owner);
+    }
+
+    @Override
+    public void setOwner(@Nullable Entity owner) {
+        super.setOwner(owner);
+        fallbackOwner = owner;
+    }
+
+    @Override
+    public @Nullable Entity getOwner() {
+        var owner = super.getOwner();
+        return owner != null ? owner : fallbackOwner;
     }
 
     public void setProjectileVelocity(Vec3 direction, double speed) {
@@ -93,12 +109,16 @@ public class InscribeIceDaggerEntity extends Projectile implements AntiMagicSusc
 
             var hitResult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
             if (hitResult.getType() != HitResult.Type.MISS
-                    && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitResult)) {
+                    && !EventHooks.onProjectileImpact(this, hitResult)) {
                 onHit(hitResult);
             }
 
             if (!isRemoved()) {
-                move(MoverType.SELF, getDeltaMovement());
+                var movement = getDeltaMovement();
+                move(MoverType.SELF, movement);
+                if (tickCount <= BLOCK_COLLISION_GRACE_TICKS) {
+                    setDeltaMovement(movement);
+                }
                 ProjectileUtil.rotateTowardsMovement(this, 1.0F);
             }
         } else {
@@ -140,6 +160,9 @@ public class InscribeIceDaggerEntity extends Projectile implements AntiMagicSusc
 
     @Override
     protected void onHitBlock(@NotNull BlockHitResult hitResult) {
+        if (tickCount <= BLOCK_COLLISION_GRACE_TICKS) {
+            return;
+        }
         super.onHitBlock(hitResult);
         if (!level().isClientSide) {
             setPos(hitResult.getLocation());
@@ -147,6 +170,14 @@ public class InscribeIceDaggerEntity extends Projectile implements AntiMagicSusc
             playHitSound();
             discard();
         }
+    }
+
+    @Override
+    protected boolean canHitEntity(@NotNull Entity entity) {
+        var target = CombatTools.resolutePartEntity(entity);
+        return entity != getOwner()
+                && CombatTools.isValidCombatTarget(target, getOwner())
+                && super.canHitEntity(entity);
     }
 
     @Override
@@ -158,7 +189,7 @@ public class InscribeIceDaggerEntity extends Projectile implements AntiMagicSusc
     }
 
     @Override
-    protected void defineSynchedData() {
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
     }
 
     @Override
@@ -184,8 +215,8 @@ public class InscribeIceDaggerEntity extends Projectile implements AntiMagicSusc
     }
 
     @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
+    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket(@NotNull ServerEntity serverEntity) {
+        return super.getAddEntityPacket(serverEntity);
     }
 
     @Override
@@ -217,7 +248,7 @@ public class InscribeIceDaggerEntity extends Projectile implements AntiMagicSusc
 
     public static void applyNotchedFrozenOrBurst(ServerLevel serverLevel, LivingEntity target, Entity sourceEntity,
                                                  Entity owner, float burstDamage) {
-        var current = target.getEffect(EffectRegistry.NOTCHED_FROZEN.get());
+        var current = target.getEffect(EffectRegistry.NOTCHED_FROZEN);
         if (current == null) {
             target.addEffect(createNotchedFrozenInstance(0));
             return;
@@ -233,7 +264,7 @@ public class InscribeIceDaggerEntity extends Projectile implements AntiMagicSusc
 
     private static MobEffectInstance createNotchedFrozenInstance(int amplifier) {
         return new MobEffectInstance(
-                EffectRegistry.NOTCHED_FROZEN.get(),
+                EffectRegistry.NOTCHED_FROZEN,
                 NotchedFrozenEffect.DURATION_TICKS,
                 amplifier,
                 false,
@@ -265,11 +296,6 @@ public class InscribeIceDaggerEntity extends Projectile implements AntiMagicSusc
     }
 
     private void spawnTrailParticles() {
-        var cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
-        if (cameraPos.distanceToSqr(position()) >= 48.0D * 48.0D) {
-            return;
-        }
-
         var random = level().random;
         var particle = InscribeIceBurst.createTrailSparkParticle();
         var pos = position().subtract(getDeltaMovement().scale(random.nextDouble()));

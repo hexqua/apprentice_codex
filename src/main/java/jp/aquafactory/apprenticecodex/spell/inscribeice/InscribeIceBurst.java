@@ -76,7 +76,7 @@ public final class InscribeIceBurst {
             return;
         }
 
-        origin.removeEffect(EffectRegistry.NOTCHED_FROZEN.get());
+        origin.removeEffect(EffectRegistry.NOTCHED_FROZEN);
 
         var center = origin.getBoundingBox().getCenter();
         var damageSource = createDamageSource(level, sourceEntity != null ? sourceEntity : owner, owner);
@@ -102,7 +102,7 @@ public final class InscribeIceBurst {
                     SpellRegistry.INSCRIBE_ICE.get().getSchoolType(),
                     CombatTools.KnockbackTypes.NO_KNOCKBACK
             );
-            if (damaged && livingTarget.hasEffect(EffectRegistry.NOTCHED_FROZEN.get())) {
+            if (damaged && livingTarget.hasEffect(EffectRegistry.NOTCHED_FROZEN)) {
                 burstChain(level, livingTarget, sourceEntity, owner, chainDamage, processedEntityIds);
             }
         }

@@ -46,6 +46,11 @@ public class InscribeIceDaggerThrowJob {
     }
 
     public InscribeIceDaggerThrowJob(ServerLevel level, LivingEntity caster, int projectileCount,
+                                     float damage, float burstDamage, Vec3 fixedForward, Vec3 fixedRight) {
+        this(level, caster, projectileCount, damage, burstDamage, null, fixedForward, fixedRight);
+    }
+
+    public InscribeIceDaggerThrowJob(ServerLevel level, LivingEntity caster, int projectileCount,
                                      float damage, float burstDamage, Vec3 fixedBasePosition, Vec3 fixedForward,
                                      Vec3 fixedRight) {
         this.caster = caster;

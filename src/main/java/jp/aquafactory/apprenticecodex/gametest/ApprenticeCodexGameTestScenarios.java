@@ -15635,7 +15635,8 @@ public final class ApprenticeCodexGameTestScenarios {
     private static void assertInscribeIceDaggerLaunch(GameTestHelper helper, InscribeIceDaggerEntity projectile) {
         helper.assertTrue(projectile.isNoGravity(), "Inscribe Ice dagger should not use gravity");
         helper.assertTrue(projectile.getDeltaMovement().y > 0.1D,
-                "Inscribe Ice dagger should follow the caster's upward look direction");
+                "Inscribe Ice dagger should follow the caster's upward look direction: "
+                        + projectile.getDeltaMovement());
 
         var speed = projectile.getDeltaMovement().length();
         helper.assertTrue(speed >= InscribeIceDaggerEntity.SPEED * 0.91D
@@ -15656,7 +15657,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertNotchedFrozen(helper, target, 1);
             InscribeIceDaggerEntity.applyNotchedFrozenOrBurst(level, target, owner, owner, 4.0F);
 
-            helper.assertFalse(target.hasEffect(EffectRegistry.NOTCHED_FROZEN.get()),
+            helper.assertFalse(target.hasEffect(EffectRegistry.NOTCHED_FROZEN),
                     "Inscribe Ice should remove Notched Frozen when the third application succeeds");
             helper.assertTrue(target.getHealth() < 100.0F,
                     "Inscribe Ice burst should damage the detonated target");
@@ -15667,9 +15668,15 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(0, 2, 0));
             var effect = EffectRegistry.NOTCHED_FROZEN.get();
-            var modifier = effect.getAttributeModifiers().get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.ICE_MAGIC_RESIST.get());
+            var iceResistance = target.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.ICE_MAGIC_RESIST);
+            helper.assertTrue(iceResistance != null, "Notched Frozen test could not resolve ice magic resistance attribute");
+            var baseIceResistance = iceResistance == null ? 0.0D : iceResistance.getValue();
 
-            helper.assertTrue(modifier == null, "Notched Frozen should not modify ice spell resistance while disabled");
+            target.addEffect(new MobEffectInstance(EffectRegistry.NOTCHED_FROZEN, 20, 0, false, false, true));
+            var currentIceResistance = iceResistance == null ? 0.0D : iceResistance.getValue();
+            helper.assertTrue(currentIceResistance == baseIceResistance,
+                    "Notched Frozen should not modify ice spell resistance while disabled");
+            target.removeEffect(EffectRegistry.NOTCHED_FROZEN);
 
             target.setTicksFrozen(40);
             effect.applyEffectTick(target, 0);
@@ -15717,7 +15724,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     private static void assertNotchedFrozen(GameTestHelper helper, LivingEntity target, int expectedAmplifier) {
-        var instance = target.getEffect(EffectRegistry.NOTCHED_FROZEN.get());
+        var instance = target.getEffect(EffectRegistry.NOTCHED_FROZEN);
         helper.assertTrue(instance != null, "Target should have Notched Frozen");
         helper.assertTrue(instance != null && instance.getAmplifier() == expectedAmplifier,
                 "Notched Frozen amplifier mismatch: expected=" + expectedAmplifier
