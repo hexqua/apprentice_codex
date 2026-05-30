@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig
 import jp.aquafactory.apprenticecodex.config.item.SatelliteFollowcastAmuletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScarletThirstServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScrollcasterGauntletServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
 import net.minecraft.resources.ResourceLocation;
@@ -38,6 +39,7 @@ final class ItemsServerConfig {
     private final ManaForceBladeServerConfig manaForceBladeConfig;
     private final ManaShieldCharmServerConfig manaShieldCharmConfig;
     private final CircuitHeatStaffServerConfig circuitHeatStaffConfig;
+    private final SpellgunServerConfig spellgunConfig;
     private final MulticastEchoStaffServerConfig multicastEchoStaffConfig;
     private final MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig;
     private final FocusStaffbowServerConfig focusStaffbowConfig;
@@ -60,6 +62,7 @@ final class ItemsServerConfig {
             ManaForceBladeServerConfig manaForceBladeConfig,
             ManaShieldCharmServerConfig manaShieldCharmConfig,
             CircuitHeatStaffServerConfig circuitHeatStaffConfig,
+            SpellgunServerConfig spellgunConfig,
             MulticastEchoStaffServerConfig multicastEchoStaffConfig,
             MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig,
             FocusStaffbowServerConfig focusStaffbowConfig,
@@ -81,6 +84,7 @@ final class ItemsServerConfig {
         this.manaForceBladeConfig = manaForceBladeConfig;
         this.manaShieldCharmConfig = manaShieldCharmConfig;
         this.circuitHeatStaffConfig = circuitHeatStaffConfig;
+        this.spellgunConfig = spellgunConfig;
         this.multicastEchoStaffConfig = multicastEchoStaffConfig;
         this.multipurposeStaffrifleConfig = multipurposeStaffrifleConfig;
         this.focusStaffbowConfig = focusStaffbowConfig;
@@ -105,6 +109,7 @@ final class ItemsServerConfig {
         var manaForceBladeConfig = ManaForceBladeServerConfig.define(builder);
         var manaShieldCharmConfig = ManaShieldCharmServerConfig.define(builder);
         var circuitHeatStaffConfig = CircuitHeatStaffServerConfig.define(builder);
+        var spellgunConfig = SpellgunServerConfig.define(builder);
         var multicastEchoStaffConfig = MulticastEchoStaffServerConfig.define(builder);
         var multipurposeStaffrifleConfig = MultipurposeStaffrifleServerConfig.define(builder);
         var focusStaffbowConfig = FocusStaffbowServerConfig.define(builder);
@@ -128,6 +133,7 @@ final class ItemsServerConfig {
                 manaForceBladeConfig,
                 manaShieldCharmConfig,
                 circuitHeatStaffConfig,
+                spellgunConfig,
                 multicastEchoStaffConfig,
                 multipurposeStaffrifleConfig,
                 focusStaffbowConfig,
@@ -282,6 +288,38 @@ final class ItemsServerConfig {
 
     int circuitHeatStaffCooldownBypassMaxRemainingTicks() {
         return circuitHeatStaffConfig.cooldownBypassMaxRemainingTicks();
+    }
+
+    int ironSpellgunMaxInstantImbueCooldownTicks() {
+        return spellgunConfig.ironMaxInstantImbueCooldownTicks();
+    }
+
+    int ironSpellgunOverriddenSpellCooldownTicks() {
+        return spellgunConfig.ironOverriddenSpellCooldownTicks();
+    }
+
+    int copperSpellgunMaxInstantImbueCooldownTicks() {
+        return spellgunConfig.copperMaxInstantImbueCooldownTicks();
+    }
+
+    int copperSpellgunOverriddenSpellCooldownTicks() {
+        return spellgunConfig.copperOverriddenSpellCooldownTicks();
+    }
+
+    int goldSpellgunMaxInstantImbueCooldownTicks() {
+        return spellgunConfig.goldMaxInstantImbueCooldownTicks();
+    }
+
+    int goldSpellgunOverriddenSpellCooldownTicks() {
+        return spellgunConfig.goldOverriddenSpellCooldownTicks();
+    }
+
+    int diamondSpellgunMaxInstantImbueCooldownTicks() {
+        return spellgunConfig.diamondMaxInstantImbueCooldownTicks();
+    }
+
+    int diamondSpellgunOverriddenSpellCooldownTicks() {
+        return spellgunConfig.diamondOverriddenSpellCooldownTicks();
     }
 
     boolean isCircuitHeatStaffSpellDenied(ResourceLocation spellId) {
@@ -550,6 +588,14 @@ final class ItemsServerConfig {
 
     List<String> multipurposeStaffrifleSpellDenylist() {
         return multipurposeStaffrifleConfig.spellDenylist();
+    }
+
+    SpellgunServerConfig.Values spellgunConfig() {
+        return spellgunConfig.values();
+    }
+
+    void setSpellgunConfigForGameTest(SpellgunServerConfig.Values values) {
+        spellgunConfig.setForGameTest(values);
     }
 
     void setMultipurposeStaffrifleSpellDenylistForGameTest(List<String> spellDenylist) {

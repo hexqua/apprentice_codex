@@ -26,6 +26,7 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
             "apprenticecodex.focus_staffbow_denylist_config";
     private static final String FOCUS_STAFFBOW_ALLOWLIST_CONFIG_BATCH =
             "apprenticecodex.focus_staffbow_allowlist_config";
+    private static final String SPELLGUN_CONFIG_BATCH = "apprenticecodex.spellgun_config";
     private static final String ELEMENTAL_BOW_OVERHEAT_BATCH = "apprenticecodex.elemental_bow_overheat";
     private static final String ELEMENTAL_BOW_DRAW_CONFIG_BATCH =
             "apprenticecodex.elemental_bow_draw_config";
@@ -86,6 +87,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void spellcasterGunRecastImbueRestrictionsMatchTier(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellcasterGunRecastImbueRestrictionsMatchTier(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellgunServerConfigDefaultsMatchCurrentHardcodedValues(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellgunServerConfigDefaultsMatchCurrentHardcodedValues(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = SPELLGUN_CONFIG_BATCH)
+    public static void spellgunZeroImbueCooldownLimitDisablesOnlyCooldownLimit(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellgunZeroImbueCooldownLimitDisablesOnlyCooldownLimit(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = SPELLGUN_CONFIG_BATCH)
+    public static void spellgunZeroCastCooldownConfigForcesZeroCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellgunZeroCastCooldownConfigForcesZeroCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE)

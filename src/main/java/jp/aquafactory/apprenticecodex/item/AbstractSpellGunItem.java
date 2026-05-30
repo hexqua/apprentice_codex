@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 public abstract class AbstractSpellGunItem extends Item implements IPresetSpellContainer, RestrictedSpellImbuableItem,
@@ -967,9 +968,9 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
     public record SpellGunConfig(
             Set<SpellGunCastType> supportedCastTypes,
-            @Nullable Integer maxInstantImbueCooldownTicks,
+            @Nullable IntSupplier maxInstantImbueCooldownTicksSupplier,
             boolean requireZeroInstantRecast,
-            @Nullable Integer overriddenSpellCooldownTicks,
+            @Nullable IntSupplier overriddenSpellCooldownTicksSupplier,
             @Nullable Integer overriddenLongCastDurationTicks
     ) {
         public SpellGunConfig {
@@ -978,6 +979,22 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
         public boolean supports(SpellGunCastType castType) {
             return supportedCastTypes.contains(castType);
+        }
+
+        @Nullable
+        public Integer maxInstantImbueCooldownTicks() {
+            if (maxInstantImbueCooldownTicksSupplier == null) {
+                return null;
+            }
+            var ticks = maxInstantImbueCooldownTicksSupplier.getAsInt();
+            return ticks <= 0 ? null : ticks;
+        }
+
+        @Nullable
+        public Integer overriddenSpellCooldownTicks() {
+            return overriddenSpellCooldownTicksSupplier == null
+                    ? null
+                    : Math.max(0, overriddenSpellCooldownTicksSupplier.getAsInt());
         }
     }
 
