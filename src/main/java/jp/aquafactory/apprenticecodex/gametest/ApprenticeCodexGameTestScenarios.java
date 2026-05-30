@@ -46,6 +46,7 @@ import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
@@ -4488,6 +4489,81 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Diamond Spellcaster Gun should allow long recast spell imbuing");
             helper.assertFalse(diamond.canImbueSpell(continuousSpell, 1),
                     "Diamond Spellcaster Gun should continue rejecting continuous spells");
+        });
+    }
+    static void spellgunServerConfigDefaultsMatchCurrentHardcodedValues(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            helper.assertTrue(ApprenticeCodexServerConfig.ironSpellgunMaxInstantImbueCooldownTicks() == 20 * 5,
+                    "Iron Spellcaster Gun imbue cooldown limit default changed");
+            helper.assertTrue(ApprenticeCodexServerConfig.ironSpellgunOverriddenSpellCooldownTicks() == 10,
+                    "Iron Spellcaster Gun cast cooldown default changed");
+            helper.assertTrue(ApprenticeCodexServerConfig.copperSpellgunMaxInstantImbueCooldownTicks() == 20 * 10,
+                    "Copper Spellcaster Gun imbue cooldown limit default changed");
+            helper.assertTrue(ApprenticeCodexServerConfig.copperSpellgunOverriddenSpellCooldownTicks() == 20,
+                    "Copper Spellcaster Gun cast cooldown default changed");
+            helper.assertTrue(ApprenticeCodexServerConfig.goldSpellgunMaxInstantImbueCooldownTicks() == 20 * 20,
+                    "Gold Spellcaster Gun imbue cooldown limit default changed");
+            helper.assertTrue(ApprenticeCodexServerConfig.goldSpellgunOverriddenSpellCooldownTicks() == 40,
+                    "Gold Spellcaster Gun cast cooldown default changed");
+            helper.assertTrue(ApprenticeCodexServerConfig.diamondSpellgunMaxInstantImbueCooldownTicks() == 20 * 30,
+                    "Diamond Spellcaster Gun imbue cooldown limit default changed");
+            helper.assertTrue(ApprenticeCodexServerConfig.diamondSpellgunOverriddenSpellCooldownTicks() == 80,
+                    "Diamond Spellcaster Gun cast cooldown default changed");
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellgun_default_config_test");
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            assertSpellgunCooldownOverride(helper, player, new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()), spell, 200, 10,
+                    "Iron Spellcaster Gun should keep its default cast cooldown");
+            assertSpellgunCooldownOverride(helper, player, new ItemStack(ItemRegistry.COPPER_SPELLCASTER_GUN.get()), spell, 200, 20,
+                    "Copper Spellcaster Gun should keep its default cast cooldown");
+            assertSpellgunCooldownOverride(helper, player, new ItemStack(ItemRegistry.GOLD_SPELLCASTER_GUN.get()), spell, 200, 40,
+                    "Gold Spellcaster Gun should keep its default cast cooldown");
+            assertSpellgunCooldownOverride(helper, player, new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()), spell, 200, 80,
+                    "Diamond Spellcaster Gun should keep its default cast cooldown");
+        });
+    }
+    static void spellgunZeroImbueCooldownLimitDisablesOnlyCooldownLimit(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useSpellgunConfigOverrideForGameTest(new SpellgunServerConfig.Values(
+                    0,
+                    10,
+                    20 * 10,
+                    20,
+                    20 * 20,
+                    40,
+                    20 * 30,
+                    80
+            ))) {
+                var iron = (AbstractSpellGunItem) ItemRegistry.IRON_SPELLCASTER_GUN.get();
+                var cooldownLimitedSpell = SpellRegistry.SEARCH_BEACON.get();
+                helper.assertTrue(cooldownLimitedSpell.getSpellCooldown() > 20 * 5,
+                        "Search Beacon should remain above Iron Spellcaster Gun's default cooldown limit");
+                helper.assertTrue(iron.canImbueSpell(cooldownLimitedSpell, 1),
+                        "Iron Spellcaster Gun maxInstantImbueCooldownTicks=0 should disable only the cooldown limit");
+                helper.assertFalse(iron.canImbueSpell(SpellRegistry.HIGANBANA.get(), 1),
+                        "Iron Spellcaster Gun should still reject recast spells when only the cooldown limit is disabled");
+            }
+        });
+    }
+    static void spellgunZeroCastCooldownConfigForcesZeroCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useSpellgunConfigOverrideForGameTest(new SpellgunServerConfig.Values(
+                    20 * 5,
+                    0,
+                    20 * 10,
+                    0,
+                    20 * 20,
+                    0,
+                    20 * 30,
+                    0
+            ))) {
+                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellgun_zero_cooldown_config_test");
+                var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+                assertSpellgunCooldownOverride(helper, player, new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()), spell, 200, 0,
+                        "Iron Spellcaster Gun overriddenSpellCooldownTicks=0 should force a 0-tick cooldown");
+                assertSpellgunCooldownOverride(helper, player, new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()), spell, 200, 0,
+                        "Diamond Spellcaster Gun overriddenSpellCooldownTicks=0 should force a 0-tick cooldown");
+            }
         });
     }
     static void spellcasterGunRecastCastBypassesAmmoRequirement(GameTestHelper helper) {
@@ -17227,6 +17303,30 @@ public final class ApprenticeCodexGameTestScenarios {
                 itemName + " long spell imbue regression: expected " + allowsLong);
         helper.assertFalse(item.canImbueSpell(continuousSpell, 1),
                 itemName + " should continue rejecting continuous spells");
+    }
+
+    private static void assertSpellgunCooldownOverride(
+            GameTestHelper helper,
+            ServerPlayer player,
+            ItemStack stack,
+            AbstractSpell spell,
+            int originalCooldownTicks,
+            int expectedCooldownTicks,
+            String message
+    ) {
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Spellgun cooldown test could not resolve player mana data");
+        magicData.setPlayerCastingItem(stack);
+
+        var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                originalCooldownTicks,
+                spell,
+                player,
+                CastSource.SWORD
+        );
+        SpellGunCastEvent.onSpellCooldownAdded(cooldownEvent);
+        helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldownTicks,
+                message + ": expected " + expectedCooldownTicks + " but got " + cooldownEvent.getEffectiveCooldown());
     }
 
     private static void assertModifierAmount(
