@@ -3,9 +3,12 @@ package jp.aquafactory.apprenticecodex.mixin;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowStartSoundContext;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffCastHelper;
+import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
@@ -22,6 +25,17 @@ import java.util.Optional;
 
 @Mixin(value = AbstractSpell.class, remap = false)
 public abstract class AbstractSpellMixin {
+    @Redirect(
+            method = {"getSpellPower", "getEntityPowerMultiplier"},
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lio/redspace/ironsspellbooks/api/spells/SchoolType;getPowerFor(Lnet/minecraft/world/entity/LivingEntity;)D"
+            )
+    )
+    private double apprentice_codex$useDivinePossessionSchoolPower(SchoolType schoolType, LivingEntity caster) {
+        return DivinePossessionPowerHelper.resolveSchoolPower(schoolType, caster);
+    }
+
     @Redirect(
             method = "onClientPreCast",
             at = @At(

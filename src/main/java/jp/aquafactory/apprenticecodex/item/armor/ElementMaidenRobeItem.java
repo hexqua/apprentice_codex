@@ -1,44 +1,47 @@
 package jp.aquafactory.apprenticecodex.item.armor;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownPolicyItem;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.armor.ElementMaidenRobeRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.component.DataComponents;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.renderer.GeoArmorRenderer;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Comparator;
@@ -47,46 +50,45 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class ElementMaidenRobeItem extends ArmorItem implements GeoItem, IPresetSpellContainer, UniqueItem {
-    private static final ResourceLocation ARMOR_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/element_maiden_robe.png");
+public class ElementMaidenRobeItem extends ArmorItem implements GeoItem, IPresetSpellContainer, UniqueItem,
+        WeaponImbueCooldownPolicyItem {
     private static final String DESCRIPTION_KEY = "item." + ApprenticeCodex.MODID + ".element_maiden_robe.desc";
     private static final String SPELLBOOK_SCHOOL_POWER_BONUSES_TAG = "ElementMaidenRobeSpellbookSchoolPowerBonuses";
     private static final String ATTRIBUTE_TAG = "Attribute";
     private static final String AMOUNT_TAG = "Amount";
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private final Type armorType;
-    private final Multimap<Attribute, AttributeModifier> armorAttributeModifiers;
+    private final ItemAttributeModifiers armorAttributeModifiers;
 
     public ElementMaidenRobeItem(Type type) {
-        super(ElementMaidenRobeStats.MATERIAL, type, new Properties().rarity(Rarity.EPIC));
-        this.armorType = type;
+        super(Holder.direct(ElementMaidenRobeStats.MATERIAL), type, ElementMaidenRobeStats.createProperties(type).rarity(Rarity.EPIC));
         this.armorAttributeModifiers = ElementMaidenRobeStats.createAttributeModifiers(type);
         GeoItem.registerSyncedAnimatable(this);
     }
 
     public Type getArmorType() {
-        return armorType;
+        return getType();
     }
 
     public boolean hasImbueSlot() {
-        return armorType == Type.CHESTPLATE;
+        return getType() == Type.CHESTPLATE;
     }
 
     @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private GeoArmorRenderer<?> renderer;
+    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
+        consumer.accept(new GeoRenderProvider() {
+            private ElementMaidenRobeRenderer renderer;
 
             @Override
-            public @NotNull HumanoidModel<?> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack itemStack,
-                                                                   EquipmentSlot equipmentSlot, HumanoidModel<?> original) {
+            public <T extends LivingEntity> HumanoidModel<?> getGeoArmorRenderer(
+                    @Nullable T livingEntity,
+                    ItemStack itemStack,
+                    @Nullable EquipmentSlot equipmentSlot,
+                    @Nullable HumanoidModel<T> original
+            ) {
                 if (renderer == null) {
                     renderer = new ElementMaidenRobeRenderer();
                 }
-
-                renderer.prepForRender(livingEntity, itemStack, equipmentSlot, original);
                 return renderer;
             }
         });
@@ -107,22 +109,29 @@ public class ElementMaidenRobeItem extends ArmorItem implements GeoItem, IPreset
     }
 
     @Override
+    public boolean ignoresWeaponImbueCooldownMultiplier(ItemStack stack, @Nullable AbstractSpell spell, CastSource castSource) {
+        // ローブ固有潜在魔法は武器 Imbue の短縮調整へ寄せない.
+        return castSource == CastSource.SWORD && hasImbueSlot();
+    }
+
+    @Override
     public boolean isEnchantable(@NotNull ItemStack stack) {
         return getEnchantmentValue(stack) > 0;
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-        if (enchantmentId == null) {
-            return false;
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        if (super.supportsEnchantment(stack, enchantment)) {
+            return true;
         }
 
-        if (ApprenticeCodex.MODID.equals(enchantmentId.getNamespace())) {
-            return isSupportedRobeEnchantment(enchantment);
-        }
+        var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
+        return enchantmentId != null && isSupportedRobeEnchantment(enchantmentId);
+    }
 
-        return enchantment.canApplyAtEnchantingTable(createArmorProbeStack());
+    @Override
+    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -131,41 +140,34 @@ public class ElementMaidenRobeItem extends ArmorItem implements GeoItem, IPreset
             return false;
         }
 
-        var enchantments = EnchantmentHelper.getEnchantments(book);
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
         if (enchantments.isEmpty()) {
             return true;
         }
 
-        return enchantments.keySet().stream()
-                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
+        return enchantments.keySet().stream().allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        var baseModifiers = super.getAttributeModifiers(slot, stack);
-        if (slot != armorType.getSlot()) {
-            return baseModifiers;
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        var builder = ItemAttributeModifiers.builder();
+        for (var entry : super.getDefaultAttributeModifiers(stack).modifiers()) {
+            builder.add(entry.attribute(), entry.modifier(), entry.slot());
         }
-
-        var extraBuilder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        extraBuilder.putAll(armorAttributeModifiers);
+        for (var entry : armorAttributeModifiers.modifiers()) {
+            builder.add(entry.attribute(), entry.modifier(), entry.slot());
+        }
         ElementMaidenRobeStats.addSpellPowerModifier(
-                extraBuilder,
-                armorType,
+                builder,
+                getType(),
                 ApprenticeCodexServerConfig.elementMaidenRobeSpellPowerBonus()
         );
-        addSpellbookSchoolPowerModifiers(extraBuilder, stack);
-        addChestMagicEnchantmentModifiers(extraBuilder, stack);
-
-        var mergedExtraModifiers = MagicArmorAttributeHelper.mergeTooltipEquivalentModifiers(
-                extraBuilder.build(),
-                "apprenticecodex.element_maiden_robe." + ElementMaidenRobeStats.typeToken(armorType) + ".merged"
+        addSpellbookSchoolPowerModifiers(builder, stack);
+        addChestMagicEnchantmentModifiers(builder, stack);
+        return MagicArmorAttributeHelper.mergeTooltipEquivalentModifiers(
+                builder.build(),
+                "apprenticecodex.element_maiden_robe." + ElementMaidenRobeStats.typeToken(getType()) + ".merged"
         );
-
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        builder.putAll(baseModifiers);
-        builder.putAll(mergedExtraModifiers);
-        return builder.build();
     }
 
     @Override
@@ -179,15 +181,9 @@ public class ElementMaidenRobeItem extends ArmorItem implements GeoItem, IPreset
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+    public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, context, lines, flag);
         lines.add(Component.translatable(DESCRIPTION_KEY).withStyle(ChatFormatting.GRAY));
-    }
-
-    @Override
-    public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
-        // GeoArmor 描画以外の vanilla 問い合わせでも、同じ既存テクスチャへ解決して警告を避ける.
-        return ARMOR_TEXTURE.toString();
     }
 
     @Override
@@ -210,7 +206,7 @@ public class ElementMaidenRobeItem extends ArmorItem implements GeoItem, IPreset
 
         var bonusList = new ListTag();
         for (var entry : normalizedBonuses.entrySet()) {
-            var attributeId = ForgeRegistries.ATTRIBUTES.getKey(entry.getKey());
+            var attributeId = BuiltInRegistries.ATTRIBUTE.getKey(entry.getKey());
             if (attributeId == null) {
                 continue;
             }
@@ -221,25 +217,22 @@ public class ElementMaidenRobeItem extends ArmorItem implements GeoItem, IPreset
             bonusList.add(bonusTag);
         }
 
-        stack.getOrCreateTag().put(SPELLBOOK_SCHOOL_POWER_BONUSES_TAG, bonusList);
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.put(SPELLBOOK_SCHOOL_POWER_BONUSES_TAG, bonusList));
         return true;
     }
 
     public static boolean clearSpellbookSchoolPowerBonuses(ItemStack stack) {
-        var tag = stack.getTag();
+        var tag = getCustomDataTag(stack);
         if (tag == null || !tag.contains(SPELLBOOK_SCHOOL_POWER_BONUSES_TAG)) {
             return false;
         }
 
-        tag.remove(SPELLBOOK_SCHOOL_POWER_BONUSES_TAG);
-        if (tag.isEmpty()) {
-            stack.setTag(null);
-        }
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, data -> data.remove(SPELLBOOK_SCHOOL_POWER_BONUSES_TAG));
         return true;
     }
 
     public static Map<Attribute, Double> getSpellbookSchoolPowerBonuses(ItemStack stack) {
-        var tag = stack.getTag();
+        var tag = getCustomDataTag(stack);
         if (tag == null || !tag.contains(SPELLBOOK_SCHOOL_POWER_BONUSES_TAG, Tag.TAG_LIST)) {
             return Map.of();
         }
@@ -253,7 +246,7 @@ public class ElementMaidenRobeItem extends ArmorItem implements GeoItem, IPreset
                 continue;
             }
 
-            var attribute = ForgeRegistries.ATTRIBUTES.getValue(attributeId);
+            var attribute = BuiltInRegistries.ATTRIBUTE.get(attributeId);
             var amount = bonusTag.getDouble(AMOUNT_TAG);
             if (attribute != null && amount > 0.0D) {
                 result.put(attribute, amount);
@@ -263,75 +256,60 @@ public class ElementMaidenRobeItem extends ArmorItem implements GeoItem, IPreset
     }
 
     private void addSpellbookSchoolPowerModifiers(
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            ItemAttributeModifiers.Builder builder,
             ItemStack stack
     ) {
         for (var entry : getSpellbookSchoolPowerBonuses(stack).entrySet()) {
-            var attributeId = ForgeRegistries.ATTRIBUTES.getKey(entry.getKey());
+            var attributeId = BuiltInRegistries.ATTRIBUTE.getKey(entry.getKey());
             if (attributeId == null) {
                 continue;
             }
 
             MagicArmorAttributeHelper.addModifier(
                     builder,
-                    entry.getKey(),
+                    BuiltInRegistries.ATTRIBUTE.wrapAsHolder(entry.getKey()),
                     entry.getValue(),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    "apprenticecodex.element_maiden_robe." + ElementMaidenRobeStats.typeToken(armorType)
-                            + ".spellbook_school_power." + normalizeAttributeId(attributeId)
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                    net.minecraft.world.entity.EquipmentSlotGroup.bySlot(getType().getSlot()),
+                    "element_maiden_robe_" + ElementMaidenRobeStats.typeToken(getType())
+                            + "_spellbook_school_power_" + normalizeAttributeId(attributeId)
             );
         }
     }
 
     private void addChestMagicEnchantmentModifiers(
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            ItemAttributeModifiers.Builder builder,
             ItemStack stack
     ) {
         if (!hasImbueSlot()) {
             return;
         }
 
-        if (EnchantmentRegistry.SURGE.isPresent()) {
-            var surgeLevel = stack.getEnchantmentLevel(EnchantmentRegistry.SURGE.get());
-            ElementMaidenRobeStats.addSurgeSpellPowerModifier(builder, armorType, surgeLevel);
-        }
+        var surgeLevel = Enchantments.getLevel(stack, Enchantments.SURGE);
+        ElementMaidenRobeStats.addSurgeSpellPowerModifier(builder, getType(), surgeLevel);
 
-        if (!EnchantmentRegistry.ATTUNEMENT.isPresent()) {
-            return;
-        }
-
-        var attunementLevel = stack.getEnchantmentLevel(EnchantmentRegistry.ATTUNEMENT.get());
+        var attunementLevel = Enchantments.getLevel(stack, Enchantments.ATTUNEMENT);
         if (attunementLevel <= 0) {
             return;
         }
 
         var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
         var attunementSpellPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
-        ElementMaidenRobeStats.addAttunementSpellPowerModifier(
-                builder,
-                attunementSpellPowerAttribute,
-                armorType,
-                attunementLevel
-        );
+        if (attunementSpellPowerAttribute != null) {
+            ElementMaidenRobeStats.addAttunementSpellPowerModifier(
+                    builder,
+                    BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementSpellPowerAttribute),
+                    getType(),
+                    attunementLevel
+            );
+        }
     }
 
-    private boolean isSupportedRobeEnchantment(Enchantment enchantment) {
-        return (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
-                || (hasImbueSlot() && EnchantmentRegistry.TRANSCENDENCE.isPresent()
-                && enchantment == EnchantmentRegistry.TRANSCENDENCE.get())
-                || (hasImbueSlot() && EnchantmentRegistry.SURGE.isPresent()
-                && enchantment == EnchantmentRegistry.SURGE.get())
-                || (hasImbueSlot() && EnchantmentRegistry.ATTUNEMENT.isPresent()
-                && enchantment == EnchantmentRegistry.ATTUNEMENT.get());
-    }
-
-    private ItemStack createArmorProbeStack() {
-        return switch (armorType) {
-            case HELMET -> new ItemStack(Items.LEATHER_HELMET);
-            case CHESTPLATE -> new ItemStack(Items.LEATHER_CHESTPLATE);
-            case LEGGINGS -> new ItemStack(Items.LEATHER_LEGGINGS);
-            case BOOTS -> new ItemStack(Items.LEATHER_BOOTS);
-        };
+    private boolean isSupportedRobeEnchantment(ResourceLocation enchantmentId) {
+        return enchantmentId.equals(Enchantments.WISDOM.location())
+                || (hasImbueSlot() && enchantmentId.equals(Enchantments.TRANSCENDENCE.location()))
+                || (hasImbueSlot() && enchantmentId.equals(Enchantments.SURGE.location()))
+                || (hasImbueSlot() && enchantmentId.equals(Enchantments.ATTUNEMENT.location()));
     }
 
     private static Map<Attribute, Double> normalizeSpellbookSchoolPowerBonuses(Map<Attribute, Double> bonuses) {
@@ -342,10 +320,15 @@ public class ElementMaidenRobeItem extends ArmorItem implements GeoItem, IPreset
         var result = new LinkedHashMap<Attribute, Double>();
         bonuses.entrySet().stream()
                 .filter(entry -> entry.getKey() != null && entry.getValue() != null && entry.getValue() > 0.0D)
-                .filter(entry -> ForgeRegistries.ATTRIBUTES.getKey(entry.getKey()) != null)
-                .sorted(Comparator.comparing(entry -> ForgeRegistries.ATTRIBUTES.getKey(entry.getKey()).toString()))
+                .filter(entry -> BuiltInRegistries.ATTRIBUTE.getKey(entry.getKey()) != null)
+                .sorted(Comparator.comparing(entry -> BuiltInRegistries.ATTRIBUTE.getKey(entry.getKey()).toString()))
                 .forEach(entry -> result.put(entry.getKey(), entry.getValue()));
         return result.isEmpty() ? Map.of() : result;
+    }
+
+    private static @Nullable CompoundTag getCustomDataTag(ItemStack stack) {
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        return customData == null ? null : customData.copyTag();
     }
 
     private static String normalizeAttributeId(ResourceLocation attributeId) {

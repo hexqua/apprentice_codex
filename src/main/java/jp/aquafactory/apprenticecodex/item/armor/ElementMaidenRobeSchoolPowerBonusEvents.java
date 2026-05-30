@@ -12,20 +12,20 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.config.ModConfigEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.event.CurioChangeEvent;
 
@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ElementMaidenRobeSchoolPowerBonusEvents {
     private static final EquipmentSlot[] ARMOR_SLOTS = {
             EquipmentSlot.HEAD,
@@ -313,13 +313,13 @@ public final class ElementMaidenRobeSchoolPowerBonusEvents {
     }
 
     private static void removeOwnedModifiers(Player player) {
-        for (var attribute : ForgeRegistries.ATTRIBUTES.getValues()) {
+        for (var attribute : BuiltInRegistries.ATTRIBUTE) {
             var modifierId = createModifierId(attribute);
             if (modifierId == null) {
                 continue;
             }
 
-            var attributeInstance = player.getAttribute(attribute);
+            var attributeInstance = player.getAttribute(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute));
             if (attributeInstance != null) {
                 attributeInstance.removeModifier(modifierId);
             }
@@ -327,7 +327,7 @@ public final class ElementMaidenRobeSchoolPowerBonusEvents {
     }
 
     private static @Nullable UUID createModifierId(Attribute attribute) {
-        var attributeId = ForgeRegistries.ATTRIBUTES.getKey(attribute);
+        var attributeId = BuiltInRegistries.ATTRIBUTE.getKey(attribute);
         if (attributeId == null) {
             return null;
         }
@@ -353,7 +353,7 @@ public final class ElementMaidenRobeSchoolPowerBonusEvents {
         }
     }
 
-    @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+    @EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = EventBusSubscriber.Bus.MOD)
     public static final class ModBusEvents {
         private ModBusEvents() {
         }

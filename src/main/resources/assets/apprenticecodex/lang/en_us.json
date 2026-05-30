@@ -726,6 +726,7 @@
   "ui.apprenticecodex.echo_cast.current_count": "Mana for %d casts echoes around you...",
   "ui.apprenticecodex.echo_cast.max_reached": "The echoing mana has reached full saturation!",
   "ui.apprenticecodex.echo_cast.cannot_echo_more": "You can't echo any more mana!",
+  "ui.apprenticecodex.divine_possession.required_all_pieces": "Divine Possession requires the full Element Maiden Robe set!",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "Switched firing mode to %s",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "Overheating has increased mana cost to %s!",
