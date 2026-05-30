@@ -31,7 +31,7 @@ public final class SpellDimensionRestrictionServerConfig {
     ) {
         var dimensionDenylist = builder
                 .comment("Dimension IDs where " + spellName + " cannot " + actionDescription + ". Entries use \"modid:path\".")
-                .defineList("dimensionDenylist", List.<String>of(), SpellDimensionRestrictionServerConfig::isDimensionId);
+                .defineListAllowEmpty("dimensionDenylist", List.<String>of(), SpellDimensionRestrictionServerConfig::isDimensionId);
         var enableDimensionAllowlist = builder
                 .comment(
                         "Enables the " + spellName + " dimension allowlist.",
@@ -40,7 +40,7 @@ public final class SpellDimensionRestrictionServerConfig {
                 .define("enableDimensionAllowlist", false);
         var dimensionAllowlist = builder
                 .comment("Dimension IDs where " + spellName + " may " + actionDescription + " when enableDimensionAllowlist is true.")
-                .defineList("dimensionAllowlist", List.<String>of(), SpellDimensionRestrictionServerConfig::isDimensionId);
+                .defineListAllowEmpty("dimensionAllowlist", List.<String>of(), SpellDimensionRestrictionServerConfig::isDimensionId);
 
         return new SpellDimensionRestrictionServerConfig(
                 dimensionDenylist,

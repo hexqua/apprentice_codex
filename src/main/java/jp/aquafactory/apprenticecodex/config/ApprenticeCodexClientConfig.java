@@ -82,7 +82,7 @@ public final class ApprenticeCodexClientConfig {
                         "This denylist also applies when Better Combat renders first-person attack animations through the third-person player model.",
                         "Use this only for specific weapons whose model visually conflicts with the gauntlet."
                 )
-                .defineList("betterCombatScrollcasterGauntletThirdPersonOffhandVisualDeniedMainhandItems",
+                .defineListAllowEmpty("betterCombatScrollcasterGauntletThirdPersonOffhandVisualDeniedMainhandItems",
                         List.of(),
                         value -> value instanceof String text && ResourceLocation.tryParse(text) != null);
         builder.pop();

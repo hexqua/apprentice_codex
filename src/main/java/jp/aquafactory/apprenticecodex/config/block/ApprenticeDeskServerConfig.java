@@ -31,7 +31,7 @@ public final class ApprenticeDeskServerConfig {
 
         var disableNonJobSiteFeatures = builder.define("disableNonJobSiteFeatures", false);
         var enableSpellCraftBlacklist = builder.define("enableSpellCraftBlacklist", false);
-        var spellCraftBlacklist = builder.defineList("spellCraftBlacklist", List.<String>of(),
+        var spellCraftBlacklist = builder.defineListAllowEmpty("spellCraftBlacklist", List.<String>of(),
                 value -> value instanceof String text && !text.isBlank());
         var requireSameSchool = builder.define("requireSameSchool", false);
         var disableCommonRarityConversion = builder.define("disableCommonRarityConversion", false);

@@ -79,7 +79,7 @@ public final class FocusStaffbowServerConfig {
                 .define("enableArrowCatalystRequirement", true);
         var arrowCatalystItems = builder
                 .comment("Item IDs accepted as Focus Staffbow arrow catalysts. Empty list makes non-Synthesis survival casts unusable while arrow catalysts are required.")
-                .defineList("arrowCatalystItems", List.of("minecraft:arrow"), FocusStaffbowServerConfig::isItemId);
+                .defineListAllowEmpty("arrowCatalystItems", List.of("minecraft:arrow"), FocusStaffbowServerConfig::isItemId);
         var pendingMaxChargeMultiplier = builder
                 .comment("Maximum spell power multiplier for pending Focus Staffbow casts.")
                 .defineInRange("pendingMaxChargeMultiplier", 3.0D, 1.0D, 100.0D);
@@ -100,13 +100,13 @@ public final class FocusStaffbowServerConfig {
                 .defineInRange("pendingMaxLoanManaRatio", 1.0D, 0.0D, 100.0D);
         var spellDenylist = builder
                 .comment("Spell IDs blocked for Focus Staffbow casts. Entries use \"modid:path\" and are checked before ammo or mana is consumed.")
-                .defineList("spellDenylist", List.<String>of(), FocusStaffbowServerConfig::isSpellId);
+                .defineListAllowEmpty("spellDenylist", List.<String>of(), FocusStaffbowServerConfig::isSpellId);
         var enableSpellAllowlist = builder
                 .comment("Enables the Focus Staffbow spell allowlist. The denylist still has priority.")
                 .define("enableSpellAllowlist", false);
         var spellAllowlist = builder
                 .comment("Spell IDs allowed when enableSpellAllowlist is true. Entries use \"modid:path\".")
-                .defineList("spellAllowlist", List.<String>of(), FocusStaffbowServerConfig::isSpellId);
+                .defineListAllowEmpty("spellAllowlist", List.<String>of(), FocusStaffbowServerConfig::isSpellId);
         builder.pop();
 
         return new FocusStaffbowServerConfig(

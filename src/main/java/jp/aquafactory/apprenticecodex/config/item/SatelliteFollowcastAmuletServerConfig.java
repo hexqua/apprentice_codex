@@ -19,7 +19,7 @@ public final class SatelliteFollowcastAmuletServerConfig {
         builder.push("SatelliteFollowcastAmulet");
         var spellDenylist = builder
                 .comment("Spell IDs blocked only for Satellite Followcast Amulet imbue and followcast. Entries use \"modid:path\".")
-                .defineList("spellDenylist", List.<String>of(), SatelliteFollowcastAmuletServerConfig::isSpellId);
+                .defineListAllowEmpty("spellDenylist", List.<String>of(), SatelliteFollowcastAmuletServerConfig::isSpellId);
         builder.pop();
 
         return new SatelliteFollowcastAmuletServerConfig(spellDenylist);

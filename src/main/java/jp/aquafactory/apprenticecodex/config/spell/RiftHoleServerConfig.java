@@ -29,7 +29,7 @@ public final class RiftHoleServerConfig {
 
         var dimensionDenylist = builder
                 .comment("Dimension IDs where Rift Hole cannot open tunnels. Entries use \"modid:path\".")
-                .defineList("dimensionDenylist", List.<String>of(), RiftHoleServerConfig::isDimensionId);
+                .defineListAllowEmpty("dimensionDenylist", List.<String>of(), RiftHoleServerConfig::isDimensionId);
         var enableDimensionAllowlist = builder
                 .comment(
                         "Enables the Rift Hole dimension allowlist.",
@@ -38,7 +38,7 @@ public final class RiftHoleServerConfig {
                 .define("enableDimensionAllowlist", false);
         var dimensionAllowlist = builder
                 .comment("Dimension IDs where Rift Hole may open tunnels when enableDimensionAllowlist is true.")
-                .defineList("dimensionAllowlist", List.<String>of(), RiftHoleServerConfig::isDimensionId);
+                .defineListAllowEmpty("dimensionAllowlist", List.<String>of(), RiftHoleServerConfig::isDimensionId);
 
         builder.pop();
         return new RiftHoleServerConfig(
