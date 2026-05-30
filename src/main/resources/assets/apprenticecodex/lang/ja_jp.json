@@ -741,6 +741,7 @@
   "ui.apprenticecodex.echo_cast.max_reached": "残響している魔力が飽和しきった！",
   "ui.apprenticecodex.echo_cast.cannot_echo_more": "これ以上は魔力を残響させられない！",
   "ui.apprenticecodex.bound_sword.force_try_dual_wield": "強制的に二刀流錬成を実行...",
+  "ui.apprenticecodex.divine_possession.required_all_pieces": "神降ろしには元素の乙女の装束を全て揃える必要がある！",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "射撃モードを%sに設定",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "オーバーヒートで消費マナが%sに増加している！",

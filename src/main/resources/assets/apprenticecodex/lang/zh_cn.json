@@ -729,6 +729,7 @@
   "ui.apprenticecodex.echo_cast.current_count": "%d 次施法的魔力正在周围回响...",
   "ui.apprenticecodex.echo_cast.max_reached": "回响的魔力已完全饱和！",
   "ui.apprenticecodex.echo_cast.cannot_echo_more": "无法再让魔力回响了！",
+  "ui.apprenticecodex.divine_possession.required_all_pieces": "神降临需要集齐全套元素少女长袍！",
 
  "ui.apprenticecodex.elemental_bow.mode_switched": "已切换发射模式为 %s",
  "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "过热导致魔力消耗提升至 %s！",
