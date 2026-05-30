@@ -27,6 +27,7 @@ import jp.aquafactory.apprenticecodex.item.SpellcasterWorkbenchItem;
 import jp.aquafactory.apprenticecodex.item.UniteLunaStaff;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
+import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
@@ -108,6 +109,10 @@ public final class ItemRegistry {
 
     private static DeferredHolder<Item, Item> chromaticMagiaDress(String id, ArmorItem.Type type) {
         return ITEMS.register(id, () -> new ChromaticMagiaDressItem(type));
+    }
+
+    private static DeferredHolder<Item, Item> elementMaidenRobe(String id, ArmorItem.Type type) {
+        return ITEMS.register(id, () -> new ElementMaidenRobeItem(type));
     }
 
     public static final DeferredHolder<Item, Item> SKY_EDGE_SWORD = simple("sky_edge_sword");
@@ -202,6 +207,14 @@ public final class ItemRegistry {
             chromaticMagiaDress("chromatic_magia_dress_leggings", ArmorItem.Type.LEGGINGS);
     public static final DeferredHolder<Item, Item> CHROMATIC_MAGIA_DRESS_BOOTS =
             chromaticMagiaDress("chromatic_magia_dress_boots", ArmorItem.Type.BOOTS);
+    public static final DeferredHolder<Item, Item> ELEMENT_MAIDEN_ROBE_RIBBON =
+            elementMaidenRobe("element_maiden_robe_ribbon", ArmorItem.Type.HELMET);
+    public static final DeferredHolder<Item, Item> ELEMENT_MAIDEN_ROBE_ROBE =
+            elementMaidenRobe("element_maiden_robe_robe", ArmorItem.Type.CHESTPLATE);
+    public static final DeferredHolder<Item, Item> ELEMENT_MAIDEN_ROBE_LEGGINGS =
+            elementMaidenRobe("element_maiden_robe_leggings", ArmorItem.Type.LEGGINGS);
+    public static final DeferredHolder<Item, Item> ELEMENT_MAIDEN_ROBE_BOOTS =
+            elementMaidenRobe("element_maiden_robe_boots", ArmorItem.Type.BOOTS);
     public static final DeferredHolder<Item, Item> APPRENTICE_DESK =
             ITEMS.register("apprentice_desk",
                     () -> new ApprenticeDeskItem(BlockRegistry.APPRENTICE_DESK.get(), new Item.Properties()));

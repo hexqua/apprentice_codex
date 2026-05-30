@@ -757,6 +757,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .save(recipeOutput, ItemRegistry.ENCHANTRESS_BOOTS.getId());
 
         saveChromaticMagiaDressSmithingRecipes(recipeOutput);
+        saveElementMaidenRobeSmithingRecipes(recipeOutput);
 
         SmithingTransformRecipeBuilder.smithing(
                         Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
@@ -822,6 +823,29 @@ public final class RecipeGenerator extends RecipeProvider {
         );
     }
 
+    private void saveElementMaidenRobeSmithingRecipes(@NotNull RecipeOutput recipeOutput) {
+        saveElementMaidenRobeSmithingRecipe(
+                recipeOutput,
+                IRONS_WIZARD_BASE_HELMET,
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get()
+        );
+        saveElementMaidenRobeSmithingRecipe(
+                recipeOutput,
+                IRONS_WIZARD_BASE_CHESTPLATE,
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()
+        );
+        saveElementMaidenRobeSmithingRecipe(
+                recipeOutput,
+                IRONS_WIZARD_BASE_LEGGINGS,
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get()
+        );
+        saveElementMaidenRobeSmithingRecipe(
+                recipeOutput,
+                IRONS_WIZARD_BASE_BOOTS,
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get()
+        );
+    }
+
     private void saveChromaticMagiaDressSmithingRecipe(
             @NotNull RecipeOutput recipeOutput,
             TagKey<Item> baseTag,
@@ -835,6 +859,22 @@ public final class RecipeGenerator extends RecipeProvider {
                         result
                 )
                 .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()))
+                .save(recipeOutput, BuiltInRegistries.ITEM.getKey(result));
+    }
+
+    private void saveElementMaidenRobeSmithingRecipe(
+            @NotNull RecipeOutput recipeOutput,
+            TagKey<Item> baseTag,
+            Item result
+    ) {
+        SmithingTransformRecipeBuilder.smithing(
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.PROTECTION_RUNE.get()),
+                        Ingredient.of(baseTag),
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()),
+                        RecipeCategory.COMBAT,
+                        result
+                )
+                .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()))
                 .save(recipeOutput, BuiltInRegistries.ITEM.getKey(result));
     }
 

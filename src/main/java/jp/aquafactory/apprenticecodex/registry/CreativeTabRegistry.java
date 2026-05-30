@@ -113,6 +113,10 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get());
         output.accept(ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get());
         output.accept(ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get());
+        output.accept(ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get());
+        output.accept(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get());
+        output.accept(ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get());
+        output.accept(ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get());
         output.accept(ItemRegistry.GRIMOIRE_MANIFEST.get());
         output.accept(ItemRegistry.SCARLET_THIRST.get());
         output.accept(ItemRegistry.CRAFTSMANS_DELIGHT.get());

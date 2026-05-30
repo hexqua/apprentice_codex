@@ -202,6 +202,14 @@ final class ItemsServerConfig {
         return magicArmorConfig.chromaticMagiaDressSpellPowerBonusPerPiece();
     }
 
+    double elementMaidenRobeSpellPowerBonus() {
+        return magicArmorConfig.elementMaidenRobeSpellPowerBonus();
+    }
+
+    double elementMaidenRobeSchoolSpellPowerBonus() {
+        return magicArmorConfig.elementMaidenRobeSchoolSpellPowerBonus();
+    }
+
     double stealthRuneArmorSpellPowerBonusPerPiece() {
         return magicArmorConfig.stealthRuneArmorSpellPowerBonusPerPiece();
     }
@@ -767,6 +775,10 @@ final class ItemsServerConfig {
 
     void setArchivistsGrimoireConfigForGameTest(ArchivistsGrimoireServerConfig.Values values) {
         archivistsGrimoireConfig.setForGameTest(values);
+    }
+
+    void setElementMaidenRobeSchoolSpellPowerBonusForGameTest(double value) {
+        magicArmorConfig.setElementMaidenRobeSchoolSpellPowerBonusForGameTest(value);
     }
 
     void setSatelliteFollowcastAmuletSpellDenylistForGameTest(List<String> spellDenylist) {

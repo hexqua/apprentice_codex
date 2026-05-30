@@ -1,0 +1,62 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/equip_chromatic_magia_dress",
+  "criteria": {
+    "equip_element_maiden_robe": {
+      "conditions": {
+        "player": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "equipment": {
+                "chest": {
+                  "items": [
+                    "apprenticecodex:element_maiden_robe_robe"
+                  ]
+                },
+                "feet": {
+                  "items": [
+                    "apprenticecodex:element_maiden_robe_boots"
+                  ]
+                },
+                "head": {
+                  "items": [
+                    "apprenticecodex:element_maiden_robe_ribbon"
+                  ]
+                },
+                "legs": {
+                  "items": [
+                    "apprenticecodex:element_maiden_robe_leggings"
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tick"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.equip_element_maiden_robe.description"
+    },
+    "frame": "challenge",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:element_maiden_robe_ribbon",
+      "nbt": "{Damage:0}"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.equip_element_maiden_robe.title"
+    }
+  },
+  "requirements": [
+    [
+      "equip_element_maiden_robe"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

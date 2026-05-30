@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": {
+    "item": "irons_spellbooks:mithril_weave"
+  },
+  "base": {
+    "tag": "irons_spellbooks:wizard_base_leggings"
+  },
+  "result": {
+    "item": "apprenticecodex:element_maiden_robe_leggings"
+  },
+  "template": {
+    "item": "irons_spellbooks:protection_rune"
+  }
+}

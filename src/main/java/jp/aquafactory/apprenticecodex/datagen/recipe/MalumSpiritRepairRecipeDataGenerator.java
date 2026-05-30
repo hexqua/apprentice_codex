@@ -82,6 +82,24 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
                         )
                 ),
                 recipe(
+                        "element_maiden_robe",
+                        1.0F,
+                        List.of(
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get()
+                        ),
+                        io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get(),
+                        1,
+                        List.of(
+                                spirit(ARCANE_SPIRIT, 16),
+                                spirit(EARTH_SPIRIT, 16),
+                                spirit(SACRED_SPIRIT, 16),
+                                spirit(ELDRITCH_SPIRIT, 4)
+                        )
+                ),
+                recipe(
                         "reflectcast_shield",
                         0.5F,
                         List.of(jp.aquafactory.apprenticecodex.registry.ItemRegistry.REFLECTCAST_SHIELD.get()),
