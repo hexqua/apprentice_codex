@@ -25,6 +25,7 @@ import jp.aquafactory.apprenticecodex.item.SpellDispenserItem;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.SpellcasterWorkbenchItem;
 import jp.aquafactory.apprenticecodex.item.UniteLunaStaff;
+import jp.aquafactory.apprenticecodex.item.ZenithStaff;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
@@ -304,6 +305,8 @@ public final class ItemRegistry {
             ITEMS.register("pastel_staff", PastelStaff::new);
     public static final DeferredHolder<Item, Item> MULTICAST_ECHO_STAFF =
             ITEMS.register("multicast_echo_staff", MulticastEchoStaff::new);
+    public static final DeferredHolder<Item, Item> ZENITH_STAFF =
+            ITEMS.register("zenith_staff", ZenithStaff::new);
     public static final DeferredHolder<Item, Item> FOCUS_STAFFBOW =
             ITEMS.register("focus_staffbow", FocusStaffbow::new);
     public static final DeferredHolder<Item, Item> SMASHCAST_SCEPTER =

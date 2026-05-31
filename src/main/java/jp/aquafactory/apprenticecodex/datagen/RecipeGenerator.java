@@ -304,6 +304,18 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.UPGRADE_ORB.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.UPGRADE_ORB.get()))
                 .save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.ZENITH_STAFF.get())
+                .pattern(" MS")
+                .pattern(" WC")
+                .pattern("P  ")
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_INGOT.get())
+                .define('S', io.redspace.ironsspellbooks.registries.ItemRegistry.DIVINE_SOULSHARD.get())
+                .define('C', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get())
+                .define('W', ItemTags.PLANKS)
+                .define('P', io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get())
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.UPGRADE_ORB.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.UPGRADE_ORB.get()))
+                .save(recipeWriter);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.CRYSTAL_BLADED_STAFF.get())
                 .pattern(" DS")
                 .pattern(" AD")

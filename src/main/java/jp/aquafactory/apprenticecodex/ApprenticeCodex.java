@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.event.IsekaiTravelGuidebookConfigSyncEvent
 import jp.aquafactory.apprenticecodex.event.ManaForceBladeConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ManaShieldCharmConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ModEntityAttributeEvent;
+import jp.aquafactory.apprenticecodex.event.ZenithStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.client.ClientModBusEvents;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.network.Networks;
@@ -82,6 +83,7 @@ public class ApprenticeCodex
         IsekaiTravelGuidebookConfigSyncEvents.register(modEventBus);
         ManaForceBladeConfigSyncEvents.register(modEventBus);
         ManaShieldCharmConfigSyncEvents.register(modEventBus);
+        ZenithStaffConfigSyncEvents.register(modEventBus);
         CodexSpellStateTypeRegister.register();
         Networks.register(modEventBus);
 

@@ -35,6 +35,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncSchoolAffinityAssignmen
 import jp.aquafactory.apprenticecodex.network.packet.SyncSatelliteFollowcastAmuletStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSmashcastScepterReadyStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncTamersPocketCountPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncZenithStaffConfigPacket;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -45,7 +46,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "33";
+    private static final String PROTOCOL_VERSION = "34";
 
     private Networks() {
     }
@@ -120,6 +121,11 @@ public final class Networks {
                 SyncManaShieldCharmConfigPacket.TYPE,
                 SyncManaShieldCharmConfigPacket.STREAM_CODEC,
                 SyncManaShieldCharmConfigPacket::handle
+        );
+        registrar.playToClient(
+                SyncZenithStaffConfigPacket.TYPE,
+                SyncZenithStaffConfigPacket.STREAM_CODEC,
+                SyncZenithStaffConfigPacket::handle
         );
         registrar.playToClient(
                 SyncScarletThirstHealthPacket.TYPE,

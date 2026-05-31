@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.events.CounterSpellEvent;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
+import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.item.UpgradeData;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
@@ -87,6 +88,8 @@ import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectProfileManager;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
+import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffManaCostEvent;
+import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffPowerHelper;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
@@ -123,6 +126,7 @@ import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWings;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsManager;
+import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
@@ -387,6 +391,8 @@ public final class ApprenticeCodexGameTestScenarios {
     );
     private static final ResourceLocation CASTING_MOVESPEED_DYNAMIC_TEST_EXTERNAL_MODIFIER_ID =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "casting_movespeed_dynamic_test_external");
+    private static final ResourceLocation ZENITH_STAFF_SCHOOL_POWER_TEST_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "zenith_staff_school_power_test");
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
     private static final ResourceLocation MALUM_HAUNTED =
@@ -3894,6 +3900,134 @@ public final class ApprenticeCodexGameTestScenarios {
 
             helper.assertTrue(generatedLoot.stream().anyMatch(stack -> stack.is(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get())),
                     "Spawn bonus chest loot no longer contains Isekai Travel Guidebook: " + generatedLoot);
+        });
+    }
+
+    static void zenithStaffUsesStrongestSchoolPowerAndManaPenalty(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var zenithStaffId = BuiltInRegistries.ITEM.getKey(ItemRegistry.ZENITH_STAFF.get());
+            helper.assertTrue(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "zenith_staff").equals(zenithStaffId),
+                    "Zenith Staff is not registered with the expected id: " + zenithStaffId);
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "zenith_staff_power_test");
+            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(ItemRegistry.ZENITH_STAFF.get()));
+
+            var firePowerAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get());
+            helper.assertTrue(firePowerAttribute != null, "Zenith Staff test player is missing fire spell power attribute");
+            firePowerAttribute.addTransientModifier(new AttributeModifier(
+                    ZENITH_STAFF_SCHOOL_POWER_TEST_MODIFIER_ID,
+                    0.5D,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+            ));
+
+            var fireSchool = SchoolRegistry.FIRE.get();
+            var iceSchool = SchoolRegistry.ICE.get();
+            var snapshot = ZenithStaffPowerHelper.resolvePowerSnapshot(player);
+            helper.assertTrue(snapshot.hasSchoolBonus(), "Zenith Staff should detect the fire school bonus");
+            helper.assertTrue(snapshot.isStrongest(fireSchool), "Zenith Staff should treat fire as the strongest school");
+            helper.assertTrue(snapshot.bonusPercent() == 50,
+                    "Zenith Staff should report +50% school bonus but got " + snapshot.bonusPercent());
+
+            var expectedPower = fireSchool.getPowerFor(player);
+            var resolvedIcePower = DivinePossessionPowerHelper.resolveSchoolPower(iceSchool, player);
+            helper.assertTrue(Math.abs(resolvedIcePower - expectedPower) < 1.0e-9D,
+                    "Zenith Staff should cast ice with fire's strongest school power");
+
+            try (var ignored = ApprenticeCodexServerConfig.useZenithStaffManaCostMultiplierOverrideForGameTest(3.0D)) {
+                var iceManaEvent = new SpellOnCastEvent(
+                        player,
+                        "apprenticecodex:zenith_staff_gametest_ice",
+                        1,
+                        10,
+                        iceSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellCast(iceManaEvent);
+                helper.assertTrue(iceManaEvent.getManaCost() == 30,
+                        "Zenith Staff should triple non-strongest school mana cost");
+
+                var fireManaEvent = new SpellOnCastEvent(
+                        player,
+                        "apprenticecodex:zenith_staff_gametest_fire",
+                        1,
+                        10,
+                        fireSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellCast(fireManaEvent);
+                helper.assertTrue(fireManaEvent.getManaCost() == 10,
+                        "Zenith Staff should not increase strongest school mana cost");
+
+                var iceSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.ICE_SPIKES_SPELL.get();
+                var iceBaseManaCost = iceSpell.getManaCost(1);
+                var iceRequiredManaCost = ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(iceBaseManaCost);
+                helper.assertTrue(iceRequiredManaCost > iceBaseManaCost,
+                        "Zenith Staff pre-cast test needs increased mana cost");
+
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Zenith Staff pre-cast test could not resolve player mana data");
+                magicData.setMana(Math.max(0, iceRequiredManaCost - 1));
+                var insufficientPreCastEvent = new SpellPreCastEvent(
+                        player,
+                        iceSpell.getSpellId(),
+                        1,
+                        iceSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellPreCast(insufficientPreCastEvent);
+                helper.assertTrue(insufficientPreCastEvent.isCanceled(),
+                        "Zenith Staff should cancel non-strongest school pre-cast when increased mana cost is unaffordable");
+
+                magicData.setMana(iceRequiredManaCost);
+                var affordablePreCastEvent = new SpellPreCastEvent(
+                        player,
+                        iceSpell.getSpellId(),
+                        1,
+                        iceSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellPreCast(affordablePreCastEvent);
+                helper.assertFalse(affordablePreCastEvent.isCanceled(),
+                        "Zenith Staff should allow non-strongest school pre-cast when increased mana cost is affordable");
+
+                var fireSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIREBALL_SPELL.get();
+                magicData.setMana(Math.max(0, ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(fireSpell.getManaCost(1)) - 1));
+                var strongestPreCastEvent = new SpellPreCastEvent(
+                        player,
+                        fireSpell.getSpellId(),
+                        1,
+                        fireSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellPreCast(strongestPreCastEvent);
+                helper.assertFalse(strongestPreCastEvent.isCanceled(),
+                        "Zenith Staff should not cancel strongest school pre-cast with its mana multiplier gate");
+
+                player.addEffect(new MobEffectInstance(EffectRegistry.DIVINE_POSSESSION.get(), 100, 0));
+                var divineManaEvent = new SpellOnCastEvent(
+                        player,
+                        "apprenticecodex:zenith_staff_gametest_divine",
+                        1,
+                        10,
+                        iceSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellCast(divineManaEvent);
+                helper.assertTrue(divineManaEvent.getManaCost() == 10,
+                        "Divine Possession should suppress Zenith Staff's mana cost increase");
+
+                magicData.setMana(Math.max(0, iceRequiredManaCost - 1));
+                var divinePreCastEvent = new SpellPreCastEvent(
+                        player,
+                        iceSpell.getSpellId(),
+                        1,
+                        iceSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellPreCast(divinePreCastEvent);
+                helper.assertFalse(divinePreCastEvent.isCanceled(),
+                        "Divine Possession should suppress Zenith Staff's pre-cast mana gate");
+            }
         });
     }
     static void senseEvilUsesSameCubeForSpawnersAndEntities(GameTestHelper helper) {
@@ -11300,9 +11434,9 @@ public final class ApprenticeCodexGameTestScenarios {
                         "Element Maiden Robe " + armorType + " should be a unique item");
                 helper.assertTrue(stack.getRarity() == Rarity.EPIC,
                         "Element Maiden Robe " + armorType + " rarity should be epic");
-                helper.assertTrue(item.getMaterial().getDefenseForType(armorType) == ArmorMaterials.LEATHER.getDefenseForType(armorType),
+                helper.assertTrue(item.getMaterial().value().defense().get(armorType).equals(ArmorMaterials.LEATHER.value().defense().get(armorType)),
                         "Element Maiden Robe " + armorType + " defense should match leather");
-                helper.assertTrue(Math.abs(item.getMaterial().getToughness() - 4.0F) < 1.0e-6F,
+                helper.assertTrue(Math.abs(item.getMaterial().value().toughness() - 4.0F) < 1.0e-6F,
                         "Element Maiden Robe " + armorType + " toughness should be 4");
                 helper.assertTrue(item.getEnchantmentValue(stack) == ElementMaidenRobeStats.enchantmentValue(),
                         "Element Maiden Robe " + armorType + " enchantment value changed");
@@ -11312,12 +11446,12 @@ public final class ApprenticeCodexGameTestScenarios {
                         ),
                         "Element Maiden Robe " + armorType + " should repair with mithril scrap");
 
-                var modifiers = item.getAttributeModifiers(armorType.getSlot(), stack);
-                var maxManaBonus = sumModifierAmount(modifiers.get(maxManaAttribute), AttributeModifier.Operation.ADDITION);
+                var modifiers = toModifierMultimap(item.getDefaultAttributeModifiers(stack));
+                var maxManaBonus = sumModifierAmount(modifiers.get(maxManaAttribute), AttributeModifier.Operation.ADD_VALUE);
                 helper.assertTrue(Math.abs(maxManaBonus - ElementMaidenRobeStats.MAX_MANA_BONUS) < 1.0e-9D,
                         "Element Maiden Robe " + armorType + " max mana regression: " + describeModifiers(modifiers));
 
-                var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.MULTIPLY_BASE);
+                var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
                 helper.assertTrue(Math.abs(spellPowerBonus - expectedSpellPower) < 1.0e-9D,
                         "Element Maiden Robe " + armorType + " spell power config regression: " + describeModifiers(modifiers));
 
@@ -11325,7 +11459,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         "Element Maiden Robe " + armorType + " imbue surface regression");
 
                 var tooltipLines = new ArrayList<Component>();
-                item.appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+                item.appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
                 helper.assertTrue(tooltipLines.stream().anyMatch(line ->
                                 line.getContents() instanceof TranslatableContents contents
                                         && "item.apprenticecodex.element_maiden_robe.desc".equals(contents.getKey())),
@@ -11350,10 +11484,10 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(imbuedSpellPowerAttribute != null,
                     "Element Maiden Robe chestplate test could not resolve school spell power attribute");
 
-            var enchantedModifiers = chestplate.getAttributeModifiers(EquipmentSlot.CHEST, chestStack);
+            var enchantedModifiers = toModifierMultimap(chestplate.getDefaultAttributeModifiers(chestStack));
             var enchantedGlobalSpellPower = sumModifierAmount(
                     enchantedModifiers.get(spellPowerAttribute),
-                    AttributeModifier.Operation.MULTIPLY_BASE
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             );
             helper.assertTrue(Math.abs(enchantedGlobalSpellPower
                             - (expectedSpellPower + ElementMaidenRobeStats.SURGE_SPELL_POWER_PER_LEVEL)) < 1.0e-9D,
@@ -11361,7 +11495,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
             var attunementSpellPower = sumModifierAmount(
                     enchantedModifiers.get(imbuedSpellPowerAttribute),
-                    AttributeModifier.Operation.MULTIPLY_BASE
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             );
             helper.assertTrue(Math.abs(attunementSpellPower
                             - ElementMaidenRobeStats.ATTUNEMENT_SPELL_POWER_PER_LEVEL) < 1.0e-9D,
@@ -18422,7 +18556,7 @@ public final class ApprenticeCodexGameTestScenarios {
         var actualAmount = bonuses.getOrDefault(attribute, 0.0D);
         helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
                 message + ": expected " + expectedAmount + " but got " + actualAmount
-                        + " attribute=" + ForgeRegistries.ATTRIBUTES.getKey(attribute)
+                        + " attribute=" + BuiltInRegistries.ATTRIBUTE.getKey(attribute)
                         + " bonuses=" + bonuses);
     }
 
@@ -18449,16 +18583,17 @@ public final class ApprenticeCodexGameTestScenarios {
             }
 
             var item = (ElementMaidenRobeItem) stack.getItem();
-            var modifiers = item.getAttributeModifiers(targetArmor.slot(), stack);
+            var modifiers = toModifierMultimap(item.getDefaultAttributeModifiers(stack));
             for (var entry : expectedBonuses.entrySet()) {
+                var attributeHolder = BuiltInRegistries.ATTRIBUTE.wrapAsHolder(entry.getKey());
                 var actualAmount = sumModifierAmount(
-                        modifiers.get(entry.getKey()),
-                        AttributeModifier.Operation.MULTIPLY_BASE
+                        modifiers.get(attributeHolder),
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE
                 );
                 helper.assertTrue(Math.abs(actualAmount - entry.getValue()) < 1.0e-9D,
                         message + ": expected armor attribute " + entry.getValue() + " but got " + actualAmount
                                 + " on " + targetArmor.slot()
-                                + " attribute=" + ForgeRegistries.ATTRIBUTES.getKey(entry.getKey())
+                                + " attribute=" + BuiltInRegistries.ATTRIBUTE.getKey(entry.getKey())
                                 + " modifiers=" + describeModifiers(modifiers));
                 totalAmounts.merge(entry.getKey(), actualAmount, Double::sum);
             }
@@ -18466,7 +18601,7 @@ public final class ApprenticeCodexGameTestScenarios {
             for (var entry : storedBonuses.entrySet()) {
                 helper.assertTrue(expectedBonuses.containsKey(entry.getKey()),
                         message + ": unexpected stored bonus on " + targetArmor.slot() + " "
-                                + ForgeRegistries.ATTRIBUTES.getKey(entry.getKey())
+                                + BuiltInRegistries.ATTRIBUTE.getKey(entry.getKey())
                                 + " amount=" + entry.getValue());
             }
         }
@@ -18476,7 +18611,7 @@ public final class ApprenticeCodexGameTestScenarios {
             var actualTotal = totalAmounts.getOrDefault(entry.getKey(), 0.0D);
             helper.assertTrue(Math.abs(actualTotal - expectedTotal) < 1.0e-9D,
                     message + ": expected stacked armor attribute " + expectedTotal + " but got " + actualTotal
-                            + " attribute=" + ForgeRegistries.ATTRIBUTES.getKey(entry.getKey())
+                            + " attribute=" + BuiltInRegistries.ATTRIBUTE.getKey(entry.getKey())
                             + " equipped robes=" + targetArmors.size());
         }
     }

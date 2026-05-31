@@ -322,6 +322,19 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .addCriterion("crafted_smashcast_scepter", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SMASHCAST_SCEPTER.getId()))
                 .save(saver, advancementId("craft_smashcast_scepter"), existingFileHelper);
 
+        Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.ZENITH_STAFF.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_zenith_staff.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_zenith_staff.description"),
+                        null,
+                        FrameType.CHALLENGE,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_zenith_staff", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.ZENITH_STAFF.getId()))
+                .save(saver, advancementId("craft_zenith_staff"), existingFileHelper);
+
         var gauntlet = Advancement.Builder.advancement()
                 .parent(root)
                 .display(ItemRegistry.SCROLLCASTER_GAUNTLET.get(),
