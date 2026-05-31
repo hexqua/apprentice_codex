@@ -49,6 +49,7 @@ import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAtt
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
@@ -62,6 +63,12 @@ import jp.aquafactory.apprenticecodex.event.errandmage.ErrandMageTradeManager;
 import jp.aquafactory.apprenticecodex.event.ScrollcasterGauntletGrindstoneEvent;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastMode;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
@@ -116,6 +123,7 @@ import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
+import jp.aquafactory.apprenticecodex.item.spellthrowablecard.AbstractSpellThrowableCardItem;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
 import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
@@ -1044,6 +1052,234 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(recipeManager.getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get()).isEmpty(),
                     "No Spellcaster Workbench recipes were loaded");
         });
+    }
+
+    static void spellThrowableCardsAcceptOnlyRemoteOwnerProfilesAndAllowedRecasts(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var invokeCard = (AbstractSpellThrowableCardItem) ItemRegistry.SPELL_INVOKE_CARD.get();
+            var autonomyCard = (AbstractSpellThrowableCardItem) ItemRegistry.SPELL_AUTONOMY_CARD.get();
+            var mageLight = SpellRegistry.MAGE_LIGHT.get();
+            var raiseDead = io.redspace.ironsspellbooks.api.registry.SpellRegistry.RAISE_DEAD_SPELL.get();
+
+            try (var ignored = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
+                    requireSpellId(mageLight), remotePlayerGeometryProfile(false),
+                    requireSpellId(raiseDead), remotePlayerGeometryProfile(false)
+            ))) {
+                helper.assertTrue(invokeCard.canImbueSpell(mageLight, 1),
+                        "Spell Invoke Card should accept RemoteOwner profile spells");
+                helper.assertTrue(autonomyCard.canImbueSpell(mageLight, 1),
+                        "Spell Autonomy Card should accept RemoteOwner profile spells");
+                helper.assertFalse(invokeCard.canImbueSpell(raiseDead, 1),
+                        "Spell Invoke Card should reject recast spells when the profile does not allow initial recast");
+            }
+
+            try (var ignored = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
+                    requireSpellId(raiseDead), remotePlayerGeometryProfile(true)
+            ))) {
+                helper.assertTrue(invokeCard.canImbueSpell(raiseDead, 1),
+                        "Spell Invoke Card should accept summon recasts controlled by SummonedEntitiesCastData");
+                helper.assertTrue(autonomyCard.canImbueSpell(raiseDead, 1),
+                        "Spell Autonomy Card should accept summon recasts controlled by SummonedEntitiesCastData");
+            }
+
+            try (var ignored = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of())) {
+                helper.assertFalse(invokeCard.canImbueSpell(mageLight, 1),
+                        "Spell Invoke Card should reject spells without a RemoteOwner profile");
+            }
+        });
+    }
+
+    static void spellThrowableCardWorkbenchRecipesImbueFromScrollWithoutConsumingScroll(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var mageLight = SpellRegistry.MAGE_LIGHT.get();
+            helper.assertTrue(new ItemStack(Items.PAPER).is(TagRegistry.Items.SPELL_THROWABLE_CARD_PAPERS),
+                    "Paper should be registered as a Spell Throwable Card paper ingredient");
+            helper.assertTrue(new ItemStack(Items.BLACK_DYE).is(TagRegistry.Items.SPELL_INVOKE_CARD_CRAFTING_MATERIALS),
+                    "Black dye should be registered as a Spell Invoke Card material");
+            helper.assertTrue(new ItemStack(Items.INK_SAC).is(TagRegistry.Items.SPELL_INVOKE_CARD_CRAFTING_MATERIALS),
+                    "Ink sac should be registered as a Spell Invoke Card material");
+            helper.assertTrue(new ItemStack(Items.GLOW_INK_SAC).is(TagRegistry.Items.SPELL_INVOKE_CARD_CRAFTING_MATERIALS),
+                    "Glow ink sac should be registered as a Spell Invoke Card material");
+            helper.assertTrue(new ItemStack(Items.ENDER_EYE).is(TagRegistry.Items.SPELL_AUTONOMY_CARD_CRAFTING_MATERIALS),
+                    "Eye of ender should be registered as a Spell Autonomy Card material");
+
+            try (var ignored = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
+                    requireSpellId(mageLight), remotePlayerGeometryProfile(false)
+            ))) {
+                assertSpellThrowableCardWorkbenchRecipe(
+                        helper,
+                        ItemRegistry.SPELL_INVOKE_CARD.get(),
+                        new ItemStack(Items.PAPER, 16),
+                        new ItemStack(Items.BLACK_DYE),
+                        16,
+                        mageLight,
+                        "Spell Invoke Card paper recipe"
+                );
+                assertSpellThrowableCardWorkbenchRecipe(
+                        helper,
+                        ItemRegistry.SPELL_INVOKE_CARD.get(),
+                        new ItemStack(Items.PAPER, 16),
+                        new ItemStack(Items.INK_SAC),
+                        16,
+                        mageLight,
+                        "Spell Invoke Card ink sac recipe"
+                );
+                assertSpellThrowableCardWorkbenchRecipe(
+                        helper,
+                        ItemRegistry.SPELL_INVOKE_CARD.get(),
+                        new ItemStack(Items.PAPER, 16),
+                        new ItemStack(Items.GLOW_INK_SAC),
+                        16,
+                        mageLight,
+                        "Spell Invoke Card glow ink sac recipe"
+                );
+                assertSpellThrowableCardWorkbenchRecipe(
+                        helper,
+                        ItemRegistry.SPELL_INVOKE_CARD.get(),
+                        new ItemStack(ItemRegistry.SPELL_INVOKE_CARD.get(), 16),
+                        new ItemStack(Items.BLACK_DYE),
+                        16,
+                        mageLight,
+                        "Spell Invoke Card rewrite recipe"
+                );
+                assertSpellThrowableCardWorkbenchRecipe(
+                        helper,
+                        ItemRegistry.SPELL_AUTONOMY_CARD.get(),
+                        new ItemStack(Items.PAPER, 8),
+                        new ItemStack(Items.ENDER_EYE),
+                        8,
+                        mageLight,
+                        "Spell Autonomy Card paper recipe"
+                );
+                assertSpellThrowableCardWorkbenchRecipe(
+                        helper,
+                        ItemRegistry.SPELL_AUTONOMY_CARD.get(),
+                        new ItemStack(ItemRegistry.SPELL_AUTONOMY_CARD.get(), 8),
+                        new ItemStack(Items.ENDER_EYE),
+                        8,
+                        mageLight,
+                        "Spell Autonomy Card rewrite recipe"
+                );
+            }
+
+            try (var configOverride = ApprenticeCodexServerConfig.useSpellThrowableCardConfigOverrideForGameTest(
+                    new SpellThrowableCardServerConfig.Values(5, 3));
+                 var ignored = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
+                         requireSpellId(mageLight), remotePlayerGeometryProfile(false)
+                 ))) {
+                assertSpellThrowableCardWorkbenchRecipe(
+                        helper,
+                        ItemRegistry.SPELL_INVOKE_CARD.get(),
+                        new ItemStack(Items.PAPER, 5),
+                        new ItemStack(Items.BLACK_DYE),
+                        5,
+                        mageLight,
+                        "Spell Invoke Card configured count recipe"
+                );
+                assertSpellThrowableCardWorkbenchRecipe(
+                        helper,
+                        ItemRegistry.SPELL_AUTONOMY_CARD.get(),
+                        new ItemStack(Items.PAPER, 3),
+                        new ItemStack(Items.ENDER_EYE),
+                        3,
+                        mageLight,
+                        "Spell Autonomy Card configured count recipe"
+                );
+            }
+
+            try (var ignored = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of())) {
+                assertSpellThrowableCardWorkbenchCantImbue(
+                        helper,
+                        new ItemStack(Items.PAPER, 16),
+                        new ItemStack(Items.BLACK_DYE),
+                        createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get()),
+                        "Spell Invoke Card should show a blocked result for unsupported scrolls"
+                );
+            }
+        });
+    }
+
+    private static void assertSpellThrowableCardWorkbenchRecipe(
+            GameTestHelper helper,
+            Item resultItem,
+            ItemStack baseStack,
+            ItemStack catalystStack,
+            int expectedCount,
+            AbstractSpell spell,
+            String context
+    ) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), context.toLowerCase(java.util.Locale.ROOT).replace(' ', '_'));
+        var scrollStack = createSpellScroll(spell);
+        var menu = createSpellcasterWorkbenchMenuWithInputs(player, baseStack.copy(), catalystStack.copy(), scrollStack.copy());
+
+        var preview = menu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem();
+        helper.assertTrue(preview.is(resultItem) && preview.getCount() == expectedCount,
+                context + " should preview the expected card stack: " + preview);
+        assertStackHasSpell(helper, preview, spell, 1, context + " preview should be imbued");
+
+        var crafted = menu.quickMoveStack(player, SpellcasterWorkbenchMenu.RESULT_SLOT);
+        helper.assertTrue(crafted.is(resultItem) && crafted.getCount() == expectedCount,
+                context + " should craft the expected card stack: " + crafted);
+        assertStackHasSpell(helper, crafted, spell, 1, context + " result should be imbued");
+        helper.assertTrue(countInputItem(menu, baseStack.getItem()) == 0,
+                context + " should consume the base stack");
+        helper.assertTrue(countInputItem(menu, catalystStack.getItem()) == 0,
+                context + " should consume the catalyst");
+        helper.assertTrue(hasMatchingInputStack(menu, scrollStack),
+                context + " should leave the scroll in the Workbench inputs");
+    }
+
+    private static void assertSpellThrowableCardWorkbenchCantImbue(
+            GameTestHelper helper,
+            ItemStack baseStack,
+            ItemStack catalystStack,
+            ItemStack scrollStack,
+            String context
+    ) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), context.toLowerCase(java.util.Locale.ROOT).replace(' ', '_'));
+        var menu = createSpellcasterWorkbenchMenuWithInputs(player, baseStack, catalystStack, scrollStack);
+        helper.assertTrue(menu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem().isEmpty(),
+                context + ": result slot should stay empty");
+        helper.assertTrue(menu.isBlockedBySpellThrowableCardCantImbue(),
+                context + ": menu should expose the card imbue block reason");
+    }
+
+    private static int countInputItem(SpellcasterWorkbenchMenu menu, Item item) {
+        var count = 0;
+        for (var slotIndex = 0; slotIndex < SpellcasterWorkbenchMenu.INPUT_SLOT_COUNT; ++slotIndex) {
+            var stack = menu.getSlot(slotIndex).getItem();
+            if (stack.is(item)) {
+                count += stack.getCount();
+            }
+        }
+        return count;
+    }
+
+    private static boolean hasMatchingInputStack(SpellcasterWorkbenchMenu menu, ItemStack expectedStack) {
+        for (var slotIndex = 0; slotIndex < SpellcasterWorkbenchMenu.INPUT_SLOT_COUNT; ++slotIndex) {
+            if (ItemStack.isSameItemSameComponents(menu.getSlot(slotIndex).getItem(), expectedStack)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static RemoteOwnerCastProfile remotePlayerGeometryProfile(boolean allowInitialRecast) {
+        return new RemoteOwnerCastProfile(
+                RemoteOwnerCastMode.REMOTE_PLAYER_GEOMETRY,
+                RemoteOwnerOriginMode.PROVIDED_ORIGIN,
+                RemoteOwnerDirectionMode.PROVIDED_FORWARD,
+                Optional.of(List.of(RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT)),
+                allowInitialRecast
+        );
+    }
+
+    private static ResourceLocation requireSpellId(AbstractSpell spell) {
+        var spellId = spell.getSpellResource();
+        if (spellId == null) {
+            throw new IllegalStateException("Missing spell id for " + spell);
+        }
+        return spellId;
     }
 
     static void processingRecipeDenylistsRejectConfiguredRecipeIds(GameTestHelper helper) {

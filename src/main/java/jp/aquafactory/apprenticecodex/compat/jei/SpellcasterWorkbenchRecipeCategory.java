@@ -1,17 +1,31 @@
 package jp.aquafactory.apprenticecodex.compat.jei;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprenticeCodexRecipeCategory<SpellcasterWorkbenchRecipe> {
+    public static final ResourceLocation ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_RECIPE_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "archivists_grimoire_row_upgrade");
+    public static final ResourceLocation SPELL_INVOKE_CARD_RECIPE_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_invoke_card");
+    public static final ResourceLocation SPELL_INVOKE_CARD_REWRITE_RECIPE_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_invoke_card_rewrite");
+    public static final ResourceLocation SPELL_AUTONOMY_CARD_RECIPE_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_autonomy_card");
+    public static final ResourceLocation SPELL_AUTONOMY_CARD_REWRITE_RECIPE_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_autonomy_card_rewrite");
     private static final Component ARCHIVISTS_GRIMOIRE_UPGRADE_HINT =
             Component.translatable("jei.apprenticecodex.archivists_grimoire.upgrade_hint");
+    private static final Component SPELL_THROWABLE_CARD_CRAFT_HINT =
+            Component.translatable("jei.apprenticecodex.spell_throwable_cards.craft_hint");
     private static final int WIDTH = 134;
     private static final int HEIGHT = 56;
     private static final int[][] INPUT_POSITIONS = {
@@ -72,6 +86,8 @@ public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprentice
         recipeArrow.draw(guiGraphics, ARROW_X, ARROW_Y);
         if (isArchivistsGrimoireRowUpgradeRecipe(recipe)) {
             drawLabel(guiGraphics, ARCHIVISTS_GRIMOIRE_UPGRADE_HINT, 74, 36);
+        } else if (isSpellThrowableCardRecipe(recipe.getId())) {
+            drawLabel(guiGraphics, SPELL_THROWABLE_CARD_CRAFT_HINT, 74, 36);
         }
     }
 
@@ -80,5 +96,12 @@ public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprentice
         return outputs.size() == 1
                 && outputs.getFirst().is(ItemRegistry.ARCHIVISTS_GRIMOIRE.get())
                 && recipe.getSizedIngredients().size() == SpellcasterWorkbenchRecipe.INPUT_SLOT_COUNT;
+    }
+
+    private static boolean isSpellThrowableCardRecipe(ResourceLocation recipeId) {
+        return SPELL_INVOKE_CARD_RECIPE_ID.equals(recipeId)
+                || SPELL_INVOKE_CARD_REWRITE_RECIPE_ID.equals(recipeId)
+                || SPELL_AUTONOMY_CARD_RECIPE_ID.equals(recipeId)
+                || SPELL_AUTONOMY_CARD_REWRITE_RECIPE_ID.equals(recipeId);
     }
 }

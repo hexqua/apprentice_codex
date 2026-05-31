@@ -350,6 +350,10 @@
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_8": "Only one mutually incompatible enchantment is applied; enchantments for swords, pickaxes, or spellcasting aids are supported.",
   "jei.apprenticecodex.spell_calibration_bench.desc_1": "A workstation for adjusting imbued spells on Scrollcaster Gauntlets and some items.",
   "jei.apprenticecodex.spell_calibration_bench.desc_2": "It cannot handle items whose imbued spells cannot be removed; use an Arcane Anvil for those.",
+  "jei.apprenticecodex.spell_throwable_cards.desc_1": "Imbue a spell and throw the card to cast it remotely with behavior specific to each card type.",
+  "jei.apprenticecodex.spell_throwable_cards.desc_2": "Cards are consumable, but they can be crafted without consuming the scroll used for imbuing.",
+  "jei.apprenticecodex.spell_throwable_cards.desc_3": "Accepted spells are restricted by configuration and can be checked in item details and JEI.",
+  "jei.apprenticecodex.spell_throwable_cards.craft_hint": "Scroll is not consumed",
 
   "jei.apprenticecodex.archivists_grimoire.upgrade_hint": "Adds 9 slots",
 
@@ -1032,5 +1036,6 @@
   "subtitle.apprenticecodex.sound.vanilla_feather_shoot": "Feather fires",
   "subtitle.apprenticecodex.sound.vanilla_jar_open": "Jar opens",
   "subtitle.apprenticecodex.sound.vanilla_jar_close": "Jar closes",
-  "subtitle.apprenticecodex.sound.vanilla_chest_jump": "Chest jumps"
+  "subtitle.apprenticecodex.sound.vanilla_chest_jump": "Chest jumps",
+  "subtitle.apprenticecodex.sound.vanilla_card_throw": "Card thrown"
 }

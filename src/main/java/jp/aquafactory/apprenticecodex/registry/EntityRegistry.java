@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity;
+import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.SpellAutonomyCardEntity;
+import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.SpellInvokeCardEntity;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
@@ -153,6 +155,12 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<ChargedTwinBladeStaffThrownEntity>> CHARGED_TWIN_BLADE_STAFF_THROWN =
             regProjectile("charged_twin_blade_staff_thrown", ChargedTwinBladeStaffThrownEntity::new, 96, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<SpellInvokeCardEntity>> SPELL_INVOKE_CARD =
+            regProjectile("spell_invoke_card", SpellInvokeCardEntity::new, 96, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<SpellAutonomyCardEntity>> SPELL_AUTONOMY_CARD =
+            regProjectile("spell_autonomy_card", SpellAutonomyCardEntity::new, 96, 1);
 
     public static final DeferredHolder<EntityType<?>, EntityType<GracedRainCloudEntity>> GRACED_RAIN_CLOUD =
             regWeapon("graced_rain_cloud", GracedRainCloudEntity::new, 1);

@@ -16,6 +16,7 @@ public final class SoundRegistry {
         return SOUND_EVENTS.register(id,
                 () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, id)));
     }
+
     public static final DeferredHolder<SoundEvent, SoundEvent> RIFLE = reg("rifle");
     public static final DeferredHolder<SoundEvent, SoundEvent> SUPPRESS_RIFLE = reg("suppress_rifle");
     public static final DeferredHolder<SoundEvent, SoundEvent> HANDGUN = reg("handgun");
@@ -97,6 +98,8 @@ public final class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_JAR_CLOSE = reg("vanilla_jar_close");
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_JAR_OPEN = reg("vanilla_jar_open");
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_CHEST_JUMP = reg("vanilla_chest_jump");
+    public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_CARD_THROW = reg("vanilla_card_throw");
+
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);
     }
