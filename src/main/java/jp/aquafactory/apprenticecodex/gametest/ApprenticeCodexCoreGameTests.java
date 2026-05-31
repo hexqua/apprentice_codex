@@ -126,6 +126,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void zenithStaffUsesStrongestSchoolPowerAndManaPenalty(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.zenithStaffUsesStrongestSchoolPowerAndManaPenalty(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void apprenticeCurioBonusLootTableContainsAllThreeItems(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.apprenticeCurioBonusLootTableContainsAllThreeItems(helper);
     }

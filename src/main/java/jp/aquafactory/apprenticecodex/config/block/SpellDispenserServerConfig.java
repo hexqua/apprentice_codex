@@ -53,7 +53,7 @@ public final class SpellDispenserServerConfig {
                 .define("enableSpellAllowlist", false);
         var spellAllowlist = builder
                 .comment("Namespaced spell IDs that Spell Dispenser may cast when enableSpellAllowlist is true.")
-                .defineList("spellAllowlist", List.<String>of(), SpellDispenserServerConfig::isSpellId);
+                .defineListAllowEmpty("spellAllowlist", List.<String>of(), SpellDispenserServerConfig::isSpellId);
         var cooldownMultiplier = builder
                 .comment("Multiplier applied to Spell Dispenser cooldown ticks. Minimum is 0.1.")
                 .defineInRange("cooldownMultiplier", 1.0d, 0.1d, Double.MAX_VALUE);

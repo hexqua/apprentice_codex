@@ -309,6 +309,14 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.chromaticMagiaDressSpellPowerBonusPerPiece();
     }
 
+    public static double elementMaidenRobeSpellPowerBonus() {
+        return ITEMS_CONFIG.elementMaidenRobeSpellPowerBonus();
+    }
+
+    public static double elementMaidenRobeSchoolSpellPowerBonus() {
+        return ITEMS_CONFIG.elementMaidenRobeSchoolSpellPowerBonus();
+    }
+
     public static double stealthRuneArmorSpellPowerBonusPerPiece() {
         return ITEMS_CONFIG.stealthRuneArmorSpellPowerBonusPerPiece();
     }
@@ -319,6 +327,10 @@ public final class ApprenticeCodexServerConfig {
 
     public static double pastelStaffAmplifyTintedMagicMultiplier() {
         return ITEMS_CONFIG.pastelStaffAmplifyTintedMagicMultiplier();
+    }
+
+    public static float zenithStaffManaCostMultiplier() {
+        return ITEMS_CONFIG.zenithStaffManaCostMultiplier();
     }
 
     public static boolean showIsekaiTravelGuidebookTooltip() {
@@ -964,6 +976,18 @@ public final class ApprenticeCodexServerConfig {
         );
         ITEMS_CONFIG.setArchivistsGrimoireConfigForGameTest(values);
         return () -> ITEMS_CONFIG.setArchivistsGrimoireConfigForGameTest(previousValues);
+    }
+
+    public static GameTestConfigOverride useElementMaidenRobeSchoolSpellPowerBonusOverrideForGameTest(double value) {
+        var previousValue = ITEMS_CONFIG.elementMaidenRobeSchoolSpellPowerBonus();
+        ITEMS_CONFIG.setElementMaidenRobeSchoolSpellPowerBonusForGameTest(value);
+        return () -> ITEMS_CONFIG.setElementMaidenRobeSchoolSpellPowerBonusForGameTest(previousValue);
+    }
+
+    public static GameTestConfigOverride useZenithStaffManaCostMultiplierOverrideForGameTest(double value) {
+        var previousValue = ITEMS_CONFIG.zenithStaffManaCostMultiplier();
+        ITEMS_CONFIG.setZenithStaffManaCostMultiplierForGameTest(value);
+        return () -> ITEMS_CONFIG.setZenithStaffManaCostMultiplierForGameTest(previousValue);
     }
 
     public static float forceFieldDrainManaBasePerHit() {

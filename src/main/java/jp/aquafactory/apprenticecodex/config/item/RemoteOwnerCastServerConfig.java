@@ -47,10 +47,10 @@ public final class RemoteOwnerCastServerConfig {
                 .define("forceProxyOwnerMagic", false);
         var remotePlayerGeometryDenylist = builder
                 .comment("Spell IDs that should not use remote_player_geometry. Entries use \"modid:path\".")
-                .defineList("remotePlayerGeometryDenylist", List.<String>of(), RemoteOwnerCastServerConfig::isSpellId);
+                .defineListAllowEmpty("remotePlayerGeometryDenylist", List.<String>of(), RemoteOwnerCastServerConfig::isSpellId);
         var remoteOwnerCastDenylist = builder
                 .comment("Spell IDs blocked for all Remote Owner Cast origins. Entries use \"modid:path\".")
-                .defineList("remoteOwnerCastDenylist", List.<String>of(), RemoteOwnerCastServerConfig::isSpellId);
+                .defineListAllowEmpty("remoteOwnerCastDenylist", List.<String>of(), RemoteOwnerCastServerConfig::isSpellId);
         var satelliteFollowcastUsesRemoteOwnerProfiles = builder
                 .comment("Makes Satellite Followcast Amulet prefer Remote Owner Cast profiles before legacy fallbacks.")
                 .define("satelliteFollowcastUsesRemoteOwnerProfiles", true);

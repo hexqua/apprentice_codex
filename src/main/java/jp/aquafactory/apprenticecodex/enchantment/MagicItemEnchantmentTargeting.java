@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.item.PastelStaff;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
+import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
@@ -43,7 +44,8 @@ final class MagicItemEnchantmentTargeting {
     }
 
     static boolean isSupportedMagicArmorItem(Item item) {
-        return item instanceof EnchantressRobeItem;
+        return item instanceof EnchantressRobeItem
+                || item instanceof ElementMaidenRobeItem elementRobeItem && elementRobeItem.hasImbueSlot();
     }
 
     static boolean isSupportedOffhandOrArmorMagicItem(Item item) {
@@ -62,7 +64,8 @@ final class MagicItemEnchantmentTargeting {
     }
 
     static boolean isSupportedSpellContainerArmorItem(Item item) {
-        return item instanceof EnchantressRobeItem robeItem && robeItem.hasImbueSlot();
+        return item instanceof EnchantressRobeItem enchantressRobeItem && enchantressRobeItem.hasImbueSlot()
+                || item instanceof ElementMaidenRobeItem elementRobeItem && elementRobeItem.hasImbueSlot();
     }
 
     static boolean isSupportedWisdomEnchantingItem(Item item) {
@@ -78,6 +81,7 @@ final class MagicItemEnchantmentTargeting {
                 || item instanceof EnchantressRobeItem
                 || item instanceof StealthRuneArmorItem
                 || item instanceof ChromaticMagiaDressItem
+                || item instanceof ElementMaidenRobeItem
                 || item instanceof OffhandMagicCompatibleItem;
     }
 

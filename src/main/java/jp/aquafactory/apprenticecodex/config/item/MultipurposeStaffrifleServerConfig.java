@@ -44,7 +44,7 @@ public final class MultipurposeStaffrifleServerConfig {
                 .defineInRange("adsFullAutoIntervalTicks", 3, 1, 72000);
         var spellDenylist = builder
                 .comment("Additional spell IDs blocked only for Multipurpose Staffrifle special casts. Entries use \"modid:path\".")
-                .defineList("spellDenylist", List.<String>of(), MultipurposeStaffrifleServerConfig::isSpellId);
+                .defineListAllowEmpty("spellDenylist", List.<String>of(), MultipurposeStaffrifleServerConfig::isSpellId);
         builder.pop();
 
         return new MultipurposeStaffrifleServerConfig(

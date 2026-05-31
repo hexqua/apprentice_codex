@@ -30,7 +30,7 @@ public final class MistFormServerConfig {
                         "Block IDs or block tag IDs that Mist Form cannot pass through even when they are in apprenticecodex:mist_form_passable.",
                         "Entries use \"modid:path\" for blocks and \"#modid:path\" for block tags."
                 )
-                .defineList("mistFormPassableBlockDenylist", List.<String>of(), MistFormServerConfig::isBlockOrTagId);
+                .defineListAllowEmpty("mistFormPassableBlockDenylist", List.<String>of(), MistFormServerConfig::isBlockOrTagId);
         builder.pop();
         return new MistFormServerConfig(passableBlockDenylist);
     }

@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
 import io.redspace.ironsspellbooks.api.util.Utils;
+import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeSchoolPowerBonusEvents;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
@@ -32,7 +33,9 @@ public class ClientChangeArchivistsGrimoireRowPacket {
 
             var spellbookStack = Utils.getPlayerSpellbookStack(sender);
             if (spellbookStack != null && spellbookStack.getItem() instanceof ArchivistsGrimoire) {
-                ArchivistsGrimoire.changeSelectedRowToPopulatedRow(spellbookStack, packet.delta);
+                if (ArchivistsGrimoire.changeSelectedRowToPopulatedRow(spellbookStack, packet.delta)) {
+                    ElementMaidenRobeSchoolPowerBonusEvents.refresh(sender);
+                }
             }
         });
         context.setPacketHandled(true);
