@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
+import io.redspace.ironsspellbooks.config.ServerConfigs;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import net.minecraft.ChatFormatting;
@@ -20,7 +21,7 @@ public final class ZenithStaffManaCostEvent {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onSpellPreCast(SpellPreCastEvent event) {
-        if (!(event.getEntity() instanceof ServerPlayer player) || player.getAbilities().instabuild) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || !requiresManaGate(player, event)) {
             return;
         }
 
@@ -46,6 +47,10 @@ public final class ZenithStaffManaCostEvent {
                 requiredManaCost
         ).withStyle(ChatFormatting.RED), true);
         event.setCanceled(true);
+    }
+
+    private static boolean requiresManaGate(ServerPlayer player, SpellPreCastEvent event) {
+        return event.getCastSource().consumesMana() && !(player.isCreative() && !ServerConfigs.CREATIVE_MANA_COST.get());
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
