@@ -977,6 +977,8 @@ public final class ApprenticeCodexGameTestScenarios {
                         mageLight,
                         "Spell Autonomy Card rewrite recipe"
                 );
+                assertSpellThrowableCardWorkbenchButtonAcceptsSplitStacks(helper, mageLight);
+                assertSpellThrowableCardWorkbenchButtonAppendsToActiveDynamicRecipe(helper, mageLight);
             }
 
             try (var configOverride = ApprenticeCodexServerConfig.useSpellThrowableCardConfigOverrideForGameTest(
@@ -1044,6 +1046,56 @@ public final class ApprenticeCodexGameTestScenarios {
                 context + " should consume the catalyst");
         helper.assertTrue(hasMatchingInputStack(menu, scrollStack),
                 context + " should leave the scroll in the Workbench inputs");
+    }
+
+    private static void assertSpellThrowableCardWorkbenchButtonAcceptsSplitStacks(GameTestHelper helper, AbstractSpell spell) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_invoke_card_split_stack_button");
+        var menu = new SpellcasterWorkbenchMenu(0, player.getInventory());
+        player.getInventory().setItem(0, new ItemStack(Items.PAPER, 8));
+        player.getInventory().setItem(1, new ItemStack(Items.PAPER, 8));
+        player.getInventory().setItem(2, new ItemStack(Items.BLACK_DYE));
+        player.getInventory().setItem(3, createSpellScroll(spell));
+
+        helper.assertTrue(menu.clickMenuButton(player, findSelectableIconIndex(helper, menu, ItemRegistry.SPELL_INVOKE_CARD.get())),
+                "Spell Invoke Card button should accept split paper stacks");
+        var preview = menu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem();
+        helper.assertTrue(preview.is(ItemRegistry.SPELL_INVOKE_CARD.get()) && preview.getCount() == 16,
+                "Spell Invoke Card button should preview from split paper stacks: " + preview);
+        helper.assertTrue(countInputItem(menu, Items.PAPER) == 16,
+                "Spell Invoke Card button should move both split paper stacks into inputs");
+    }
+
+    private static void assertSpellThrowableCardWorkbenchButtonAppendsToActiveDynamicRecipe(GameTestHelper helper, AbstractSpell spell) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_invoke_card_append_button");
+        var scrollStack = createSpellScroll(spell);
+        var menu = createSpellcasterWorkbenchMenuWithInputs(
+                player,
+                new ItemStack(Items.PAPER, 16),
+                new ItemStack(Items.BLACK_DYE),
+                scrollStack.copy()
+        );
+        player.getInventory().setItem(0, new ItemStack(Items.PAPER, 16));
+        player.getInventory().setItem(1, new ItemStack(Items.BLACK_DYE));
+
+        helper.assertTrue(menu.clickMenuButton(player, findSelectableIconIndex(helper, menu, ItemRegistry.SPELL_INVOKE_CARD.get())),
+                "Spell Invoke Card button should append to the active dynamic recipe");
+        helper.assertTrue(countInputItem(menu, Items.PAPER) == 32,
+                "Spell Invoke Card button should append one paper batch without returning existing inputs");
+        helper.assertTrue(countInputItem(menu, Items.BLACK_DYE) == 2,
+                "Spell Invoke Card button should append one catalyst batch without returning existing inputs");
+        helper.assertTrue(hasMatchingInputStack(menu, scrollStack),
+                "Spell Invoke Card button should keep the existing scroll input while appending");
+    }
+
+    private static int findSelectableIconIndex(GameTestHelper helper, SpellcasterWorkbenchMenu menu, Item item) {
+        var icons = menu.getSelectableIcons();
+        for (var index = 0; index < icons.size(); ++index) {
+            if (icons.get(index).is(item)) {
+                return index;
+            }
+        }
+        helper.fail("Missing Spellcaster Workbench selectable icon for " + item);
+        return -1;
     }
 
     private static void assertSpellThrowableCardWorkbenchCantImbue(

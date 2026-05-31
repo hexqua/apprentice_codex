@@ -251,7 +251,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
                 && ItemStack.isSameItemSameTags(previousActiveRecipe.getPrimaryResultTemplate(), selection.icon());
         var appendToExistingDynamic = previousActiveDynamicCraft != null
                 && selection.dynamicRecipe() != null
-                && ItemStack.isSameItemSameTags(previousActiveDynamicCraft.resultTemplate(), selection.icon());
+                && previousActiveDynamicCraft.group().targetItem() == selection.dynamicRecipe().targetItem();
 
         selectedIconIndex.set(iconIndex);
         if (appendToExisting) {
@@ -394,7 +394,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             var availableCount = 0;
             for (var source : sources) {
                 if (source.remainingCount() <= 0
-                        || !ingredient.test(source.stack())
+                        || !ingredient.matchesItem(source.stack())
                         || !canStacksMerge(prototypeCandidate.stack(), source.stack())) {
                     continue;
                 }
@@ -446,7 +446,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     ) {
         var candidates = new ArrayList<InventorySourceState>();
         for (var source : sources) {
-            if (source.remainingCount() <= 0 || !ingredient.test(source.stack())) {
+            if (source.remainingCount() <= 0 || !ingredient.matchesItem(source.stack())) {
                 continue;
             }
             if (!targetStack.isEmpty() && !canStacksMerge(targetStack, source.stack())) {
@@ -1265,6 +1265,10 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
         private boolean test(ItemStack stack) {
             return predicate.test(stack) && stack.getCount() >= count;
+        }
+
+        private boolean matchesItem(ItemStack stack) {
+            return predicate.test(stack);
         }
     }
 
