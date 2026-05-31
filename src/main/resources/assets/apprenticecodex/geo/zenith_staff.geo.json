@@ -1,0 +1,68 @@
+{
+	"format_version": "1.21.110",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.zenith_staff",
+				"texture_width": 32,
+				"texture_height": 32,
+				"visible_bounds_width": 2,
+				"visible_bounds_height": 2.5,
+				"visible_bounds_offset": [0, 0.75, 0]
+			},
+			"bones": [
+				{
+					"name": "root",
+					"pivot": [0, 0, 0]
+				},
+				{
+					"name": "handle",
+					"parent": "root",
+					"pivot": [0, 0, 0],
+					"cubes": [
+						{"origin": [-1, 1, -1], "size": [2, 1, 2], "uv": [12, 4]},
+						{"origin": [-1, 1.75, -1], "size": [2, 1, 2], "inflate": -0.25, "pivot": [0, 2.25, 0], "rotation": [0, -45, 0], "uv": [12, 7]},
+						{"origin": [-1, 17.25, -1], "size": [2, 1, 2], "inflate": -0.25, "pivot": [0, 17.75, 0], "rotation": [0, -45, 0], "uv": [12, 10]},
+						{"origin": [-0.5, 2, -0.5], "size": [1, 4, 1], "inflate": -0.05, "uv": [4, 16]},
+						{"origin": [-0.5, 10, -0.5], "size": [1, 8, 1], "inflate": -0.05, "uv": [0, 8]},
+						{"origin": [-1.5, 16.5, -1.5], "size": [3, 1, 3], "inflate": -0.8, "uv": [0, 0]},
+						{"origin": [-1.5, 15.75, -1.5], "size": [3, 1, 3], "inflate": -0.8, "pivot": [0, 16.25, 0], "rotation": [0, -45, 0], "uv": [0, 4]},
+						{"origin": [-0.5, 6, -0.5], "size": [1, 4, 1], "inflate": 0.05, "uv": [8, 16]}
+					]
+				},
+				{
+					"name": "tail",
+					"parent": "handle",
+					"pivot": [0, 0, 0],
+					"cubes": [
+						{"origin": [-1, -0.25, -1], "size": [2, 2, 2], "inflate": -0.25, "uv": [12, 0]}
+					]
+				},
+				{
+					"name": "head",
+					"parent": "root",
+					"pivot": [0, 18, 0]
+				},
+				{
+					"name": "container",
+					"parent": "head",
+					"pivot": [0, 18.5, 0],
+					"cubes": [
+						{"origin": [-1, 18, -1], "size": [2, 1, 2], "inflate": -0.25, "pivot": [0, 18.5, 0], "rotation": [0, -45, 0], "uv": [4, 13]},
+						{"origin": [-1, 21.5, -1], "size": [2, 1, 2], "inflate": -0.25, "pivot": [0, 22, 0], "rotation": [0, -45, 0], "uv": [12, 13]},
+						{"origin": [0.25, 18.25, -0.5], "size": [1, 4, 1], "inflate": -0.25, "pivot": [0.75, 20.25, 0], "rotation": [0, 45, 0], "uv": [12, 16]},
+						{"origin": [-1.25, 18.25, -0.5], "size": [1, 4, 1], "inflate": -0.25, "pivot": [-0.75, 20.25, 0], "rotation": [0, 45, 0], "uv": [16, 16]}
+					]
+				},
+				{
+					"name": "stone",
+					"parent": "head",
+					"pivot": [0, 18, 0],
+					"cubes": [
+						{"origin": [-1, 18.75, -1], "size": [2, 3, 2], "inflate": -0.25, "uv": [4, 8]}
+					]
+				}
+			]
+		}
+	]
+}
