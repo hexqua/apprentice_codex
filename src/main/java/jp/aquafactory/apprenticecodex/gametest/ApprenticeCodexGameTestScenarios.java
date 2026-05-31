@@ -3990,6 +3990,29 @@ public final class ApprenticeCodexGameTestScenarios {
                 helper.assertFalse(affordablePreCastEvent.isCanceled(),
                         "Zenith Staff should allow non-strongest school pre-cast when increased mana cost is affordable");
 
+                equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+                var touchDigSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.TOUCH_DIG.get();
+                assertZenithPreCastUsesDiscountedManaGate(
+                        helper,
+                        player,
+                        magicData,
+                        touchDigSpell,
+                        CraftsmansDelight.applyManaCostDiscount(touchDigSpell.getManaCost(1), player),
+                        "CraftsmansDelight Touch Dig"
+                );
+
+                equipCurio(player, CuriosSlotConstants.BELT, new ItemStack(ItemRegistry.PROTECTION_SPELL_SUPPORTER.get()));
+                var mysticShieldSpell = SpellRegistry.MYSTIC_SHIELD.get();
+                assertZenithPreCastUsesDiscountedManaGate(
+                        helper,
+                        player,
+                        magicData,
+                        mysticShieldSpell,
+                        jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter
+                                .applyManaCostDiscount(mysticShieldSpell.getManaCost(1), player),
+                        "ProtectionSpellSupporter Mystic Shield"
+                );
+
                 var fireSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIREBALL_SPELL.get();
                 magicData.setMana(Math.max(0, ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(fireSpell.getManaCost(1)) - 1));
                 var strongestPreCastEvent = new SpellPreCastEvent(
@@ -4030,6 +4053,47 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
+
+    private static void assertZenithPreCastUsesDiscountedManaGate(
+            GameTestHelper helper,
+            FakePlayer player,
+            MagicData magicData,
+            AbstractSpell spell,
+            int discountedManaCost,
+            String context
+    ) {
+        helper.assertTrue(ZenithStaffPowerHelper.shouldIncreaseManaCost(player, spell.getSchoolType()),
+                context + " test needs Zenith Staff mana gate to apply");
+        var rawRequiredManaCost = ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(spell.getManaCost(1));
+        var discountedRequiredManaCost = ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(discountedManaCost);
+        helper.assertTrue(discountedRequiredManaCost < rawRequiredManaCost,
+                context + " test needs a lower discounted Zenith mana cost");
+
+        magicData.setMana(discountedRequiredManaCost);
+        var affordablePreCastEvent = new SpellPreCastEvent(
+                player,
+                spell.getSpellId(),
+                1,
+                spell.getSchoolType(),
+                CastSource.SPELLBOOK
+        );
+        ZenithStaffManaCostEvent.onSpellPreCast(affordablePreCastEvent);
+        helper.assertFalse(affordablePreCastEvent.isCanceled(),
+                "Zenith Staff should allow " + context + " pre-cast at discounted increased mana cost");
+
+        magicData.setMana(Math.max(0, discountedRequiredManaCost - 1));
+        var insufficientPreCastEvent = new SpellPreCastEvent(
+                player,
+                spell.getSpellId(),
+                1,
+                spell.getSchoolType(),
+                CastSource.SPELLBOOK
+        );
+        ZenithStaffManaCostEvent.onSpellPreCast(insufficientPreCastEvent);
+        helper.assertTrue(insufficientPreCastEvent.isCanceled(),
+                "Zenith Staff should still cancel " + context + " pre-cast below discounted increased mana cost");
+    }
+
     static void senseEvilUsesSameCubeForSpawnersAndEntities(GameTestHelper helper) {
         var level = helper.getLevel();
         var casterPos = createRemoteIsolationOrigin(helper, new BlockPos(0, 14, 0), 768, 96);
