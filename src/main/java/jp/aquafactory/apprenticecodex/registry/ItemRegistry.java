@@ -35,6 +35,8 @@ import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeSheathItem;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
+import jp.aquafactory.apprenticecodex.item.spellthrowablecard.SpellAutonomyCard;
+import jp.aquafactory.apprenticecodex.item.spellthrowablecard.SpellInvokeCard;
 import jp.aquafactory.apprenticecodex.item.spellgun.CopperSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.DiamondSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.GoldSpellcasterGun;
@@ -151,6 +153,10 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> MULTI_PURPOSE_SPELL_ROUND =
             ITEMS.register("multi_purpose_spell_round",
                     () -> new SpellcasterRoundItem(EMPTY_MULTI_PURPOSE_SPELL_CASING));
+    public static final RegistryObject<Item> SPELL_INVOKE_CARD =
+            ITEMS.register("spell_invoke_card", SpellInvokeCard::new);
+    public static final RegistryObject<Item> SPELL_AUTONOMY_CARD =
+            ITEMS.register("spell_autonomy_card", SpellAutonomyCard::new);
     public static final RegistryObject<Item> APPRENTICE_MAGE_SCARF =
             armor("apprentice_mage_scarf", ArmorItem.Type.HELMET);
     public static final RegistryObject<Item> APPRENTICE_MAGE_TORSO =

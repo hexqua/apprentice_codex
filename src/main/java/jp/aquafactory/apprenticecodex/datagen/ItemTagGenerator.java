@@ -215,6 +215,17 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(TagRegistry.Items.ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_MATERIALS).add(
                 io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()
         );
+        tag(TagRegistry.Items.SPELL_THROWABLE_CARD_PAPERS).add(
+                net.minecraft.world.item.Items.PAPER
+        );
+        tag(TagRegistry.Items.SPELL_INVOKE_CARD_CRAFTING_MATERIALS).add(
+                net.minecraft.world.item.Items.BLACK_DYE,
+                net.minecraft.world.item.Items.INK_SAC,
+                net.minecraft.world.item.Items.GLOW_INK_SAC
+        );
+        tag(TagRegistry.Items.SPELL_AUTONOMY_CARD_CRAFTING_MATERIALS).add(
+                net.minecraft.world.item.Items.ENDER_EYE
+        );
 
         // 魔法召喚武器はアイテムとして性能を持たずダミーにしか使っていないため、JEIでも表示しないようにする.
         tag(HIDDEN_FROM_RECIPE_VIEWERS).add(

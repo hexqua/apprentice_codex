@@ -62,6 +62,8 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get());
         output.accept(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get());
         output.accept(ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get());
+        output.accept(ItemRegistry.SPELL_INVOKE_CARD.get().getDefaultInstance());
+        output.accept(ItemRegistry.SPELL_AUTONOMY_CARD.get().getDefaultInstance());
         output.accept(ItemRegistry.IRON_SPELLCASTER_GUN.get());
         output.accept(ItemRegistry.COPPER_SPELLCASTER_GUN.get());
         output.accept(ItemRegistry.GOLD_SPELLCASTER_GUN.get());

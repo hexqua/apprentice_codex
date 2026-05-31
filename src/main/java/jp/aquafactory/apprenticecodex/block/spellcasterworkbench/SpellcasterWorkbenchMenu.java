@@ -1,9 +1,15 @@
 package jp.aquafactory.apprenticecodex.block.spellcasterworkbench;
 
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.item.Scroll;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.spellthrowablecard.AbstractSpellThrowableCardItem;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
@@ -26,8 +32,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
 
 public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     public static final int INPUT_SLOT_COUNT = 3;
@@ -128,8 +136,13 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         return getBlockedGrimoireUpgradeReason() == GrimoireUpgradeBlockReason.MAX_SLOT_REACHED;
     }
 
+    public boolean isBlockedBySpellThrowableCardCantImbue() {
+        return getActiveDynamicCraft() == null && hasInvalidDynamicCardImbue();
+    }
+
     public boolean isResultBlocked() {
-        return isBlockedByArchivistsGrimoireMaxSlotReached();
+        return isBlockedByArchivistsGrimoireMaxSlotReached()
+                || isBlockedBySpellThrowableCardCantImbue();
     }
 
     @Override
@@ -232,9 +245,13 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
     private void handleRecipeSelection(Player player, int iconIndex, boolean fillAll) {
         var previousActiveRecipe = getActiveRecipe();
+        var previousActiveDynamicCraft = getActiveDynamicCraft();
         var selection = getSelectableRecipeGroups().get(iconIndex);
         var appendToExisting = previousActiveRecipe != null
                 && ItemStack.isSameItemSameTags(previousActiveRecipe.getPrimaryResultTemplate(), selection.icon());
+        var appendToExistingDynamic = previousActiveDynamicCraft != null
+                && selection.dynamicRecipe() != null
+                && ItemStack.isSameItemSameTags(previousActiveDynamicCraft.resultTemplate(), selection.icon());
 
         selectedIconIndex.set(iconIndex);
         if (appendToExisting) {
@@ -244,8 +261,34 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             }
             return;
         }
+        if (appendToExistingDynamic) {
+            moveDynamicRecipeBatchesToInput(
+                    previousActiveDynamicCraft.group(),
+                    previousActiveDynamicCraft.variant(),
+                    previousActiveDynamicCraft.matchedSlots(),
+                    fillAll
+            );
+            return;
+        }
 
         returnAllInputs(player);
+        if (selection.dynamicRecipe() != null) {
+            for (var variant : selection.dynamicRecipe().variants()) {
+                var targetSlots = new int[]{0, 1, 2};
+                if (!tryMoveDynamicRecipeBatchToInput(selection.dynamicRecipe(), variant, targetSlots)) {
+                    continue;
+                }
+
+                if (fillAll) {
+                    while (tryMoveDynamicRecipeBatchToInput(selection.dynamicRecipe(), variant, targetSlots)) {
+                        // シフト時はスクロールを残したまま、消費素材だけ積める範囲で追加入力する。
+                    }
+                }
+                return;
+            }
+            return;
+        }
+
         for (var recipe : selection.recipes()) {
             var targetSlots = new int[]{0, 1, 2};
             if (!tryMoveRecipeBatchToInput(recipe, targetSlots)) {
@@ -273,6 +316,155 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         while (tryMoveRecipeBatchToInput(recipe, targetSlots)) {
             // シフト時は現在成立しているレシピを崩さずに追加入力する。
         }
+    }
+
+    private void moveDynamicRecipeBatchesToInput(
+            DynamicRecipeGroup group,
+            DynamicRecipeVariant variant,
+            int[] targetSlots,
+            boolean fillAll
+    ) {
+        if (!tryMoveDynamicRecipeBatchToInput(group, variant, targetSlots)) {
+            return;
+        }
+
+        if (!fillAll) {
+            return;
+        }
+
+        while (tryMoveDynamicRecipeBatchToInput(group, variant, targetSlots)) {
+            // シフト時は現在成立している動的レシピを崩さずに追加入力する。
+        }
+    }
+
+    private boolean tryMoveDynamicRecipeBatchToInput(DynamicRecipeGroup group, DynamicRecipeVariant variant, int[] targetSlots) {
+        var transferPlan = planDynamicRecipeBatchTransfer(group, variant, targetSlots);
+        if (transferPlan == null) {
+            return false;
+        }
+
+        applyTransferPlan(transferPlan);
+        return true;
+    }
+
+    private @Nullable List<PlannedTransfer> planDynamicRecipeBatchTransfer(
+            DynamicRecipeGroup group,
+            DynamicRecipeVariant variant,
+            int[] targetSlots
+    ) {
+        var ingredients = variant.createIngredients(group.targetItem());
+        if (targetSlots.length != ingredients.size()) {
+            return null;
+        }
+
+        var sources = collectInventorySources();
+        var transfers = new ArrayList<PlannedTransfer>();
+        if (!planDynamicIngredientTransfers(ingredients, targetSlots, 0, sources, transfers)) {
+            return null;
+        }
+        return List.copyOf(transfers);
+    }
+
+    private boolean planDynamicIngredientTransfers(
+            List<DynamicIngredient> ingredients,
+            int[] targetSlots,
+            int ingredientIndex,
+            List<InventorySourceState> sources,
+            List<PlannedTransfer> transfers
+    ) {
+        if (ingredientIndex >= ingredients.size()) {
+            return true;
+        }
+
+        var ingredient = ingredients.get(ingredientIndex);
+        var targetSlotIndex = targetSlots[ingredientIndex];
+        var targetStack = container.getItem(targetSlotIndex);
+        if (!targetStack.isEmpty() && !ingredient.test(targetStack)) {
+            return false;
+        }
+
+        if (!ingredient.consumed() && !targetStack.isEmpty()
+                && planDynamicIngredientTransfers(ingredients, targetSlots, ingredientIndex + 1, sources, transfers)) {
+            return true;
+        }
+
+        var prototypeCandidates = collectDynamicPrototypeCandidates(ingredient, targetStack, sources);
+        for (var prototypeCandidate : prototypeCandidates) {
+            var compatibleSources = new ArrayList<InventorySourceState>();
+            var availableCount = 0;
+            for (var source : sources) {
+                if (source.remainingCount() <= 0
+                        || !ingredient.test(source.stack())
+                        || !canStacksMerge(prototypeCandidate.stack(), source.stack())) {
+                    continue;
+                }
+
+                compatibleSources.add(source);
+                availableCount += source.remainingCount();
+            }
+
+            var maxAcceptableCount = targetStack.isEmpty()
+                    ? prototypeCandidate.stack().getMaxStackSize()
+                    : targetStack.getMaxStackSize() - targetStack.getCount();
+            if (availableCount < ingredient.count() || maxAcceptableCount < ingredient.count()) {
+                continue;
+            }
+
+            var snapshot = new ArrayList<ReservedTransfer>();
+            var remainingNeed = ingredient.count();
+            for (var source : compatibleSources) {
+                if (remainingNeed <= 0) {
+                    break;
+                }
+
+                var movedCount = Math.min(source.remainingCount(), remainingNeed);
+                if (movedCount <= 0) {
+                    continue;
+                }
+
+                source.remove(movedCount);
+                snapshot.add(new ReservedTransfer(source, movedCount));
+                transfers.add(new PlannedTransfer(source.menuSlotIndex(), targetSlotIndex, movedCount));
+                remainingNeed -= movedCount;
+            }
+
+            if (remainingNeed <= 0
+                    && planDynamicIngredientTransfers(ingredients, targetSlots, ingredientIndex + 1, sources, transfers)) {
+                return true;
+            }
+
+            rollbackReservedTransfers(snapshot, transfers);
+        }
+
+        return false;
+    }
+
+    private @NotNull List<InventorySourceState> collectDynamicPrototypeCandidates(
+            DynamicIngredient ingredient,
+            ItemStack targetStack,
+            List<InventorySourceState> sources
+    ) {
+        var candidates = new ArrayList<InventorySourceState>();
+        for (var source : sources) {
+            if (source.remainingCount() <= 0 || !ingredient.test(source.stack())) {
+                continue;
+            }
+            if (!targetStack.isEmpty() && !canStacksMerge(targetStack, source.stack())) {
+                continue;
+            }
+
+            var alreadyAdded = false;
+            for (var candidate : candidates) {
+                if (canStacksMerge(candidate.stack(), source.stack())) {
+                    alreadyAdded = true;
+                    break;
+                }
+            }
+            if (!alreadyAdded) {
+                candidates.add(source);
+            }
+        }
+        return candidates;
     }
 
     private boolean tryMoveRecipeBatchToInput(SpellcasterWorkbenchRecipe recipe, int[] targetSlots) {
@@ -464,6 +656,18 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             return;
         }
 
+        var dynamicCraft = getActiveDynamicCraft();
+        if (dynamicCraft != null) {
+            craftedStack.onCraftedBy(player.level(), player, craftedStack.getCount());
+            if (!consumeDynamicRecipeIngredients(dynamicCraft)) {
+                return;
+            }
+
+            playCraftSound();
+            setupResultSlot();
+            return;
+        }
+
         var grimoireUpgrade = getActiveGrimoireUpgrade();
         if (grimoireUpgrade != null) {
             craftedStack.onCraftedBy(player.level(), player, craftedStack.getCount());
@@ -488,6 +692,23 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
         playCraftSound();
         setupResultSlot();
+    }
+
+    private boolean consumeDynamicRecipeIngredients(DynamicCraft craft) {
+        var matchedSlots = craft.matchedSlots();
+        if (matchedSlots.length < 2) {
+            return false;
+        }
+
+        if (!hasInputCount(matchedSlots[0], craft.variant().baseCount())
+                || !hasInputCount(matchedSlots[1], craft.variant().catalystCount())) {
+            return false;
+        }
+
+        shrinkInput(matchedSlots[0], craft.variant().baseCount());
+        shrinkInput(matchedSlots[1], craft.variant().catalystCount());
+        container.setChanged();
+        return true;
     }
 
     private void consumeRecipeIngredients(Player player, SpellcasterWorkbenchRecipe recipe, int[] matchedSlots) {
@@ -519,6 +740,32 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
                 player.getInventory().placeItemBackInInventory(remainderStack);
             }
         }
+    }
+
+    private boolean hasInputCount(int slotIndex, int count) {
+        if (slotIndex < 0 || slotIndex >= INPUT_SLOT_COUNT) {
+            return false;
+        }
+
+        var stack = container.getItem(slotIndex);
+        return !stack.isEmpty() && stack.getCount() >= count;
+    }
+
+    private boolean shrinkInput(int slotIndex, int count) {
+        if (slotIndex < 0 || slotIndex >= INPUT_SLOT_COUNT) {
+            return false;
+        }
+
+        var stack = container.getItem(slotIndex);
+        if (stack.isEmpty() || stack.getCount() < count) {
+            return false;
+        }
+
+        stack.shrink(count);
+        if (stack.isEmpty()) {
+            container.setItem(slotIndex, ItemStack.EMPTY);
+        }
+        return true;
     }
 
     private void playCraftSound() {
@@ -568,10 +815,30 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         return buildFlaskParticleToggle();
     }
 
+    private @Nullable DynamicCraft getActiveDynamicCraft() {
+        var selection = getSelectedSelection();
+        if (selection != null && selection.dynamicRecipe() != null) {
+            return buildDynamicCraft(selection.dynamicRecipe());
+        }
+
+        for (var group : buildDynamicRecipeGroups()) {
+            var craft = buildDynamicCraft(group);
+            if (craft != null) {
+                return craft;
+            }
+        }
+        return null;
+    }
+
     private @NotNull ItemStack getActiveResult() {
         var activeRecipe = getActiveRecipe();
         if (activeRecipe != null) {
             return activeRecipe.getPrimaryResultTemplate();
+        }
+
+        var dynamicCraft = getActiveDynamicCraft();
+        if (dynamicCraft != null) {
+            return dynamicCraft.resultTemplate().copy();
         }
 
         var grimoireUpgrade = getActiveGrimoireUpgrade();
@@ -624,9 +891,167 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             existingSelection.recipes().add(recipe);
         }
 
-        return groupedSelections.stream()
-                .map(selection -> new RecipeSelection(selection.icon(), List.copyOf(selection.recipes())))
-                .toList();
+        var selections = new ArrayList<RecipeSelection>();
+        for (var selection : groupedSelections) {
+            selections.add(new RecipeSelection(selection.icon(), List.copyOf(selection.recipes()), null));
+        }
+        for (var dynamicRecipe : buildDynamicRecipeGroups()) {
+            selections.add(new RecipeSelection(dynamicRecipe.icon().copy(), List.of(), dynamicRecipe));
+        }
+        return List.copyOf(selections);
+    }
+
+    private static @NotNull List<DynamicRecipeGroup> buildDynamicRecipeGroups() {
+        var invokeCraftCount = ApprenticeCodexServerConfig.spellInvokeCardCraftCount();
+        var autonomyCraftCount = ApprenticeCodexServerConfig.spellAutonomyCardCraftCount();
+        return List.of(
+                new DynamicRecipeGroup(
+                        ItemRegistry.SPELL_INVOKE_CARD.get().getDefaultInstance(),
+                        (AbstractSpellThrowableCardItem) ItemRegistry.SPELL_INVOKE_CARD.get(),
+                        List.of(
+                                new DynamicRecipeVariant(
+                                        stack -> stack.is(TagRegistry.Items.SPELL_THROWABLE_CARD_PAPERS),
+                                        invokeCraftCount,
+                                        stack -> stack.is(TagRegistry.Items.SPELL_INVOKE_CARD_CRAFTING_MATERIALS),
+                                        1,
+                                        invokeCraftCount
+                                ),
+                                new DynamicRecipeVariant(
+                                        stack -> stack.is(ItemRegistry.SPELL_INVOKE_CARD.get()),
+                                        invokeCraftCount,
+                                        stack -> stack.is(TagRegistry.Items.SPELL_INVOKE_CARD_CRAFTING_MATERIALS),
+                                        1,
+                                        invokeCraftCount
+                                )
+                        )
+                ),
+                new DynamicRecipeGroup(
+                        ItemRegistry.SPELL_AUTONOMY_CARD.get().getDefaultInstance(),
+                        (AbstractSpellThrowableCardItem) ItemRegistry.SPELL_AUTONOMY_CARD.get(),
+                        List.of(
+                                new DynamicRecipeVariant(
+                                        stack -> stack.is(TagRegistry.Items.SPELL_THROWABLE_CARD_PAPERS),
+                                        autonomyCraftCount,
+                                        stack -> stack.is(TagRegistry.Items.SPELL_AUTONOMY_CARD_CRAFTING_MATERIALS),
+                                        1,
+                                        autonomyCraftCount
+                                ),
+                                new DynamicRecipeVariant(
+                                        stack -> stack.is(ItemRegistry.SPELL_AUTONOMY_CARD.get()),
+                                        autonomyCraftCount,
+                                        stack -> stack.is(TagRegistry.Items.SPELL_AUTONOMY_CARD_CRAFTING_MATERIALS),
+                                        1,
+                                        autonomyCraftCount
+                                )
+                        )
+                )
+        );
+    }
+
+    private @Nullable DynamicCraft buildDynamicCraft(DynamicRecipeGroup group) {
+        for (var variant : group.variants()) {
+            var ingredients = variant.createIngredients(group.targetItem());
+            var matchedSlots = findMatchingDynamicSlots(ingredients);
+            if (matchedSlots == null) {
+                continue;
+            }
+
+            var spellData = getScrollSpellData(container.getItem(matchedSlots[2]));
+            if (spellData == SpellData.EMPTY || !group.targetItem().canImbueSpell(spellData)) {
+                continue;
+            }
+
+            var resultStack = group.targetItem().createArcaneAnvilImbueResult(
+                    new ItemStack(group.targetItem(), variant.outputCount()),
+                    spellData
+            );
+            resultStack.setCount(variant.outputCount());
+            return new DynamicCraft(group, variant, matchedSlots, resultStack);
+        }
+        return null;
+    }
+
+    private boolean hasInvalidDynamicCardImbue() {
+        var selection = getSelectedSelection();
+        if (selection != null && selection.dynamicRecipe() != null) {
+            return hasInvalidDynamicCardImbue(selection.dynamicRecipe());
+        }
+
+        for (var group : buildDynamicRecipeGroups()) {
+            if (hasInvalidDynamicCardImbue(group)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasInvalidDynamicCardImbue(DynamicRecipeGroup group) {
+        for (var variant : group.variants()) {
+            var matchedSlots = findMatchingDynamicSlots(variant.createLooseIngredients());
+            if (matchedSlots == null) {
+                continue;
+            }
+
+            var spellData = getScrollSpellData(container.getItem(matchedSlots[2]));
+            return spellData == SpellData.EMPTY || !group.targetItem().canImbueSpell(spellData);
+        }
+        return false;
+    }
+
+    private @Nullable int[] findMatchingDynamicSlots(List<DynamicIngredient> ingredients) {
+        if (ingredients.size() != INPUT_SLOT_COUNT) {
+            return null;
+        }
+
+        var usedSlots = new boolean[INPUT_SLOT_COUNT];
+        var matchedSlots = new int[INPUT_SLOT_COUNT];
+        Arrays.fill(matchedSlots, -1);
+        return matchesDynamicUnordered(ingredients, 0, usedSlots, matchedSlots) ? matchedSlots : null;
+    }
+
+    private boolean matchesDynamicUnordered(
+            List<DynamicIngredient> ingredients,
+            int ingredientIndex,
+            boolean[] usedSlots,
+            int[] matchedSlots
+    ) {
+        if (ingredientIndex >= ingredients.size()) {
+            return true;
+        }
+
+        var ingredient = ingredients.get(ingredientIndex);
+        for (var slotIndex = 0; slotIndex < INPUT_SLOT_COUNT; ++slotIndex) {
+            var stack = container.getItem(slotIndex);
+            if (usedSlots[slotIndex] || stack.isEmpty() || !ingredient.test(stack)) {
+                continue;
+            }
+
+            usedSlots[slotIndex] = true;
+            matchedSlots[ingredientIndex] = slotIndex;
+            if (matchesDynamicUnordered(ingredients, ingredientIndex + 1, usedSlots, matchedSlots)) {
+                return true;
+            }
+            usedSlots[slotIndex] = false;
+            matchedSlots[ingredientIndex] = -1;
+        }
+
+        return false;
+    }
+
+    private static @NotNull SpellData getScrollSpellData(@NotNull ItemStack scrollStack) {
+        if (scrollStack.isEmpty() || !(scrollStack.getItem() instanceof Scroll)) {
+            return SpellData.EMPTY;
+        }
+
+        var scrollContainer = ISpellContainer.get(scrollStack);
+        if (scrollContainer == null) {
+            return SpellData.EMPTY;
+        }
+
+        var spellData = scrollContainer.getSpellAtIndex(0);
+        // @NotNullなのにnullで返るケースがあるため、Workbench 側でも防御する。
+        //noinspection ConstantValue
+        return spellData == null ? SpellData.EMPTY : spellData;
     }
 
     private @Nullable FlaskParticleToggle buildFlaskParticleToggle() {
@@ -790,7 +1215,64 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
     private record RecipeSelection(
             ItemStack icon,
-            List<SpellcasterWorkbenchRecipe> recipes
+            List<SpellcasterWorkbenchRecipe> recipes,
+            @Nullable DynamicRecipeGroup dynamicRecipe
+    ) {
+    }
+
+    private record DynamicRecipeGroup(
+            ItemStack icon,
+            AbstractSpellThrowableCardItem targetItem,
+            List<DynamicRecipeVariant> variants
+    ) {
+    }
+
+    private record DynamicRecipeVariant(
+            Predicate<ItemStack> basePredicate,
+            int baseCount,
+            Predicate<ItemStack> catalystPredicate,
+            int catalystCount,
+            int outputCount
+    ) {
+        private @NotNull List<DynamicIngredient> createIngredients(AbstractSpellThrowableCardItem targetItem) {
+            return List.of(
+                    new DynamicIngredient(basePredicate, baseCount, true),
+                    new DynamicIngredient(catalystPredicate, catalystCount, true),
+                    new DynamicIngredient(stack -> {
+                        var spellData = getScrollSpellData(stack);
+                        return spellData != SpellData.EMPTY && targetItem.canImbueSpell(spellData);
+                    }, 1, false)
+            );
+        }
+
+        private @NotNull List<DynamicIngredient> createLooseIngredients() {
+            return List.of(
+                    new DynamicIngredient(basePredicate, baseCount, true),
+                    new DynamicIngredient(catalystPredicate, catalystCount, true),
+                    new DynamicIngredient(stack -> stack.getItem() instanceof Scroll, 1, false)
+            );
+        }
+    }
+
+    private record DynamicIngredient(
+            Predicate<ItemStack> predicate,
+            int count,
+            boolean consumed
+    ) {
+        private DynamicIngredient {
+            count = Math.max(1, count);
+        }
+
+        private boolean test(ItemStack stack) {
+            return predicate.test(stack) && stack.getCount() >= count;
+        }
+    }
+
+    private record DynamicCraft(
+            DynamicRecipeGroup group,
+            DynamicRecipeVariant variant,
+            int[] matchedSlots,
+            ItemStack resultTemplate
     ) {
     }
 
