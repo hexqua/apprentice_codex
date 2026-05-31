@@ -1,40 +1,38 @@
 {
-  "type": "malum:spirit_repair",
-  "conditions": [
+  "neoforge:conditions": [
     {
-      "type": "forge:mod_loaded",
+      "type": "neoforge:mod_loaded",
       "modid": "malum"
     }
   ],
+  "type": "malum:spirit_repair",
   "durabilityPercentage": 1.0,
-  "inputs": [
-    "apprenticecodex:element_maiden_robe_ribbon",
-    "apprenticecodex:element_maiden_robe_robe",
-    "apprenticecodex:element_maiden_robe_leggings",
-    "apprenticecodex:element_maiden_robe_boots"
-  ],
-  "itemIdRegex": "",
-  "modIdRegex": "",
   "repairMaterial": {
     "count": 1,
     "item": "irons_spellbooks:mithril_scrap"
   },
   "spirits": [
     {
-      "type": "arcane",
+      "type": "malum:arcane",
       "count": 16
     },
     {
-      "type": "earth",
+      "type": "malum:earth",
       "count": 16
     },
     {
-      "type": "sacred",
+      "type": "malum:sacred",
       "count": 16
     },
     {
-      "type": "eldritch",
+      "type": "malum:eldritch",
       "count": 4
     }
+  ],
+  "validItems": [
+    "apprenticecodex:element_maiden_robe_ribbon",
+    "apprenticecodex:element_maiden_robe_robe",
+    "apprenticecodex:element_maiden_robe_leggings",
+    "apprenticecodex:element_maiden_robe_boots"
   ]
 }

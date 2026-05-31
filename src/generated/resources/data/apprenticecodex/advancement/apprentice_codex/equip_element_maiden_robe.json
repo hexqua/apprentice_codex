@@ -10,24 +10,16 @@
             "predicate": {
               "equipment": {
                 "chest": {
-                  "items": [
-                    "apprenticecodex:element_maiden_robe_robe"
-                  ]
+                  "items": "apprenticecodex:element_maiden_robe_robe"
                 },
                 "feet": {
-                  "items": [
-                    "apprenticecodex:element_maiden_robe_boots"
-                  ]
+                  "items": "apprenticecodex:element_maiden_robe_boots"
                 },
                 "head": {
-                  "items": [
-                    "apprenticecodex:element_maiden_robe_ribbon"
-                  ]
+                  "items": "apprenticecodex:element_maiden_robe_ribbon"
                 },
                 "legs": {
-                  "items": [
-                    "apprenticecodex:element_maiden_robe_leggings"
-                  ]
+                  "items": "apprenticecodex:element_maiden_robe_leggings"
                 }
               }
             }
@@ -38,17 +30,14 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.equip_element_maiden_robe.description"
     },
     "frame": "challenge",
-    "hidden": false,
     "icon": {
-      "item": "apprenticecodex:element_maiden_robe_ribbon",
-      "nbt": "{Damage:0}"
+      "count": 1,
+      "id": "apprenticecodex:element_maiden_robe_ribbon"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.equip_element_maiden_robe.title"
     }

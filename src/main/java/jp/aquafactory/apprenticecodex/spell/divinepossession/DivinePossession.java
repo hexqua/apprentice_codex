@@ -103,7 +103,7 @@ public class DivinePossession extends AbstractSpell {
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         entity.addEffect(new MobEffectInstance(
-                EffectRegistry.DIVINE_POSSESSION.get(),
+                EffectRegistry.DIVINE_POSSESSION,
                 getDurationTicks(spellLevel, entity),
                 0,
                 false,

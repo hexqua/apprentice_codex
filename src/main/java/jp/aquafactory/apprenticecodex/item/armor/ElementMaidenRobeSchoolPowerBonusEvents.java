@@ -19,6 +19,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.config.ModConfig;
@@ -29,14 +30,12 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.event.CurioChangeEvent;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ElementMaidenRobeSchoolPowerBonusEvents {
@@ -58,12 +57,17 @@ public final class ElementMaidenRobeSchoolPowerBonusEvents {
     private ElementMaidenRobeSchoolPowerBonusEvents() {
     }
 
+    public static void register(IEventBus modEventBus) {
+        modEventBus.addListener(ModBusEvents::onConfigLoading);
+        modEventBus.addListener(ModBusEvents::onConfigReloading);
+    }
+
     @SubscribeEvent
     public static void onEquipmentChanged(LivingEquipmentChangeEvent event) {
         if (!(event.getEntity() instanceof Player player)) {
             return;
         }
-        if (event.getSlot().getType() != EquipmentSlot.Type.ARMOR
+        if (!isArmorSlot(event.getSlot())
                 && !isElementMaidenRobe(event.getFrom())
                 && !isElementMaidenRobe(event.getTo())) {
             return;
@@ -171,7 +175,7 @@ public final class ElementMaidenRobeSchoolPowerBonusEvents {
         if (spellbookStack.getItem() instanceof ArchivistsGrimoire) {
             var spells = new ArrayList<SpellData>(ArchivistsGrimoire.COLUMN_COUNT);
             for (var visibleSlot = 0; visibleSlot < ArchivistsGrimoire.COLUMN_COUNT; ++visibleSlot) {
-                spells.add(ArchivistsGrimoire.getVisibleSpell(spellbookStack, visibleSlot));
+                spells.add(ArchivistsGrimoire.getVisibleSpell(spellbookStack, visibleSlot, player.registryAccess()));
             }
             return countSchools(spells, ArchivistsGrimoire.COLUMN_COUNT);
         }
@@ -326,14 +330,22 @@ public final class ElementMaidenRobeSchoolPowerBonusEvents {
         }
     }
 
-    private static @Nullable UUID createModifierId(Attribute attribute) {
+    private static @Nullable ResourceLocation createModifierId(Attribute attribute) {
         var attributeId = BuiltInRegistries.ATTRIBUTE.getKey(attribute);
         if (attributeId == null) {
             return null;
         }
 
-        return UUID.nameUUIDFromBytes((MODIFIER_ID_PREFIX + normalizeAttributeId(attributeId))
-                .getBytes(StandardCharsets.UTF_8));
+        return ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, MODIFIER_ID_PREFIX + normalizeAttributeId(attributeId));
+    }
+
+    private static boolean isArmorSlot(EquipmentSlot slot) {
+        for (var armorSlot : ARMOR_SLOTS) {
+            if (armorSlot == slot) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static String normalizeAttributeId(ResourceLocation attributeId) {
@@ -353,17 +365,14 @@ public final class ElementMaidenRobeSchoolPowerBonusEvents {
         }
     }
 
-    @EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = EventBusSubscriber.Bus.MOD)
     public static final class ModBusEvents {
         private ModBusEvents() {
         }
 
-        @SubscribeEvent
         public static void onConfigLoading(ModConfigEvent.Loading event) {
             refreshIfServerConfig(event);
         }
 
-        @SubscribeEvent
         public static void onConfigReloading(ModConfigEvent.Reloading event) {
             refreshIfServerConfig(event);
         }

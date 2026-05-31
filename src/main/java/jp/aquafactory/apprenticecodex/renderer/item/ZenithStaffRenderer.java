@@ -12,11 +12,12 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 public class ZenithStaffRenderer extends GeoItemRenderer<ZenithStaff> {
     private static final String TAIL_BONE = "tail";
@@ -44,9 +45,9 @@ public class ZenithStaffRenderer extends GeoItemRenderer<ZenithStaff> {
     @Override
     public void preRender(PoseStack poseStack, ZenithStaff animatable, BakedGeoModel model,
                           MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                          int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                          int packedLight, int packedOverlay, int colour) {
         super.preRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight,
-                packedOverlay, red, green, blue, alpha);
+                packedOverlay, colour);
 
         if (!isReRender) {
             this.stoneState = ZenithStaffClientRenderState.resolveStone(
@@ -60,9 +61,9 @@ public class ZenithStaffRenderer extends GeoItemRenderer<ZenithStaff> {
     @Override
     public void postRender(PoseStack poseStack, ZenithStaff animatable, BakedGeoModel model,
                            MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                           int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                           int packedLight, int packedOverlay, int colour) {
         super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight,
-                packedOverlay, red, green, blue, alpha);
+                packedOverlay, colour);
 
         if (isReRender || !this.stoneState.visible()) {
             return;
@@ -85,7 +86,7 @@ public class ZenithStaffRenderer extends GeoItemRenderer<ZenithStaff> {
     public void renderRecursively(PoseStack poseStack, ZenithStaff animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
                                   float partialTick, int packedLight, int packedOverlay,
-                                  float red, float green, float blue, float alpha) {
+                                  int colour) {
         var tailBone = isBoneOrChildOf(bone, TAIL_BONE);
         var stoneBone = isBoneOrChildOf(bone, STONE_BONE);
 
@@ -105,10 +106,7 @@ public class ZenithStaffRenderer extends GeoItemRenderer<ZenithStaff> {
                     partialTick,
                     tailBone ? raiseBlockLightFloor(packedLight, TAIL_MIN_BLOCK_LIGHT) : packedLight,
                     packedOverlay,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    colour
             );
             return;
         }
@@ -116,7 +114,7 @@ public class ZenithStaffRenderer extends GeoItemRenderer<ZenithStaff> {
         if (this.specialPass == SpecialPass.STONE) {
             renderSpecialPassBone(
                     poseStack, animatable, bone, stoneBone, renderType, bufferSource, buffer, isReRender,
-                    partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                    partialTick, packedLight, packedOverlay, colour
             );
         }
     }
@@ -143,10 +141,7 @@ public class ZenithStaffRenderer extends GeoItemRenderer<ZenithStaff> {
                     partialTick,
                     LightTexture.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    toColour(red, green, blue, alpha)
             );
         } finally {
             this.specialPass = SpecialPass.NONE;
@@ -156,34 +151,34 @@ public class ZenithStaffRenderer extends GeoItemRenderer<ZenithStaff> {
     private void renderSpecialPassBone(PoseStack poseStack, ZenithStaff animatable, GeoBone bone,
                                        boolean targetBone, RenderType renderType, MultiBufferSource bufferSource,
                                        VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight,
-                                       int packedOverlay, float red, float green, float blue, float alpha) {
+                                       int packedOverlay, int colour) {
         if (targetBone) {
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         renderChildBonesOnly(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
     private void renderChildBonesOnly(PoseStack poseStack, ZenithStaff animatable, GeoBone bone, RenderType renderType,
                                       MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
                                       float partialTick, int packedLight, int packedOverlay,
-                                      float red, float green, float blue, float alpha) {
+                                      int colour) {
         poseStack.pushPose();
 
         if (bone.isTrackingMatrices()) {
             Matrix4f poseState = new Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
         }
 
-        RenderUtils.prepMatrixForBone(poseStack, bone);
+        RenderUtil.prepMatrixForBone(poseStack, bone);
         renderChildBones(
                 poseStack,
                 animatable,
@@ -195,16 +190,20 @@ public class ZenithStaffRenderer extends GeoItemRenderer<ZenithStaff> {
                 partialTick,
                 packedLight,
                 packedOverlay,
-                red,
-                green,
-                blue,
-                alpha
+                colour
         );
         poseStack.popPose();
     }
 
     private static int raiseBlockLightFloor(int packedLight, int minBlockLight) {
         return LightTexture.pack(Math.max(LightTexture.block(packedLight), minBlockLight), LightTexture.sky(packedLight));
+    }
+
+    private static int toColour(float red, float green, float blue, float alpha) {
+        return (Mth.clamp(Math.round(alpha * 255.0F), 0, 255) << 24)
+                | (Mth.clamp(Math.round(red * 255.0F), 0, 255) << 16)
+                | (Mth.clamp(Math.round(green * 255.0F), 0, 255) << 8)
+                | Mth.clamp(Math.round(blue * 255.0F), 0, 255);
     }
 
     private static boolean isBoneOrChildOf(GeoBone bone, String rootBoneName) {

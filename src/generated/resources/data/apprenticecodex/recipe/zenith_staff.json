@@ -24,7 +24,7 @@
     "P  "
   ],
   "result": {
-    "item": "apprenticecodex:zenith_staff"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:zenith_staff"
+  }
 }

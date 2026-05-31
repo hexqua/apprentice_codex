@@ -289,25 +289,29 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
                 ItemRegistry.ENCHANTRESS_HAT.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),
-                ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get()
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get()
         );
         tag(MINECRAFT_CHEST_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
-                ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get()
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()
         );
         tag(MINECRAFT_LEG_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
                 ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
-                ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get()
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get()
         );
         tag(MINECRAFT_FOOT_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_BOOTS.get(),
                 ItemRegistry.ENCHANTRESS_BOOTS.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get(),
-                ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get()
         );
         vanillaDurabilityEnchantableTag.add(
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
@@ -326,6 +330,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get(),
                 ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.REFLECTCAST_SHIELD.get()
         );
@@ -345,7 +353,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
-                ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get()
         );
         tag(MINECRAFT_ENCHANTABLE_VANISHING).add(
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
@@ -364,9 +376,22 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get(),
                 ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.REFLECTCAST_SHIELD.get()
         );
+        wisdomEnchantableTag.add(
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get()
+        );
+        transcendenceEnchantableTag.add(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get());
+        surgeEnchantableTag.add(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get());
+        attunementEnchantableTag.add(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get());
         // Elemental Bow は bow tag に参加させ、バニラ弓と同じ enchantment JSON 面を使う。
         tag(MINECRAFT_ENCHANTABLE_BOW).add(ItemRegistry.ELEMENTAL_BOW.get());
         tag(MINECRAFT_ENCHANTABLE_BOW).add(ItemRegistry.BOUND_BOW.get());

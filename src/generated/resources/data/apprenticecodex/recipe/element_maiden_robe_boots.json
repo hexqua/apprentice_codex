@@ -7,7 +7,8 @@
     "tag": "irons_spellbooks:wizard_base_boots"
   },
   "result": {
-    "item": "apprenticecodex:element_maiden_robe_boots"
+    "count": 1,
+    "id": "apprenticecodex:element_maiden_robe_boots"
   },
   "template": {
     "item": "irons_spellbooks:protection_rune"

@@ -1,6 +1,7 @@
 {
   "values": [
     "apprenticecodex:focus_staffbow",
+    "apprenticecodex:zenith_staff",
     "apprenticecodex:multicast_echo_staff",
     "apprenticecodex:smashcast_scepter",
     "apprenticecodex:circuit_heat_staff",
@@ -18,6 +19,10 @@
     "apprenticecodex:crystal_bladed_staff",
     "apprenticecodex:illuminate_stellar_staff",
     "apprenticecodex:unite_luna_staff",
+    "apprenticecodex:element_maiden_robe_ribbon",
+    "apprenticecodex:element_maiden_robe_robe",
+    "apprenticecodex:element_maiden_robe_leggings",
+    "apprenticecodex:element_maiden_robe_boots",
     "apprenticecodex:elemental_bow",
     "apprenticecodex:pastel_staff",
     "#apprenticecodex:spell_gun_enchantable",

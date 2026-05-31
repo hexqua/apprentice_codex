@@ -22,20 +22,21 @@ public class DivinePossessionEffect extends MagicMobEffect {
     }
 
     @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         return duration % PARTICLE_INTERVAL_TICKS == 0;
     }
 
     @Override
-    public void applyEffectTick(LivingEntity entity, int amplifier) {
+    public boolean applyEffectTick(LivingEntity entity, int amplifier) {
         if (!(entity.level() instanceof ServerLevel serverLevel)) {
-            return;
+            return true;
         }
 
         var random = serverLevel.random;
         for (var index = 0; index < ELEMENT_COLORS.length; ++index) {
             spawnElementParticles(serverLevel, entity, random, ELEMENT_COLORS[index], index);
         }
+        return true;
     }
 
     private static void spawnElementParticles(

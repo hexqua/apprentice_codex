@@ -3912,7 +3912,9 @@ public final class ApprenticeCodexGameTestScenarios {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "zenith_staff_power_test");
             player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(ItemRegistry.ZENITH_STAFF.get()));
 
-            var firePowerAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get());
+            var firePowerAttribute = player.getAttribute(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get()
+            ));
             helper.assertTrue(firePowerAttribute != null, "Zenith Staff test player is missing fire spell power attribute");
             firePowerAttribute.addTransientModifier(new AttributeModifier(
                     ZENITH_STAFF_SCHOOL_POWER_TEST_MODIFIER_ID,
@@ -4050,7 +4052,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 helper.assertFalse(strongestPreCastEvent.isCanceled(),
                         "Zenith Staff should not cancel strongest school pre-cast with its mana multiplier gate");
 
-                player.addEffect(new MobEffectInstance(EffectRegistry.DIVINE_POSSESSION.get(), 100, 0));
+                player.addEffect(new MobEffectInstance(EffectRegistry.DIVINE_POSSESSION, 100, 0));
                 var divineManaEvent = new SpellOnCastEvent(
                         player,
                         "apprenticecodex:zenith_staff_gametest_divine",
@@ -11219,7 +11221,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     helper,
                     "Element Maiden Robe",
                     item -> item instanceof ElementMaidenRobeItem,
-                    ApprenticeCodexGameTestScenarios::expectedElementMaidenRobeEnchantments
+                    stack -> expectedElementMaidenRobeEnchantments(helper.getLevel().registryAccess(), stack)
             );
         });
     }
@@ -11356,11 +11358,17 @@ public final class ApprenticeCodexGameTestScenarios {
                 item.initializeSpellContainer(stack);
 
                 var modifiers = toModifierMultimap(item.getDefaultAttributeModifiers(stack));
-                var maxManaBonus = sumModifierAmount(modifiers.get(maxManaAttribute), AttributeModifier.Operation.ADD_VALUE);
+                var maxManaBonus = sumModifierAmount(
+                        modifiers.get(maxManaAttribute),
+                        AttributeModifier.Operation.ADD_VALUE
+                );
                 helper.assertTrue(Math.abs(maxManaBonus - 50.0D) < 1.0e-9D,
                         "Apprentice Mage Robe " + armorType + " max mana regression: " + describeModifiers(modifiers));
 
-                var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+                var spellPowerBonus = sumModifierAmount(
+                        modifiers.get(spellPowerAttribute),
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                );
                 helper.assertTrue(Math.abs(spellPowerBonus - expectedSpellPower) < 1.0e-9D,
                         "Apprentice Mage Robe " + armorType + " spell power config regression: " + describeModifiers(modifiers));
 
@@ -11535,11 +11543,17 @@ public final class ApprenticeCodexGameTestScenarios {
                         "Element Maiden Robe " + armorType + " should repair with mithril scrap");
 
                 var modifiers = toModifierMultimap(item.getDefaultAttributeModifiers(stack));
-                var maxManaBonus = sumModifierAmount(modifiers.get(maxManaAttribute), AttributeModifier.Operation.ADD_VALUE);
+                var maxManaBonus = sumModifierAmount(
+                        modifiers.get(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(maxManaAttribute)),
+                        AttributeModifier.Operation.ADD_VALUE
+                );
                 helper.assertTrue(Math.abs(maxManaBonus - ElementMaidenRobeStats.MAX_MANA_BONUS) < 1.0e-9D,
                         "Element Maiden Robe " + armorType + " max mana regression: " + describeModifiers(modifiers));
 
-                var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+                var spellPowerBonus = sumModifierAmount(
+                        modifiers.get(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(spellPowerAttribute)),
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                );
                 helper.assertTrue(Math.abs(spellPowerBonus - expectedSpellPower) < 1.0e-9D,
                         "Element Maiden Robe " + armorType + " spell power config regression: " + describeModifiers(modifiers));
 
@@ -11562,8 +11576,9 @@ public final class ApprenticeCodexGameTestScenarios {
                             && initialContainer.getSpellAtIndex(0).getSpell() == SpellRegistry.DIVINE_POSSESSION.get(),
                     "Element Maiden Robe chestplate should initialize Divine Possession as its imbue spell");
             ISpellContainer.createImbuedContainer(io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(), 1, chestStack);
-            chestStack.enchant(EnchantmentRegistry.SURGE.get(), 1);
-            chestStack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            chestStack.enchant(enchantmentLookup.getOrThrow(Enchantments.SURGE), 1);
+            chestStack.enchant(enchantmentLookup.getOrThrow(Enchantments.ATTUNEMENT), 1);
 
             var imbuedSchool = MagicTools.getImbuedSpellSchool(chestStack);
             helper.assertTrue(imbuedSchool != null,
@@ -11574,7 +11589,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
             var enchantedModifiers = toModifierMultimap(chestplate.getDefaultAttributeModifiers(chestStack));
             var enchantedGlobalSpellPower = sumModifierAmount(
-                    enchantedModifiers.get(spellPowerAttribute),
+                    enchantedModifiers.get(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(spellPowerAttribute)),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             );
             helper.assertTrue(Math.abs(enchantedGlobalSpellPower
@@ -11582,7 +11597,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Element Maiden Robe chestplate should add Surge spell power: " + describeModifiers(enchantedModifiers));
 
             var attunementSpellPower = sumModifierAmount(
-                    enchantedModifiers.get(imbuedSpellPowerAttribute),
+                    enchantedModifiers.get(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(imbuedSpellPowerAttribute)),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             );
             helper.assertTrue(Math.abs(attunementSpellPower
@@ -11692,7 +11707,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 archivistsPlayer.setItemSlot(EquipmentSlot.CHEST, new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()));
                 var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
                 ArchivistsGrimoire.setUpgradeCount(grimoireStack, 2);
-                var inventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack);
+                var inventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack, helper.getLevel().registryAccess());
                 inventory.setStackInSlot(0, createSpellScroll(fire));
                 inventory.setStackInSlot(ArchivistsGrimoire.COLUMN_COUNT, createSpellScroll(ice));
                 ArchivistsGrimoire.setSelectedRow(grimoireStack, 0);
@@ -17917,18 +17932,18 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedElementMaidenRobeEnchantments(ItemStack stack) {
+    private static Set<ResourceLocation> expectedElementMaidenRobeEnchantments(RegistryAccess registryAccess, ItemStack stack) {
         var probeStack = createArmorProbeStack(stack);
         var expectedEnchantments = collectAllowedEnchantments(
-                probeStack,
-                enchantment -> enchantment.canApplyAtEnchantingTable(probeStack)
+                registryAccess,
+                enchantment -> enchantment.value().canEnchant(probeStack)
         );
-        expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
+        expectedEnchantments.addAll(registryIdSet(Enchantments.WISDOM));
         if (stack.getItem() instanceof ElementMaidenRobeItem robeItem && robeItem.hasImbueSlot()) {
             expectedEnchantments.addAll(registryIdSet(
-                    EnchantmentRegistry.SURGE,
-                    EnchantmentRegistry.ATTUNEMENT,
-                    EnchantmentRegistry.TRANSCENDENCE
+                    Enchantments.SURGE,
+                    Enchantments.ATTUNEMENT,
+                    Enchantments.TRANSCENDENCE
             ));
         }
         return expectedEnchantments;

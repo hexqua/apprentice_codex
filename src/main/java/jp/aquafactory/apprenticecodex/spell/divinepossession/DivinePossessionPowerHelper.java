@@ -12,12 +12,12 @@ public final class DivinePossessionPowerHelper {
 
     public static double resolveSchoolPower(SchoolType requestedSchool, LivingEntity caster) {
         var requestedPower = requestedSchool.getPowerFor(caster);
-        if (!caster.hasEffect(EffectRegistry.DIVINE_POSSESSION.get())) {
+        if (!caster.hasEffect(EffectRegistry.DIVINE_POSSESSION)) {
             return ZenithStaffPowerHelper.resolveSchoolPower(requestedSchool, caster, requestedPower);
         }
 
         var maxPower = requestedPower;
-        for (var school : SchoolRegistry.REGISTRY.get().getValues()) {
+        for (var school : SchoolRegistry.REGISTRY) {
             if (school != null) {
                 maxPower = Math.max(maxPower, school.getPowerFor(caster));
             }

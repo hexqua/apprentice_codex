@@ -46,7 +46,7 @@ public final class ZenithStaffPowerHelper {
 
         var strongestSchools = new ArrayList<SchoolType>();
         var maxPower = BASE_POWER;
-        for (var school : SchoolRegistry.REGISTRY.get().getValues()) {
+        for (var school : SchoolRegistry.REGISTRY) {
             if (school == null) {
                 continue;
             }
@@ -72,7 +72,7 @@ public final class ZenithStaffPowerHelper {
     }
 
     private static boolean isActive(LivingEntity caster) {
-        return isHeldBy(caster) && !caster.hasEffect(EffectRegistry.DIVINE_POSSESSION.get());
+        return isHeldBy(caster) && !caster.hasEffect(EffectRegistry.DIVINE_POSSESSION);
     }
 
     private static boolean isZenithStaff(ItemStack stack) {

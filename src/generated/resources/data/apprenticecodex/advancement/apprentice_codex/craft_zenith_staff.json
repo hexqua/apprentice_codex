@@ -9,16 +9,14 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_zenith_staff.description"
     },
     "frame": "challenge",
-    "hidden": false,
     "icon": {
-      "item": "apprenticecodex:zenith_staff"
+      "count": 1,
+      "id": "apprenticecodex:zenith_staff"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_zenith_staff.title"
     }
