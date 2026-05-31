@@ -36,6 +36,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncSchoolAffinityAssignmen
 import jp.aquafactory.apprenticecodex.network.packet.SyncSatelliteFollowcastAmuletStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSmashcastScepterReadyStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncTamersPocketCountPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncZenithStaffConfigPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -46,7 +47,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "33";
+    private static final String PROTOCOL_VERSION = "34";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -185,6 +186,13 @@ public final class Networks {
                 SyncManaShieldCharmConfigPacket::encode,
                 SyncManaShieldCharmConfigPacket::decode,
                 SyncManaShieldCharmConfigPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncZenithStaffConfigPacket.class,
+                SyncZenithStaffConfigPacket::encode,
+                SyncZenithStaffConfigPacket::decode,
+                SyncZenithStaffConfigPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

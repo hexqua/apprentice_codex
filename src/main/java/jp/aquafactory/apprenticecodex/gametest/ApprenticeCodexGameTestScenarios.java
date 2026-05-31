@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.events.CounterSpellEvent;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
+import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.item.UpgradeData;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
@@ -84,6 +85,8 @@ import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectProfileManager;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
+import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffManaCostEvent;
+import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffPowerHelper;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
@@ -122,6 +125,7 @@ import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWings;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsManager;
+import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
@@ -373,6 +377,8 @@ public final class ApprenticeCodexGameTestScenarios {
     private static final UUID FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID = UUID.fromString("a7dc54b6-a83c-4a5f-ae93-0cb49780fc8f");
     private static final UUID CASTING_MOVESPEED_DYNAMIC_TEST_EXTERNAL_MODIFIER_ID =
             UUID.fromString("04a46352-a09b-44fb-b504-92ab5f69f969");
+    private static final UUID ZENITH_STAFF_SCHOOL_POWER_TEST_MODIFIER_ID =
+            UUID.fromString("dc11d258-0a7d-4e1e-a0c6-74754fb91d25");
     private static final UUID VANILLA_BASE_ATTACK_DAMAGE_MODIFIER_ID =
             UUID.fromString("CB3F55D3-645C-4F38-A497-9C13A33DB5CF");
     private static final UUID VANILLA_BASE_ATTACK_SPEED_MODIFIER_ID =
@@ -3630,6 +3636,136 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
+
+    static void zenithStaffUsesStrongestSchoolPowerAndManaPenalty(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var zenithStaffId = ForgeRegistries.ITEMS.getKey(ItemRegistry.ZENITH_STAFF.get());
+            helper.assertTrue(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "zenith_staff").equals(zenithStaffId),
+                    "Zenith Staff is not registered with the expected id: " + zenithStaffId);
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "zenith_staff_power_test");
+            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(ItemRegistry.ZENITH_STAFF.get()));
+
+            var firePowerAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get());
+            helper.assertTrue(firePowerAttribute != null, "Zenith Staff test player is missing fire spell power attribute");
+            firePowerAttribute.addTransientModifier(new AttributeModifier(
+                    ZENITH_STAFF_SCHOOL_POWER_TEST_MODIFIER_ID,
+                    "apprenticecodex.zenith_staff.gametest.fire_power",
+                    0.5D,
+                    AttributeModifier.Operation.MULTIPLY_BASE
+            ));
+
+            var fireSchool = SchoolRegistry.FIRE.get();
+            var iceSchool = SchoolRegistry.ICE.get();
+            var snapshot = ZenithStaffPowerHelper.resolvePowerSnapshot(player);
+            helper.assertTrue(snapshot.hasSchoolBonus(), "Zenith Staff should detect the fire school bonus");
+            helper.assertTrue(snapshot.isStrongest(fireSchool), "Zenith Staff should treat fire as the strongest school");
+            helper.assertTrue(snapshot.bonusPercent() == 50,
+                    "Zenith Staff should report +50% school bonus but got " + snapshot.bonusPercent());
+
+            var expectedPower = fireSchool.getPowerFor(player);
+            var resolvedIcePower = DivinePossessionPowerHelper.resolveSchoolPower(iceSchool, player);
+            helper.assertTrue(Math.abs(resolvedIcePower - expectedPower) < 1.0e-9D,
+                    "Zenith Staff should cast ice with fire's strongest school power");
+
+            try (var ignored = ApprenticeCodexServerConfig.useZenithStaffManaCostMultiplierOverrideForGameTest(3.0D)) {
+                var iceManaEvent = new SpellOnCastEvent(
+                        player,
+                        "apprenticecodex:zenith_staff_gametest_ice",
+                        1,
+                        10,
+                        iceSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellCast(iceManaEvent);
+                helper.assertTrue(iceManaEvent.getManaCost() == 30,
+                        "Zenith Staff should triple non-strongest school mana cost");
+
+                var fireManaEvent = new SpellOnCastEvent(
+                        player,
+                        "apprenticecodex:zenith_staff_gametest_fire",
+                        1,
+                        10,
+                        fireSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellCast(fireManaEvent);
+                helper.assertTrue(fireManaEvent.getManaCost() == 10,
+                        "Zenith Staff should not increase strongest school mana cost");
+
+                var iceSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.ICE_SPIKES_SPELL.get();
+                var iceBaseManaCost = iceSpell.getManaCost(1);
+                var iceRequiredManaCost = ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(iceBaseManaCost);
+                helper.assertTrue(iceRequiredManaCost > iceBaseManaCost,
+                        "Zenith Staff pre-cast test needs increased mana cost");
+
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Zenith Staff pre-cast test could not resolve player mana data");
+                magicData.setMana(Math.max(0, iceRequiredManaCost - 1));
+                var insufficientPreCastEvent = new SpellPreCastEvent(
+                        player,
+                        iceSpell.getSpellId(),
+                        1,
+                        iceSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellPreCast(insufficientPreCastEvent);
+                helper.assertTrue(insufficientPreCastEvent.isCanceled(),
+                        "Zenith Staff should cancel non-strongest school pre-cast when increased mana cost is unaffordable");
+
+                magicData.setMana(iceRequiredManaCost);
+                var affordablePreCastEvent = new SpellPreCastEvent(
+                        player,
+                        iceSpell.getSpellId(),
+                        1,
+                        iceSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellPreCast(affordablePreCastEvent);
+                helper.assertFalse(affordablePreCastEvent.isCanceled(),
+                        "Zenith Staff should allow non-strongest school pre-cast when increased mana cost is affordable");
+
+                var fireSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIREBALL_SPELL.get();
+                magicData.setMana(Math.max(0, ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(fireSpell.getManaCost(1)) - 1));
+                var strongestPreCastEvent = new SpellPreCastEvent(
+                        player,
+                        fireSpell.getSpellId(),
+                        1,
+                        fireSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellPreCast(strongestPreCastEvent);
+                helper.assertFalse(strongestPreCastEvent.isCanceled(),
+                        "Zenith Staff should not cancel strongest school pre-cast with its mana multiplier gate");
+
+                player.addEffect(new MobEffectInstance(EffectRegistry.DIVINE_POSSESSION.get(), 100, 0));
+                var divineManaEvent = new SpellOnCastEvent(
+                        player,
+                        "apprenticecodex:zenith_staff_gametest_divine",
+                        1,
+                        10,
+                        iceSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellCast(divineManaEvent);
+                helper.assertTrue(divineManaEvent.getManaCost() == 10,
+                        "Divine Possession should suppress Zenith Staff's mana cost increase");
+
+                magicData.setMana(Math.max(0, iceRequiredManaCost - 1));
+                var divinePreCastEvent = new SpellPreCastEvent(
+                        player,
+                        iceSpell.getSpellId(),
+                        1,
+                        iceSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellPreCast(divinePreCastEvent);
+                helper.assertFalse(divinePreCastEvent.isCanceled(),
+                        "Divine Possession should suppress Zenith Staff's pre-cast mana gate");
+            }
+        });
+    }
+
     static void senseEvilUsesSameCubeForSpawnersAndEntities(GameTestHelper helper) {
         var level = helper.getLevel();
         var casterPos = createRemoteIsolationOrigin(helper, new BlockPos(0, 14, 0), 768, 96);

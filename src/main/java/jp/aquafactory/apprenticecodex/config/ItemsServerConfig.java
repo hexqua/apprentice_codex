@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.config.item.ScarletThirstServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScrollcasterGauntletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ZenithStaffServerConfig;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -35,6 +36,7 @@ final class ItemsServerConfig {
     private final MagicArmorServerConfig magicArmorConfig;
     private final ChromaticMagiaDressServerConfig chromaticMagiaDressConfig;
     private final PastelStaffServerConfig pastelStaffConfig;
+    private final ZenithStaffServerConfig zenithStaffConfig;
     private final IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig;
     private final ManaForceBladeServerConfig manaForceBladeConfig;
     private final ManaShieldCharmServerConfig manaShieldCharmConfig;
@@ -58,6 +60,7 @@ final class ItemsServerConfig {
             MagicArmorServerConfig magicArmorConfig,
             ChromaticMagiaDressServerConfig chromaticMagiaDressConfig,
             PastelStaffServerConfig pastelStaffConfig,
+            ZenithStaffServerConfig zenithStaffConfig,
             IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig,
             ManaForceBladeServerConfig manaForceBladeConfig,
             ManaShieldCharmServerConfig manaShieldCharmConfig,
@@ -80,6 +83,7 @@ final class ItemsServerConfig {
         this.magicArmorConfig = magicArmorConfig;
         this.chromaticMagiaDressConfig = chromaticMagiaDressConfig;
         this.pastelStaffConfig = pastelStaffConfig;
+        this.zenithStaffConfig = zenithStaffConfig;
         this.isekaiTravelGuidebookConfig = isekaiTravelGuidebookConfig;
         this.manaForceBladeConfig = manaForceBladeConfig;
         this.manaShieldCharmConfig = manaShieldCharmConfig;
@@ -105,6 +109,7 @@ final class ItemsServerConfig {
         var magicArmorConfig = MagicArmorServerConfig.define(builder);
         var chromaticMagiaDressConfig = ChromaticMagiaDressServerConfig.define(builder);
         var pastelStaffConfig = PastelStaffServerConfig.define(builder);
+        var zenithStaffConfig = ZenithStaffServerConfig.define(builder);
         var isekaiTravelGuidebookConfig = IsekaiTravelGuidebookServerConfig.define(builder);
         var manaForceBladeConfig = ManaForceBladeServerConfig.define(builder);
         var manaShieldCharmConfig = ManaShieldCharmServerConfig.define(builder);
@@ -129,6 +134,7 @@ final class ItemsServerConfig {
                 magicArmorConfig,
                 chromaticMagiaDressConfig,
                 pastelStaffConfig,
+                zenithStaffConfig,
                 isekaiTravelGuidebookConfig,
                 manaForceBladeConfig,
                 manaShieldCharmConfig,
@@ -220,6 +226,10 @@ final class ItemsServerConfig {
 
     double pastelStaffAmplifyTintedMagicMultiplier() {
         return pastelStaffConfig.amplifyTintedMagicMultiplier();
+    }
+
+    float zenithStaffManaCostMultiplier() {
+        return zenithStaffConfig.manaCostMultiplier();
     }
 
     boolean showIsekaiTravelGuidebookTooltip() {
@@ -779,6 +789,10 @@ final class ItemsServerConfig {
 
     void setElementMaidenRobeSchoolSpellPowerBonusForGameTest(double value) {
         magicArmorConfig.setElementMaidenRobeSchoolSpellPowerBonusForGameTest(value);
+    }
+
+    void setZenithStaffManaCostMultiplierForGameTest(double value) {
+        zenithStaffConfig.setManaCostMultiplierForGameTest(value);
     }
 
     void setSatelliteFollowcastAmuletSpellDenylistForGameTest(List<String> spellDenylist) {

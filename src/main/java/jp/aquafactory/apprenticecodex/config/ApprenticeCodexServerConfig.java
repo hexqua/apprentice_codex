@@ -329,6 +329,10 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.pastelStaffAmplifyTintedMagicMultiplier();
     }
 
+    public static float zenithStaffManaCostMultiplier() {
+        return ITEMS_CONFIG.zenithStaffManaCostMultiplier();
+    }
+
     public static boolean showIsekaiTravelGuidebookTooltip() {
         return ITEMS_CONFIG.showIsekaiTravelGuidebookTooltip();
     }
@@ -978,6 +982,12 @@ public final class ApprenticeCodexServerConfig {
         var previousValue = ITEMS_CONFIG.elementMaidenRobeSchoolSpellPowerBonus();
         ITEMS_CONFIG.setElementMaidenRobeSchoolSpellPowerBonusForGameTest(value);
         return () -> ITEMS_CONFIG.setElementMaidenRobeSchoolSpellPowerBonusForGameTest(previousValue);
+    }
+
+    public static GameTestConfigOverride useZenithStaffManaCostMultiplierOverrideForGameTest(double value) {
+        var previousValue = ITEMS_CONFIG.zenithStaffManaCostMultiplier();
+        ITEMS_CONFIG.setZenithStaffManaCostMultiplierForGameTest(value);
+        return () -> ITEMS_CONFIG.setZenithStaffManaCostMultiplierForGameTest(previousValue);
     }
 
     public static float forceFieldDrainManaBasePerHit() {

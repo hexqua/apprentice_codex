@@ -85,6 +85,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.ALCHEMISTS_FLASK.get());
         output.accept(ItemRegistry.PASTEL_STAFF.get());
         output.accept(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        output.accept(ItemRegistry.ZENITH_STAFF.get());
         output.accept(ItemRegistry.FOCUS_STAFFBOW.get());
         output.accept(ItemRegistry.SMASHCAST_SCEPTER.get());
         output.accept(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
