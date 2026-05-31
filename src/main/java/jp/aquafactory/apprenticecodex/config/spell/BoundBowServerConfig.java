@@ -5,6 +5,8 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public final class BoundBowServerConfig {
     private final ModConfigSpec.IntValue maxPowerEnchantmentLevel;
     private final ModConfigSpec.DoubleValue forgeArrowManaCost;
+    private Integer maxPowerEnchantmentLevelOverride;
+    private Float forgeArrowManaCostOverride;
 
     private BoundBowServerConfig(
             ModConfigSpec.IntValue maxPowerEnchantmentLevel,
@@ -25,15 +27,21 @@ public final class BoundBowServerConfig {
     }
 
     public int maxPowerEnchantmentLevel() {
+        if (maxPowerEnchantmentLevelOverride != null) {
+            return maxPowerEnchantmentLevelOverride;
+        }
         return maxPowerEnchantmentLevel.get();
     }
 
     public float forgeArrowManaCost() {
+        if (forgeArrowManaCostOverride != null) {
+            return forgeArrowManaCostOverride;
+        }
         return forgeArrowManaCost.get().floatValue();
     }
 
     public void setForGameTest(int maxPowerEnchantmentLevel, float forgeArrowManaCost) {
-        this.maxPowerEnchantmentLevel.set(maxPowerEnchantmentLevel);
-        this.forgeArrowManaCost.set((double) forgeArrowManaCost);
+        this.maxPowerEnchantmentLevelOverride = maxPowerEnchantmentLevel;
+        this.forgeArrowManaCostOverride = forgeArrowManaCost;
     }
 }

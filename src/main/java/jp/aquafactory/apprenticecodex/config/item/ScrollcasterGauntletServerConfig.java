@@ -25,10 +25,10 @@ public final class ScrollcasterGauntletServerConfig {
         builder.push("ScrollcasterGauntlet");
         var deniedEnchantments = builder
                 .comment("Enchantment IDs that cannot be copied to Scrollcaster Gauntlets through Spell Calibration Bench books. This is a final safety gate for books that already exist outside normal enchantment-control paths.")
-                .defineList("deniedEnchantments", List.<String>of(), ScrollcasterGauntletServerConfig::isEnchantmentId);
+                .defineListAllowEmpty("deniedEnchantments", List.<String>of(), ScrollcasterGauntletServerConfig::isEnchantmentId);
         var compatAdditionalAllowedEnchantments = builder
                 .comment("Compatibility escape hatch for enchantment IDs that are not normally supported but have been verified by the modpack. No special behavior is added; effects and stability depend on each enchantment implementation.")
-                .defineList("compatAdditionalAllowedEnchantments", List.<String>of(), ScrollcasterGauntletServerConfig::isEnchantmentId);
+                .defineListAllowEmpty("compatAdditionalAllowedEnchantments", List.<String>of(), ScrollcasterGauntletServerConfig::isEnchantmentId);
         builder.pop();
 
         return new ScrollcasterGauntletServerConfig(deniedEnchantments, compatAdditionalAllowedEnchantments);

@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.events.CounterSpellEvent;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
+import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.item.UpgradeData;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
@@ -87,6 +88,8 @@ import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectProfileManager;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
+import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffManaCostEvent;
+import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffPowerHelper;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
@@ -123,6 +126,7 @@ import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWings;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsManager;
+import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
@@ -161,6 +165,9 @@ import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillEntity
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressStats;
+import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeSchoolPowerBonusEvents;
+import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeStats;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastCooldownMode;
 import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
@@ -256,6 +263,7 @@ import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.component.CustomData;
@@ -383,6 +391,8 @@ public final class ApprenticeCodexGameTestScenarios {
     );
     private static final ResourceLocation CASTING_MOVESPEED_DYNAMIC_TEST_EXTERNAL_MODIFIER_ID =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "casting_movespeed_dynamic_test_external");
+    private static final ResourceLocation ZENITH_STAFF_SCHOOL_POWER_TEST_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "zenith_staff_school_power_test");
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
     private static final ResourceLocation MALUM_HAUNTED =
@@ -3892,6 +3902,233 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spawn bonus chest loot no longer contains Isekai Travel Guidebook: " + generatedLoot);
         });
     }
+
+    static void zenithStaffUsesStrongestSchoolPowerAndManaPenalty(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var zenithStaffId = BuiltInRegistries.ITEM.getKey(ItemRegistry.ZENITH_STAFF.get());
+            helper.assertTrue(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "zenith_staff").equals(zenithStaffId),
+                    "Zenith Staff is not registered with the expected id: " + zenithStaffId);
+            var zenithStack = new ItemStack(ItemRegistry.ZENITH_STAFF.get());
+            var synthesis = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                    .getOrThrow(Enchantments.SYNTHESIS);
+            helper.assertFalse(zenithStack.getItem().supportsEnchantment(zenithStack, synthesis),
+                    "Zenith Staff should not accept Synthesis at the enchanting table");
+            helper.assertFalse(zenithStack.getItem().isBookEnchantable(zenithStack, createEnchantedBook(synthesis)),
+                    "Zenith Staff should not accept Synthesis from enchanted books");
+            helper.assertFalse(synthesis.value().canEnchant(zenithStack),
+                    "Zenith Staff should not be included in the Synthesis supported_items tag");
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "zenith_staff_power_test");
+            player.setItemInHand(InteractionHand.OFF_HAND, zenithStack);
+
+            var firePowerAttribute = player.getAttribute(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get()
+            ));
+            helper.assertTrue(firePowerAttribute != null, "Zenith Staff test player is missing fire spell power attribute");
+            firePowerAttribute.addTransientModifier(new AttributeModifier(
+                    ZENITH_STAFF_SCHOOL_POWER_TEST_MODIFIER_ID,
+                    0.5D,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+            ));
+
+            var fireSchool = SchoolRegistry.FIRE.get();
+            var iceSchool = SchoolRegistry.ICE.get();
+            var snapshot = ZenithStaffPowerHelper.resolvePowerSnapshot(player);
+            helper.assertTrue(snapshot.hasSchoolBonus(), "Zenith Staff should detect the fire school bonus");
+            helper.assertTrue(snapshot.isStrongest(fireSchool), "Zenith Staff should treat fire as the strongest school");
+            helper.assertTrue(snapshot.bonusPercent() == 50,
+                    "Zenith Staff should report +50% school bonus but got " + snapshot.bonusPercent());
+
+            var expectedPower = fireSchool.getPowerFor(player);
+            var resolvedIcePower = DivinePossessionPowerHelper.resolveSchoolPower(iceSchool, player);
+            helper.assertTrue(Math.abs(resolvedIcePower - expectedPower) < 1.0e-9D,
+                    "Zenith Staff should cast ice with fire's strongest school power");
+
+            try (var ignored = ApprenticeCodexServerConfig.useZenithStaffManaCostMultiplierOverrideForGameTest(3.0D)) {
+                var iceManaEvent = new SpellOnCastEvent(
+                        player,
+                        "apprenticecodex:zenith_staff_gametest_ice",
+                        1,
+                        10,
+                        iceSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellCast(iceManaEvent);
+                helper.assertTrue(iceManaEvent.getManaCost() == 30,
+                        "Zenith Staff should triple non-strongest school mana cost");
+
+                var fireManaEvent = new SpellOnCastEvent(
+                        player,
+                        "apprenticecodex:zenith_staff_gametest_fire",
+                        1,
+                        10,
+                        fireSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellCast(fireManaEvent);
+                helper.assertTrue(fireManaEvent.getManaCost() == 10,
+                        "Zenith Staff should not increase strongest school mana cost");
+
+                var iceSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.ICE_SPIKES_SPELL.get();
+                var iceBaseManaCost = iceSpell.getManaCost(1);
+                var iceRequiredManaCost = ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(iceBaseManaCost);
+                helper.assertTrue(iceRequiredManaCost > iceBaseManaCost,
+                        "Zenith Staff pre-cast test needs increased mana cost");
+
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Zenith Staff pre-cast test could not resolve player mana data");
+                magicData.setMana(Math.max(0, iceRequiredManaCost - 1));
+                var insufficientPreCastEvent = new SpellPreCastEvent(
+                        player,
+                        iceSpell.getSpellId(),
+                        1,
+                        iceSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellPreCast(insufficientPreCastEvent);
+                helper.assertTrue(insufficientPreCastEvent.isCanceled(),
+                        "Zenith Staff should cancel non-strongest school pre-cast when increased mana cost is unaffordable");
+
+                magicData.setMana(iceRequiredManaCost);
+                var affordablePreCastEvent = new SpellPreCastEvent(
+                        player,
+                        iceSpell.getSpellId(),
+                        1,
+                        iceSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellPreCast(affordablePreCastEvent);
+                helper.assertFalse(affordablePreCastEvent.isCanceled(),
+                        "Zenith Staff should allow non-strongest school pre-cast when increased mana cost is affordable");
+
+                var recastSpell = SpellRegistry.ARCHER_MULTIPLE.get();
+                helper.assertTrue(ZenithStaffPowerHelper.shouldIncreaseManaCost(player, recastSpell.getSchoolType()),
+                        "Zenith Staff recast pre-cast test needs mana gate to apply");
+                magicData.getPlayerRecasts().addRecast(new RecastInstance(
+                        recastSpell.getSpellId(),
+                        1,
+                        2,
+                        100,
+                        CastSource.SPELLBOOK,
+                        null
+                ), magicData);
+                var recastRequiredManaCost = ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(recastSpell.getManaCost(1));
+                magicData.setMana(Math.max(0, recastRequiredManaCost - 1));
+                var recastPreCastEvent = new SpellPreCastEvent(
+                        player,
+                        recastSpell.getSpellId(),
+                        1,
+                        recastSpell.getSchoolType(),
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellPreCast(recastPreCastEvent);
+                helper.assertFalse(recastPreCastEvent.isCanceled(),
+                        "Zenith Staff should not cancel active recasts with its pre-cast mana gate");
+
+                equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+                var touchDigSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.TOUCH_DIG.get();
+                assertZenithPreCastUsesDiscountedManaGate(
+                        helper,
+                        player,
+                        magicData,
+                        touchDigSpell,
+                        CraftsmansDelight.applyManaCostDiscount(touchDigSpell.getManaCost(1), player),
+                        "CraftsmansDelight Touch Dig"
+                );
+
+                equipCurio(player, CuriosSlotConstants.BELT, new ItemStack(ItemRegistry.PROTECTION_SPELL_SUPPORTER.get()));
+                var mysticShieldSpell = SpellRegistry.MYSTIC_SHIELD.get();
+                assertZenithPreCastUsesDiscountedManaGate(
+                        helper,
+                        player,
+                        magicData,
+                        mysticShieldSpell,
+                        jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter
+                                .applyManaCostDiscount(mysticShieldSpell.getManaCost(1), player),
+                        "ProtectionSpellSupporter Mystic Shield"
+                );
+
+                var fireSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIREBALL_SPELL.get();
+                magicData.setMana(Math.max(0, ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(fireSpell.getManaCost(1)) - 1));
+                var strongestPreCastEvent = new SpellPreCastEvent(
+                        player,
+                        fireSpell.getSpellId(),
+                        1,
+                        fireSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellPreCast(strongestPreCastEvent);
+                helper.assertFalse(strongestPreCastEvent.isCanceled(),
+                        "Zenith Staff should not cancel strongest school pre-cast with its mana multiplier gate");
+
+                player.addEffect(new MobEffectInstance(EffectRegistry.DIVINE_POSSESSION, 100, 0));
+                var divineManaEvent = new SpellOnCastEvent(
+                        player,
+                        "apprenticecodex:zenith_staff_gametest_divine",
+                        1,
+                        10,
+                        iceSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellCast(divineManaEvent);
+                helper.assertTrue(divineManaEvent.getManaCost() == 10,
+                        "Divine Possession should suppress Zenith Staff's mana cost increase");
+
+                magicData.setMana(Math.max(0, iceRequiredManaCost - 1));
+                var divinePreCastEvent = new SpellPreCastEvent(
+                        player,
+                        iceSpell.getSpellId(),
+                        1,
+                        iceSchool,
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellPreCast(divinePreCastEvent);
+                helper.assertFalse(divinePreCastEvent.isCanceled(),
+                        "Divine Possession should suppress Zenith Staff's pre-cast mana gate");
+            }
+        });
+    }
+
+    private static void assertZenithPreCastUsesDiscountedManaGate(
+            GameTestHelper helper,
+            FakePlayer player,
+            MagicData magicData,
+            AbstractSpell spell,
+            int discountedManaCost,
+            String context
+    ) {
+        helper.assertTrue(ZenithStaffPowerHelper.shouldIncreaseManaCost(player, spell.getSchoolType()),
+                context + " test needs Zenith Staff mana gate to apply");
+        var rawRequiredManaCost = ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(spell.getManaCost(1));
+        var discountedRequiredManaCost = ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(discountedManaCost);
+        helper.assertTrue(discountedRequiredManaCost < rawRequiredManaCost,
+                context + " test needs a lower discounted Zenith mana cost");
+
+        magicData.setMana(discountedRequiredManaCost);
+        var affordablePreCastEvent = new SpellPreCastEvent(
+                player,
+                spell.getSpellId(),
+                1,
+                spell.getSchoolType(),
+                CastSource.SPELLBOOK
+        );
+        ZenithStaffManaCostEvent.onSpellPreCast(affordablePreCastEvent);
+        helper.assertFalse(affordablePreCastEvent.isCanceled(),
+                "Zenith Staff should allow " + context + " pre-cast at discounted increased mana cost");
+
+        magicData.setMana(Math.max(0, discountedRequiredManaCost - 1));
+        var insufficientPreCastEvent = new SpellPreCastEvent(
+                player,
+                spell.getSpellId(),
+                1,
+                spell.getSchoolType(),
+                CastSource.SPELLBOOK
+        );
+        ZenithStaffManaCostEvent.onSpellPreCast(insufficientPreCastEvent);
+        helper.assertTrue(insufficientPreCastEvent.isCanceled(),
+                "Zenith Staff should still cancel " + context + " pre-cast below discounted increased mana cost");
+    }
+
     static void senseEvilUsesSameCubeForSpawnersAndEntities(GameTestHelper helper) {
         var level = helper.getLevel();
         var casterPos = createRemoteIsolationOrigin(helper, new BlockPos(0, 14, 0), 768, 96);
@@ -10989,6 +11226,12 @@ public final class ApprenticeCodexGameTestScenarios {
                     item -> item instanceof ChromaticMagiaDressItem,
                     stack -> expectedChromaticMagiaDressEnchantments(helper.getLevel().registryAccess(), stack)
             );
+            assertCategoryEnchantments(
+                    helper,
+                    "Element Maiden Robe",
+                    item -> item instanceof ElementMaidenRobeItem,
+                    stack -> expectedElementMaidenRobeEnchantments(helper.getLevel().registryAccess(), stack)
+            );
         });
     }
 
@@ -11124,11 +11367,17 @@ public final class ApprenticeCodexGameTestScenarios {
                 item.initializeSpellContainer(stack);
 
                 var modifiers = toModifierMultimap(item.getDefaultAttributeModifiers(stack));
-                var maxManaBonus = sumModifierAmount(modifiers.get(maxManaAttribute), AttributeModifier.Operation.ADD_VALUE);
+                var maxManaBonus = sumModifierAmount(
+                        modifiers.get(maxManaAttribute),
+                        AttributeModifier.Operation.ADD_VALUE
+                );
                 helper.assertTrue(Math.abs(maxManaBonus - 50.0D) < 1.0e-9D,
                         "Apprentice Mage Robe " + armorType + " max mana regression: " + describeModifiers(modifiers));
 
-                var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+                var spellPowerBonus = sumModifierAmount(
+                        modifiers.get(spellPowerAttribute),
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                );
                 helper.assertTrue(Math.abs(spellPowerBonus - expectedSpellPower) < 1.0e-9D,
                         "Apprentice Mage Robe " + armorType + " spell power config regression: " + describeModifiers(modifiers));
 
@@ -11268,6 +11517,279 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
+    static void elementMaidenRobeKeepsExpectedStatsImbueAndMagicEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
+            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
+            var expectedSpellPower = ApprenticeCodexServerConfig.elementMaidenRobeSpellPowerBonus();
+            var pieces = Map.of(
+                    ArmorItem.Type.HELMET, (ElementMaidenRobeItem) ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
+                    ArmorItem.Type.CHESTPLATE, (ElementMaidenRobeItem) ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
+                    ArmorItem.Type.LEGGINGS, (ElementMaidenRobeItem) ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
+                    ArmorItem.Type.BOOTS, (ElementMaidenRobeItem) ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get()
+            );
+
+            for (var entry : pieces.entrySet()) {
+                var armorType = entry.getKey();
+                var item = entry.getValue();
+                var stack = new ItemStack(item);
+                item.initializeSpellContainer(stack);
+
+                helper.assertTrue(item instanceof io.redspace.ironsspellbooks.item.UniqueItem,
+                        "Element Maiden Robe " + armorType + " should be a unique item");
+                helper.assertTrue(stack.getRarity() == Rarity.EPIC,
+                        "Element Maiden Robe " + armorType + " rarity should be epic");
+                helper.assertTrue(item.getMaterial().value().defense().get(armorType).equals(ArmorMaterials.LEATHER.value().defense().get(armorType)),
+                        "Element Maiden Robe " + armorType + " defense should match leather");
+                helper.assertTrue(Math.abs(item.getMaterial().value().toughness() - 4.0F) < 1.0e-6F,
+                        "Element Maiden Robe " + armorType + " toughness should be 4");
+                helper.assertTrue(item.getEnchantmentValue(stack) == ElementMaidenRobeStats.enchantmentValue(),
+                        "Element Maiden Robe " + armorType + " enchantment value changed");
+                helper.assertTrue(item.isValidRepairItem(
+                                stack,
+                                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
+                        ),
+                        "Element Maiden Robe " + armorType + " should repair with mithril scrap");
+
+                var modifiers = toModifierMultimap(item.getDefaultAttributeModifiers(stack));
+                var maxManaBonus = sumModifierAmount(
+                        modifiers.get(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(maxManaAttribute)),
+                        AttributeModifier.Operation.ADD_VALUE
+                );
+                helper.assertTrue(Math.abs(maxManaBonus - ElementMaidenRobeStats.MAX_MANA_BONUS) < 1.0e-9D,
+                        "Element Maiden Robe " + armorType + " max mana regression: " + describeModifiers(modifiers));
+
+                var spellPowerBonus = sumModifierAmount(
+                        modifiers.get(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(spellPowerAttribute)),
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                );
+                helper.assertTrue(Math.abs(spellPowerBonus - expectedSpellPower) < 1.0e-9D,
+                        "Element Maiden Robe " + armorType + " spell power config regression: " + describeModifiers(modifiers));
+
+                helper.assertTrue(ISpellContainer.isSpellContainer(stack) == item.hasImbueSlot(),
+                        "Element Maiden Robe " + armorType + " imbue surface regression");
+
+                var tooltipLines = new ArrayList<Component>();
+                item.appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
+                helper.assertTrue(tooltipLines.stream().anyMatch(line ->
+                                line.getContents() instanceof TranslatableContents contents
+                                        && "item.apprenticecodex.element_maiden_robe.desc".equals(contents.getKey())),
+                        "Element Maiden Robe " + armorType + " should show its common lang desc key");
+            }
+
+            var chestplate = (ElementMaidenRobeItem) ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get();
+            var chestStack = new ItemStack(chestplate);
+            chestplate.initializeSpellContainer(chestStack);
+            var initialContainer = ISpellContainer.get(chestStack);
+            helper.assertTrue(initialContainer != null
+                            && initialContainer.getSpellAtIndex(0).getSpell() == SpellRegistry.DIVINE_POSSESSION.get(),
+                    "Element Maiden Robe chestplate should initialize Divine Possession as its imbue spell");
+            var ballLightning = io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get();
+            ISpellContainer.createImbuedContainer(ballLightning, 1, chestStack);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "element_maiden_robe_cooldown_policy_test");
+            player.setItemSlot(EquipmentSlot.CHEST, chestStack);
+            var stackCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    ballLightning,
+                    player,
+                    CastSource.SWORD,
+                    chestStack
+            );
+            var slotCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    ballLightning,
+                    player,
+                    CastSource.SWORD,
+                    EquipmentSlot.CHEST.getName()
+            );
+            helper.assertTrue(slotCooldown == stackCooldown,
+                    "Element Maiden Robe spell wheel cooldown should resolve the chest slot stack: "
+                            + slotCooldown + " / expected " + stackCooldown);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null,
+                    "Element Maiden Robe cooldown event test could not resolve player magic data");
+            magicData.setPlayerCastingItem(chestStack.copy());
+            var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    MagicManager.getEffectiveSpellCooldown(ballLightning, player, CastSource.SWORD),
+                    ballLightning,
+                    player,
+                    CastSource.SWORD
+            );
+            jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownEvents.onSpellCooldownAdded(cooldownEvent);
+            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == stackCooldown,
+                    "Element Maiden Robe cooldown event should ignore the weapon imbue multiplier: "
+                            + cooldownEvent.getEffectiveCooldown() + " / expected " + stackCooldown);
+
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            chestStack.enchant(enchantmentLookup.getOrThrow(Enchantments.SURGE), 1);
+            chestStack.enchant(enchantmentLookup.getOrThrow(Enchantments.ATTUNEMENT), 1);
+
+            var imbuedSchool = MagicTools.getImbuedSpellSchool(chestStack);
+            helper.assertTrue(imbuedSchool != null,
+                    "Element Maiden Robe chestplate test could not resolve imbued school");
+            var imbuedSpellPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+            helper.assertTrue(imbuedSpellPowerAttribute != null,
+                    "Element Maiden Robe chestplate test could not resolve school spell power attribute");
+
+            var enchantedModifiers = toModifierMultimap(chestplate.getDefaultAttributeModifiers(chestStack));
+            var enchantedGlobalSpellPower = sumModifierAmount(
+                    enchantedModifiers.get(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(spellPowerAttribute)),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+            );
+            helper.assertTrue(Math.abs(enchantedGlobalSpellPower
+                            - (expectedSpellPower + ElementMaidenRobeStats.SURGE_SPELL_POWER_PER_LEVEL)) < 1.0e-9D,
+                    "Element Maiden Robe chestplate should add Surge spell power: " + describeModifiers(enchantedModifiers));
+
+            var attunementSpellPower = sumModifierAmount(
+                    enchantedModifiers.get(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(imbuedSpellPowerAttribute)),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+            );
+            helper.assertTrue(Math.abs(attunementSpellPower
+                            - ElementMaidenRobeStats.ATTUNEMENT_SPELL_POWER_PER_LEVEL) < 1.0e-9D,
+                    "Element Maiden Robe chestplate should add Attunement school spell power: "
+                            + describeModifiers(enchantedModifiers));
+        });
+    }
+
+    static void elementMaidenRobeSchoolSpellPowerDistributesSpellbookSchools(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useElementMaidenRobeSchoolSpellPowerBonusOverrideForGameTest(0.20D)) {
+                // GameTest では SpellConfig 経由の school 解決が Evocation に寄ることがあるため、
+                // 分配ルール自体は SchoolRegistry から直接検証する.
+                var directBonuses = ElementMaidenRobeSchoolPowerBonusEvents.resolveSchoolPowerBonuses(10, Map.of(
+                        SchoolRegistry.FIRE.get(), 4,
+                        SchoolRegistry.ICE.get(), 3
+                ), 0.20D);
+                assertElementMaidenSchoolPowerBonusAmount(helper, directBonuses,
+                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get(),
+                        0.14D,
+                        "Element Maiden Robe should distribute empty slots to the strongest spellbook school");
+                assertElementMaidenSchoolPowerBonusAmount(helper, directBonuses,
+                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.ICE_SPELL_POWER.get(),
+                        0.06D,
+                        "Element Maiden Robe should keep lower spellbook school share");
+
+                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                        "element_maiden_robe_school_power_distribution_test");
+                player.setItemSlot(EquipmentSlot.CHEST, new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()));
+                player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get()));
+
+                equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
+                        createElementMaidenRobeSchoolPowerSpellbook(helper,
+                                io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get()));
+
+                helper.assertTrue(player.getItemBySlot(EquipmentSlot.CHEST).getItem() instanceof ElementMaidenRobeItem,
+                        "Element Maiden Robe dynamic test player is not wearing the robe");
+                var resolvedBonuses = ElementMaidenRobeSchoolPowerBonusEvents.resolveSchoolPowerBonuses(player, 0.20D);
+                helper.assertTrue(!resolvedBonuses.isEmpty(),
+                        "Element Maiden Robe dynamic test could not resolve spellbook schools from Curios slot");
+                helper.assertTrue(Math.abs(ApprenticeCodexServerConfig.elementMaidenRobeSchoolSpellPowerBonus() - 0.20D) < 1.0e-9D,
+                        "Element Maiden Robe dynamic test config override did not apply");
+                var appliedBonuses = ElementMaidenRobeSchoolPowerBonusEvents.refresh(player);
+                assertElementMaidenDynamicSchoolPowerBonuses(helper, player, appliedBonuses,
+                        "Element Maiden Robe should apply Curios spellbook-derived school spell power");
+            }
+        });
+    }
+
+    static void elementMaidenRobeSchoolSpellPowerSplitsEmptySlotsBetweenTiedSchools(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useElementMaidenRobeSchoolSpellPowerBonusOverrideForGameTest(0.20D)) {
+                var directBonuses = ElementMaidenRobeSchoolPowerBonusEvents.resolveSchoolPowerBonuses(10, Map.of(
+                        SchoolRegistry.FIRE.get(), 3,
+                        SchoolRegistry.ICE.get(), 3,
+                        SchoolRegistry.NATURE.get(), 1
+                ), 0.20D);
+                assertElementMaidenSchoolPowerBonusAmount(helper, directBonuses,
+                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get(),
+                        0.09D,
+                        "Element Maiden Robe should split empty slots between tied strongest schools");
+                assertElementMaidenSchoolPowerBonusAmount(helper, directBonuses,
+                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.ICE_SPELL_POWER.get(),
+                        0.09D,
+                        "Element Maiden Robe should split empty slots between tied strongest schools");
+                assertElementMaidenSchoolPowerBonusAmount(helper, directBonuses,
+                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.NATURE_SPELL_POWER.get(),
+                        0.02D,
+                        "Element Maiden Robe should floor smaller spellbook school shares to 1% units");
+            }
+        });
+    }
+
+    static void elementMaidenRobeSchoolSpellPowerIgnoresHandsAndZeroConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var fire = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "element_maiden_robe_school_power_ignore_hand_test");
+            player.setItemSlot(EquipmentSlot.CHEST, new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()));
+            player.setItemInHand(InteractionHand.MAIN_HAND, createElementMaidenRobeSchoolPowerSpellbook(helper, fire));
+
+            try (var ignored = ApprenticeCodexServerConfig.useElementMaidenRobeSchoolSpellPowerBonusOverrideForGameTest(0.20D)) {
+                ElementMaidenRobeSchoolPowerBonusEvents.refresh(player);
+                assertNoElementMaidenDynamicSchoolPower(helper, player,
+                        "Element Maiden Robe should ignore spell containers outside the Curios spellbook slot");
+            }
+
+            equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
+                    createElementMaidenRobeSchoolPowerSpellbook(helper, fire));
+            try (var ignored = ApprenticeCodexServerConfig.useElementMaidenRobeSchoolSpellPowerBonusOverrideForGameTest(0.0D)) {
+                ElementMaidenRobeSchoolPowerBonusEvents.refresh(player);
+                assertNoElementMaidenDynamicSchoolPower(helper, player,
+                        "Element Maiden Robe school spell power config 0 should disable the dynamic bonus");
+            }
+        });
+    }
+
+    static void elementMaidenRobeSchoolSpellPowerRefreshesArchivistsAndEnderGrimoireSources(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useElementMaidenRobeSchoolSpellPowerBonusOverrideForGameTest(0.20D)) {
+                var fire = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
+                var ice = SpellRegistry.FROST_RUNE.get();
+
+                var archivistsPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                        "element_maiden_robe_archivists_source_test");
+                archivistsPlayer.setItemSlot(EquipmentSlot.CHEST, new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()));
+                var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+                ArchivistsGrimoire.setUpgradeCount(grimoireStack, 2);
+                var inventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack, helper.getLevel().registryAccess());
+                inventory.setStackInSlot(0, createSpellScroll(fire));
+                inventory.setStackInSlot(ArchivistsGrimoire.COLUMN_COUNT, createSpellScroll(ice));
+                ArchivistsGrimoire.setSelectedRow(grimoireStack, 0);
+                equipCurio(archivistsPlayer, io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT, grimoireStack);
+
+                var firstArchivistsBonuses = ElementMaidenRobeSchoolPowerBonusEvents.refresh(archivistsPlayer);
+                helper.assertTrue(!firstArchivistsBonuses.isEmpty(),
+                        "Element Maiden Robe should resolve the selected Archivists Grimoire page");
+                assertElementMaidenDynamicSchoolPowerBonuses(helper, archivistsPlayer, firstArchivistsBonuses,
+                        "Element Maiden Robe should read the selected Archivists Grimoire page");
+                ArchivistsGrimoire.setSelectedRow(grimoireStack, 1);
+                var secondArchivistsBonuses = ElementMaidenRobeSchoolPowerBonusEvents.refresh(archivistsPlayer);
+                helper.assertTrue(!secondArchivistsBonuses.isEmpty(),
+                        "Element Maiden Robe should resolve the new Archivists Grimoire page");
+                assertElementMaidenDynamicSchoolPowerBonuses(helper, archivistsPlayer, secondArchivistsBonuses,
+                        "Element Maiden Robe should apply the new Archivists Grimoire page bonus");
+
+                var enderPlayer = createEquipmentTestPlayer(helper, new BlockPos(2, 2, 0),
+                        "element_maiden_robe_ender_source_test");
+                enderPlayer.setItemSlot(EquipmentSlot.CHEST, new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()));
+                var enderData = Capabilities.getEnderGrimoireSpellbookOrNull(enderPlayer);
+                helper.assertTrue(enderData != null, "Ender Grimoire school spell power test is missing player capability");
+                var mutable = ISpellContainer.create(15, true, true).mutableCopy();
+                helper.assertTrue(mutable.addSpellAtIndex(fire, 1, 0, false),
+                        "Failed to prepare Ender Grimoire fire spell");
+                enderData.setSpellContainer(mutable.toImmutable());
+                equipCurio(enderPlayer, io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
+                        new ItemStack(ItemRegistry.ENDER_GRIMOIRE.get()));
+
+                var enderBonuses = ElementMaidenRobeSchoolPowerBonusEvents.refresh(enderPlayer);
+                helper.assertTrue(!enderBonuses.isEmpty(),
+                        "Element Maiden Robe should resolve Ender Grimoire spells from the player capability");
+                assertElementMaidenDynamicSchoolPowerBonuses(helper, enderPlayer, enderBonuses,
+                        "Element Maiden Robe should read Ender Grimoire spells from the player capability");
+            }
+        });
+    }
+
     static void stealthRuneArmorKeepsExpectedAttributeBonusesAndImbueSurface(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA;
@@ -17454,6 +17976,23 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
+    private static Set<ResourceLocation> expectedElementMaidenRobeEnchantments(RegistryAccess registryAccess, ItemStack stack) {
+        var probeStack = createArmorProbeStack(stack);
+        var expectedEnchantments = collectAllowedEnchantments(
+                registryAccess,
+                enchantment -> enchantment.value().canEnchant(probeStack)
+        );
+        expectedEnchantments.addAll(registryIdSet(Enchantments.WISDOM));
+        if (stack.getItem() instanceof ElementMaidenRobeItem robeItem && robeItem.hasImbueSlot()) {
+            expectedEnchantments.addAll(registryIdSet(
+                    Enchantments.SURGE,
+                    Enchantments.ATTUNEMENT,
+                    Enchantments.TRANSCENDENCE
+            ));
+        }
+        return expectedEnchantments;
+    }
+
     private static ItemStack createArmorProbeStack(ItemStack stack) {
         if (!(stack.getItem() instanceof ArmorItem armorItem)) {
             throw new IllegalArgumentException("Expected armor item for enchantment probe: " + stack);
@@ -18129,6 +18668,147 @@ public final class ApprenticeCodexGameTestScenarios {
         }
 
         return stack;
+    }
+
+    private static ItemStack createElementMaidenRobeSchoolPowerSpellbook(GameTestHelper helper, AbstractSpell... spells) {
+        var item = io.redspace.ironsspellbooks.registries.ItemRegistry.DIAMOND_SPELL_BOOK.get();
+        var stack = new ItemStack(item);
+        if (item instanceof IPresetSpellContainer presetSpellContainer) {
+            presetSpellContainer.initializeSpellContainer(stack);
+        }
+
+        var spellContainer = ISpellContainer.get(stack);
+        helper.assertTrue(spellContainer != null, "Element Maiden Robe test spellbook did not initialize a spell container");
+        helper.assertTrue(spellContainer.getMaxSpellCount() >= spells.length,
+                "Element Maiden Robe test spellbook needs " + spells.length + " slots but got "
+                        + spellContainer.getMaxSpellCount());
+
+        var mutable = spellContainer.mutableCopy();
+        for (var index = 0; index < spells.length; ++index) {
+            helper.assertTrue(mutable.addSpellAtIndex(spells[index], 1, index, false),
+                    "Failed to add Element Maiden Robe test spell " + spells[index].getSpellResource()
+                            + " at index " + index);
+        }
+        ISpellContainer.set(stack, mutable.toImmutable());
+        return stack;
+    }
+
+    private static void assertElementMaidenSchoolPowerBonusAmount(
+            GameTestHelper helper,
+            Map<Attribute, Double> bonuses,
+            Attribute attribute,
+            double expectedAmount,
+            String message
+    ) {
+        var actualAmount = bonuses.getOrDefault(attribute, 0.0D);
+        helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
+                message + ": expected " + expectedAmount + " but got " + actualAmount
+                        + " attribute=" + BuiltInRegistries.ATTRIBUTE.getKey(attribute)
+                        + " bonuses=" + bonuses);
+    }
+
+    private static void assertElementMaidenDynamicSchoolPowerBonuses(
+            GameTestHelper helper,
+            Player player,
+            Map<Attribute, Double> expectedBonuses,
+            String message
+    ) {
+        if (expectedBonuses.isEmpty()) {
+            assertAllElementMaidenRobeStacksHaveNoStoredSchoolPower(helper, player, message);
+            return;
+        }
+
+        var targetArmors = findElementMaidenDynamicBonusTargets(player);
+        helper.assertTrue(!targetArmors.isEmpty(), message + ": missing Element Maiden Robe bonus target armor");
+        var totalAmounts = new LinkedHashMap<Attribute, Double>();
+        for (var targetArmor : targetArmors) {
+            var stack = targetArmor.stack();
+            var storedBonuses = ElementMaidenRobeItem.getSpellbookSchoolPowerBonuses(stack);
+            for (var entry : expectedBonuses.entrySet()) {
+                assertElementMaidenSchoolPowerBonusAmount(helper, storedBonuses, entry.getKey(), entry.getValue(),
+                        message + " on " + targetArmor.slot());
+            }
+
+            var item = (ElementMaidenRobeItem) stack.getItem();
+            var modifiers = toModifierMultimap(item.getDefaultAttributeModifiers(stack));
+            for (var entry : expectedBonuses.entrySet()) {
+                var attributeHolder = BuiltInRegistries.ATTRIBUTE.wrapAsHolder(entry.getKey());
+                var actualAmount = sumModifierAmount(
+                        modifiers.get(attributeHolder),
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                );
+                helper.assertTrue(Math.abs(actualAmount - entry.getValue()) < 1.0e-9D,
+                        message + ": expected armor attribute " + entry.getValue() + " but got " + actualAmount
+                                + " on " + targetArmor.slot()
+                                + " attribute=" + BuiltInRegistries.ATTRIBUTE.getKey(entry.getKey())
+                                + " modifiers=" + describeModifiers(modifiers));
+                totalAmounts.merge(entry.getKey(), actualAmount, Double::sum);
+            }
+
+            for (var entry : storedBonuses.entrySet()) {
+                helper.assertTrue(expectedBonuses.containsKey(entry.getKey()),
+                        message + ": unexpected stored bonus on " + targetArmor.slot() + " "
+                                + BuiltInRegistries.ATTRIBUTE.getKey(entry.getKey())
+                                + " amount=" + entry.getValue());
+            }
+        }
+
+        for (var entry : expectedBonuses.entrySet()) {
+            var expectedTotal = entry.getValue() * targetArmors.size();
+            var actualTotal = totalAmounts.getOrDefault(entry.getKey(), 0.0D);
+            helper.assertTrue(Math.abs(actualTotal - expectedTotal) < 1.0e-9D,
+                    message + ": expected stacked armor attribute " + expectedTotal + " but got " + actualTotal
+                            + " attribute=" + BuiltInRegistries.ATTRIBUTE.getKey(entry.getKey())
+                            + " equipped robes=" + targetArmors.size());
+        }
+    }
+
+    private static void assertNoElementMaidenDynamicSchoolPower(
+            GameTestHelper helper,
+            Player player,
+            String message
+    ) {
+        assertElementMaidenDynamicSchoolPowerBonuses(helper, player, Map.of(), message);
+    }
+
+    private static List<EquippedArmorStack> findElementMaidenDynamicBonusTargets(Player player) {
+        var result = new java.util.ArrayList<EquippedArmorStack>();
+        for (var slot : List.of(EquipmentSlot.CHEST, EquipmentSlot.HEAD, EquipmentSlot.LEGS, EquipmentSlot.FEET)) {
+            var stack = player.getItemBySlot(slot);
+            if (!stack.isEmpty() && stack.getItem() instanceof ElementMaidenRobeItem) {
+                result.add(new EquippedArmorStack(slot, stack));
+            }
+        }
+        return result;
+    }
+
+    private static void assertAllElementMaidenRobeStacksHaveNoStoredSchoolPower(
+            GameTestHelper helper,
+            Player player,
+            String message
+    ) {
+        assertOtherElementMaidenRobeStacksHaveNoStoredSchoolPower(helper, player, ItemStack.EMPTY, message);
+    }
+
+    private static void assertOtherElementMaidenRobeStacksHaveNoStoredSchoolPower(
+            GameTestHelper helper,
+            Player player,
+            ItemStack excludedStack,
+            String message
+    ) {
+        for (var slot : List.of(EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET)) {
+            var stack = player.getItemBySlot(slot);
+            if (stack.isEmpty() || stack == excludedStack || !(stack.getItem() instanceof ElementMaidenRobeItem)) {
+                continue;
+            }
+
+            var storedBonuses = ElementMaidenRobeItem.getSpellbookSchoolPowerBonuses(stack);
+            helper.assertTrue(storedBonuses.isEmpty(),
+                    message + ": unexpected stored school spell power on " + slot + " " + storedBonuses);
+        }
+    }
+
+    private record EquippedArmorStack(EquipmentSlot slot, ItemStack stack) {
     }
 
     private static ExpectedSpellStainedRunicTabletAttributes resolveExpectedSpellStainedRunicTabletAttributes(

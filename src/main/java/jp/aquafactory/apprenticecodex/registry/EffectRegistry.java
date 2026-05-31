@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.effect.ArcaneCharge;
 import jp.aquafactory.apprenticecodex.effect.CastingMobility;
 import jp.aquafactory.apprenticecodex.effect.CraftsmansDelightMobility;
+import jp.aquafactory.apprenticecodex.effect.DivinePossessionEffect;
 import jp.aquafactory.apprenticecodex.effect.EchoSpell;
 import jp.aquafactory.apprenticecodex.effect.FrostTrapped;
 import jp.aquafactory.apprenticecodex.effect.Intelligence;
@@ -35,6 +36,8 @@ public final class EffectRegistry {
             EFFECTS.register("casting_mobility", CastingMobility::new);
     public static final DeferredHolder<MobEffect, MobEffect> CRAFTSMANS_DELIGHT_MOBILITY =
             EFFECTS.register("craftsmans_delight_mobility", CraftsmansDelightMobility::new);
+    public static final DeferredHolder<MobEffect, MobEffect> DIVINE_POSSESSION =
+            EFFECTS.register("divine_possession", DivinePossessionEffect::new);
     public static final DeferredHolder<MobEffect, MobEffect> INTELLIGENCE =
             EFFECTS.register("intelligence", Intelligence::new);
     public static final DeferredHolder<MobEffect, MobEffect> LONG_STRIDE_MOBILITY =

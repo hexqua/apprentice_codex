@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.Scroll;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.endergrimoire.EnderGrimoireSpellbookSync;
+import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeSchoolPowerBonusEvents;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -197,6 +198,7 @@ public class EnderGrimoireInscriptionMenu extends AbstractContainerMenu {
             if (edited[0]) {
                 data.setSpellContainer(mutable.toImmutable());
                 EnderGrimoireSpellbookSync.syncToClient(serverPlayer);
+                ElementMaidenRobeSchoolPowerBonusEvents.refresh(serverPlayer);
             }
         });
         return edited[0];

@@ -92,7 +92,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.UNITE_LUNA_STAFF.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.CIRCUIT_HEAT_STAFF.get(),
-                ItemRegistry.FOCUS_STAFFBOW.get()
+                ItemRegistry.FOCUS_STAFFBOW.get(),
+                ItemRegistry.ZENITH_STAFF.get()
         );
         // Iron's Spells の JEI は Imbue 候補収集時に spell_container 未初期化スタックを落とすため、
         // 後付系Curiosアクセ は whitelist へ明示登録して JEI 上でも Arcane Anvil 対象として拾わせる。
@@ -123,6 +124,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ARCHIVISTS_GRIMOIRE.get(),
                 ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get(),
+                ItemRegistry.ZENITH_STAFF.get(),
                 ItemRegistry.SMASHCAST_SCEPTER.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get(),
@@ -140,6 +142,17 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaFireAspectEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         vanillaWeaponEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
+
+        // Zenith Staff は通常 staff として扱いつつ、機能する主手武器向けの互換 enchant/tag だけ明示登録する。
+        malumMagicCapableWeaponTag.add(ItemRegistry.ZENITH_STAFF.get());
+        malumSoulShatterCapableWeaponTag.add(ItemRegistry.ZENITH_STAFF.get());
+        tomagicReversalWeaponTag.add(ItemRegistry.ZENITH_STAFF.get());
+        wisdomEnchantableTag.add(ItemRegistry.ZENITH_STAFF.get());
+        tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.ZENITH_STAFF.get());
+        vanillaSwordEnchantableTag.add(ItemRegistry.ZENITH_STAFF.get());
+        vanillaFireAspectEnchantableTag.add(ItemRegistry.ZENITH_STAFF.get());
+        vanillaSharpWeaponEnchantableTag.add(ItemRegistry.ZENITH_STAFF.get());
+        vanillaWeaponEnchantableTag.add(ItemRegistry.ZENITH_STAFF.get());
 
         // Multicast Echo Staff は StaffItem 継承だが、1.21.1 の tag 駆動 enchant と互換 MOD 判定にも明示登録する。
         malumMagicCapableWeaponTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
@@ -275,25 +288,29 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
                 ItemRegistry.ENCHANTRESS_HAT.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),
-                ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get()
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get()
         );
         tag(MINECRAFT_CHEST_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
-                ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get()
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()
         );
         tag(MINECRAFT_LEG_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
                 ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
-                ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get()
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get()
         );
         tag(MINECRAFT_FOOT_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_BOOTS.get(),
                 ItemRegistry.ENCHANTRESS_BOOTS.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get(),
-                ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get()
         );
         vanillaDurabilityEnchantableTag.add(
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
@@ -312,6 +329,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get(),
                 ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.REFLECTCAST_SHIELD.get()
         );
@@ -331,7 +352,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
-                ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get()
         );
         tag(MINECRAFT_ENCHANTABLE_VANISHING).add(
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
@@ -350,9 +375,22 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get(),
                 ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.REFLECTCAST_SHIELD.get()
         );
+        wisdomEnchantableTag.add(
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get()
+        );
+        transcendenceEnchantableTag.add(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get());
+        surgeEnchantableTag.add(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get());
+        attunementEnchantableTag.add(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get());
         // Elemental Bow は bow tag に参加させ、バニラ弓と同じ enchantment JSON 面を使う。
         tag(MINECRAFT_ENCHANTABLE_BOW).add(ItemRegistry.ELEMENTAL_BOW.get());
         tag(MINECRAFT_ENCHANTABLE_BOW).add(ItemRegistry.BOUND_BOW.get());

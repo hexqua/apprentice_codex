@@ -20,9 +20,9 @@ public final class ApprenticeCodexCommonConfig {
                         "If non-empty files exist under \"data/" + ApprenticeCodex.MODID + "/school_affinity_policies/*.json\", those files take precedence."
                 )
                 .push("SchoolAffinity");
-        SCHOOL_AFFINITY_PRIORITY = builder.defineList("schoolAffinityPriority", java.util.List.<String>of(),
+        SCHOOL_AFFINITY_PRIORITY = builder.defineListAllowEmpty("schoolAffinityPriority", java.util.List.<String>of(),
                 value -> value instanceof String text && !text.isBlank());
-        SCHOOL_AFFINITY_DENY = builder.defineList("schoolAffinityDeny", java.util.List.<String>of(),
+        SCHOOL_AFFINITY_DENY = builder.defineListAllowEmpty("schoolAffinityDeny", java.util.List.<String>of(),
                 value -> value instanceof String text && !text.isBlank());
         builder.pop();
         SPEC = builder.build();

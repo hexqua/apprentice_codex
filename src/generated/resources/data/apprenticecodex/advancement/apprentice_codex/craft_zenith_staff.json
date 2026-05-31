@@ -1,0 +1,30 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_zenith_staff": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:zenith_staff"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_zenith_staff.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:zenith_staff"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_zenith_staff.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_zenith_staff"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

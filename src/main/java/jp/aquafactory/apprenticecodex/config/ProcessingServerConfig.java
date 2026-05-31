@@ -34,16 +34,16 @@ final class ProcessingServerConfig {
 
         var spellcasterWorkbenchRecipeDenylist = builder
                 .comment("Disable matching Spellcaster Workbench recipes by recipe ID.")
-                .defineList("spellcasterWorkbenchRecipeDenylist", List.<String>of(), ProcessingServerConfig::isRecipeId);
+                .defineListAllowEmpty("spellcasterWorkbenchRecipeDenylist", List.<String>of(), ProcessingServerConfig::isRecipeId);
         var essenceSmokerRecipeDenylist = builder
                 .comment("Disable matching Essence Smoker recipes by recipe ID.")
-                .defineList("essenceSmokerRecipeDenylist", List.<String>of(), ProcessingServerConfig::isRecipeId);
+                .defineListAllowEmpty("essenceSmokerRecipeDenylist", List.<String>of(), ProcessingServerConfig::isRecipeId);
         var grindRunnerRecipeDenylist = builder
                 .comment("Disable matching Grind Runner recipes by recipe ID.")
-                .defineList("grindRunnerRecipeDenylist", List.<String>of(), ProcessingServerConfig::isRecipeId);
+                .defineListAllowEmpty("grindRunnerRecipeDenylist", List.<String>of(), ProcessingServerConfig::isRecipeId);
         var thermalProcessRecipeDenylist = builder
                 .comment("Disable matching Thermal Process cooking recipes by recipe ID.")
-                .defineList("thermalProcessRecipeDenylist", List.<String>of(), ProcessingServerConfig::isRecipeId);
+                .defineListAllowEmpty("thermalProcessRecipeDenylist", List.<String>of(), ProcessingServerConfig::isRecipeId);
 
         builder.pop();
         return new ProcessingServerConfig(

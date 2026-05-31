@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": {
+    "item": "irons_spellbooks:mithril_weave"
+  },
+  "base": {
+    "tag": "irons_spellbooks:wizard_base_chestplate"
+  },
+  "result": {
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [
+          {
+            "id": "apprenticecodex:divine_possession",
+            "index": 0,
+            "level": 1,
+            "locked": true
+          }
+        ],
+        "maxSpells": 1,
+        "mustEquip": true,
+        "spellWheel": true
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:element_maiden_robe_robe"
+  },
+  "template": {
+    "item": "irons_spellbooks:protection_rune"
+  }
+}

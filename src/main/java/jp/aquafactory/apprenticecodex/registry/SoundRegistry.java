@@ -66,6 +66,7 @@ public final class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> MIST_FORM_FINISHED = reg("mist_form_finished");
     public static final DeferredHolder<SoundEvent, SoundEvent> ICE_DAGGER_THROW = reg("ice_dagger_throw");
     public static final DeferredHolder<SoundEvent, SoundEvent> ICE_DAGGER_HIT = reg("ice_dagger_hit");
+    public static final DeferredHolder<SoundEvent, SoundEvent> KAMI = reg("kami");
     public static final DeferredHolder<SoundEvent, SoundEvent> SMASHCAST_SCEPTER_SMASH_AIR = reg("smashcast_scepter_smash_air");
     public static final DeferredHolder<SoundEvent, SoundEvent> SMASHCAST_SCEPTER_SMASH_GROUND = reg("smashcast_scepter_smash_ground");
     public static final DeferredHolder<SoundEvent, SoundEvent> SMASHCAST_SCEPTER_SMASH_GROUND_HEAVY = reg("smashcast_scepter_smash_ground_heavy");
@@ -96,7 +97,6 @@ public final class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_JAR_CLOSE = reg("vanilla_jar_close");
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_JAR_OPEN = reg("vanilla_jar_open");
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_CHEST_JUMP = reg("vanilla_chest_jump");
-
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);
     }

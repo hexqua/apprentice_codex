@@ -85,6 +85,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.ALCHEMISTS_FLASK.get());
         output.accept(ItemRegistry.PASTEL_STAFF.get());
         output.accept(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        output.accept(ItemRegistry.ZENITH_STAFF.get());
         output.accept(ItemRegistry.FOCUS_STAFFBOW.get());
         output.accept(ItemRegistry.SMASHCAST_SCEPTER.get());
         output.accept(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
@@ -113,6 +114,10 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get());
         output.accept(ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get());
         output.accept(ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get());
+        output.accept(ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get());
+        output.accept(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get());
+        output.accept(ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get());
+        output.accept(ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get());
         output.accept(ItemRegistry.GRIMOIRE_MANIFEST.get());
         output.accept(ItemRegistry.SCARLET_THIRST.get());
         output.accept(ItemRegistry.CRAFTSMANS_DELIGHT.get());
