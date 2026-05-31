@@ -3908,9 +3908,18 @@ public final class ApprenticeCodexGameTestScenarios {
             var zenithStaffId = BuiltInRegistries.ITEM.getKey(ItemRegistry.ZENITH_STAFF.get());
             helper.assertTrue(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "zenith_staff").equals(zenithStaffId),
                     "Zenith Staff is not registered with the expected id: " + zenithStaffId);
+            var zenithStack = new ItemStack(ItemRegistry.ZENITH_STAFF.get());
+            var synthesis = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                    .getOrThrow(Enchantments.SYNTHESIS);
+            helper.assertFalse(zenithStack.getItem().supportsEnchantment(zenithStack, synthesis),
+                    "Zenith Staff should not accept Synthesis at the enchanting table");
+            helper.assertFalse(zenithStack.getItem().isBookEnchantable(zenithStack, createEnchantedBook(synthesis)),
+                    "Zenith Staff should not accept Synthesis from enchanted books");
+            helper.assertFalse(synthesis.value().canEnchant(zenithStack),
+                    "Zenith Staff should not be included in the Synthesis supported_items tag");
 
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "zenith_staff_power_test");
-            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(ItemRegistry.ZENITH_STAFF.get()));
+            player.setItemInHand(InteractionHand.OFF_HAND, zenithStack);
 
             var firePowerAttribute = player.getAttribute(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(
                     io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get()
@@ -11575,7 +11584,42 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(initialContainer != null
                             && initialContainer.getSpellAtIndex(0).getSpell() == SpellRegistry.DIVINE_POSSESSION.get(),
                     "Element Maiden Robe chestplate should initialize Divine Possession as its imbue spell");
-            ISpellContainer.createImbuedContainer(io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(), 1, chestStack);
+            var ballLightning = io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get();
+            ISpellContainer.createImbuedContainer(ballLightning, 1, chestStack);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "element_maiden_robe_cooldown_policy_test");
+            player.setItemSlot(EquipmentSlot.CHEST, chestStack);
+            var stackCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    ballLightning,
+                    player,
+                    CastSource.SWORD,
+                    chestStack
+            );
+            var slotCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    ballLightning,
+                    player,
+                    CastSource.SWORD,
+                    EquipmentSlot.CHEST.getName()
+            );
+            helper.assertTrue(slotCooldown == stackCooldown,
+                    "Element Maiden Robe spell wheel cooldown should resolve the chest slot stack: "
+                            + slotCooldown + " / expected " + stackCooldown);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null,
+                    "Element Maiden Robe cooldown event test could not resolve player magic data");
+            magicData.setPlayerCastingItem(chestStack.copy());
+            var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    MagicManager.getEffectiveSpellCooldown(ballLightning, player, CastSource.SWORD),
+                    ballLightning,
+                    player,
+                    CastSource.SWORD
+            );
+            jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownEvents.onSpellCooldownAdded(cooldownEvent);
+            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == stackCooldown,
+                    "Element Maiden Robe cooldown event should ignore the weapon imbue multiplier: "
+                            + cooldownEvent.getEffectiveCooldown() + " / expected " + stackCooldown);
+
             var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             chestStack.enchant(enchantmentLookup.getOrThrow(Enchantments.SURGE), 1);
             chestStack.enchant(enchantmentLookup.getOrThrow(Enchantments.ATTUNEMENT), 1);

@@ -64,6 +64,7 @@
     "ItemRendererBoundWeaponGlintMixin",
     "ItemRendererClientItemRenderContextMixin",
     "QuickCastPacketAccessor",
+    "SpellWheelOverlayMixin",
     "TooltipsUtilsMixin"
   ],
   "injectors": {

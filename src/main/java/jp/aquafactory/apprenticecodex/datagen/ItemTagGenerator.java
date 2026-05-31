@@ -143,12 +143,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         vanillaWeaponEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
 
-        // Zenith Staff は通常 staff として扱いつつ、主手武器向けの互換 enchant/tag も明示登録する。
+        // Zenith Staff は通常 staff として扱いつつ、機能する主手武器向けの互換 enchant/tag だけ明示登録する。
         malumMagicCapableWeaponTag.add(ItemRegistry.ZENITH_STAFF.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.ZENITH_STAFF.get());
         tomagicReversalWeaponTag.add(ItemRegistry.ZENITH_STAFF.get());
         wisdomEnchantableTag.add(ItemRegistry.ZENITH_STAFF.get());
-        synthesisEnchantableTag.add(ItemRegistry.ZENITH_STAFF.get());
         tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.ZENITH_STAFF.get());
         vanillaSwordEnchantableTag.add(ItemRegistry.ZENITH_STAFF.get());
         vanillaFireAspectEnchantableTag.add(ItemRegistry.ZENITH_STAFF.get());
