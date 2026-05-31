@@ -3725,6 +3725,30 @@ public final class ApprenticeCodexGameTestScenarios {
                 helper.assertFalse(affordablePreCastEvent.isCanceled(),
                         "Zenith Staff should allow non-strongest school pre-cast when increased mana cost is affordable");
 
+                var recastSpell = SpellRegistry.ARCHER_MULTIPLE.get();
+                helper.assertTrue(ZenithStaffPowerHelper.shouldIncreaseManaCost(player, recastSpell.getSchoolType()),
+                        "Zenith Staff recast pre-cast test needs mana gate to apply");
+                magicData.getPlayerRecasts().addRecast(new RecastInstance(
+                        recastSpell.getSpellId(),
+                        1,
+                        2,
+                        100,
+                        CastSource.SPELLBOOK,
+                        null
+                ), magicData);
+                var recastRequiredManaCost = ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(recastSpell.getManaCost(1));
+                magicData.setMana(Math.max(0, recastRequiredManaCost - 1));
+                var recastPreCastEvent = new SpellPreCastEvent(
+                        player,
+                        recastSpell.getSpellId(),
+                        1,
+                        recastSpell.getSchoolType(),
+                        CastSource.SPELLBOOK
+                );
+                ZenithStaffManaCostEvent.onSpellPreCast(recastPreCastEvent);
+                helper.assertFalse(recastPreCastEvent.isCanceled(),
+                        "Zenith Staff should not cancel active recasts with its pre-cast mana gate");
+
                 equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
                 var touchDigSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.TOUCH_DIG.get();
                 assertZenithPreCastUsesDiscountedManaGate(

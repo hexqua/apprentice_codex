@@ -24,7 +24,12 @@ public final class ZenithStaffManaCostEvent {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onSpellPreCast(SpellPreCastEvent event) {
-        if (!(event.getEntity() instanceof ServerPlayer player) || !requiresManaGate(player, event)) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData == null || !requiresManaGate(player, event, magicData)) {
             return;
         }
 
@@ -39,8 +44,7 @@ public final class ZenithStaffManaCostEvent {
         }
 
         var requiredManaCost = resolvePreCastManaCost(player, event.getSpellId(), baseManaCost);
-        var magicData = MagicData.getPlayerMagicData(player);
-        if (magicData == null || magicData.getMana() >= requiredManaCost) {
+        if (magicData.getMana() >= requiredManaCost) {
             return;
         }
 
@@ -52,8 +56,10 @@ public final class ZenithStaffManaCostEvent {
         event.setCanceled(true);
     }
 
-    private static boolean requiresManaGate(ServerPlayer player, SpellPreCastEvent event) {
-        return event.getCastSource().consumesMana() && !(player.isCreative() && !ServerConfigs.CREATIVE_MANA_COST.get());
+    private static boolean requiresManaGate(ServerPlayer player, SpellPreCastEvent event, MagicData magicData) {
+        return event.getCastSource().consumesMana()
+                && !magicData.getPlayerRecasts().hasRecastForSpell(event.getSpellId())
+                && !(player.isCreative() && !ServerConfigs.CREATIVE_MANA_COST.get());
     }
 
     private static int resolvePreCastManaCost(ServerPlayer player, String spellId, int baseManaCost) {
