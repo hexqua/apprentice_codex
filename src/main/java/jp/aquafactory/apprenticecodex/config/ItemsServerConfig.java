@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.config.item.ScarletThirstServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScrollcasterGauntletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ZenithStaffServerConfig;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
 import net.minecraft.resources.ResourceLocation;
@@ -48,6 +49,7 @@ final class ItemsServerConfig {
     private final ElementalBowServerConfig elementalBowConfig;
     private final ScrollcasterGauntletServerConfig scrollcasterGauntletConfig;
     private final SpellStainedRunicTabletServerConfig spellStainedRunicTabletConfig;
+    private final SpellThrowableCardServerConfig spellThrowableCardConfig;
     private final ArchivistsGrimoireServerConfig archivistsGrimoireConfig;
     private final SatelliteFollowcastAmuletServerConfig satelliteFollowcastAmuletConfig;
     private final RemoteOwnerCastServerConfig remoteOwnerCastConfig;
@@ -72,6 +74,7 @@ final class ItemsServerConfig {
             ElementalBowServerConfig elementalBowConfig,
             ScrollcasterGauntletServerConfig scrollcasterGauntletConfig,
             SpellStainedRunicTabletServerConfig spellStainedRunicTabletConfig,
+            SpellThrowableCardServerConfig spellThrowableCardConfig,
             ArchivistsGrimoireServerConfig archivistsGrimoireConfig,
             SatelliteFollowcastAmuletServerConfig satelliteFollowcastAmuletConfig,
             RemoteOwnerCastServerConfig remoteOwnerCastConfig
@@ -95,6 +98,7 @@ final class ItemsServerConfig {
         this.elementalBowConfig = elementalBowConfig;
         this.scrollcasterGauntletConfig = scrollcasterGauntletConfig;
         this.spellStainedRunicTabletConfig = spellStainedRunicTabletConfig;
+        this.spellThrowableCardConfig = spellThrowableCardConfig;
         this.archivistsGrimoireConfig = archivistsGrimoireConfig;
         this.satelliteFollowcastAmuletConfig = satelliteFollowcastAmuletConfig;
         this.remoteOwnerCastConfig = remoteOwnerCastConfig;
@@ -121,6 +125,7 @@ final class ItemsServerConfig {
         var elementalBowConfig = ElementalBowServerConfig.define(builder);
         var scrollcasterGauntletConfig = ScrollcasterGauntletServerConfig.define(builder);
         var spellStainedRunicTabletConfig = SpellStainedRunicTabletServerConfig.define(builder);
+        var spellThrowableCardConfig = SpellThrowableCardServerConfig.define(builder);
         var archivistsGrimoireConfig = ArchivistsGrimoireServerConfig.define(builder);
         var satelliteFollowcastAmuletConfig = SatelliteFollowcastAmuletServerConfig.define(builder);
         var remoteOwnerCastConfig = RemoteOwnerCastServerConfig.define(builder);
@@ -146,6 +151,7 @@ final class ItemsServerConfig {
                 elementalBowConfig,
                 scrollcasterGauntletConfig,
                 spellStainedRunicTabletConfig,
+                spellThrowableCardConfig,
                 archivistsGrimoireConfig,
                 satelliteFollowcastAmuletConfig,
                 remoteOwnerCastConfig
@@ -556,6 +562,18 @@ final class ItemsServerConfig {
         return spellStainedRunicTabletConfig.values();
     }
 
+    SpellThrowableCardServerConfig.Values spellThrowableCardConfig() {
+        return spellThrowableCardConfig.values();
+    }
+
+    int spellInvokeCardCraftCount() {
+        return spellThrowableCardConfig.spellInvokeCardCraftCount();
+    }
+
+    int spellAutonomyCardCraftCount() {
+        return spellThrowableCardConfig.spellAutonomyCardCraftCount();
+    }
+
     int archivistsGrimoireInitialRows() {
         return archivistsGrimoireConfig.initialRows();
     }
@@ -781,6 +799,10 @@ final class ItemsServerConfig {
 
     void setSpellStainedRunicTabletConfigForGameTest(SpellStainedRunicTabletServerConfig.Values values) {
         spellStainedRunicTabletConfig.setForGameTest(values);
+    }
+
+    void setSpellThrowableCardConfigForGameTest(SpellThrowableCardServerConfig.Values values) {
+        spellThrowableCardConfig.setForGameTest(values);
     }
 
     void setArchivistsGrimoireConfigForGameTest(ArchivistsGrimoireServerConfig.Values values) {

@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.config;
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
@@ -957,6 +958,22 @@ public final class ApprenticeCodexServerConfig {
         var previousValues = ITEMS_CONFIG.spellStainedRunicTabletConfig();
         ITEMS_CONFIG.setSpellStainedRunicTabletConfigForGameTest(values);
         return () -> ITEMS_CONFIG.setSpellStainedRunicTabletConfigForGameTest(previousValues);
+    }
+
+    public static int spellInvokeCardCraftCount() {
+        return ITEMS_CONFIG.spellInvokeCardCraftCount();
+    }
+
+    public static int spellAutonomyCardCraftCount() {
+        return ITEMS_CONFIG.spellAutonomyCardCraftCount();
+    }
+
+    public static GameTestConfigOverride useSpellThrowableCardConfigOverrideForGameTest(
+            SpellThrowableCardServerConfig.Values values
+    ) {
+        var previousValues = ITEMS_CONFIG.spellThrowableCardConfig();
+        ITEMS_CONFIG.setSpellThrowableCardConfigForGameTest(values);
+        return () -> ITEMS_CONFIG.setSpellThrowableCardConfigForGameTest(previousValues);
     }
 
     public static int archivistsGrimoireInitialRows() {

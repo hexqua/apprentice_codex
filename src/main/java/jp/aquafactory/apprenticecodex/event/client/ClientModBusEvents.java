@@ -44,6 +44,7 @@ import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleRender
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkRenderer;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileRenderer;
 import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownRenderer;
+import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.SpellThrowableCardRenderer;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsCoreRenderer;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsWingRenderer;
 import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileRenderer;
@@ -263,6 +264,8 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.TIRO_VOLLEY_MUSKET.get(), TiroVolleyMusketRenderer::new);
         event.registerEntityRenderer(EntityRegistry.THERMAL_PROCESS_THROWER.get(), ThermalProcessThrowerRenderer::new);
         event.registerEntityRenderer(EntityRegistry.CHARGED_TWIN_BLADE_STAFF_THROWN.get(), ChargedTwinBladeStaffThrownRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.SPELL_INVOKE_CARD.get(), SpellThrowableCardRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.SPELL_AUTONOMY_CARD.get(), SpellThrowableCardRenderer::new);
         event.registerEntityRenderer(EntityRegistry.GRACED_RAIN_CLOUD.get(), GracedRainCloudRenderer::new);
         event.registerEntityRenderer(EntityRegistry.TINY_LUMBERJACK_SAW.get(), TinyLumberjackSawRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ARCANE_BEAM.get(), ArcaneBeamRenderer::new);

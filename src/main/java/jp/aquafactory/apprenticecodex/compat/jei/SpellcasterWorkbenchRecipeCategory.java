@@ -14,8 +14,18 @@ import org.jetbrains.annotations.NotNull;
 public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprenticeCodexRecipeCategory<SpellcasterWorkbenchRecipe> {
     public static final ResourceLocation ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_RECIPE_ID =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "archivists_grimoire_row_upgrade");
+    public static final ResourceLocation SPELL_INVOKE_CARD_RECIPE_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_invoke_card");
+    public static final ResourceLocation SPELL_INVOKE_CARD_REWRITE_RECIPE_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_invoke_card_rewrite");
+    public static final ResourceLocation SPELL_AUTONOMY_CARD_RECIPE_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_autonomy_card");
+    public static final ResourceLocation SPELL_AUTONOMY_CARD_REWRITE_RECIPE_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_autonomy_card_rewrite");
     private static final Component ARCHIVISTS_GRIMOIRE_UPGRADE_HINT =
             Component.translatable("jei.apprenticecodex.archivists_grimoire.upgrade_hint");
+    private static final Component SPELL_THROWABLE_CARD_CRAFT_HINT =
+            Component.translatable("jei.apprenticecodex.spell_throwable_cards.craft_hint");
     private static final int WIDTH = 134;
     private static final int HEIGHT = 56;
     private static final int[][] INPUT_POSITIONS = {
@@ -76,6 +86,15 @@ public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprentice
         recipeArrow.draw(guiGraphics, ARROW_X, ARROW_Y);
         if (ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_RECIPE_ID.equals(recipe.getId())) {
             drawLabel(guiGraphics, ARCHIVISTS_GRIMOIRE_UPGRADE_HINT, 74, 36);
+        } else if (isSpellThrowableCardRecipe(recipe.getId())) {
+            drawLabel(guiGraphics, SPELL_THROWABLE_CARD_CRAFT_HINT, 74, 36);
         }
+    }
+
+    private static boolean isSpellThrowableCardRecipe(ResourceLocation recipeId) {
+        return SPELL_INVOKE_CARD_RECIPE_ID.equals(recipeId)
+                || SPELL_INVOKE_CARD_REWRITE_RECIPE_ID.equals(recipeId)
+                || SPELL_AUTONOMY_CARD_RECIPE_ID.equals(recipeId)
+                || SPELL_AUTONOMY_CARD_REWRITE_RECIPE_ID.equals(recipeId);
     }
 }
