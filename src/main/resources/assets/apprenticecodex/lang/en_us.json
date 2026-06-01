@@ -253,10 +253,9 @@
   "jei.apprenticecodex.arcane_cinder.desc_2": "It has no effect in other machines.",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "Place it and supply redstone to slowly convert it into Arcane Essence over time.",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "Breaking it drops any finished Arcane Essence and any unused redstone.",
-  "jei.apprenticecodex.spellcaster_workbench.desc_1": "Spellcaster Workbench for crafting Spellcaster Bullets.",
-  "jei.apprenticecodex.spellcaster_workbench.desc_2": "Extracts magic from Spellgun and can also adjust Spellcaster's Flask partially.",
-  "jei.apprenticecodex.spellcaster_workbench.desc_3": "It can also imbue some items with spells.",
-  "jei.apprenticecodex.spellcaster_workbench.desc_4": "Some imbued spells cannot be extracted, but you can check this by placing the item first.",
+  "jei.apprenticecodex.spellcaster_workbench.desc_1": "A workbench for crafting spellgun rounds.",
+  "jei.apprenticecodex.spellcaster_workbench.desc_2": "It can also partially adjust Spellcaster's Flasks and upgrade specific items.",
+  "jei.apprenticecodex.spellcaster_workbench.desc_3": "Check JEI for craftable items and items that can be upgraded.",
   "jei.apprenticecodex.atelier_station.desc_1": "Assists in refilling Flask.",
   "jei.apprenticecodex.atelier_station.desc_2": "Extracts potions from 2 blocks away from an Alchemist's Cauldron and refills Flask remotely.",
   "jei.apprenticecodex.spell_dispenser.desc_1": "Set a scroll inside to have redstone cast the spell for you.",
@@ -349,6 +348,8 @@
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_6": "- School Rune: Changes the spell power bonus from general spell power to that rune's school.",
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_7": "- Enchantment book items: Applies the first enchantment listed on the item to the gauntlet.",
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_8": "Only one mutually incompatible enchantment is applied; enchantments for swords, pickaxes, or spellcasting aids are supported.",
+  "jei.apprenticecodex.spell_calibration_bench.desc_1": "A workstation for adjusting imbued spells on Scrollcaster Gauntlets and some items.",
+  "jei.apprenticecodex.spell_calibration_bench.desc_2": "It cannot handle items whose imbued spells cannot be removed; use an Arcane Anvil for those.",
 
   "jei.apprenticecodex.archivists_grimoire.upgrade_hint": "Adds 9 slots",
 
