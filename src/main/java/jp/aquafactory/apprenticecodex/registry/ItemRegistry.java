@@ -204,7 +204,8 @@ public final class ItemRegistry {
             ITEMS.register("spellcaster_workbench",
                     () -> new SpellcasterWorkbenchItem(BlockRegistry.SPELLCASTER_WORKBENCH.get(), new Item.Properties()));
     public static final RegistryObject<Item> SPELL_CALIBRATION_BENCH =
-            block("spell_calibration_bench", BlockRegistry.SPELL_CALIBRATION_BENCH);
+            ITEMS.register("spell_calibration_bench",
+                    () -> new SpellCalibrationBenchItem(BlockRegistry.SPELL_CALIBRATION_BENCH.get(), new Item.Properties()));
     public static final RegistryObject<Item> SPELL_DISPENSER =
             ITEMS.register("spell_dispenser",
                     () -> new SpellDispenserItem(BlockRegistry.SPELL_DISPENSER.get(), new Item.Properties()));
