@@ -46,7 +46,6 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
             Component.translatable("container.apprenticecodex.spell_calibration_bench.scroll_label");
     private static final Component SLOT_UPGRADE_GROUP =
             Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_slot_upgrades");
-    private List<Component> adjustmentItemHintTooltip = List.of();
 
     public SpellCalibrationBenchScreen(SpellCalibrationBenchMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -65,7 +64,6 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
     @Override
     protected void init() {
         super.init();
-        adjustmentItemHintTooltip = createAdjustmentItemHintTooltip();
     }
 
     @Override
@@ -122,7 +120,7 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
         }
 
         if (findHoveredEmptyAdjustmentSlot(mouseX, mouseY) >= 0) {
-            gui.renderComponentTooltip(font, adjustmentItemHintTooltip, mouseX, mouseY);
+            gui.renderComponentTooltip(font, createAdjustmentItemHintTooltip(), mouseX, mouseY);
             return;
         }
 
@@ -130,7 +128,7 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
     }
 
     private void renderDisabledSlotOverlays(GuiGraphics gui) {
-        if (!menu.hasGauntlet()) {
+        if (!menu.hasStoredCalibrationTarget()) {
             for (var slot = 0; slot < ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
                 renderDisabledSlotOverlay(
                         gui,
@@ -213,7 +211,7 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
     }
 
     private int findHoveredDisabledScrollSlot(int mouseX, int mouseY) {
-        if (!menu.hasGauntlet()) {
+        if (!menu.hasStoredCalibrationTarget()) {
             return -1;
         }
 
@@ -283,7 +281,7 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
     }
 
     private int findHoveredEmptyAdjustmentSlot(int mouseX, int mouseY) {
-        if (!menu.hasGauntlet()) {
+        if (!menu.hasStoredCalibrationTarget()) {
             return -1;
         }
 
@@ -311,13 +309,21 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
                 TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES,
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
         );
-        lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_enchantment_books"));
-        appendTaggedItemHintLines(
-                lines,
-                TagRegistry.Items.SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS,
-                new ItemStack(Items.ENCHANTED_BOOK)
-        );
+        if (menu.hasGauntlet()) {
+            lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_enchantment_books"));
+            appendTaggedItemHintLines(
+                    lines,
+                    TagRegistry.Items.SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS,
+                    new ItemStack(Items.ENCHANTED_BOOK)
+            );
+        }
         lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_runes"));
+        if (menu.hasRevolvercastStaff()) {
+            lines.add(Component.translatable(
+                    "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_recovery_rune",
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()).getHoverName()
+            ));
+        }
         return List.copyOf(lines);
     }
 
