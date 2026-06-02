@@ -86,6 +86,26 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellCalibrationBenchStoresScrollsOnRevolvercastStaff(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellCalibrationBenchStoresScrollsOnRevolvercastStaff(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void revolvercastStaffSelectedScrollNormalizesAndDrivesSpellWheel(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.revolvercastStaffSelectedScrollNormalizesAndDrivesSpellWheel(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void revolvercastStaffCooldownFailureAdvancesOnlyInSkipMode(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.revolvercastStaffCooldownFailureAdvancesOnlyInSkipMode(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void revolvercastStaffBlocksArcaneAnvilAndUsesDiamondSwingcastRestrictions(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.revolvercastStaffBlocksArcaneAnvilAndUsesDiamondSwingcastRestrictions(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void scrollcasterGauntletStopsCreativeBlockAttackLikeVanillaSword(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.scrollcasterGauntletStopsCreativeBlockAttackLikeVanillaSword(helper);
     }

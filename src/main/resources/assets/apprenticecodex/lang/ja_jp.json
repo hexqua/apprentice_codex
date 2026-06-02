@@ -260,6 +260,7 @@
   "item.apprenticecodex.revolvercast_staff.desc": "術式調整台で設定した順番に注入魔法が切り替わる。",
   "item.apprenticecodex.revolvercast_staff.desc.normal_mode": "ただし、打撃詠唱に失敗した場合は切り替わらない。",
   "item.apprenticecodex.revolvercast_staff.desc.skip_mode": "打撃詠唱に失敗した場合でも切り替わりが行われる。",
+  "item.apprenticecodex.revolvercast_staff.school_rune": "この杖は\"%s\"の系統に調律されている。",
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "かまど・溶鉱炉・燻製器の燃料として使用することで加工速度が上昇する。",
   "jei.apprenticecodex.arcane_cinder.desc_2": "それ以外の機材では効果を発揮しない。",
@@ -511,6 +512,7 @@
   "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_enchantment_books": "エンチャント本系アイテム",
   "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_specific_item": "- %s",
   "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_runes": "各系統のルーン",
+  "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_recovery_rune": "%s",
   "container.apprenticecodex.spell_calibration_bench.tooltip.unable_scroll_slot.empty": "%sのいずれかをセットしてスロットを増やせる",
   "container.apprenticecodex.spell_calibration_bench.tooltip.unable_scroll_slot.scroll": "このスロットのスクロールは使用できない",
 

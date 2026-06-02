@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
+import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientPresentationState;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowStartSoundContext;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
@@ -361,7 +362,9 @@ public abstract class ClientSpellCastHelperMixin {
             return false;
         }
 
-        if (stack.getItem() instanceof AbstractSwingcastStaffItem || stack.getItem() instanceof MithrilFreecastStaff) {
+        if (stack.getItem() instanceof AbstractSwingcastStaffItem
+                || stack.getItem() instanceof MithrilFreecastStaff
+                || stack.getItem() instanceof RevolvercastStaff) {
             return ClientSwingcastStaffCastContext.matches(player.getUUID(), stack, spell);
         }
         if (stack.getItem() instanceof MultipurposeStaffrifle) {
@@ -377,7 +380,9 @@ public abstract class ClientSpellCastHelperMixin {
             return false;
         }
 
-        if (stack.getItem() instanceof AbstractSwingcastStaffItem || stack.getItem() instanceof MithrilFreecastStaff) {
+        if (stack.getItem() instanceof AbstractSwingcastStaffItem
+                || stack.getItem() instanceof MithrilFreecastStaff
+                || stack.getItem() instanceof RevolvercastStaff) {
             return ClientSwingcastStaffCastContext.matches(player.getUUID(), stack, spell);
         }
         if (stack.getItem() instanceof MultipurposeStaffrifle) {

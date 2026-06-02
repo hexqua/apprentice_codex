@@ -317,6 +317,8 @@ public final class ItemRegistry {
             ITEMS.register("netherite_swingcast_staff", NetheriteSwingcastStaff::new);
     public static final RegistryObject<Item> MITHRIL_FREECAST_STAFF =
             ITEMS.register("mithril_freecast_staff", MithrilFreecastStaff::new);
+    public static final RegistryObject<Item> REVOLVERCAST_STAFF =
+            ITEMS.register("revolvercast_staff", RevolvercastStaff::new);
     public static final RegistryObject<Item> CRYSTAL_BLADED_STAFF =
             ITEMS.register("crystal_bladed_staff", CrystalBladedStaff::new);
     public static final RegistryObject<Item> ILLUMINATE_STELLAR_STAFF =
