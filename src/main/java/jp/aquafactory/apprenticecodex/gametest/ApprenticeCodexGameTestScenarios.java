@@ -96,6 +96,7 @@ import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectProfileManager;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
+import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffManaCostEvent;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffPowerHelper;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
@@ -3970,6 +3971,68 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 2,
                     "Skip mode Revolvercast Staff should advance after a cooldown failure");
             magicData.getPlayerCooldowns().removeCooldown(magicMissile.getSpellId());
+        });
+    }
+
+    static void revolvercastStaffSuccessfulCastAdvancesAfterCompletionTick(GameTestHelper helper) {
+        var staff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
+        var fireball = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIREBALL_SPELL.get();
+        var heal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+        RevolvercastStaff.setCalibrationScroll(staff, 0, createSpellScroll(fireball));
+        RevolvercastStaff.setCalibrationScroll(staff, 2, createSpellScroll(heal));
+        RevolvercastStaff.setSelectedScrollIndex(staff, 0);
+
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "revolvercast_staff_pending_success_test");
+        player.setItemInHand(InteractionHand.MAIN_HAND, staff);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null,
+                "Revolvercast Staff pending success test could not resolve player magic data");
+        magicData.setMana(1000.0F);
+
+        helper.runAtTickTime(1, () -> {
+            helper.assertTrue(((RevolvercastStaff) staff.getItem()).tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
+                    "Revolvercast Staff should successfully initiate the selected spell");
+            helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 0,
+                    "Revolvercast Staff should not advance in the same tick as cast initiation");
+
+            RevolvercastStaffPendingAdvance.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 0,
+                    "Revolvercast Staff should wait until the next game tick before advancing");
+        });
+
+        helper.runAtTickTime(3, () -> {
+            RevolvercastStaffPendingAdvance.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 2,
+                    "Revolvercast Staff should advance after the successful cast completes and a tick passes");
+            helper.succeed();
+        });
+    }
+
+    static void revolvercastStaffCancelledCastDoesNotAdvancePendingSelection(GameTestHelper helper) {
+        var staff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
+        var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        var heal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+        RevolvercastStaff.setCalibrationScroll(staff, 0, createSpellScroll(magicMissile));
+        RevolvercastStaff.setCalibrationScroll(staff, 2, createSpellScroll(heal));
+        RevolvercastStaff.setSelectedScrollIndex(staff, 0);
+
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "revolvercast_staff_pending_cancel_test");
+        player.setItemInHand(InteractionHand.MAIN_HAND, staff);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null,
+                "Revolvercast Staff pending cancel test could not resolve player magic data");
+
+        RevolvercastStaffPendingAdvance.reserve(player, InteractionHand.MAIN_HAND, staff, magicMissile, 0);
+        magicData.setPlayerCastingItem(staff);
+        RevolvercastStaffPendingAdvance.onServerCastComplete(player, magicMissile, magicData, true);
+
+        helper.runAtTickTime(2, () -> {
+            RevolvercastStaffPendingAdvance.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 0,
+                    "Revolvercast Staff should discard pending advancement when the cast is cancelled");
+            helper.succeed();
         });
     }
 
