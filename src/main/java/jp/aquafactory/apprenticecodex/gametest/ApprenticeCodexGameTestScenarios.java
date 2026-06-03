@@ -4160,11 +4160,22 @@ public final class ApprenticeCodexGameTestScenarios {
             var enchantedBook = new ItemStack(Items.ENCHANTED_BOOK);
             var lesserUpgrade = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get());
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var recoveryRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get());
 
             helper.assertTrue(lesserUpgrade.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES),
                     "Lesser spell slot upgrade should be tagged as a Scrollcaster Gauntlet slot upgrade");
             helper.assertTrue(enchantedBook.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS),
                     "Vanilla enchanted book should be tagged as a Scrollcaster Gauntlet enchantment book");
+            player.getInventory().setItem(9, recoveryRune.copy());
+            var quickMovedRecoveryRune = menu.quickMoveStack(
+                    player,
+                    SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START + ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOT_COUNT
+            );
+            helper.assertTrue(quickMovedRecoveryRune.is(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()),
+                    "Recovery Rune shift-click without a target should fall back to normal inventory movement");
+            helper.assertTrue(player.getInventory().getItem(9).isEmpty()
+                            && player.getInventory().getItem(0).is(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()),
+                    "Recovery Rune should move from main inventory to hotbar when no Calibration Bench target is present");
             menu.getSlot(0).set(gauntlet);
             helper.assertTrue(
                     ScrollcasterSchoolRuneResolver.resolveSchool(fireRune)
