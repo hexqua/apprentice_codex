@@ -246,28 +246,24 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         var autonomyCount = ApprenticeCodexServerConfig.spellAutonomyCardCraftCount();
         return List.of(
                 createSpellThrowableCardJeiRecipe(
-                        SpellcasterWorkbenchRecipeCategory.SPELL_INVOKE_CARD_RECIPE_ID,
                         Ingredient.of(TagRegistry.Items.SPELL_THROWABLE_CARD_PAPERS),
                         invokeCount,
                         Ingredient.of(TagRegistry.Items.SPELL_INVOKE_CARD_CRAFTING_MATERIALS),
                         new ItemStack(ItemRegistry.SPELL_INVOKE_CARD.get(), invokeCount)
                 ),
                 createSpellThrowableCardJeiRecipe(
-                        SpellcasterWorkbenchRecipeCategory.SPELL_INVOKE_CARD_REWRITE_RECIPE_ID,
                         Ingredient.of(ItemRegistry.SPELL_INVOKE_CARD.get()),
                         invokeCount,
                         Ingredient.of(TagRegistry.Items.SPELL_INVOKE_CARD_CRAFTING_MATERIALS),
                         new ItemStack(ItemRegistry.SPELL_INVOKE_CARD.get(), invokeCount)
                 ),
                 createSpellThrowableCardJeiRecipe(
-                        SpellcasterWorkbenchRecipeCategory.SPELL_AUTONOMY_CARD_RECIPE_ID,
                         Ingredient.of(TagRegistry.Items.SPELL_THROWABLE_CARD_PAPERS),
                         autonomyCount,
                         Ingredient.of(TagRegistry.Items.SPELL_AUTONOMY_CARD_CRAFTING_MATERIALS),
                         new ItemStack(ItemRegistry.SPELL_AUTONOMY_CARD.get(), autonomyCount)
                 ),
                 createSpellThrowableCardJeiRecipe(
-                        SpellcasterWorkbenchRecipeCategory.SPELL_AUTONOMY_CARD_REWRITE_RECIPE_ID,
                         Ingredient.of(ItemRegistry.SPELL_AUTONOMY_CARD.get()),
                         autonomyCount,
                         Ingredient.of(TagRegistry.Items.SPELL_AUTONOMY_CARD_CRAFTING_MATERIALS),
@@ -277,14 +273,12 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
     }
 
     private static SpellcasterWorkbenchRecipe createSpellThrowableCardJeiRecipe(
-            ResourceLocation recipeId,
             Ingredient baseIngredient,
             int baseCount,
             Ingredient catalystIngredient,
             ItemStack result
     ) {
         return new SpellcasterWorkbenchRecipe(
-                recipeId,
                 List.of(
                         new SpellcasterWorkbenchRecipe.SizedIngredient(baseIngredient, baseCount),
                         new SpellcasterWorkbenchRecipe.SizedIngredient(catalystIngredient, 1),

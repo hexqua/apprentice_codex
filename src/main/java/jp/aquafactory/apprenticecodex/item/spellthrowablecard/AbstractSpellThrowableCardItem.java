@@ -194,9 +194,9 @@ public abstract class AbstractSpellThrowableCardItem extends Item implements Res
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+        super.appendHoverText(stack, context, lines, flag);
         lines.add(Component.translatable(getDescriptionId() + ".desc").withStyle(ChatFormatting.YELLOW));
         appendThrowableCardTooltip(lines);
     }
