@@ -273,6 +273,22 @@ public final class ApprenticeCodexBoundSwordGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void boundSwordGreaterConjurersTalismanSkipsManualRecastCooldown(GameTestHelper helper) {
+        var player = createBoundSwordTestPlayer(helper, "bound_sword_greater_conjurer_manual_recast_test");
+        var magicData = resolveMagicData(helper, player);
+        equipGreaterConjurersTalisman(player);
+
+        BoundSwordManager.activate(player, 1, CastSource.SPELLBOOK, magicData, boundSword(), 6.0F);
+        boundSword().castSpell(helper.getLevel(), 1, player, CastSource.SPELLBOOK, true);
+
+        helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(boundSword()),
+                "Manual Bound Sword recast should remove the active recast");
+        helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(boundSword()),
+                "Greater Conjurer's Talisman should suppress Bound Sword cooldown after manual recast deactivation");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void boundSwordCanMoveWithinInventoryAndCursor(GameTestHelper helper) {
         var player = createBoundSwordTestPlayer(helper, "bound_sword_invalid_move_test");
         var original = new ItemStack(Items.EMERALD);
