@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "L": {
+      "item": "irons_spellbooks:magic_cloth"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_ingot"
+    },
+    "P": {
+      "item": "irons_spellbooks:pyrium_ingot"
+    },
+    "W": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "pattern": [
+    " AG",
+    "LWM",
+    "P  "
+  ],
+  "result": {
+    "item": "apprenticecodex:revolvercast_staff"
+  },
+  "show_notification": true
+}

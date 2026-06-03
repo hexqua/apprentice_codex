@@ -1,0 +1,32 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_iron_swingcast_staff",
+  "criteria": {
+    "crafted_revolvercast_staff": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:revolvercast_staff"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_revolvercast_staff.description"
+    },
+    "frame": "goal",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:revolvercast_staff"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_revolvercast_staff.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_revolvercast_staff"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
