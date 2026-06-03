@@ -143,7 +143,7 @@ public final class RevolvercastStaffClientEffectState {
         }
 
         var spellData = spellContainer.getSpellAtIndex(0);
-        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+        if (spellData == null || spellData == SpellData.EMPTY || spellData.getSpell() == null) {
             return null;
         }
         return spellData.getSpell().getSchoolType();
