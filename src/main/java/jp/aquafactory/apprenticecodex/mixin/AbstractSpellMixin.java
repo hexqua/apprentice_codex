@@ -7,8 +7,8 @@ import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowStartSoundContext;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffCastHelper;
+import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
 import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
@@ -121,6 +121,13 @@ public abstract class AbstractSpellMixin {
                 level,
                 spellLevel,
                 serverPlayer,
+                playerMagicData,
+                cancelled
+        );
+        //noinspection DataFlowIssue
+        RevolvercastStaffPendingAdvance.onServerCastComplete(
+                serverPlayer,
+                (AbstractSpell) (Object) this,
                 playerMagicData,
                 cancelled
         );

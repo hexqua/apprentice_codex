@@ -17,6 +17,7 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.item.Scroll;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -239,7 +240,11 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         }
 
         var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
+        var serverPlayer = player instanceof ServerPlayer castPlayer ? castPlayer : null;
         try (var ignored = SwingcastStaffCastContext.open(player.getUUID(), stack, spell)) {
+            if (serverPlayer != null) {
+                RevolvercastStaffPendingAdvance.reserve(serverPlayer, hand, stack, spell, getSelectedScrollIndex(stack));
+            }
             var casted = spell.attemptInitiateCast(
                     stack,
                     spellLevel,
@@ -250,6 +255,9 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
                     resolveSpellSelectionSlot(hand)
             );
             if (!casted) {
+                if (serverPlayer != null) {
+                    RevolvercastStaffPendingAdvance.clear(serverPlayer);
+                }
                 if (advanceAfterFailedCastIfNeeded(stack)) {
                     triggerRevolveAnimationIfPossible(player, stack);
                 }
@@ -264,11 +272,11 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
                     resolveSpellSelectionSlot(hand),
                     spell.getCastType() == CastType.LONG ? 0 : null
             );
-            if (advanceToNextValidScrollIndex(stack)) {
-                triggerRevolveAnimationIfPossible(player, stack);
-            }
             return true;
         } catch (Exception exception) {
+            if (serverPlayer != null) {
+                RevolvercastStaffPendingAdvance.clear(serverPlayer);
+            }
             throw new IllegalStateException("Revolvercast Staff swing cast context failed to close.", exception);
         }
     }
@@ -565,7 +573,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         return false;
     }
 
-    private void triggerRevolveAnimationIfPossible(Player player, ItemStack stack) {
+    public void triggerRevolveAnimationIfPossible(Player player, ItemStack stack) {
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return;
         }

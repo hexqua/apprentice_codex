@@ -101,6 +101,16 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void revolvercastStaffSuccessfulCastAdvancesAfterCompletionTick(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.revolvercastStaffSuccessfulCastAdvancesAfterCompletionTick(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void revolvercastStaffCancelledCastDoesNotAdvancePendingSelection(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.revolvercastStaffCancelledCastDoesNotAdvancePendingSelection(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void revolvercastStaffBlocksArcaneAnvilAndUsesDiamondSwingcastRestrictions(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.revolvercastStaffBlocksArcaneAnvilAndUsesDiamondSwingcastRestrictions(helper);
     }
