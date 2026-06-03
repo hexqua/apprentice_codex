@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.spell.boundbow;
 
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
@@ -124,7 +125,8 @@ public class BoundBow extends AbstractSpell {
                 BoundBowManager.deactivate(serverPlayer, true);
             } else {
                 BoundBowManager.activate(serverPlayer, spellLevel, castSource, playerMagicData, this,
-                        getPowerLevel(spellLevel, entity));
+                        getPowerLevel(spellLevel, entity),
+                        (float) entity.getAttributeValue(AttributeRegistry.SUMMON_DAMAGE.get()));
             }
         }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
@@ -139,6 +141,10 @@ public class BoundBow extends AbstractSpell {
     public void onRecastFinished(ServerPlayer serverPlayer, RecastInstance recastInstance, RecastResult recastResult,
                                  ICastDataSerializable castDataSerializable) {
         BoundBowManager.deactivate(serverPlayer, false);
+        if (io.redspace.ironsspellbooks.registries.ItemRegistry.GREATER_CONJURERS_TALISMAN.get()
+                .isEquippedBy(serverPlayer)) {
+            return;
+        }
         super.onRecastFinished(serverPlayer, recastInstance, recastResult, castDataSerializable);
     }
 }

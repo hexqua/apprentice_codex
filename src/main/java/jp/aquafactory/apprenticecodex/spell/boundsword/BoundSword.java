@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.spell.boundsword;
 
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
@@ -57,7 +58,9 @@ public class BoundSword extends AbstractSpell {
 
     private float getWeaponDamage(int spellLevel, LivingEntity entity) {
         var rawDamage = 3 + 3 * getSpellPower(spellLevel, entity) / 100.0f;
-        return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.BOUND_SWORD);
+        return rawDamage
+                * (float) entity.getAttributeValue(AttributeRegistry.SUMMON_DAMAGE.get())
+                * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.BOUND_SWORD);
     }
 
     int getDuration() {
@@ -158,6 +161,10 @@ public class BoundSword extends AbstractSpell {
     public void onRecastFinished(ServerPlayer serverPlayer, RecastInstance recastInstance, RecastResult recastResult,
                                  ICastDataSerializable castDataSerializable) {
         BoundSwordManager.deactivate(serverPlayer, false);
+        if (io.redspace.ironsspellbooks.registries.ItemRegistry.GREATER_CONJURERS_TALISMAN.get()
+                .isEquippedBy(serverPlayer)) {
+            return;
+        }
         super.onRecastFinished(serverPlayer, recastInstance, recastResult, castDataSerializable);
     }
 
