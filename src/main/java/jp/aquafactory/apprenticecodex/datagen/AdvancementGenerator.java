@@ -348,7 +348,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .addCriterion("crafted_scrollcaster_gauntlet", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SCROLLCASTER_GAUNTLET.getId()))
                 .save(saver, advancementId("craft_scrollcaster_gauntlet"), existingFileHelper);
 
-        Advancement.Builder.advancement()
+        var bench = Advancement.Builder.advancement()
                 .parent(gauntlet)
                 .display(ItemRegistry.SPELL_CALIBRATION_BENCH.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spell_calibration_bench.title"),
@@ -360,6 +360,19 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         false)
                 .addCriterion("crafted_spell_calibration_bench", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SPELL_CALIBRATION_BENCH.getId()))
                 .save(saver, advancementId("craft_spell_calibration_bench"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(bench)
+                .display(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.extract_spellcaster_gun_scroll.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.extract_spellcaster_gun_scroll.description"),
+                        null,
+                        AdvancementType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("extract_spellcaster_gun_scroll", CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance()))
+                .save(saver, advancementId("extract_spellcaster_gun_scroll"), existingFileHelper);
 
         Advancement.Builder.advancement()
                 .parent(root)
@@ -504,7 +517,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .addCriterion("crafted_multipurpose_staffrifle", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.getId()))
                 .save(saver, advancementId("craft_multipurpose_staffrifle"), existingFileHelper);
 
-        var spellcaster = Advancement.Builder.advancement()
+        Advancement.Builder.advancement()
                 .parent(ironGun)
                 .display(ItemRegistry.SPELLCASTER_WORKBENCH.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spellcaster_workbench.title"),
@@ -516,19 +529,6 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         false)
                 .addCriterion("crafted_spellcaster_workbench", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SPELLCASTER_WORKBENCH.getId()))
                 .save(saver, advancementId("craft_spellcaster_workbench"), existingFileHelper);
-
-        Advancement.Builder.advancement()
-                .parent(spellcaster)
-                .display(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get(),
-                        Component.translatable("advancements.apprenticecodex.apprentice_codex.extract_spellcaster_gun_scroll.title"),
-                        Component.translatable("advancements.apprenticecodex.apprentice_codex.extract_spellcaster_gun_scroll.description"),
-                        null,
-                        AdvancementType.GOAL,
-                        true,
-                        true,
-                        false)
-                .addCriterion("extract_spellcaster_gun_scroll", CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance()))
-                .save(saver, advancementId("extract_spellcaster_gun_scroll"), existingFileHelper);
 
         var bladed = Advancement.Builder.advancement()
                 .parent(root)
