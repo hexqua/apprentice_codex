@@ -19,8 +19,10 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.RevolvercastStaffRenderer;
+import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.ChatFormatting;
@@ -30,6 +32,8 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Entity;
@@ -69,7 +73,10 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     public static final int BASE_CALIBRATION_SCROLL_SLOT_COUNT = 4;
     public static final int CALIBRATION_SCROLL_SLOTS_PER_UPGRADE = 2;
 
-    private static final String MAIN_CONTROLLER = "main";
+    private static final String ORB_CONTROLLER = "orb";
+    private static final String REVOLVE_CONTROLLER = "revolve";
+    private static final String REVOLVE_ANIMATION = "revolve";
+    private static final String REVOLVE_ANIMATION_ALT = "revolve2";
     private static final String CALIBRATION_TAG = "SpellCalibration";
     private static final String ADJUSTMENTS_TAG = "Adjustments";
     private static final String SCROLLS_TAG = "Scrolls";
@@ -77,7 +84,10 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     private static final String ITEM_TAG = "Item";
     private static final String SCHOOL_POWER_SCHOOL_TAG = "SchoolPowerSchool";
     private static final String SELECTED_SCROLL_INDEX_TAG = "SelectedScrollIndex";
+    private static final String REVOLVE_ANIMATION_VARIANT_TAG = "RevolveAnimationVariant";
     private static final RawAnimation ANIM_ORB_LOOP = RawAnimation.begin().thenLoop("orb_loop");
+    private static final RawAnimation ANIM_REVOLVE = RawAnimation.begin().thenPlay(REVOLVE_ANIMATION);
+    private static final RawAnimation ANIM_REVOLVE_ALT = RawAnimation.begin().thenPlay(REVOLVE_ANIMATION_ALT);
     private static final int ENCHANTMENT_VALUE = 15;
     private static final double DISPLAYED_ATTACK_DAMAGE = 8.0D;
     private static final double DISPLAYED_ATTACK_SPEED = 1.8D;
@@ -222,7 +232,9 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         var spell = spellData.getSpell();
         var magicData = MagicData.getPlayerMagicData(player);
         if (magicData != null && magicData.getPlayerCooldowns().isOnCooldown(spell)) {
-            advanceAfterFailedCastIfNeeded(stack);
+            if (advanceAfterFailedCastIfNeeded(stack)) {
+                triggerRevolveAnimationIfPossible(player, stack);
+            }
             return false;
         }
 
@@ -238,7 +250,9 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
                     resolveSpellSelectionSlot(hand)
             );
             if (!casted) {
-                advanceAfterFailedCastIfNeeded(stack);
+                if (advanceAfterFailedCastIfNeeded(stack)) {
+                    triggerRevolveAnimationIfPossible(player, stack);
+                }
                 return false;
             }
 
@@ -250,7 +264,9 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
                     resolveSpellSelectionSlot(hand),
                     spell.getCastType() == CastType.LONG ? 0 : null
             );
-            advanceToNextValidScrollIndex(stack);
+            if (advanceToNextValidScrollIndex(stack)) {
+                triggerRevolveAnimationIfPossible(player, stack);
+            }
             return true;
         } catch (Exception exception) {
             throw new IllegalStateException("Revolvercast Staff swing cast context failed to close.", exception);
@@ -327,10 +343,15 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
         controllerRegistrar.add(
-                new AnimationController<>(this, MAIN_CONTROLLER, 0, state -> {
+                new AnimationController<>(this, ORB_CONTROLLER, 0, state -> {
                     state.setAnimation(ANIM_ORB_LOOP);
                     return PlayState.CONTINUE;
                 })
+        );
+        controllerRegistrar.add(
+                new AnimationController<>(this, REVOLVE_CONTROLLER, 0, state -> PlayState.STOP)
+                        .triggerableAnim(REVOLVE_ANIMATION, ANIM_REVOLVE)
+                        .triggerableAnim(REVOLVE_ANIMATION_ALT, ANIM_REVOLVE_ALT)
         );
     }
 
@@ -537,10 +558,28 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         return false;
     }
 
-    private void advanceAfterFailedCastIfNeeded(ItemStack stack) {
+    private boolean advanceAfterFailedCastIfNeeded(ItemStack stack) {
         if (hasRecoveryRune(stack)) {
-            advanceToNextValidScrollIndex(stack);
+            return advanceToNextValidScrollIndex(stack);
         }
+        return false;
+    }
+
+    private void triggerRevolveAnimationIfPossible(Player player, ItemStack stack) {
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+
+        var instanceId = GeoItem.getOrAssignId(stack, serverPlayer.serverLevel());
+        triggerAnim(serverPlayer, instanceId, REVOLVE_CONTROLLER, nextRevolveAnimationName(stack));
+        AudioTools.playSoundFromEntity(serverPlayer.serverLevel(), serverPlayer, SoundRegistry.REVOLVE.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
+    }
+
+    private static String nextRevolveAnimationName(ItemStack stack) {
+        var tag = stack.getOrCreateTag();
+        var variant = tag.getInt(REVOLVE_ANIMATION_VARIANT_TAG);
+        tag.putInt(REVOLVE_ANIMATION_VARIANT_TAG, variant + 1);
+        return (variant & 1) == 0 ? REVOLVE_ANIMATION : REVOLVE_ANIMATION_ALT;
     }
 
     private int resolveEffectiveSpellLevel(Player player, ItemStack stack, AbstractSpell spell) {
