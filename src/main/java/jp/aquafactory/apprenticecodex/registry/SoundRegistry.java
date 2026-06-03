@@ -68,6 +68,7 @@ public final class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> ICE_DAGGER_THROW = reg("ice_dagger_throw");
     public static final DeferredHolder<SoundEvent, SoundEvent> ICE_DAGGER_HIT = reg("ice_dagger_hit");
     public static final DeferredHolder<SoundEvent, SoundEvent> KAMI = reg("kami");
+    public static final DeferredHolder<SoundEvent, SoundEvent> REVOLVE = reg("revolve");
     public static final DeferredHolder<SoundEvent, SoundEvent> SMASHCAST_SCEPTER_SMASH_AIR = reg("smashcast_scepter_smash_air");
     public static final DeferredHolder<SoundEvent, SoundEvent> SMASHCAST_SCEPTER_SMASH_GROUND = reg("smashcast_scepter_smash_ground");
     public static final DeferredHolder<SoundEvent, SoundEvent> SMASHCAST_SCEPTER_SMASH_GROUND_HEAVY = reg("smashcast_scepter_smash_ground_heavy");
