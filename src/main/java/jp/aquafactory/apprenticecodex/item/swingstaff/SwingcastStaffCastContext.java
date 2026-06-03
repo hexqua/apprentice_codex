@@ -7,7 +7,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.UUID;
 
-final class SwingcastStaffCastContext implements AutoCloseable {
+public final class SwingcastStaffCastContext implements AutoCloseable {
     private static final ThreadLocal<Deque<Entry>> ACTIVE_CONTEXTS = ThreadLocal.withInitial(ArrayDeque::new);
 
     private final Entry entry;
@@ -17,7 +17,7 @@ final class SwingcastStaffCastContext implements AutoCloseable {
         this.entry = entry;
     }
 
-    static SwingcastStaffCastContext open(UUID playerId, ItemStack stack, AbstractSpell spell) {
+    public static SwingcastStaffCastContext open(UUID playerId, ItemStack stack, AbstractSpell spell) {
         var entry = new Entry(playerId, stack.getItem(), spell.getSpellId());
         ACTIVE_CONTEXTS.get().push(entry);
         return new SwingcastStaffCastContext(entry);

@@ -81,6 +81,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.SILVER_SWINGCAST_STAFF.get());
         output.accept(ItemRegistry.NETHERITE_SWINGCAST_STAFF.get());
         output.accept(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
+        output.accept(ItemRegistry.REVOLVERCAST_STAFF.get());
         output.accept(ItemRegistry.PHOTON_SIPHON.get());
         output.accept(ItemRegistry.EXPLORERS_CANE.get());
         output.accept(ItemRegistry.SPELLCASTERS_FLASK.get());

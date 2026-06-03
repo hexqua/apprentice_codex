@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.swingstaff;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -24,16 +25,18 @@ public final class SwingcastStaffCastEvent {
         }
 
         var castingItem = magicData.getPlayerCastingItem();
-        if (!(castingItem.getItem() instanceof AbstractSwingcastStaffItem swingcastStaffItem)) {
-            return;
-        }
-
         if (!SwingcastStaffCastContext.matches(player.getUUID(), castingItem, event.getSpell())) {
             return;
         }
 
-        event.setEffectiveCooldown(
-                swingcastStaffItem.resolveSwingcastCooldownTicks(player, castingItem, event.getSpell(), event.getEffectiveCooldown())
-        );
+        if (castingItem.getItem() instanceof AbstractSwingcastStaffItem swingcastStaffItem) {
+            event.setEffectiveCooldown(
+                    swingcastStaffItem.resolveSwingcastCooldownTicks(player, castingItem, event.getSpell(), event.getEffectiveCooldown())
+            );
+        } else if (castingItem.getItem() instanceof RevolvercastStaff revolvercastStaff) {
+            event.setEffectiveCooldown(
+                    revolvercastStaff.resolveSwingcastCooldownTicks(player, castingItem, event.getSpell(), event.getEffectiveCooldown())
+            );
+        }
     }
 }
