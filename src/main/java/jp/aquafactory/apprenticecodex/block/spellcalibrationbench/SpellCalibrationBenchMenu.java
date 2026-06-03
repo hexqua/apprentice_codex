@@ -122,7 +122,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             if (!moveItemStackTo(stack, GAUNTLET_SLOT, GAUNTLET_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }
-        } else if (isAdjustmentItem(stack)) {
+        } else if (hasStoredCalibrationTarget() && isAdjustmentItem(stack)) {
             if (!moveItemStackTo(stack, ADJUSTMENT_SLOT_START, ADJUSTMENT_SLOT_END, false)) {
                 return ItemStack.EMPTY;
             }
