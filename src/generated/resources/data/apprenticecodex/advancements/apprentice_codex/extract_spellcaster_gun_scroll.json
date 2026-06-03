@@ -1,5 +1,5 @@
 {
-  "parent": "apprenticecodex:apprentice_codex/craft_spellcaster_workbench",
+  "parent": "apprenticecodex:apprentice_codex/craft_spell_calibration_bench",
   "criteria": {
     "extract_spellcaster_gun_scroll": {
       "trigger": "minecraft:impossible"
