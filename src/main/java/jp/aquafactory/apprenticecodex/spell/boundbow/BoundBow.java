@@ -133,6 +133,18 @@ public class BoundBow extends AbstractSpell {
     }
 
     @Override
+    public void castSpell(Level world, int spellLevel, ServerPlayer serverPlayer, CastSource castSource,
+                          boolean triggerCooldown) {
+        var magicData = MagicData.getPlayerMagicData(serverPlayer);
+        var wasBoundBowRecast = magicData.getPlayerRecasts().hasRecastForSpell(this);
+        super.castSpell(world, spellLevel, serverPlayer, castSource, triggerCooldown);
+        if (wasBoundBowRecast && hasGreaterConjurersTalisman(serverPlayer)
+                && magicData.getPlayerCooldowns().removeCooldown(getSpellId())) {
+            magicData.getPlayerCooldowns().syncToPlayer(serverPlayer);
+        }
+    }
+
+    @Override
     public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         return entity instanceof Player && super.checkPreCastConditions(level, spellLevel, entity, playerMagicData);
     }
@@ -141,10 +153,14 @@ public class BoundBow extends AbstractSpell {
     public void onRecastFinished(ServerPlayer serverPlayer, RecastInstance recastInstance, RecastResult recastResult,
                                  ICastDataSerializable castDataSerializable) {
         BoundBowManager.deactivate(serverPlayer, false);
-        if (io.redspace.ironsspellbooks.registries.ItemRegistry.GREATER_CONJURERS_TALISMAN.get()
-                .isEquippedBy(serverPlayer)) {
+        if (hasGreaterConjurersTalisman(serverPlayer)) {
             return;
         }
         super.onRecastFinished(serverPlayer, recastInstance, recastResult, castDataSerializable);
+    }
+
+    private static boolean hasGreaterConjurersTalisman(ServerPlayer serverPlayer) {
+        return io.redspace.ironsspellbooks.registries.ItemRegistry.GREATER_CONJURERS_TALISMAN.get()
+                .isEquippedBy(serverPlayer);
     }
 }

@@ -167,6 +167,22 @@ public final class ApprenticeCodexBoundBowGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void boundBowGreaterConjurersTalismanSkipsManualRecastCooldown(GameTestHelper helper) {
+        var player = createBoundBowTestPlayer(helper, "bound_bow_greater_conjurer_manual_recast_test");
+        var magicData = resolveMagicData(helper, player);
+        equipGreaterConjurersTalisman(player);
+
+        BoundBowManager.activate(player, 1, CastSource.SPELLBOOK, magicData, boundBow(), 1);
+        boundBow().castSpell(helper.getLevel(), 1, player, CastSource.SPELLBOOK, true);
+
+        helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(boundBow()),
+                "Manual Bound Bow recast should remove the active recast");
+        helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(boundBow()),
+                "Greater Conjurer's Talisman should suppress Bound Bow cooldown after manual recast deactivation");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void boundBowConsumesManaToForgeArrowWithoutAmmo(GameTestHelper helper) {
         var player = createBoundBowTestPlayer(helper, "bound_bow_forge_arrow_test");
         var magicData = resolveMagicData(helper, player);
