@@ -102,6 +102,6 @@
     }
   },
   "textures": {
-    "particle": "apprenticecodex:item/revolvercast_staff"
+    "particle": "apprenticecodex:geo/revolvercast_staff"
   }
 }
