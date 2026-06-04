@@ -19,7 +19,9 @@ import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSatelliteFollowcastAmuletStatePacket;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRequest;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRunner;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastService;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -191,31 +193,24 @@ public final class SatelliteFollowcastAmuletCastEvent {
         }
 
         if (canUseNonContinuousRemoteOwnerCast(ownerMagicData)) {
-            var remoteProfile = RemoteOwnerCastProfileManager.getUsableProfile(
-                    spell,
-                    RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST
-            );
-            if (remoteProfile.isPresent()) {
-                var result = RemoteOwnerCastRunner.tryCast(
-                        level,
-                        player,
-                        slotResult.stack(),
-                        spellData,
-                        remoteProfile.get(),
-                        RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST,
-                        crystalPosition,
-                        forward,
-                        FOLLOWCAST_SOURCE,
-                        castingSlot,
-                        false
-                );
-                if (result.handled()) {
-                    if (!result.succeeded()) {
-                        return CastAttemptResult.NONE;
-                    }
-                    addFollowcastCooldown(player, spellData, FOLLOWCAST_SOURCE, slotResult.stack());
-                    return CastAttemptResult.CASTED;
+            var result = RemoteOwnerCastService.cast(new RemoteOwnerCastRequest(
+                    level,
+                    player,
+                    slotResult.stack(),
+                    spellData,
+                    RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST,
+                    crystalPosition,
+                    forward,
+                    FOLLOWCAST_SOURCE,
+                    castingSlot,
+                    false
+            ));
+            if (result.handled()) {
+                if (!result.succeeded()) {
+                    return CastAttemptResult.NONE;
                 }
+                addFollowcastCooldown(player, spellData, FOLLOWCAST_SOURCE, slotResult.stack());
+                return CastAttemptResult.CASTED;
             }
         }
 

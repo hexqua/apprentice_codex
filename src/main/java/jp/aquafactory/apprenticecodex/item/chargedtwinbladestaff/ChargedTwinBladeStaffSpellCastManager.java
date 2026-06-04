@@ -9,7 +9,9 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRequest;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRunner;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastService;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -77,13 +79,14 @@ public final class ChargedTwinBladeStaffSpellCastManager {
 
         var spell = spellData.getSpell();
         var castSource = payload.castSource();
-        var remoteProfile = RemoteOwnerCastProfileManager.getUsableProfile(spell, castOrigin);
-        if (remoteProfile.isEmpty()) {
-            notifyUnsupportedCast(owner, spellData, sourceStack);
-            return false;
-        }
 
         if (spell.getCastType() == CastType.CONTINUOUS) {
+            var remoteProfile = RemoteOwnerCastProfileManager.getUsableProfile(spell, castOrigin);
+            if (remoteProfile.isEmpty()) {
+                notifyUnsupportedCast(owner, spellData, sourceStack);
+                return false;
+            }
+
             var remoteStartResult = RemoteOwnerCastRunner.tryStartContinuousCast(
                     level,
                     owner,
@@ -119,19 +122,18 @@ public final class ChargedTwinBladeStaffSpellCastManager {
             return true;
         }
 
-        var result = RemoteOwnerCastRunner.tryCast(
+        var result = RemoteOwnerCastService.cast(new RemoteOwnerCastRequest(
                 level,
                 owner,
                 sourceStack,
                 spellData,
-                remoteProfile.get(),
                 castOrigin,
                 impactPosition,
                 forward,
                 castSource,
                 payload.castingSlot(),
                 true
-        );
+        ));
         if (!result.handled()) {
             notifyUnsupportedCast(owner, spellData, sourceStack);
             return false;
