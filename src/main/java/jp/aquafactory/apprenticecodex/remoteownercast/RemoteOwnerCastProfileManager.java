@@ -50,8 +50,7 @@ public final class RemoteOwnerCastProfileManager extends SimpleJsonResourceReloa
             return Optional.empty();
         }
         return getProfile(spell)
-                .filter(profile -> profile.allowsOrigin(origin))
-                .map(profile -> resolveConfiguredProfile(spell.getSpellResource(), profile));
+                .filter(profile -> profile.allowsOrigin(origin));
     }
 
     public static boolean isSupportedByRemoteOwnerCast(AbstractSpell spell, RemoteOwnerCastOrigin origin) {
@@ -60,20 +59,7 @@ public final class RemoteOwnerCastProfileManager extends SimpleJsonResourceReloa
         }
         return getProfile(spell)
                 .filter(profile -> profile.allowsOrigin(origin))
-                .isPresent()
-                && !ApprenticeCodexServerConfig.isRemoteOwnerCastSpellDenied(spell.getSpellResource());
-    }
-
-    private static RemoteOwnerCastProfile resolveConfiguredProfile(ResourceLocation spellId, RemoteOwnerCastProfile profile) {
-        if (profile.castMode() != RemoteOwnerCastMode.REMOTE_PLAYER_GEOMETRY) {
-            return profile;
-        }
-        if (!ApprenticeCodexServerConfig.remoteOwnerCastEnableRemotePlayerGeometry()
-                || ApprenticeCodexServerConfig.remoteOwnerCastForceProxyOwnerMagic()
-                || ApprenticeCodexServerConfig.isRemotePlayerGeometrySpellDenied(spellId)) {
-            return profile.withCastMode(RemoteOwnerCastMode.PROXY_OWNER_MAGIC);
-        }
-        return profile;
+                .isPresent();
     }
 
     public static GameTestProfileOverride useProfilesForGameTest(Map<ResourceLocation, RemoteOwnerCastProfile> overrideProfiles) {

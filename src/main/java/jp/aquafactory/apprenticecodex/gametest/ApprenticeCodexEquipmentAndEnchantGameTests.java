@@ -650,8 +650,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void chargedTwinBladeStaffRemoteOwnerDenylistFallsBackToDispenserProfile(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffRemoteOwnerDenylistFallsBackToDispenserProfile(helper);
+    public static void chargedTwinBladeStaffRemoteOwnerDenylistBlocksRuntimeWithoutFallback(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffRemoteOwnerDenylistBlocksRuntimeWithoutFallback(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -660,8 +660,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void chargedTwinBladeStaffCreativeImpactCastUsesDispenserProfileWithZeroMana(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffCreativeImpactCastUsesDispenserProfileWithZeroMana(helper);
+    public static void chargedTwinBladeStaffCreativeImpactCastUsesRemoteOwnerProfileWithZeroMana(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffCreativeImpactCastUsesRemoteOwnerProfileWithZeroMana(helper);
     }
 
     @GameTest(template = TEMPLATE)

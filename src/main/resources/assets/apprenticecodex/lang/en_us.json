@@ -485,7 +485,6 @@
   "container.apprenticecodex.spell_dispenser.spell.tooltip.server_disabled": "Spell Dispenser casting is disabled by the server.",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.not_allowlisted": "This spell is not allowed by the server Spell Dispenser settings.",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.not_profiled": "This spell cannot be used because it is not configured for this Spell Dispenser.",
-  "container.apprenticecodex.spell_dispenser.spell.tooltip.denylisted": "This spell cannot be used because it is on the Spell Dispenser denylist.",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.general_error": "Cannot cast this spell.",
   "container.apprenticecodex.ender_grimoire_inscription": "Ender Grimoire",
   "container.apprenticecodex.atelier_station": "Atelier Station",

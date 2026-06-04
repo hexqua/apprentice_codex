@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.remoteownercast;
 
-import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
@@ -13,23 +12,19 @@ import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import io.redspace.ironsspellbooks.spells.EntityCastData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
-import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TraceableEntity;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.util.FakePlayerFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,8 +52,11 @@ public final class RemoteOwnerCastRunner {
         }
 
         var spell = spellData.getSpell();
-        if (spell.getCastType() == CastType.CONTINUOUS && profile.castMode() != RemoteOwnerCastMode.LEGACY_SPELL_DISPENSER) {
+        if (spell.getCastType() == CastType.CONTINUOUS) {
             return CastResult.notHandled();
+        }
+        if (!isCastModeEnabled(profile)) {
+            return CastResult.failed();
         }
         if (spell.getRecastCount(spellData.getLevel(), owner) > 0) {
             if (!profile.allowInitialRecast()) {
@@ -73,16 +71,6 @@ public final class RemoteOwnerCastRunner {
         var origin = resolveOrigin(owner, profile, providedOrigin);
         var forward = resolveForward(owner, profile, providedForward);
         return switch (profile.castMode()) {
-            case LEGACY_SPELL_DISPENSER -> tryLegacySpellDispenserCast(
-                    level,
-                    owner,
-                    sourceStack,
-                    spellData,
-                    origin,
-                    forward,
-                    castSource,
-                    castingSlot
-            );
             case PLAYER_SELF -> tryOwnerMagicCast(
                     level,
                     owner,
@@ -94,21 +82,6 @@ public final class RemoteOwnerCastRunner {
                     castOrigin,
                     owner.getEyePosition(),
                     owner.getLookAngle(),
-                    castSource,
-                    castingSlot,
-                    postSpellPreCastEvent
-            );
-            case PROXY_OWNER_MAGIC -> tryOwnerMagicCast(
-                    level,
-                    owner,
-                    createProxy(level, owner, origin, forward),
-                    null,
-                    sourceStack,
-                    spellData,
-                    profile,
-                    castOrigin,
-                    origin,
-                    forward,
                     castSource,
                     castingSlot,
                     postSpellPreCastEvent
@@ -163,6 +136,9 @@ public final class RemoteOwnerCastRunner {
         }
         if (!supportsRemoteContinuous(profile)) {
             return ContinuousCastStartResult.notHandled();
+        }
+        if (!isCastModeEnabled(profile)) {
+            return ContinuousCastStartResult.failed();
         }
 
         var spell = spellData.getSpell();
@@ -364,6 +340,11 @@ public final class RemoteOwnerCastRunner {
                 || profile.castMode() == RemoteOwnerCastMode.PLAYER_SELF;
     }
 
+    private static boolean isCastModeEnabled(RemoteOwnerCastProfile profile) {
+        return profile.castMode() != RemoteOwnerCastMode.REMOTE_PLAYER_GEOMETRY
+                || ApprenticeCodexServerConfig.remoteOwnerCastEnableRemotePlayerGeometry();
+    }
+
     private static void runWithContinuousContext(ServerPlayer owner, ContinuousCastSession session, Runnable runnable) {
         var useRemoteGeometry = usesRemotePlayerGeometryContext(session.profile());
         try (var ignored = useRemoteGeometry
@@ -455,35 +436,6 @@ public final class RemoteOwnerCastRunner {
         if (anchor != null && !anchor.isRemoved()) {
             anchor.discard();
         }
-    }
-
-    private static CastResult tryLegacySpellDispenserCast(
-            ServerLevel level,
-            ServerPlayer owner,
-            ItemStack sourceStack,
-            SpellData spellData,
-            Vec3 origin,
-            Vec3 forward,
-            CastSource castSource,
-            String castingSlot
-    ) {
-        var validation = new SpellDispenserSpellValidator.ValidationResult(
-                sourceStack.copy(),
-                spellData,
-                SpellDispenserSpellValidator.FailureReason.NONE
-        );
-        var result = SpellDispenserCastHelper.tryCast(
-                level,
-                origin,
-                forward,
-                validation,
-                sourceStack,
-                owner.getGameProfile(),
-                new PlayerManaAccess(owner),
-                castSource,
-                castingSlot
-        );
-        return result.succeeded() ? CastResult.success() : CastResult.failed();
     }
 
     private static CastResult tryRemoteAnchorOwnerMagicCast(
@@ -655,32 +607,6 @@ public final class RemoteOwnerCastRunner {
                 ownerMagicData.setMana(originalMana);
             }
         }
-    }
-
-    private static net.minecraftforge.common.util.FakePlayer createProxy(
-            ServerLevel level,
-            ServerPlayer owner,
-            Vec3 eyePosition,
-            Vec3 forward
-    ) {
-        var proxy = FakePlayerFactory.get(level, new GameProfile(owner.getUUID(), owner.getGameProfile().getName()));
-        proxy.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
-        proxy.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-        proxy.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
-
-        var normalizedForward = forward.lengthSqr() > 1.0E-6D ? forward.normalize() : owner.getLookAngle();
-        var rotation = RemoteOwnerCastGeometry.rotationFromForward(normalizedForward);
-        var yaw = rotation.yaw();
-        var pitch = rotation.pitch();
-        var feetY = eyePosition.y - proxy.getEyeHeight(proxy.getPose());
-        proxy.moveTo(eyePosition.x, feetY, eyePosition.z, yaw, pitch);
-        proxy.setYBodyRot(yaw);
-        proxy.setYHeadRot(yaw);
-        proxy.yBodyRotO = yaw;
-        proxy.yHeadRotO = yaw;
-        proxy.setXRot(pitch);
-        proxy.xRotO = pitch;
-        return proxy;
     }
 
     private static Vec3 resolveOrigin(ServerPlayer owner, RemoteOwnerCastProfile profile, Vec3 providedOrigin) {

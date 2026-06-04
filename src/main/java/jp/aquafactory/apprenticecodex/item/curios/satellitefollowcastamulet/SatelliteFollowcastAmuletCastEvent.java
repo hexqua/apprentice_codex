@@ -12,10 +12,7 @@ import io.redspace.ironsspellbooks.config.ServerConfigs;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
-import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfileManager;
-import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.network.Networks;
@@ -115,6 +112,9 @@ public final class SatelliteFollowcastAmuletCastEvent {
             if (spellData == SpellData.EMPTY || !amulet.canImbueSpell(spellData)) {
                 continue;
             }
+            if (ApprenticeCodexServerConfig.isSatelliteFollowcastAmuletSpellDenied(spellData.getSpell().getSpellResource())) {
+                continue;
+            }
 
             var key = ContinuousFollowcastKey.from(player, slotResult, slotIndex);
             if (isContinuousFollowcastActive(level, key)) {
@@ -190,8 +190,7 @@ public final class SatelliteFollowcastAmuletCastEvent {
             );
         }
 
-        if (canUseNonContinuousRemoteOwnerCast(ownerMagicData)
-                && ApprenticeCodexServerConfig.satelliteFollowcastUsesRemoteOwnerProfiles()) {
+        if (canUseNonContinuousRemoteOwnerCast(ownerMagicData)) {
             var remoteProfile = RemoteOwnerCastProfileManager.getUsableProfile(
                     spell,
                     RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST
@@ -220,13 +219,7 @@ public final class SatelliteFollowcastAmuletCastEvent {
             }
         }
 
-        if (SpellDispenserSpellProfileManager.getProfile(spell).isEmpty()
-                || !tryCastWithSpellDispenserProfile(level, player, slotResult.stack(), spellData, crystalPosition, forward, manaAccess, castingSlot)) {
-            return CastAttemptResult.NONE;
-        }
-
-        addFollowcastCooldown(player, spellData, FOLLOWCAST_SOURCE, slotResult.stack());
-        return CastAttemptResult.CASTED;
+        return CastAttemptResult.NONE;
     }
 
     private static boolean canUseNonContinuousRemoteOwnerCast(MagicData ownerMagicData) {
@@ -251,78 +244,40 @@ public final class SatelliteFollowcastAmuletCastEvent {
                 CONTINUOUS_FOLLOWCAST_TICKS,
                 Math.max(0, spell.getEffectiveCastTime(spellData.getLevel(), player))
         );
-        if (ApprenticeCodexServerConfig.satelliteFollowcastUsesRemoteOwnerProfiles()) {
-            var remoteProfile = RemoteOwnerCastProfileManager.getUsableProfile(
-                    spell,
-                    RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST
-            );
-            if (remoteProfile.isPresent()) {
-                var remoteStartResult = RemoteOwnerCastRunner.tryStartContinuousCast(
-                        level,
-                        player,
-                        sourceStack,
-                        spellData,
-                        remoteProfile.get(),
-                        RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST,
-                        crystalPosition,
-                        forward,
-                        FOLLOWCAST_SOURCE,
-                        castingSlot,
-                        castDuration,
-                        false
-                );
-                if (remoteStartResult.handled()) {
-                    if (!remoteStartResult.succeeded() || remoteStartResult.session() == null) {
-                        return CastAttemptResult.NONE;
-                    }
-
-                    ACTIVE_CONTINUOUS_CASTS.computeIfAbsent(level, ignored -> new ArrayList<>()).add(
-                            new ContinuousFollowcastRuntime(
-                                    key,
-                                    sourceStack.copy(),
-                                    ActiveContinuousCastSession.remote(remoteStartResult.session()),
-                                    level.getGameTime() + castDuration
-                            )
-                    );
-                    syncContinuousState(player, key, true, level.getGameTime() + castDuration);
-                    return CastAttemptResult.CASTED;
-                }
-            }
-        }
-
-        if (SpellDispenserSpellProfileManager.getProfile(spell).isEmpty()) {
+        var remoteProfile = RemoteOwnerCastProfileManager.getUsableProfile(
+                spell,
+                RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST
+        );
+        if (remoteProfile.isEmpty()) {
             return CastAttemptResult.NONE;
         }
 
-        var validation = new SpellDispenserSpellValidator.ValidationResult(
-                sourceStack.copy(),
-                spellData,
-                SpellDispenserSpellValidator.FailureReason.NONE
-        );
-        var startResult = SpellDispenserCastHelper.tryStartContinuousCast(
+        var remoteStartResult = RemoteOwnerCastRunner.tryStartContinuousCast(
                 level,
+                player,
+                sourceStack,
+                spellData,
+                remoteProfile.get(),
+                RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST,
                 crystalPosition,
                 forward,
-                validation,
-                sourceStack,
-                player.getGameProfile(),
-                manaAccess,
                 FOLLOWCAST_SOURCE,
                 castingSlot,
-                castDuration
+                castDuration,
+                false
         );
-        if (!startResult.result().succeeded() || startResult.session() == null) {
+        if (!remoteStartResult.handled() || !remoteStartResult.succeeded() || remoteStartResult.session() == null) {
             return CastAttemptResult.NONE;
         }
 
         ACTIVE_CONTINUOUS_CASTS.computeIfAbsent(level, ignored -> new ArrayList<>()).add(
-                new ContinuousFollowcastRuntime(
-                        key,
-                        sourceStack.copy(),
-                        ActiveContinuousCastSession.spellDispenser(startResult.session()),
-                        level.getGameTime() + castDuration
-                )
-        );
+                        new ContinuousFollowcastRuntime(
+                                key,
+                                sourceStack.copy(),
+                                remoteStartResult.session(),
+                                level.getGameTime() + castDuration
+                        )
+                );
         syncContinuousState(player, key, true, level.getGameTime() + castDuration);
         return CastAttemptResult.CASTED;
     }
@@ -373,11 +328,11 @@ public final class SatelliteFollowcastAmuletCastEvent {
                     maxSpellSlots,
                     0.0F
             );
-            runtime.session().syncTransform(crystalPosition, player.getLookAngle());
+            RemoteOwnerCastRunner.syncContinuousCastTransform(runtime.session(), crystalPosition, player.getLookAngle());
 
             if (level.getGameTime() >= runtime.finishAtGameTime() && !runtime.session().isFinished()) {
-                runtime.session().finish(level, player, false);
-            } else if (runtime.session().tick(level, player)) {
+                RemoteOwnerCastRunner.finishContinuousCast(level, player, runtime.session(), false);
+            } else if (RemoteOwnerCastRunner.tickContinuousCast(level, player, runtime.session())) {
                 continue;
             }
 
@@ -477,35 +432,6 @@ public final class SatelliteFollowcastAmuletCastEvent {
         return Math.max(0, spell.getEffectiveCastTime(spellLevel, player));
     }
 
-    private static boolean tryCastWithSpellDispenserProfile(
-            ServerLevel level,
-            ServerPlayer player,
-            ItemStack sourceStack,
-            SpellData spellData,
-            Vec3 crystalPosition,
-            Vec3 forward,
-            PlayerManaAccess manaAccess,
-            String castingSlot
-    ) {
-        var validation = new SpellDispenserSpellValidator.ValidationResult(
-                sourceStack.copy(),
-                spellData,
-                SpellDispenserSpellValidator.FailureReason.NONE
-        );
-        var result = SpellDispenserCastHelper.tryCast(
-                level,
-                crystalPosition,
-                forward,
-                validation,
-                sourceStack,
-                player.getGameProfile(),
-                manaAccess,
-                FOLLOWCAST_SOURCE,
-                castingSlot
-        );
-        return result.succeeded();
-    }
-
     private static boolean isContinuousFollowcastActive(ServerLevel level, ContinuousFollowcastKey key) {
         var runtimes = ACTIVE_CONTINUOUS_CASTS.get(level);
         if (runtimes == null) {
@@ -528,7 +454,11 @@ public final class SatelliteFollowcastAmuletCastEvent {
             boolean cancelled
     ) {
         if (!runtime.session().isFinished()) {
-            runtime.session().finish(level, owner, cancelled);
+            if (owner != null) {
+                RemoteOwnerCastRunner.finishContinuousCast(level, owner, runtime.session(), cancelled);
+            } else {
+                RemoteOwnerCastRunner.cancelContinuousCastWithoutOwner(runtime.session());
+            }
         }
 
         if (owner != null) {
@@ -685,76 +615,8 @@ public final class SatelliteFollowcastAmuletCastEvent {
     private record ContinuousFollowcastRuntime(
             ContinuousFollowcastKey key,
             ItemStack sourceStack,
-            ActiveContinuousCastSession session,
+            RemoteOwnerCastRunner.ContinuousCastSession session,
             long finishAtGameTime
     ) {
-    }
-
-    private record ActiveContinuousCastSession(
-            @Nullable SpellDispenserCastHelper.ContinuousCastSession spellDispenser,
-            @Nullable RemoteOwnerCastRunner.ContinuousCastSession remoteOwner
-    ) {
-        private static ActiveContinuousCastSession spellDispenser(SpellDispenserCastHelper.ContinuousCastSession session) {
-            return new ActiveContinuousCastSession(session, null);
-        }
-
-        private static ActiveContinuousCastSession remote(RemoteOwnerCastRunner.ContinuousCastSession session) {
-            return new ActiveContinuousCastSession(null, session);
-        }
-
-        private void syncTransform(Vec3 position, Vec3 forward) {
-            if (remoteOwner != null) {
-                RemoteOwnerCastRunner.syncContinuousCastTransform(remoteOwner, position, forward);
-            } else if (spellDispenser != null) {
-                SpellDispenserCastHelper.syncContinuousCastTransform(spellDispenser, position, forward);
-            }
-        }
-
-        private boolean tick(ServerLevel level, ServerPlayer owner) {
-            if (remoteOwner != null) {
-                return RemoteOwnerCastRunner.tickContinuousCast(level, owner, remoteOwner);
-            }
-            return spellDispenser != null && SpellDispenserCastHelper.tickContinuousCast(level, spellDispenser);
-        }
-
-        private void finish(ServerLevel level, @Nullable ServerPlayer owner, boolean cancelled) {
-            if (remoteOwner != null) {
-                if (owner != null) {
-                    RemoteOwnerCastRunner.finishContinuousCast(level, owner, remoteOwner, cancelled);
-                } else {
-                    RemoteOwnerCastRunner.cancelContinuousCastWithoutOwner(remoteOwner);
-                }
-            } else if (spellDispenser != null) {
-                SpellDispenserCastHelper.finishContinuousCast(level, spellDispenser, cancelled);
-            }
-        }
-
-        private boolean isFinished() {
-            if (remoteOwner != null) {
-                return remoteOwner.isFinished();
-            }
-            return spellDispenser == null || spellDispenser.isFinished();
-        }
-
-        private int consumeFinishedCooldownTicks() {
-            if (remoteOwner != null) {
-                return remoteOwner.consumeFinishedCooldownTicks();
-            }
-            return spellDispenser == null ? 0 : spellDispenser.consumeFinishedCooldownTicks();
-        }
-
-        private @Nullable SpellData spellData() {
-            if (remoteOwner != null) {
-                return remoteOwner.spellData();
-            }
-            return spellDispenser == null ? null : spellDispenser.validation().spellData();
-        }
-
-        private @Nullable CastSource castSource() {
-            if (remoteOwner != null) {
-                return remoteOwner.castSource();
-            }
-            return spellDispenser == null ? null : spellDispenser.castSource();
-        }
     }
 }

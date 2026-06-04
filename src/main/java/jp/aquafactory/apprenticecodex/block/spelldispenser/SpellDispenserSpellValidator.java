@@ -67,12 +67,6 @@ public final class SpellDispenserSpellValidator {
         if (spell.getRecastCount(spellData.getLevel(), null) > 0) {
             return new ValidationResult(stack, spellData, FailureReason.HAS_RECAST);
         }
-        if (ApprenticeCodexServerConfig.spellDispenserIgnoreSpellProfileAndDenylistFiles()) {
-            return new ValidationResult(stack, spellData, FailureReason.NONE);
-        }
-        if (SpellDispenserSpellListManager.isDenylisted(spell)) {
-            return new ValidationResult(stack, spellData, FailureReason.DENYLISTED);
-        }
         if (SpellDispenserSpellProfileManager.getProfile(spell).isEmpty()) {
             return new ValidationResult(stack, spellData, FailureReason.NOT_PROFILED);
         }
@@ -109,8 +103,7 @@ public final class SpellDispenserSpellValidator {
         HAS_RECAST,
         SERVER_DISABLED,
         NOT_ALLOWLISTED,
-        NOT_PROFILED,
-        DENYLISTED;
+        NOT_PROFILED;
 
         public @Nullable Component createGuiTooltip() {
             var keyBase = "container.apprenticecodex.spell_dispenser.spell.tooltip.";
@@ -124,7 +117,6 @@ public final class SpellDispenserSpellValidator {
                 case SERVER_DISABLED -> Component.translatable(keyBase + "server_disabled");
                 case NOT_ALLOWLISTED -> Component.translatable(keyBase + "not_allowlisted");
                 case NOT_PROFILED -> Component.translatable(keyBase + "not_profiled");
-                case DENYLISTED -> Component.translatable(keyBase + "denylisted");
             };
         }
     }

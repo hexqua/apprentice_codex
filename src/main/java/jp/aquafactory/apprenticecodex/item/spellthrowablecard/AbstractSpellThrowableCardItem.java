@@ -7,9 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfileManager;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
-import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.AbstractSpellThrowableCardEntity;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
@@ -128,16 +126,9 @@ public abstract class AbstractSpellThrowableCardItem extends Item implements Res
             return false;
         }
         var hasRecast = spell.getRecastCount(spellLevel, null) > 0;
-        if (ApprenticeCodexServerConfig.chargedTwinBladeStaffUsesRemoteOwnerProfiles()) {
-            var profile = RemoteOwnerCastProfileManager.getUsableProfile(
-                    spell,
-                    RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT
-            );
-            if (profile.isPresent()) {
-                return !hasRecast || profile.get().allowInitialRecast();
-            }
-        }
-        return SpellDispenserSpellProfileManager.getProfile(spell).isPresent();
+        var profile = RemoteOwnerCastProfileManager.getProfile(spell)
+                .filter(value -> value.allowsOrigin(RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT));
+        return profile.isPresent() && (!hasRecast || profile.get().allowInitialRecast());
     }
 
     @Override

@@ -13,7 +13,6 @@ public final class SpellDispenserServerConfig {
     private final ForgeConfigSpec.DoubleValue cooldownMultiplier;
     private final ForgeConfigSpec.BooleanValue creativeManaConsumption;
     private final ForgeConfigSpec.DoubleValue creativeCooldownMultiplier;
-    private final ForgeConfigSpec.BooleanValue ignoreSpellProfileAndDenylistFiles;
     private Boolean enableOverride;
     private Boolean enableSpellAllowlistOverride;
     private List<String> spellAllowlistOverride;
@@ -27,8 +26,7 @@ public final class SpellDispenserServerConfig {
             ForgeConfigSpec.ConfigValue<List<? extends String>> spellAllowlist,
             ForgeConfigSpec.DoubleValue cooldownMultiplier,
             ForgeConfigSpec.BooleanValue creativeManaConsumption,
-            ForgeConfigSpec.DoubleValue creativeCooldownMultiplier,
-            ForgeConfigSpec.BooleanValue ignoreSpellProfileAndDenylistFiles
+            ForgeConfigSpec.DoubleValue creativeCooldownMultiplier
     ) {
         this.enable = enable;
         this.enableSpellAllowlist = enableSpellAllowlist;
@@ -36,7 +34,6 @@ public final class SpellDispenserServerConfig {
         this.cooldownMultiplier = cooldownMultiplier;
         this.creativeManaConsumption = creativeManaConsumption;
         this.creativeCooldownMultiplier = creativeCooldownMultiplier;
-        this.ignoreSpellProfileAndDenylistFiles = ignoreSpellProfileAndDenylistFiles;
     }
 
     public static SpellDispenserServerConfig define(ForgeConfigSpec.Builder builder) {
@@ -66,13 +63,6 @@ public final class SpellDispenserServerConfig {
                         "WARNING: Setting this to 0 can cause catastrophic server load if redstone or contraptions repeatedly cast spells."
                 )
                 .defineInRange("creativeCooldownMultiplier", 0.1d, 0.0d, Double.MAX_VALUE);
-        var ignoreSpellProfileAndDenylistFiles = builder
-                .comment(
-                        "WARNING: Ignores Spell Dispenser spell profile and denylist config files.",
-                        "Use at your own risk. This can allow unsupported or intentionally blocked spells.",
-                        "This does not bypass enable or the server-side spell allowlist."
-                )
-                .define("ignoreSpellProfileAndDenylistFiles", false);
 
         builder.pop();
         return new SpellDispenserServerConfig(
@@ -81,8 +71,7 @@ public final class SpellDispenserServerConfig {
                 spellAllowlist,
                 cooldownMultiplier,
                 creativeManaConsumption,
-                creativeCooldownMultiplier,
-                ignoreSpellProfileAndDenylistFiles
+                creativeCooldownMultiplier
         );
     }
 
@@ -133,10 +122,6 @@ public final class SpellDispenserServerConfig {
             return creativeCooldownMultiplierOverride;
         }
         return creativeCooldownMultiplier.get();
-    }
-
-    public boolean ignoreSpellProfileAndDenylistFiles() {
-        return ignoreSpellProfileAndDenylistFiles.get();
     }
 
     public void setForGameTest(

@@ -10,7 +10,6 @@ import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectil
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
-import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfileManager;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmuletCastEvent;
@@ -48,73 +47,73 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void satelliteFollowcastAmuletAcceptsDispenserProfileAndRejectsSharedDenylists(GameTestHelper helper) {
+    public static void satelliteFollowcastAmuletAcceptsRemoteOwnerProfiles(GameTestHelper helper) {
         var amulet = (SatelliteFollowcastAmulet) ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get();
 
         helper.assertTrue(amulet.canImbueSpell(SpellRegistry.MAGE_LIGHT.get(), 1),
-                "Satellite Followcast Amulet should accept profiled Spell Dispenser spells.");
+                "Satellite Followcast Amulet should accept profiled RemoteOwner spells.");
         helper.assertTrue(amulet.canImbueSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get(), 1),
-                "Satellite Followcast Amulet should accept profiled continuous Spell Dispenser spells.");
-        helper.assertFalse(amulet.canImbueSpell(SpellRegistry.LONG_STRIDE.get(), 1),
-                "Satellite Followcast Amulet should reject continuous spells without a supported proxy profile.");
-        helper.assertFalse(amulet.canImbueSpell(SpellRegistry.AUTO_MAGNET.get(), 1),
-                "Satellite Followcast Amulet should reject Spell Dispenser data-driven denylisted spells.");
+                "Satellite Followcast Amulet should accept profiled continuous RemoteOwner spells.");
         try (var ignoredRemoteProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
                 SpellRegistry.LONG_STRIDE.get().getSpellResource(),
                 RemoteOwnerCastProfile.REMOTE_PLAYER_GEOMETRY
-        )); var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of())) {
+        ))) {
             helper.assertTrue(amulet.canImbueSpell(SpellRegistry.LONG_STRIDE.get(), 1),
-                    "Satellite Followcast Amulet should accept RemoteOwner-only continuous spells without a Spell Dispenser profile.");
+                    "Satellite Followcast Amulet should accept RemoteOwner-only continuous spells.");
+        }
+        try (var ignoredRemoteProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of())) {
+            helper.assertFalse(amulet.canImbueSpell(SpellRegistry.LONG_STRIDE.get(), 1),
+                    "Satellite Followcast Amulet should reject spells without a RemoteOwner profile.");
         }
 
         helper.succeed();
     }
 
     @GameTest(template = TEMPLATE, batch = DENYLIST_CONFIG_BATCH)
-    public static void satelliteFollowcastAmuletServerDenylistBlocksImbue(GameTestHelper helper) {
+    public static void satelliteFollowcastAmuletServerDenylistDoesNotBlockImbue(GameTestHelper helper) {
         try (var ignored = ApprenticeCodexServerConfig.useSatelliteFollowcastAmuletSpellDenylistOverrideForGameTest(
                 List.of(SpellRegistry.MAGE_LIGHT.get().getSpellId())
         )) {
             var amulet = (SatelliteFollowcastAmulet) ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get();
-            helper.assertFalse(amulet.canImbueSpell(SpellRegistry.MAGE_LIGHT.get(), 1),
-                    "Satellite Followcast Amulet server denylist should block otherwise supported spells.");
+            helper.assertTrue(amulet.canImbueSpell(SpellRegistry.MAGE_LIGHT.get(), 1),
+                    "Satellite Followcast Amulet server denylist should block runtime casts, not Imbue.");
         }
 
         helper.succeed();
     }
 
     @GameTest(template = TEMPLATE)
-    public static void satelliteFollowcastAmuletRemoteOwnerDenylistFallsBackToDispenserProfile(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = (ServerLevel) helper.getLevel();
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "satellite_followcast_remote_denylist_test");
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Satellite Followcast remote denylist fallback test could not resolve player mana data.");
-            magicData.setMana(500.0F);
+    public static void satelliteFollowcastAmuletRemoteOwnerDenylistBlocksRuntimeWithoutFallback(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "satellite_followcast_remote_denylist_test");
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Satellite Followcast remote denylist test could not resolve player mana data.");
+        magicData.setMana(500.0F);
 
-            var followcastSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
-            var triggerSpell = SpellRegistry.MAGE_LIGHT.get();
-            magicData.getSyncedData().learnSpell(followcastSpell, false);
-            magicData.getSyncedData().learnSpell(triggerSpell, false);
-            equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(followcastSpell));
+        var followcastSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        var triggerSpell = SpellRegistry.MAGE_LIGHT.get();
+        magicData.getSyncedData().learnSpell(followcastSpell, false);
+        magicData.getSyncedData().learnSpell(triggerSpell, false);
+        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(followcastSpell));
 
-            try (var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
-                    true,
-                    false,
-                    List.of(),
-                    List.of(followcastSpell.getSpellResource().toString()),
-                    true,
-                    true
-            )) {
-                SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell));
+        var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
+                true,
+                List.of(followcastSpell.getSpellResource().toString())
+        );
+        SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell));
+
+        helper.runAtTickTime(8, () -> {
+            try {
+                var projectiles = level.getEntitiesOfClass(
+                        io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
+                        new AABB(player.position(), player.position()).inflate(16.0D)
+                );
+                helper.assertTrue(projectiles.isEmpty(),
+                        "Satellite Followcast Amulet should not fall back when Remote Owner Cast is denylisted.");
+                helper.succeed();
+            } finally {
+                ignoredConfig.close();
             }
-
-            var projectiles = level.getEntitiesOfClass(
-                    io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
-                    new AABB(player.position(), player.position()).inflate(16.0D)
-            );
-            helper.assertTrue(!projectiles.isEmpty(),
-                    "Satellite Followcast Amulet should fall back to Spell Dispenser profile when Remote Owner Cast is denylisted.");
         });
     }
 
@@ -253,11 +252,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
 
         try (var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
                 true,
-                false,
-                List.of(),
-                List.of(),
-                true,
-                true
+                List.of()
         )) {
             SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell));
         }
@@ -266,8 +261,8 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
                 "Satellite Followcast Amulet should not clear the original continuous cast state.");
         helper.assertTrue(magicData.getCastingSpellId().equals(triggerSpell.getSpellId()),
                 "Satellite Followcast Amulet should preserve the original continuous spell id.");
-        helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(followSpell),
-                "Satellite Followcast Amulet should still cast Magic Arrow through the safe fallback path.");
+        helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(followSpell),
+                "Satellite Followcast Amulet should not force RemoteOwner followcasts while the original continuous cast is active.");
         helper.succeed();
     }
 
@@ -403,11 +398,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
             try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(precisionJack.getSpellResource(), profile));
                  var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
                          true,
-                         false,
-                         List.of(),
-                         List.of(),
-                         true,
-                         true
+                         List.of()
                  )) {
                 SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell));
             }
@@ -446,14 +437,9 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         var profile = RemoteOwnerCastProfile.REMOTE_PLAYER_GEOMETRY.withCastMode(RemoteOwnerCastMode.REMOTE_ANCHOR_OWNER_MAGIC);
         helper.runAtTickTime(1, () -> {
             try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(thermalProcess.getSpellResource(), profile));
-                 var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of());
                  var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
                          true,
-                         false,
-                         List.of(),
-                         List.of(),
-                         true,
-                         true
+                         List.of()
                  )) {
                 SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell));
             }
@@ -504,11 +490,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
             try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(thermalProcess.getSpellResource(), profile));
                  var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
                          true,
-                         false,
-                         List.of(),
-                         List.of(),
-                         true,
-                         true
+                         List.of()
                  )) {
                 SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell));
             }

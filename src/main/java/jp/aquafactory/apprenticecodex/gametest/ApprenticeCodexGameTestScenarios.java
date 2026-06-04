@@ -883,7 +883,7 @@ public final class ApprenticeCodexGameTestScenarios {
             try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
                     requireSpellId(mageLight), remotePlayerGeometryProfile(false),
                     requireSpellId(raiseDead), remotePlayerGeometryProfile(false)
-            )); var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of())) {
+            ))) {
                 helper.assertTrue(invokeCard.canImbueSpell(mageLight, 1),
                         "Spell Invoke Card should accept RemoteOwner profile spells");
                 helper.assertTrue(autonomyCard.canImbueSpell(mageLight, 1),
@@ -894,51 +894,38 @@ public final class ApprenticeCodexGameTestScenarios {
 
             try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
                     requireSpellId(raiseDead), remotePlayerGeometryProfile(true)
-            )); var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of())) {
+            ))) {
                 helper.assertTrue(invokeCard.canImbueSpell(raiseDead, 1),
                         "Spell Invoke Card should accept summon recasts controlled by SummonedEntitiesCastData");
                 helper.assertTrue(autonomyCard.canImbueSpell(raiseDead, 1),
                         "Spell Autonomy Card should accept summon recasts controlled by SummonedEntitiesCastData");
             }
 
-            try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of());
-                 var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of())) {
+            try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of())) {
                 helper.assertFalse(invokeCard.canImbueSpell(mageLight, 1),
                         "Spell Invoke Card should reject spells without a supported impact profile");
             }
 
             try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
                     requireSpellId(mageLight), remotePlayerGeometryProfile(false)
-            )); var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of());
-                 var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
-                         true,
-                         false,
-                         List.of(),
-                         List.of(),
-                         true,
-                         false
-                 )) {
-                helper.assertFalse(invokeCard.canImbueSpell(mageLight, 1),
-                        "Spell Invoke Card should reject RemoteOwner-only spells when Charged Twin Blade Staff RemoteOwner profiles are disabled");
-                helper.assertFalse(autonomyCard.canImbueSpell(mageLight, 1),
-                        "Spell Autonomy Card should reject RemoteOwner-only spells when Charged Twin Blade Staff RemoteOwner profiles are disabled");
+            )); var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
+                    true,
+                    List.of(mageLight.getSpellResource().toString())
+            )) {
+                helper.assertTrue(invokeCard.canImbueSpell(mageLight, 1),
+                        "Spell Invoke Card should ignore runtime RemoteOwner denylist during Imbue");
+                helper.assertTrue(autonomyCard.canImbueSpell(mageLight, 1),
+                        "Spell Autonomy Card should ignore runtime RemoteOwner denylist during Imbue");
             }
 
             try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of());
                  var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of(
                          requireSpellId(mageLight), SpellDispenserSpellProfile.DEFAULT
-                 )); var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
-                         true,
-                         false,
-                         List.of(),
-                         List.of(),
-                         true,
-                         false
-                 )) {
-                helper.assertTrue(invokeCard.canImbueSpell(mageLight, 1),
-                        "Spell Invoke Card should accept Spell Dispenser profile spells when Charged Twin Blade Staff RemoteOwner profiles are disabled");
-                helper.assertTrue(autonomyCard.canImbueSpell(mageLight, 1),
-                        "Spell Autonomy Card should accept Spell Dispenser profile spells when Charged Twin Blade Staff RemoteOwner profiles are disabled");
+                 ))) {
+                helper.assertFalse(invokeCard.canImbueSpell(mageLight, 1),
+                        "Spell Invoke Card should not use Spell Dispenser profiles as fallback");
+                helper.assertFalse(autonomyCard.canImbueSpell(mageLight, 1),
+                        "Spell Autonomy Card should not use Spell Dispenser profiles as fallback");
             }
         });
     }
@@ -1043,8 +1030,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 );
             }
 
-            try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of());
-                 var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of())) {
+            try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of())) {
                 assertSpellThrowableCardWorkbenchCantImbue(
                         helper,
                         new ItemStack(Items.PAPER, 16),
@@ -1919,37 +1905,27 @@ public final class ApprenticeCodexGameTestScenarios {
                 helper.assertTrue(validation.isSupported(), "Spell Dispenser validator rejected an allowlisted profiled spell");
             }
 
-            var denylistedSpell = SpellRegistry.ASSIST_WINGS.get();
+            var unprofiledSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.RAY_OF_SIPHONING_SPELL.get();
             try (var ignored = ApprenticeCodexServerConfig.useSpellDispenserConfigOverrideForGameTest(
                     true,
                     true,
-                    List.of(denylistedSpell.getSpellResource().toString()),
+                    List.of(unprofiledSpell.getSpellResource().toString()),
                     1.0D
             )) {
-                var validation = SpellDispenserSpellValidator.validate(createSpellScroll(denylistedSpell));
-                helper.assertTrue(!validation.isSupported(), "Spell Dispenser server allowlist bypassed the datapack denylist");
-                helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.DENYLISTED,
-                        "Spell Dispenser validator returned the wrong allowlist + datapack denylist failure: " + validation.failureReason());
+                var validation = SpellDispenserSpellValidator.validate(createSpellScroll(unprofiledSpell));
+                helper.assertTrue(!validation.isSupported(), "Spell Dispenser server allowlist bypassed the profile requirement");
+                helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.NOT_PROFILED,
+                        "Spell Dispenser validator returned the wrong allowlist + unprofiled failure: " + validation.failureReason());
             }
         });
     }
-    static void spellDispenserValidatorRejectsDenylistedSpell(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var scrollStack = createSpellScroll(SpellRegistry.ASSIST_WINGS.get());
-
-            var validation = SpellDispenserSpellValidator.validate(scrollStack);
-            helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted a denylisted scroll");
-            helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.DENYLISTED,
-                    "Spell Dispenser validator returned the wrong failure reason for denylisted scroll: " + validation.failureReason());
-        });
-    }
-    static void spellDispenserValidatorRejectsRayOfSiphoning(GameTestHelper helper) {
+    static void spellDispenserValidatorRejectsUnprofiledRayOfSiphoning(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.RAY_OF_SIPHONING_SPELL.get());
 
             var validation = SpellDispenserSpellValidator.validate(scrollStack);
             helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted Ray of Siphoning");
-            helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.DENYLISTED,
+            helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.NOT_PROFILED,
                     "Spell Dispenser validator returned the wrong failure reason for Ray of Siphoning: " + validation.failureReason());
         });
     }
@@ -10690,12 +10666,12 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Charged Twin Blade Staff LONG impact cast did not spawn Compound Phial projectiles");
         });
     }
-    static void chargedTwinBladeStaffRemoteOwnerDenylistFallsBackToDispenserProfile(GameTestHelper helper) {
+    static void chargedTwinBladeStaffRemoteOwnerDenylistBlocksRuntimeWithoutFallback(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = (ServerLevel) helper.getLevel();
             var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_remote_denylist_test");
             var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Charged Twin Blade Staff remote denylist fallback test could not resolve player mana data");
+            helper.assertTrue(magicData != null, "Charged Twin Blade Staff remote denylist test could not resolve player mana data");
             magicData.setMana(200.0F);
             var sourceStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
             var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
@@ -10710,17 +10686,13 @@ public final class ApprenticeCodexGameTestScenarios {
 
             try (var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
                     true,
-                    false,
-                    List.of(),
-                    List.of(spell.getSpellResource().toString()),
-                    true,
-                    true
+                    List.of(spell.getSpellResource().toString())
             )) {
-                helper.assertTrue(
+                helper.assertFalse(
                         jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
                                 level, player, sourceStack, payload, impactPos, forward
                         ),
-                        "Charged Twin Blade Staff should fall back to Spell Dispenser profile when Remote Owner Cast is denylisted"
+                        "Charged Twin Blade Staff should not fall back when Remote Owner Cast is denylisted"
                 );
             }
 
@@ -10728,11 +10700,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
                     new AABB(impactPos, impactPos).inflate(12.0D)
             );
-            helper.assertTrue(!projectiles.isEmpty(),
-                    "Charged Twin Blade Staff Remote Owner denylist fallback did not spawn Magic Missile projectiles");
-            helper.assertTrue(projectiles.stream().anyMatch(projectile -> projectile.position().distanceTo(impactPos) < 2.0D),
-                    "Charged Twin Blade Staff Remote Owner denylist fallback spawned Magic Missile away from the impact point: "
-                            + projectiles.stream().map(projectile -> projectile.position().toString()).toList());
+            helper.assertTrue(projectiles.isEmpty(),
+                    "Charged Twin Blade Staff Remote Owner denylist should prevent Magic Missile projectiles");
         });
     }
     static void chargedTwinBladeStaffImpactCastManagerCastsPlayerSelfProfile(GameTestHelper helper) {
@@ -10760,13 +10729,13 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Charged Twin Blade Staff self profile should apply Oakskin to the real player");
         });
     }
-    static void chargedTwinBladeStaffCreativeImpactCastUsesDispenserProfileWithZeroMana(GameTestHelper helper) {
+    static void chargedTwinBladeStaffCreativeImpactCastUsesRemoteOwnerProfileWithZeroMana(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = (ServerLevel) helper.getLevel();
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_creative_dispenser_profile_test");
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_creative_remote_owner_profile_test");
             player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
             var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Charged Twin Blade Staff creative dispenser profile test could not resolve player mana data");
+            helper.assertTrue(magicData != null, "Charged Twin Blade Staff creative RemoteOwner profile test could not resolve player mana data");
             magicData.setMana(0.0F);
             var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
             var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
@@ -10785,16 +10754,16 @@ public final class ApprenticeCodexGameTestScenarios {
                             impactPos,
                             new Vec3(0.0D, 0.0D, 1.0D)
                     ),
-                    "Charged Twin Blade Staff creative impact cast should use Spell Dispenser profile with zero mana"
+                    "Charged Twin Blade Staff creative impact cast should use RemoteOwner profile with zero mana"
             );
             var projectiles = level.getEntitiesOfClass(
                     io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
                     new AABB(impactPos, impactPos).inflate(12.0D)
             );
             helper.assertTrue(!projectiles.isEmpty(),
-                    "Charged Twin Blade Staff creative dispenser profile should spawn Magic Missile projectiles");
+                    "Charged Twin Blade Staff creative RemoteOwner profile should spawn Magic Missile projectiles");
             helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                    "Charged Twin Blade Staff creative dispenser profile should leave mana at zero but got " + magicData.getMana());
+                    "Charged Twin Blade Staff creative RemoteOwner profile should leave mana at zero but got " + magicData.getMana());
         });
     }
     static void chargedTwinBladeStaffCreativeImpactCastUsesStaffProfileWithZeroMana(GameTestHelper helper) {
@@ -10983,7 +10952,7 @@ public final class ApprenticeCodexGameTestScenarios {
                             helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3))),
                             new Vec3(0.0D, 0.0D, 1.0D)
                     ),
-                    "Charged Twin Blade Staff should reject spells without a staff or Spell Dispenser profile"
+                    "Charged Twin Blade Staff should reject spells without a RemoteOwner impact profile"
             );
         });
     }
@@ -11044,7 +11013,7 @@ public final class ApprenticeCodexGameTestScenarios {
             try (var ignoredRemoteProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
                     requireSpellId(spell),
                     remotePlayerGeometryProfile(false)
-            )); var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of())) {
+            ))) {
                 helper.assertTrue(
                         jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
                                 level, player, sourceStack, payload, impactPos, new Vec3(0.0D, 0.0D, 1.0D)
