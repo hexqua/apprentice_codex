@@ -26,7 +26,9 @@ public final class RemoteOwnerCastService {
                 request.providedForward(),
                 request.castSource(),
                 request.castingSlot(),
-                request.postSpellPreCastEvent()
+                request.postSpellPreCastEvent(),
+                request.manaPolicy(),
+                request.reservedOwnerMana()
         );
         if (!runnerResult.handled()) {
             return RemoteOwnerCastResult.notHandled(RemoteOwnerCastFailureReason.UNSUPPORTED_CAST_TYPE);

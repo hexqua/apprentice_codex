@@ -19,8 +19,38 @@ public record RemoteOwnerCastRequest(
         Vec3 providedForward,
         CastSource castSource,
         String castingSlot,
-        boolean postSpellPreCastEvent
+        boolean postSpellPreCastEvent,
+        RemoteOwnerManaPolicy manaPolicy,
+        int reservedOwnerMana
 ) {
+    public RemoteOwnerCastRequest(
+            ServerLevel level,
+            ServerPlayer owner,
+            ItemStack sourceStack,
+            SpellData spellData,
+            RemoteOwnerCastOrigin origin,
+            Vec3 providedOrigin,
+            Vec3 providedForward,
+            CastSource castSource,
+            String castingSlot,
+            boolean postSpellPreCastEvent
+    ) {
+        this(
+                level,
+                owner,
+                sourceStack,
+                spellData,
+                origin,
+                providedOrigin,
+                providedForward,
+                castSource,
+                castingSlot,
+                postSpellPreCastEvent,
+                RemoteOwnerManaPolicy.NORMAL,
+                0
+        );
+    }
+
     public RemoteOwnerCastRequest {
         Objects.requireNonNull(level, "level");
         Objects.requireNonNull(owner, "owner");
@@ -31,5 +61,7 @@ public record RemoteOwnerCastRequest(
         Objects.requireNonNull(providedForward, "providedForward");
         Objects.requireNonNull(castSource, "castSource");
         Objects.requireNonNull(castingSlot, "castingSlot");
+        Objects.requireNonNull(manaPolicy, "manaPolicy");
+        reservedOwnerMana = Math.max(0, reservedOwnerMana);
     }
 }

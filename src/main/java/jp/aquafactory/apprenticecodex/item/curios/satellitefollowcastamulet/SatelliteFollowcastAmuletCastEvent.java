@@ -7,10 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.config.ServerConfigs;
-import io.redspace.ironsspellbooks.network.SyncManaPacket;
-import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSatelliteFollowcastAmuletStatePacket;
@@ -21,9 +18,9 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRunner;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastService;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCooldownManager;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCooldownPolicy;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerManaPolicy;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
@@ -32,7 +29,6 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotResult;
@@ -124,12 +120,19 @@ public final class SatelliteFollowcastAmuletCastEvent {
             if (ownerMagicData.getPlayerCooldowns().isOnCooldown(spell)) {
                 continue;
             }
-            if (!canConsumeFollowcastManaAfterOriginal(player, ownerMagicData, spellData, reservedOriginalManaCost)) {
-                continue;
-            }
 
             try {
-                var result = tryCastSelectedSpell(level, player, ownerMagicData, slotResult, spellData, slotIndex, maxSpellSlots, key);
+                var result = tryCastSelectedSpell(
+                        level,
+                        player,
+                        ownerMagicData,
+                        slotResult,
+                        spellData,
+                        slotIndex,
+                        maxSpellSlots,
+                        reservedOriginalManaCost,
+                        key
+                );
                 if (result == CastAttemptResult.CASTED) {
                     return result;
                 }
@@ -157,6 +160,7 @@ public final class SatelliteFollowcastAmuletCastEvent {
             SpellData spellData,
             int slotIndex,
             int maxSpellSlots,
+            int reservedOriginalManaCost,
             ContinuousFollowcastKey key
     ) {
         var spell = spellData.getSpell();
@@ -173,7 +177,6 @@ public final class SatelliteFollowcastAmuletCastEvent {
                 + "_" + slotIndex;
         var crystalPosition = SatelliteFollowcastAmulet.getCrystalPosition(player, slotIndex, maxSpellSlots, 0.0F);
         var forward = player.getLookAngle();
-        var manaAccess = new PlayerManaAccess(player);
 
         if (spell.getCastType() == CastType.CONTINUOUS) {
             return tryStartContinuousFollowcast(
@@ -183,8 +186,8 @@ public final class SatelliteFollowcastAmuletCastEvent {
                     spellData,
                     crystalPosition,
                     forward,
-                    manaAccess,
                     castingSlot,
+                    reservedOriginalManaCost,
                     key
             );
         }
@@ -200,7 +203,9 @@ public final class SatelliteFollowcastAmuletCastEvent {
                     forward,
                     FOLLOWCAST_SOURCE,
                     castingSlot,
-                    false
+                    false,
+                    RemoteOwnerManaPolicy.RESERVE_OWNER_MANA,
+                    reservedOriginalManaCost
             ));
             if (result.handled()) {
                 if (!result.succeeded()) {
@@ -233,8 +238,8 @@ public final class SatelliteFollowcastAmuletCastEvent {
             SpellData spellData,
             Vec3 crystalPosition,
             Vec3 forward,
-            PlayerManaAccess manaAccess,
             String castingSlot,
+            int reservedOriginalManaCost,
             ContinuousFollowcastKey key
     ) {
         var spell = spellData.getSpell();
@@ -262,7 +267,9 @@ public final class SatelliteFollowcastAmuletCastEvent {
                 FOLLOWCAST_SOURCE,
                 castingSlot,
                 castDuration,
-                false
+                false,
+                RemoteOwnerManaPolicy.RESERVE_OWNER_MANA,
+                reservedOriginalManaCost
         );
         if (!remoteStartResult.handled() || !remoteStartResult.succeeded() || remoteStartResult.session() == null) {
             return CastAttemptResult.NONE;
@@ -369,19 +376,6 @@ public final class SatelliteFollowcastAmuletCastEvent {
             return 0;
         }
         return Math.max(0, event.getManaCost());
-    }
-
-    private static boolean canConsumeFollowcastManaAfterOriginal(
-            ServerPlayer player,
-            MagicData ownerMagicData,
-            SpellData spellData,
-            int reservedOriginalManaCost
-    ) {
-        if (player.isCreative()) {
-            return true;
-        }
-        var followcastManaCost = Math.max(0, SpellDispenserManaHelper.getSpellManaCost(spellData));
-        return ownerMagicData.getMana() >= reservedOriginalManaCost + followcastManaCost;
     }
 
     private static boolean isContinuousFollowcastActive(ServerLevel level, ContinuousFollowcastKey key) {
@@ -504,45 +498,6 @@ public final class SatelliteFollowcastAmuletCastEvent {
             if (runtimes.isEmpty()) {
                 levelIterator.remove();
             }
-        }
-    }
-
-    private static final class PlayerManaAccess implements SpellDispenserManaHelper.ManaAccess {
-        private final ServerPlayer player;
-
-        private PlayerManaAccess(ServerPlayer player) {
-            this.player = player;
-        }
-
-        @Override
-        public int getCurrentMana() {
-            return Mth.floor(MagicData.getPlayerMagicData(player).getMana());
-        }
-
-        @Override
-        public void setCurrentMana(int mana) {
-            var magicData = MagicData.getPlayerMagicData(player);
-            magicData.setMana(Math.max(0.0F, mana));
-            PacketDistributor.sendToPlayer(player, new SyncManaPacket(magicData));
-        }
-
-        @Override
-        public int getInventorySlotCount() {
-            return 0;
-        }
-
-        @Override
-        public @NotNull ItemStack getInventoryStack(int slot) {
-            return ItemStack.EMPTY;
-        }
-
-        @Override
-        public void setInventoryStack(int slot, @NotNull ItemStack stack) {
-        }
-
-        @Override
-        public boolean isManaConsumptionExempt() {
-            return player.isCreative();
         }
     }
 
