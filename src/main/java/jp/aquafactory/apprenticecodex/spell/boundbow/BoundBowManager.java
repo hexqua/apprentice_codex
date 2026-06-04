@@ -30,6 +30,11 @@ public final class BoundBowManager {
 
     public static void activate(ServerPlayer player, int spellLevel, CastSource castSource, MagicData magicData,
                                 BoundBow spell, int powerLevel) {
+        activate(player, spellLevel, castSource, magicData, spell, powerLevel, 1.0F);
+    }
+
+    public static void activate(ServerPlayer player, int spellLevel, CastSource castSource, MagicData magicData,
+                                BoundBow spell, int powerLevel, float summonDamageMultiplier) {
         deactivate(player, true);
         BoundSwordManager.deactivate(player, true);
 
@@ -40,7 +45,7 @@ public final class BoundBowManager {
 
         var instanceId = UUID.randomUUID();
         var originalMainhand = player.getMainHandItem().copy();
-        var bow = BoundBowItem.create(instanceId, powerLevel);
+        var bow = BoundBowItem.create(instanceId, powerLevel, summonDamageMultiplier);
 
         player.setItemInHand(InteractionHand.MAIN_HAND, bow);
         spellData.edit(CodexSpellStateTypeRegister.BOUND_BOW_STATE, state -> {

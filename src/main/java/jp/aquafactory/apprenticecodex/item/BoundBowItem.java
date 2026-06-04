@@ -42,14 +42,20 @@ import java.util.UUID;
 public class BoundBowItem extends BowItem {
     public static final int DURABILITY = 1561;
     public static final String INSTANCE_ID_TAG = "apprenticecodex:bound_bow_instance_id";
+    public static final String SUMMON_DAMAGE_MULTIPLIER_TAG = "apprenticecodex:bound_bow_summon_damage_multiplier";
 
     public BoundBowItem() {
         super(new Item.Properties().stacksTo(1).durability(DURABILITY).rarity(Rarity.RARE));
     }
 
     public static ItemStack create(UUID instanceId, int powerLevel) {
+        return create(instanceId, powerLevel, 1.0F);
+    }
+
+    public static ItemStack create(UUID instanceId, int powerLevel, float summonDamageMultiplier) {
         var stack = new ItemStack(ItemRegistry.BOUND_BOW.get());
         stack.getOrCreateTag().putUUID(INSTANCE_ID_TAG, instanceId);
+        stack.getOrCreateTag().putFloat(SUMMON_DAMAGE_MULTIPLIER_TAG, summonDamageMultiplier);
         if (powerLevel > 0) {
             stack.enchant(Enchantments.POWER_ARROWS, powerLevel);
         }
@@ -79,6 +85,16 @@ public class BoundBowItem extends BowItem {
             return false;
         }
         return getInstanceId(stack).map(instanceId::equals).orElse(false);
+    }
+
+    public static float getSummonDamageMultiplier(ItemStack stack) {
+        if (!isBoundBow(stack)) {
+            return 1.0F;
+        }
+        CompoundTag tag = stack.getTag();
+        return tag != null && tag.contains(SUMMON_DAMAGE_MULTIPLIER_TAG)
+                ? tag.getFloat(SUMMON_DAMAGE_MULTIPLIER_TAG)
+                : 1.0F;
     }
 
     @Override
@@ -131,6 +147,7 @@ public class BoundBowItem extends BowItem {
             if (powerLevel > 0) {
                 arrow.setBaseDamage(arrow.getBaseDamage() + (double) powerLevel * 0.5D + 0.5D);
             }
+            arrow.setBaseDamage(arrow.getBaseDamage() * getSummonDamageMultiplier(stack));
 
             var punchLevel = stack.getEnchantmentLevel(Enchantments.PUNCH_ARROWS);
             if (punchLevel > 0) {
