@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectil
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfileManager;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmuletCastEvent;
@@ -55,9 +56,16 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         helper.assertTrue(amulet.canImbueSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get(), 1),
                 "Satellite Followcast Amulet should accept profiled continuous Spell Dispenser spells.");
         helper.assertFalse(amulet.canImbueSpell(SpellRegistry.LONG_STRIDE.get(), 1),
-                "Satellite Followcast Amulet should reject continuous spells without a Spell Dispenser profile.");
+                "Satellite Followcast Amulet should reject continuous spells without a supported proxy profile.");
         helper.assertFalse(amulet.canImbueSpell(SpellRegistry.AUTO_MAGNET.get(), 1),
                 "Satellite Followcast Amulet should reject Spell Dispenser data-driven denylisted spells.");
+        try (var ignoredRemoteProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
+                SpellRegistry.LONG_STRIDE.get().getSpellResource(),
+                RemoteOwnerCastProfile.REMOTE_PLAYER_GEOMETRY
+        )); var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of())) {
+            helper.assertTrue(amulet.canImbueSpell(SpellRegistry.LONG_STRIDE.get(), 1),
+                    "Satellite Followcast Amulet should accept RemoteOwner-only continuous spells without a Spell Dispenser profile.");
+        }
 
         helper.succeed();
     }
@@ -438,6 +446,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         var profile = RemoteOwnerCastProfile.REMOTE_PLAYER_GEOMETRY.withCastMode(RemoteOwnerCastMode.REMOTE_ANCHOR_OWNER_MAGIC);
         helper.runAtTickTime(1, () -> {
             try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(thermalProcess.getSpellResource(), profile));
+                 var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of());
                  var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
                          true,
                          false,

@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet;
 
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
-import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.compat.Curios;
@@ -130,9 +129,7 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
                 && !SpellGunSpellListManager.isDenylisted(spell)
                 && !SpellDispenserSpellListManager.isDenylisted(spell)
                 && !ApprenticeCodexServerConfig.isSatelliteFollowcastAmuletSpellDenied(spell.getSpellResource())
-                && hasSupportedProxyCastProfile(spell)
-                && (spell.getCastType() != CastType.CONTINUOUS
-                        || SpellDispenserSpellProfileManager.getProfile(spell).isPresent());
+                && hasSupportedProxyCastProfile(spell);
     }
 
     @Override

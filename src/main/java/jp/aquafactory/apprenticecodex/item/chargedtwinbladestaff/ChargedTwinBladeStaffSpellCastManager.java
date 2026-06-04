@@ -124,7 +124,8 @@ public final class ChargedTwinBladeStaffSpellCastManager {
             }
         }
 
-        if (SpellDispenserSpellProfileManager.getProfile(spell).isEmpty()) {
+        var hasSpellDispenserProfile = SpellDispenserSpellProfileManager.getProfile(spell).isPresent();
+        if (spell.getCastType() != CastType.CONTINUOUS && !hasSpellDispenserProfile) {
             notifyUnsupportedCast(owner, spellData, sourceStack);
             return false;
         }
@@ -183,6 +184,11 @@ public final class ChargedTwinBladeStaffSpellCastManager {
                         return true;
                     }
                 }
+            }
+
+            if (!hasSpellDispenserProfile) {
+                notifyUnsupportedCast(owner, spellData, sourceStack);
+                return false;
             }
 
             // 1.20.1 では位置固定の継続魔法 owner を client が追跡できない spell があるため、

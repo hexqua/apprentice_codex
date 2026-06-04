@@ -11377,6 +11377,49 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void chargedTwinBladeStaffContinuousRemoteOwnerIgnoresMissingDispenserProfile(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_remote_continuous_profile_test");
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Charged Twin Blade Staff RemoteOwner-only continuous test could not resolve player mana data");
+        magicData.setMana(200.0F);
+        var sourceStack = new ItemStack(ItemRegistry.SPELL_INVOKE_CARD.get());
+        var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
+        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
+        var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
+                spell.getSpellResource(),
+                1,
+                CastSource.SWORD.name(),
+                io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+        );
+
+        helper.runAtTickTime(1, () -> {
+            try (var ignoredRemoteProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
+                    requireSpellId(spell),
+                    remotePlayerGeometryProfile(false)
+            )); var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of())) {
+                helper.assertTrue(
+                        jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                                level, player, sourceStack, payload, impactPos, new Vec3(0.0D, 0.0D, 1.0D)
+                        ),
+                        "Charged Twin Blade Staff should start RemoteOwner CONTINUOUS casts without a Spell Dispenser profile"
+                );
+            }
+        });
+        helper.succeedWhen(() -> {
+            var projectiles = level.getEntitiesOfClass(FireBreathProjectile.class, new AABB(impactPos, impactPos).inflate(16.0D));
+            helper.assertTrue(!projectiles.isEmpty(),
+                    "RemoteOwner-only CONTINUOUS impact cast did not spawn Fire Breath projectiles");
+            var anchorOwner = projectiles.stream()
+                    .map(FireBreathProjectile::getOwner)
+                    .filter(RemoteOwnerCastAnchorEntity.class::isInstance)
+                    .map(RemoteOwnerCastAnchorEntity.class::cast)
+                    .findFirst();
+            helper.assertTrue(anchorOwner.isPresent(),
+                    "RemoteOwner-only CONTINUOUS impact cast should keep Fire Breath owned by a Remote Owner anchor");
+        });
+    }
+
     static void chargedTwinBladeStaffContinuousThrowableCardUsesCardCooldownPolicy(GameTestHelper helper) {
         var level = (ServerLevel) helper.getLevel();
         var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_card_continuous_cooldown_test");
