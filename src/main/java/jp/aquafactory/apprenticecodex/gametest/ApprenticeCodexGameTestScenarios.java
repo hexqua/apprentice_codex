@@ -1054,17 +1054,17 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    static void spellThrowableCardsAcceptOnlyRemoteOwnerProfilesAndAllowedRecasts(GameTestHelper helper) {
+    static void spellThrowableCardsAcceptOnlySupportedImpactProfilesAndAllowedRecasts(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var invokeCard = (AbstractSpellThrowableCardItem) ItemRegistry.SPELL_INVOKE_CARD.get();
             var autonomyCard = (AbstractSpellThrowableCardItem) ItemRegistry.SPELL_AUTONOMY_CARD.get();
             var mageLight = SpellRegistry.MAGE_LIGHT.get();
             var raiseDead = io.redspace.ironsspellbooks.api.registry.SpellRegistry.RAISE_DEAD_SPELL.get();
 
-            try (var ignored = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
+            try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
                     requireSpellId(mageLight), remotePlayerGeometryProfile(false),
                     requireSpellId(raiseDead), remotePlayerGeometryProfile(false)
-            ))) {
+            )); var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of())) {
                 helper.assertTrue(invokeCard.canImbueSpell(mageLight, 1),
                         "Spell Invoke Card should accept RemoteOwner profile spells");
                 helper.assertTrue(autonomyCard.canImbueSpell(mageLight, 1),
@@ -1073,18 +1073,53 @@ public final class ApprenticeCodexGameTestScenarios {
                         "Spell Invoke Card should reject recast spells when the profile does not allow initial recast");
             }
 
-            try (var ignored = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
+            try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
                     requireSpellId(raiseDead), remotePlayerGeometryProfile(true)
-            ))) {
+            )); var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of())) {
                 helper.assertTrue(invokeCard.canImbueSpell(raiseDead, 1),
                         "Spell Invoke Card should accept summon recasts controlled by SummonedEntitiesCastData");
                 helper.assertTrue(autonomyCard.canImbueSpell(raiseDead, 1),
                         "Spell Autonomy Card should accept summon recasts controlled by SummonedEntitiesCastData");
             }
 
-            try (var ignored = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of())) {
+            try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of());
+                 var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of())) {
                 helper.assertFalse(invokeCard.canImbueSpell(mageLight, 1),
-                        "Spell Invoke Card should reject spells without a RemoteOwner profile");
+                        "Spell Invoke Card should reject spells without a supported impact profile");
+            }
+
+            try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
+                    requireSpellId(mageLight), remotePlayerGeometryProfile(false)
+            )); var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of());
+                 var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
+                         true,
+                         false,
+                         List.of(),
+                         List.of(),
+                         true,
+                         false
+                 )) {
+                helper.assertFalse(invokeCard.canImbueSpell(mageLight, 1),
+                        "Spell Invoke Card should reject RemoteOwner-only spells when Charged Twin Blade Staff RemoteOwner profiles are disabled");
+                helper.assertFalse(autonomyCard.canImbueSpell(mageLight, 1),
+                        "Spell Autonomy Card should reject RemoteOwner-only spells when Charged Twin Blade Staff RemoteOwner profiles are disabled");
+            }
+
+            try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of());
+                 var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of(
+                         requireSpellId(mageLight), SpellDispenserSpellProfile.DEFAULT
+                 )); var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
+                         true,
+                         false,
+                         List.of(),
+                         List.of(),
+                         true,
+                         false
+                 )) {
+                helper.assertTrue(invokeCard.canImbueSpell(mageLight, 1),
+                        "Spell Invoke Card should accept Spell Dispenser profile spells when Charged Twin Blade Staff RemoteOwner profiles are disabled");
+                helper.assertTrue(autonomyCard.canImbueSpell(mageLight, 1),
+                        "Spell Autonomy Card should accept Spell Dispenser profile spells when Charged Twin Blade Staff RemoteOwner profiles are disabled");
             }
         });
     }
@@ -1189,7 +1224,8 @@ public final class ApprenticeCodexGameTestScenarios {
                 );
             }
 
-            try (var ignored = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of())) {
+            try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of());
+                 var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of())) {
                 assertSpellThrowableCardWorkbenchCantImbue(
                         helper,
                         new ItemStack(Items.PAPER, 16),
