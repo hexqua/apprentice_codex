@@ -12,6 +12,8 @@ import org.jetbrains.annotations.NotNull;
 public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprenticeCodexRecipeCategory<SpellcasterWorkbenchRecipe> {
     private static final Component ARCHIVISTS_GRIMOIRE_UPGRADE_HINT =
             Component.translatable("jei.apprenticecodex.archivists_grimoire.upgrade_hint");
+    private static final Component SPELL_THROWABLE_CARD_CRAFT_HINT =
+            Component.translatable("jei.apprenticecodex.spell_throwable_cards.craft_hint");
     private static final int WIDTH = 134;
     private static final int HEIGHT = 56;
     private static final int[][] INPUT_POSITIONS = {
@@ -72,6 +74,8 @@ public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprentice
         recipeArrow.draw(guiGraphics, ARROW_X, ARROW_Y);
         if (isArchivistsGrimoireRowUpgradeRecipe(recipe)) {
             drawLabel(guiGraphics, ARCHIVISTS_GRIMOIRE_UPGRADE_HINT, 74, 36);
+        } else if (isSpellThrowableCardRecipe(recipe)) {
+            drawLabel(guiGraphics, SPELL_THROWABLE_CARD_CRAFT_HINT, 74, 36);
         }
     }
 
@@ -79,6 +83,14 @@ public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprentice
         var outputs = recipe.getResultTemplates();
         return outputs.size() == 1
                 && outputs.getFirst().is(ItemRegistry.ARCHIVISTS_GRIMOIRE.get())
+                && recipe.getSizedIngredients().size() == SpellcasterWorkbenchRecipe.INPUT_SLOT_COUNT;
+    }
+
+    private static boolean isSpellThrowableCardRecipe(SpellcasterWorkbenchRecipe recipe) {
+        var outputs = recipe.getResultTemplates();
+        return outputs.size() == 1
+                && (outputs.getFirst().is(ItemRegistry.SPELL_INVOKE_CARD.get())
+                || outputs.getFirst().is(ItemRegistry.SPELL_AUTONOMY_CARD.get()))
                 && recipe.getSizedIngredients().size() == SpellcasterWorkbenchRecipe.INPUT_SLOT_COUNT;
     }
 }

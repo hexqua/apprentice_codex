@@ -34,6 +34,8 @@
   "item.apprenticecodex.empty_advanced_spellcaster_casing": "上位用詠唱銃弾の空薬莢",
   "item.apprenticecodex.empty_spell_dominator_casing": "魔術支配の銃弾の空薬莢",
   "item.apprenticecodex.empty_multi_purpose_spell_casing": "多目的魔術銃弾の空薬莢",
+  "item.apprenticecodex.spell_invoke_card": "術式発火の投擲札",
+  "item.apprenticecodex.spell_autonomy_card": "術式自律発動の投擲札",
   "item.apprenticecodex.iron_spellcaster_gun": "鉄の速射型魔術銃",
   "item.apprenticecodex.copper_spellcaster_gun": "銅の詠唱型魔術銃",
   "item.apprenticecodex.gold_spellcaster_gun": "金の重装型魔術銃",
@@ -133,6 +135,7 @@
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_not_continuous": "- 詠唱し続ける必要が無い",
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_cooldown": "- クールダウンが%s秒以下",
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_no_recast": "- 再詠唱の必要が無い",
+  "item.apprenticecodex.spellgun.tooltip.restrict_restrict_accept_summon_recast": "- 召喚解除以外で再詠唱の必要がない",
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_by_profile": "- 事前にデータの理で調整済みのもの",
   "item.apprenticecodex.spellgun.tooltip.ammo_title": "使用弾薬:",
   "item.apprenticecodex.spellgun.tooltip.ammo_none": "- 特に無し",
@@ -251,6 +254,8 @@
   "item.apprenticecodex.scrollcaster_gauntlet.school_rune": "このガントレットは\"%s\"の系統に調律されている。",
   "item.apprenticecodex.bound_weapon.contain_item.item": "\"%s\"が封じ込まれている。",
   "item.apprenticecodex.bound_weapon.contain_item.hint": "手放すことで中のアイテムが復元される。",
+  "item.apprenticecodex.spell_invoke_card.desc": "投げて当たった場所で注入した魔法を発動させる。",
+  "item.apprenticecodex.spell_autonomy_card.desc": "投げると空中に留まり、一定時間後に注入した魔法を発動させる。",
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "かまど・溶鉱炉・燻製器の燃料として使用することで加工速度が上昇する。",
   "jei.apprenticecodex.arcane_cinder.desc_2": "それ以外の機材では効果を発揮しない。",
@@ -353,8 +358,12 @@
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_8": "エンチャントは同時に付呪できないものは一つのみが適用され、剣・ツルハシ・魔法詠唱補助具のいずれかに付呪できるものが適用できる。",
   "jei.apprenticecodex.spell_calibration_bench.desc_1": "術式装填ガントレットや一部アイテムの注入魔法の調整を行える装置。",
   "jei.apprenticecodex.spell_calibration_bench.desc_2": "アイテムの魔法の注入については取り外す事ができないアイテムの操作は行えず、そちらは秘術の鉄床を使う必要がある。",
+  "jei.apprenticecodex.spell_throwable_cards.desc_1": "魔法を注入して投げることでそれぞれの札に対応した挙動で魔法を遠隔発動できる。",
+  "jei.apprenticecodex.spell_throwable_cards.desc_2": "札そのものは消耗品だが作成時にスクロールを消費せずにクラフト可能。",
+  "jei.apprenticecodex.spell_throwable_cards.desc_3": "注入できる魔法は設定によって制限され、JEI上で確認が可能。",
 
   "jei.apprenticecodex.archivists_grimoire.upgrade_hint": "スロット数が9増加",
+  "jei.apprenticecodex.spell_throwable_cards.craft_hint": "スクロールは消費しない",
 
   "enchantment.apprenticecodex.reflux": "還流",
   "enchantment.apprenticecodex.reservoir": "貯蔵",
@@ -439,6 +448,8 @@
   "entity.apprenticecodex.tiro_volley_musket": "魔法のマスケット銃",
   "entity.apprenticecodex.magic_spear_missile": "SAAM",
   "entity.apprenticecodex.inscribe_ice_dagger": "刻印ダガー",
+  "entity.apprenticecodex.spell_invoke_card": "術式発火の札",
+  "entity.apprenticecodex.spell_autonomy_card": "術式自律発動の札",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "使い走り魔術師",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "使い走り魔術師",
@@ -771,12 +782,14 @@
   "ui.apprenticecodex.multicast_echo_staff.cancel_by_item_change": "魔力の残響を受け止める杖が手元にない！",
   "ui.apprenticecodex.spell_dispenser.creative_version.deny_open": "このスペルディスペンサーは創造の力によって開くことできない！",
   "ui.apprenticecodex.zenith_staff.insufficient_mana": "%1$sの消費マナが%2$sに増加していて今のマナでは足りない！",
+  "ui.apprenticecodex.spell_throwable_cards.not_imbued": "この札には魔法が注入されていない！",
 
   "ui.apprenticecodex.spell_calibration_bench.hint_default_spell": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spell_calibration_bench.cant_remove_not_allow": "このアイテムからはスクロールは取り出せない",
   "ui.apprenticecodex.spell_calibration_bench.cant_imbue_unsupported_equipment": "このアイテムへの注入は秘術の金床を使う必要がある",
   "ui.apprenticecodex.spell_calibration_bench.warning_restrict_imbue_condition": "以下を満たした魔法のスクロールのみ注入できる",
   "ui.apprenticecodex.spellcaster_workbench.warning_max_slot_reached": "このアイテムは既に最大まで拡張されている",
+  "ui.apprenticecodex.spellcaster_workbench.cant_imbue_to_card": "この魔法は札に注入できない",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
   "effect.apprenticecodex.casting_mobility": "詠唱移動補助",
@@ -1041,5 +1054,6 @@
   "subtitle.apprenticecodex.sound.vanilla_feather_shoot": "羽を発射する",
   "subtitle.apprenticecodex.sound.vanilla_jar_open": "瓶の蓋を開ける",
   "subtitle.apprenticecodex.sound.vanilla_jar_close": "瓶の蓋を閉じる",
-  "subtitle.apprenticecodex.sound.vanilla_chest_jump": "チェストが跳ねる"
+  "subtitle.apprenticecodex.sound.vanilla_chest_jump": "チェストが跳ねる",
+  "subtitle.apprenticecodex.sound.vanilla_card_throw": "札を投擲する"
 }

@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff;
 
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
+import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
@@ -13,6 +14,7 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHel
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfileManager;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRunner;
@@ -22,6 +24,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.NeoForge;
@@ -31,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -40,6 +44,7 @@ import java.util.WeakHashMap;
 public final class ChargedTwinBladeStaffSpellCastManager {
     public static final int CONTINUOUS_IMPACT_CAST_TICKS = 20 * 5;
     private static final Map<ServerLevel, List<ContinuousImpactCastRuntime>> ACTIVE_CONTINUOUS_CASTS = new WeakHashMap<>();
+    private static final Map<UUID, PendingImpactCooldown> PENDING_IMPACT_COOLDOWNS = new HashMap<>();
 
     private ChargedTwinBladeStaffSpellCastManager() {
     }
@@ -51,6 +56,28 @@ public final class ChargedTwinBladeStaffSpellCastManager {
             ChargedTwinBladeStaffSpellPayload payload,
             Vec3 impactPosition,
             Vec3 forward
+    ) {
+        return tryCastAtImpact(
+                level,
+                owner,
+                sourceStack,
+                payload,
+                impactPosition,
+                forward,
+                RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT,
+                false
+        );
+    }
+
+    public static boolean tryCastAtImpact(
+            ServerLevel level,
+            ServerPlayer owner,
+            ItemStack sourceStack,
+            ChargedTwinBladeStaffSpellPayload payload,
+            Vec3 impactPosition,
+            Vec3 forward,
+            RemoteOwnerCastOrigin castOrigin,
+            boolean extendLongCastCooldown
     ) {
         if (!payload.isPresent()) {
             return false;
@@ -72,7 +99,7 @@ public final class ChargedTwinBladeStaffSpellCastManager {
                 && spell.getCastType() != CastType.CONTINUOUS) {
             var remoteProfile = RemoteOwnerCastProfileManager.getUsableProfile(
                     spell,
-                    RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT
+                    castOrigin
             );
             if (remoteProfile.isPresent()) {
                 var result = RemoteOwnerCastRunner.tryCast(
@@ -81,7 +108,7 @@ public final class ChargedTwinBladeStaffSpellCastManager {
                         sourceStack,
                         spellData,
                         remoteProfile.get(),
-                        RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT,
+                        castOrigin,
                         impactPosition,
                         forward,
                         castSource,
@@ -90,14 +117,15 @@ public final class ChargedTwinBladeStaffSpellCastManager {
                 );
                 if (result.handled()) {
                     if (result.succeeded()) {
-                        addCooldownIfNeeded(owner, spellData, castSource);
+                        addCooldownIfNeeded(owner, spellData, castSource, sourceStack, resolveLongCastCooldownExtensionTicks(owner, spellData, extendLongCastCooldown));
                     }
                     return result.succeeded();
                 }
             }
         }
 
-        if (SpellDispenserSpellProfileManager.getProfile(spell).isEmpty()) {
+        var hasSpellDispenserProfile = SpellDispenserSpellProfileManager.getProfile(spell).isPresent();
+        if (spell.getCastType() != CastType.CONTINUOUS && !hasSpellDispenserProfile) {
             notifyUnsupportedCast(owner, spellData, sourceStack);
             return false;
         }
@@ -121,7 +149,7 @@ public final class ChargedTwinBladeStaffSpellCastManager {
             if (ApprenticeCodexServerConfig.chargedTwinBladeStaffUsesRemoteOwnerProfiles()) {
                 var remoteProfile = RemoteOwnerCastProfileManager.getUsableProfile(
                         spell,
-                        RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT
+                        castOrigin
                 );
                 if (remoteProfile.isPresent()) {
                     var remoteStartResult = RemoteOwnerCastRunner.tryStartContinuousCast(
@@ -130,7 +158,7 @@ public final class ChargedTwinBladeStaffSpellCastManager {
                             sourceStack,
                             spellData,
                             remoteProfile.get(),
-                            RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT,
+                            castOrigin,
                             impactPosition,
                             forward,
                             castSource,
@@ -149,12 +177,18 @@ public final class ChargedTwinBladeStaffSpellCastManager {
                                         impactPosition,
                                         forward,
                                         ActiveContinuousCastSession.remote(remoteStartResult.session()),
-                                        level.getGameTime() + CONTINUOUS_IMPACT_CAST_TICKS
+                                        level.getGameTime() + CONTINUOUS_IMPACT_CAST_TICKS,
+                                        sourceStack.copy()
                                 )
                         );
                         return true;
                     }
                 }
+            }
+
+            if (!hasSpellDispenserProfile) {
+                notifyUnsupportedCast(owner, spellData, sourceStack);
+                return false;
             }
 
             // 1.20.1 では位置固定の継続魔法 owner を client が追跡できない spell があるため、
@@ -181,7 +215,8 @@ public final class ChargedTwinBladeStaffSpellCastManager {
                             impactPosition,
                             forward,
                             ActiveContinuousCastSession.spellDispenser(startResult.session()),
-                            level.getGameTime() + CONTINUOUS_IMPACT_CAST_TICKS
+                            level.getGameTime() + CONTINUOUS_IMPACT_CAST_TICKS,
+                            sourceStack.copy()
                     )
             );
             return true;
@@ -202,7 +237,7 @@ public final class ChargedTwinBladeStaffSpellCastManager {
             return false;
         }
 
-        addCooldownIfNeeded(owner, spellData, castSource);
+        addCooldownIfNeeded(owner, spellData, castSource, sourceStack, resolveLongCastCooldownExtensionTicks(owner, spellData, extendLongCastCooldown));
         return true;
     }
 
@@ -271,7 +306,7 @@ public final class ChargedTwinBladeStaffSpellCastManager {
                 continue;
             }
 
-            applyCooldownIfNeeded(serverPlayer, runtime.session());
+            applyCooldownIfNeeded(serverPlayer, runtime.session(), runtime.castingStack());
             iterator.remove();
         }
 
@@ -280,7 +315,7 @@ public final class ChargedTwinBladeStaffSpellCastManager {
         }
     }
 
-    private static void applyCooldownIfNeeded(ServerPlayer owner, ActiveContinuousCastSession session) {
+    private static void applyCooldownIfNeeded(ServerPlayer owner, ActiveContinuousCastSession session, ItemStack castingStack) {
         if (session.consumeFinishedCooldownTicks() <= 0) {
             return;
         }
@@ -291,16 +326,63 @@ public final class ChargedTwinBladeStaffSpellCastManager {
             return;
         }
 
-        addCooldownIfNeeded(owner, spellData, castSource);
+        addCooldownIfNeeded(owner, spellData, castSource, castingStack, 0);
     }
 
-    private static void addCooldownIfNeeded(ServerPlayer owner, SpellData spellData, CastSource castSource) {
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onSpellCooldownAdded(SpellCooldownAddedEvent.Pre event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+
+        var pendingCooldown = PENDING_IMPACT_COOLDOWNS.get(player.getUUID());
+        if (pendingCooldown == null
+                || !pendingCooldown.spellId().equals(event.getSpell().getSpellId())
+                || pendingCooldown.castSource() != event.getCastSource()) {
+            return;
+        }
+
+        event.setEffectiveCooldown(WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                event.getSpell(),
+                player,
+                event.getCastSource(),
+                pendingCooldown.castingStack()
+        ) + pendingCooldown.extraCooldownTicks());
+    }
+
+    private static void addCooldownIfNeeded(
+            ServerPlayer owner,
+            SpellData spellData,
+            CastSource castSource,
+            ItemStack castingStack,
+            int extraCooldownTicks
+    ) {
         var spell = spellData.getSpell();
         if (spell.getRecastCount(spellData.getLevel(), owner) > 0) {
             return;
         }
 
-        MagicHelper.MAGIC_MANAGER.addCooldown(owner, spell, castSource);
+        PENDING_IMPACT_COOLDOWNS.put(owner.getUUID(), new PendingImpactCooldown(
+                spell.getSpellId(),
+                castSource,
+                castingStack.copy(),
+                Math.max(0, extraCooldownTicks)
+        ));
+        try {
+            MagicHelper.MAGIC_MANAGER.addCooldown(owner, spell, castSource);
+        } finally {
+            PENDING_IMPACT_COOLDOWNS.remove(owner.getUUID());
+        }
+    }
+
+    private static int resolveLongCastCooldownExtensionTicks(ServerPlayer owner, SpellData spellData, boolean enabled) {
+        if (!enabled || spellData == SpellData.EMPTY || spellData.getSpell().getCastType() != CastType.LONG) {
+            return 0;
+        }
+        return Math.max(0, spellData.getSpell().getEffectiveCastTime(spellData.getLevel(), owner));
+    }
+
+    private record PendingImpactCooldown(String spellId, CastSource castSource, ItemStack castingStack, int extraCooldownTicks) {
     }
 
     private record ContinuousImpactCastRuntime(
@@ -308,7 +390,8 @@ public final class ChargedTwinBladeStaffSpellCastManager {
             Vec3 position,
             Vec3 forward,
             ActiveContinuousCastSession session,
-            long finishAtGameTime
+            long finishAtGameTime,
+            ItemStack castingStack
     ) {
     }
 

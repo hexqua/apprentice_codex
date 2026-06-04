@@ -70,6 +70,12 @@ public final class TagRegistry {
                 createItemTag("archivists_grimoire_row_upgrade_catalysts");
         public static final TagKey<Item> ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_MATERIALS =
                 createItemTag("archivists_grimoire_row_upgrade_materials");
+        public static final TagKey<Item> SPELL_THROWABLE_CARD_PAPERS =
+                createItemTag("spell_throwable_card_papers");
+        public static final TagKey<Item> SPELL_INVOKE_CARD_CRAFTING_MATERIALS =
+                createItemTag("spell_invoke_card_crafting_materials");
+        public static final TagKey<Item> SPELL_AUTONOMY_CARD_CRAFTING_MATERIALS =
+                createItemTag("spell_autonomy_card_crafting_materials");
     }
 
     public static final class EntityTypes {

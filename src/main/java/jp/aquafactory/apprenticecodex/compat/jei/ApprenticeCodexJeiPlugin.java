@@ -225,6 +225,7 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                 < ApprenticeCodexServerConfig.archivistsGrimoireEffectiveMaxRows()) {
             recipes.add(createArchivistsGrimoireUpgradeJeiRecipe());
         }
+        recipes.addAll(createSpellThrowableCardJeiRecipes());
         return recipes;
     }
 
@@ -237,6 +238,57 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                 ),
                 List.of(new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get())),
                 -10
+        );
+    }
+
+    private static List<SpellcasterWorkbenchRecipe> createSpellThrowableCardJeiRecipes() {
+        var invokeCount = ApprenticeCodexServerConfig.spellInvokeCardCraftCount();
+        var autonomyCount = ApprenticeCodexServerConfig.spellAutonomyCardCraftCount();
+        return List.of(
+                createSpellThrowableCardJeiRecipe(
+                        Ingredient.of(TagRegistry.Items.SPELL_THROWABLE_CARD_PAPERS),
+                        invokeCount,
+                        Ingredient.of(TagRegistry.Items.SPELL_INVOKE_CARD_CRAFTING_MATERIALS),
+                        new ItemStack(ItemRegistry.SPELL_INVOKE_CARD.get(), invokeCount)
+                ),
+                createSpellThrowableCardJeiRecipe(
+                        Ingredient.of(ItemRegistry.SPELL_INVOKE_CARD.get()),
+                        invokeCount,
+                        Ingredient.of(TagRegistry.Items.SPELL_INVOKE_CARD_CRAFTING_MATERIALS),
+                        new ItemStack(ItemRegistry.SPELL_INVOKE_CARD.get(), invokeCount)
+                ),
+                createSpellThrowableCardJeiRecipe(
+                        Ingredient.of(TagRegistry.Items.SPELL_THROWABLE_CARD_PAPERS),
+                        autonomyCount,
+                        Ingredient.of(TagRegistry.Items.SPELL_AUTONOMY_CARD_CRAFTING_MATERIALS),
+                        new ItemStack(ItemRegistry.SPELL_AUTONOMY_CARD.get(), autonomyCount)
+                ),
+                createSpellThrowableCardJeiRecipe(
+                        Ingredient.of(ItemRegistry.SPELL_AUTONOMY_CARD.get()),
+                        autonomyCount,
+                        Ingredient.of(TagRegistry.Items.SPELL_AUTONOMY_CARD_CRAFTING_MATERIALS),
+                        new ItemStack(ItemRegistry.SPELL_AUTONOMY_CARD.get(), autonomyCount)
+                )
+        );
+    }
+
+    private static SpellcasterWorkbenchRecipe createSpellThrowableCardJeiRecipe(
+            Ingredient baseIngredient,
+            int baseCount,
+            Ingredient catalystIngredient,
+            ItemStack result
+    ) {
+        return new SpellcasterWorkbenchRecipe(
+                List.of(
+                        new SpellcasterWorkbenchRecipe.SizedIngredient(baseIngredient, baseCount),
+                        new SpellcasterWorkbenchRecipe.SizedIngredient(catalystIngredient, 1),
+                        new SpellcasterWorkbenchRecipe.SizedIngredient(
+                                Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
+                                1
+                        )
+                ),
+                List.of(result),
+                -20
         );
     }
 

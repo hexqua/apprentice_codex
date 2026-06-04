@@ -636,5 +636,12 @@
       "minecraft:block/chest/close2",
       "minecraft:block/chest/close3"
     ]
+  },
+  "vanilla_card_throw": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ARROW_SHOOT",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_card_throw",
+    "sounds": [
+      "minecraft:random/bow"
+    ]
   }
 }

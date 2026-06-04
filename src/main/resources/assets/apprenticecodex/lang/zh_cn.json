@@ -31,6 +31,8 @@
   "item.apprenticecodex.empty_advanced_spellcaster_casing": "空进阶法弹壳",
   "item.apprenticecodex.empty_spell_dominator_casing": "空统御法弹壳",
   "item.apprenticecodex.empty_multi_purpose_spell_casing": "空多用途法弹壳",
+  "item.apprenticecodex.spell_invoke_card": "术式触发投掷符卡",
+  "item.apprenticecodex.spell_autonomy_card": "术式自主发动投掷符卡",
   "item.apprenticecodex.iron_spellcaster_gun": "铁制速施法枪",
   "item.apprenticecodex.copper_spellcaster_gun": "铜制咏施法枪",
   "item.apprenticecodex.gold_spellcaster_gun": "金制重施法枪",
@@ -129,6 +131,7 @@
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_not_continuous": "- 禁止持续施法",
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_cooldown": "- 冷却时间需≤%s秒",
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_no_recast": "- 无需二次施法",
+  "item.apprenticecodex.spellgun.tooltip.restrict_restrict_accept_summon_recast": "- 除解除召唤外无需二次施法",
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_by_profile": "- 已由数据驱动施法配置适配",
   "item.apprenticecodex.spellgun.tooltip.ammo_title": "弹药：",
   "item.apprenticecodex.spellgun.tooltip.ammo_none": "- 无",
@@ -246,6 +249,9 @@
   "item.apprenticecodex.scrollcaster_gauntlet.school_rune": "该臂铠已调律至“%s”学派。",
   "item.apprenticecodex.bound_weapon.contain_item.item": "“%s”被封入其中。",
   "item.apprenticecodex.bound_weapon.contain_item.hint": "放开这把武器即可复原其中的物品。",
+  "item.apprenticecodex.spell_invoke_card.desc": "投掷后会在命中的位置发动注入的法术。",
+  "item.apprenticecodex.spell_autonomy_card.desc": "投掷后会停留在空中，并在一段时间后发动注入的法术。",
+
   "jei.apprenticecodex.arcane_cinder.desc_1": "作为熔炉、高炉、烟熏炉燃料时，可提升加工速度。",
   "jei.apprenticecodex.arcane_cinder.desc_2": "在其他机器中无效果。",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "放置后放入红石，静置一段时间会将其转化为奥术精华。",
@@ -347,6 +353,11 @@
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_8": "互斥附魔同时存在时只会应用一个；可应用于剑、镐或魔法施法辅助具的附魔可以生效。",
   "jei.apprenticecodex.spell_calibration_bench.desc_1": "用于调整卷轴施法臂铠及部分物品中注入法术的装置。",
   "jei.apprenticecodex.spell_calibration_bench.desc_2": "无法处理注入法术不可取下的物品；这类物品需要使用奥术铁砧。",
+  "jei.apprenticecodex.spell_throwable_cards.desc_1": "为符卡注入法术后投掷，即可根据各符卡类型的行为远程发动法术。",
+  "jei.apprenticecodex.spell_throwable_cards.desc_2": "符卡本身是消耗品，但制作时不会消耗用于注入的卷轴。",
+  "jei.apprenticecodex.spell_throwable_cards.desc_3": "可注入的法术受配置限制，可在物品详情和 JEI 中确认。",
+  "jei.apprenticecodex.spell_throwable_cards.craft_hint": "不消耗卷轴",
+
   "jei.apprenticecodex.archivists_grimoire.upgrade_hint": "槽位数增加9",
   "enchantment.apprenticecodex.reflux": "回流",
   "enchantment.apprenticecodex.reservoir": "蓄能",
@@ -429,6 +440,9 @@
   "entity.apprenticecodex.tiro_volley_musket": "魔法滑膛枪",
   "entity.apprenticecodex.magic_spear_missile": "魔法穿甲弹",
   "entity.apprenticecodex.inscribe_ice_dagger": "刻印匕首",
+  "entity.apprenticecodex.spell_invoke_card": "术式触发符卡",
+  "entity.apprenticecodex.spell_autonomy_card": "术式自主发动符卡",
+
   "entity.minecraft.villager.apprenticecodex.errand_mage": "跑腿法师",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "跑腿法师",
   "entity.minecraft.villager.errand_mage": "跑腿法师",
@@ -755,6 +769,9 @@
   "ui.apprenticecodex.spell_calibration_bench.cant_imbue_unsupported_equipment": "需要使用奥术铁砧为该物品注入法术",
   "ui.apprenticecodex.spell_calibration_bench.warning_restrict_imbue_condition": "只能注入满足以下条件的法术卷轴",
   "ui.apprenticecodex.spellcaster_workbench.warning_max_slot_reached": "该物品已扩展至最大",
+  "ui.apprenticecodex.spellcaster_workbench.cant_imbue_to_card": "该法术无法注入符卡",
+  "ui.apprenticecodex.spell_throwable_cards.not_imbued": "这张符卡尚未注入法术！",
+
   "effect.apprenticecodex.arcane_charge": "奥术充能",
   "effect.apprenticecodex.casting_mobility": "施法机动",
   "effect.apprenticecodex.intelligence": "智慧",
@@ -1013,5 +1030,6 @@
   "subtitle.apprenticecodex.sound.vanilla_feather_shoot": "羽毛发射",
   "subtitle.apprenticecodex.sound.vanilla_jar_open": "瓶子打开",
   "subtitle.apprenticecodex.sound.vanilla_jar_close": "瓶子关闭",
-  "subtitle.apprenticecodex.sound.vanilla_chest_jump": "宝箱跳动"
+  "subtitle.apprenticecodex.sound.vanilla_chest_jump": "宝箱跳动",
+  "subtitle.apprenticecodex.sound.vanilla_card_throw": "符卡被投掷"
 }
