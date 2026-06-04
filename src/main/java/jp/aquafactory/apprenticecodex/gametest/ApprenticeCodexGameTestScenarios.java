@@ -873,17 +873,17 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    static void spellThrowableCardsAcceptOnlyRemoteOwnerProfilesAndAllowedRecasts(GameTestHelper helper) {
+    static void spellThrowableCardsAcceptOnlySupportedImpactProfilesAndAllowedRecasts(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var invokeCard = (AbstractSpellThrowableCardItem) ItemRegistry.SPELL_INVOKE_CARD.get();
             var autonomyCard = (AbstractSpellThrowableCardItem) ItemRegistry.SPELL_AUTONOMY_CARD.get();
             var mageLight = SpellRegistry.MAGE_LIGHT.get();
             var raiseDead = io.redspace.ironsspellbooks.api.registry.SpellRegistry.RAISE_DEAD_SPELL.get();
 
-            try (var ignored = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
+            try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
                     requireSpellId(mageLight), remotePlayerGeometryProfile(false),
                     requireSpellId(raiseDead), remotePlayerGeometryProfile(false)
-            ))) {
+            )); var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of())) {
                 helper.assertTrue(invokeCard.canImbueSpell(mageLight, 1),
                         "Spell Invoke Card should accept RemoteOwner profile spells");
                 helper.assertTrue(autonomyCard.canImbueSpell(mageLight, 1),
@@ -892,18 +892,53 @@ public final class ApprenticeCodexGameTestScenarios {
                         "Spell Invoke Card should reject recast spells when the profile does not allow initial recast");
             }
 
-            try (var ignored = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
+            try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
                     requireSpellId(raiseDead), remotePlayerGeometryProfile(true)
-            ))) {
+            )); var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of())) {
                 helper.assertTrue(invokeCard.canImbueSpell(raiseDead, 1),
                         "Spell Invoke Card should accept summon recasts controlled by SummonedEntitiesCastData");
                 helper.assertTrue(autonomyCard.canImbueSpell(raiseDead, 1),
                         "Spell Autonomy Card should accept summon recasts controlled by SummonedEntitiesCastData");
             }
 
-            try (var ignored = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of())) {
+            try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of());
+                 var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of())) {
                 helper.assertFalse(invokeCard.canImbueSpell(mageLight, 1),
-                        "Spell Invoke Card should reject spells without a RemoteOwner profile");
+                        "Spell Invoke Card should reject spells without a supported impact profile");
+            }
+
+            try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
+                    requireSpellId(mageLight), remotePlayerGeometryProfile(false)
+            )); var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of());
+                 var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
+                         true,
+                         false,
+                         List.of(),
+                         List.of(),
+                         true,
+                         false
+                 )) {
+                helper.assertFalse(invokeCard.canImbueSpell(mageLight, 1),
+                        "Spell Invoke Card should reject RemoteOwner-only spells when Charged Twin Blade Staff RemoteOwner profiles are disabled");
+                helper.assertFalse(autonomyCard.canImbueSpell(mageLight, 1),
+                        "Spell Autonomy Card should reject RemoteOwner-only spells when Charged Twin Blade Staff RemoteOwner profiles are disabled");
+            }
+
+            try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of());
+                 var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of(
+                         requireSpellId(mageLight), SpellDispenserSpellProfile.DEFAULT
+                 )); var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
+                         true,
+                         false,
+                         List.of(),
+                         List.of(),
+                         true,
+                         false
+                 )) {
+                helper.assertTrue(invokeCard.canImbueSpell(mageLight, 1),
+                        "Spell Invoke Card should accept Spell Dispenser profile spells when Charged Twin Blade Staff RemoteOwner profiles are disabled");
+                helper.assertTrue(autonomyCard.canImbueSpell(mageLight, 1),
+                        "Spell Autonomy Card should accept Spell Dispenser profile spells when Charged Twin Blade Staff RemoteOwner profiles are disabled");
             }
         });
     }
@@ -1008,7 +1043,8 @@ public final class ApprenticeCodexGameTestScenarios {
                 );
             }
 
-            try (var ignored = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of())) {
+            try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of());
+                 var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of())) {
                 assertSpellThrowableCardWorkbenchCantImbue(
                         helper,
                         new ItemStack(Items.PAPER, 16),
@@ -10987,6 +11023,103 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Remote Owner anchor should expose the player name for death messages");
         });
     }
+
+    static void chargedTwinBladeStaffContinuousRemoteOwnerIgnoresMissingDispenserProfile(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_remote_continuous_profile_test");
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Charged Twin Blade Staff RemoteOwner-only continuous test could not resolve player mana data");
+        magicData.setMana(200.0F);
+        var sourceStack = new ItemStack(ItemRegistry.SPELL_INVOKE_CARD.get());
+        var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
+        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
+        var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
+                spell.getSpellResource(),
+                1,
+                CastSource.SWORD.name(),
+                io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+        );
+
+        helper.runAtTickTime(1, () -> {
+            try (var ignoredRemoteProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
+                    requireSpellId(spell),
+                    remotePlayerGeometryProfile(false)
+            )); var ignoredDispenserProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of())) {
+                helper.assertTrue(
+                        jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                                level, player, sourceStack, payload, impactPos, new Vec3(0.0D, 0.0D, 1.0D)
+                        ),
+                        "Charged Twin Blade Staff should start RemoteOwner CONTINUOUS casts without a Spell Dispenser profile"
+                );
+            }
+        });
+        helper.succeedWhen(() -> {
+            var projectiles = level.getEntitiesOfClass(FireBreathProjectile.class, new AABB(impactPos, impactPos).inflate(16.0D));
+            helper.assertTrue(!projectiles.isEmpty(),
+                    "RemoteOwner-only CONTINUOUS impact cast did not spawn Fire Breath projectiles");
+            var anchorOwner = projectiles.stream()
+                    .map(FireBreathProjectile::getOwner)
+                    .filter(RemoteOwnerCastAnchorEntity.class::isInstance)
+                    .map(RemoteOwnerCastAnchorEntity.class::cast)
+                    .findFirst();
+            helper.assertTrue(anchorOwner.isPresent(),
+                    "RemoteOwner-only CONTINUOUS impact cast should keep Fire Breath owned by a Remote Owner anchor");
+        });
+    }
+
+    static void chargedTwinBladeStaffContinuousThrowableCardUsesCardCooldownPolicy(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_card_continuous_cooldown_test");
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Charged Twin Blade Staff card continuous cooldown test could not resolve player mana data");
+        magicData.setMana(500.0F);
+        var cardStack = new ItemStack(ItemRegistry.SPELL_INVOKE_CARD.get());
+        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
+        var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
+        var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
+                spell.getSpellResource(),
+                1,
+                CastSource.SWORD.name(),
+                AbstractSpellThrowableCardItem.CASTING_SLOT
+        );
+
+        var cardPolicyCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                spell,
+                player,
+                CastSource.SWORD,
+                cardStack
+        );
+        var emptyStackCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                spell,
+                player,
+                CastSource.SWORD,
+                ItemStack.EMPTY
+        );
+        helper.assertTrue(cardPolicyCooldown > emptyStackCooldown,
+                "Throwable Card cooldown regression needs a visible policy difference: "
+                        + cardPolicyCooldown + " / empty " + emptyStackCooldown);
+
+        helper.runAtTickTime(1, () -> helper.assertTrue(
+                jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                        level, player, cardStack, payload, impactPos, new Vec3(0.0D, 0.0D, 1.0D)
+                ),
+                "Charged Twin Blade Staff impact manager failed to start a Throwable Card CONTINUOUS payload"
+        ));
+
+        helper.succeedWhen(() -> {
+            var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
+            helper.assertTrue(cooldown != null,
+                    "Throwable Card CONTINUOUS impact cast has not finished its cooldown yet");
+            var remainingCooldown = cooldown.getCooldownRemaining();
+            helper.assertTrue(remainingCooldown > emptyStackCooldown,
+                    "Throwable Card CONTINUOUS cooldown used the empty-stack weapon imbue policy: "
+                            + remainingCooldown + " / empty " + emptyStackCooldown);
+            helper.assertTrue(remainingCooldown <= cardPolicyCooldown,
+                    "Throwable Card CONTINUOUS cooldown exceeded the card policy cooldown: "
+                            + remainingCooldown + " / card " + cardPolicyCooldown);
+        });
+    }
+
     static void chargedTwinBladeStaffImpactCastManagerSkipsWhenOwnerCannotCast(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = (ServerLevel) helper.getLevel();
