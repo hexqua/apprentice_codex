@@ -12,7 +12,6 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSatelliteFollowcastAmuletStatePacket;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
-import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRequest;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRunner;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastService;
@@ -242,31 +241,23 @@ public final class SatelliteFollowcastAmuletCastEvent {
                 CONTINUOUS_FOLLOWCAST_TICKS,
                 Math.max(0, spell.getEffectiveCastTime(spellData.getLevel(), player))
         );
-        var remoteProfile = RemoteOwnerCastProfileManager.getUsableProfile(
-                spell,
-                RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST
-        );
-        if (remoteProfile.isEmpty()) {
-            return CastAttemptResult.NONE;
-        }
 
-        var remoteStartResult = RemoteOwnerCastRunner.tryStartContinuousCast(
+        var result = RemoteOwnerCastService.startContinuous(new RemoteOwnerCastRequest(
                 level,
                 player,
                 sourceStack,
                 spellData,
-                remoteProfile.get(),
                 RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST,
                 crystalPosition,
                 forward,
                 FOLLOWCAST_SOURCE,
                 castingSlot,
-                castDuration,
                 false,
                 RemoteOwnerManaPolicy.RESERVE_OWNER_MANA,
-                reservedOriginalManaCost
-        );
-        if (!remoteStartResult.handled() || !remoteStartResult.succeeded() || remoteStartResult.session() == null) {
+                reservedOriginalManaCost,
+                castDuration
+        ));
+        if (!result.handled() || !result.succeeded() || result.continuousSession() == null) {
             return CastAttemptResult.NONE;
         }
 
@@ -274,7 +265,7 @@ public final class SatelliteFollowcastAmuletCastEvent {
                 key.ownerId(),
                 key.toRuntimeKey(),
                 sourceStack,
-                remoteStartResult.session(),
+                result.continuousSession(),
                 level.getGameTime() + castDuration,
                 RemoteOwnerCooldownPolicy.FOLLOWCAST,
                 (tickLevel, tickOwner, session) -> prepareContinuousFollowcastTick(tickOwner, session, key),

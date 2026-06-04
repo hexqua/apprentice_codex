@@ -3,7 +3,6 @@ package jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
-import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRequest;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRunner;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastService;
@@ -67,31 +66,24 @@ public final class ChargedTwinBladeStaffSpellCastManager {
         var castSource = payload.castSource();
 
         if (spell.getCastType() == CastType.CONTINUOUS) {
-            var remoteProfile = RemoteOwnerCastProfileManager.getUsableProfile(spell, castOrigin);
-            if (remoteProfile.isEmpty()) {
-                notifyUnsupportedCast(owner, spellData, sourceStack);
-                return false;
-            }
-
-            var remoteStartResult = RemoteOwnerCastRunner.tryStartContinuousCast(
+            var result = RemoteOwnerCastService.startContinuous(new RemoteOwnerCastRequest(
                     level,
                     owner,
                     sourceStack,
                     spellData,
-                    remoteProfile.get(),
                     castOrigin,
                     impactPosition,
                     forward,
                     castSource,
                     payload.castingSlot(),
-                    CONTINUOUS_IMPACT_CAST_TICKS,
-                    true
-            );
-            if (!remoteStartResult.handled()) {
+                    true,
+                    CONTINUOUS_IMPACT_CAST_TICKS
+            ));
+            if (!result.handled()) {
                 notifyUnsupportedCast(owner, spellData, sourceStack);
                 return false;
             }
-            if (!remoteStartResult.succeeded() || remoteStartResult.session() == null) {
+            if (!result.succeeded() || result.continuousSession() == null) {
                 return false;
             }
 
@@ -99,7 +91,7 @@ public final class ChargedTwinBladeStaffSpellCastManager {
                     owner.getUUID(),
                     CONTINUOUS_RUNTIME_KEY,
                     sourceStack,
-                    remoteStartResult.session(),
+                    result.continuousSession(),
                     level.getGameTime() + CONTINUOUS_IMPACT_CAST_TICKS,
                     RemoteOwnerCooldownPolicy.WEAPON_IMBUE,
                     (tickLevel, tickOwner, session) -> {

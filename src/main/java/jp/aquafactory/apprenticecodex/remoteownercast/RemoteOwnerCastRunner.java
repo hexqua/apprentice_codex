@@ -12,10 +12,10 @@ import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import io.redspace.ironsspellbooks.spells.EntityCastData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.utility.SpellManaAccessHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -25,7 +25,6 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class RemoteOwnerCastRunner {
@@ -264,7 +263,7 @@ public final class RemoteOwnerCastRunner {
                 spell.onServerPreCast(level, spellData.getLevel(), spellCaster, sessionMagicData);
             }
 
-            if (!SpellDispenserManaHelper.tryConsumeSpellMana(manaAccess, spellData)) {
+            if (!SpellManaAccessHelper.tryConsumeSpellMana(manaAccess, spellData)) {
                 cleanupContinuousSession(anchor, sessionMagicData);
                 return ContinuousCastStartResult.failed();
             }
@@ -323,7 +322,7 @@ public final class RemoteOwnerCastRunner {
         }
 
         if ((magicData.getCastDurationRemaining() + 1) % CONTINUOUS_CAST_TICK_INTERVAL == 0) {
-            if (!SpellDispenserManaHelper.tryConsumeSpellMana(session.manaAccess(), spellData)) {
+            if (!SpellManaAccessHelper.tryConsumeSpellMana(session.manaAccess(), spellData)) {
                 finishContinuousCast(level, owner, session, true);
                 return false;
             }
@@ -600,7 +599,7 @@ public final class RemoteOwnerCastRunner {
                 syncOwnerManaForCast(manaAccess, ownerMagicData);
                 spell.onServerPreCast(level, spellData.getLevel(), spellCaster, ownerMagicData);
 
-                if (!SpellDispenserManaHelper.tryConsumeSpellMana(manaAccess, spellData)) {
+                if (!SpellManaAccessHelper.tryConsumeSpellMana(manaAccess, spellData)) {
                     return CastResult.failed();
                 }
 
@@ -701,7 +700,7 @@ public final class RemoteOwnerCastRunner {
 
     private static void syncOwnerManaForCast(PlayerManaAccess manaAccess, MagicData magicData) {
         magicData.setMana(manaAccess.isManaConsumptionExempt()
-                ? SpellDispenserManaHelper.MAX_MANA
+                ? SpellManaAccessHelper.MAX_MANA
                 : manaAccess.getCurrentMana());
     }
 
@@ -857,7 +856,7 @@ public final class RemoteOwnerCastRunner {
         }
     }
 
-    private static final class PlayerManaAccess implements SpellDispenserManaHelper.ManaAccess {
+    private static final class PlayerManaAccess implements SpellManaAccessHelper.ManaAccess {
         private final ServerPlayer player;
         private final RemoteOwnerManaPolicy manaPolicy;
         private final int reservedOwnerMana;
@@ -875,7 +874,7 @@ public final class RemoteOwnerCastRunner {
         @Override
         public int getCurrentMana() {
             if (isManaConsumptionExempt()) {
-                return SpellDispenserManaHelper.MAX_MANA;
+                return SpellManaAccessHelper.MAX_MANA;
             }
             if (reservesOwnerMana()) {
                 return Math.max(0, currentOwnerMana - reservedOwnerMana);
@@ -895,20 +894,6 @@ public final class RemoteOwnerCastRunner {
             }
             magicData.setMana(nextMana);
             PacketDistributor.sendToPlayer(player, new SyncManaPacket(magicData));
-        }
-
-        @Override
-        public int getInventorySlotCount() {
-            return 0;
-        }
-
-        @Override
-        public @NotNull ItemStack getInventoryStack(int slot) {
-            return ItemStack.EMPTY;
-        }
-
-        @Override
-        public void setInventoryStack(int slot, @NotNull ItemStack stack) {
         }
 
         @Override

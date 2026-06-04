@@ -40,6 +40,41 @@ public final class RemoteOwnerCastService {
         return RemoteOwnerCastResult.success();
     }
 
+    public static RemoteOwnerCastResult startContinuous(RemoteOwnerCastRequest request) {
+        Objects.requireNonNull(request, "request");
+
+        var check = RemoteOwnerCastRules.checkExecution(request.spellData(), request.owner(), request.origin());
+        if (!check.isAllowed()) {
+            return deniedResult(check.failureReason());
+        }
+
+        var profile = check.profile().orElseThrow();
+        var runnerResult = RemoteOwnerCastRunner.tryStartContinuousCast(
+                request.level(),
+                request.owner(),
+                request.sourceStack(),
+                request.spellData(),
+                profile,
+                request.origin(),
+                request.providedOrigin(),
+                request.providedForward(),
+                request.castSource(),
+                request.castingSlot(),
+                request.continuousDurationOverrideTicks(),
+                request.postSpellPreCastEvent(),
+                request.manaPolicy(),
+                request.reservedOwnerMana()
+        );
+        if (!runnerResult.handled()) {
+            return RemoteOwnerCastResult.notHandled(RemoteOwnerCastFailureReason.UNSUPPORTED_CAST_TYPE);
+        }
+        if (!runnerResult.succeeded() || runnerResult.session() == null) {
+            return RemoteOwnerCastResult.failed(RemoteOwnerCastFailureReason.CAST_FAILED);
+        }
+
+        return RemoteOwnerCastResult.success(runnerResult.session());
+    }
+
     private static RemoteOwnerCastResult deniedResult(RemoteOwnerCastFailureReason failureReason) {
         return switch (failureReason) {
             case EMPTY_SPELL, NO_PROFILE, ORIGIN_NOT_ALLOWED, UNSUPPORTED_CAST_TYPE ->
