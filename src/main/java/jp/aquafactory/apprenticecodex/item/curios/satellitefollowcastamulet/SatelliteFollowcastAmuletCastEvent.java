@@ -18,14 +18,13 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRunner;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastService;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCooldownManager;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCooldownPolicy;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerContinuousCastManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerContinuousRuntime;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerManaPolicy;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -33,19 +32,15 @@ import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotResult;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.WeakHashMap;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class SatelliteFollowcastAmuletCastEvent {
     public static final int CONTINUOUS_FOLLOWCAST_TICKS = 20 * 5;
     private static final CastSource FOLLOWCAST_SOURCE = CastSource.SWORD;
-    private static final Map<ServerLevel, List<ContinuousFollowcastRuntime>> ACTIVE_CONTINUOUS_CASTS = new WeakHashMap<>();
 
     private SatelliteFollowcastAmuletCastEvent() {
     }
@@ -275,100 +270,18 @@ public final class SatelliteFollowcastAmuletCastEvent {
             return CastAttemptResult.NONE;
         }
 
-        ACTIVE_CONTINUOUS_CASTS.computeIfAbsent(level, ignored -> new ArrayList<>()).add(
-                        new ContinuousFollowcastRuntime(
-                                key,
-                                sourceStack.copy(),
-                                remoteStartResult.session(),
-                                level.getGameTime() + castDuration
-                        )
-                );
+        RemoteOwnerContinuousCastManager.register(level, new RemoteOwnerContinuousRuntime(
+                key.ownerId(),
+                key.toRuntimeKey(),
+                sourceStack,
+                remoteStartResult.session(),
+                level.getGameTime() + castDuration,
+                RemoteOwnerCooldownPolicy.FOLLOWCAST,
+                (tickLevel, tickOwner, session) -> prepareContinuousFollowcastTick(tickOwner, session, key),
+                (finishedLevel, finishedOwner, cancelled) -> syncContinuousState(finishedOwner, key, false, 0L)
+        ));
         syncContinuousState(player, key, true, level.getGameTime() + castDuration);
         return CastAttemptResult.CASTED;
-    }
-
-    @SubscribeEvent
-    public static void onLevelTick(TickEvent.LevelTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || !(event.level instanceof ServerLevel level)) {
-            return;
-        }
-
-        var runtimes = ACTIVE_CONTINUOUS_CASTS.get(level);
-        if (runtimes == null || runtimes.isEmpty()) {
-            return;
-        }
-
-        var iterator = runtimes.iterator();
-        while (iterator.hasNext()) {
-            var runtime = iterator.next();
-            var owner = level.getPlayerByUUID(runtime.key().ownerId());
-            if (!(owner instanceof ServerPlayer player) || player.isDeadOrDying() || player.isSpectator()) {
-                finishContinuousFollowcast(level, runtime, null, true);
-                iterator.remove();
-                continue;
-            }
-
-            var slotResult = getEquippedAmuletForRuntime(player, runtime);
-            if (slotResult.isEmpty()) {
-                finishContinuousFollowcast(level, runtime, player, true);
-                iterator.remove();
-                continue;
-            }
-
-            var stack = slotResult.get().stack();
-            var spellData = SatelliteFollowcastAmulet.getSpellAtIndex(stack, runtime.key().spellSlotIndex());
-            var activeSpellData = runtime.session().spellData();
-            if (spellData == SpellData.EMPTY
-                    || activeSpellData == null
-                    || !spellData.getSpell().getSpellId().equals(activeSpellData.getSpell().getSpellId())) {
-                finishContinuousFollowcast(level, runtime, player, true);
-                iterator.remove();
-                continue;
-            }
-
-            var maxSpellSlots = SatelliteFollowcastAmulet.getMaxSpellSlots(stack);
-            var crystalPosition = SatelliteFollowcastAmulet.getCrystalPosition(
-                    player,
-                    runtime.key().spellSlotIndex(),
-                    maxSpellSlots,
-                    0.0F
-            );
-            RemoteOwnerCastRunner.syncContinuousCastTransform(runtime.session(), crystalPosition, player.getLookAngle());
-
-            if (level.getGameTime() >= runtime.finishAtGameTime() && !runtime.session().isFinished()) {
-                RemoteOwnerCastRunner.finishContinuousCast(level, player, runtime.session(), false);
-            } else if (RemoteOwnerCastRunner.tickContinuousCast(level, player, runtime.session())) {
-                continue;
-            }
-
-            finishContinuousFollowcast(level, runtime, player, false);
-            iterator.remove();
-        }
-
-        if (runtimes.isEmpty()) {
-            ACTIVE_CONTINUOUS_CASTS.remove(level);
-        }
-    }
-
-    @SubscribeEvent
-    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player) {
-            clearPlayerState(player, true);
-        }
-    }
-
-    @SubscribeEvent
-    public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player) {
-            clearPlayerState(player, true);
-        }
-    }
-
-    @SubscribeEvent
-    public static void onLivingDeath(LivingDeathEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player) {
-            clearPlayerState(player, true);
-        }
     }
 
     private static int resolveReservedOriginalManaCost(SpellOnCastEvent event, ServerPlayer player) {
@@ -379,53 +292,43 @@ public final class SatelliteFollowcastAmuletCastEvent {
     }
 
     private static boolean isContinuousFollowcastActive(ServerLevel level, ContinuousFollowcastKey key) {
-        var runtimes = ACTIVE_CONTINUOUS_CASTS.get(level);
-        if (runtimes == null) {
-            return false;
-        }
-        return runtimes.stream()
-                .anyMatch(runtime -> runtime.key().equals(key) && !runtime.session().isFinished());
+        return RemoteOwnerContinuousCastManager.hasActive(level, key.ownerId(), key.toRuntimeKey());
     }
 
-    private static Optional<SlotResult> getEquippedAmuletForRuntime(ServerPlayer player, ContinuousFollowcastRuntime runtime) {
+    private static Optional<SlotResult> getEquippedAmuletForRuntime(ServerPlayer player, ContinuousFollowcastKey key) {
         return getEquippedAmulets(player).stream()
-                .filter(slotResult -> runtime.key().matches(slotResult))
+                .filter(key::matches)
                 .findFirst();
     }
 
-    private static void finishContinuousFollowcast(
-            ServerLevel level,
-            ContinuousFollowcastRuntime runtime,
-            @Nullable ServerPlayer owner,
-            boolean cancelled
+    private static boolean prepareContinuousFollowcastTick(
+            ServerPlayer player,
+            RemoteOwnerCastRunner.ContinuousCastSession session,
+            ContinuousFollowcastKey key
     ) {
-        if (!runtime.session().isFinished()) {
-            if (owner != null) {
-                RemoteOwnerCastRunner.finishContinuousCast(level, owner, runtime.session(), cancelled);
-            } else {
-                RemoteOwnerCastRunner.cancelContinuousCastWithoutOwner(runtime.session());
-            }
+        var slotResult = getEquippedAmuletForRuntime(player, key);
+        if (slotResult.isEmpty()) {
+            return false;
         }
 
-        if (owner != null) {
-            if (runtime.session().consumeFinishedCooldownTicks() > 0) {
-                var spellData = runtime.session().spellData();
-                var castSource = runtime.session().castSource();
-                if (spellData == null || castSource == null) {
-                    syncContinuousState(owner, runtime.key(), false, 0L);
-                    return;
-                }
-
-                RemoteOwnerCooldownManager.addCooldown(
-                        owner,
-                        spellData,
-                        castSource,
-                        runtime.sourceStack(),
-                        RemoteOwnerCooldownPolicy.FOLLOWCAST
-                );
-            }
-            syncContinuousState(owner, runtime.key(), false, 0L);
+        var stack = slotResult.get().stack();
+        var spellData = SatelliteFollowcastAmulet.getSpellAtIndex(stack, key.spellSlotIndex());
+        var activeSpellData = session.spellData();
+        if (spellData == SpellData.EMPTY
+                || activeSpellData == null
+                || !spellData.getSpell().getSpellId().equals(activeSpellData.getSpell().getSpellId())) {
+            return false;
         }
+
+        var maxSpellSlots = SatelliteFollowcastAmulet.getMaxSpellSlots(stack);
+        var crystalPosition = SatelliteFollowcastAmulet.getCrystalPosition(
+                player,
+                key.spellSlotIndex(),
+                maxSpellSlots,
+                0.0F
+        );
+        RemoteOwnerCastRunner.syncContinuousCastTransform(session, crystalPosition, player.getLookAngle());
+        return true;
     }
 
     private static void syncContinuousState(
@@ -468,40 +371,16 @@ public final class SatelliteFollowcastAmuletCastEvent {
     }
 
     public static void clearPlayerStateForGameTest(ServerPlayer player) {
-        clearPlayerState(player, true);
+        RemoteOwnerContinuousCastManager.clearOwner(player, true);
     }
 
     public static void clearPlayerStateForGameTest(ServerPlayer player, @Nullable ServerLevel ownerLevel) {
-        clearPlayerState(player, true, ownerLevel);
-    }
-
-    private static void clearPlayerState(ServerPlayer player, boolean cancelled) {
-        clearPlayerState(player, cancelled, player.serverLevel());
-    }
-
-    private static void clearPlayerState(ServerPlayer player, boolean cancelled, @Nullable ServerLevel ownerLevel) {
-        RemoteOwnerCooldownManager.clearPending(player);
-        var levelIterator = ACTIVE_CONTINUOUS_CASTS.entrySet().iterator();
-        while (levelIterator.hasNext()) {
-            var levelEntry = levelIterator.next();
-            var level = levelEntry.getKey();
-            var runtimes = levelEntry.getValue();
-            var runtimeIterator = runtimes.iterator();
-            while (runtimeIterator.hasNext()) {
-                var runtime = runtimeIterator.next();
-                if (!runtime.key().ownerId().equals(player.getUUID())) {
-                    continue;
-                }
-                finishContinuousFollowcast(level, runtime, level == ownerLevel ? player : null, cancelled);
-                runtimeIterator.remove();
-            }
-            if (runtimes.isEmpty()) {
-                levelIterator.remove();
-            }
-        }
+        RemoteOwnerContinuousCastManager.clearOwner(player, true, ownerLevel);
     }
 
     private record ContinuousFollowcastKey(UUID ownerId, String slotIdentifier, int curiosSlotIndex, int spellSlotIndex) {
+        private static final String SEPARATOR = "\u0000";
+
         private static ContinuousFollowcastKey from(ServerPlayer player, SlotResult slotResult, int spellSlotIndex) {
             return new ContinuousFollowcastKey(
                     player.getUUID(),
@@ -515,13 +394,9 @@ public final class SatelliteFollowcastAmuletCastEvent {
             return slotIdentifier.equals(slotResult.slotContext().identifier())
                     && curiosSlotIndex == slotResult.slotContext().index();
         }
-    }
 
-    private record ContinuousFollowcastRuntime(
-            ContinuousFollowcastKey key,
-            ItemStack sourceStack,
-            RemoteOwnerCastRunner.ContinuousCastSession session,
-            long finishAtGameTime
-    ) {
+        private String toRuntimeKey() {
+            return slotIdentifier + SEPARATOR + curiosSlotIndex + SEPARATOR + spellSlotIndex;
+        }
     }
 }

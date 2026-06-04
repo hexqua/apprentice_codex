@@ -2,7 +2,6 @@ package jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff;
 
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRequest;
@@ -10,25 +9,17 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRunner;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastService;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCooldownManager;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCooldownPolicy;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerContinuousCastManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerContinuousRuntime;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.WeakHashMap;
-
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ChargedTwinBladeStaffSpellCastManager {
+    private static final String CONTINUOUS_RUNTIME_KEY = "charged_twin_blade_staff_impact";
     public static final int CONTINUOUS_IMPACT_CAST_TICKS = 20 * 5;
-    private static final Map<ServerLevel, List<ContinuousImpactCastRuntime>> ACTIVE_CONTINUOUS_CASTS = new WeakHashMap<>();
 
     private ChargedTwinBladeStaffSpellCastManager() {
     }
@@ -104,16 +95,20 @@ public final class ChargedTwinBladeStaffSpellCastManager {
                 return false;
             }
 
-            ACTIVE_CONTINUOUS_CASTS.computeIfAbsent(level, key -> new ArrayList<>()).add(
-                    new ContinuousImpactCastRuntime(
-                            owner.getUUID(),
-                            impactPosition,
-                            forward,
-                            remoteStartResult.session(),
-                            level.getGameTime() + CONTINUOUS_IMPACT_CAST_TICKS,
-                            sourceStack.copy()
-                    )
-            );
+            RemoteOwnerContinuousCastManager.register(level, new RemoteOwnerContinuousRuntime(
+                    owner.getUUID(),
+                    CONTINUOUS_RUNTIME_KEY,
+                    sourceStack,
+                    remoteStartResult.session(),
+                    level.getGameTime() + CONTINUOUS_IMPACT_CAST_TICKS,
+                    RemoteOwnerCooldownPolicy.WEAPON_IMBUE,
+                    (tickLevel, tickOwner, session) -> {
+                        RemoteOwnerCastRunner.syncContinuousCastTransform(session, impactPosition, forward);
+                        return true;
+                    },
+                    (finishedLevel, finishedOwner, cancelled) -> {
+                    }
+            ));
             return true;
         }
 
@@ -158,72 +153,5 @@ public final class ChargedTwinBladeStaffSpellCastManager {
                 ),
                 true
         );
-    }
-
-    @SubscribeEvent
-    public static void onLevelTick(TickEvent.LevelTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || !(event.level instanceof ServerLevel level)) {
-            return;
-        }
-
-        var runtimes = ACTIVE_CONTINUOUS_CASTS.get(level);
-        if (runtimes == null || runtimes.isEmpty()) {
-            return;
-        }
-
-        var iterator = runtimes.iterator();
-        while (iterator.hasNext()) {
-            var runtime = iterator.next();
-            var owner = level.getPlayerByUUID(runtime.ownerId());
-            if (!(owner instanceof ServerPlayer serverPlayer) || serverPlayer.isDeadOrDying() || serverPlayer.isSpectator()) {
-                RemoteOwnerCastRunner.cancelContinuousCastWithoutOwner(runtime.session());
-                iterator.remove();
-                continue;
-            }
-
-            RemoteOwnerCastRunner.syncContinuousCastTransform(runtime.session(), runtime.position(), runtime.forward());
-            if (level.getGameTime() >= runtime.finishAtGameTime()) {
-                RemoteOwnerCastRunner.finishContinuousCast(level, serverPlayer, runtime.session(), false);
-            } else if (RemoteOwnerCastRunner.tickContinuousCast(level, serverPlayer, runtime.session())) {
-                continue;
-            }
-
-            applyCooldownIfNeeded(serverPlayer, runtime.session(), runtime.castingStack());
-            iterator.remove();
-        }
-
-        if (runtimes.isEmpty()) {
-            ACTIVE_CONTINUOUS_CASTS.remove(level);
-        }
-    }
-
-    private static void applyCooldownIfNeeded(ServerPlayer owner, RemoteOwnerCastRunner.ContinuousCastSession session, ItemStack castingStack) {
-        if (session.consumeFinishedCooldownTicks() <= 0) {
-            return;
-        }
-
-        var spellData = session.spellData();
-        var castSource = session.castSource();
-        if (spellData == null || castSource == null) {
-            return;
-        }
-
-        RemoteOwnerCooldownManager.addCooldown(
-                owner,
-                spellData,
-                castSource,
-                castingStack,
-                RemoteOwnerCooldownPolicy.WEAPON_IMBUE
-        );
-    }
-
-    private record ContinuousImpactCastRuntime(
-            UUID ownerId,
-            Vec3 position,
-            Vec3 forward,
-            RemoteOwnerCastRunner.ContinuousCastSession session,
-            long finishAtGameTime,
-            ItemStack castingStack
-    ) {
     }
 }
