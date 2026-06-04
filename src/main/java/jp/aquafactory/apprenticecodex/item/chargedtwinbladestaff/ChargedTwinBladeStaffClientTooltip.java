@@ -2,11 +2,9 @@ package jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff;
 
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
-import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
-import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
-import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRules;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
@@ -35,18 +33,13 @@ public final class ChargedTwinBladeStaffClientTooltip {
             return Optional.empty();
         }
 
-        var castType = spell.getCastType();
-        var supportedCastType = castType == CastType.INSTANT || castType == CastType.LONG || castType == CastType.CONTINUOUS;
-        if (!supportedCastType || !isSupportedByRemoteOwner(spell)) {
+        if (!RemoteOwnerCastRules.checkImbue(
+                spell,
+                selection.spellData.getLevel(),
+                RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT
+        ).isAllowed()) {
             return Optional.of(spell.getDisplayName(player));
         }
         return Optional.empty();
-    }
-
-    private static boolean isSupportedByRemoteOwner(AbstractSpell spell) {
-        return RemoteOwnerCastProfileManager.isSupportedByRemoteOwnerCast(
-                spell,
-                RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT
-        );
     }
 }

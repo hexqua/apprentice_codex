@@ -12,7 +12,7 @@ import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownPolicyItem;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
-import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRules;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -116,13 +116,8 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
 
     @Override
     public boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel) {
-        if (spell == null || spell == io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()) {
-            return false;
-        }
-        var profile = RemoteOwnerCastProfileManager.getProfile(spell)
-                .filter(value -> value.allowsOrigin(RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST));
-        return profile.isPresent()
-                && (spell.getRecastCount(spellLevel, null) <= 0 || profile.get().allowInitialRecast());
+        return RemoteOwnerCastRules.checkImbue(spell, spellLevel, RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST)
+                .isAllowed();
     }
 
     @Override

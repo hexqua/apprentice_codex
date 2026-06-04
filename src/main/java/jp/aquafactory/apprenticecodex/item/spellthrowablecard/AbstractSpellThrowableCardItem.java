@@ -14,7 +14,7 @@ import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownPolicyItem;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
-import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRules;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -122,13 +122,8 @@ public abstract class AbstractSpellThrowableCardItem extends Item implements Res
 
     @Override
     public boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel) {
-        if (spell == null || spell == SpellRegistry.none()) {
-            return false;
-        }
-        var hasRecast = spell.getRecastCount(spellLevel, null) > 0;
-        var profile = RemoteOwnerCastProfileManager.getProfile(spell)
-                .filter(value -> value.allowsOrigin(RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT));
-        return profile.isPresent() && (!hasRecast || profile.get().allowInitialRecast());
+        return RemoteOwnerCastRules.checkImbue(spell, spellLevel, RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT)
+                .isAllowed();
     }
 
     @Override
