@@ -3778,6 +3778,36 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void revolvercastStaffPendingAdvanceSurvivesUnrelatedCastCompletion(GameTestHelper helper) {
+        var staff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
+        var fireball = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIREBALL_SPELL.get();
+        var heal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+        RevolvercastStaff.setCalibrationScroll(staff, 0, createSpellScroll(fireball));
+        RevolvercastStaff.setCalibrationScroll(staff, 2, createSpellScroll(heal));
+        RevolvercastStaff.setSelectedScrollIndex(staff, 0);
+
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "revolvercast_staff_pending_unrelated_test");
+        player.setItemInHand(InteractionHand.MAIN_HAND, staff);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null,
+                "Revolvercast Staff unrelated completion test could not resolve player magic data");
+
+        RevolvercastStaffPendingAdvance.reserve(player, InteractionHand.MAIN_HAND, staff, fireball, 0);
+        var unrelatedMagicData = new MagicData();
+        unrelatedMagicData.setPlayerCastingItem(new ItemStack(ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get()));
+        RevolvercastStaffPendingAdvance.onServerCastComplete(player, fireball, unrelatedMagicData, false);
+        magicData.setPlayerCastingItem(staff);
+        RevolvercastStaffPendingAdvance.onServerCastComplete(player, fireball, magicData, false);
+
+        helper.runAtTickTime(2, () -> {
+            RevolvercastStaffPendingAdvance.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 2,
+                    "Revolvercast Staff pending advance should survive unrelated RemoteOwner cast completion");
+            helper.succeed();
+        });
+    }
+
     static void revolvercastStaffCancelledCastDoesNotAdvancePendingSelection(GameTestHelper helper) {
         var staff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
         var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
