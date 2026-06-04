@@ -176,7 +176,8 @@ public final class ChargedTwinBladeStaffSpellCastManager {
                                         impactPosition,
                                         forward,
                                         ActiveContinuousCastSession.remote(remoteStartResult.session()),
-                                        level.getGameTime() + CONTINUOUS_IMPACT_CAST_TICKS
+                                        level.getGameTime() + CONTINUOUS_IMPACT_CAST_TICKS,
+                                        sourceStack.copy()
                                 )
                         );
                         return true;
@@ -208,7 +209,8 @@ public final class ChargedTwinBladeStaffSpellCastManager {
                             impactPosition,
                             forward,
                             ActiveContinuousCastSession.spellDispenser(startResult.session()),
-                            level.getGameTime() + CONTINUOUS_IMPACT_CAST_TICKS
+                            level.getGameTime() + CONTINUOUS_IMPACT_CAST_TICKS,
+                            sourceStack.copy()
                     )
             );
             return true;
@@ -298,7 +300,7 @@ public final class ChargedTwinBladeStaffSpellCastManager {
                 continue;
             }
 
-            applyCooldownIfNeeded(serverPlayer, runtime.session());
+            applyCooldownIfNeeded(serverPlayer, runtime.session(), runtime.castingStack());
             iterator.remove();
         }
 
@@ -307,7 +309,7 @@ public final class ChargedTwinBladeStaffSpellCastManager {
         }
     }
 
-    private static void applyCooldownIfNeeded(ServerPlayer owner, ActiveContinuousCastSession session) {
+    private static void applyCooldownIfNeeded(ServerPlayer owner, ActiveContinuousCastSession session, ItemStack castingStack) {
         if (session.consumeFinishedCooldownTicks() <= 0) {
             return;
         }
@@ -318,7 +320,7 @@ public final class ChargedTwinBladeStaffSpellCastManager {
             return;
         }
 
-        addCooldownIfNeeded(owner, spellData, castSource, ItemStack.EMPTY, 0);
+        addCooldownIfNeeded(owner, spellData, castSource, castingStack, 0);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -382,7 +384,8 @@ public final class ChargedTwinBladeStaffSpellCastManager {
             Vec3 position,
             Vec3 forward,
             ActiveContinuousCastSession session,
-            long finishAtGameTime
+            long finishAtGameTime,
+            ItemStack castingStack
     ) {
     }
 

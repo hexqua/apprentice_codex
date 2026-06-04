@@ -884,6 +884,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerStartsContinuousSpells(helper);
     }
 
+    @GameTest(template = TEMPLATE, timeoutTicks = 140)
+    public static void chargedTwinBladeStaffContinuousThrowableCardUsesCardCooldownPolicy(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffContinuousThrowableCardUsesCardCooldownPolicy(helper);
+    }
+
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffImpactCastManagerSkipsWhenOwnerCannotCast(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerSkipsWhenOwnerCannotCast(helper);
