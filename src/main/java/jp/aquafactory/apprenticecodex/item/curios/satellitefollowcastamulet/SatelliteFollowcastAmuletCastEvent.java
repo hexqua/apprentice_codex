@@ -186,43 +186,35 @@ public final class SatelliteFollowcastAmuletCastEvent {
             );
         }
 
-        if (canUseNonContinuousRemoteOwnerCast(ownerMagicData)) {
-            var result = RemoteOwnerCastService.cast(new RemoteOwnerCastRequest(
-                    level,
-                    player,
-                    slotResult.stack(),
-                    spellData,
-                    RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST,
-                    crystalPosition,
-                    forward,
-                    FOLLOWCAST_SOURCE,
-                    castingSlot,
-                    false,
-                    RemoteOwnerManaPolicy.RESERVE_OWNER_MANA,
-                    reservedOriginalManaCost
-            ));
-            if (result.handled()) {
-                if (!result.succeeded()) {
-                    return CastAttemptResult.NONE;
-                }
-                RemoteOwnerCooldownManager.addCooldown(
-                        player,
-                        spellData,
-                        FOLLOWCAST_SOURCE,
-                        slotResult.stack(),
-                        RemoteOwnerCooldownPolicy.FOLLOWCAST
-                );
-                return CastAttemptResult.CASTED;
+        var result = RemoteOwnerCastService.cast(new RemoteOwnerCastRequest(
+                level,
+                player,
+                slotResult.stack(),
+                spellData,
+                RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST,
+                crystalPosition,
+                forward,
+                FOLLOWCAST_SOURCE,
+                castingSlot,
+                false,
+                RemoteOwnerManaPolicy.RESERVE_OWNER_MANA,
+                reservedOriginalManaCost
+        ));
+        if (result.handled()) {
+            if (!result.succeeded()) {
+                return CastAttemptResult.NONE;
             }
+            RemoteOwnerCooldownManager.addCooldown(
+                    player,
+                    spellData,
+                    FOLLOWCAST_SOURCE,
+                    slotResult.stack(),
+                    RemoteOwnerCooldownPolicy.FOLLOWCAST
+            );
+            return CastAttemptResult.CASTED;
         }
 
         return CastAttemptResult.NONE;
-    }
-
-    private static boolean canUseNonContinuousRemoteOwnerCast(MagicData ownerMagicData) {
-        // Iron's の SpellOnCastEvent は元の詠唱状態が残ったまま発火する。
-        // 非継続 RemoteOwner 発動は所有者の MagicData を一時利用して reset するため、元の詠唱を壊さない場面だけ許可する。
-        return !ownerMagicData.isCasting();
     }
 
     private static CastAttemptResult tryStartContinuousFollowcast(

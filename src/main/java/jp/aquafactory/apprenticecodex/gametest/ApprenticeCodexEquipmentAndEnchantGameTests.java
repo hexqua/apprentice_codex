@@ -650,6 +650,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffImpactCastManagerCastsInstantWhileOwnerBusy(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerCastsInstantWhileOwnerBusy(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffBusyFallbackDoesNotBypassCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffBusyFallbackDoesNotBypassCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellThrowableCardImpactCastManagerCastsInstantWhileOwnerBusy(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellThrowableCardImpactCastManagerCastsInstantWhileOwnerBusy(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffRemoteOwnerDenylistBlocksRuntimeWithoutFallback(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffRemoteOwnerDenylistBlocksRuntimeWithoutFallback(helper);
     }

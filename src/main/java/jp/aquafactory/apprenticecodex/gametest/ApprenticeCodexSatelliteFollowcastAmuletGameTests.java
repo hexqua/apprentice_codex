@@ -229,7 +229,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void satelliteFollowcastAmuletKeepsOriginalContinuousCastState(GameTestHelper helper) {
+    public static void satelliteFollowcastAmuletCastsWhileKeepingOriginalContinuousCastState(GameTestHelper helper) {
         var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "satellite_followcast_continuous_state_test");
         var magicData = MagicData.getPlayerMagicData(player);
         helper.assertTrue(magicData != null, "Satellite Followcast Amulet continuous state test could not resolve player mana data.");
@@ -261,8 +261,41 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
                 "Satellite Followcast Amulet should not clear the original continuous cast state.");
         helper.assertTrue(magicData.getCastingSpellId().equals(triggerSpell.getSpellId()),
                 "Satellite Followcast Amulet should preserve the original continuous spell id.");
-        helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(followSpell),
-                "Satellite Followcast Amulet should not force RemoteOwner followcasts while the original continuous cast is active.");
+        helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(followSpell),
+                "Satellite Followcast Amulet should cast through the RemoteOwner busy fallback.");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void satelliteFollowcastAmuletBusyFallbackDoesNotBypassCooldown(GameTestHelper helper) {
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "satellite_followcast_busy_cooldown_test");
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Satellite Followcast Amulet busy cooldown test could not resolve player mana data.");
+        magicData.setMana(500.0F);
+
+        var triggerSpell = SpellRegistry.MYSTIC_SHIELD.get();
+        var followSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get();
+        magicData.getSyncedData().learnSpell(triggerSpell, false);
+        magicData.getSyncedData().learnSpell(followSpell, false);
+        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(followSpell));
+        io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, followSpell, CastSource.SWORD);
+
+        magicData.initiateCast(
+                triggerSpell,
+                1,
+                triggerSpell.getEffectiveCastTime(1, player),
+                CastSource.SWORD,
+                SpellSelectionManager.MAINHAND
+        );
+
+        SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell));
+
+        helper.assertTrue(magicData.isCasting(),
+                "Satellite Followcast Amulet should not clear the original cast state when the follow spell is cooling down.");
+        helper.assertTrue(magicData.getCastingSpellId().equals(triggerSpell.getSpellId()),
+                "Satellite Followcast Amulet should preserve the original spell id when the follow spell is cooling down.");
+        helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(followSpell),
+                "Satellite Followcast Amulet cooldown setup should remain active.");
         helper.succeed();
     }
 

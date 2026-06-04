@@ -10666,6 +10666,160 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Charged Twin Blade Staff LONG impact cast did not spawn Compound Phial projectiles");
         });
     }
+
+    static void chargedTwinBladeStaffImpactCastManagerCastsInstantWhileOwnerBusy(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_busy_impact_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Charged Twin Blade Staff busy impact test could not resolve player mana data");
+            magicData.setMana(500.0F);
+            var triggerSpell = SpellRegistry.MYSTIC_SHIELD.get();
+            magicData.getSyncedData().learnSpell(triggerSpell, false);
+            magicData.initiateCast(
+                    triggerSpell,
+                    1,
+                    triggerSpell.getEffectiveCastTime(1, player),
+                    CastSource.SWORD,
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+            );
+
+            var impactSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
+            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
+                    impactSpell.getSpellResource(),
+                    1,
+                    CastSource.SWORD.name(),
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+            );
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                            level,
+                            player,
+                            new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
+                            payload,
+                            impactPos,
+                            new Vec3(0.0D, 0.0D, 1.0D)
+                    ),
+                    "Charged Twin Blade Staff impact manager should cast through the RemoteOwner busy fallback"
+            );
+
+            helper.assertTrue(magicData.isCasting(),
+                    "Charged Twin Blade Staff busy fallback should not clear the original cast state");
+            helper.assertTrue(magicData.getCastingSpellId().equals(triggerSpell.getSpellId()),
+                    "Charged Twin Blade Staff busy fallback should preserve the original spell id");
+            helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(impactSpell),
+                    "Charged Twin Blade Staff busy fallback should apply the impact spell cooldown");
+            var projectiles = level.getEntitiesOfClass(
+                    io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
+                    new AABB(impactPos, impactPos).inflate(12.0D)
+            );
+            helper.assertTrue(!projectiles.isEmpty(),
+                    "Charged Twin Blade Staff busy impact cast did not spawn Magic Missile projectiles");
+        });
+    }
+
+    static void chargedTwinBladeStaffBusyFallbackDoesNotBypassCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_busy_cooldown_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Charged Twin Blade Staff busy cooldown test could not resolve player mana data");
+            magicData.setMana(500.0F);
+            var triggerSpell = SpellRegistry.MYSTIC_SHIELD.get();
+            magicData.getSyncedData().learnSpell(triggerSpell, false);
+            magicData.initiateCast(
+                    triggerSpell,
+                    1,
+                    triggerSpell.getEffectiveCastTime(1, player),
+                    CastSource.SWORD,
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+            );
+
+            var impactSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, impactSpell, CastSource.SWORD);
+            var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
+            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
+                    impactSpell.getSpellResource(),
+                    1,
+                    CastSource.SWORD.name(),
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+            );
+
+            helper.assertFalse(
+                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                            level,
+                            player,
+                            new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
+                            payload,
+                            impactPos,
+                            new Vec3(0.0D, 0.0D, 1.0D)
+                    ),
+                    "Charged Twin Blade Staff busy fallback should not bypass owner cooldowns"
+            );
+            helper.assertTrue(magicData.isCasting(),
+                    "Charged Twin Blade Staff cooldown rejection should not clear the original cast state");
+            helper.assertTrue(magicData.getCastingSpellId().equals(triggerSpell.getSpellId()),
+                    "Charged Twin Blade Staff cooldown rejection should preserve the original spell id");
+            var projectiles = level.getEntitiesOfClass(
+                    io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
+                    new AABB(impactPos, impactPos).inflate(12.0D)
+            );
+            helper.assertTrue(projectiles.isEmpty(),
+                    "Charged Twin Blade Staff cooldown rejection should not spawn Magic Missile projectiles");
+        });
+    }
+
+    static void spellThrowableCardImpactCastManagerCastsInstantWhileOwnerBusy(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_throwable_card_busy_impact_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Spell Throwable Card busy impact test could not resolve player mana data");
+            magicData.setMana(500.0F);
+            var triggerSpell = SpellRegistry.MYSTIC_SHIELD.get();
+            magicData.getSyncedData().learnSpell(triggerSpell, false);
+            magicData.initiateCast(
+                    triggerSpell,
+                    1,
+                    triggerSpell.getEffectiveCastTime(1, player),
+                    CastSource.SWORD,
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+            );
+
+            var impactSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
+            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
+                    impactSpell.getSpellResource(),
+                    1,
+                    CastSource.SWORD.name(),
+                    AbstractSpellThrowableCardItem.CASTING_SLOT
+            );
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                            level,
+                            player,
+                            new ItemStack(ItemRegistry.SPELL_INVOKE_CARD.get()),
+                            payload,
+                            impactPos,
+                            new Vec3(0.0D, 0.0D, 1.0D)
+                    ),
+                    "Spell Throwable Card impact manager should cast through the RemoteOwner busy fallback"
+            );
+
+            helper.assertTrue(magicData.isCasting(),
+                    "Spell Throwable Card busy fallback should not clear the original cast state");
+            helper.assertTrue(magicData.getCastingSpellId().equals(triggerSpell.getSpellId()),
+                    "Spell Throwable Card busy fallback should preserve the original spell id");
+            var projectiles = level.getEntitiesOfClass(
+                    io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
+                    new AABB(impactPos, impactPos).inflate(12.0D)
+            );
+            helper.assertTrue(!projectiles.isEmpty(),
+                    "Spell Throwable Card busy impact cast did not spawn Magic Missile projectiles");
+        });
+    }
+
     static void chargedTwinBladeStaffRemoteOwnerDenylistBlocksRuntimeWithoutFallback(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = (ServerLevel) helper.getLevel();
