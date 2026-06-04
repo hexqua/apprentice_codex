@@ -1,21 +1,15 @@
 package jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff;
 
-import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
-import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
-import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
-import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
-import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRules;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Optional;
 
 public record ChargedTwinBladeStaffSpellPayload(
         @Nullable ResourceLocation spellId,
@@ -85,22 +79,13 @@ public record ChargedTwinBladeStaffSpellPayload(
             return EMPTY;
         }
 
-        var castType = spell.getCastType();
-        if (castType != CastType.INSTANT && castType != CastType.LONG && castType != CastType.CONTINUOUS) {
-            return EMPTY;
-        }
-
-        var remoteProfile = ApprenticeCodexServerConfig.chargedTwinBladeStaffUsesRemoteOwnerProfiles()
-                ? RemoteOwnerCastProfileManager.getUsableProfile(
-                        spell,
-                        RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT
-                )
-                : Optional.<RemoteOwnerCastProfile>empty();
-        var hasRecast = spell.getRecastCount(selection.spellData.getLevel(), player) > 0;
-        if (hasRecast && remoteProfile.filter(RemoteOwnerCastProfile::allowInitialRecast).isEmpty()) {
-            return EMPTY;
-        }
-        if (hasRecast && MagicData.getPlayerMagicData(player).getPlayerRecasts().hasRecastForSpell(spell)) {
+        var check = RemoteOwnerCastRules.checkImbue(
+                spell,
+                selection.spellData.getLevel(),
+                player,
+                RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT
+        );
+        if (!check.isAllowed()) {
             return EMPTY;
         }
 

@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.remoteownercast;
 
-import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
@@ -13,24 +12,19 @@ import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import io.redspace.ironsspellbooks.spells.EntityCastData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
-import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
-import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.utility.SpellManaAccessHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TraceableEntity;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.util.FakePlayerFactory;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class RemoteOwnerCastRunner {
@@ -52,13 +46,48 @@ public final class RemoteOwnerCastRunner {
             String castingSlot,
             boolean postSpellPreCastEvent
     ) {
+        return tryCast(
+                level,
+                owner,
+                sourceStack,
+                spellData,
+                profile,
+                castOrigin,
+                providedOrigin,
+                providedForward,
+                castSource,
+                castingSlot,
+                postSpellPreCastEvent,
+                RemoteOwnerManaPolicy.NORMAL,
+                0
+        );
+    }
+
+    public static CastResult tryCast(
+            ServerLevel level,
+            ServerPlayer owner,
+            ItemStack sourceStack,
+            SpellData spellData,
+            RemoteOwnerCastProfile profile,
+            RemoteOwnerCastOrigin castOrigin,
+            Vec3 providedOrigin,
+            Vec3 providedForward,
+            CastSource castSource,
+            String castingSlot,
+            boolean postSpellPreCastEvent,
+            RemoteOwnerManaPolicy manaPolicy,
+            int reservedOwnerMana
+    ) {
         if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
             return CastResult.notHandled();
         }
 
         var spell = spellData.getSpell();
-        if (spell.getCastType() == CastType.CONTINUOUS && profile.castMode() != RemoteOwnerCastMode.LEGACY_SPELL_DISPENSER) {
+        if (spell.getCastType() == CastType.CONTINUOUS) {
             return CastResult.notHandled();
+        }
+        if (!isCastModeEnabled(profile)) {
+            return CastResult.failed();
         }
         if (spell.getRecastCount(spellData.getLevel(), owner) > 0) {
             if (!profile.allowInitialRecast()) {
@@ -73,16 +102,6 @@ public final class RemoteOwnerCastRunner {
         var origin = resolveOrigin(owner, profile, providedOrigin);
         var forward = resolveForward(owner, profile, providedForward);
         return switch (profile.castMode()) {
-            case LEGACY_SPELL_DISPENSER -> tryLegacySpellDispenserCast(
-                    level,
-                    owner,
-                    sourceStack,
-                    spellData,
-                    origin,
-                    forward,
-                    castSource,
-                    castingSlot
-            );
             case PLAYER_SELF -> tryOwnerMagicCast(
                     level,
                     owner,
@@ -96,22 +115,9 @@ public final class RemoteOwnerCastRunner {
                     owner.getLookAngle(),
                     castSource,
                     castingSlot,
-                    postSpellPreCastEvent
-            );
-            case PROXY_OWNER_MAGIC -> tryOwnerMagicCast(
-                    level,
-                    owner,
-                    createProxy(level, owner, origin, forward),
-                    null,
-                    sourceStack,
-                    spellData,
-                    profile,
-                    castOrigin,
-                    origin,
-                    forward,
-                    castSource,
-                    castingSlot,
-                    postSpellPreCastEvent
+                    postSpellPreCastEvent,
+                    manaPolicy,
+                    reservedOwnerMana
             );
             case REMOTE_ANCHOR_OWNER_MAGIC -> tryRemoteAnchorOwnerMagicCast(
                     level,
@@ -124,7 +130,9 @@ public final class RemoteOwnerCastRunner {
                     forward,
                     castSource,
                     castingSlot,
-                    postSpellPreCastEvent
+                    postSpellPreCastEvent,
+                    manaPolicy,
+                    reservedOwnerMana
             );
             case REMOTE_PLAYER_GEOMETRY -> tryOwnerMagicCast(
                     level,
@@ -139,7 +147,9 @@ public final class RemoteOwnerCastRunner {
                     forward,
                     castSource,
                     castingSlot,
-                    postSpellPreCastEvent
+                    postSpellPreCastEvent,
+                    manaPolicy,
+                    reservedOwnerMana
             );
         };
     }
@@ -158,11 +168,48 @@ public final class RemoteOwnerCastRunner {
             @Nullable Integer castDurationOverrideTicks,
             boolean postSpellPreCastEvent
     ) {
+        return tryStartContinuousCast(
+                level,
+                owner,
+                sourceStack,
+                spellData,
+                profile,
+                castOrigin,
+                providedOrigin,
+                providedForward,
+                castSource,
+                castingSlot,
+                castDurationOverrideTicks,
+                postSpellPreCastEvent,
+                RemoteOwnerManaPolicy.NORMAL,
+                0
+        );
+    }
+
+    public static ContinuousCastStartResult tryStartContinuousCast(
+            ServerLevel level,
+            ServerPlayer owner,
+            ItemStack sourceStack,
+            SpellData spellData,
+            RemoteOwnerCastProfile profile,
+            RemoteOwnerCastOrigin castOrigin,
+            Vec3 providedOrigin,
+            Vec3 providedForward,
+            CastSource castSource,
+            String castingSlot,
+            @Nullable Integer castDurationOverrideTicks,
+            boolean postSpellPreCastEvent,
+            RemoteOwnerManaPolicy manaPolicy,
+            int reservedOwnerMana
+    ) {
         if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
             return ContinuousCastStartResult.notHandled();
         }
         if (!supportsRemoteContinuous(profile)) {
             return ContinuousCastStartResult.notHandled();
+        }
+        if (!isCastModeEnabled(profile)) {
+            return ContinuousCastStartResult.failed();
         }
 
         var spell = spellData.getSpell();
@@ -175,7 +222,7 @@ public final class RemoteOwnerCastRunner {
             return ContinuousCastStartResult.failed();
         }
 
-        var manaAccess = new PlayerManaAccess(owner);
+        var manaAccess = new PlayerManaAccess(owner, manaPolicy, reservedOwnerMana);
         if (!canOwnerCastWithManaAccess(owner, spellData, castSource, ownerMagicData, manaAccess)) {
             return ContinuousCastStartResult.failed();
         }
@@ -216,7 +263,7 @@ public final class RemoteOwnerCastRunner {
                 spell.onServerPreCast(level, spellData.getLevel(), spellCaster, sessionMagicData);
             }
 
-            if (!SpellDispenserManaHelper.tryConsumeSpellMana(manaAccess, spellData)) {
+            if (!SpellManaAccessHelper.tryConsumeSpellMana(manaAccess, spellData)) {
                 cleanupContinuousSession(anchor, sessionMagicData);
                 return ContinuousCastStartResult.failed();
             }
@@ -275,7 +322,7 @@ public final class RemoteOwnerCastRunner {
         }
 
         if ((magicData.getCastDurationRemaining() + 1) % CONTINUOUS_CAST_TICK_INTERVAL == 0) {
-            if (!SpellDispenserManaHelper.tryConsumeSpellMana(session.manaAccess(), spellData)) {
+            if (!SpellManaAccessHelper.tryConsumeSpellMana(session.manaAccess(), spellData)) {
                 finishContinuousCast(level, owner, session, true);
                 return false;
             }
@@ -362,6 +409,11 @@ public final class RemoteOwnerCastRunner {
         return profile.castMode() == RemoteOwnerCastMode.REMOTE_PLAYER_GEOMETRY
                 || profile.castMode() == RemoteOwnerCastMode.REMOTE_ANCHOR_OWNER_MAGIC
                 || profile.castMode() == RemoteOwnerCastMode.PLAYER_SELF;
+    }
+
+    private static boolean isCastModeEnabled(RemoteOwnerCastProfile profile) {
+        return profile.castMode() != RemoteOwnerCastMode.REMOTE_PLAYER_GEOMETRY
+                || ApprenticeCodexServerConfig.remoteOwnerCastEnableRemotePlayerGeometry();
     }
 
     private static void runWithContinuousContext(ServerPlayer owner, ContinuousCastSession session, Runnable runnable) {
@@ -457,35 +509,6 @@ public final class RemoteOwnerCastRunner {
         }
     }
 
-    private static CastResult tryLegacySpellDispenserCast(
-            ServerLevel level,
-            ServerPlayer owner,
-            ItemStack sourceStack,
-            SpellData spellData,
-            Vec3 origin,
-            Vec3 forward,
-            CastSource castSource,
-            String castingSlot
-    ) {
-        var validation = new SpellDispenserSpellValidator.ValidationResult(
-                sourceStack.copy(),
-                spellData,
-                SpellDispenserSpellValidator.FailureReason.NONE
-        );
-        var result = SpellDispenserCastHelper.tryCast(
-                level,
-                origin,
-                forward,
-                validation,
-                sourceStack,
-                owner.getGameProfile(),
-                new PlayerManaAccess(owner),
-                castSource,
-                castingSlot
-        );
-        return result.succeeded() ? CastResult.success() : CastResult.failed();
-    }
-
     private static CastResult tryRemoteAnchorOwnerMagicCast(
             ServerLevel level,
             ServerPlayer owner,
@@ -497,7 +520,9 @@ public final class RemoteOwnerCastRunner {
             Vec3 contextForward,
             CastSource castSource,
             String castingSlot,
-            boolean postSpellPreCastEvent
+            boolean postSpellPreCastEvent,
+            RemoteOwnerManaPolicy manaPolicy,
+            int reservedOwnerMana
     ) {
         var anchor = createRemoteOwnerAnchor(level, owner, contextOrigin, contextForward);
         return tryOwnerMagicCast(
@@ -513,7 +538,9 @@ public final class RemoteOwnerCastRunner {
                 contextForward,
                 castSource,
                 castingSlot,
-                postSpellPreCastEvent
+                postSpellPreCastEvent,
+                manaPolicy,
+                reservedOwnerMana
         );
     }
 
@@ -530,7 +557,9 @@ public final class RemoteOwnerCastRunner {
             Vec3 contextForward,
             CastSource castSource,
             String castingSlot,
-            boolean postSpellPreCastEvent
+            boolean postSpellPreCastEvent,
+            RemoteOwnerManaPolicy manaPolicy,
+            int reservedOwnerMana
     ) {
         var spell = spellData.getSpell();
         var ownerMagicData = MagicData.getPlayerMagicData(owner);
@@ -539,7 +568,7 @@ public final class RemoteOwnerCastRunner {
             return CastResult.failed();
         }
 
-        var manaAccess = new PlayerManaAccess(owner);
+        var manaAccess = new PlayerManaAccess(owner, manaPolicy, reservedOwnerMana);
         if (!canOwnerCastWithManaAccess(owner, spellData, castSource, ownerMagicData, manaAccess)) {
             discardAnchorIfUnused(spellCasterAnchor);
             return CastResult.failed();
@@ -552,41 +581,47 @@ public final class RemoteOwnerCastRunner {
 
         var originalMana = ownerMagicData.getMana();
         var restoreManaAfterCast = manaAccess.isManaConsumptionExempt();
-        var originalSyncedData = ownerMagicData.getSyncedData();
+        var useIsolatedMagicData = ownerMagicData.isCasting();
+        var castMagicData = useIsolatedMagicData ? new MagicData() : ownerMagicData;
+        var originalSyncedData = useIsolatedMagicData ? null : ownerMagicData.getSyncedData();
         var retainAnchor = false;
         try {
-            ownerMagicData.setSyncedData(new SyncedSpellData(spellCaster));
-            ownerMagicData.initiateCast(spell, spellData.getLevel(), 0, castSource, castingSlot);
-            ownerMagicData.setPlayerCastingItem(sourceStack.copy());
-            syncOwnerManaForCast(manaAccess, ownerMagicData);
+            // Iron's の SpellOnCastEvent 中は元詠唱が owner MagicData に残るため、busy 時だけ実行状態を分離する。
+            castMagicData.setSyncedData(new SyncedSpellData(spellCaster));
+            castMagicData.initiateCast(spell, spellData.getLevel(), 0, castSource, castingSlot);
+            castMagicData.setPlayerCastingItem(sourceStack.copy());
+            syncOwnerManaForCast(manaAccess, castMagicData);
 
             var useRemoteGeometry = profile.castMode() == RemoteOwnerCastMode.REMOTE_PLAYER_GEOMETRY;
             try (var ignored = useRemoteGeometry
                     ? RemoteOwnerCastContext.push(owner, contextOrigin, contextForward, castOrigin)
                     : null) {
-                if (!spell.checkPreCastConditions(level, spellData.getLevel(), spellCaster, ownerMagicData)) {
+                if (!spell.checkPreCastConditions(level, spellData.getLevel(), spellCaster, castMagicData)) {
                     return CastResult.failed();
                 }
-                syncOwnerManaForCast(manaAccess, ownerMagicData);
-                spell.onServerPreCast(level, spellData.getLevel(), spellCaster, ownerMagicData);
+                syncOwnerManaForCast(manaAccess, castMagicData);
+                spell.onServerPreCast(level, spellData.getLevel(), spellCaster, castMagicData);
 
-                if (!SpellDispenserManaHelper.tryConsumeSpellMana(manaAccess, spellData)) {
+                if (!SpellManaAccessHelper.tryConsumeSpellMana(manaAccess, spellData)) {
                     return CastResult.failed();
                 }
 
                 if (spell.getCastType() == CastType.LONG) {
                     spellCaster.tickCount++;
-                    syncOwnerManaForCast(manaAccess, ownerMagicData);
-                    spell.onServerCastTick(level, spellData.getLevel(), spellCaster, ownerMagicData);
+                    syncOwnerManaForCast(manaAccess, castMagicData);
+                    spell.onServerCastTick(level, spellData.getLevel(), spellCaster, castMagicData);
                 }
 
-                syncOwnerManaForCast(manaAccess, ownerMagicData);
-                spell.onCast(level, spellData.getLevel(), spellCaster, castSource, ownerMagicData);
-                retainAnchor = retainAnchorForSummonWeapon(level, ownerMagicData.getAdditionalCastData(), spellCasterAnchor);
-                syncOwnerManaForCast(manaAccess, ownerMagicData);
-                spell.onServerCastComplete(level, spellData.getLevel(), spellCaster, ownerMagicData, false);
+                syncOwnerManaForCast(manaAccess, castMagicData);
+                spell.onCast(level, spellData.getLevel(), spellCaster, castSource, castMagicData);
+                retainAnchor = retainAnchorForSummonWeapon(level, castMagicData.getAdditionalCastData(), spellCasterAnchor);
+                syncOwnerManaForCast(manaAccess, castMagicData);
+                spell.onServerCastComplete(level, spellData.getLevel(), spellCaster, castMagicData, false);
                 if (!retainAnchor) {
-                    retainAnchor = retainAnchorForSummonWeapon(level, ownerMagicData.getAdditionalCastData(), spellCasterAnchor);
+                    retainAnchor = retainAnchorForSummonWeapon(level, castMagicData.getAdditionalCastData(), spellCasterAnchor);
+                }
+                if (useIsolatedMagicData) {
+                    transferIsolatedRecasts(ownerMagicData, castMagicData);
                 }
             }
             return CastResult.success();
@@ -601,13 +636,17 @@ public final class RemoteOwnerCastRunner {
             return CastResult.failed();
         } finally {
             try {
-                ownerMagicData.resetCastingState();
+                castMagicData.resetCastingState();
             } finally {
                 if (restoreManaAfterCast) {
                     ownerMagicData.setMana(originalMana);
+                } else {
+                    manaAccess.restoreOwnerMana(ownerMagicData);
                 }
-                ownerMagicData.setSyncedData(originalSyncedData);
-                originalSyncedData.syncToPlayer(owner);
+                if (originalSyncedData != null) {
+                    ownerMagicData.setSyncedData(originalSyncedData);
+                    originalSyncedData.syncToPlayer(owner);
+                }
                 if (!retainAnchor && spellCasterAnchor != null && !spellCasterAnchor.isRemoved()) {
                     spellCasterAnchor.discard();
                 }
@@ -639,6 +678,11 @@ public final class RemoteOwnerCastRunner {
         }
     }
 
+    private static void transferIsolatedRecasts(MagicData ownerMagicData, MagicData isolatedMagicData) {
+        isolatedMagicData.getPlayerRecasts().getActiveRecasts()
+                .forEach(recast -> ownerMagicData.getPlayerRecasts().addRecast(recast, ownerMagicData));
+    }
+
     private static boolean canOwnerCastWithManaAccess(
             ServerPlayer owner,
             SpellData spellData,
@@ -653,34 +697,10 @@ public final class RemoteOwnerCastRunner {
         } finally {
             if (manaAccess.isManaConsumptionExempt()) {
                 ownerMagicData.setMana(originalMana);
+            } else {
+                manaAccess.restoreOwnerMana(ownerMagicData);
             }
         }
-    }
-
-    private static net.minecraftforge.common.util.FakePlayer createProxy(
-            ServerLevel level,
-            ServerPlayer owner,
-            Vec3 eyePosition,
-            Vec3 forward
-    ) {
-        var proxy = FakePlayerFactory.get(level, new GameProfile(owner.getUUID(), owner.getGameProfile().getName()));
-        proxy.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
-        proxy.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-        proxy.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
-
-        var normalizedForward = forward.lengthSqr() > 1.0E-6D ? forward.normalize() : owner.getLookAngle();
-        var rotation = RemoteOwnerCastGeometry.rotationFromForward(normalizedForward);
-        var yaw = rotation.yaw();
-        var pitch = rotation.pitch();
-        var feetY = eyePosition.y - proxy.getEyeHeight(proxy.getPose());
-        proxy.moveTo(eyePosition.x, feetY, eyePosition.z, yaw, pitch);
-        proxy.setYBodyRot(yaw);
-        proxy.setYHeadRot(yaw);
-        proxy.yBodyRotO = yaw;
-        proxy.yHeadRotO = yaw;
-        proxy.setXRot(pitch);
-        proxy.xRotO = pitch;
-        return proxy;
     }
 
     private static Vec3 resolveOrigin(ServerPlayer owner, RemoteOwnerCastProfile profile, Vec3 providedOrigin) {
@@ -693,7 +713,7 @@ public final class RemoteOwnerCastRunner {
 
     private static void syncOwnerManaForCast(PlayerManaAccess manaAccess, MagicData magicData) {
         magicData.setMana(manaAccess.isManaConsumptionExempt()
-                ? SpellDispenserManaHelper.MAX_MANA
+                ? SpellManaAccessHelper.MAX_MANA
                 : manaAccess.getCurrentMana());
     }
 
@@ -849,42 +869,59 @@ public final class RemoteOwnerCastRunner {
         }
     }
 
-    private static final class PlayerManaAccess implements SpellDispenserManaHelper.ManaAccess {
+    private static final class PlayerManaAccess implements SpellManaAccessHelper.ManaAccess {
         private final ServerPlayer player;
+        private final RemoteOwnerManaPolicy manaPolicy;
+        private final int reservedOwnerMana;
+        private int currentOwnerMana;
 
-        private PlayerManaAccess(ServerPlayer player) {
+        private PlayerManaAccess(ServerPlayer player, RemoteOwnerManaPolicy manaPolicy, int reservedOwnerMana) {
             this.player = player;
+            this.manaPolicy = manaPolicy != null ? manaPolicy : RemoteOwnerManaPolicy.NORMAL;
+            this.reservedOwnerMana = this.manaPolicy == RemoteOwnerManaPolicy.RESERVE_OWNER_MANA
+                    ? Math.max(0, reservedOwnerMana)
+                    : 0;
+            this.currentOwnerMana = Mth.floor(MagicData.getPlayerMagicData(player).getMana());
         }
 
         @Override
         public int getCurrentMana() {
-            return Mth.floor(MagicData.getPlayerMagicData(player).getMana());
+            if (isManaConsumptionExempt()) {
+                return SpellManaAccessHelper.MAX_MANA;
+            }
+            if (reservesOwnerMana()) {
+                return Math.max(0, currentOwnerMana - reservedOwnerMana);
+            }
+            return Math.max(0, Mth.floor(MagicData.getPlayerMagicData(player).getMana()) - reservedOwnerMana);
         }
 
         @Override
         public void setCurrentMana(int mana) {
+            if (isManaConsumptionExempt()) {
+                return;
+            }
             var magicData = MagicData.getPlayerMagicData(player);
-            magicData.setMana(Math.max(0.0F, mana));
+            var nextMana = Math.max(0, mana + reservedOwnerMana);
+            if (reservesOwnerMana()) {
+                currentOwnerMana = nextMana;
+            }
+            magicData.setMana(nextMana);
             PacketDistributor.sendToPlayer(player, new SyncManaPacket(magicData));
         }
 
         @Override
-        public int getInventorySlotCount() {
-            return 0;
-        }
-
-        @Override
-        public @NotNull ItemStack getInventoryStack(int slot) {
-            return ItemStack.EMPTY;
-        }
-
-        @Override
-        public void setInventoryStack(int slot, @NotNull ItemStack stack) {
-        }
-
-        @Override
         public boolean isManaConsumptionExempt() {
-            return player.isCreative();
+            return player.isCreative() || manaPolicy == RemoteOwnerManaPolicy.NO_CONSUME;
+        }
+
+        private boolean reservesOwnerMana() {
+            return reservedOwnerMana > 0;
+        }
+
+        private void restoreOwnerMana(MagicData magicData) {
+            if (reservesOwnerMana() && !isManaConsumptionExempt()) {
+                magicData.setMana(currentOwnerMana);
+            }
         }
     }
 }

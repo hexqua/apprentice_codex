@@ -78,10 +78,6 @@ final class BlocksServerConfig {
         return spellDispenserConfig.creativeCooldownMultiplier();
     }
 
-    boolean spellDispenserIgnoreSpellProfileAndDenylistFiles() {
-        return spellDispenserConfig.ignoreSpellProfileAndDenylistFiles();
-    }
-
     java.util.List<String> spellDispenserSpellAllowlist() {
         return spellDispenserConfig.spellAllowlist();
     }

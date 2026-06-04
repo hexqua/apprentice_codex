@@ -489,7 +489,6 @@
   "container.apprenticecodex.spell_dispenser.spell.tooltip.server_disabled": "サーバー設定でスペルディスペンサーの使用が許可されていない",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.not_allowlisted": "サーバー設定でこの魔法はスペルディスペンサーに許可されていない",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.not_profiled": "スペルディスペンサーの設定に対象の魔法が存在しないため使用できない",
-  "container.apprenticecodex.spell_dispenser.spell.tooltip.denylisted": "スペルディスペンサーの禁止リスト設定に入っているため使用できない",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.general_error": "この魔法は利用できない",
   "container.apprenticecodex.ender_grimoire_inscription": "エンダーグリモア",
   "container.apprenticecodex.atelier_station": "アトリエステーション",

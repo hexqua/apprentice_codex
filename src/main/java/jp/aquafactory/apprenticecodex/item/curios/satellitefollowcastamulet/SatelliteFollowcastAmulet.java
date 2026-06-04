@@ -6,17 +6,13 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellListManager;
-import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfileManager;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
-import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
-import jp.aquafactory.apprenticecodex.item.SpellGunSpellListManager;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownPolicyItem;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
-import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRules;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -120,13 +116,8 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
 
     @Override
     public boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel) {
-        return spell != null
-                && spell != io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()
-                && spell.getRecastCount(spellLevel, null) <= 0
-                && !SpellGunSpellListManager.isDenylisted(spell)
-                && !SpellDispenserSpellListManager.isDenylisted(spell)
-                && !ApprenticeCodexServerConfig.isSatelliteFollowcastAmuletSpellDenied(spell.getSpellResource())
-                && hasSupportedProxyCastProfile(spell);
+        return RemoteOwnerCastRules.checkImbue(spell, spellLevel, RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST)
+                .isAllowed();
     }
 
     @Override
@@ -285,12 +276,6 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
 
     public static Vec3 getCrystalPosition(LivingEntity owner, int slotIndex, int maxSpellSlots, float partialTick) {
         return owner.position().add(getCrystalOffset(owner, slotIndex, maxSpellSlots, partialTick));
-    }
-
-    private static boolean hasSupportedProxyCastProfile(AbstractSpell spell) {
-        return ApprenticeCodexServerConfig.satelliteFollowcastUsesRemoteOwnerProfiles()
-                && RemoteOwnerCastProfileManager.isSupportedByRemoteOwnerCast(spell, RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST)
-                || SpellDispenserSpellProfileManager.getProfile(spell).isPresent();
     }
 
     private static void appendFollowcastTooltip(List<Component> lines) {

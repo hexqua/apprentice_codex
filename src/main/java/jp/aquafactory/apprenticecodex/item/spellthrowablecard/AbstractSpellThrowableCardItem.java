@@ -7,16 +7,14 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfileManager;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
-import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.AbstractSpellThrowableCardEntity;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownPolicyItem;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
-import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRules;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -124,20 +122,8 @@ public abstract class AbstractSpellThrowableCardItem extends Item implements Res
 
     @Override
     public boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel) {
-        if (spell == null || spell == SpellRegistry.none()) {
-            return false;
-        }
-        var hasRecast = spell.getRecastCount(spellLevel, null) > 0;
-        if (ApprenticeCodexServerConfig.chargedTwinBladeStaffUsesRemoteOwnerProfiles()) {
-            var profile = RemoteOwnerCastProfileManager.getUsableProfile(
-                    spell,
-                    RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT
-            );
-            if (profile.isPresent()) {
-                return !hasRecast || profile.get().allowInitialRecast();
-            }
-        }
-        return SpellDispenserSpellProfileManager.getProfile(spell).isPresent();
+        return RemoteOwnerCastRules.checkImbue(spell, spellLevel, RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT)
+                .isAllowed();
     }
 
     @Override

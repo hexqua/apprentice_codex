@@ -488,7 +488,6 @@
   "container.apprenticecodex.spell_dispenser.spell.tooltip.server_disabled": "服务器设置已禁用法术发射器施法。",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.not_allowlisted": "服务器的法术发射器设置未允许该法术。",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.not_profiled": "该法术未配置适配此法术发射器，无法使用。",
-  "container.apprenticecodex.spell_dispenser.spell.tooltip.denylisted": "该法术在法术发射器禁用列表中，无法使用。",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.general_error": "无法释放该法术。",
   "container.apprenticecodex.ender_grimoire_inscription": "末影魔导书",
   "container.apprenticecodex.atelier_station": "炼金工坊站",
