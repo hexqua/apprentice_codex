@@ -15,8 +15,8 @@ public final class ApprenticeCodexSpellThrowableCardGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void spellThrowableCardsAcceptOnlyRemoteOwnerProfilesAndAllowedRecasts(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellThrowableCardsAcceptOnlyRemoteOwnerProfilesAndAllowedRecasts(helper);
+    public static void spellThrowableCardsAcceptOnlySupportedImpactProfilesAndAllowedRecasts(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellThrowableCardsAcceptOnlySupportedImpactProfilesAndAllowedRecasts(helper);
     }
 
     @GameTest(template = TEMPLATE)
