@@ -1,9 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet;
 
-import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
@@ -14,7 +12,6 @@ import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSatelliteFollowcastAmuletStatePacket;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
@@ -22,6 +19,8 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileMana
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRequest;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRunner;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastService;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCooldownManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCooldownPolicy;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -40,7 +39,6 @@ import top.theillusivec4.curios.api.SlotResult;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -51,7 +49,6 @@ import java.util.WeakHashMap;
 public final class SatelliteFollowcastAmuletCastEvent {
     public static final int CONTINUOUS_FOLLOWCAST_TICKS = 20 * 5;
     private static final CastSource FOLLOWCAST_SOURCE = CastSource.SWORD;
-    private static final Map<UUID, PendingFollowcastCooldown> PENDING_FOLLOWCAST_COOLDOWNS = new HashMap<>();
     private static final Map<ServerLevel, List<ContinuousFollowcastRuntime>> ACTIVE_CONTINUOUS_CASTS = new WeakHashMap<>();
 
     private SatelliteFollowcastAmuletCastEvent() {
@@ -209,7 +206,13 @@ public final class SatelliteFollowcastAmuletCastEvent {
                 if (!result.succeeded()) {
                     return CastAttemptResult.NONE;
                 }
-                addFollowcastCooldown(player, spellData, FOLLOWCAST_SOURCE, slotResult.stack());
+                RemoteOwnerCooldownManager.addCooldown(
+                        player,
+                        spellData,
+                        FOLLOWCAST_SOURCE,
+                        slotResult.stack(),
+                        RemoteOwnerCooldownPolicy.FOLLOWCAST
+                );
                 return CastAttemptResult.CASTED;
             }
         }
@@ -340,42 +343,6 @@ public final class SatelliteFollowcastAmuletCastEvent {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onSpellCooldownAdded(SpellCooldownAddedEvent.Pre event) {
-        if (!(event.getEntity() instanceof ServerPlayer player)) {
-            return;
-        }
-
-        var pendingCooldown = PENDING_FOLLOWCAST_COOLDOWNS.get(player.getUUID());
-        if (pendingCooldown == null
-                || !pendingCooldown.spellId().equals(event.getSpell().getSpellId())
-                || pendingCooldown.castSource() != event.getCastSource()) {
-            return;
-        }
-
-        event.setEffectiveCooldown(WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
-                event.getSpell(),
-                player,
-                event.getCastSource(),
-                pendingCooldown.castingStack()
-        ) + pendingCooldown.extraCooldownTicks());
-    }
-
-    private static void addFollowcastCooldown(ServerPlayer player, SpellData spellData, CastSource castSource, ItemStack castingStack) {
-        var spell = spellData.getSpell();
-        PENDING_FOLLOWCAST_COOLDOWNS.put(player.getUUID(), new PendingFollowcastCooldown(
-                spell.getSpellId(),
-                castSource,
-                castingStack.copy(),
-                resolveLongCastCooldownExtensionTicks(player, spellData)
-        ));
-        try {
-            MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, castSource);
-        } finally {
-            PENDING_FOLLOWCAST_COOLDOWNS.remove(player.getUUID());
-        }
-    }
-
     @SubscribeEvent
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
@@ -417,16 +384,6 @@ public final class SatelliteFollowcastAmuletCastEvent {
         return ownerMagicData.getMana() >= reservedOriginalManaCost + followcastManaCost;
     }
 
-    private static int resolveLongCastCooldownExtensionTicks(ServerPlayer player, SpellData spellData) {
-        var spell = spellData.getSpell();
-        if (spell.getCastType() != CastType.LONG) {
-            return 0;
-        }
-
-        var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
-        return Math.max(0, spell.getEffectiveCastTime(spellLevel, player));
-    }
-
     private static boolean isContinuousFollowcastActive(ServerLevel level, ContinuousFollowcastKey key) {
         var runtimes = ACTIVE_CONTINUOUS_CASTS.get(level);
         if (runtimes == null) {
@@ -465,11 +422,12 @@ public final class SatelliteFollowcastAmuletCastEvent {
                     return;
                 }
 
-                addFollowcastCooldown(
+                RemoteOwnerCooldownManager.addCooldown(
                         owner,
                         spellData,
                         castSource,
-                        runtime.sourceStack()
+                        runtime.sourceStack(),
+                        RemoteOwnerCooldownPolicy.FOLLOWCAST
                 );
             }
             syncContinuousState(owner, runtime.key(), false, 0L);
@@ -528,7 +486,7 @@ public final class SatelliteFollowcastAmuletCastEvent {
     }
 
     private static void clearPlayerState(ServerPlayer player, boolean cancelled, @Nullable ServerLevel ownerLevel) {
-        PENDING_FOLLOWCAST_COOLDOWNS.remove(player.getUUID());
+        RemoteOwnerCooldownManager.clearPending(player);
         var levelIterator = ACTIVE_CONTINUOUS_CASTS.entrySet().iterator();
         while (levelIterator.hasNext()) {
             var levelEntry = levelIterator.next();
@@ -586,9 +544,6 @@ public final class SatelliteFollowcastAmuletCastEvent {
         public boolean isManaConsumptionExempt() {
             return player.isCreative();
         }
-    }
-
-    private record PendingFollowcastCooldown(String spellId, CastSource castSource, ItemStack castingStack, int extraCooldownTicks) {
     }
 
     private record ContinuousFollowcastKey(UUID ownerId, String slotIdentifier, int curiosSlotIndex, int spellSlotIndex) {

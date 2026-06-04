@@ -1,29 +1,25 @@
 package jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff;
 
-import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
-import io.redspace.ironsspellbooks.api.magic.MagicHelper;
-import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRequest;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRunner;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastService;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCooldownManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCooldownPolicy;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -33,7 +29,6 @@ import java.util.WeakHashMap;
 public final class ChargedTwinBladeStaffSpellCastManager {
     public static final int CONTINUOUS_IMPACT_CAST_TICKS = 20 * 5;
     private static final Map<ServerLevel, List<ContinuousImpactCastRuntime>> ACTIVE_CONTINUOUS_CASTS = new WeakHashMap<>();
-    private static final Map<UUID, PendingImpactCooldown> PENDING_IMPACT_COOLDOWNS = new HashMap<>();
 
     private ChargedTwinBladeStaffSpellCastManager() {
     }
@@ -142,7 +137,15 @@ public final class ChargedTwinBladeStaffSpellCastManager {
             return false;
         }
 
-        addCooldownIfNeeded(owner, spellData, castSource, sourceStack, resolveLongCastCooldownExtensionTicks(owner, spellData, extendLongCastCooldown));
+        RemoteOwnerCooldownManager.addCooldown(
+                owner,
+                spellData,
+                castSource,
+                sourceStack,
+                extendLongCastCooldown
+                        ? RemoteOwnerCooldownPolicy.WEAPON_IMBUE_WITH_LONG_CAST_EXTENSION
+                        : RemoteOwnerCooldownPolicy.WEAPON_IMBUE
+        );
         return true;
     }
 
@@ -205,63 +208,13 @@ public final class ChargedTwinBladeStaffSpellCastManager {
             return;
         }
 
-        addCooldownIfNeeded(owner, spellData, castSource, castingStack, 0);
-    }
-
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onSpellCooldownAdded(SpellCooldownAddedEvent.Pre event) {
-        if (!(event.getEntity() instanceof ServerPlayer player)) {
-            return;
-        }
-
-        var pendingCooldown = PENDING_IMPACT_COOLDOWNS.get(player.getUUID());
-        if (pendingCooldown == null
-                || !pendingCooldown.spellId().equals(event.getSpell().getSpellId())
-                || pendingCooldown.castSource() != event.getCastSource()) {
-            return;
-        }
-
-        event.setEffectiveCooldown(WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
-                event.getSpell(),
-                player,
-                event.getCastSource(),
-                pendingCooldown.castingStack()
-        ) + pendingCooldown.extraCooldownTicks());
-    }
-
-    private static void addCooldownIfNeeded(
-            ServerPlayer owner,
-            SpellData spellData,
-            CastSource castSource,
-            ItemStack castingStack,
-            int extraCooldownTicks
-    ) {
-        var spell = spellData.getSpell();
-        if (spell.getRecastCount(spellData.getLevel(), owner) > 0) {
-            return;
-        }
-
-        PENDING_IMPACT_COOLDOWNS.put(owner.getUUID(), new PendingImpactCooldown(
-                spell.getSpellId(),
+        RemoteOwnerCooldownManager.addCooldown(
+                owner,
+                spellData,
                 castSource,
-                castingStack.copy(),
-                Math.max(0, extraCooldownTicks)
-        ));
-        try {
-            MagicHelper.MAGIC_MANAGER.addCooldown(owner, spell, castSource);
-        } finally {
-            PENDING_IMPACT_COOLDOWNS.remove(owner.getUUID());
-        }
-    }
-
-    private static int resolveLongCastCooldownExtensionTicks(ServerPlayer owner, SpellData spellData, boolean enabled) {
-        if (!enabled || spellData == SpellData.EMPTY || spellData.getSpell().getCastType() != CastType.LONG) {
-            return 0;
-        }
-        return Math.max(0, spellData.getSpell().getEffectiveCastTime(spellData.getLevel(), owner));
-    }
-
-    private record PendingImpactCooldown(String spellId, CastSource castSource, ItemStack castingStack, int extraCooldownTicks) {
+                castingStack,
+                RemoteOwnerCooldownPolicy.WEAPON_IMBUE
+        );
     }
 
     private record ContinuousImpactCastRuntime(
