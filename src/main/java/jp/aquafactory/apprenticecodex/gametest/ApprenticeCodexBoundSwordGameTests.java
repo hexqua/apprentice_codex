@@ -54,6 +54,8 @@ public final class ApprenticeCodexBoundSwordGameTests {
         helper.assertTrue(sword.is(ItemRegistry.BOUND_SWORD.get()), "Bound Sword should replace the mainhand item");
         helper.assertTrue(BoundSwordItem.getDisplayDamage(sword) == 7.5F,
                 "Bound Sword should keep a snapshot of display damage");
+        helper.assertTrue(Math.abs(resolveMainhandAttackDamage(sword) - 6.5D) < 0.0001D,
+                "Bound Sword stack attribute modifiers should match the snapshotted display damage");
 
         var state = Capabilities.getSpellDataOrNull(player).get(CodexSpellStateTypeRegister.BOUND_SWORD_STATE);
         helper.assertTrue(state.hasStoredMainhandStack() && state.getStoredMainhandStack().is(Items.DIAMOND),
@@ -242,12 +244,7 @@ public final class ApprenticeCodexBoundSwordGameTests {
         helper.assertTrue(Math.abs(BoundSwordItem.getDisplayDamage(sword) - 9.0F) < 0.0001F,
                 "Bound Sword display damage should snapshot Summon Damage at cast time");
 
-        var attackDamage = ((BoundSwordItem) sword.getItem()).getDefaultAttributeModifiers(sword).modifiers()
-                .stream()
-                .filter(entry -> entry.slot().equals(EquipmentSlotGroup.MAINHAND)
-                        && entry.attribute().equals(Attributes.ATTACK_DAMAGE))
-                .mapToDouble(entry -> entry.modifier().amount())
-                .sum();
+        var attackDamage = resolveMainhandAttackDamage(sword);
         helper.assertTrue(Math.abs(attackDamage - 8.0D) < 0.0001D,
                 "Bound Sword attack damage modifier should be based on the snapshotted display damage");
 
@@ -262,6 +259,8 @@ public final class ApprenticeCodexBoundSwordGameTests {
         equipGreaterConjurersTalisman(player);
 
         BoundSwordManager.activate(player, 1, CastSource.SPELLBOOK, magicData, boundSword(), 6.0F);
+        helper.assertTrue(Math.abs(resolveMainhandAttackDamage(player.getMainHandItem()) - 5.0D) < 0.0001D,
+                "Greater Conjurer's Talisman should not collapse Bound Sword attack damage");
         var recast = magicData.getPlayerRecasts().getRecastInstance(boundSword().getSpellId());
         helper.assertTrue(recast != null, "Bound Sword should create an active recast");
 
@@ -341,5 +340,14 @@ public final class ApprenticeCodexBoundSwordGameTests {
 
     private static BoundSword boundSword() {
         return (BoundSword) SpellRegistry.BOUND_SWORD.get();
+    }
+
+    private static double resolveMainhandAttackDamage(ItemStack stack) {
+        return stack.getAttributeModifiers().modifiers()
+                .stream()
+                .filter(entry -> entry.slot().equals(EquipmentSlotGroup.MAINHAND)
+                        && entry.attribute().equals(Attributes.ATTACK_DAMAGE))
+                .mapToDouble(entry -> entry.modifier().amount())
+                .sum();
     }
 }

@@ -62,6 +62,7 @@ public class BoundSwordItem extends SwordItem {
                 tag.putString(EQUIPMENT_SLOT_TAG, OFFHAND_SLOT_VALUE);
             }
         });
+        stack.set(DataComponents.ATTRIBUTE_MODIFIERS, createAttributeModifiers(displayDamage));
         return stack;
     }
 
@@ -102,12 +103,16 @@ public class BoundSwordItem extends SwordItem {
 
     @Override
     public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        return createAttributeModifiers(getDisplayDamage(stack));
+    }
+
+    private static ItemAttributeModifiers createAttributeModifiers(float displayDamage) {
         var builder = ItemAttributeModifiers.builder();
         builder.add(
                 Attributes.ATTACK_DAMAGE,
                 new AttributeModifier(
                         Item.BASE_ATTACK_DAMAGE_ID,
-                        Math.max(0.0F, getDisplayDamage(stack) - 1.0F),
+                        Math.max(0.0F, displayDamage - 1.0F),
                         AttributeModifier.Operation.ADD_VALUE
                 ),
                 EquipmentSlotGroup.MAINHAND
