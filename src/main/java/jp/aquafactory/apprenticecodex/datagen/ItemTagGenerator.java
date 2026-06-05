@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
+import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.core.HolderLookup;
@@ -260,12 +261,12 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 malumSoulShatterCapableWeaponTag.add(item);
 
                 // 1.21.1 では Wisdom / Transcendence の適用可否が enchantment JSON 側の item tag で決まる。
-                // 右クリック魔法武器は Java 側で両エンチャを許可しているため、tag 側も同じ面に揃える。
+                // Java 側で Transcendence を拒否する武器は tag 側からも外し、適用面をそろえる。
                 if (item instanceof AbstractRightClickMagicWeaponItem) {
                     // 1.21.1 の Haunted / Animated は magic_capable_weapon タグ基準なので、
                     // 主手用魔法武器は tag と Java 側判定を同じ面に揃える。
                     malumMagicCapableWeaponTag.add(item);
-                    if (!(item instanceof MithrilFreecastStaff)) {
+                    if (!(item instanceof MithrilFreecastStaff) && !(item instanceof RevolvercastStaff)) {
                         transcendenceEnchantableTag.add(item);
                     }
                     wisdomEnchantableTag.add(item);

@@ -3996,13 +3996,13 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 0,
                     "Revolvercast Staff should not advance in the same tick as cast initiation");
 
-            RevolvercastStaffPendingAdvance.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            RevolvercastStaffPendingAdvance.tickPlayer(player);
             helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 0,
                     "Revolvercast Staff should wait until the next game tick before advancing");
         });
 
         helper.runAtTickTime(3, () -> {
-            RevolvercastStaffPendingAdvance.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            RevolvercastStaffPendingAdvance.tickPlayer(player);
             helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 2,
                     "Revolvercast Staff should advance after the successful cast completes and a tick passes");
             helper.succeed();
@@ -4029,7 +4029,7 @@ public final class ApprenticeCodexGameTestScenarios {
         RevolvercastStaffPendingAdvance.onServerCastComplete(player, magicMissile, magicData, true);
 
         helper.runAtTickTime(2, () -> {
-            RevolvercastStaffPendingAdvance.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            RevolvercastStaffPendingAdvance.tickPlayer(player);
             helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 0,
                     "Revolvercast Staff should discard pending advancement when the cast is cancelled");
             helper.succeed();
@@ -4041,11 +4041,11 @@ public final class ApprenticeCodexGameTestScenarios {
             var stack = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
             var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
             var staff = (RevolvercastStaff) stack.getItem();
-            var modifiers = staff.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
+            var modifiers = toModifierMultimap(staff.getDefaultAttributeModifiers(stack));
             assertSingleModifierAmount(
                     helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     0.10D,
                     "Revolvercast Staff general spell power modifier changed"
             );
@@ -4054,15 +4054,15 @@ public final class ApprenticeCodexGameTestScenarios {
                     0,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get())
             );
-            modifiers = staff.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
+            modifiers = toModifierMultimap(staff.getDefaultAttributeModifiers(stack));
             assertSingleModifierAmount(
                     helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     0.15D,
                     "Fire rune should replace Revolvercast Staff general spell power with a stronger fire spell power bonus"
             );
-            helper.assertTrue(modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()).isEmpty(),
+            helper.assertTrue(modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER).isEmpty(),
                     "Fire-tuned Revolvercast Staff should not keep its general spell power modifier");
             helper.assertTrue(
                     jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),

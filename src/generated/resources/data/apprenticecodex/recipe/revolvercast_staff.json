@@ -27,7 +27,7 @@
     "P  "
   ],
   "result": {
-    "item": "apprenticecodex:revolvercast_staff"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:revolvercast_staff"
+  }
 }

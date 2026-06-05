@@ -9,16 +9,16 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class RevolvercastStaffPendingAdvance {
     private static final long PENDING_EXPIRE_TICKS = 40L;
     private static final ConcurrentMap<UUID, PendingAdvance> PENDING_ADVANCES = new ConcurrentHashMap<>();
@@ -75,11 +75,15 @@ public final class RevolvercastStaffPendingAdvance {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || !(event.player instanceof ServerPlayer player)) {
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
 
+        tickPlayer(player);
+    }
+
+    public static void tickPlayer(ServerPlayer player) {
         PENDING_ADVANCES.computeIfPresent(player.getUUID(), (ignored, pending) -> {
             var gameTime = player.level().getGameTime();
             if (gameTime - pending.createdGameTime() > PENDING_EXPIRE_TICKS) {

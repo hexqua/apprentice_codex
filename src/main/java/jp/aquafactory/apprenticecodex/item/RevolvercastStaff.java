@@ -1,7 +1,5 @@
 package jp.aquafactory.apprenticecodex.item;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
@@ -17,9 +15,9 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.item.Scroll;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.RevolvercastStaffRenderer;
@@ -28,6 +26,11 @@ import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -36,7 +39,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -46,22 +49,24 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.EnumSet;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
@@ -74,6 +79,8 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     public static final int BASE_CALIBRATION_SCROLL_SLOT_COUNT = 4;
     public static final int CALIBRATION_SCROLL_SLOTS_PER_UPGRADE = 2;
 
+    private static final HolderLookup.Provider FALLBACK_SERIALIZATION_LOOKUP =
+            RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     private static final String ORB_CONTROLLER = "orb";
     private static final String REVOLVE_CONTROLLER = "revolve";
     private static final String REVOLVE_ANIMATION = "revolve";
@@ -94,7 +101,8 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     private static final double DISPLAYED_ATTACK_SPEED = 1.8D;
     private static final double GENERAL_SPELL_POWER_BONUS = 0.10D;
     private static final double SCHOOL_SPELL_POWER_BONUS = 0.15D;
-    private static final UUID SPELL_POWER_MODIFIER_ID = UUID.fromString("c746a21b-7055-4fdf-8d47-c31d41041a46");
+    private static final ResourceLocation SPELL_POWER_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "revolvercast_staff.mainhand.spell_power");
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final ResourceLocation textureLocation = ResourceLocation.fromNamespaceAndPath(
@@ -146,56 +154,67 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        if (slot != EquipmentSlot.MAINHAND) {
-            return super.getAttributeModifiers(slot, stack);
-        }
-
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        builder.put(
+    public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers(@NotNull ItemStack stack) {
+        var builder = ItemAttributeModifiers.builder();
+        builder.add(
                 Attributes.ATTACK_DAMAGE,
                 new AttributeModifier(
-                        Item.BASE_ATTACK_DAMAGE_UUID,
-                        "Weapon modifier",
+                        Item.BASE_ATTACK_DAMAGE_ID,
                         DISPLAYED_ATTACK_DAMAGE - 1.0D,
-                        AttributeModifier.Operation.ADDITION
-                )
+                        AttributeModifier.Operation.ADD_VALUE
+                ),
+                EquipmentSlotGroup.MAINHAND
         );
-        builder.put(
+        builder.add(
                 Attributes.ATTACK_SPEED,
                 new AttributeModifier(
-                        Item.BASE_ATTACK_SPEED_UUID,
-                        "Weapon modifier",
+                        Item.BASE_ATTACK_SPEED_ID,
                         DISPLAYED_ATTACK_SPEED - 4.0D,
-                        AttributeModifier.Operation.ADDITION
-                )
+                        AttributeModifier.Operation.ADD_VALUE
+                ),
+                EquipmentSlotGroup.MAINHAND
         );
 
         var spellPowerAmount = SCHOOL_SPELL_POWER_BONUS;
         var spellPowerAttribute = getResolvedSchoolPowerAttribute(stack);
         if (spellPowerAttribute == null) {
-            spellPowerAttribute = AttributeRegistry.SPELL_POWER.get();
-            spellPowerAmount = GENERAL_SPELL_POWER_BONUS;
+            builder.add(
+                    AttributeRegistry.SPELL_POWER,
+                    new AttributeModifier(
+                            SPELL_POWER_MODIFIER_ID,
+                            GENERAL_SPELL_POWER_BONUS,
+                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                    ),
+                    EquipmentSlotGroup.MAINHAND
+            );
+            return builder.build();
         }
-        builder.put(
-                spellPowerAttribute,
+
+        builder.add(
+                BuiltInRegistries.ATTRIBUTE.wrapAsHolder(spellPowerAttribute),
                 new AttributeModifier(
                         SPELL_POWER_MODIFIER_ID,
-                        "apprenticecodex.revolvercast_staff.mainhand.spell_power",
                         spellPowerAmount,
-                        AttributeModifier.Operation.MULTIPLY_BASE
-                )
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                ),
+                EquipmentSlotGroup.MAINHAND
         );
         return builder.build();
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        if (EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get()) {
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
+        if (Enchantments.TRANSCENDENCE.location().equals(enchantmentId)) {
             return false;
         }
 
-        return super.canApplyAtEnchantingTable(stack, enchantment);
+        return super.supportsEnchantment(stack, enchantment);
+    }
+
+    @Override
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -313,9 +332,9 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
-                                @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context,
+                                @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, context, lines, flag);
         lines.add(Component.translatable("item.apprenticecodex.swingcast.common.desc").withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable("item.apprenticecodex.revolvercast_staff.desc").withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable(hasRecoveryRune(stack)
@@ -332,13 +351,17 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         appendRevolvercastTooltip(lines);
     }
 
+    public boolean hasCustomRendering() {
+        return true;
+    }
+
     @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
+    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
+        consumer.accept(new GeoRenderProvider() {
             private RevolvercastStaffRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public BlockEntityWithoutLevelRenderer getGeoItemRenderer() {
                 if (renderer == null) {
                     renderer = new RevolvercastStaffRenderer();
                 }
@@ -428,7 +451,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
             return -1;
         }
 
-        var calibrationTag = staffStack.getTagElement(CALIBRATION_TAG);
+        var calibrationTag = getCalibrationTag(staffStack);
         if (calibrationTag == null || !calibrationTag.contains(SELECTED_SCROLL_INDEX_TAG, Tag.TAG_INT)) {
             return -1;
         }
@@ -584,9 +607,10 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     private static String nextRevolveAnimationName(ItemStack stack) {
-        var tag = stack.getOrCreateTag();
-        var variant = tag.getInt(REVOLVE_ANIMATION_VARIANT_TAG);
-        tag.putInt(REVOLVE_ANIMATION_VARIANT_TAG, variant + 1);
+        var tag = getCustomDataTag(stack);
+        var variant = tag == null ? 0 : tag.getInt(REVOLVE_ANIMATION_VARIANT_TAG);
+        CustomData.update(DataComponents.CUSTOM_DATA, stack,
+                dataTag -> dataTag.putInt(REVOLVE_ANIMATION_VARIANT_TAG, variant + 1));
         return (variant & 1) == 0 ? REVOLVE_ANIMATION : REVOLVE_ANIMATION_ALT;
     }
 
@@ -647,7 +671,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
             return ItemStack.EMPTY;
         }
 
-        var calibrationTag = staffStack.getTagElement(CALIBRATION_TAG);
+        var calibrationTag = getCalibrationTag(staffStack);
         if (calibrationTag == null || !calibrationTag.contains(listName, Tag.TAG_LIST)) {
             return ItemStack.EMPTY;
         }
@@ -658,7 +682,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
             if (entry.getInt(SLOT_TAG) != slot || !entry.contains(ITEM_TAG, Tag.TAG_COMPOUND)) {
                 continue;
             }
-            return ItemStack.of(entry.getCompound(ITEM_TAG));
+            return ItemStack.parseOptional(serializationLookup(), entry.getCompound(ITEM_TAG));
         }
         return ItemStack.EMPTY;
     }
@@ -669,29 +693,27 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
             return;
         }
 
-        var calibrationTag = staffStack.getOrCreateTagElement(CALIBRATION_TAG);
-        var list = calibrationTag.contains(listName, Tag.TAG_LIST)
-                ? calibrationTag.getList(listName, Tag.TAG_COMPOUND)
-                : new ListTag();
-        removeCalibrationItem(list, slot);
+        updateCalibrationTag(staffStack, calibrationTag -> {
+            var list = calibrationTag.contains(listName, Tag.TAG_LIST)
+                    ? calibrationTag.getList(listName, Tag.TAG_COMPOUND)
+                    : new ListTag();
+            removeCalibrationItem(list, slot);
 
-        if (!stack.isEmpty()) {
-            var storedStack = stack.copy();
-            storedStack.setCount(1);
-            var entry = new CompoundTag();
-            entry.putInt(SLOT_TAG, slot);
-            entry.put(ITEM_TAG, storedStack.save(new CompoundTag()));
-            list.add(entry);
-        }
+            if (!stack.isEmpty()) {
+                var storedStack = stack.copy();
+                storedStack.setCount(1);
+                var entry = new CompoundTag();
+                entry.putInt(SLOT_TAG, slot);
+                entry.put(ITEM_TAG, storedStack.saveOptional(serializationLookup()));
+                list.add(entry);
+            }
 
-        if (list.isEmpty()) {
-            calibrationTag.remove(listName);
-        } else {
-            calibrationTag.put(listName, list);
-        }
-        if (calibrationTag.isEmpty()) {
-            staffStack.removeTagKey(CALIBRATION_TAG);
-        }
+            if (list.isEmpty()) {
+                calibrationTag.remove(listName);
+            } else {
+                calibrationTag.put(listName, list);
+            }
+        });
     }
 
     private static int findFirstValidScrollIndex(@NotNull ItemStack staffStack) {
@@ -760,19 +782,11 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
             return;
         }
 
-        staffStack.getOrCreateTagElement(CALIBRATION_TAG).putInt(SELECTED_SCROLL_INDEX_TAG, selectedScrollIndex);
+        updateCalibrationTag(staffStack, tag -> tag.putInt(SELECTED_SCROLL_INDEX_TAG, selectedScrollIndex));
     }
 
     private static void clearSelectedScrollIndex(@NotNull ItemStack staffStack) {
-        var calibrationTag = staffStack.getTagElement(CALIBRATION_TAG);
-        if (calibrationTag == null) {
-            return;
-        }
-
-        calibrationTag.remove(SELECTED_SCROLL_INDEX_TAG);
-        if (calibrationTag.isEmpty()) {
-            staffStack.removeTagKey(CALIBRATION_TAG);
-        }
+        updateCalibrationTag(staffStack, tag -> tag.remove(SELECTED_SCROLL_INDEX_TAG));
     }
 
     private static ResourceLocation getResolvedCalibrationSchoolId(ItemStack stack) {
@@ -780,7 +794,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
             return null;
         }
 
-        var calibrationTag = stack.getTagElement(CALIBRATION_TAG);
+        var calibrationTag = getCalibrationTag(stack);
         if (calibrationTag == null || !calibrationTag.contains(SCHOOL_POWER_SCHOOL_TAG, Tag.TAG_STRING)) {
             return null;
         }
@@ -789,19 +803,51 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     private static void setResolvedCalibrationSchoolId(ItemStack stack, ResourceLocation schoolId) {
-        stack.getOrCreateTagElement(CALIBRATION_TAG).putString(SCHOOL_POWER_SCHOOL_TAG, schoolId.toString());
+        updateCalibrationTag(stack, tag -> tag.putString(SCHOOL_POWER_SCHOOL_TAG, schoolId.toString()));
     }
 
     private static void clearResolvedCalibrationSchool(ItemStack stack) {
-        var calibrationTag = stack.getTagElement(CALIBRATION_TAG);
-        if (calibrationTag == null) {
+        updateCalibrationTag(stack, tag -> tag.remove(SCHOOL_POWER_SCHOOL_TAG));
+    }
+
+    private static @Nullable CompoundTag getCustomDataTag(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return null;
+        }
+
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        return customData == null ? null : customData.copyTag();
+    }
+
+    private static @Nullable CompoundTag getCalibrationTag(ItemStack stack) {
+        var rootTag = getCustomDataTag(stack);
+        if (rootTag == null || !rootTag.contains(CALIBRATION_TAG, Tag.TAG_COMPOUND)) {
+            return null;
+        }
+        return rootTag.getCompound(CALIBRATION_TAG);
+    }
+
+    private static void updateCalibrationTag(ItemStack stack, Consumer<CompoundTag> updater) {
+        if (stack == null || stack.isEmpty()) {
             return;
         }
 
-        calibrationTag.remove(SCHOOL_POWER_SCHOOL_TAG);
-        if (calibrationTag.isEmpty()) {
-            stack.removeTagKey(CALIBRATION_TAG);
-        }
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, rootTag -> {
+            var calibrationTag = rootTag.contains(CALIBRATION_TAG, Tag.TAG_COMPOUND)
+                    ? rootTag.getCompound(CALIBRATION_TAG)
+                    : new CompoundTag();
+            updater.accept(calibrationTag);
+            if (calibrationTag.isEmpty()) {
+                rootTag.remove(CALIBRATION_TAG);
+            } else {
+                rootTag.put(CALIBRATION_TAG, calibrationTag);
+            }
+        });
+    }
+
+    private static HolderLookup.Provider serializationLookup() {
+        var server = ServerLifecycleHooks.getCurrentServer();
+        return server == null ? FALLBACK_SERIALIZATION_LOOKUP : server.registryAccess();
     }
 
     private static void removeCalibrationItem(ListTag list, int slot) {

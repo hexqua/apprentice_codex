@@ -16,7 +16,7 @@ import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 import java.util.Arrays;
 
@@ -52,9 +52,9 @@ public final class RevolvercastStaffRenderer extends GeoItemRenderer<Revolvercas
     @Override
     public void preRender(PoseStack poseStack, RevolvercastStaff animatable, BakedGeoModel model,
                           MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                          int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                          int packedLight, int packedOverlay, int colour) {
         super.preRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight,
-                packedOverlay, red, green, blue, alpha);
+                packedOverlay, colour);
 
         if (isReRender) {
             return;
@@ -75,9 +75,9 @@ public final class RevolvercastStaffRenderer extends GeoItemRenderer<Revolvercas
     @Override
     public void postRender(PoseStack poseStack, RevolvercastStaff animatable, BakedGeoModel model,
                            MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                           int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                           int packedLight, int packedOverlay, int colour) {
         super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight,
-                packedOverlay, red, green, blue, alpha);
+                packedOverlay, colour);
 
         if (isReRender) {
             return;
@@ -127,12 +127,11 @@ public final class RevolvercastStaffRenderer extends GeoItemRenderer<Revolvercas
     @Override
     public void renderRecursively(PoseStack poseStack, RevolvercastStaff animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
-                                  float partialTick, int packedLight, int packedOverlay, float red, float green,
-                                  float blue, float alpha) {
+                                  float partialTick, int packedLight, int packedOverlay, int colour) {
         if (this.specialPass != SpecialPass.NONE) {
             renderSpecialPassBone(
                     poseStack, animatable, bone, isBoneOrChildOf(bone, this.specialPassBoneName), renderType,
-                    bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                    bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, colour
             );
             return;
         }
@@ -143,14 +142,14 @@ public final class RevolvercastStaffRenderer extends GeoItemRenderer<Revolvercas
                 || isCylinderTransBone(bone)) {
             renderChildBonesOnly(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
@@ -202,10 +201,7 @@ public final class RevolvercastStaffRenderer extends GeoItemRenderer<Revolvercas
                     partialTick,
                     LightTexture.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    toColour(red, green, blue, alpha)
             );
         } finally {
             this.specialPass = SpecialPass.NONE;
@@ -216,34 +212,34 @@ public final class RevolvercastStaffRenderer extends GeoItemRenderer<Revolvercas
     private void renderSpecialPassBone(PoseStack poseStack, RevolvercastStaff animatable, GeoBone bone,
                                        boolean targetBone, RenderType renderType, MultiBufferSource bufferSource,
                                        VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight,
-                                       int packedOverlay, float red, float green, float blue, float alpha) {
+                                       int packedOverlay, int colour) {
         if (targetBone) {
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         renderChildBonesOnly(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
     private void renderChildBonesOnly(PoseStack poseStack, RevolvercastStaff animatable, GeoBone bone,
                                       RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                       boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                      float red, float green, float blue, float alpha) {
+                                      int colour) {
         poseStack.pushPose();
 
         if (bone.isTrackingMatrices()) {
             Matrix4f poseState = new Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
         }
 
-        RenderUtils.prepMatrixForBone(poseStack, bone);
+        RenderUtil.prepMatrixForBone(poseStack, bone);
         renderChildBones(
                 poseStack,
                 animatable,
@@ -255,12 +251,21 @@ public final class RevolvercastStaffRenderer extends GeoItemRenderer<Revolvercas
                 partialTick,
                 packedLight,
                 packedOverlay,
-                red,
-                green,
-                blue,
-                alpha
+                colour
         );
         poseStack.popPose();
+    }
+
+    private static int toColour(float red, float green, float blue, float alpha) {
+        var safeAlpha = Math.round(clamp01(alpha) * 255.0F);
+        var safeRed = Math.round(clamp01(red) * 255.0F);
+        var safeGreen = Math.round(clamp01(green) * 255.0F);
+        var safeBlue = Math.round(clamp01(blue) * 255.0F);
+        return (safeAlpha << 24) | (safeRed << 16) | (safeGreen << 8) | safeBlue;
+    }
+
+    private static float clamp01(float value) {
+        return Math.max(0.0F, Math.min(1.0F, value));
     }
 
     private static boolean isBoneOrChildOf(GeoBone bone, String rootBoneName) {
