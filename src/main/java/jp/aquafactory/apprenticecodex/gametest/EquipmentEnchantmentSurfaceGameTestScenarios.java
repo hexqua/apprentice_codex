@@ -13,6 +13,7 @@ import java.util.Set;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
+import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
@@ -50,6 +51,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.storage.loot.functions.EnchantRandomlyFunction;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 
 final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodexGameTestScenarios {
@@ -246,21 +248,24 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             stack.enchant(EnchantmentRegistry.TENSE.get(), 1);
 
             var modifiers = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
+            var epicFightLoaded = ModList.get().isLoaded(EpicFightCompat.MOD_ID);
+            var expectedAttackDamageBonus = epicFightLoaded ? 2.0D : 5.0D;
+            var expectedAttackSpeedBonus = epicFightLoaded ? 0.0D : -2.2D;
             assertModifierWithId(
                     helper,
                     modifiers.get(Attributes.ATTACK_DAMAGE),
                     VANILLA_BASE_ATTACK_DAMAGE_MODIFIER_ID,
                     AttributeModifier.Operation.ADDITION,
-                    5.0D,
-                    "Scrollcaster Gauntlet attack damage modifier should keep vanilla weapon tooltip UUID"
+                    expectedAttackDamageBonus,
+                    "Scrollcaster Gauntlet attack damage modifier should match the loaded combat environment"
             );
             assertModifierWithId(
                     helper,
                     modifiers.get(Attributes.ATTACK_SPEED),
                     VANILLA_BASE_ATTACK_SPEED_MODIFIER_ID,
                     AttributeModifier.Operation.ADDITION,
-                    -2.2D,
-                    "Scrollcaster Gauntlet attack speed modifier should keep vanilla weapon tooltip UUID"
+                    expectedAttackSpeedBonus,
+                    "Scrollcaster Gauntlet attack speed modifier should match the loaded combat environment"
             );
             assertSingleModifierAmount(
                     helper,
