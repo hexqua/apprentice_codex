@@ -71,307 +71,307 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void copperSpellAmplifierStartsWithBallLightningAndStacksAttunement(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.copperSpellAmplifierStartsWithBallLightningAndStacksAttunement(helper);
+        OffhandAndBetterCombatGameTestScenarios.copperSpellAmplifierStartsWithBallLightningAndStacksAttunement(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void copperSwingcastStaffStartsWithBallLightningLevelOne(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.copperSwingcastStaffStartsWithBallLightningLevelOne(helper);
+        SwingcastStaffGameTestScenarios.copperSwingcastStaffStartsWithBallLightningLevelOne(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void goldSpellcasterGunImbuedSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.goldSpellcasterGunImbuedSpellStaysRemovableAfterNormalization(helper);
+        EquipmentSpellGunGameTestScenarios.goldSpellcasterGunImbuedSpellStaysRemovableAfterNormalization(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellcasterGunRecastImbueRestrictionsMatchTier(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellcasterGunRecastImbueRestrictionsMatchTier(helper);
+        EquipmentSpellGunGameTestScenarios.spellcasterGunRecastImbueRestrictionsMatchTier(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellgunServerConfigDefaultsMatchCurrentHardcodedValues(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellgunServerConfigDefaultsMatchCurrentHardcodedValues(helper);
+        EquipmentSpellGunGameTestScenarios.spellgunServerConfigDefaultsMatchCurrentHardcodedValues(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLGUN_CONFIG_BATCH)
     public static void spellgunZeroImbueCooldownLimitDisablesOnlyCooldownLimit(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellgunZeroImbueCooldownLimitDisablesOnlyCooldownLimit(helper);
+        EquipmentSpellGunGameTestScenarios.spellgunZeroImbueCooldownLimitDisablesOnlyCooldownLimit(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLGUN_CONFIG_BATCH)
     public static void spellgunZeroCastCooldownConfigForcesZeroCooldown(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellgunZeroCastCooldownConfigForcesZeroCooldown(helper);
+        EquipmentSpellGunGameTestScenarios.spellgunZeroCastCooldownConfigForcesZeroCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellcasterGunRecastCastBypassesAmmoRequirement(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellcasterGunRecastCastBypassesAmmoRequirement(helper);
+        EquipmentSpellGunGameTestScenarios.spellcasterGunRecastCastBypassesAmmoRequirement(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void copperSwingcastStaffReplacementSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.copperSwingcastStaffReplacementSpellStaysRemovableAfterNormalization(helper);
+        SwingcastStaffGameTestScenarios.copperSwingcastStaffReplacementSpellStaysRemovableAfterNormalization(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void reflectcastShieldImbuedSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.reflectcastShieldImbuedSpellStaysRemovableAfterNormalization(helper);
+        OffhandAndBetterCombatGameTestScenarios.reflectcastShieldImbuedSpellStaysRemovableAfterNormalization(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void goldSpellcasterGunImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.goldSpellcasterGunImbuedSpellStaysRemovableAfterSaveLoad(helper);
+        EquipmentSpellGunGameTestScenarios.goldSpellcasterGunImbuedSpellStaysRemovableAfterSaveLoad(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void ironSwingcastStaffImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.ironSwingcastStaffImbuedSpellStaysRemovableAfterSaveLoad(helper);
+        SwingcastStaffGameTestScenarios.ironSwingcastStaffImbuedSpellStaysRemovableAfterSaveLoad(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void copperSwingcastStaffPresetEquivalentSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.copperSwingcastStaffPresetEquivalentSpellStaysRemovableAfterSaveLoad(helper);
+        SwingcastStaffGameTestScenarios.copperSwingcastStaffPresetEquivalentSpellStaysRemovableAfterSaveLoad(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void reflectcastShieldImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.reflectcastShieldImbuedSpellStaysRemovableAfterSaveLoad(helper);
+        OffhandAndBetterCombatGameTestScenarios.reflectcastShieldImbuedSpellStaysRemovableAfterSaveLoad(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void photonSiphonStartsWithLockedManaChargeAndIsNotUnique(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.photonSiphonStartsWithLockedManaChargeAndIsNotUnique(helper);
+        SpellCalibrationEquipmentGameTestScenarios.photonSiphonStartsWithLockedManaChargeAndIsNotUnique(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void photonSiphonCalibrationRepairUnlocksLegacyReplacementOnly(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.photonSiphonCalibrationRepairUnlocksLegacyReplacementOnly(helper);
+        SpellCalibrationEquipmentGameTestScenarios.photonSiphonCalibrationRepairUnlocksLegacyReplacementOnly(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellCalibrationBenchTargetsExposeExpectedSlots(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellCalibrationBenchTargetsExposeExpectedSlots(helper);
+        SpellCalibrationEquipmentGameTestScenarios.spellCalibrationBenchTargetsExposeExpectedSlots(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellCalibrationBenchImbueOnlySupportsExtractableTargets(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellCalibrationBenchImbueOnlySupportsExtractableTargets(helper);
+        SpellCalibrationEquipmentGameTestScenarios.spellCalibrationBenchImbueOnlySupportsExtractableTargets(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void reflectcastShieldDurabilityRulesMatchGuardTuning(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.reflectcastShieldDurabilityRulesMatchGuardTuning(helper);
+        OffhandAndBetterCombatGameTestScenarios.reflectcastShieldDurabilityRulesMatchGuardTuning(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void autocastAmuletStartsWithSingleHiddenSpellSlotAndLoadedAllowlist(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.autocastAmuletStartsWithSingleHiddenSpellSlotAndLoadedAllowlist(helper);
+        AutocastAmuletGameTestScenarios.autocastAmuletStartsWithSingleHiddenSpellSlotAndLoadedAllowlist(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaShieldCharmUsesCharmSlotAndAppearsInCreativeTab(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmUsesCharmSlotAndAppearsInCreativeTab(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmUsesCharmSlotAndAppearsInCreativeTab(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaShieldCharmKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmKeepsExpectedEnchantmentSurfaces(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmKeepsExpectedEnchantmentSurfaces(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaShieldCharmExclusiveEnchantmentsStayMutuallyExclusive(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmExclusiveEnchantmentsStayMutuallyExclusive(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmExclusiveEnchantmentsStayMutuallyExclusive(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaShieldCharmFullyNegatesDamageAndPreservesArmorDurability(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmFullyNegatesDamageAndPreservesArmorDurability(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmFullyNegatesDamageAndPreservesArmorDurability(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaShieldCharmBurnedOutFullNegateCancelsHitAndStartsCooldown(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmBurnedOutFullNegateCancelsHitAndStartsCooldown(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmBurnedOutFullNegateCancelsHitAndStartsCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaShieldCharmLowManaBurnedOutFullNegateStillCancelsHit(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmLowManaBurnedOutFullNegateStillCancelsHit(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmLowManaBurnedOutFullNegateStillCancelsHit(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaShieldCharmDoesNotRespendManaDuringVanillaStyleIFrame(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmDoesNotRespendManaDuringVanillaStyleIFrame(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmDoesNotRespendManaDuringVanillaStyleIFrame(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaShieldCharmPartialReductionEntersCooldownAndKeepsArmorMitigation(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmPartialReductionEntersCooldownAndKeepsArmorMitigation(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmPartialReductionEntersCooldownAndKeepsArmorMitigation(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaShieldCharmCooldownRecoversAtOneHundredMana(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmCooldownRecoversAtOneHundredMana(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmCooldownRecoversAtOneHundredMana(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaShieldCharmShellUsesArmorOnlyOnNormalDamageAndWearsArmor(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmShellUsesArmorOnlyOnNormalDamageAndWearsArmor(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmShellUsesArmorOnlyOnNormalDamageAndWearsArmor(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaShieldCharmShellLowManaBurnoutStillUsesArmorPath(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmShellLowManaBurnoutStillUsesArmorPath(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmShellLowManaBurnoutStillUsesArmorPath(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaShieldCharmSynchronizationChargesEnchantReductionBeforeNormalBarrier(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmSynchronizationChargesEnchantReductionBeforeNormalBarrier(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmSynchronizationChargesEnchantReductionBeforeNormalBarrier(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaShieldCharmSynchronizationBurnoutStopsAfterEnchantReduction(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmSynchronizationBurnoutStopsAfterEnchantReduction(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmSynchronizationBurnoutStopsAfterEnchantReduction(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaShieldCharmSynchronizationLowManaBurnoutStopsAfterEnchantStage(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmSynchronizationLowManaBurnoutStopsAfterEnchantStage(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmSynchronizationLowManaBurnoutStopsAfterEnchantStage(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaShieldCharmSynchronizationLowManaBurnoutAfterBarrierStage(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmSynchronizationLowManaBurnoutAfterBarrierStage(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmSynchronizationLowManaBurnoutAfterBarrierStage(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaShieldCharmNeutralizationAbsorbsBypassArmorDamageDuringCooldown(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmNeutralizationAbsorbsBypassArmorDamageDuringCooldown(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmNeutralizationAbsorbsBypassArmorDamageDuringCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MANA_SHIELD_CHARM_FREE_COST_CONFIG_BATCH)
     public static void manaShieldCharmFreeManaCostConfigAbsorbsWithoutDepletionCooldown(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmFreeManaCostConfigAbsorbsWithoutDepletionCooldown(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmFreeManaCostConfigAbsorbsWithoutDepletionCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MANA_SHIELD_CHARM_RECOVERY_CONFIG_BATCH)
     public static void manaShieldCharmZeroRecoveryThresholdDisablesDepletionCooldown(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmZeroRecoveryThresholdDisablesDepletionCooldown(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmZeroRecoveryThresholdDisablesDepletionCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MANA_SHIELD_CHARM_SYNCHRONIZATION_CONFIG_BATCH)
     public static void manaShieldCharmSynchronizationManaCostUsesServerConfig(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmSynchronizationManaCostUsesServerConfig(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmSynchronizationManaCostUsesServerConfig(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MANA_SHIELD_CHARM_NEUTRALIZATION_CONFIG_BATCH)
     public static void manaShieldCharmNeutralizationZeroRecoveryStillNullifies(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmNeutralizationZeroRecoveryStillNullifies(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmNeutralizationZeroRecoveryStillNullifies(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MANA_SHIELD_CHARM_SHELL_CONFIG_BATCH)
     public static void manaShieldCharmShellArmorDurabilityDamageUsesServerConfig(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmShellArmorDurabilityDamageUsesServerConfig(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmShellArmorDurabilityDamageUsesServerConfig(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MANA_SHIELD_CHARM_IFRAME_CONFIG_BATCH)
     public static void manaShieldCharmInvulnerableTimeUsesServerConfig(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaShieldCharmInvulnerableTimeUsesServerConfig(helper);
+        ManaShieldCharmGameTestScenarios.manaShieldCharmInvulnerableTimeUsesServerConfig(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void autocastAmuletNormalizationDropsBlockedSpellsAndClampsSlots(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.autocastAmuletNormalizationDropsBlockedSpellsAndClampsSlots(helper);
+        AutocastAmuletGameTestScenarios.autocastAmuletNormalizationDropsBlockedSpellsAndClampsSlots(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void autocastAmuletSpellSlotUpgradeStopsAtThreeAndKeepsOrder(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.autocastAmuletSpellSlotUpgradeStopsAtThreeAndKeepsOrder(helper);
+        AutocastAmuletGameTestScenarios.autocastAmuletSpellSlotUpgradeStopsAtThreeAndKeepsOrder(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void autocastAmuletWorkbenchExtractionUsesLastSpellAndKeepsSlotCount(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.autocastAmuletWorkbenchExtractionUsesLastSpellAndKeepsSlotCount(helper);
+        AutocastAmuletGameTestScenarios.autocastAmuletWorkbenchExtractionUsesLastSpellAndKeepsSlotCount(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void autocastAmuletAutoCastStartsOnFirstIntervalAfterEquip(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.autocastAmuletAutoCastStartsOnFirstIntervalAfterEquip(helper);
+        AutocastAmuletGameTestScenarios.autocastAmuletAutoCastStartsOnFirstIntervalAfterEquip(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void autocastAmuletInsufficientManaDelaysRetryAndSkipsErroredSlotOnce(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.autocastAmuletInsufficientManaDelaysRetryAndSkipsErroredSlotOnce(helper);
+        AutocastAmuletGameTestScenarios.autocastAmuletInsufficientManaDelaysRetryAndSkipsErroredSlotOnce(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void autocastAmuletCreativeCastIgnoresManaCost(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.autocastAmuletCreativeCastIgnoresManaCost(helper);
+        AutocastAmuletGameTestScenarios.autocastAmuletCreativeCastIgnoresManaCost(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void autocastAmuletCooldownUsesHelperAmountWithoutSwordMultiplier(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.autocastAmuletCooldownUsesHelperAmountWithoutSwordMultiplier(helper);
+        AutocastAmuletGameTestScenarios.autocastAmuletCooldownUsesHelperAmountWithoutSwordMultiplier(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void autocastAmuletLongSpellCompletesImmediately(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.autocastAmuletLongSpellCompletesImmediately(helper);
+        AutocastAmuletGameTestScenarios.autocastAmuletLongSpellCompletesImmediately(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void autocastAmuletNotificationControllerSchedulesCastAndThresholds(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.autocastAmuletNotificationControllerSchedulesCastAndThresholds(helper);
+        AutocastAmuletGameTestScenarios.autocastAmuletNotificationControllerSchedulesCastAndThresholds(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void autocastAmuletNotificationControllerSkipsUnreachedThresholds(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.autocastAmuletNotificationControllerSkipsUnreachedThresholds(helper);
+        AutocastAmuletGameTestScenarios.autocastAmuletNotificationControllerSkipsUnreachedThresholds(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void autocastAmuletNotificationControllerQueuesInOrderAndKeepsDelayedLabel(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.autocastAmuletNotificationControllerQueuesInOrderAndKeepsDelayedLabel(helper);
+        AutocastAmuletGameTestScenarios.autocastAmuletNotificationControllerQueuesInOrderAndKeepsDelayedLabel(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void ironSpellcasterGunExtractedSpellStaysClearedAfterSaveLoad(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.ironSpellcasterGunExtractedSpellStaysClearedAfterSaveLoad(helper);
+        EquipmentSpellGunGameTestScenarios.ironSpellcasterGunExtractedSpellStaysClearedAfterSaveLoad(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void ironSwingcastStaffExtractedSpellStaysClearedAfterSaveLoad(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.ironSwingcastStaffExtractedSpellStaysClearedAfterSaveLoad(helper);
+        SwingcastStaffGameTestScenarios.ironSwingcastStaffExtractedSpellStaysClearedAfterSaveLoad(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void goldSpellcasterGunLegacyLockedReplacementIsRecoveredAfterSaveLoad(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.goldSpellcasterGunLegacyLockedReplacementIsRecoveredAfterSaveLoad(helper);
+        EquipmentSpellGunGameTestScenarios.goldSpellcasterGunLegacyLockedReplacementIsRecoveredAfterSaveLoad(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void ironSwingcastStaffLegacyLockedReplacementIsRecoveredAfterSaveLoad(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.ironSwingcastStaffLegacyLockedReplacementIsRecoveredAfterSaveLoad(helper);
+        SwingcastStaffGameTestScenarios.ironSwingcastStaffLegacyLockedReplacementIsRecoveredAfterSaveLoad(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void diamondAndNetheriteSpellAmplifierExposeNewAttributeBonuses(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.diamondAndNetheriteSpellAmplifierExposeNewAttributeBonuses(helper);
+        OffhandAndBetterCombatGameTestScenarios.diamondAndNetheriteSpellAmplifierExposeNewAttributeBonuses(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void upgradeWhitelistCoversTargetAbstractItems(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.upgradeWhitelistCoversTargetAbstractItems(helper);
+        OffhandAndBetterCombatGameTestScenarios.upgradeWhitelistCoversTargetAbstractItems(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellGunsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellGunsKeepExpectedEnchantmentSurfaces(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.spellGunsKeepExpectedEnchantmentSurfaces(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void offhandMagicItemsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.offhandMagicItemsKeepExpectedEnchantmentSurfaces(helper);
+        OffhandAndBetterCombatGameTestScenarios.offhandMagicItemsKeepExpectedEnchantmentSurfaces(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -381,137 +381,137 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffUpgradeMergesMainhandMeleeDamage(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffUpgradeMergesMainhandMeleeDamage(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffUpgradeMergesMainhandMeleeDamage(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaForceBladeAttunementAndUpgradeMergeForTooltip(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaForceBladeAttunementAndUpgradeMergeForTooltip(helper);
+        ManaForceBladeGameTestScenarios.manaForceBladeAttunementAndUpgradeMergeForTooltip(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaForceBladeAttackManaCostIsOncePerTick(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaForceBladeAttackManaCostIsOncePerTick(helper);
+        ManaForceBladeGameTestScenarios.manaForceBladeAttackManaCostIsOncePerTick(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaForceBladeConfigScalesDamageAndManaFormulas(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaForceBladeConfigScalesDamageAndManaFormulas(helper);
+        ManaForceBladeGameTestScenarios.manaForceBladeConfigScalesDamageAndManaFormulas(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void betterCombatSpellbreakerIsTwoHandedAndAmplifierHasOffhandSpellPower(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.betterCombatSpellbreakerIsTwoHandedAndAmplifierHasOffhandSpellPower(helper);
+        OffhandAndBetterCombatGameTestScenarios.betterCombatSpellbreakerIsTwoHandedAndAmplifierHasOffhandSpellPower(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void betterCombatOffhandOnlyGauntletDoesNotForceDualWielding(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.betterCombatOffhandOnlyGauntletDoesNotForceDualWielding(helper);
+        OffhandAndBetterCombatGameTestScenarios.betterCombatOffhandOnlyGauntletDoesNotForceDualWielding(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void betterCombatOffhandRescueIncludesEnchantAndImbueDerivedModifiers(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.betterCombatOffhandRescueIncludesEnchantAndImbueDerivedModifiers(helper);
+        OffhandAndBetterCombatGameTestScenarios.betterCombatOffhandRescueIncludesEnchantAndImbueDerivedModifiers(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void betterCombatRescueUsesPhysicalOffhandInventoryStack(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.betterCombatRescueUsesPhysicalOffhandInventoryStack(helper);
+        OffhandAndBetterCombatGameTestScenarios.betterCombatRescueUsesPhysicalOffhandInventoryStack(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void betterCombatSpellSelectionRescueUsesPhysicalOffhandInventoryStack(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.betterCombatSpellSelectionRescueUsesPhysicalOffhandInventoryStack(helper);
+        OffhandAndBetterCombatGameTestScenarios.betterCombatSpellSelectionRescueUsesPhysicalOffhandInventoryStack(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void betterCombatScrollcasterGauntletRescueUsesPhysicalOffhandInventoryStack(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.betterCombatScrollcasterGauntletRescueUsesPhysicalOffhandInventoryStack(helper);
+        OffhandAndBetterCombatGameTestScenarios.betterCombatScrollcasterGauntletRescueUsesPhysicalOffhandInventoryStack(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void dynamicCastingMobilityEffectRebalancesAgainstExternalCastingMoveSpeed(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.dynamicCastingMobilityEffectRebalancesAgainstExternalCastingMoveSpeed(helper);
+        EquipmentSpellBehaviorBridgeGameTestScenarios.dynamicCastingMobilityEffectRebalancesAgainstExternalCastingMoveSpeed(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void enchantedCircletKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.enchantedCircletKeepsExpectedEnchantmentSurfaces(helper);
+        OffhandAndBetterCombatGameTestScenarios.enchantedCircletKeepsExpectedEnchantmentSurfaces(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void enchantedCircletCurioBonusesMirrorOffhandMagicEnchantments(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.enchantedCircletCurioBonusesMirrorOffhandMagicEnchantments(helper);
+        OffhandAndBetterCombatGameTestScenarios.enchantedCircletCurioBonusesMirrorOffhandMagicEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void enchantedCircletWorkbenchExtractionTagDoesNotAffectAshenCirclet(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.enchantedCircletWorkbenchExtractionTagDoesNotAffectAshenCirclet(helper);
+        OffhandAndBetterCombatGameTestScenarios.enchantedCircletWorkbenchExtractionTagDoesNotAffectAshenCirclet(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void enchantedCircletWisdomMatchesArmorRate(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.enchantedCircletWisdomMatchesArmorRate(helper);
+        OffhandAndBetterCombatGameTestScenarios.enchantedCircletWisdomMatchesArmorRate(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void wisdomAppliesToBlockBreakExperienceAndRoundsUp(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.wisdomAppliesToBlockBreakExperienceAndRoundsUp(helper);
+        OffhandAndBetterCombatGameTestScenarios.wisdomAppliesToBlockBreakExperienceAndRoundsUp(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(helper);
+        RightClickMagicWeaponGameTestScenarios.rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void rightClickMagicWeaponTooltipsStartWithShieldHint(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.rightClickMagicWeaponTooltipsStartWithShieldHint(helper);
+        RightClickMagicWeaponGameTestScenarios.rightClickMagicWeaponTooltipsStartWithShieldHint(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowKeepsVanillaBowEnchantmentSurfaces(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowKeepsVanillaBowEnchantmentSurfaces(helper);
+        ElementalBowGameTestScenarios.elementalBowKeepsVanillaBowEnchantmentSurfaces(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowBuildsSelectionViewsFromHeldAmmo(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowBuildsSelectionViewsFromHeldAmmo(helper);
+        ElementalBowGameTestScenarios.elementalBowBuildsSelectionViewsFromHeldAmmo(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowInventoryOverlayReflectsCurrentSelection(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowInventoryOverlayReflectsCurrentSelection(helper);
+        ElementalBowGameTestScenarios.elementalBowInventoryOverlayReflectsCurrentSelection(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ELEMENTAL_BOW_OVERHEAT_BATCH, timeoutTicks = 80)
     public static void elementalBowSelectionViewExposesOverheatOverlayState(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowSelectionViewExposesOverheatOverlayState(helper);
+        ElementalBowGameTestScenarios.elementalBowSelectionViewExposesOverheatOverlayState(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowKeepsCurrentEmptySpecialSelectionOnlyWhileSelected(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowKeepsCurrentEmptySpecialSelectionOnlyWhileSelected(helper);
+        ElementalBowGameTestScenarios.elementalBowKeepsCurrentEmptySpecialSelectionOnlyWhileSelected(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowRequiresManaBeforeStartingElementalDraw(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowRequiresManaBeforeStartingElementalDraw(helper);
+        ElementalBowGameTestScenarios.elementalBowRequiresManaBeforeStartingElementalDraw(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowDoesNotConsumeResourcesBeforeFullDraw(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowDoesNotConsumeResourcesBeforeFullDraw(helper);
+        ElementalBowGameTestScenarios.elementalBowDoesNotConsumeResourcesBeforeFullDraw(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowInfinityAllowsVanillaDrawWithoutArrows(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowInfinityAllowsVanillaDrawWithoutArrows(helper);
+        ElementalBowGameTestScenarios.elementalBowInfinityAllowsVanillaDrawWithoutArrows(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowInfinityAllowsArrowModeDrawWithoutArrows(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowInfinityAllowsArrowModeDrawWithoutArrows(helper);
+        ElementalBowGameTestScenarios.elementalBowInfinityAllowsArrowModeDrawWithoutArrows(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -531,542 +531,542 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowMagicModeIgnoresInfinityWithoutAmmo(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowMagicModeIgnoresInfinityWithoutAmmo(helper);
+        ElementalBowGameTestScenarios.elementalBowMagicModeIgnoresInfinityWithoutAmmo(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowAcceptsSynthesisEnchantmentsAndTooltip(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowAcceptsSynthesisEnchantmentsAndTooltip(helper);
+        ElementalBowGameTestScenarios.elementalBowAcceptsSynthesisEnchantmentsAndTooltip(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowSynthesisAllowsMagicModeWithoutArrows(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowSynthesisAllowsMagicModeWithoutArrows(helper);
+        ElementalBowGameTestScenarios.elementalBowSynthesisAllowsMagicModeWithoutArrows(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowSynthesisDoesNotConsumeMagicModeArrows(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowSynthesisDoesNotConsumeMagicModeArrows(helper);
+        ElementalBowGameTestScenarios.elementalBowSynthesisDoesNotConsumeMagicModeArrows(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
     public static void spellcasterQuiverUsesBackSlotAndCapsStoredArrows(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellcasterQuiverUsesBackSlotAndCapsStoredArrows(helper);
+        SpellcasterQuiverGameTestScenarios.spellcasterQuiverUsesBackSlotAndCapsStoredArrows(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
     public static void equippedSpellcasterQuiverAutoStoresPickedUpArrows(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.equippedSpellcasterQuiverAutoStoresPickedUpArrows(helper);
+        SpellcasterQuiverGameTestScenarios.equippedSpellcasterQuiverAutoStoresPickedUpArrows(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
     public static void elementalBowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowConsumesSpellcasterQuiverArrowsBeforeInventory(helper);
+        SpellcasterQuiverGameTestScenarios.elementalBowConsumesSpellcasterQuiverArrowsBeforeInventory(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
     public static void elementalBowSelectionViewsIncludeSpellcasterQuiverArrows(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowSelectionViewsIncludeSpellcasterQuiverArrows(helper);
+        SpellcasterQuiverGameTestScenarios.elementalBowSelectionViewsIncludeSpellcasterQuiverArrows(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
     public static void vanillaBowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.vanillaBowConsumesSpellcasterQuiverArrowsBeforeInventory(helper);
+        SpellcasterQuiverGameTestScenarios.vanillaBowConsumesSpellcasterQuiverArrowsBeforeInventory(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
     public static void vanillaBowPrefersHeldSpecialArrowOverQuiverNormalArrows(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.vanillaBowPrefersHeldSpecialArrowOverQuiverNormalArrows(helper);
+        SpellcasterQuiverGameTestScenarios.vanillaBowPrefersHeldSpecialArrowOverQuiverNormalArrows(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
     public static void vanillaBowPrefersNormalArrowOverMoreNumerousQuiverSpecialArrows(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.vanillaBowPrefersNormalArrowOverMoreNumerousQuiverSpecialArrows(helper);
+        SpellcasterQuiverGameTestScenarios.vanillaBowPrefersNormalArrowOverMoreNumerousQuiverSpecialArrows(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
     public static void vanillaBowInfinityFallsBackToNormalArrowBeforeQuiverSpecialArrows(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.vanillaBowInfinityFallsBackToNormalArrowBeforeQuiverSpecialArrows(helper);
+        SpellcasterQuiverGameTestScenarios.vanillaBowInfinityFallsBackToNormalArrowBeforeQuiverSpecialArrows(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
     public static void elementalBowVanillaModePrefersHeldSpecialArrowOverQuiverNormalArrows(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowVanillaModePrefersHeldSpecialArrowOverQuiverNormalArrows(helper);
+        SpellcasterQuiverGameTestScenarios.elementalBowVanillaModePrefersHeldSpecialArrowOverQuiverNormalArrows(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
     public static void elementalBowVanillaModeInfinityFallsBackToNormalArrowBeforeQuiverSpecialArrows(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowVanillaModeInfinityFallsBackToNormalArrowBeforeQuiverSpecialArrows(helper);
+        SpellcasterQuiverGameTestScenarios.elementalBowVanillaModeInfinityFallsBackToNormalArrowBeforeQuiverSpecialArrows(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowNonMagicModesHideDerivedSpellPresentation(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowNonMagicModesHideDerivedSpellPresentation(helper);
+        ElementalBowGameTestScenarios.elementalBowNonMagicModesHideDerivedSpellPresentation(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
     public static void spellcasterQuiverSlowdownHelperTracksEquippedBowUse(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellcasterQuiverSlowdownHelperTracksEquippedBowUse(helper);
+        SpellcasterQuiverGameTestScenarios.spellcasterQuiverSlowdownHelperTracksEquippedBowUse(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
     public static void spellcasterQuiverSlowdownHelperTracksFocusStaffbowDrawUse(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellcasterQuiverSlowdownHelperTracksFocusStaffbowDrawUse(helper);
+        SpellcasterQuiverGameTestScenarios.spellcasterQuiverSlowdownHelperTracksFocusStaffbowDrawUse(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ELEMENTAL_BOW_OVERHEAT_BATCH)
     public static void elementalBowCooldownHelperIgnoresWeaponMultiplierButKeepsPlayerCooldownReduction(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowCooldownHelperIgnoresWeaponMultiplierButKeepsPlayerCooldownReduction(helper);
+        ElementalBowGameTestScenarios.elementalBowCooldownHelperIgnoresWeaponMultiplierButKeepsPlayerCooldownReduction(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ELEMENTAL_BOW_OVERHEAT_BATCH)
     public static void elementalBowSuppressesElementalArrowCooldown(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowSuppressesElementalArrowCooldown(helper);
+        ElementalBowGameTestScenarios.elementalBowSuppressesElementalArrowCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ELEMENTAL_BOW_OVERHEAT_BATCH)
     public static void elementalBowConsumesAdditionalManaWhileOverheated(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowConsumesAdditionalManaWhileOverheated(helper);
+        ElementalBowGameTestScenarios.elementalBowConsumesAdditionalManaWhileOverheated(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ELEMENTAL_BOW_OVERHEAT_BATCH)
     public static void elementalBowOverheatTracksSchoolsSeparately(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowOverheatTracksSchoolsSeparately(helper);
+        ElementalBowGameTestScenarios.elementalBowOverheatTracksSchoolsSeparately(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ELEMENTAL_BOW_OVERHEAT_BATCH, timeoutTicks = 80)
     public static void elementalBowOverheatRefreshesDurationAfterRepeatedCast(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowOverheatRefreshesDurationAfterRepeatedCast(helper);
+        ElementalBowGameTestScenarios.elementalBowOverheatRefreshesDurationAfterRepeatedCast(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowRejectsOffhandUse(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowRejectsOffhandUse(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowRejectsOffhandUse(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowAllowsMainhandUseWithOffhandSelection(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowAllowsMainhandUseWithOffhandSelection(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowAllowsMainhandUseWithOffhandSelection(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowRejectsUseWithoutArrowCatalyst(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowRejectsUseWithoutArrowCatalyst(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowRejectsUseWithoutArrowCatalyst(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_CONTINUOUS_BATCH)
     public static void focusStaffbowShowsLongSummonWeaponDuringPendingCast(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowShowsLongSummonWeaponDuringPendingCast(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowShowsLongSummonWeaponDuringPendingCast(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_CONTINUOUS_BATCH)
     public static void focusStaffbowCancelsPendingSummonWeaponBeforeRequiredCharge(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowCancelsPendingSummonWeaponBeforeRequiredCharge(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowCancelsPendingSummonWeaponBeforeRequiredCharge(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_CONTINUOUS_BATCH)
     public static void focusStaffbowContinuousCastStaysActivePastSpellDuration(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowContinuousCastStaysActivePastSpellDuration(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowContinuousCastStaysActivePastSpellDuration(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_CONTINUOUS_BATCH)
     public static void focusStaffbowContinuousCastUsesStandardCastTimeWithoutAttributeAdjustment(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowContinuousCastUsesStandardCastTimeWithoutAttributeAdjustment(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowContinuousCastUsesStandardCastTimeWithoutAttributeAdjustment(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_CONTINUOUS_BATCH)
     public static void focusStaffbowContinuousCastStopsWhenManaRunsOut(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowContinuousCastStopsWhenManaRunsOut(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowContinuousCastStopsWhenManaRunsOut(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowInstantImmediateReleaseConsumesBaseMana(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowInstantImmediateReleaseConsumesBaseMana(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowInstantImmediateReleaseConsumesBaseMana(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowShortLongReleaseStaysAtBaseMultiplier(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowShortLongReleaseStaysAtBaseMultiplier(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowShortLongReleaseStaysAtBaseMultiplier(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowConfigCurveAndManaFormulaUsesFixedTimeToMax(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowConfigCurveAndManaFormulaUsesFixedTimeToMax(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowConfigCurveAndManaFormulaUsesFixedTimeToMax(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowStillRejectsCastWhenBaseManaIsInsufficient(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowStillRejectsCastWhenBaseManaIsInsufficient(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowStillRejectsCastWhenBaseManaIsInsufficient(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_ARROW_CONFIG_BATCH)
     public static void focusStaffbowArrowRequirementConfigAllowsArrowlessCasting(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowArrowRequirementConfigAllowsArrowlessCasting(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowArrowRequirementConfigAllowsArrowlessCasting(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_CONTINUOUS_CONFIG_BATCH)
     public static void focusStaffbowContinuousConfigRejectsWithoutConsumingArrow(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowContinuousConfigRejectsWithoutConsumingArrow(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowContinuousConfigRejectsWithoutConsumingArrow(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_LOAN_CONFIG_BATCH)
     public static void focusStaffbowManaLoanConfigRejectsBorrowedPendingCast(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowManaLoanConfigRejectsBorrowedPendingCast(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowManaLoanConfigRejectsBorrowedPendingCast(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_LOAN_RATIO_CONFIG_BATCH)
     public static void focusStaffbowLoanRatioConfigRejectsExcessBorrowing(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowLoanRatioConfigRejectsExcessBorrowing(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowLoanRatioConfigRejectsExcessBorrowing(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_DENYLIST_CONFIG_BATCH)
     public static void focusStaffbowSpellDenylistBlocksBeforeAmmo(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowSpellDenylistBlocksBeforeAmmo(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowSpellDenylistBlocksBeforeAmmo(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_ALLOWLIST_CONFIG_BATCH)
     public static void focusStaffbowSpellAllowlistBlocksMissingSpellBeforeAmmo(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowSpellAllowlistBlocksMissingSpellBeforeAmmo(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowSpellAllowlistBlocksMissingSpellBeforeAmmo(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowOverchargeLoanConsumesRecoveredMana(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowOverchargeLoanConsumesRecoveredMana(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowOverchargeLoanConsumesRecoveredMana(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowCreativeOverchargeDoesNotConsumeManaOrCreateLoan(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowCreativeOverchargeDoesNotConsumeManaOrCreateLoan(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowCreativeOverchargeDoesNotConsumeManaOrCreateLoan(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowBlocksUseWhileLoanRemains(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowBlocksUseWhileLoanRemains(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowBlocksUseWhileLoanRemains(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowRejectsUseWhileSpellCooldownRemains(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowRejectsUseWhileSpellCooldownRemains(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowRejectsUseWhileSpellCooldownRemains(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowLoanMessageUsesExpectedTranslationKey(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowLoanMessageUsesExpectedTranslationKey(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowLoanMessageUsesExpectedTranslationKey(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowInsufficientArrowMessageUsesExpectedTranslationKey(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowInsufficientArrowMessageUsesExpectedTranslationKey(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowInsufficientArrowMessageUsesExpectedTranslationKey(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowRejectsUnconfiguredSpecialArrow(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowRejectsUnconfiguredSpecialArrow(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowRejectsUnconfiguredSpecialArrow(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_ARROW_ITEM_CONFIG_BATCH)
     public static void focusStaffbowArrowCatalystItemListAllowsConfiguredSpecialArrow(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowArrowCatalystItemListAllowsConfiguredSpecialArrow(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowArrowCatalystItemListAllowsConfiguredSpecialArrow(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowSynthesisAllowsArrowlessCasting(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowSynthesisAllowsArrowlessCasting(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowSynthesisAllowsArrowlessCasting(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
     public static void focusStaffbowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowConsumesSpellcasterQuiverArrowsBeforeInventory(helper);
+        SpellcasterQuiverGameTestScenarios.focusStaffbowConsumesSpellcasterQuiverArrowsBeforeInventory(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowAcceptsSynthesisEnchantments(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowAcceptsSynthesisEnchantments(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowAcceptsSynthesisEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowExposesExpectedMainhandAttributes(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowExposesExpectedMainhandAttributes(helper);
+        FocusStaffbowGameTestScenarios.focusStaffbowExposesExpectedMainhandAttributes(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffKeepsExpectedEnchantmentSurfaces(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffKeepsExpectedEnchantmentSurfaces(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaForceBladeKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaForceBladeKeepsExpectedEnchantmentSurfaces(helper);
+        ManaForceBladeGameTestScenarios.manaForceBladeKeepsExpectedEnchantmentSurfaces(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffExposesExpectedMainhandAttributes(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffExposesExpectedMainhandAttributes(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffExposesExpectedMainhandAttributes(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffResolveThrownDamageIncludesApplicableEnchantments(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffResolveThrownDamageIncludesApplicableEnchantments(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffResolveThrownDamageIncludesApplicableEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffThrowConsumesMana(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffThrowConsumesMana(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffThrowConsumesMana(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffLoyaltyReducesThrowManaCost(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffLoyaltyReducesThrowManaCost(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffLoyaltyReducesThrowManaCost(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffRiptideWorksOnDryGroundWithoutProjectile(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffRiptideWorksOnDryGroundWithoutProjectile(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffRiptideWorksOnDryGroundWithoutProjectile(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffImpactForwardUsesHistoryAndFallback(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactForwardUsesHistoryAndFallback(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffImpactForwardUsesHistoryAndFallback(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffImpactCastManagerCastsInstantAndLongSpells(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerCastsInstantAndLongSpells(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffImpactCastManagerCastsInstantAndLongSpells(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffImpactCastManagerCastsInstantWhileOwnerBusy(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerCastsInstantWhileOwnerBusy(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffImpactCastManagerCastsInstantWhileOwnerBusy(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffBusyFallbackDoesNotBypassCooldown(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffBusyFallbackDoesNotBypassCooldown(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffBusyFallbackDoesNotBypassCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellThrowableCardImpactCastManagerCastsInstantWhileOwnerBusy(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellThrowableCardImpactCastManagerCastsInstantWhileOwnerBusy(helper);
+        ChargedTwinBladeStaffGameTestScenarios.spellThrowableCardImpactCastManagerCastsInstantWhileOwnerBusy(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffRemoteOwnerDenylistBlocksRuntimeWithoutFallback(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffRemoteOwnerDenylistBlocksRuntimeWithoutFallback(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffRemoteOwnerDenylistBlocksRuntimeWithoutFallback(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffImpactCastManagerCastsPlayerSelfProfile(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerCastsPlayerSelfProfile(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffImpactCastManagerCastsPlayerSelfProfile(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffCreativeImpactCastUsesRemoteOwnerProfileWithZeroMana(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffCreativeImpactCastUsesRemoteOwnerProfileWithZeroMana(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffCreativeImpactCastUsesRemoteOwnerProfileWithZeroMana(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffCreativeImpactCastUsesStaffProfileWithZeroMana(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffCreativeImpactCastUsesStaffProfileWithZeroMana(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffCreativeImpactCastUsesStaffProfileWithZeroMana(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffImpactCastManagerCastsInitialRaiseDeadProfile(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerCastsInitialRaiseDeadProfile(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffImpactCastManagerCastsInitialRaiseDeadProfile(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffImpactCastManagerBlocksRaiseDeadWhenRecastExists(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerBlocksRaiseDeadWhenRecastExists(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffImpactCastManagerBlocksRaiseDeadWhenRecastExists(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffRaiseDeadPreservesWheelSelectionAfterRecast(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffRaiseDeadPreservesWheelSelectionAfterRecast(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffRaiseDeadPreservesWheelSelectionAfterRecast(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffImpactCastManagerRejectsUnprofiledSpell(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerRejectsUnprofiledSpell(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffImpactCastManagerRejectsUnprofiledSpell(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffImpactCastManagerStartsContinuousSpells(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerStartsContinuousSpells(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffImpactCastManagerStartsContinuousSpells(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffContinuousRemoteOwnerIgnoresMissingDispenserProfile(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffContinuousRemoteOwnerIgnoresMissingDispenserProfile(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffContinuousRemoteOwnerIgnoresMissingDispenserProfile(helper);
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 140)
     public static void chargedTwinBladeStaffContinuousThrowableCardUsesCardCooldownPolicy(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffContinuousThrowableCardUsesCardCooldownPolicy(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffContinuousThrowableCardUsesCardCooldownPolicy(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffImpactCastManagerSkipsWhenOwnerCannotCast(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerSkipsWhenOwnerCannotCast(helper);
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffImpactCastManagerSkipsWhenOwnerCannotCast(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowFallsBackToNoneWhenLegacyModeCannotResolve(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowFallsBackToNoneWhenLegacyModeCannotResolve(helper);
+        ElementalBowGameTestScenarios.elementalBowFallsBackToNoneWhenLegacyModeCannotResolve(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowSynchronizesSpellContainerToCurrentMode(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowSynchronizesSpellContainerToCurrentMode(helper);
+        ElementalBowGameTestScenarios.elementalBowSynchronizesSpellContainerToCurrentMode(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowSpellContainerAppliesPowerFlameAndClearsInNoneMode(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowSpellContainerAppliesPowerFlameAndClearsInNoneMode(helper);
+        ElementalBowGameTestScenarios.elementalBowSpellContainerAppliesPowerFlameAndClearsInNoneMode(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowDoesNotAddDerivedSpellToMainhandSpellWheel(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowDoesNotAddDerivedSpellToMainhandSpellWheel(helper);
+        ElementalBowGameTestScenarios.elementalBowDoesNotAddDerivedSpellToMainhandSpellWheel(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowBlocksArcaneAnvilImbueViaSpellValidator(helper);
+        ElementalBowGameTestScenarios.elementalBowBlocksArcaneAnvilImbueViaSpellValidator(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void mithrilFreecastStaffBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.mithrilFreecastStaffBlocksArcaneAnvilImbueViaSpellValidator(helper);
+        SpellCalibrationEquipmentGameTestScenarios.mithrilFreecastStaffBlocksArcaneAnvilImbueViaSpellValidator(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowManaErrorUsesIronsSpellbooksTranslationKey(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowManaErrorUsesIronsSpellbooksTranslationKey(helper);
+        ElementalBowGameTestScenarios.elementalBowManaErrorUsesIronsSpellbooksTranslationKey(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowVanillaModeConsumesSpecialArrowWhenNormalArrowsAreMissing(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowVanillaModeConsumesSpecialArrowWhenNormalArrowsAreMissing(helper);
+        ElementalBowGameTestScenarios.elementalBowVanillaModeConsumesSpecialArrowWhenNormalArrowsAreMissing(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementalBowArrowModeRequiresNormalArrowsEvenWhenSpecialArrowsExist(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowArrowModeRequiresNormalArrowsEvenWhenSpecialArrowsExist(helper);
+        ElementalBowGameTestScenarios.elementalBowArrowModeRequiresNormalArrowsEvenWhenSpecialArrowsExist(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ELEMENTAL_BOW_DRAW_CONFIG_BATCH)
     public static void elementalBowMagicDrawTicksUseProfileAndServerMultiplier(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowMagicDrawTicksUseProfileAndServerMultiplier(helper);
+        ElementalBowGameTestScenarios.elementalBowMagicDrawTicksUseProfileAndServerMultiplier(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ELEMENTAL_BOW_OVERHEAT_MANA_CONFIG_BATCH)
     public static void elementalBowAdditionalManaUsesServerConfig(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowAdditionalManaUsesServerConfig(helper);
+        ElementalBowGameTestScenarios.elementalBowAdditionalManaUsesServerConfig(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ELEMENTAL_BOW_OVERHEAT_DURATION_CONFIG_BATCH)
     public static void elementalBowOverheatDurationUsesServerConfig(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowOverheatDurationUsesServerConfig(helper);
+        ElementalBowGameTestScenarios.elementalBowOverheatDurationUsesServerConfig(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ELEMENTAL_BOW_POWER_CONFIG_BATCH)
     public static void elementalBowPowerSpellLevelBonusUsesServerConfig(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowPowerSpellLevelBonusUsesServerConfig(helper);
+        ElementalBowGameTestScenarios.elementalBowPowerSpellLevelBonusUsesServerConfig(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.reflectcastShieldKeepsExpectedEnchantmentSurfaces(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.reflectcastShieldKeepsExpectedEnchantmentSurfaces(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellcastersFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellcastersFlaskKeepsExpectedEnchantmentSurfaces(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.spellcastersFlaskKeepsExpectedEnchantmentSurfaces(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void alchemistsFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.alchemistsFlaskKeepsExpectedEnchantmentSurfaces(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.alchemistsFlaskKeepsExpectedEnchantmentSurfaces(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void apprenticeEnchantmentsKeepExpectedAcquisitionFlags(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.apprenticeEnchantmentsKeepExpectedAcquisitionFlags(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.apprenticeEnchantmentsKeepExpectedAcquisitionFlags(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void randomApplicableBookEnchantmentsExcludeFlaskEnchantments(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.randomApplicableBookEnchantmentsExcludeFlaskEnchantments(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.randomApplicableBookEnchantmentsExcludeFlaskEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void magicArmorKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.magicArmorKeepsExpectedEnchantmentSurfaces(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.magicArmorKeepsExpectedEnchantmentSurfaces(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void scrollcasterGauntletKeepsExpectedStatsAndBenchEnchantingRules(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.scrollcasterGauntletKeepsExpectedStatsAndBenchEnchantingRules(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.scrollcasterGauntletKeepsExpectedStatsAndBenchEnchantingRules(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void scrollcasterGauntletOffhandUseCastsSelectedScrollWhenMainHandDoesNotConsumeUse(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.scrollcasterGauntletOffhandUseCastsSelectedScrollWhenMainHandDoesNotConsumeUse(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.scrollcasterGauntletOffhandUseCastsSelectedScrollWhenMainHandDoesNotConsumeUse(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void apprenticeMageRobeKeepsExpectedAttributeBonuses(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.apprenticeMageRobeKeepsExpectedAttributeBonuses(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.apprenticeMageRobeKeepsExpectedAttributeBonuses(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void enchantressRobeKeepsExpectedAttributeBonusesAndImbueSurface(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.enchantressRobeKeepsExpectedAttributeBonusesAndImbueSurface(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.enchantressRobeKeepsExpectedAttributeBonusesAndImbueSurface(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void enchantressRobeChestplateAddsImbuedSchoolSpellPowerWithoutChangingGlobalSpellPower(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.enchantressRobeChestplateAddsImbuedSchoolSpellPowerWithoutChangingGlobalSpellPower(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.enchantressRobeChestplateAddsImbuedSchoolSpellPowerWithoutChangingGlobalSpellPower(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chromaticMagiaDressKeepsExpectedStatsAndImbueSurface(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chromaticMagiaDressKeepsExpectedStatsAndImbueSurface(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.chromaticMagiaDressKeepsExpectedStatsAndImbueSurface(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementMaidenRobeKeepsExpectedStatsImbueAndMagicEnchantments(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementMaidenRobeKeepsExpectedStatsImbueAndMagicEnchantments(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.elementMaidenRobeKeepsExpectedStatsImbueAndMagicEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementMaidenRobeSchoolSpellPowerDistributesSpellbookSchools(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementMaidenRobeSchoolSpellPowerDistributesSpellbookSchools(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.elementMaidenRobeSchoolSpellPowerDistributesSpellbookSchools(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementMaidenRobeSchoolSpellPowerSplitsEmptySlotsBetweenTiedSchools(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementMaidenRobeSchoolSpellPowerSplitsEmptySlotsBetweenTiedSchools(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.elementMaidenRobeSchoolSpellPowerSplitsEmptySlotsBetweenTiedSchools(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementMaidenRobeSchoolSpellPowerIgnoresHandsAndZeroConfig(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementMaidenRobeSchoolSpellPowerIgnoresHandsAndZeroConfig(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.elementMaidenRobeSchoolSpellPowerIgnoresHandsAndZeroConfig(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void elementMaidenRobeSchoolSpellPowerRefreshesArchivistsAndEnderGrimoireSources(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementMaidenRobeSchoolSpellPowerRefreshesArchivistsAndEnderGrimoireSources(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.elementMaidenRobeSchoolSpellPowerRefreshesArchivistsAndEnderGrimoireSources(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void stealthRuneArmorKeepsExpectedAttributeBonusesAndImbueSurface(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.stealthRuneArmorKeepsExpectedAttributeBonusesAndImbueSurface(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.stealthRuneArmorKeepsExpectedAttributeBonusesAndImbueSurface(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void chromaticMagiaDressRecordsCastHistoryByArmorTypeAndIgnoresRecasts(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chromaticMagiaDressRecordsCastHistoryByArmorTypeAndIgnoresRecasts(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.chromaticMagiaDressRecordsCastHistoryByArmorTypeAndIgnoresRecasts(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1086,82 +1086,82 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void circuitHeatStaffKeepsExpectedStatsAndEnchantingRules(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffKeepsExpectedStatsAndEnchantingRules(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffKeepsExpectedStatsAndEnchantingRules(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void multipurposeStaffrifleKeepsExpectedStatsAndEnchantingRules(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.multipurposeStaffrifleKeepsExpectedStatsAndEnchantingRules(helper);
+        MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleKeepsExpectedStatsAndEnchantingRules(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void multipurposeStaffrifleTooltipShowsControlsBeforeShiftHint(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.multipurposeStaffrifleTooltipShowsControlsBeforeShiftHint(helper);
+        MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleTooltipShowsControlsBeforeShiftHint(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void multipurposeStaffrifleSpecialCooldownPolicyMatchesDefaults(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.multipurposeStaffrifleSpecialCooldownPolicyMatchesDefaults(helper);
+        MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleSpecialCooldownPolicyMatchesDefaults(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void multipurposeStaffrifleUsesDedicatedAmmoAndCasingReturnPolicy(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.multipurposeStaffrifleUsesDedicatedAmmoAndCasingReturnPolicy(helper);
+        MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleUsesDedicatedAmmoAndCasingReturnPolicy(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void multipurposeStaffrifleRecastSkipsAmmoConsumption(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.multipurposeStaffrifleRecastSkipsAmmoConsumption(helper);
+        MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleRecastSkipsAmmoConsumption(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void multipurposeStaffrifleKeepsNormalManaCost(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.multipurposeStaffrifleKeepsNormalManaCost(helper);
+        MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleKeepsNormalManaCost(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void multipurposeStaffrifleInstantCastConsumesAmmoAndAppliesCooldownPolicy(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.multipurposeStaffrifleInstantCastConsumesAmmoAndAppliesCooldownPolicy(helper);
+        MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleInstantCastConsumesAmmoAndAppliesCooldownPolicy(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = CIRCUIT_HEAT_STAFF_ADDITIONAL_MANA_CONFIG_BATCH)
     public static void circuitHeatStaffAdditionalManaUsesServerConfig(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffAdditionalManaUsesServerConfig(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffAdditionalManaUsesServerConfig(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void circuitHeatStaffOverheatUsesCastCooldownPlusSkippedCooldown(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffOverheatUsesCastCooldownPlusSkippedCooldown(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffOverheatUsesCastCooldownPlusSkippedCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = CIRCUIT_HEAT_STAFF_OVERHEAT_MIN_CONFIG_BATCH)
     public static void circuitHeatStaffOverheatDurationUsesServerMinTicks(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffOverheatDurationUsesServerMinTicks(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffOverheatDurationUsesServerMinTicks(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = CIRCUIT_HEAT_STAFF_OVERHEAT_CAP_CONFIG_BATCH)
     public static void circuitHeatStaffOverheatDurationUsesServerCapTicks(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffOverheatDurationUsesServerCapTicks(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffOverheatDurationUsesServerCapTicks(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void circuitHeatStaffBypassKeepsBaseManaGate(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffBypassKeepsBaseManaGate(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffBypassKeepsBaseManaGate(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = CIRCUIT_HEAT_STAFF_COOLDOWN_LIMIT_CONFIG_BATCH)
     public static void circuitHeatStaffCooldownLimitBlocksBypass(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffCooldownLimitBlocksBypass(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffCooldownLimitBlocksBypass(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = CIRCUIT_HEAT_STAFF_SPELL_DENYLIST_CONFIG_BATCH)
     public static void circuitHeatStaffSpellDenylistBlocksBypass(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffSpellDenylistBlocksBypass(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffSpellDenylistBlocksBypass(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1171,62 +1171,62 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void circuitHeatStaffContinuousBypassKeepsOverheatManaCost(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffContinuousBypassKeepsOverheatManaCost(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffContinuousBypassKeepsOverheatManaCost(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void circuitHeatStaffRecastDoesNotTouchBypassOverheatState(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffRecastDoesNotTouchBypassOverheatState(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffRecastDoesNotTouchBypassOverheatState(helper);
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 80)
     public static void circuitHeatStaffDropCoolingConsumesWaterSource(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingConsumesWaterSource(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffDropCoolingConsumesWaterSource(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = CIRCUIT_HEAT_STAFF_COOLING_DISABLED_CONFIG_BATCH, timeoutTicks = 80)
     public static void circuitHeatStaffDropCoolingDisabledByServerConfig(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingDisabledByServerConfig(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffDropCoolingDisabledByServerConfig(helper);
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 80)
     public static void circuitHeatStaffDropCoolingIgnoresFlowingWater(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingIgnoresFlowingWater(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffDropCoolingIgnoresFlowingWater(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = CIRCUIT_HEAT_STAFF_WATER_CONSUMPTION_CONFIG_BATCH, timeoutTicks = 80)
     public static void circuitHeatStaffDropCoolingKeepsWaterSourceWhenConsumptionDisabled(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingKeepsWaterSourceWhenConsumptionDisabled(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffDropCoolingKeepsWaterSourceWhenConsumptionDisabled(helper);
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 80)
     public static void circuitHeatStaffDropCoolingConsumesCauldronLevel(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingConsumesCauldronLevel(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffDropCoolingConsumesCauldronLevel(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = CIRCUIT_HEAT_STAFF_CAULDRON_CONSUMPTION_CONFIG_BATCH, timeoutTicks = 80)
     public static void circuitHeatStaffDropCoolingKeepsWaterCauldronWhenConsumptionDisabled(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingKeepsWaterCauldronWhenConsumptionDisabled(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffDropCoolingKeepsWaterCauldronWhenConsumptionDisabled(helper);
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 80)
     public static void circuitHeatStaffDropCoolingKeepsPowderSnowBlock(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingKeepsPowderSnowBlock(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffDropCoolingKeepsPowderSnowBlock(helper);
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 80)
     public static void circuitHeatStaffDropCoolingKeepsPowderSnowCauldronLevel(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingKeepsPowderSnowCauldronLevel(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffDropCoolingKeepsPowderSnowCauldronLevel(helper);
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 80)
     public static void circuitHeatStaffDropCoolingIgnoresNonOverheatedStaffInPowderSnow(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingIgnoresNonOverheatedStaffInPowderSnow(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffDropCoolingIgnoresNonOverheatedStaffInPowderSnow(helper);
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 80)
     public static void circuitHeatStaffDropCoolingIgnoresNonOverheatedStaff(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingIgnoresNonOverheatedStaff(helper);
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffDropCoolingIgnoresNonOverheatedStaff(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1246,7 +1246,7 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void uniteLunaStaffStartsWithUniteLunaAndExpectedMainhandBonuses(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.uniteLunaStaffStartsWithUniteLunaAndExpectedMainhandBonuses(helper);
+        OffhandAndBetterCombatGameTestScenarios.uniteLunaStaffStartsWithUniteLunaAndExpectedMainhandBonuses(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1256,7 +1256,7 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void offhandUpgradeBridgeAppliesMainhandStoredUpgradeData(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.offhandUpgradeBridgeAppliesMainhandStoredUpgradeData(helper);
+        OffhandAndBetterCombatGameTestScenarios.offhandUpgradeBridgeAppliesMainhandStoredUpgradeData(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1266,91 +1266,91 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void castingMoveSpeedAdjustmentStopsAtNormalSpeedWithoutNegativeCorrections(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.castingMoveSpeedAdjustmentStopsAtNormalSpeedWithoutNegativeCorrections(helper);
+        EquipmentSpellBehaviorBridgeGameTestScenarios.castingMoveSpeedAdjustmentStopsAtNormalSpeedWithoutNegativeCorrections(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void longStrideMobilityStillAddsBaseMovementSpeedBonus(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.longStrideMobilityStillAddsBaseMovementSpeedBonus(helper);
+        EquipmentSpellBehaviorBridgeGameTestScenarios.longStrideMobilityStillAddsBaseMovementSpeedBonus(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void comfortBerriesProvideManaRegenerationAndExpectedFoodValues(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.comfortBerriesProvideManaRegenerationAndExpectedFoodValues(helper);
+        EquipmentSpellBehaviorBridgeGameTestScenarios.comfortBerriesProvideManaRegenerationAndExpectedFoodValues(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void comfortSandwichProvidesManaRegenerationAndExpectedFoodValues(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.comfortSandwichProvidesManaRegenerationAndExpectedFoodValues(helper);
+        EquipmentSpellBehaviorBridgeGameTestScenarios.comfortSandwichProvidesManaRegenerationAndExpectedFoodValues(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaRegenerationEffectAppliesExpectedFinalManaRegenMultiplier(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaRegenerationEffectAppliesExpectedFinalManaRegenMultiplier(helper);
+        EquipmentSpellBehaviorBridgeGameTestScenarios.manaRegenerationEffectAppliesExpectedFinalManaRegenMultiplier(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void meditationPotionsExposeExpectedEffectsAndDurations(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.meditationPotionsExposeExpectedEffectsAndDurations(helper);
+        EquipmentSpellBehaviorBridgeGameTestScenarios.meditationPotionsExposeExpectedEffectsAndDurations(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void swingcastStaffTiersExposeRequestedImbueRules(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.swingcastStaffTiersExposeRequestedImbueRules(helper);
+        SwingcastStaffGameTestScenarios.swingcastStaffTiersExposeRequestedImbueRules(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
     public static void craftsmansDelightAppliesToExternalSpellManaAndCooldown(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.craftsmansDelightAppliesToExternalSpellManaAndCooldown(helper);
+        EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightAppliesToExternalSpellManaAndCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
     public static void craftsmansDelightAppliesToHarvestMoonAndEarthForgeManaAndCooldown(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.craftsmansDelightAppliesToHarvestMoonAndEarthForgeManaAndCooldown(helper);
+        EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightAppliesToHarvestMoonAndEarthForgeManaAndCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
     public static void craftsmansDelightExtendsTouchDigRange(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.craftsmansDelightExtendsTouchDigRange(helper);
+        EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightExtendsTouchDigRange(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
     public static void touchDigMergesRingMiningEnchantments(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.touchDigMergesRingMiningEnchantments(helper);
+        EquipmentSpellBehaviorBridgeGameTestScenarios.touchDigMergesRingMiningEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
     public static void touchDigUsesRingMiningEnchantmentsWhenCastBareHanded(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.touchDigUsesRingMiningEnchantmentsWhenCastBareHanded(helper);
+        EquipmentSpellBehaviorBridgeGameTestScenarios.touchDigUsesRingMiningEnchantmentsWhenCastBareHanded(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
     public static void spectralHammerUsesCraftsmansDelightRingMiningEnchantments(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spectralHammerUsesCraftsmansDelightRingMiningEnchantments(helper);
+        EquipmentSpellBehaviorBridgeGameTestScenarios.spectralHammerUsesCraftsmansDelightRingMiningEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
     public static void tinyLumberjackWithCraftsmansDelightMovesJobDropsToOrigin(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.tinyLumberjackWithCraftsmansDelightMovesJobDropsToOrigin(helper);
+        EquipmentSpellBehaviorBridgeGameTestScenarios.tinyLumberjackWithCraftsmansDelightMovesJobDropsToOrigin(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
     public static void tinyLumberjackDropMoveFollowsCurrentCraftsmansDelightEquipment(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.tinyLumberjackDropMoveFollowsCurrentCraftsmansDelightEquipment(helper);
+        EquipmentSpellBehaviorBridgeGameTestScenarios.tinyLumberjackDropMoveFollowsCurrentCraftsmansDelightEquipment(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void worldFlatterPenetratedArmorEffectAndDamageTags(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.worldFlatterPenetratedArmorEffectAndDamageTags(helper);
+        EquipmentSpellBehaviorBridgeGameTestScenarios.worldFlatterPenetratedArmorEffectAndDamageTags(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
     public static void worldFlatterBlockTargetFilterMatchesPickaxeOrShovel(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.worldFlatterBlockTargetFilterMatchesPickaxeOrShovel(helper);
+        EquipmentSpellBehaviorBridgeGameTestScenarios.worldFlatterBlockTargetFilterMatchesPickaxeOrShovel(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void worldFlatterEntityAttackRequiresArrivalAndHitsSingleTarget(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.worldFlatterEntityAttackRequiresArrivalAndHitsSingleTarget(helper);
+        EquipmentSpellBehaviorBridgeGameTestScenarios.worldFlatterEntityAttackRequiresArrivalAndHitsSingleTarget(helper);
     }
 }
