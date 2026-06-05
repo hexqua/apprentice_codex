@@ -313,59 +313,59 @@ import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.Nullable;
 
-public final class ApprenticeCodexGameTestScenarios {
-    private static final double SENSE_EVIL_HIGHLIGHT_POSITION_TOLERANCE = 1.5D;
+public class ApprenticeCodexGameTestScenarios {
+    static final double SENSE_EVIL_HIGHLIGHT_POSITION_TOLERANCE = 1.5D;
 
-    private static final String REQUIRED_OPTIONAL_MODS_PROPERTY = "apprenticecodex.requiredOptionalMods";
-    private static final String VANILLA_NAMESPACE = "minecraft";
-    private static final String FARMERS_DELIGHT_MOD_ID = "farmersdelight";
-    private static final String LODESTONE_MOD_ID = "lodestone";
-    private static final String MALUM_MOD_ID = "malum";
-    private static final ResourceLocation FARMERS_DELIGHT_TOMATO_BLOCK =
+    static final String REQUIRED_OPTIONAL_MODS_PROPERTY = "apprenticecodex.requiredOptionalMods";
+    static final String VANILLA_NAMESPACE = "minecraft";
+    static final String FARMERS_DELIGHT_MOD_ID = "farmersdelight";
+    static final String LODESTONE_MOD_ID = "lodestone";
+    static final String MALUM_MOD_ID = "malum";
+    static final ResourceLocation FARMERS_DELIGHT_TOMATO_BLOCK =
             ResourceLocation.fromNamespaceAndPath(FARMERS_DELIGHT_MOD_ID, "tomatoes");
-    private static final ResourceLocation FARMERS_DELIGHT_TOMATO_ITEM =
+    static final ResourceLocation FARMERS_DELIGHT_TOMATO_ITEM =
             ResourceLocation.fromNamespaceAndPath(FARMERS_DELIGHT_MOD_ID, "tomato");
-    private static final ResourceLocation LODESTONE_MAGIC_PROFICIENCY =
+    static final ResourceLocation LODESTONE_MAGIC_PROFICIENCY =
             ResourceLocation.fromNamespaceAndPath(LODESTONE_MOD_ID, "magic_proficiency");
-    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
+    static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "soul_hunter_weapon")
     );
-    private static final TagKey<Item> IRONS_STAFF = TagKey.create(
+    static final TagKey<Item> IRONS_STAFF = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "staff")
     );
-    private static final TagKey<Item> SPELLCASTER_WORKBENCH_EXTRACTABLE = TagKey.create(
+    static final TagKey<Item> SPELLCASTER_WORKBENCH_EXTRACTABLE = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcaster_workbench_extractable")
     );
-    private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = TagKey.create(
+    static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("traveloptics", "can_cast_reversal")
     );
-    private static final TagKey<Item> CURIOS_BACK = TagKey.create(
+    static final TagKey<Item> CURIOS_BACK = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("curios", CuriosSlotConstants.BACK)
     );
-    private static final TagKey<Item> CURIOS_CHARM = TagKey.create(
+    static final TagKey<Item> CURIOS_CHARM = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("curios", CuriosSlotConstants.CHARM)
     );
-    private static final UUID FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID = UUID.fromString("a7dc54b6-a83c-4a5f-ae93-0cb49780fc8f");
-    private static final UUID CASTING_MOVESPEED_DYNAMIC_TEST_EXTERNAL_MODIFIER_ID =
+    static final UUID FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID = UUID.fromString("a7dc54b6-a83c-4a5f-ae93-0cb49780fc8f");
+    static final UUID CASTING_MOVESPEED_DYNAMIC_TEST_EXTERNAL_MODIFIER_ID =
             UUID.fromString("04a46352-a09b-44fb-b504-92ab5f69f969");
-    private static final UUID ZENITH_STAFF_SCHOOL_POWER_TEST_MODIFIER_ID =
+    static final UUID ZENITH_STAFF_SCHOOL_POWER_TEST_MODIFIER_ID =
             UUID.fromString("dc11d258-0a7d-4e1e-a0c6-74754fb91d25");
-    private static final UUID VANILLA_BASE_ATTACK_DAMAGE_MODIFIER_ID =
+    static final UUID VANILLA_BASE_ATTACK_DAMAGE_MODIFIER_ID =
             UUID.fromString("CB3F55D3-645C-4F38-A497-9C13A33DB5CF");
-    private static final UUID VANILLA_BASE_ATTACK_SPEED_MODIFIER_ID =
+    static final UUID VANILLA_BASE_ATTACK_SPEED_MODIFIER_ID =
             UUID.fromString("FA233E1C-4180-4865-B01B-BCCE9785ACA3");
-    private static final ResourceLocation MALUM_HAUNTED = MalumHauntedCompat.hauntedEnchantmentId();
-    private static final ResourceLocation MALUM_ANIMATED = MalumHauntedCompat.animatedEnchantmentId();
-    private static final ResourceLocation MALUM_SPIRIT_PLUNDER = ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
-    private static final ResourceLocation MALUM_REPLENISHING = ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "replenishing");
+    static final ResourceLocation MALUM_HAUNTED = MalumHauntedCompat.hauntedEnchantmentId();
+    static final ResourceLocation MALUM_ANIMATED = MalumHauntedCompat.animatedEnchantmentId();
+    static final ResourceLocation MALUM_SPIRIT_PLUNDER = ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
+    static final ResourceLocation MALUM_REPLENISHING = ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "replenishing");
 
-    private ApprenticeCodexGameTestScenarios() {
+    ApprenticeCodexGameTestScenarios() {
     }
 
     static void requiredOptionalModsAreLoaded(GameTestHelper helper) {
@@ -1008,7 +1008,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    private static void assertSpellThrowableCardWorkbenchRecipe(
+    static void assertSpellThrowableCardWorkbenchRecipe(
             GameTestHelper helper,
             Item resultItem,
             ItemStack baseStack,
@@ -1038,7 +1038,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 context + " should leave the scroll in the Workbench inputs");
     }
 
-    private static void assertSpellThrowableCardWorkbenchButtonAcceptsSplitStacks(GameTestHelper helper, AbstractSpell spell) {
+    static void assertSpellThrowableCardWorkbenchButtonAcceptsSplitStacks(GameTestHelper helper, AbstractSpell spell) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_invoke_card_split_stack_button");
         var menu = new SpellcasterWorkbenchMenu(0, player.getInventory());
         player.getInventory().setItem(0, new ItemStack(Items.PAPER, 8));
@@ -1055,7 +1055,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 "Spell Invoke Card button should move both split paper stacks into inputs");
     }
 
-    private static void assertSpellThrowableCardWorkbenchButtonAppendsToActiveDynamicRecipe(GameTestHelper helper, AbstractSpell spell) {
+    static void assertSpellThrowableCardWorkbenchButtonAppendsToActiveDynamicRecipe(GameTestHelper helper, AbstractSpell spell) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_invoke_card_append_button");
         var scrollStack = createSpellScroll(spell);
         var menu = createSpellcasterWorkbenchMenuWithInputs(
@@ -1077,7 +1077,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 "Spell Invoke Card button should keep the existing scroll input while appending");
     }
 
-    private static int findSelectableIconIndex(GameTestHelper helper, SpellcasterWorkbenchMenu menu, Item item) {
+    static int findSelectableIconIndex(GameTestHelper helper, SpellcasterWorkbenchMenu menu, Item item) {
         var icons = menu.getSelectableIcons();
         for (var index = 0; index < icons.size(); ++index) {
             if (icons.get(index).is(item)) {
@@ -1088,7 +1088,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return -1;
     }
 
-    private static void assertSpellThrowableCardWorkbenchCantImbue(
+    static void assertSpellThrowableCardWorkbenchCantImbue(
             GameTestHelper helper,
             ItemStack baseStack,
             ItemStack catalystStack,
@@ -1103,7 +1103,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 context + ": menu should expose the card imbue block reason");
     }
 
-    private static int countInputItem(SpellcasterWorkbenchMenu menu, Item item) {
+    static int countInputItem(SpellcasterWorkbenchMenu menu, Item item) {
         var count = 0;
         for (var slotIndex = 0; slotIndex < SpellcasterWorkbenchMenu.INPUT_SLOT_COUNT; ++slotIndex) {
             var stack = menu.getSlot(slotIndex).getItem();
@@ -1114,7 +1114,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return count;
     }
 
-    private static boolean hasMatchingInputStack(SpellcasterWorkbenchMenu menu, ItemStack expectedStack) {
+    static boolean hasMatchingInputStack(SpellcasterWorkbenchMenu menu, ItemStack expectedStack) {
         for (var slotIndex = 0; slotIndex < SpellcasterWorkbenchMenu.INPUT_SLOT_COUNT; ++slotIndex) {
             if (ItemStack.isSameItemSameTags(menu.getSlot(slotIndex).getItem(), expectedStack)) {
                 return true;
@@ -1123,7 +1123,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return false;
     }
 
-    private static RemoteOwnerCastProfile remotePlayerGeometryProfile(boolean allowInitialRecast) {
+    static RemoteOwnerCastProfile remotePlayerGeometryProfile(boolean allowInitialRecast) {
         return new RemoteOwnerCastProfile(
                 RemoteOwnerCastMode.REMOTE_PLAYER_GEOMETRY,
                 RemoteOwnerOriginMode.PROVIDED_ORIGIN,
@@ -1133,7 +1133,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static ResourceLocation requireSpellId(AbstractSpell spell) {
+    static ResourceLocation requireSpellId(AbstractSpell spell) {
         var spellId = spell.getSpellResource();
         if (spellId == null) {
             throw new IllegalStateException("Missing spell id for " + spell);
@@ -2383,45 +2383,6 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    static void scrollcasterGauntletOffhandUseCastsSelectedScrollWhenMainHandDoesNotConsumeUse(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
-
-            assertScrollcasterGauntletOffhandUseCasts(
-                    helper,
-                    ItemStack.EMPTY,
-                    spell,
-                    "scrollcaster_gauntlet_offhand_empty_mainhand_test"
-            );
-            assertScrollcasterGauntletOffhandUseCasts(
-                    helper,
-                    new ItemStack(Items.STONE_SWORD),
-                    spell,
-                    "scrollcaster_gauntlet_offhand_stone_sword_test"
-            );
-            assertScrollcasterGauntletOffhandUseDefersToMainhandSpellItem(
-                    helper,
-                    new ItemStack(ItemRegistry.PASTEL_STAFF.get()),
-                    spell,
-                    "scrollcaster_gauntlet_offhand_mainhand_staff_test"
-            );
-            assertScrollcasterGauntletOffhandUseDefersToMainhandSpellItem(
-                    helper,
-                    new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get()),
-                    spell,
-                    "scrollcaster_gauntlet_offhand_mainhand_casting_item_test"
-            );
-
-            var emptyGauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-            var emptyPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
-                    "scrollcaster_gauntlet_offhand_empty_selection_test");
-            emptyPlayer.setItemInHand(InteractionHand.OFF_HAND, emptyGauntlet);
-            var emptyResult = emptyGauntlet.getItem().use(helper.getLevel(), emptyPlayer, InteractionHand.OFF_HAND);
-            helper.assertTrue(emptyResult.getResult() == net.minecraft.world.InteractionResult.PASS,
-                    "Scrollcaster Gauntlet offhand use without a selected scroll should pass but got "
-                            + emptyResult.getResult());
-        });
-    }
 
     static void spellCalibrationBenchAdjustmentSlotsValidateInputs(GameTestHelper helper) {
         helper.succeedIf(() -> {
@@ -2871,7 +2832,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    private static void assertZenithPreCastUsesDiscountedManaGate(
+    static void assertZenithPreCastUsesDiscountedManaGate(
             GameTestHelper helper,
             FakePlayer player,
             MagicData magicData,
@@ -3204,7 +3165,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    private static void assertSpellStainedRunicTabletThresholdScenario(
+    static void assertSpellStainedRunicTabletThresholdScenario(
             GameTestHelper helper,
             double configuredSchoolSpellPower,
             double minimumAppliedPositiveBonus,
@@ -3683,2906 +3644,40 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Archivist's Grimoire spell selection should not expose spells outside the selected row");
         });
     }
-    static void copperSpellAmplifierStartsWithBallLightningAndStacksAttunement(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-            var stack = new ItemStack(item);
-            item.initializeSpellContainer(stack);
 
-            helper.assertTrue(ISpellContainer.isSpellContainer(stack), "Copper Spell Amplifier did not initialize a spell container");
 
-            var spellContainer = ISpellContainer.get(stack);
-            helper.assertTrue(spellContainer != null, "Copper Spell Amplifier spell container is null");
 
-            var spellData = spellContainer.getSpellAtIndex(0);
-            helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
-                    "Copper Spell Amplifier has no preset spell");
-            helper.assertTrue(spellData.getSpell() == SpellRegistry.SHOCK.get(),
-                    "Copper Spell Amplifier preset spell mismatch: " + spellData.getSpell().getSpellResource());
-            helper.assertTrue(spellData.getLevel() == 1,
-                    "Copper Spell Amplifier preset spell level mismatch: " + spellData.getLevel());
 
-            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
-            helper.assertTrue(imbuedSchool != null, "Copper Spell Amplifier imbued school could not be resolved");
 
-            // ここでは school ID の厳密一致ではなく、
-            // 実装が解決した spell power 属性へ bonus / Attunement が正しく合算されることを回帰検知する.
-            var resolvedSpellPower = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
-            helper.assertTrue(resolvedSpellPower != null,
-                    "Copper Spell Amplifier could not resolve spell power attribute for additive stacking: " + imbuedSchool.getId());
 
-            assertModifierAmount(helper, item, stack, resolvedSpellPower, 0.10D, AttributeModifier.Operation.MULTIPLY_BASE,
-                    "Copper Spell Amplifier additive spell power bonus regression");
 
-            stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
-            assertModifierAmount(helper, item, stack, resolvedSpellPower, 0.14D, AttributeModifier.Operation.MULTIPLY_BASE,
-                    "Copper Spell Amplifier + Attunement stacking regression");
-        });
-    }
-    static void copperSwingcastStaffStartsWithBallLightningLevelOne(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (AbstractSwingcastStaffItem) ItemRegistry.COPPER_SWINGCAST_STAFF.get();
-            var stack = new ItemStack(item);
-            item.initializeSpellContainer(stack);
 
-            helper.assertTrue(ISpellContainer.isSpellContainer(stack), "Copper Swingcast Staff did not initialize a spell container");
 
-            var spellContainer = ISpellContainer.get(stack);
-            helper.assertTrue(spellContainer != null, "Copper Swingcast Staff spell container is null");
 
-            var spellData = spellContainer.getSpellAtIndex(0);
-            helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
-                    "Copper Swingcast Staff has no preset spell");
-            helper.assertTrue(spellData.getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(),
-                    "Copper Swingcast Staff preset spell mismatch: " + spellData.getSpell().getSpellResource());
-            helper.assertTrue(spellData.getLevel() == 1,
-                    "Copper Swingcast Staff preset spell level mismatch: " + spellData.getLevel());
-        });
-    }
-    static void goldSpellcasterGunImbuedSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (AbstractSpellGunItem) ItemRegistry.GOLD_SPELLCASTER_GUN.get();
-            var stack = createInitializedPresetStack(item);
-            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
 
-            applyRestrictedImbueNormalization(helper, stack, item, replacementSpell, 1);
 
-            var spellContainer = ISpellContainer.get(stack);
-            helper.assertTrue(spellContainer != null, "Gold Spellcaster Gun normalized spell container is null");
-            assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
-                    "Gold Spellcaster Gun imbued spell should be removable");
-            helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
-                    "Gold Spellcaster Gun imbued spell should remain extractable in Spellcaster Workbench");
-        });
-    }
-    static void spellcasterGunRecastImbueRestrictionsMatchTier(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var iron = (AbstractSpellGunItem) ItemRegistry.IRON_SPELLCASTER_GUN.get();
-            var gold = (AbstractSpellGunItem) ItemRegistry.GOLD_SPELLCASTER_GUN.get();
-            var diamond = (AbstractSpellGunItem) ItemRegistry.DIAMOND_SPELLCASTER_GUN.get();
-            var instantRecastSpell = SpellRegistry.HIGANBANA.get();
-            var longRecastSpell = SpellRegistry.ARCHER_MULTIPLE.get();
-            var continuousSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
 
-            helper.assertFalse(iron.canImbueSpell(instantRecastSpell, 1),
-                    "Iron Spellcaster Gun should continue rejecting recast spells");
-            helper.assertTrue(gold.canImbueSpell(instantRecastSpell, 1),
-                    "Gold Spellcaster Gun should allow instant recast spell imbuing");
-            helper.assertTrue(diamond.canImbueSpell(instantRecastSpell, 1),
-                    "Diamond Spellcaster Gun should allow instant recast spell imbuing");
-            helper.assertTrue(diamond.canImbueSpell(longRecastSpell, 1),
-                    "Diamond Spellcaster Gun should allow long recast spell imbuing");
-            helper.assertFalse(diamond.canImbueSpell(continuousSpell, 1),
-                    "Diamond Spellcaster Gun should continue rejecting continuous spells");
-        });
-    }
-    static void spellgunServerConfigDefaultsMatchCurrentHardcodedValues(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            helper.assertTrue(ApprenticeCodexServerConfig.ironSpellgunMaxInstantImbueCooldownTicks() == 20 * 5,
-                    "Iron Spellcaster Gun imbue cooldown limit default changed");
-            helper.assertTrue(ApprenticeCodexServerConfig.ironSpellgunOverriddenSpellCooldownTicks() == 10,
-                    "Iron Spellcaster Gun cast cooldown default changed");
-            helper.assertTrue(ApprenticeCodexServerConfig.copperSpellgunMaxInstantImbueCooldownTicks() == 20 * 10,
-                    "Copper Spellcaster Gun imbue cooldown limit default changed");
-            helper.assertTrue(ApprenticeCodexServerConfig.copperSpellgunOverriddenSpellCooldownTicks() == 20,
-                    "Copper Spellcaster Gun cast cooldown default changed");
-            helper.assertTrue(ApprenticeCodexServerConfig.goldSpellgunMaxInstantImbueCooldownTicks() == 20 * 20,
-                    "Gold Spellcaster Gun imbue cooldown limit default changed");
-            helper.assertTrue(ApprenticeCodexServerConfig.goldSpellgunOverriddenSpellCooldownTicks() == 40,
-                    "Gold Spellcaster Gun cast cooldown default changed");
-            helper.assertTrue(ApprenticeCodexServerConfig.diamondSpellgunMaxInstantImbueCooldownTicks() == 20 * 30,
-                    "Diamond Spellcaster Gun imbue cooldown limit default changed");
-            helper.assertTrue(ApprenticeCodexServerConfig.diamondSpellgunOverriddenSpellCooldownTicks() == 80,
-                    "Diamond Spellcaster Gun cast cooldown default changed");
 
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellgun_default_config_test");
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
-            assertSpellgunCooldownOverride(helper, player, new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()), spell, 200, 10,
-                    "Iron Spellcaster Gun should keep its default cast cooldown");
-            assertSpellgunCooldownOverride(helper, player, new ItemStack(ItemRegistry.COPPER_SPELLCASTER_GUN.get()), spell, 200, 20,
-                    "Copper Spellcaster Gun should keep its default cast cooldown");
-            assertSpellgunCooldownOverride(helper, player, new ItemStack(ItemRegistry.GOLD_SPELLCASTER_GUN.get()), spell, 200, 40,
-                    "Gold Spellcaster Gun should keep its default cast cooldown");
-            assertSpellgunCooldownOverride(helper, player, new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()), spell, 200, 80,
-                    "Diamond Spellcaster Gun should keep its default cast cooldown");
-        });
-    }
-    static void spellgunZeroImbueCooldownLimitDisablesOnlyCooldownLimit(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            try (var ignored = ApprenticeCodexServerConfig.useSpellgunConfigOverrideForGameTest(new SpellgunServerConfig.Values(
-                    0,
-                    10,
-                    20 * 10,
-                    20,
-                    20 * 20,
-                    40,
-                    20 * 30,
-                    80
-            ))) {
-                var iron = (AbstractSpellGunItem) ItemRegistry.IRON_SPELLCASTER_GUN.get();
-                var cooldownLimitedSpell = SpellRegistry.SEARCH_BEACON.get();
-                helper.assertTrue(cooldownLimitedSpell.getSpellCooldown() > 20 * 5,
-                        "Search Beacon should remain above Iron Spellcaster Gun's default cooldown limit");
-                helper.assertTrue(iron.canImbueSpell(cooldownLimitedSpell, 1),
-                        "Iron Spellcaster Gun maxInstantImbueCooldownTicks=0 should disable only the cooldown limit");
-                helper.assertFalse(iron.canImbueSpell(SpellRegistry.HIGANBANA.get(), 1),
-                        "Iron Spellcaster Gun should still reject recast spells when only the cooldown limit is disabled");
-            }
-        });
-    }
-    static void spellgunZeroCastCooldownConfigForcesZeroCooldown(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            try (var ignored = ApprenticeCodexServerConfig.useSpellgunConfigOverrideForGameTest(new SpellgunServerConfig.Values(
-                    20 * 5,
-                    0,
-                    20 * 10,
-                    0,
-                    20 * 20,
-                    0,
-                    20 * 30,
-                    0
-            ))) {
-                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellgun_zero_cooldown_config_test");
-                var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
-                assertSpellgunCooldownOverride(helper, player, new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()), spell, 200, 0,
-                        "Iron Spellcaster Gun overriddenSpellCooldownTicks=0 should force a 0-tick cooldown");
-                assertSpellgunCooldownOverride(helper, player, new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()), spell, 200, 0,
-                        "Diamond Spellcaster Gun overriddenSpellCooldownTicks=0 should force a 0-tick cooldown");
-            }
-        });
-    }
-    static void spellcasterGunRecastCastBypassesAmmoRequirement(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (AbstractSpellGunItem) ItemRegistry.DIAMOND_SPELLCASTER_GUN.get();
-            var stack = createInitializedPresetStack(item);
-            var spell = SpellRegistry.ARCHER_MULTIPLE.get();
-            applyRestrictedImbueNormalization(helper, stack, item, spell, 1);
 
-            var player = createArcherMultiplePlayer(helper, new BlockPos(0, 12, 0), "spellgun_recast_ammo_bypass_test");
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
 
-            var firstUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertFalse(firstUse.getResult().consumesAction(),
-                    "Diamond Spellcaster Gun should reject initial Archer Multiple cast without ammo");
 
-            var magicData = MagicData.getPlayerMagicData(player);
-            magicData.getPlayerRecasts().addRecast(new RecastInstance(
-                    spell.getSpellId(),
-                    1,
-                    2,
-                    100,
-                    CastSource.SWORD,
-                    null
-            ), magicData);
 
-            var recastUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(recastUse.getResult().consumesAction(),
-                    "Diamond Spellcaster Gun should allow recast without ammo");
 
-            var ammoStack = new ItemStack(ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get(), 1);
-            player.getInventory().add(ammoStack);
-            magicData.getPlayerRecasts().addRecast(new RecastInstance(
-                    spell.getSpellId(),
-                    1,
-                    2,
-                    100,
-                    CastSource.SWORD,
-                    null
-            ), magicData);
-            magicData.setPlayerCastingItem(stack);
-            MinecraftForge.EVENT_BUS.post(new SpellOnCastEvent(
-                    player,
-                    spell.getSpellId(),
-                    1,
-                    spell.getManaCost(1),
-                    spell.getSchoolType(),
-                    CastSource.SWORD
-            ));
-            helper.assertTrue(SpellGunCastEvent.countAvailableAmmo(
-                    player,
-                    player.getInventory(),
-                    ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get()
-            ) == 1, "Recast Spellcaster Gun cast should not consume ammo from the cast event");
-        });
-    }
-    static void copperSwingcastStaffReplacementSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (AbstractSwingcastStaffItem) ItemRegistry.COPPER_SWINGCAST_STAFF.get();
-            var stack = createInitializedPresetStack(item);
-            var initialContainer = ISpellContainer.get(stack);
-            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get();
 
-            helper.assertTrue(initialContainer != null, "Copper Swingcast Staff spell container is null");
-            assertSpellData(helper, initialContainer, 0, io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(), 1, true,
-                    "Copper Swingcast Staff preset spell should remain locked");
 
-            applyRestrictedImbueNormalization(helper, stack, item, replacementSpell, 1);
 
-            var normalizedContainer = ISpellContainer.get(stack);
-            helper.assertTrue(normalizedContainer != null, "Copper Swingcast Staff normalized spell container is null");
-            assertSpellData(helper, normalizedContainer, 0, replacementSpell, 1, false,
-                    "Copper Swingcast Staff replacement spell should be removable");
-            helper.assertTrue(normalizedContainer.getSpellAtIndex(0).canRemove(),
-                    "Copper Swingcast Staff replacement spell should remain extractable in Spellcaster Workbench");
-        });
-    }
-    static void reflectcastShieldImbuedSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (AbstractImbueShieldItem) ItemRegistry.REFLECTCAST_SHIELD.get();
-            var stack = createInitializedPresetStack(item);
-            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
 
-            applyRestrictedImbueNormalization(helper, stack, item, replacementSpell, 1);
 
-            var spellContainer = ISpellContainer.get(stack);
-            helper.assertTrue(spellContainer != null, "Reflectcast Shield normalized spell container is null");
-            assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
-                    "Reflectcast Shield imbued spell should be removable");
-            helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
-                    "Reflectcast Shield imbued spell should remain extractable in Spellcaster Workbench");
-        });
-    }
-    static void goldSpellcasterGunImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (AbstractSpellGunItem) ItemRegistry.GOLD_SPELLCASTER_GUN.get();
-            var stack = createInitializedPresetStack(item);
-            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
 
-            applyRestrictedImbueNormalization(helper, stack, item, replacementSpell, 1);
 
-            var restored = roundTripItemStack(stack);
-            repairPresetSpellContainerStateIfNeeded(restored);
-            var spellContainer = ISpellContainer.get(restored);
-            helper.assertTrue(spellContainer != null, "Gold Spellcaster Gun save/load spell container is null");
-            assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
-                    "Gold Spellcaster Gun imbued spell should remain removable after save/load");
-            helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
-                    "Gold Spellcaster Gun imbued spell should remain extractable after save/load");
-        });
-    }
-    static void ironSwingcastStaffImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (AbstractSwingMagicItem) ItemRegistry.IRON_SWINGCAST_STAFF.get();
-            var stack = createInitializedPresetStack(item);
-            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get();
 
-            applyRestrictedImbueNormalization(helper, stack, item, replacementSpell, 1);
 
-            var restored = roundTripItemStack(stack);
-            repairPresetSpellContainerStateIfNeeded(restored);
-            var spellContainer = ISpellContainer.get(restored);
-            helper.assertTrue(spellContainer != null, "Iron Swingcast Staff save/load spell container is null");
-            assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
-                    "Iron Swingcast Staff imbued spell should remain removable after save/load");
-            helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
-                    "Iron Swingcast Staff imbued spell should remain extractable after save/load");
-        });
-    }
-    static void copperSwingcastStaffPresetEquivalentSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (AbstractSwingMagicItem) ItemRegistry.COPPER_SWINGCAST_STAFF.get();
-            var stack = createInitializedPresetStack(item);
-            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get();
 
-            applyRestrictedImbueNormalization(helper, stack, item, replacementSpell, 1);
 
-            var restored = roundTripItemStack(stack);
-            repairPresetSpellContainerStateIfNeeded(restored);
-            var spellContainer = ISpellContainer.get(restored);
-            helper.assertTrue(spellContainer != null, "Copper Swingcast Staff preset-equivalent save/load spell container is null");
-            assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
-                    "Copper Swingcast Staff preset-equivalent imbued spell should remain removable after save/load");
-            helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
-                    "Copper Swingcast Staff preset-equivalent imbued spell should remain extractable after save/load");
-        });
-    }
-    static void reflectcastShieldImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (AbstractImbueShieldItem) ItemRegistry.REFLECTCAST_SHIELD.get();
-            var stack = createInitializedPresetStack(item);
-            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
 
-            applyRestrictedImbueNormalization(helper, stack, item, replacementSpell, 1);
 
-            var restored = roundTripItemStack(stack);
-            repairPresetSpellContainerStateIfNeeded(restored);
-            var spellContainer = ISpellContainer.get(restored);
-            helper.assertTrue(spellContainer != null, "Reflectcast Shield save/load spell container is null");
-            assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
-                    "Reflectcast Shield imbued spell should remain removable after save/load");
-            helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
-                    "Reflectcast Shield imbued spell should remain extractable after save/load");
-        });
-    }
 
-    static void photonSiphonStartsWithLockedManaChargeAndIsNotUnique(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = ItemRegistry.PHOTON_SIPHON.get();
-            var stack = createInitializedPresetStack(item);
-            var spellContainer = ISpellContainer.get(stack);
-
-            helper.assertFalse(item instanceof io.redspace.ironsspellbooks.item.UniqueItem,
-                    "Photon Siphon should not block external imbue as a UniqueItem");
-            helper.assertTrue(spellContainer != null, "Photon Siphon default spell container is null");
-            assertSpellData(helper, spellContainer, 0, SpellRegistry.MANA_CHARGE.get(), 1, true,
-                    "Photon Siphon should still start with locked Mana Charge");
-        });
-    }
-
-    static void photonSiphonCalibrationRepairUnlocksLegacyReplacementOnly(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "photon_siphon_calibration_repair_test");
-            var item = (PhotonSiphon) ItemRegistry.PHOTON_SIPHON.get();
-            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
-
-            var legacyReplacementStack = createInitializedPresetStack(item);
-            applyLegacyLockedReplacement(helper, legacyReplacementStack, replacementSpell, 1);
-            createSpellCalibrationBenchMenuWithTarget(player, legacyReplacementStack);
-            var repairedReplacementContainer = ISpellContainer.get(legacyReplacementStack);
-            helper.assertTrue(repairedReplacementContainer != null,
-                    "Photon Siphon repaired replacement spell container is null");
-            assertSpellData(helper, repairedReplacementContainer, 0, replacementSpell, 1, false,
-                    "Photon Siphon Calibration Bench repair should unlock legacy non-default replacement spells");
-
-            var defaultStack = createInitializedPresetStack(item);
-            createSpellCalibrationBenchMenuWithTarget(player, defaultStack);
-            var defaultContainer = ISpellContainer.get(defaultStack);
-            helper.assertTrue(defaultContainer != null, "Photon Siphon default spell container is null after Calibration Bench check");
-            assertSpellData(helper, defaultContainer, 0, SpellRegistry.MANA_CHARGE.get(), 1, true,
-                    "Photon Siphon Calibration Bench repair should not unlock the default Mana Charge");
-        });
-    }
-
-    static void spellCalibrationBenchTargetsExposeExpectedSlots(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_calibration_target_slots_test");
-            var autocastAmulet = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
-            var emptyAmulet = new ItemStack(autocastAmulet);
-            autocastAmulet.initializeSpellContainer(emptyAmulet);
-
-            var emptyAmuletMenu = createSpellCalibrationBenchMenuWithTarget(player, emptyAmulet);
-            helper.assertTrue(emptyAmuletMenu.hasCalibrationTarget(),
-                    "Empty Autocast Amulet should be accepted by Spell Calibration Bench");
-            helper.assertTrue(emptyAmuletMenu.getScrollItem(0).isEmpty(),
-                    "Empty Autocast Amulet should not expose a scroll");
-
-            var imbuedAmulet = autocastAmulet.createArcaneAnvilImbueResult(
-                    new ItemStack(autocastAmulet),
-                    new SpellData(SpellRegistry.SENSE_EVIL.get(), 1)
-            );
-            var imbuedAmuletMenu = createSpellCalibrationBenchMenuWithTarget(player, imbuedAmulet);
-            helper.assertTrue(imbuedAmuletMenu.getScrollItem(0)
-                            .is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
-                    "Imbued Autocast Amulet should expose a removable scroll");
-
-            var manaForceBlade = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
-            var emptyBlade = new ItemStack(manaForceBlade);
-            manaForceBlade.initializeSpellContainer(emptyBlade);
-            var bladeMenu = new SpellCalibrationBenchMenu(0, player.getInventory());
-            helper.assertTrue(bladeMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(emptyBlade),
-                    "Mana Force Blade should be accepted by Spell Calibration Bench because it shows Can be Imbued");
-
-            var imbuedBlade = new ItemStack(manaForceBlade);
-            manaForceBlade.initializeSpellContainer(imbuedBlade);
-            setSingleUnlockedSpell(helper, imbuedBlade,
-                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1);
-            helper.assertTrue(bladeMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(imbuedBlade),
-                    "Imbued Mana Force Blade should be accepted by Spell Calibration Bench because it shows Can be Imbued");
-            var imbuedBladeMenu = createSpellCalibrationBenchMenuWithTarget(player, imbuedBlade);
-            helper.assertFalse(imbuedBladeMenu.hasOperationalImbueTarget(),
-                    "Mana Force Blade should still be unsupported by Calibration Bench operations");
-            helper.assertTrue(imbuedBladeMenu.hasTargetSpellAt(0),
-                    "Imbued Mana Force Blade spell should be visible for unsupported slot hints");
-            helper.assertTrue(imbuedBladeMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).getItem().isEmpty(),
-                    "Unsupported Calibration Bench targets should not expose a real removable scroll");
-            helper.assertTrue(imbuedBladeMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).remove(1).isEmpty(),
-                    "Unsupported Calibration Bench targets should not allow scroll extraction");
-
-            var emptyEnchantressRobe = new ItemStack(ItemRegistry.ENCHANTRESS_ROBE.get());
-            helper.assertTrue(bladeMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(emptyEnchantressRobe),
-                    "Enchantress Robe chestplate should be accepted by Spell Calibration Bench because it shows Can be Imbued");
-            helper.assertFalse(SpellCalibrationImbueHelper.isSupportedTarget(emptyEnchantressRobe),
-                    "Enchantress Robe chestplate should remain unsupported by Calibration Bench operations");
-
-            helper.assertFalse(bladeMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(new ItemStack(ItemRegistry.ENCHANTRESS_HAT.get())),
-                    "Enchantress Hat should not be accepted by Spell Calibration Bench");
-
-            var presetStaffMenu = createSpellCalibrationBenchMenuWithTarget(
-                    player,
-                    createInitializedPresetStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get())
-            );
-            helper.assertTrue(presetStaffMenu.getScrollItem(0).isEmpty(),
-                    "Copper Swingcast Staff preset spell should not expose a removable scroll");
-            helper.assertTrue(presetStaffMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START)
-                            .mayPlace(createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())),
-                    "Copper Swingcast Staff preset slot should accept a replacement scroll");
-            var uninitializedPresetStaff = new ItemStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get());
-            ISpellContainer.remove(uninitializedPresetStaff);
-            helper.assertFalse(ISpellContainer.isSpellContainer(uninitializedPresetStaff),
-                    "Prepared Copper Swingcast Staff test stack should not have spell_container");
-            helper.assertTrue(bladeMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(uninitializedPresetStaff),
-                    "Uninitialized preset spell containers should be accepted by Spell Calibration Bench");
-            createSpellCalibrationBenchMenuWithTarget(player, uninitializedPresetStaff);
-            helper.assertTrue(ISpellContainer.isSpellContainer(uninitializedPresetStaff),
-                    "Spell Calibration Bench should initialize accepted preset spell containers");
-
-            var spellcastersFlaskMenu = createSpellcasterWorkbenchMenuWithSingleInput(
-                    player,
-                    new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get())
-            );
-            var spellcastersFlaskResult = spellcastersFlaskMenu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem();
-            helper.assertTrue(spellcastersFlaskResult.is(ItemRegistry.SPELLCASTERS_FLASK.get()),
-                    "Spellcaster's Flask should keep the Workbench particle toggle result");
-            helper.assertTrue(SpellcastersFlask.isEffectParticlesSuppressed(spellcastersFlaskResult),
-                    "Spellcaster's Flask Workbench result should toggle particles off from the default state");
-
-            var alchemistsFlask = (AlchemistsFlask) ItemRegistry.ALCHEMISTS_FLASK.get();
-            var defaultAlchemistsFlask = new ItemStack(alchemistsFlask);
-            alchemistsFlask.initializeSpellContainer(defaultAlchemistsFlask);
-            var alchemistsFlaskMenu = createSpellCalibrationBenchMenuWithTarget(player, defaultAlchemistsFlask);
-            helper.assertTrue(alchemistsFlaskMenu.getScrollItem(0).isEmpty(),
-                    "Alchemist's Flask preset Extract should not expose a removable scroll");
-        });
-    }
-
-    static void spellCalibrationBenchImbueOnlySupportsExtractableTargets(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_calibration_imbue_test");
-            var autocastAmulet = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
-            var upgradeItem = (SpellSlotUpgradeItem) io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get();
-            var senseEvil = SpellRegistry.SENSE_EVIL.get();
-            var heal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
-
-            var emptyAmulet = new ItemStack(autocastAmulet);
-            autocastAmulet.initializeSpellContainer(emptyAmulet);
-            var emptyAmuletMenu = createSpellCalibrationBenchMenuWithTarget(player, emptyAmulet);
-            emptyAmuletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(createSpellScroll(heal));
-            assertStackHasSpell(helper, emptyAmulet, heal, 1,
-                    "Calibration-imbued Autocast Amulet should contain heal");
-
-            var twoSlotAmulet = autocastAmulet.createSpellSlotUpgradeResult(new ItemStack(autocastAmulet), upgradeItem);
-            twoSlotAmulet = autocastAmulet.createArcaneAnvilImbueResult(twoSlotAmulet, new SpellData(senseEvil, 1));
-            var twoSlotAmuletMenu = createSpellCalibrationBenchMenuWithTarget(player, twoSlotAmulet);
-            twoSlotAmuletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START + 1).set(createSpellScroll(heal));
-            var twoSlotContainer = ISpellContainer.get(twoSlotAmulet);
-            helper.assertTrue(twoSlotContainer != null && twoSlotContainer.getActiveSpellCount() == 2,
-                    "Calibration imbue should add a second Autocast Amulet spell");
-            assertStackHasSpell(helper, twoSlotAmulet, senseEvil, 1,
-                    "Calibration imbue should keep the existing Autocast Amulet spell");
-            assertStackHasSpell(helper, twoSlotAmulet, heal, 1,
-                    "Calibration imbue should add heal to the empty Autocast Amulet slot");
-
-            var removedScroll = twoSlotAmuletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).remove(1);
-            helper.assertTrue(removedScroll.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
-                    "Calibration Bench should return a scroll when removing an Autocast Amulet spell");
-            twoSlotAmuletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).onTake(player, removedScroll);
-            var afterRemovalContainer = ISpellContainer.get(twoSlotAmulet);
-            helper.assertTrue(afterRemovalContainer != null
-                            && afterRemovalContainer.getSpellAtIndex(0) == SpellData.EMPTY
-                            && afterRemovalContainer.getSpellAtIndex(1) != SpellData.EMPTY,
-                    "Calibration Bench should not compact spell slots while removing a scroll");
-            createSpellCalibrationBenchMenuWithTarget(player, twoSlotAmulet);
-            var afterReinsertContainer = ISpellContainer.get(twoSlotAmulet);
-            helper.assertTrue(afterReinsertContainer != null
-                            && afterReinsertContainer.getSpellAtIndex(0) == SpellData.EMPTY
-                            && afterReinsertContainer.getSpellAtIndex(1) != SpellData.EMPTY,
-                    "Calibration Bench should preserve empty spell slots when opening an existing target");
-
-            var manaForceBlade = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
-            var unsupportedMenu = new SpellCalibrationBenchMenu(0, player.getInventory());
-            var manaForceBladeStack = new ItemStack(manaForceBlade);
-            manaForceBlade.initializeSpellContainer(manaForceBladeStack);
-            helper.assertTrue(unsupportedMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(manaForceBladeStack),
-                    "Calibration Bench should accept Can be Imbued targets for unsupported-operation hints");
-
-            var externalSpellContainerStack = new ItemStack(Items.DIAMOND_SWORD);
-            ISpellContainer.set(externalSpellContainerStack, ISpellContainer.create(1, false, false));
-            helper.assertTrue(unsupportedMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(externalSpellContainerStack),
-                    "Calibration Bench should accept items that show Iron's Can be Imbued tooltip");
-            helper.assertFalse(SpellCalibrationImbueHelper.isSupportedTarget(externalSpellContainerStack),
-                    "Generic external ISpellContainer items should remain unsupported by Calibration Bench operations");
-
-            var magicMissileScroll = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
-            helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(manaForceBladeStack, 0, magicMissileScroll),
-                    "Calibration Bench server logic should reject non-extractable Can be Imbued targets");
-            helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(externalSpellContainerStack, 0, magicMissileScroll),
-                    "Calibration Bench server logic should reject generic external ISpellContainer items");
-
-            var illuminateStellarStaff = createInitializedPresetStack(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get());
-            helper.assertFalse(unsupportedMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(illuminateStellarStaff),
-                    "Calibration Bench should reject UniqueItem imbue targets");
-            helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(illuminateStellarStaff, 0, magicMissileScroll),
-                    "Calibration Bench server logic should reject UniqueItem imbue targets");
-            helper.assertFalse(SpellCalibrationImbueHelper.setScrollAt(illuminateStellarStaff, 0, magicMissileScroll.copy()),
-                    "Calibration Bench should not directly set spells on UniqueItem targets");
-
-            var crystalBladedStaff = createInitializedPresetStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
-            helper.assertFalse(unsupportedMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(crystalBladedStaff),
-                    "Calibration Bench should keep Crystal Bladed Staff unsupported");
-            helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(crystalBladedStaff, 0, magicMissileScroll),
-                    "Calibration Bench server logic should not expose Crystal Bladed Staff replacement");
-
-            var mithrilFreecastStaff = createInitializedPresetStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
-            helper.assertFalse(unsupportedMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(mithrilFreecastStaff),
-                    "Calibration Bench should reject Arcane Anvil imbue blocked items");
-            helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(mithrilFreecastStaff, 0, magicMissileScroll),
-                    "Calibration Bench server logic should reject Arcane Anvil imbue blocked items");
-            helper.assertFalse(SpellCalibrationImbueHelper.setScrollAt(mithrilFreecastStaff, 0, magicMissileScroll.copy()),
-                    "Calibration Bench should not directly set spells on Arcane Anvil imbue blocked items");
-
-            var disallowedSpellMenu = createSpellCalibrationBenchMenuWithTarget(player, new ItemStack(autocastAmulet));
-            helper.assertFalse(disallowedSpellMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START)
-                            .mayPlace(magicMissileScroll.copy()),
-                    "Calibration Bench should not accept a spell rejected by the target item");
-
-            var spellAmplifier = new ItemStack(ItemRegistry.IRON_SPELL_AMPLIFIER.get());
-            var spellAmplifierMenu = createSpellCalibrationBenchMenuWithTarget(player, spellAmplifier);
-            spellAmplifierMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(createSpellScroll(heal));
-            assertStackHasSpell(helper, spellAmplifier, heal, 1,
-                    "Calibration Bench should imbue generic extractable Spell Amplifiers");
-            helper.assertTrue(spellAmplifierMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).remove(1)
-                            .is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
-                    "Calibration Bench should extract generic Spell Amplifier spells");
-
-            var circlet = new ItemStack(ItemRegistry.ENCHANTED_CIRCLET.get());
-            var circletMenu = createSpellCalibrationBenchMenuWithTarget(player, circlet);
-            circletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(createSpellScroll(heal));
-            assertStackHasSpell(helper, circlet, heal, 1,
-                    "Calibration Bench should imbue tag-allowed extractable Curios");
-        });
-    }
-
-    static void reflectcastShieldDurabilityRulesMatchGuardTuning(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
-            helper.assertTrue(stack.getMaxDamage() == ReflectcastShield.DURABILITY,
-                    "Reflectcast Shield durability should be " + ReflectcastShield.DURABILITY + " but got " + stack.getMaxDamage());
-            helper.assertTrue(ReflectcastShield.resolveBlockedDurabilityCost(2.9F, true) == 0,
-                    "Reflectcast Shield should keep sub-threshold successful guard durability at zero");
-            helper.assertTrue(ReflectcastShield.resolveBlockedDurabilityCost(3.0F, true) == 1,
-                    "Reflectcast Shield should clamp successful guard durability to one");
-            helper.assertTrue(ReflectcastShield.resolveBlockedDurabilityCost(12.75F, true) == 1,
-                    "Reflectcast Shield should keep high-damage successful guard durability at one");
-            helper.assertTrue(ReflectcastShield.resolveBlockedDurabilityCost(3.0F, false) == 4,
-                    "Reflectcast Shield should keep vanilla shield durability cost when the spell cannot trigger");
-            helper.assertTrue(ReflectcastShield.resolveBlockedDurabilityCost(12.75F, false) == 13,
-                    "Reflectcast Shield should keep vanilla high-damage durability cost when the spell cannot trigger");
-
-            var tag = stack.getOrCreateTag();
-            helper.assertFalse(ReflectcastShield.isDurabilityConsumptionSuppressed(tag, 100L),
-                    "Reflectcast Shield should not suppress durability before a cost is recorded");
-            ReflectcastShield.rememberDurabilityConsumed(stack, 100L);
-            helper.assertTrue(ReflectcastShield.isDurabilityConsumptionSuppressed(tag, 100L),
-                    "Reflectcast Shield should suppress durability on the recorded tick");
-            helper.assertTrue(ReflectcastShield.isDurabilityConsumptionSuppressed(tag, 110L),
-                    "Reflectcast Shield should suppress durability through the ten tick window");
-            helper.assertFalse(ReflectcastShield.isDurabilityConsumptionSuppressed(tag, 111L),
-                    "Reflectcast Shield should allow durability after the ten tick window");
-        });
-    }
-    static void autocastAmuletStartsWithSingleHiddenSpellSlotAndLoadedAllowlist(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
-            var stack = item.getDefaultInstance();
-            var spellContainer = ISpellContainer.get(stack);
-            var apprenticeSpell = SpellRegistry.SENSE_EVIL.get();
-            var ironsHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
-            var necklaceTag = TagKey.create(
-                    Registries.ITEM,
-                    ResourceLocation.fromNamespaceAndPath("curios", io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT)
-            );
-
-            helper.assertTrue(spellContainer != null, "Autocast Amulet default spell container is null");
-            helper.assertTrue(spellContainer != null && spellContainer.getMaxSpellCount() == 1,
-                    "Autocast Amulet default slot count mismatch: " + (spellContainer == null ? -1 : spellContainer.getMaxSpellCount()));
-            helper.assertTrue(spellContainer != null && !spellContainer.isSpellWheel(),
-                    "Autocast Amulet should stay hidden from the spell wheel");
-            helper.assertTrue(stack.is(necklaceTag),
-                    "Autocast Amulet should be tagged as curios:necklace");
-            helper.assertTrue(item.canImbueSpell(apprenticeSpell, 1),
-                    "Autocast Amulet should allow sense_evil by default");
-            helper.assertTrue(item.canImbueSpell(ironsHeal, 1),
-                    "Autocast Amulet should allow Iron's heal by default");
-            helper.assertFalse(item.canImbueSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1),
-                    "Autocast Amulet should reject non-allowlisted spells");
-            helper.assertTrue(AutocastAmuletSpellListManager.getAllowlist().contains(apprenticeSpell.getSpellResource()),
-                    "Autocast Amulet allowlist should contain sense_evil");
-            helper.assertTrue(AutocastAmuletSpellListManager.getAllowlist().contains(ironsHeal.getSpellResource()),
-                    "Autocast Amulet allowlist should contain Iron's heal");
-            helper.assertTrue(AutocastAmuletSpellListManager.getAllowlist().size() == 19,
-                    "Autocast Amulet default allowlist size mismatch: " + AutocastAmuletSpellListManager.getAllowlist().size());
-        });
-    }
-
-    static void manaShieldCharmUsesCharmSlotAndAppearsInCreativeTab(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-            helper.assertTrue(stack.is(CURIOS_CHARM),
-                    "Mana Shield Charm should be tagged for the Curios charm slot");
-            helper.assertTrue(stack.getItem() instanceof ManaShieldCharm,
-                    "Mana Shield Charm should resolve to the dedicated curio item implementation");
-        });
-    }
-
-    static void manaShieldCharmKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> assertExactEnchantmentSurfaces(
-                helper,
-                new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()),
-                registryIdSet(
-                        EnchantmentRegistry.SHELL,
-                        EnchantmentRegistry.SYNCHRONIZATION,
-                        EnchantmentRegistry.NEUTRALIZATION
-                ),
-                "Mana Shield Charm"
-        ));
-    }
-
-    static void manaShieldCharmExclusiveEnchantmentsStayMutuallyExclusive(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var shell = EnchantmentRegistry.SHELL.get();
-            var synchronization = EnchantmentRegistry.SYNCHRONIZATION.get();
-            var neutralization = EnchantmentRegistry.NEUTRALIZATION.get();
-
-            helper.assertFalse(shell.isCompatibleWith(synchronization),
-                    "Shell and Synchronization should stay mutually exclusive");
-            helper.assertFalse(shell.isCompatibleWith(neutralization),
-                    "Shell and Neutralization should stay mutually exclusive");
-            helper.assertFalse(synchronization.isCompatibleWith(neutralization),
-                    "Synchronization and Neutralization should stay mutually exclusive");
-        });
-    }
-
-    static void manaShieldCharmFullyNegatesDamageAndPreservesArmorDurability(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_full_negate_test");
-            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
-            assertManaShieldCharmEquipped(helper, player, "full negate");
-
-            var chestplate = new ItemStack(Items.DIAMOND_CHESTPLATE);
-            player.setItemSlot(EquipmentSlot.CHEST, chestplate);
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Mana Shield Charm full negate test could not resolve player mana data");
-            magicData.setMana(100.0F);
-            player.invulnerableTime = 0;
-            var initialHealth = player.getHealth();
-            var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 2.0F);
-            helper.assertTrue(event.isCanceled(),
-                    "Mana Shield Charm should cancel the fully absorbed LivingAttackEvent");
-            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
-                    "Mana Shield Charm should keep health unchanged after fully negating damage");
-            helper.assertTrue(Math.abs(magicData.getMana() - 50.0F) < 1.0e-4F,
-                    "Mana Shield Charm should spend 50 mana to negate 2 damage but got " + magicData.getMana());
-            helper.assertTrue(chestplate.getDamageValue() == 0,
-                    "Mana Shield Charm should not damage armor durability on a fully negated hit");
-            helper.assertFalse(getManaShieldCharmState(player).cooldownActive,
-                    "Mana Shield Charm should stay active while mana remains after a fully negated hit");
-        });
-    }
-
-    static void manaShieldCharmBurnedOutFullNegateCancelsHitAndStartsCooldown(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_burned_out_full_negate_test");
-            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
-            assertManaShieldCharmEquipped(helper, player, "burned out full negate");
-
-            var chestplate = new ItemStack(Items.DIAMOND_CHESTPLATE);
-            player.setItemSlot(EquipmentSlot.CHEST, chestplate);
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Mana Shield Charm burned-out full negate test could not resolve player mana data");
-            magicData.setMana(25.0F);
-            player.invulnerableTime = 0;
-            var initialHealth = player.getHealth();
-
-            var firstEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
-            helper.assertTrue(firstEvent.isCanceled(),
-                    "Mana Shield Charm should cancel the hit even when the last full negate burns out the shield");
-            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
-                    "Mana Shield Charm should keep health unchanged when the last full negate burns out the shield");
-            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                    "Mana Shield Charm should clamp mana to zero after the last full negate but got " + magicData.getMana());
-            helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
-                    "Mana Shield Charm should enter cooldown immediately after the last full negate burns out the shield");
-            helper.assertTrue(player.invulnerableTime >= 20,
-                    "Mana Shield Charm should still apply vanilla-style invulnerability time when the last full negate burns out the shield");
-            helper.assertTrue(chestplate.getDamageValue() == 0,
-                    "Mana Shield Charm should not damage armor durability when the burned-out hit is still fully negated");
-
-            var secondEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
-            helper.assertTrue(secondEvent.isCanceled(),
-                    "Mana Shield Charm should still cancel repeated contact damage during the burned-out full-negate i-frame");
-            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
-                    "Mana Shield Charm should not leak damage during the burned-out full-negate i-frame");
-            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                    "Mana Shield Charm should not spend additional mana during the burned-out full-negate i-frame but got " + magicData.getMana());
-        });
-    }
-
-    static void manaShieldCharmLowManaBurnedOutFullNegateStillCancelsHit(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_low_mana_burnout_test");
-            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
-            assertManaShieldCharmEquipped(helper, player, "low mana burned out full negate");
-
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Low mana Mana Shield Charm test could not resolve player mana data");
-            magicData.setMana(24.0F);
-            player.invulnerableTime = 0;
-            var initialHealth = player.getHealth();
-
-            var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
-            helper.assertTrue(event.isCanceled(),
-                    "Mana Shield Charm should still cancel a 1 damage hit when only 24 mana remains before cooldown");
-            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
-                    "Low mana Mana Shield Charm burnout should still leave health unchanged");
-            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                    "Low mana Mana Shield Charm burnout should clamp mana to zero but got " + magicData.getMana());
-            helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
-                    "Low mana Mana Shield Charm burnout should enter cooldown immediately");
-            helper.assertTrue(player.invulnerableTime >= 20,
-                    "Low mana Mana Shield Charm burnout should still apply vanilla-style invulnerability time");
-        });
-    }
-
-    static void manaShieldCharmDoesNotRespendManaDuringVanillaStyleIFrame(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_iframe_test");
-            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
-            assertManaShieldCharmEquipped(helper, player, "iframe");
-
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Mana Shield Charm iframe test could not resolve player mana data");
-            magicData.setMana(100.0F);
-
-            var firstEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
-            helper.assertTrue(firstEvent.isCanceled(),
-                    "Mana Shield Charm should cancel the first fully negated hit before starting its i-frame");
-            helper.assertTrue(player.invulnerableTime >= 20,
-                    "Mana Shield Charm should apply vanilla-style invulnerability time after a fully negated hit");
-            helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
-                    "Mana Shield Charm should spend 25 mana on the first fully negated hit but got " + magicData.getMana());
-
-            var secondEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
-            helper.assertTrue(secondEvent.isCanceled(),
-                    "Mana Shield Charm should also cancel repeated contact damage during its vanilla-style i-frame");
-            helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
-                    "Mana Shield Charm should not spend additional mana during its vanilla-style i-frame but got " + magicData.getMana());
-        });
-    }
-
-    static void manaShieldCharmPartialReductionEntersCooldownAndKeepsArmorMitigation(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var armored = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_partial_armor_test");
-            var unarmored = createTrackedEquipmentTestPlayer(helper, new BlockPos(3, 2, 0), "mana_shield_partial_plain_test");
-
-            equipCurio(armored, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
-            equipCurio(unarmored, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
-            assertManaShieldCharmEquipped(helper, armored, "partial armored");
-            assertManaShieldCharmEquipped(helper, unarmored, "partial unarmored");
-            armored.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.DIAMOND_CHESTPLATE));
-
-            var armoredMana = MagicData.getPlayerMagicData(armored);
-            var unarmoredMana = MagicData.getPlayerMagicData(unarmored);
-            helper.assertTrue(armoredMana != null && unarmoredMana != null,
-                    "Mana Shield Charm partial reduction test could not resolve player mana data");
-            armoredMana.setMana(40.0F);
-            unarmoredMana.setMana(40.0F);
-            var armoredEvent = postLivingAttackEventForGameTest(armored, helper.getLevel().damageSources().lava(), 3.0F);
-            var unarmoredEvent = postLivingAttackEventForGameTest(unarmored, helper.getLevel().damageSources().lava(), 3.0F);
-            var expectedRemainingMana = resolveExpectedBarrierManaAfterHitForGameTest(3.0F, 40.0F);
-
-            helper.assertTrue(Math.abs(armoredMana.getMana() - expectedRemainingMana) < 1.0e-4F,
-                    "Mana Shield Charm partial reduction should apply the one-hit low mana rescue consistently for the armored player"
-                            + " expectedMana=" + expectedRemainingMana
-                            + " actualMana=" + armoredMana.getMana());
-            helper.assertTrue(Math.abs(unarmoredMana.getMana() - expectedRemainingMana) < 1.0e-4F,
-                    "Mana Shield Charm partial reduction should apply the one-hit low mana rescue consistently for the unarmored player"
-                            + " expectedMana=" + expectedRemainingMana
-                            + " actualMana=" + unarmoredMana.getMana());
-            helper.assertTrue(armoredEvent.isCanceled(),
-                    "Mana Shield Charm partial reduction should cancel the original armored LivingAttackEvent");
-            helper.assertTrue(unarmoredEvent.isCanceled(),
-                    "Mana Shield Charm partial reduction should cancel the original unarmored LivingAttackEvent");
-            helper.assertTrue(getManaShieldCharmState(armored).cooldownActive == (expectedRemainingMana <= 0.0F),
-                    "Mana Shield Charm armored partial reduction cooldown should match the rescued remaining mana expectation");
-            helper.assertTrue(getManaShieldCharmState(unarmored).cooldownActive == (expectedRemainingMana <= 0.0F),
-                    "Mana Shield Charm unarmored partial reduction cooldown should match the rescued remaining mana expectation");
-        });
-    }
-
-    static void manaShieldCharmCooldownRecoversAtOneHundredMana(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_recovery_threshold_test");
-            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
-            assertManaShieldCharmEquipped(helper, player, "recovery");
-
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Mana Shield Charm cooldown recovery test could not resolve player mana data");
-            var state = getManaShieldCharmState(player);
-            state.reset();
-            state.cooldownActive = true;
-
-            magicData.setMana(99.0F);
-            var blockedEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
-            helper.assertTrue(state.cooldownActive,
-                    "Mana Shield Charm should stay disabled below the 100 mana recovery threshold");
-            helper.assertFalse(blockedEvent.isCanceled(),
-                    "Mana Shield Charm should not cancel the hit while cooldown remains locked below 100 mana");
-            helper.assertTrue(Math.abs(magicData.getMana() - 99.0F) < 1.0e-4F,
-                    "Mana Shield Charm should not spend mana while cooldown remains locked below 100 mana");
-
-            state.cooldownActive = true;
-            magicData.setMana(100.0F);
-            var recoveredEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
-
-            helper.assertFalse(state.cooldownActive,
-                    "Mana Shield Charm should recover immediately once mana reaches 100");
-            helper.assertTrue(recoveredEvent.isCanceled(),
-                    "Mana Shield Charm should cancel the recovered hit once the cooldown is lifted");
-            helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
-                    "Mana Shield Charm should spend 25 mana after recovering at the threshold but got " + magicData.getMana());
-        });
-    }
-
-    static void manaShieldCharmShellUsesArmorOnlyOnNormalDamageAndWearsArmor(GameTestHelper helper) {
-        var armored = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_shell_armored_test");
-        var unarmored = createTrackedEquipmentTestPlayer(helper, new BlockPos(3, 2, 0), "mana_shield_shell_unarmored_test");
-        var bypassArmor = createTrackedEquipmentTestPlayer(helper, new BlockPos(6, 2, 0), "mana_shield_shell_bypass_test");
-
-        var shellCharm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-        shellCharm.enchant(EnchantmentRegistry.SHELL.get(), 1);
-        equipCurio(armored, CuriosSlotConstants.CHARM, shellCharm.copy());
-        equipCurio(unarmored, CuriosSlotConstants.CHARM, shellCharm.copy());
-        equipCurio(bypassArmor, CuriosSlotConstants.CHARM, shellCharm.copy());
-
-        var head = new ItemStack(Items.IRON_HELMET);
-        var chest = new ItemStack(Items.IRON_CHESTPLATE);
-        var legs = new ItemStack(Items.IRON_LEGGINGS);
-        var boots = new ItemStack(Items.IRON_BOOTS);
-        armored.setItemSlot(EquipmentSlot.HEAD, head);
-        armored.setItemSlot(EquipmentSlot.CHEST, chest);
-        armored.setItemSlot(EquipmentSlot.LEGS, legs);
-        armored.setItemSlot(EquipmentSlot.FEET, boots);
-
-        var bypassChest = new ItemStack(Items.IRON_CHESTPLATE);
-        bypassArmor.setItemSlot(EquipmentSlot.CHEST, bypassChest);
-
-        var armoredMana = MagicData.getPlayerMagicData(armored);
-        var unarmoredMana = MagicData.getPlayerMagicData(unarmored);
-        var bypassMana = MagicData.getPlayerMagicData(bypassArmor);
-        helper.assertTrue(armoredMana != null && unarmoredMana != null && bypassMana != null,
-                "Mana Shield Charm Shell test could not resolve player mana data");
-
-        helper.runAtTickTime(1, () -> {
-            armoredMana.setMana(50.0F);
-            unarmoredMana.setMana(50.0F);
-            bypassMana.setMana(50.0F);
-            armored.invulnerableTime = 0;
-            unarmored.invulnerableTime = 0;
-            bypassArmor.invulnerableTime = 0;
-            var armoredInitialHealth = armored.getHealth();
-            var unarmoredInitialHealth = unarmored.getHealth();
-            var bypassInitialHealth = bypassArmor.getHealth();
-            var armoredEvent = postLivingAttackEventForGameTest(armored, helper.getLevel().damageSources().lava(), 3.0F);
-            var unarmoredEvent = postLivingAttackEventForGameTest(unarmored, helper.getLevel().damageSources().lava(), 3.0F);
-            var bypassSource = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(helper.getLevel(), bypassArmor, DamageTypes.UNITE_LUNA);
-            var bypassEvent = postLivingAttackEventForGameTest(bypassArmor, bypassSource, 2.0F);
-            helper.assertTrue(armoredEvent.isCanceled() && unarmoredEvent.isCanceled() && bypassEvent.isCanceled(),
-                    "Mana Shield Charm Shell test should cancel all intercepted LivingAttackEvent instances");
-            helper.assertTrue(armored.getHealth() > unarmored.getHealth(),
-                    "Shell should apply armor reduction before the normal mana shoulder path"
-                            + " armoredHealth=" + armored.getHealth()
-                            + " unarmoredHealth=" + unarmored.getHealth()
-                            + " armoredMana=" + armoredMana.getMana()
-                            + " unarmoredMana=" + unarmoredMana.getMana());
-            helper.assertTrue(armoredMana.getMana() > unarmoredMana.getMana(),
-                    "Shell should reduce barrier mana consumption when armor mitigates the intercepted hit"
-                            + " armoredMana=" + armoredMana.getMana()
-                            + " unarmoredMana=" + unarmoredMana.getMana());
-            helper.assertTrue(Math.abs(unarmoredMana.getMana()) < 1.0e-4F,
-                    "Shell should still burn out the unarmored player at 50 mana");
-            helper.assertTrue(head.getDamageValue() == 1
-                            && chest.getDamageValue() == 1
-                            && legs.getDamageValue() == 1
-                            && boots.getDamageValue() == 1,
-                    "Shell should spend one durability on each equipped armor piece");
-            helper.assertTrue(Math.abs(bypassArmor.getHealth() - bypassInitialHealth) < 1.0e-4F,
-                    "Shell should not leak armor-bypass damage when base shield mana fully negates it");
-            helper.assertTrue(Math.abs(bypassMana.getMana()) < 1.0e-4F,
-                    "Shell should fall back to the normal 25 mana per damage path on armor-bypass hits");
-            helper.assertTrue(bypassChest.getDamageValue() == 0,
-                    "Shell should not damage armor durability on armor-bypass hits");
-            helper.assertTrue(armored.getHealth() < armoredInitialHealth && unarmored.getHealth() < unarmoredInitialHealth,
-                    "Shell normal damage test should leave residual health damage on both players");
-            helper.succeed();
-        });
-    }
-
-    static void manaShieldCharmShellLowManaBurnoutStillUsesArmorPath(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_shell_low_mana_test");
-            var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-            charm.enchant(EnchantmentRegistry.SHELL.get(), 1);
-            equipCurio(player, CuriosSlotConstants.CHARM, charm);
-
-            var chestplate = new ItemStack(Items.IRON_CHESTPLATE);
-            player.setItemSlot(EquipmentSlot.CHEST, chestplate);
-
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Shell low mana test could not resolve player mana data");
-            magicData.setMana(24.0F);
-            player.invulnerableTime = 0;
-            var initialHealth = player.getHealth();
-            var armor = getEquippedAttributeTotal(player, Attributes.ARMOR);
-            var toughness = getEquippedAttributeTotal(player, Attributes.ARMOR_TOUGHNESS);
-            var incomingDamage = findDamageForArmorReducedTarget(armor, toughness, 1.0F);
-            var reducedDamage = CombatRules.getDamageAfterAbsorb(incomingDamage, armor, toughness);
-
-            helper.assertTrue(Math.abs(reducedDamage - 1.0F) < 1.0e-3F,
-                    "Shell low mana test should configure an armor-reduced hit worth exactly one barrier step"
-                            + " reducedDamage=" + reducedDamage
-                            + " incomingDamage=" + incomingDamage);
-
-            var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), incomingDamage);
-            helper.assertTrue(event.isCanceled(),
-                    "Shell should still cancel the hit when only the last armor-reduced barrier step can be rescued");
-            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-3F,
-                    "Shell low mana rescue should still keep health unchanged");
-            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                    "Shell low mana rescue should clamp mana to zero");
-            helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
-                    "Shell low mana rescue should enter cooldown");
-            helper.assertTrue(player.invulnerableTime >= 20,
-                    "Shell low mana rescue should still apply vanilla-style invulnerability time");
-            helper.assertTrue(chestplate.getDamageValue() == 1,
-                    "Shell low mana rescue should preserve armor durability loss on the armor path");
-        });
-    }
-
-    static void manaShieldCharmSynchronizationChargesEnchantReductionBeforeNormalBarrier(GameTestHelper helper) {
-        helper.runAtTickTime(1, () -> {
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_cost_test");
-            var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-            charm.enchant(EnchantmentRegistry.SYNCHRONIZATION.get(), 1);
-            equipCurio(player, CuriosSlotConstants.CHARM, charm);
-
-            for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
-                var armorStack = switch (slot) {
-                    case HEAD -> new ItemStack(Items.IRON_HELMET);
-                    case CHEST -> new ItemStack(Items.IRON_CHESTPLATE);
-                    case LEGS -> new ItemStack(Items.IRON_LEGGINGS);
-                    case FEET -> new ItemStack(Items.IRON_BOOTS);
-                    default -> ItemStack.EMPTY;
-                };
-                armorStack.enchant(Enchantments.ALL_DAMAGE_PROTECTION, 4);
-                player.setItemSlot(slot, armorStack);
-            }
-
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Synchronization cost test could not resolve player mana data");
-            magicData.setMana(120.0F);
-            var availableMana = magicData.getMana();
-            player.invulnerableTime = 0;
-
-            var source = helper.getLevel().damageSources().lava();
-            var protection = EnchantmentHelper.getDamageProtection(player.getArmorSlots(), source);
-            var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(5.0F, protection);
-            var expectedRemainingMana = resolveExpectedSynchronizationManaAfterHitForGameTest(5.0F, availableMana, protection);
-
-            var event = postLivingAttackEventForGameTest(player, source, 5.0F);
-            helper.assertTrue(event.isCanceled(),
-                    "Synchronization should cancel the original LivingAttackEvent when it intercepts the hit");
-            helper.assertTrue(Math.abs(magicData.getMana() - expectedRemainingMana) < 1.0e-4F,
-                    "Synchronization should charge enchant mitigation before the normal barrier stage"
-                            + " protection=" + protection
-                            + " reducedDamage=" + reducedDamage
-                            + " expectedMana=" + expectedRemainingMana
-                            + " actualMana=" + magicData.getMana());
-            helper.assertTrue(getManaShieldCharmState(player).cooldownActive == (expectedRemainingMana <= 0.0F),
-                    "Synchronization cooldown state did not match the remaining mana expectation"
-                            + " expectedRemainingMana=" + expectedRemainingMana
-                            + " cooldown=" + getManaShieldCharmState(player).cooldownActive);
-            helper.succeed();
-        });
-    }
-
-    static void manaShieldCharmSynchronizationBurnoutStopsAfterEnchantReduction(GameTestHelper helper) {
-        helper.runAtTickTime(1, () -> {
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_burnout_test");
-            var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-            charm.enchant(EnchantmentRegistry.SYNCHRONIZATION.get(), 1);
-            equipCurio(player, CuriosSlotConstants.CHARM, charm);
-
-            for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
-                var armorStack = switch (slot) {
-                    case HEAD -> new ItemStack(Items.IRON_HELMET);
-                    case CHEST -> new ItemStack(Items.IRON_CHESTPLATE);
-                    case LEGS -> new ItemStack(Items.IRON_LEGGINGS);
-                    case FEET -> new ItemStack(Items.IRON_BOOTS);
-                    default -> ItemStack.EMPTY;
-                };
-                armorStack.enchant(Enchantments.ALL_DAMAGE_PROTECTION, 4);
-                player.setItemSlot(slot, armorStack);
-            }
-
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Synchronization burnout test could not resolve player mana data");
-            magicData.setMana(20.0F);
-            player.invulnerableTime = 0;
-            var initialHealth = player.getHealth();
-            var expectedArmor = getEquippedAttributeTotal(player, Attributes.ARMOR);
-            var expectedToughness = getEquippedAttributeTotal(player, Attributes.ARMOR_TOUGHNESS);
-            var source = helper.getLevel().damageSources().lava();
-            var protection = EnchantmentHelper.getDamageProtection(player.getArmorSlots(), source);
-
-            var event = postLivingAttackEventForGameTest(player, source, 5.0F);
-            var expectedHealthLoss = CombatRules.getDamageAfterAbsorb(
-                    CombatRules.getDamageAfterMagicAbsorb(5.0F, protection),
-                    expectedArmor,
-                    expectedToughness
-            );
-
-            helper.assertTrue(event.isCanceled(),
-                    "Synchronization burnout test should still cancel the original LivingAttackEvent");
-            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                    "Synchronization burnout should clamp mana to zero");
-            helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
-                    "Synchronization burnout should enter cooldown during the enchant-reduction stage");
-            helper.assertTrue(Math.abs((initialHealth - player.getHealth()) - expectedHealthLoss) < 1.0e-3F,
-                    "Synchronization burnout should stop before the normal barrier stage and leave only enchant-reduced damage"
-                            + " actualLoss=" + (initialHealth - player.getHealth())
-                            + " expectedLoss=" + expectedHealthLoss
-                            + " mana=" + magicData.getMana());
-            helper.succeed();
-        });
-    }
-
-    static void manaShieldCharmSynchronizationLowManaBurnoutStopsAfterEnchantStage(GameTestHelper helper) {
-        helper.runAtTickTime(1, () -> {
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_low_mana_stage_test");
-            var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-            charm.enchant(EnchantmentRegistry.SYNCHRONIZATION.get(), 1);
-            equipCurio(player, CuriosSlotConstants.CHARM, charm);
-
-            equipProtectionIvIronArmor(player);
-
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Synchronization low mana enchant-stage test could not resolve player mana data");
-            player.invulnerableTime = 0;
-            var initialHealth = player.getHealth();
-            var expectedArmor = getEquippedAttributeTotal(player, Attributes.ARMOR);
-            var expectedToughness = getEquippedAttributeTotal(player, Attributes.ARMOR_TOUGHNESS);
-            var source = helper.getLevel().damageSources().lava();
-            var protection = EnchantmentHelper.getDamageProtection(player.getArmorSlots(), source);
-            var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(5.0F, protection);
-            var synchronizationSteps = countWholeDamageStepsForGameTest(5.0F - reducedDamage);
-            helper.assertTrue(synchronizationSteps > 0,
-                    "Synchronization low mana enchant-stage test should require at least one enchant mitigation cost step");
-            magicData.setMana(synchronizationSteps * ApprenticeCodexServerConfig.manaShieldCharmSynchronizationManaPerDamage() - 1.0F);
-
-            var event = postLivingAttackEventForGameTest(player, source, 5.0F);
-            var expectedHealthLoss = CombatRules.getDamageAfterAbsorb(
-                    reducedDamage,
-                    expectedArmor,
-                    expectedToughness
-            );
-
-            helper.assertTrue(event.isCanceled(),
-                    "Synchronization low mana enchant-stage test should still cancel the original LivingAttackEvent");
-            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                    "Synchronization low mana enchant-stage rescue should clamp mana to zero");
-            helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
-                    "Synchronization low mana enchant-stage rescue should enter cooldown");
-            helper.assertTrue(Math.abs((initialHealth - player.getHealth()) - expectedHealthLoss) < 1.0e-3F,
-                    "Synchronization low mana enchant-stage rescue should stop before the normal barrier stage"
-                            + " actualLoss=" + (initialHealth - player.getHealth())
-                            + " expectedLoss=" + expectedHealthLoss
-                            + " reducedDamage=" + reducedDamage
-                            + " mana=" + magicData.getMana());
-            helper.succeed();
-        });
-    }
-
-    static void manaShieldCharmSynchronizationLowManaBurnoutAfterBarrierStage(GameTestHelper helper) {
-        helper.runAtTickTime(1, () -> {
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_low_mana_barrier_test");
-            var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-            charm.enchant(EnchantmentRegistry.SYNCHRONIZATION.get(), 1);
-            equipCurio(player, CuriosSlotConstants.CHARM, charm);
-
-            equipProtectionIvIronArmor(player);
-
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Synchronization low mana barrier-stage test could not resolve player mana data");
-            player.invulnerableTime = 0;
-            var initialHealth = player.getHealth();
-            var source = helper.getLevel().damageSources().lava();
-            var protection = EnchantmentHelper.getDamageProtection(player.getArmorSlots(), source);
-            var incomingDamage = findDamageForMagicReducedTarget(protection, 1.0F);
-            var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(incomingDamage, protection);
-            var synchronizationSteps = countWholeDamageStepsForGameTest(incomingDamage - reducedDamage);
-
-            helper.assertTrue(Math.abs(reducedDamage - 1.0F) < 1.0e-3F,
-                    "Synchronization low mana barrier-stage test should configure exactly one normal barrier step"
-                            + " reducedDamage=" + reducedDamage
-                            + " incomingDamage=" + incomingDamage);
-            helper.assertTrue(synchronizationSteps > 0,
-                    "Synchronization low mana barrier-stage test should still require enchant mitigation cost before the barrier");
-
-            magicData.setMana(synchronizationSteps * ApprenticeCodexServerConfig.manaShieldCharmSynchronizationManaPerDamage()
-                    + ApprenticeCodexServerConfig.manaShieldCharmManaPerDamage() - 1.0F);
-            var event = postLivingAttackEventForGameTest(player, source, incomingDamage);
-
-            helper.assertTrue(event.isCanceled(),
-                    "Synchronization low mana barrier-stage rescue should still cancel the original LivingAttackEvent");
-            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-3F,
-                    "Synchronization low mana barrier-stage rescue should keep health unchanged");
-            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                    "Synchronization low mana barrier-stage rescue should clamp mana to zero");
-            helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
-                    "Synchronization low mana barrier-stage rescue should enter cooldown");
-            helper.assertTrue(player.invulnerableTime >= 20,
-                    "Synchronization low mana barrier-stage rescue should still apply vanilla-style invulnerability time");
-            helper.succeed();
-        });
-    }
-
-    static void manaShieldCharmNeutralizationAbsorbsBypassArmorDamageDuringCooldown(GameTestHelper helper) {
-        helper.runAtTickTime(1, () -> {
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_neutralization_test");
-            var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-            charm.enchant(EnchantmentRegistry.NEUTRALIZATION.get(), 1);
-            equipCurio(player, CuriosSlotConstants.CHARM, charm);
-
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Neutralization test could not resolve player mana data");
-            magicData.setMana(10.0F);
-            var state = getManaShieldCharmState(player);
-            state.reset();
-            state.cooldownActive = true;
-            player.invulnerableTime = 0;
-            var initialHealth = player.getHealth();
-            var source = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(helper.getLevel(), player, DamageTypes.UNITE_LUNA);
-
-            var event = postLivingAttackEventForGameTest(player, source, 2.0F);
-
-            helper.assertTrue(event.isCanceled(),
-                    "Neutralization should cancel armor-bypass damage even while cooldown is active");
-            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
-                    "Neutralization should fully negate armor-bypass damage");
-            helper.assertTrue(Math.abs(magicData.getMana() - 60.0F) < 1.0e-4F,
-                    "Neutralization should recover mana instead of consuming it");
-            helper.assertTrue(state.cooldownActive,
-                    "Neutralization should not clear cooldown until mana reaches the normal recovery threshold");
-            helper.succeed();
-        });
-    }
-
-    static void manaShieldCharmFreeManaCostConfigAbsorbsWithoutDepletionCooldown(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
-                    0.0D,
-                    100,
-                    30.0D,
-                    25.0D,
-                    1,
-                    20
-            )) {
-                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_free_cost_test");
-                equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
-                var magicData = MagicData.getPlayerMagicData(player);
-                helper.assertTrue(magicData != null, "Mana Shield Charm free-cost test could not resolve player mana data");
-                magicData.setMana(0.0F);
-                player.invulnerableTime = 0;
-                var initialHealth = player.getHealth();
-
-                var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 2.0F);
-
-                helper.assertTrue(event.isCanceled(),
-                        "Mana Shield Charm should absorb whole damage steps without mana when manaPerDamage is zero");
-                helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
-                        "Free-cost Mana Shield Charm should keep health unchanged");
-                helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                        "Free-cost Mana Shield Charm should not recover or spend mana");
-                helper.assertFalse(getManaShieldCharmState(player).cooldownActive,
-                        "Free-cost Mana Shield Charm should not enter depletion cooldown without spending mana");
-            }
-        });
-    }
-
-    static void manaShieldCharmZeroRecoveryThresholdDisablesDepletionCooldown(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
-                    25.0D,
-                    0,
-                    30.0D,
-                    25.0D,
-                    1,
-                    20
-            )) {
-                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_no_cooldown_test");
-                equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
-                var magicData = MagicData.getPlayerMagicData(player);
-                helper.assertTrue(magicData != null, "Mana Shield Charm zero-threshold test could not resolve player mana data");
-                var state = getManaShieldCharmState(player);
-                state.reset();
-                state.cooldownActive = true;
-                magicData.setMana(25.0F);
-                player.invulnerableTime = 0;
-
-                var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
-
-                helper.assertTrue(event.isCanceled(),
-                        "Mana Shield Charm should clear existing cooldown and absorb while recovery threshold is zero");
-                helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                        "Mana Shield Charm should still spend mana when only depletion cooldown is disabled");
-                helper.assertFalse(state.cooldownActive,
-                        "Mana Shield Charm should not enter depletion cooldown when recovery threshold is zero");
-            }
-        });
-    }
-
-    static void manaShieldCharmSynchronizationManaCostUsesServerConfig(GameTestHelper helper) {
-        helper.runAtTickTime(1, () -> {
-            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
-                    25.0D,
-                    100,
-                    10.0D,
-                    25.0D,
-                    1,
-                    20
-            )) {
-                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_config_test");
-                var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-                charm.enchant(EnchantmentRegistry.SYNCHRONIZATION.get(), 1);
-                equipCurio(player, CuriosSlotConstants.CHARM, charm);
-                for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
-                    var armorStack = switch (slot) {
-                        case HEAD -> new ItemStack(Items.IRON_HELMET);
-                        case CHEST -> new ItemStack(Items.IRON_CHESTPLATE);
-                        case LEGS -> new ItemStack(Items.IRON_LEGGINGS);
-                        case FEET -> new ItemStack(Items.IRON_BOOTS);
-                        default -> ItemStack.EMPTY;
-                    };
-                    armorStack.enchant(Enchantments.ALL_DAMAGE_PROTECTION, 10);
-                    player.setItemSlot(slot, armorStack);
-                }
-
-                var magicData = MagicData.getPlayerMagicData(player);
-                helper.assertTrue(magicData != null, "Synchronization config test could not resolve player mana data");
-                magicData.setMana(100.0F);
-                var source = helper.getLevel().damageSources().lava();
-                var protection = EnchantmentHelper.getDamageProtection(player.getArmorSlots(), source);
-                var incomingDamage = 1.5F;
-                var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(incomingDamage, protection);
-                helper.assertTrue(reducedDamage < 1.0F,
-                        "Synchronization config test should isolate the enchant-reduction cost before the barrier stage"
-                                + " protection=" + protection
-                                + " reducedDamage=" + reducedDamage);
-                var expectedRemainingMana = resolveExpectedSynchronizationManaAfterHitForGameTest(incomingDamage, 100.0F, protection);
-
-                var event = postLivingAttackEventForGameTest(player, source, incomingDamage);
-
-                helper.assertTrue(event.isCanceled(),
-                        "Synchronization config test should cancel the intercepted hit");
-                helper.assertTrue(Math.abs(magicData.getMana() - expectedRemainingMana) < 1.0e-4F,
-                        "Synchronization should use configured mana cost"
-                                + " expectedMana=" + expectedRemainingMana
-                                + " actualMana=" + magicData.getMana());
-                helper.succeed();
-            }
-        });
-    }
-
-    static void manaShieldCharmNeutralizationZeroRecoveryStillNullifies(GameTestHelper helper) {
-        helper.runAtTickTime(1, () -> {
-            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
-                    25.0D,
-                    100,
-                    30.0D,
-                    0.0D,
-                    1,
-                    20
-            )) {
-                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_neutralization_zero_test");
-                var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-                charm.enchant(EnchantmentRegistry.NEUTRALIZATION.get(), 1);
-                equipCurio(player, CuriosSlotConstants.CHARM, charm);
-                var magicData = MagicData.getPlayerMagicData(player);
-                helper.assertTrue(magicData != null, "Neutralization zero-recovery test could not resolve player mana data");
-                magicData.setMana(10.0F);
-                player.invulnerableTime = 0;
-                var initialHealth = player.getHealth();
-                var source = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(helper.getLevel(), player, DamageTypes.UNITE_LUNA);
-
-                var event = postLivingAttackEventForGameTest(player, source, 2.0F);
-
-                helper.assertTrue(event.isCanceled(),
-                        "Neutralization should still nullify armor-bypass damage when configured recovery is zero");
-                helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
-                        "Neutralization zero-recovery should fully negate armor-bypass damage");
-                helper.assertTrue(Math.abs(magicData.getMana() - 10.0F) < 1.0e-4F,
-                        "Neutralization zero-recovery should leave mana unchanged");
-                helper.succeed();
-            }
-        });
-    }
-
-    static void manaShieldCharmShellArmorDurabilityDamageUsesServerConfig(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
-                    25.0D,
-                    100,
-                    30.0D,
-                    25.0D,
-                    0,
-                    20
-            )) {
-                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_shell_durability_config_test");
-                var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-                charm.enchant(EnchantmentRegistry.SHELL.get(), 1);
-                equipCurio(player, CuriosSlotConstants.CHARM, charm);
-                var chestplate = new ItemStack(Items.IRON_CHESTPLATE);
-                player.setItemSlot(EquipmentSlot.CHEST, chestplate);
-                var magicData = MagicData.getPlayerMagicData(player);
-                helper.assertTrue(magicData != null, "Shell durability config test could not resolve player mana data");
-                magicData.setMana(100.0F);
-                player.invulnerableTime = 0;
-                var armor = getEquippedAttributeTotal(player, Attributes.ARMOR);
-                var toughness = getEquippedAttributeTotal(player, Attributes.ARMOR_TOUGHNESS);
-                var incomingDamage = findDamageForArmorReducedTarget(armor, toughness, 1.0F);
-
-                var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), incomingDamage);
-
-                helper.assertTrue(event.isCanceled(),
-                        "Shell durability config test should still intercept normal damage");
-                helper.assertTrue(chestplate.getDamageValue() == 0,
-                        "Shell should not damage armor when configured durability damage is zero");
-            }
-        });
-    }
-
-    static void manaShieldCharmInvulnerableTimeUsesServerConfig(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
-                    25.0D,
-                    100,
-                    30.0D,
-                    25.0D,
-                    1,
-                    6
-            )) {
-                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_iframe_config_test");
-                equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
-                var magicData = MagicData.getPlayerMagicData(player);
-                helper.assertTrue(magicData != null, "Mana Shield Charm i-frame config test could not resolve player mana data");
-                magicData.setMana(100.0F);
-                player.invulnerableTime = 0;
-
-                var firstEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
-                helper.assertTrue(firstEvent.isCanceled(),
-                        "Mana Shield Charm i-frame config test should cancel the first hit");
-                helper.assertTrue(player.invulnerableTime >= 6,
-                        "Mana Shield Charm should apply configured invulnerable time");
-                helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
-                        "Mana Shield Charm should spend mana on the first configured i-frame hit");
-
-                var secondEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
-                helper.assertTrue(secondEvent.isCanceled(),
-                        "Mana Shield Charm should cancel repeated damage while configured i-frame gate is active");
-                helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
-                        "Mana Shield Charm should not spend mana again inside configured i-frame gate");
-            }
-        });
-    }
-
-    static void autocastAmuletNormalizationDropsBlockedSpellsAndClampsSlots(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
-            var stack = item.getDefaultInstance();
-            var apprenticeSpell = SpellRegistry.SENSE_EVIL.get();
-            var ironsHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
-            var ironsGreaterHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
-            var mutable = ISpellContainer.create(5, false, false).mutableCopy();
-
-            helper.assertTrue(mutable.addSpellAtIndex(apprenticeSpell, 1, 0, false),
-                    "Failed to prepare allowlisted sense_evil for Autocast Amulet normalization test");
-            helper.assertTrue(mutable.addSpellAtIndex(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1, 1, false),
-                    "Failed to prepare blocked magic_missile for Autocast Amulet normalization test");
-            helper.assertTrue(mutable.addSpellAtIndex(ironsHeal, 1, 2, false),
-                    "Failed to prepare allowlisted heal for Autocast Amulet normalization test");
-            helper.assertTrue(mutable.addSpellAtIndex(ironsGreaterHeal, 1, 3, false),
-                    "Failed to prepare allowlisted greater_heal for Autocast Amulet normalization test");
-            ISpellContainer.set(stack, mutable.toImmutable());
-
-            item.normalizeImbuedSpellContainer(stack);
-
-            var normalized = ISpellContainer.get(stack);
-            helper.assertTrue(normalized != null, "Autocast Amulet normalized spell container is null");
-            helper.assertTrue(normalized != null && normalized.getMaxSpellCount() == 3,
-                    "Autocast Amulet normalization should clamp slot count to 3 but got " + (normalized == null ? -1 : normalized.getMaxSpellCount()));
-            helper.assertTrue(normalized != null && normalized.getActiveSpellCount() == 3,
-                    "Autocast Amulet normalization should keep only 3 allowlisted spells but got " + (normalized == null ? -1 : normalized.getActiveSpellCount()));
-            assertSpellData(helper, normalized, 0, apprenticeSpell, 1, false,
-                    "Autocast Amulet normalization should preserve the first allowlisted spell");
-            assertSpellData(helper, normalized, 1, ironsHeal, 1, false,
-                    "Autocast Amulet normalization should compact later allowlisted spells");
-            assertSpellData(helper, normalized, 2, ironsGreaterHeal, 1, false,
-                    "Autocast Amulet normalization should preserve allowlisted order after filtering");
-
-            helper.assertTrue(Math.abs(AutocastAmulet.getManaMultiplier(1) - 1.0D) < 1.0e-9D,
-                    "Autocast Amulet single-spell mana multiplier regression");
-            helper.assertTrue(Math.abs(AutocastAmulet.getManaMultiplier(2) - 1.44D) < 1.0e-9D,
-                    "Autocast Amulet two-spell mana multiplier regression");
-            helper.assertTrue(Math.abs(AutocastAmulet.getManaMultiplier(3) - 1.96D) < 1.0e-9D,
-                    "Autocast Amulet three-spell mana multiplier regression");
-            helper.assertTrue(AutocastAmulet.getScaledManaCost(ironsHeal, 1, 3) == 59,
-                    "Autocast Amulet scaled mana cost should round heal to 59 at 3 active spells");
-        });
-    }
-    static void autocastAmuletSpellSlotUpgradeStopsAtThreeAndKeepsOrder(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
-            var upgradeItem = (SpellSlotUpgradeItem) io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get();
-            var apprenticeSpell = SpellRegistry.SENSE_EVIL.get();
-            var ironsHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
-            var ironsGreaterHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
-            var stack = createAutocastAmuletStack(
-                    helper,
-                    1,
-                    new SpellData(apprenticeSpell, 1)
-            );
-
-            stack = item.createSpellSlotUpgradeResult(stack, upgradeItem);
-            helper.assertFalse(stack.isEmpty(), "Autocast Amulet should accept the first lesser spell slot upgrade");
-            stack = item.createArcaneAnvilImbueResult(stack, new SpellData(ironsHeal, 1));
-            stack = item.createSpellSlotUpgradeResult(stack, upgradeItem);
-            helper.assertFalse(stack.isEmpty(), "Autocast Amulet should accept the second lesser spell slot upgrade");
-            stack = item.createArcaneAnvilImbueResult(stack, new SpellData(ironsGreaterHeal, 1));
-
-            var spellContainer = ISpellContainer.get(stack);
-            helper.assertTrue(spellContainer != null, "Autocast Amulet upgraded spell container is null");
-            helper.assertTrue(spellContainer != null && spellContainer.getMaxSpellCount() == 3,
-                    "Autocast Amulet spell slot upgrade should stop at 3 slots");
-            assertSpellData(helper, spellContainer, 0, apprenticeSpell, 1, false,
-                    "Autocast Amulet slot upgrade should preserve the first spell");
-            assertSpellData(helper, spellContainer, 1, ironsHeal, 1, false,
-                    "Autocast Amulet slot upgrade should preserve the second spell");
-            assertSpellData(helper, spellContainer, 2, ironsGreaterHeal, 1, false,
-                    "Autocast Amulet slot upgrade should append the third spell at the tail");
-            helper.assertTrue(item.createSpellSlotUpgradeResult(stack, upgradeItem).isEmpty(),
-                    "Autocast Amulet should reject a fourth spell slot upgrade");
-        });
-    }
-    static void autocastAmuletWorkbenchExtractionUsesLastSpellAndKeepsSlotCount(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
-            var apprenticeSpell = SpellRegistry.SENSE_EVIL.get();
-            var ironsHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
-            var ironsGreaterHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
-            var stack = createAutocastAmuletStack(
-                    helper,
-                    3,
-                    new SpellData(apprenticeSpell, 1),
-                    new SpellData(ironsHeal, 1),
-                    new SpellData(ironsGreaterHeal, 1)
-            );
-            var spellContainer = ISpellContainer.get(stack);
-
-            helper.assertTrue(spellContainer != null, "Autocast Amulet workbench extraction spell container is null");
-            var extractionIndex = item.getWorkbenchSpellExtractionIndex(stack, spellContainer);
-            helper.assertTrue(extractionIndex == 2,
-                    "Autocast Amulet workbench extraction should target the last filled slot but got " + extractionIndex);
-            helper.assertTrue(item.canRemoveWorkbenchSpell(stack, spellContainer, extractionIndex, spellContainer.getSpellAtIndex(extractionIndex)),
-                    "Autocast Amulet should allow removing its tail spell in Spellcaster Workbench");
-
-            var mutable = spellContainer.mutableCopy();
-            helper.assertTrue(mutable.removeSpellAtIndex(extractionIndex),
-                    "Autocast Amulet tail spell should be removable from the mutable container");
-            ISpellContainer.set(stack, mutable.toImmutable());
-            item.normalizeImbuedSpellContainer(stack);
-
-            var remaining = ISpellContainer.get(stack);
-            helper.assertTrue(remaining != null, "Autocast Amulet remaining spell container is null after extraction");
-            helper.assertTrue(remaining != null && remaining.getMaxSpellCount() == 3,
-                    "Autocast Amulet should preserve max slot count after extraction");
-            helper.assertTrue(remaining != null && remaining.getActiveSpellCount() == 2,
-                    "Autocast Amulet should keep the first two spells after tail extraction");
-            assertSpellData(helper, remaining, 0, apprenticeSpell, 1, false,
-                    "Autocast Amulet should keep the first spell after tail extraction");
-            assertSpellData(helper, remaining, 1, ironsHeal, 1, false,
-                    "Autocast Amulet should keep the second spell after tail extraction");
-            helper.assertTrue(remaining != null && remaining.getSpellAtIndex(2) == SpellData.EMPTY,
-                    "Autocast Amulet should clear only the tail spell slot after extraction");
-        });
-    }
-    static void autocastAmuletAutoCastStartsOnFirstIntervalAfterEquip(GameTestHelper helper) {
-        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "autocast_amulet_first_interval_test");
-
-        helper.runAtTickTime(1, () -> {
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(
-                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "charge")
-            );
-            var stack = createAutocastAmuletStack(
-                    helper,
-                    1,
-                    new SpellData(spell, 1)
-            );
-            var magicData = MagicData.getPlayerMagicData(player);
-            magicData.getSyncedData().learnSpell(spell, false);
-            magicData.setMana(200.0F);
-            equipNecklaceCurio(player, stack);
-
-            runAutocastAmuletServerTick(player, 19);
-            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
-                    "Autocast Amulet should stay idle before the first 20 tick interval");
-            runAutocastAmuletServerTick(player, 20);
-            helper.assertTrue(magicData.isCasting(),
-                    "Autocast Amulet should start casting charge on the first castable interval after equip");
-            helper.assertTrue(spell.getSpellId().equals(magicData.getCastingSpellId()),
-                    "Autocast Amulet should start the imbued charge spell on the first castable interval");
-            helper.assertTrue(magicData.getCastingSpellLevel() == 1,
-                    "Autocast Amulet should cast charge at the imbued spell level");
-            helper.succeed();
-        });
-    }
-    static void autocastAmuletInsufficientManaDelaysRetryAndSkipsErroredSlotOnce(GameTestHelper helper) {
-        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "autocast_amulet_mana_retry_test");
-
-        helper.runAtTickTime(1, () -> {
-            var expensiveSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
-            var fallbackSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(
-                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "charge")
-            );
-            var expensiveCost = AutocastAmulet.getScaledManaCost(expensiveSpell, 1, 2);
-            var fallbackCost = AutocastAmulet.getScaledManaCost(fallbackSpell, 1, 2);
-            helper.assertTrue(expensiveCost > fallbackCost,
-                    "Autocast Amulet mana retry test requires the first spell to cost more mana than the fallback spell");
-
-            var stack = createAutocastAmuletStack(
-                    helper,
-                    2,
-                    new SpellData(expensiveSpell, 1),
-                    new SpellData(fallbackSpell, 1)
-            );
-            equipNecklaceCurio(player, stack);
-            var equippedStack = getEquippedAutocastAmulet(player);
-
-            var magicData = MagicData.getPlayerMagicData(player);
-            player.setHealth(Math.max(1.0F, player.getMaxHealth() - 8.0F));
-            magicData.getSyncedData().learnSpell(expensiveSpell, false);
-            magicData.getSyncedData().learnSpell(fallbackSpell, false);
-            magicData.setMana(fallbackCost);
-
-            runAutocastAmuletServerTick(player, 20);
-            helper.assertFalse(magicData.isCasting(),
-                    "Autocast Amulet should stop immediately when the first spell lacks mana");
-            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(fallbackSpell),
-                    "Autocast Amulet should not cast the fallback spell in the blocked mana sequence");
-            helper.assertTrue(AutocastAmulet.getRetrySequenceTick(equippedStack) == 80L,
-                    "Autocast Amulet mana retry should wait exactly 60 ticks after the failed sequence");
-            helper.assertTrue(AutocastAmulet.getRetrySkipSlot(equippedStack) == 0,
-                    "Autocast Amulet mana retry should skip the errored slot once on the delayed retry");
-
-            runAutocastAmuletServerTick(player, 40);
-            helper.assertFalse(magicData.isCasting(),
-                    "Autocast Amulet should not retry again before the delayed retry sequence");
-            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(fallbackSpell),
-                    "Autocast Amulet should not cast the fallback spell before the delayed retry sequence");
-
-            runAutocastAmuletServerTick(player, 80);
-            helper.assertTrue(magicData.isCasting(),
-                    "Autocast Amulet delayed retry should skip the errored slot and cast the fallback spell");
-            helper.assertTrue(fallbackSpell.getSpellId().equals(magicData.getCastingSpellId()),
-                    "Autocast Amulet delayed retry should cast the next spell after skipping the errored slot");
-            helper.assertTrue(magicData.getCastingSpellLevel() == 1,
-                    "Autocast Amulet delayed retry should cast charge at the imbued spell level");
-            helper.assertTrue(AutocastAmulet.getRetrySequenceTick(equippedStack) < 0L,
-                    "Autocast Amulet should clear the delayed retry state after consuming the one-shot skipped sequence");
-            helper.assertTrue(AutocastAmulet.getRetrySkipSlot(equippedStack) < 0,
-                    "Autocast Amulet should clear the skipped slot marker after the delayed retry sequence");
-            helper.succeed();
-        });
-    }
-    static void autocastAmuletCreativeCastIgnoresManaCost(GameTestHelper helper) {
-        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "autocast_amulet_creative_mana_test");
-
-        helper.runAtTickTime(1, () -> {
-            player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
-            var stack = createAutocastAmuletStack(
-                    helper,
-                    1,
-                    new SpellData(spell, 1)
-            );
-            equipNecklaceCurio(player, stack);
-
-            var magicData = MagicData.getPlayerMagicData(player);
-            magicData.getSyncedData().learnSpell(spell, false);
-            magicData.setMana(0.0F);
-            player.setHealth(Math.max(1.0F, player.getMaxHealth() - 10.0F));
-            var healthBeforeCast = player.getHealth();
-
-            runAutocastAmuletServerTick(player, 20);
-            var cooldownInstance = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
-            var expectedCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
-                    spell,
-                    player,
-                    CastSource.SWORD,
-                    getEquippedAutocastAmulet(player)
-            );
-            helper.assertTrue(player.getHealth() > healthBeforeCast,
-                    "Autocast Amulet creative test should still cast greater_heal with zero mana");
-            helper.assertFalse(magicData.isCasting(),
-                    "Autocast Amulet creative LONG cast should still complete immediately");
-            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                    "Autocast Amulet creative cast should not consume mana but got " + magicData.getMana());
-            helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
-                    "Autocast Amulet creative cast should still add spell cooldown");
-            helper.assertTrue(cooldownInstance != null && cooldownInstance.getSpellCooldown() == expectedCooldown,
-                    "Autocast Amulet creative cast should store the helper cooldown amount but got "
-                            + (cooldownInstance == null ? "null" : cooldownInstance.getSpellCooldown())
-                            + " / expected " + expectedCooldown);
-            helper.succeed();
-        });
-    }
-    static void autocastAmuletCooldownUsesHelperAmountWithoutSwordMultiplier(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "autocast_amulet_cooldown_test");
-            var stack = new ItemStack(ItemRegistry.AUTOCAST_AMULET.get());
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Autocast Amulet cooldown test could not resolve player mana data");
-            magicData.setPlayerCastingItem(stack.copy());
-
-            var expectedCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
-                    spell,
-                    player,
-                    CastSource.SWORD,
-                    stack
-            );
-            var cooldownEvent = new SpellCooldownAddedEvent.Pre(
-                    io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(spell, player, CastSource.SWORD),
-                    spell,
-                    player,
-                    CastSource.SWORD
-            );
-            jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletCastEvent.onSpellCooldownAdded(cooldownEvent);
-            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
-                    "Autocast Amulet cooldown event should use the helper cooldown amount but got "
-                            + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
-
-            var swordCooldownMultiplier = io.redspace.ironsspellbooks.config.ServerConfigs.SWORDS_CD_MULTIPLIER.get().floatValue();
-            if (swordCooldownMultiplier != 1.0F) {
-                helper.assertTrue(
-                        cooldownEvent.getEffectiveCooldown() != io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
-                                spell,
-                                player,
-                                CastSource.SWORD
-                        ),
-                        "Autocast Amulet cooldown event should diverge from Iron's sword multiplier path when the config multiplier is not 1"
-                );
-            }
-        });
-    }
-    static void autocastAmuletLongSpellCompletesImmediately(GameTestHelper helper) {
-        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "autocast_amulet_long_test");
-
-        helper.runAtTickTime(1, () -> {
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
-            var stack = createAutocastAmuletStack(
-                    helper,
-                    1,
-                    new SpellData(spell, 1)
-            );
-            var magicData = MagicData.getPlayerMagicData(player);
-            magicData.getSyncedData().learnSpell(spell, false);
-            magicData.setMana(300.0F);
-            player.setHealth(Math.max(1.0F, player.getMaxHealth() - 10.0F));
-            var healthBeforeCast = player.getHealth();
-
-            helper.assertTrue(invokeAutocastBeginCast(
-                            player,
-                            magicData,
-                            stack,
-                            new SpellData(spell, 1),
-                            1,
-                            "necklace_0",
-                            AutocastAmulet.getScaledManaCost(spell, 1, 1)
-                    ),
-                    "Autocast Amulet should start greater_heal from the auto-cast path");
-            helper.assertTrue(player.getHealth() > healthBeforeCast,
-                    "Autocast Amulet should resolve greater_heal immediately from the auto-cast path");
-            helper.assertFalse(MagicData.getPlayerMagicData(player).isCasting(),
-                    "Autocast Amulet LONG cast should complete immediately instead of leaving the player casting");
-            helper.succeed();
-        });
-    }
-    static void autocastAmuletNotificationControllerSchedulesCastAndThresholds(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var controller = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
-            var spellId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "greater_heal");
-            var icon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/greater_heal.png");
-
-            controller.queueCooldownCast(100L, spellId, icon, 1300);
-
-            var active = controller.getActiveNotification();
-            helper.assertTrue(active != null, "Autocast Amulet notification controller should show the cast notification immediately");
-            if (active != null) {
-                helper.assertTrue(active.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.CAST,
-                        "Autocast Amulet cast notification should use the CAST kind");
-                helper.assertTrue(active.displaySeconds() == 65,
-                        "Autocast Amulet cast notification should display the rounded cooldown seconds");
-                helper.assertTrue("65s".equals(active.displayText()),
-                        "Autocast Amulet cast notification text should include the seconds suffix");
-            }
-
-            var scheduled = controller.getScheduledNotifications();
-            helper.assertTrue(scheduled.size() == 3,
-                    "Autocast Amulet 65 second cooldown should schedule 60/30/10 notifications but got " + scheduled.size());
-            if (scheduled.size() == 3) {
-                helper.assertTrue(scheduled.get(0).triggerTick() == 200L && scheduled.get(0).entry().displaySeconds() == 60,
-                        "Autocast Amulet 60 second notification should trigger when 60 seconds remain");
-                helper.assertTrue(scheduled.get(1).triggerTick() == 800L && scheduled.get(1).entry().displaySeconds() == 30,
-                        "Autocast Amulet 30 second notification should trigger when 30 seconds remain");
-                helper.assertTrue(scheduled.get(2).triggerTick() == 1200L && scheduled.get(2).entry().displaySeconds() == 10,
-                        "Autocast Amulet 10 second notification should trigger when 10 seconds remain");
-            }
-        });
-    }
-    static void autocastAmuletNotificationControllerSkipsUnreachedThresholds(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var controller = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
-            var spellId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "charge");
-            var icon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/charge.png");
-
-            controller.queueCooldownCast(0L, spellId, icon, 500);
-
-            var scheduled = controller.getScheduledNotifications();
-            helper.assertTrue(scheduled.size() == 1,
-                    "Autocast Amulet 25 second cooldown should only schedule the 10 second notification but got " + scheduled.size());
-            if (scheduled.size() == 1) {
-                helper.assertTrue(scheduled.get(0).triggerTick() == 300L,
-                        "Autocast Amulet 25 second cooldown should trigger the 10 second notification after 15 seconds");
-                helper.assertTrue(scheduled.get(0).entry().displaySeconds() == 10,
-                        "Autocast Amulet short cooldown should keep the 10 second label");
-            }
-        });
-    }
-    static void autocastAmuletNotificationControllerQueuesInOrderAndKeepsDelayedLabel(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var controller = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
-            var healId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "greater_heal");
-            var healIcon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/greater_heal.png");
-            var chargeId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "charge");
-            var chargeIcon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/charge.png");
-            var manaLowId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "heal");
-            var manaLowIcon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/heal.png");
-            var delayedId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "fire_breath");
-            var delayedIcon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/fire_breath.png");
-
-            controller.queueCooldownCast(0L, healId, healIcon, 1300);
-            controller.queueCooldownCast(1L, chargeId, chargeIcon, 800);
-            helper.assertTrue(controller.getPendingQueueSize() == 1,
-                    "Autocast Amulet overlapping cast notifications should queue instead of drawing together");
-
-            controller.advance(30L);
-            var secondCast = controller.getActiveNotification();
-            helper.assertTrue(secondCast != null && secondCast.spellId().equals(chargeId),
-                    "Autocast Amulet queued cast notification should appear after the first cast display finishes");
-
-            controller.queueManaLow(30L, manaLowId, manaLowIcon);
-            controller.advance(60L);
-            var manaLow = controller.getActiveNotification();
-            helper.assertTrue(manaLow != null
-                            && manaLow.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.MANA_LOW
-                            && "MP!".equals(manaLow.displayText()),
-                    "Autocast Amulet mana-low notification should use the dedicated minimal overlay text");
-
-            controller.queueCooldownCast(85L, delayedId, delayedIcon, 400);
-            controller.advance(100L);
-            var stillBlockedByQueue = controller.getActiveNotification();
-            helper.assertTrue(stillBlockedByQueue != null
-                            && stillBlockedByQueue.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.CAST
-                            && stillBlockedByQueue.spellId().equals(delayedId),
-                    "Autocast Amulet threshold notification should wait until earlier queued notifications finish");
-
-            controller.advance(130L);
-            var delayedThreshold = controller.getActiveNotification();
-            helper.assertTrue(delayedThreshold != null
-                            && delayedThreshold.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.THRESHOLD
-                            && "60s".equals(delayedThreshold.displayText()),
-                    "Autocast Amulet delayed threshold notification should keep the original 60 second label");
-        });
-    }
-    static void ironSpellcasterGunExtractedSpellStaysClearedAfterSaveLoad(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (AbstractSpellGunItem) ItemRegistry.IRON_SPELLCASTER_GUN.get();
-            var stack = createInitializedPresetStack(item);
-
-            applyPresetSpellExtraction(helper, stack);
-
-            var restored = roundTripItemStack(stack);
-            repairPresetSpellContainerStateIfNeeded(restored);
-            assertClearedSpellContainer(helper, restored, "Iron Spellcaster Gun should stay cleared after save/load");
-        });
-    }
-    static void ironSwingcastStaffExtractedSpellStaysClearedAfterSaveLoad(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (AbstractSwingMagicItem) ItemRegistry.IRON_SWINGCAST_STAFF.get();
-            var stack = createInitializedPresetStack(item);
-
-            applyPresetSpellExtraction(helper, stack);
-
-            var restored = roundTripItemStack(stack);
-            repairPresetSpellContainerStateIfNeeded(restored);
-            assertClearedSpellContainer(helper, restored, "Iron Swingcast Staff should stay cleared after save/load");
-        });
-    }
-    static void goldSpellcasterGunLegacyLockedReplacementIsRecoveredAfterSaveLoad(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (AbstractSpellGunItem) ItemRegistry.GOLD_SPELLCASTER_GUN.get();
-            var stack = createInitializedPresetStack(item);
-            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
-
-            applyLegacyLockedReplacement(helper, stack, replacementSpell, 1);
-
-            var restored = roundTripItemStack(stack);
-            repairPresetSpellContainerStateIfNeeded(restored);
-            var spellContainer = ISpellContainer.get(restored);
-            helper.assertTrue(spellContainer != null, "Gold Spellcaster Gun recovered spell container is null");
-            assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
-                    "Gold Spellcaster Gun legacy locked replacement should be recovered after save/load");
-        });
-    }
-    static void ironSwingcastStaffLegacyLockedReplacementIsRecoveredAfterSaveLoad(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (AbstractSwingMagicItem) ItemRegistry.IRON_SWINGCAST_STAFF.get();
-            var stack = createInitializedPresetStack(item);
-            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
-
-            applyLegacyLockedReplacement(helper, stack, replacementSpell, 1);
-
-            var restored = roundTripItemStack(stack);
-            repairPresetSpellContainerStateIfNeeded(restored);
-            var spellContainer = ISpellContainer.get(restored);
-            helper.assertTrue(spellContainer != null, "Iron Swingcast Staff recovered spell container is null");
-            assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
-                    "Iron Swingcast Staff legacy locked replacement should be recovered after save/load");
-        });
-    }
-    static void diamondAndNetheriteSpellAmplifierExposeNewAttributeBonuses(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var diamondItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.DIAMOND_SPELL_AMPLIFIER.get();
-            var diamondStack = new ItemStack(diamondItem);
-            assertModifierAmount(
-                    helper,
-                    diamondItem,
-                    diamondStack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CASTING_MOVESPEED.get(),
-                    0.25D,
-                    AttributeModifier.Operation.ADDITION,
-                    "Diamond Spell Amplifier casting move speed bonus regression"
-            );
-
-            var netheriteItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get();
-            var netheriteStack = new ItemStack(netheriteItem);
-            assertModifierAmount(
-                    helper,
-                    netheriteItem,
-                    netheriteStack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CASTING_MOVESPEED.get(),
-                    0.50D,
-                    AttributeModifier.Operation.ADDITION,
-                    "Netherite Spell Amplifier casting move speed bonus regression"
-            );
-        });
-    }
-    static void upgradeWhitelistCoversTargetAbstractItems(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            assertUpgradeable(helper, new ItemStack(ItemRegistry.ENDER_GRIMOIRE.get()),
-                    "Ender Grimoire should remain upgradeable via explicit whitelist entry");
-            assertUpgradeable(helper, new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get()),
-                    "Archivist's Grimoire should remain upgradeable via explicit whitelist entry");
-            assertUpgradeable(helper, new ItemStack(ItemRegistry.ELEMENTAL_BOW.get()),
-                    "Elemental Bow should remain upgradeable via explicit whitelist entry");
-            assertUpgradeable(helper, new ItemStack(ItemRegistry.COPPER_SPELL_AMPLIFIER.get()),
-                    "AbstractOffhandMagicItem descendants should be upgradeable");
-            assertUpgradeable(helper, new ItemStack(ItemRegistry.PHOTON_SIPHON.get()),
-                    "Direct AbstractOffhandMagicItem descendants should be upgradeable");
-            assertUpgradeable(helper, new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
-                    "AbstractSpellGunItem descendants should be upgradeable");
-            assertUpgradeable(helper, new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get()),
-                    "AbstractRightClickMagicWeaponItem descendants should be upgradeable");
-            assertUpgradeable(helper, new ItemStack(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get()),
-                    "Indirect AbstractRightClickMagicWeaponItem descendants should be upgradeable");
-            assertUpgradeable(helper, new ItemStack(ItemRegistry.UNITE_LUNA_STAFF.get()),
-                    "New swing magic weapon descendants should be upgradeable");
-            assertUpgradeable(helper, new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
-                    "Charged Twin Blade Staff should be upgradeable via explicit whitelist entry");
-            assertUpgradeable(helper, new ItemStack(ItemRegistry.MANA_FORCE_BLADE.get()),
-                    "Mana Force Blade should be upgradeable via explicit whitelist entry");
-
-            var shieldStack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
-            helper.assertFalse(shieldStack.is(io.redspace.ironsspellbooks.util.ModTags.CAN_BE_UPGRADED),
-                    "Reflectcast Shield should not be in the upgrade whitelist");
-            helper.assertFalse(Utils.canBeUpgraded(shieldStack),
-                    "Reflectcast Shield should remain excluded from the upgrade system");
-        });
-    }
-    static void uniteLunaStaffStartsWithUniteLunaAndExpectedMainhandBonuses(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (jp.aquafactory.apprenticecodex.item.UniteLunaStaff) ItemRegistry.UNITE_LUNA_STAFF.get();
-            var stack = new ItemStack(item);
-            item.initializeSpellContainer(stack);
-
-            helper.assertTrue(ISpellContainer.isSpellContainer(stack), "Unite Luna Staff did not initialize a spell container");
-            var spellContainer = ISpellContainer.get(stack);
-            helper.assertTrue(spellContainer != null, "Unite Luna Staff spell container is null");
-
-            var spellData = spellContainer.getSpellAtIndex(0);
-            helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
-                    "Unite Luna Staff has no preset spell");
-            helper.assertTrue(spellData.getSpell() == jp.aquafactory.apprenticecodex.registry.SpellRegistry.UNITE_LUNA.get(),
-                    "Unite Luna Staff preset spell mismatch: " + spellData.getSpell().getSpellResource());
-            helper.assertTrue(spellData.getLevel() == 1,
-                    "Unite Luna Staff preset spell level mismatch: " + spellData.getLevel());
-
-            var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
-            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE), AttributeModifier.Operation.ADDITION) - 12.0D) < 1.0e-9D,
-                    "Unite Luna Staff attack damage regression: " + describeModifiers(modifiers));
-            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED), AttributeModifier.Operation.ADDITION) - (-3.2D)) < 1.0e-9D,
-                    "Unite Luna Staff attack speed regression: " + describeModifiers(modifiers));
-            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(net.minecraftforge.common.ForgeMod.ENTITY_REACH.get()), AttributeModifier.Operation.ADDITION) - 0.5D) < 1.0e-9D,
-                    "Unite Luna Staff entity reach regression: " + describeModifiers(modifiers));
-            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()), AttributeModifier.Operation.MULTIPLY_BASE) - 0.05D) < 1.0e-9D,
-                    "Unite Luna Staff spell power regression: " + describeModifiers(modifiers));
-            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.HOLY_SPELL_POWER.get()), AttributeModifier.Operation.MULTIPLY_BASE) - 0.10D) < 1.0e-9D,
-                    "Unite Luna Staff holy spell power regression: " + describeModifiers(modifiers));
-        });
-    }
-    static void offhandUpgradeBridgeAppliesMainhandStoredUpgradeData(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.COPPER_SPELL_AMPLIFIER.get());
-            var upgradeData = createUpgradeData(
-                    helper.getLevel().registryAccess(),
-                    stack,
-                    io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.MANA,
-                    EquipmentSlot.MAINHAND.getName()
-            );
-
-            var event = new ItemAttributeModifierEvent(
-                    stack,
-                    EquipmentSlot.OFFHAND,
-                    ItemRegistry.COPPER_SPELL_AMPLIFIER.get().getAttributeModifiers(EquipmentSlot.OFFHAND, stack)
-            );
-            MinecraftForge.EVENT_BUS.post(event);
-
-            var maxManaAmount = sumModifierAmount(
-                    event.getModifiers().get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get()),
-                    AttributeModifier.Operation.ADDITION
-            );
-            helper.assertTrue(Math.abs(maxManaAmount - 50.0D) < 1.0e-9D,
-                    "Offhand upgrade bridge regression: expected +50 max mana from mainhand-stored upgrade but got "
-                            + maxManaAmount + " upgradeData=" + upgradeData
-                            + " modifiers=" + describeModifiers(event.getModifiers()));
-        });
-    }
-    static void betterCombatSpellbreakerIsTwoHandedAndAmplifierHasOffhandSpellPower(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            if (!ModList.get().isLoaded("bettercombat")) {
-                return;
-            }
-
-            var spellbreaker = ForgeRegistries.ITEMS.getValue(
-                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "spellbreaker")
-            );
-            helper.assertTrue(spellbreaker != null, "Missing irons_spellbooks:spellbreaker for Better Combat regression test");
-            var spellbreakerAttributes = net.bettercombat.logic.WeaponRegistry.getAttributes(new ItemStack(spellbreaker));
-            helper.assertTrue(spellbreakerAttributes != null && spellbreakerAttributes.isTwoHanded(),
-                    "Better Combat spellbreaker should resolve as a two-handed weapon but got " + spellbreakerAttributes);
-
-            var amplifierStack = new ItemStack(ItemRegistry.IRON_SPELL_AMPLIFIER.get());
-            var amplifierEvent = new ItemAttributeModifierEvent(
-                    amplifierStack,
-                    EquipmentSlot.OFFHAND,
-                    ItemRegistry.IRON_SPELL_AMPLIFIER.get().getAttributeModifiers(EquipmentSlot.OFFHAND, amplifierStack)
-            );
-            MinecraftForge.EVENT_BUS.post(amplifierEvent);
-
-            var spellPowerBonus = sumModifierAmount(
-                    amplifierEvent.getModifiers().get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            );
-            helper.assertTrue(Math.abs(spellPowerBonus - 0.05D) < 1.0e-9D,
-                    "Iron Spell Amplifier should expose +0.05 spell power in offhand modifiers but got "
-                            + spellPowerBonus + " modifiers=" + describeModifiers(amplifierEvent.getModifiers()));
-        });
-    }
-
-    static void betterCombatOffhandOnlyGauntletDoesNotForceDualWielding(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            if (!ModList.get().isLoaded("bettercombat")) {
-                return;
-            }
-
-            var swordStack = new ItemStack(Items.DIAMOND_SWORD);
-            var gauntletStack = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-            helper.assertTrue(net.bettercombat.logic.WeaponRegistry.getAttributes(swordStack) != null,
-                    "Better Combat diamond sword attributes should be present for offhand Gauntlet test");
-            helper.assertTrue(net.bettercombat.logic.WeaponRegistry.getAttributes(gauntletStack) != null,
-                    "Better Combat Scrollcaster Gauntlet attributes should be present for offhand Gauntlet test");
-
-            var swordMainPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
-                    "better_combat_offhand_gauntlet_no_dual_test");
-            swordMainPlayer.setItemInHand(InteractionHand.MAIN_HAND, swordStack);
-            swordMainPlayer.setItemInHand(InteractionHand.OFF_HAND, gauntletStack.copy());
-
-            helper.assertFalse(net.bettercombat.logic.PlayerAttackHelper.isDualWielding(swordMainPlayer),
-                    "Offhand-only Scrollcaster Gauntlet should not make a normal mainhand weapon dual wield");
-            var secondSwordAttack = net.bettercombat.logic.PlayerAttackHelper.getCurrentAttack(swordMainPlayer, 1);
-            helper.assertTrue(secondSwordAttack != null && !secondSwordAttack.isOffHand(),
-                    "Offhand-only Scrollcaster Gauntlet should keep Better Combat attacks on mainhand but got "
-                            + secondSwordAttack);
-
-            var dualGauntletPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
-                    "better_combat_dual_gauntlet_stays_dual_test");
-            dualGauntletPlayer.setItemInHand(InteractionHand.MAIN_HAND, gauntletStack.copy());
-            dualGauntletPlayer.setItemInHand(InteractionHand.OFF_HAND, gauntletStack.copy());
-
-            helper.assertTrue(net.bettercombat.logic.PlayerAttackHelper.isDualWielding(dualGauntletPlayer),
-                    "Two Scrollcaster Gauntlets should keep the previous Better Combat dual wield behavior");
-            var secondGauntletAttack = net.bettercombat.logic.PlayerAttackHelper.getCurrentAttack(dualGauntletPlayer, 1);
-            helper.assertTrue(secondGauntletAttack != null && secondGauntletAttack.isOffHand(),
-                    "Dual Scrollcaster Gauntlets should still select offhand on the second attack but got "
-                            + secondGauntletAttack);
-        });
-    }
-
-    static void chargedTwinBladeStaffUpgradeMergesMainhandMeleeDamage(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (ChargedTwinBladeStaff) ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get();
-            var stack = new ItemStack(item);
-            var upgradeData = createUpgradeData(
-                    helper.getLevel().registryAccess(),
-                    stack,
-                    io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.ATTACK_DAMAGE,
-                    EquipmentSlot.MAINHAND.getName()
-            );
-
-            var event = new ItemAttributeModifierEvent(
-                    stack,
-                    EquipmentSlot.MAINHAND,
-                    item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack)
-            );
-            MinecraftForge.EVENT_BUS.post(event);
-
-            assertSingleModifierAmount(
-                    helper,
-                    event.getModifiers().get(Attributes.ATTACK_DAMAGE),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.05D,
-                    "Charged Twin Blade Staff melee damage upgrade should be a single display modifier"
-                            + " upgradeData=" + upgradeData
-                            + " modifiers=" + describeModifiers(event.getModifiers())
-            );
-        });
-    }
-    static void manaForceBladeAttunementAndUpgradeMergeForTooltip(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
-            var stack = new ItemStack(item);
-            item.initializeSpellContainer(stack);
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get();
-            setSingleUnlockedSpell(helper, stack, spell, 1);
-            stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
-
-            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
-            helper.assertTrue(imbuedSchool != null,
-                    "Mana Force Blade test could not resolve the imbued spell school");
-            var attunementAttribute = jp.aquafactory.apprenticecodex.utility.MagicTools
-                    .resolveSchoolPowerAttribute(imbuedSchool);
-            helper.assertTrue(attunementAttribute != null,
-                    "Mana Force Blade test could not resolve the Attunement spell power attribute: " + imbuedSchool.getId());
-            var upgradeKey = findUpgradeKeyForPowerAttribute(attunementAttribute);
-            helper.assertTrue(upgradeKey != null,
-                    "Mana Force Blade test could not resolve a matching upgrade orb for " + ForgeRegistries.ATTRIBUTES.getKey(attunementAttribute));
-
-            var upgradeData = createUpgradeData(
-                    helper.getLevel().registryAccess(),
-                    stack,
-                    upgradeKey,
-                    EquipmentSlot.MAINHAND.getName()
-            );
-
-            var event = new ItemAttributeModifierEvent(
-                    stack,
-                    EquipmentSlot.MAINHAND,
-                    item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack)
-            );
-            MinecraftForge.EVENT_BUS.post(event);
-
-            assertSingleModifierAmount(
-                    helper,
-                    event.getModifiers().get(attunementAttribute),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.09D,
-                    "Mana Force Blade Attunement and matching upgrade should merge into one display modifier"
-                            + " spell=" + spell.getSpellResource()
-                            + " school=" + imbuedSchool.getId()
-                            + " attribute=" + ForgeRegistries.ATTRIBUTES.getKey(attunementAttribute)
-                            + " upgradeData=" + upgradeData
-                            + " modifiers=" + describeModifiers(event.getModifiers())
-            );
-        });
-    }
-
-    static void manaForceBladeAttackManaCostIsOncePerTick(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
-            var stack = new ItemStack(item);
-            item.initializeSpellContainer(stack);
-            setSingleUnlockedSpell(helper, stack,
-                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get(), 1);
-
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
-                    "mana_force_blade_attack_mana_once_test");
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null,
-                    "Mana Force Blade attack mana test could not resolve player mana data");
-            magicData.setMana(100.0F);
-
-            var firstTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0));
-            var secondTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0));
-            item.hurtEnemy(stack, firstTarget, player);
-            item.hurtEnemy(stack, secondTarget, player);
-
-            var expectedMana = 100.0F
-                    - jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(player, stack);
-            helper.assertTrue(Math.abs(magicData.getMana() - expectedMana) < 1.0e-4F,
-                    "Mana Force Blade should spend attack mana once per tick even when multiple targets are hit"
-                            + " expected=" + expectedMana
-                            + " actual=" + magicData.getMana());
-        });
-    }
-
-    static void manaForceBladeConfigScalesDamageAndManaFormulas(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
-            var stack = new ItemStack(item);
-            item.initializeSpellContainer(stack);
-            setSingleUnlockedSpell(helper, stack,
-                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get(), 1);
-
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
-                    "mana_force_blade_config_formula_test");
-            var spellPower = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get());
-            helper.assertTrue(spellPower != null,
-                    "Mana Force Blade config formula test could not resolve spell power attribute");
-            if (spellPower != null) {
-                spellPower.setBaseValue(1.5D);
-            }
-
-            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
-            helper.assertTrue(imbuedSchool != null,
-                    "Mana Force Blade config formula test could not resolve imbued school");
-            var schoolPowerAttribute = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
-            helper.assertTrue(schoolPowerAttribute != null,
-                    "Mana Force Blade config formula test could not resolve school power attribute");
-            var schoolPower = schoolPowerAttribute == null ? null : player.getAttribute(schoolPowerAttribute);
-            helper.assertTrue(schoolPower != null,
-                    "Mana Force Blade config formula test could not resolve player school power instance");
-            if (schoolPower != null) {
-                schoolPower.setBaseValue(1.2D);
-            }
-
-            var baseDamage = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackDamage(stack);
-            var damageMultiplier = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveDamageMultiplier(player, stack, 1.0F);
-            helper.assertTrue(Math.abs(damageMultiplier - 1.8F) < 1.0e-4F,
-                    "Mana Force Blade should multiply spell power and school power for imbued damage but got "
-                            + damageMultiplier);
-            helper.assertTrue(Math.abs(jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveDamageMultiplier(player, stack, 0.5F) - 0.9F) < 1.0e-4F,
-                    "Mana Force Blade imbue damage scale should directly scale the final school multiplier");
-            helper.assertTrue(Math.abs(jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveDamageMultiplier(player, stack, 0.0F) - 1.0F) < 1.0e-4F,
-                    "Mana Force Blade imbue damage scale 0 should disable imbued damage changes");
-
-            var fullManaCost = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(
-                    player, stack, 3.0F, 1.0F, 1.0F);
-            helper.assertTrue(Math.abs(fullManaCost - baseDamage * 3.0F * 1.8F) < 1.0e-4F,
-                    "Mana Force Blade full school mana scale should follow final imbued damage: " + fullManaCost);
-
-            var halfSchoolManaCost = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(
-                    player, stack, 3.0F, 0.5F, 1.0F);
-            helper.assertTrue(Math.abs(halfSchoolManaCost - baseDamage * 3.0F * 1.4F) < 1.0e-4F,
-                    "Mana Force Blade half school mana scale should only halve the school-derived increase: "
-                            + halfSchoolManaCost);
-
-            var noSchoolManaCost = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(
-                    player, stack, 3.0F, 0.0F, 1.0F);
-            helper.assertTrue(Math.abs(noSchoolManaCost - baseDamage * 3.0F) < 1.0e-4F,
-                    "Mana Force Blade school mana scale 0 should ignore school multiplier for mana cost: "
-                            + noSchoolManaCost);
-
-            var disabledManaCost = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(
-                    player, stack, 3.0F, 1.0F, 0.0F);
-            helper.assertTrue(disabledManaCost == 0.0F,
-                    "Mana Force Blade imbue damage scale 0 should also disable hit mana cost");
-        });
-    }
-
-    static void betterCombatOffhandRescueIncludesEnchantAndImbueDerivedModifiers(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            if (!ModList.get().isLoaded("bettercombat")) {
-                return;
-            }
-
-            var ironAmplifier = new ItemStack(ItemRegistry.IRON_SPELL_AMPLIFIER.get());
-            ironAmplifier.enchant(EnchantmentRegistry.SURGE.get(), 1);
-            var rescuedIronModifiers =
-                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat
-                            .buildRescueModifiers(ironAmplifier);
-
-            var rescuedSpellPowerBonus = sumModifierAmount(
-                    rescuedIronModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            );
-            helper.assertTrue(Math.abs(rescuedSpellPowerBonus - 0.07D) < 1.0e-9D,
-                    "Better Combat rescue should keep Iron Spell Amplifier + Surge at +0.07 spell power but got "
-                            + rescuedSpellPowerBonus + " modifiers=" + describeModifiers(rescuedIronModifiers));
-
-            var copperAmplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-            var copperAmplifier = new ItemStack(copperAmplifierItem);
-            copperAmplifierItem.initializeSpellContainer(copperAmplifier);
-            copperAmplifier.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
-            var rescuedCopperModifiers =
-                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat
-                            .buildRescueModifiers(copperAmplifier);
-
-            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(copperAmplifier);
-            helper.assertTrue(imbuedSchool != null,
-                    "Copper Spell Amplifier rescue test could not resolve imbued school");
-            var imbuedSpellPowerAttribute =
-                    jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
-            helper.assertTrue(imbuedSpellPowerAttribute != null,
-                    "Copper Spell Amplifier rescue test could not resolve school spell power attribute");
-
-            var rescuedAttunementBonus = sumModifierAmount(
-                    rescuedCopperModifiers.get(imbuedSpellPowerAttribute),
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            );
-            helper.assertTrue(Math.abs(rescuedAttunementBonus - 0.14D) < 1.0e-9D,
-                    "Better Combat rescue should keep Copper Spell Amplifier base + Attunement at +0.14 but got "
-                            + rescuedAttunementBonus + " modifiers=" + describeModifiers(rescuedCopperModifiers));
-        });
-    }
-    static void betterCombatRescueUsesPhysicalOffhandInventoryStack(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            if (!ModList.get().isLoaded("bettercombat")) {
-                return;
-            }
-
-            var spellbreaker = ForgeRegistries.ITEMS.getValue(
-                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "spellbreaker")
-            );
-            helper.assertTrue(spellbreaker != null, "Missing irons_spellbooks:spellbreaker for Better Combat rescue test");
-
-            var player = createBetterCombatHiddenOffhandPlayer(
-                    helper,
-                    new ItemStack(spellbreaker),
-                    new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
-                    "better_combat_hidden_offhand_attribute_test"
-            );
-            helper.assertTrue(player.getOffhandItem().isEmpty(),
-                    "Better Combat should hide getOffhandItem() for spellbreaker but returned " + player.getOffhandItem());
-
-            var physicalOffhand =
-                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat
-                            .getPhysicalOffhandStack(player);
-            helper.assertTrue(
-                    physicalOffhand.is(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
-                    "Physical offhand resolver should keep Silver Spell Amplifier but got " + physicalOffhand
-            );
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat
-                            .isRescueActive(player),
-                    "Better Combat rescue should stay active while physical offhand stack exists"
-            );
-
-            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
-            var expectedMaxManaBonus = sumModifierAmount(
-                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat
-                            .buildRescueModifiers(physicalOffhand)
-                            .get(maxManaAttribute),
-                    AttributeModifier.Operation.ADDITION
-            );
-            helper.assertTrue(expectedMaxManaBonus > 0.0D,
-                    "Silver Spell Amplifier Better Combat rescue should provide positive max mana but got "
-                            + expectedMaxManaBonus);
-
-            var baseMaxMana = player.getAttributeValue(maxManaAttribute);
-            jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat.sync(player);
-            var rescuedMaxMana = player.getAttributeValue(maxManaAttribute);
-            helper.assertTrue(Math.abs((rescuedMaxMana - baseMaxMana) - expectedMaxManaBonus) < 1.0e-9D,
-                    "Better Combat rescue should restore Silver Spell Amplifier max mana by "
-                            + expectedMaxManaBonus + " but changed from " + baseMaxMana + " to " + rescuedMaxMana);
-        });
-    }
-    static void betterCombatSpellSelectionRescueUsesPhysicalOffhandInventoryStack(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            if (!ModList.get().isLoaded("bettercombat")) {
-                return;
-            }
-
-            var spellbreaker = ForgeRegistries.ITEMS.getValue(
-                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "spellbreaker")
-            );
-            helper.assertTrue(spellbreaker != null, "Missing irons_spellbooks:spellbreaker for Better Combat spell rescue test");
-
-            var copperAmplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-            var copperAmplifier = new ItemStack(copperAmplifierItem);
-            copperAmplifierItem.initializeSpellContainer(copperAmplifier);
-            var expectedSpell = ISpellContainer.get(copperAmplifier).getSpellAtIndex(0);
-            helper.assertTrue(expectedSpell != SpellData.EMPTY,
-                    "Copper Spell Amplifier should expose a fixed offhand spell for Better Combat spell rescue test");
-
-            var player = createBetterCombatHiddenOffhandPlayer(
-                    helper,
-                    new ItemStack(spellbreaker),
-                    copperAmplifier,
-                    "better_combat_hidden_offhand_spell_test"
-            );
-            helper.assertTrue(player.getOffhandItem().isEmpty(),
-                    "Better Combat should hide getOffhandItem() for spellbreaker spell rescue but returned "
-                            + player.getOffhandItem());
-
-            var selectionManager = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player);
-            var offhandSelections = selectionManager.getSpellsForSlot(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND);
-            helper.assertTrue(offhandSelections.size() == 1,
-                    "Better Combat spell rescue should add exactly one fixed offhand spell but got "
-                            + offhandSelections.size() + " selections=" + offhandSelections);
-
-            var rescuedSpell = selectionManager.getSpellForSlot(
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND,
-                    0
-            );
-            helper.assertTrue(
-                    rescuedSpell != SpellData.EMPTY
-                            && rescuedSpell.getSpell().equals(expectedSpell.getSpell())
-                            && rescuedSpell.getLevel() == expectedSpell.getLevel(),
-                    "Better Combat spell rescue should restore Copper Spell Amplifier fixed spell "
-                            + expectedSpell + " but got " + rescuedSpell
-            );
-        });
-    }
-    static void betterCombatScrollcasterGauntletRescueUsesPhysicalOffhandInventoryStack(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            if (!ModList.get().isLoaded("bettercombat")) {
-                return;
-            }
-
-            var spellbreaker = ForgeRegistries.ITEMS.getValue(
-                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "spellbreaker")
-            );
-            helper.assertTrue(spellbreaker != null, "Missing irons_spellbooks:spellbreaker for Better Combat Scrollcaster test");
-
-            var expectedSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
-            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-            ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(expectedSpell));
-            ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
-
-            var player = createBetterCombatHiddenOffhandPlayer(
-                    helper,
-                    new ItemStack(spellbreaker),
-                    gauntlet,
-                    "better_combat_hidden_scrollcaster_spell_test"
-            );
-            helper.assertTrue(player.getOffhandItem().isEmpty(),
-                    "Better Combat should hide getOffhandItem() for spellbreaker Scrollcaster test but returned "
-                            + player.getOffhandItem());
-            helper.assertFalse(
-                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat
-                            .isRescueActive(player),
-                    "Scrollcaster Gauntlet should not join the Better Combat attribute rescue path"
-            );
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScrollcasterGauntletCompat
-                            .isRescueActive(player),
-                    "Scrollcaster Gauntlet should join only the Better Combat magic-holder rescue path"
-            );
-
-            var resolvedStack =
-                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScrollcasterGauntletCompat
-                            .getResolvedHeldStack(player, InteractionHand.OFF_HAND);
-            helper.assertTrue(resolvedStack.is(ItemRegistry.SCROLLCASTER_GAUNTLET.get()),
-                    "Scrollcaster resolver should return the physical offhand gauntlet but got " + resolvedStack);
-
-            var selectionManager = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player);
-            var offhandSelections = selectionManager.getSpellsForSlot(
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND
-            );
-            helper.assertTrue(offhandSelections.size() == 1,
-                    "Better Combat Scrollcaster rescue should add exactly one selected offhand spell but got "
-                            + offhandSelections.size() + " selections=" + offhandSelections);
-
-            var rescuedSpell = selectionManager.getSpellForSlot(
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND,
-                    0
-            );
-            helper.assertTrue(
-                    rescuedSpell != SpellData.EMPTY
-                            && rescuedSpell.getSpell().equals(expectedSpell)
-                            && rescuedSpell.getLevel() == 1,
-                    "Better Combat Scrollcaster rescue should restore selected spell "
-                            + expectedSpell.getSpellResource() + " but got " + rescuedSpell
-            );
-        });
-    }
-    static void castingMoveSpeedAdjustmentStopsAtNormalSpeedWithoutNegativeCorrections(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            assertCastingMoveSpeedAdjustment(helper, 0.0D, 0.8D, "No external bonus should keep full cancellation");
-            assertCastingMoveSpeedAdjustment(helper, 0.25D, 0.55D, "Diamond-equivalent bonus should reduce shared cancellation");
-            assertCastingMoveSpeedAdjustment(helper, 0.50D, 0.30D, "Netherite-equivalent bonus should reduce shared cancellation");
-            assertCastingMoveSpeedAdjustment(helper, 0.75D, 0.05D, "Small remaining headroom should stay positive");
-            assertCastingMoveSpeedAdjustment(helper, 0.80D, 0.0D, "Exact cap should stop adding more casting move speed");
-            assertCastingMoveSpeedAdjustment(helper, 1.10D, 0.0D, "External overshoot should not become a negative correction");
-        });
-    }
-    static void longStrideMobilityStillAddsBaseMovementSpeedBonus(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var effect = (jp.aquafactory.apprenticecodex.effect.LongStrideMobility) EffectRegistry.LONG_STRIDE_MOBILITY.get();
-            var movementSpeedModifier = effect.getAttributeModifiers().get(net.minecraft.world.entity.ai.attributes.Attributes.MOVEMENT_SPEED);
-            helper.assertTrue(movementSpeedModifier != null, "LongStride is missing the movement speed attribute modifier");
-
-            var actualAmount = effect.getAttributeModifierValue(0, movementSpeedModifier);
-            helper.assertTrue(Math.abs(actualAmount - 0.15D) < 1.0e-9D,
-                    "LongStride movement speed bonus regression: expected 0.15 but got " + actualAmount);
-        });
-    }
-    static void dynamicCastingMobilityEffectRebalancesAgainstExternalCastingMoveSpeed(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "dynamic_casting_movespeed_rebalance_test");
-            var effect = (jp.aquafactory.apprenticecodex.effect.LongStrideMobility) EffectRegistry.LONG_STRIDE_MOBILITY.get();
-            var castingMoveSpeed = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CASTING_MOVESPEED.get());
-            helper.assertTrue(castingMoveSpeed != null,
-                    "Dynamic casting mobility test could not resolve the CASTING_MOVESPEED attribute");
-
-            player.addEffect(new net.minecraft.world.effect.MobEffectInstance(effect, 200, 0));
-            helper.assertTrue(castingMoveSpeed != null, "Dynamic casting mobility test lost CASTING_MOVESPEED after addEffect");
-            assertCastingMoveSpeedModifierAmount(
-                    helper,
-                    castingMoveSpeed,
-                    null,
-                    0.8D,
-                    "Dynamic casting mobility effect should initially fill the full cancellation headroom"
-            );
-
-            castingMoveSpeed.addTransientModifier(new AttributeModifier(
-                    CASTING_MOVESPEED_DYNAMIC_TEST_EXTERNAL_MODIFIER_ID,
-                    "apprenticecodex.casting_movespeed.dynamic_test",
-                    0.5D,
-                    AttributeModifier.Operation.ADDITION
-            ));
-            effect.applyEffectTick(player, 0);
-            assertCastingMoveSpeedModifierAmount(
-                    helper,
-                    castingMoveSpeed,
-                    CASTING_MOVESPEED_DYNAMIC_TEST_EXTERNAL_MODIFIER_ID,
-                    0.3D,
-                    "Dynamic casting mobility effect should shrink after an external casting move speed bonus is added"
-            );
-
-            castingMoveSpeed.removeModifier(CASTING_MOVESPEED_DYNAMIC_TEST_EXTERNAL_MODIFIER_ID);
-            effect.applyEffectTick(player, 0);
-            assertCastingMoveSpeedModifierAmount(
-                    helper,
-                    castingMoveSpeed,
-                    null,
-                    0.8D,
-                    "Dynamic casting mobility effect should recover once the external casting move speed bonus is removed"
-            );
-        });
-    }
-    static void comfortBerriesProvideManaRegenerationAndExpectedFoodValues(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var foodProperties = ItemRegistry.COMFORT_BERRIES.get().getFoodProperties();
-            helper.assertTrue(foodProperties != null, "Comfort Berries should remain edible");
-            helper.assertTrue(foodProperties != null && foodProperties.getNutrition() == 1,
-                    "Comfort Berries nutrition regression: " + (foodProperties == null ? "null" : foodProperties.getNutrition()));
-            helper.assertTrue(foodProperties != null && Math.abs(foodProperties.getSaturationModifier() - 1.2f) < 1.0e-6F,
-                    "Comfort Berries saturation modifier regression: "
-                            + (foodProperties == null ? "null" : foodProperties.getSaturationModifier()));
-            helper.assertTrue(foodProperties != null && foodProperties.canAlwaysEat(),
-                    "Comfort Berries should remain edible even when full");
-
-            var matchingEffects = foodProperties == null ? List.<com.mojang.datafixers.util.Pair<net.minecraft.world.effect.MobEffectInstance, Float>>of()
-                    : foodProperties.getEffects().stream()
-                    .filter(effectPair -> effectPair.getFirst().getEffect() == EffectRegistry.MANA_REGENERATION.get())
-                    .toList();
-            helper.assertTrue(matchingEffects.size() == 1,
-                    "Comfort Berries should grant exactly one mana regeneration effect but got " + matchingEffects.size());
-
-            var effectPair = matchingEffects.isEmpty() ? null : matchingEffects.get(0);
-            helper.assertTrue(effectPair != null && effectPair.getFirst().getDuration() == 20 * 10,
-                    "Comfort Berries mana regeneration duration regression: "
-                            + (effectPair == null ? "missing" : effectPair.getFirst().getDuration()));
-            helper.assertTrue(effectPair != null && effectPair.getFirst().getAmplifier() == 2,
-                    "Comfort Berries mana regeneration level regression: "
-                            + (effectPair == null ? "missing" : effectPair.getFirst().getAmplifier()));
-            helper.assertTrue(effectPair != null && Math.abs(effectPair.getSecond() - 1.0f) < 1.0e-6F,
-                    "Comfort Berries mana regeneration chance regression: "
-                            + (effectPair == null ? "missing" : effectPair.getSecond()));
-        });
-    }
-    static void comfortSandwichProvidesManaRegenerationAndExpectedFoodValues(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var foodProperties = ItemRegistry.COMFORT_SANDWICH.get().getFoodProperties();
-            helper.assertTrue(foodProperties != null, "Comfort Sandwich should be edible");
-            helper.assertTrue(foodProperties != null && foodProperties.getNutrition() == 7,
-                    "Comfort Sandwich nutrition regression: " + (foodProperties == null ? "null" : foodProperties.getNutrition()));
-            helper.assertTrue(foodProperties != null && Math.abs(foodProperties.getSaturationModifier() - 1.6f) < 1.0e-6F,
-                    "Comfort Sandwich saturation modifier regression: "
-                            + (foodProperties == null ? "null" : foodProperties.getSaturationModifier()));
-            helper.assertTrue(foodProperties != null && foodProperties.canAlwaysEat(),
-                    "Comfort Sandwich should remain edible even when full");
-
-            var matchingEffects = foodProperties == null ? List.<com.mojang.datafixers.util.Pair<net.minecraft.world.effect.MobEffectInstance, Float>>of()
-                    : foodProperties.getEffects().stream()
-                    .filter(effectPair -> effectPair.getFirst().getEffect() == EffectRegistry.MANA_REGENERATION.get())
-                    .toList();
-            helper.assertTrue(matchingEffects.size() == 1,
-                    "Comfort Sandwich should grant exactly one mana regeneration effect but got " + matchingEffects.size());
-
-            var effectPair = matchingEffects.isEmpty() ? null : matchingEffects.get(0);
-            helper.assertTrue(effectPair != null && effectPair.getFirst().getDuration() == 20 * 60,
-                    "Comfort Sandwich mana regeneration duration regression: "
-                            + (effectPair == null ? "missing" : effectPair.getFirst().getDuration()));
-            helper.assertTrue(effectPair != null && effectPair.getFirst().getAmplifier() == 0,
-                    "Comfort Sandwich mana regeneration level regression: "
-                            + (effectPair == null ? "missing" : effectPair.getFirst().getAmplifier()));
-            helper.assertTrue(effectPair != null && Math.abs(effectPair.getSecond() - 1.0f) < 1.0e-6F,
-                    "Comfort Sandwich mana regeneration chance regression: "
-                            + (effectPair == null ? "missing" : effectPair.getSecond()));
-        });
-    }
-    static void manaRegenerationEffectAppliesExpectedFinalManaRegenMultiplier(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var effect = (jp.aquafactory.apprenticecodex.effect.ManaRegeneration) EffectRegistry.MANA_REGENERATION.get();
-            var manaRegenModifier = effect.getAttributeModifiers().get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get());
-            helper.assertTrue(manaRegenModifier != null, "Mana Regeneration is missing the mana regen attribute modifier");
-            helper.assertTrue(manaRegenModifier != null
-                            && manaRegenModifier.getOperation() == AttributeModifier.Operation.MULTIPLY_TOTAL,
-                    "Mana Regeneration should use MULTIPLY_TOTAL but got "
-                            + (manaRegenModifier == null ? "missing" : manaRegenModifier.getOperation()));
-
-            var levelOneAmount = manaRegenModifier == null ? Double.NaN : effect.getAttributeModifierValue(0, manaRegenModifier);
-            helper.assertTrue(Math.abs(levelOneAmount - 0.25D) < 1.0e-9D,
-                    "Mana Regeneration Lv1 regression: expected 0.25 but got " + levelOneAmount);
-
-            var levelTwoAmount = manaRegenModifier == null ? Double.NaN : effect.getAttributeModifierValue(1, manaRegenModifier);
-            helper.assertTrue(Math.abs(levelTwoAmount - 0.50D) < 1.0e-9D,
-                    "Mana Regeneration Lv2 regression: expected 0.50 but got " + levelTwoAmount);
-        });
-    }
-    static void meditationPotionsExposeExpectedEffectsAndDurations(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            assertPotionEffect(helper, PotionRegistry.MEDITATION.get(), "apprenticecodex:meditation", 20 * 60 * 3, 0);
-            assertPotionEffect(helper, PotionRegistry.LONG_MEDITATION.get(), "apprenticecodex:long_meditation", 20 * 60 * 8, 0);
-            assertPotionEffect(helper, PotionRegistry.STRONG_MEDITATION.get(), "apprenticecodex:strong_meditation", 20 * 90, 1);
-        });
-    }
-    static void swingcastStaffTiersExposeRequestedImbueRules(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var instantSpell = SpellRegistry.AUTO_MAGNET.get();
-            var longSpell = SpellRegistry.ARCANE_BLAST.get();
-            var continuousSpell = SpellRegistry.BULLET_STREAM.get();
-
-            assertSwingcastStaffTier(
-                    helper,
-                    (AbstractSwingcastStaffItem) ItemRegistry.IRON_SWINGCAST_STAFF.get(),
-                    Set.of(SpellGunCastType.INSTANT),
-                    SwingcastCooldownMode.IMBUED_ONLY,
-                    instantSpell,
-                    longSpell,
-                    continuousSpell,
-                    "Iron Swingcast Staff"
-            );
-            assertSwingcastStaffTier(
-                    helper,
-                    (AbstractSwingcastStaffItem) ItemRegistry.COPPER_SWINGCAST_STAFF.get(),
-                    Set.of(SpellGunCastType.INSTANT),
-                    SwingcastCooldownMode.IMBUED_ONLY,
-                    instantSpell,
-                    longSpell,
-                    continuousSpell,
-                    "Copper Swingcast Staff"
-            );
-            assertSwingcastStaffTier(
-                    helper,
-                    (AbstractSwingcastStaffItem) ItemRegistry.SILVER_SWINGCAST_STAFF.get(),
-                    Set.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
-                    SwingcastCooldownMode.IMBUED_ONLY,
-                    instantSpell,
-                    longSpell,
-                    continuousSpell,
-                    "Silver Swingcast Staff"
-            );
-            assertSwingcastStaffTier(
-                    helper,
-                    (AbstractSwingcastStaffItem) ItemRegistry.GOLD_SWINGCAST_STAFF.get(),
-                    Set.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
-                    SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME,
-                    instantSpell,
-                    longSpell,
-                    continuousSpell,
-                    "Gold Swingcast Staff"
-            );
-            assertSwingcastStaffTier(
-                    helper,
-                    (AbstractSwingcastStaffItem) ItemRegistry.DIAMOND_SWINGCAST_STAFF.get(),
-                    Set.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
-                    SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME,
-                    instantSpell,
-                    longSpell,
-                    continuousSpell,
-                    "Diamond Swingcast Staff"
-            );
-            assertSwingcastStaffTier(
-                    helper,
-                    (AbstractSwingcastStaffItem) ItemRegistry.NETHERITE_SWINGCAST_STAFF.get(),
-                    Set.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
-                    SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME,
-                    instantSpell,
-                    longSpell,
-                    continuousSpell,
-                    "Netherite Swingcast Staff"
-            );
-        });
-    }
-    static void spellGunsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> assertCategoryEnchantments(
-                helper,
-                "Spell Gun",
-                // 1.21.1申し送り事項:
-                // enchantable / book / anvil の面は Item 定義と Forge 側フックの移植差で崩れやすい。
-                // 1.20.1 の通りに見えても、1.21.1 では spell gun 系をそのまま持ち込める前提にしないこと。
-                item -> item instanceof AbstractSpellGunItem,
-                ApprenticeCodexGameTestScenarios::expectedSpellGunEnchantments
-        ));
-    }
-    static void offhandMagicItemsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var expectedBookEnchantments = allRegisteredEnchantmentIds();
-            var stacks = getRegisteredItemStacks(item -> item instanceof AbstractOffhandMagicItem);
-            helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: Offhand Magic Item");
-
-            for (var stack : stacks) {
-                // 1.20.1 の offhand 系は isBookEnchantable を個別制限していないため、
-                // 本判定だけは広く通る。Malum 側は main hand 前提で soul_hunter_weapon を使うため、
-                // 実際に固定したい付与面はエンチャント台と独自金床側の offhand 非対応面。
-                assertExactEnchantmentSurfaces(
-                        helper,
-                        stack,
-                        expectedOffhandEnchantments(stack),
-                        expectedBookEnchantments,
-                        expectedOffhandEnchantments(stack),
-                        "Offhand Magic Item " + ForgeRegistries.ITEMS.getKey(stack.getItem())
-                );
-            }
-        });
-    }
-    static void enchantedCircletKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedEnchantedCircletEnchantments(stack),
-                    allRegisteredEnchantmentIds(),
-                    expectedEnchantedCircletEnchantments(stack),
-                    "Enchanted Circlet"
-            );
-        });
-    }
-    static void enchantedCircletCurioBonusesMirrorOffhandMagicEnchantments(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
-            var item = (top.theillusivec4.curios.api.type.capability.ICurioItem) stack.getItem();
-            var slotContext = new top.theillusivec4.curios.api.SlotContext(
-                    CuriosSlotConstants.HEAD,
-                    helper.spawn(net.minecraft.world.entity.EntityType.PIG, new BlockPos(0, 2, 0)),
-                    0,
-                    false,
-                    true
-            );
-
-            assertCurioModifierAmount(
-                    helper,
-                    item,
-                    slotContext,
-                    stack,
-                    net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
-                    -0.10D,
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    "Enchanted Circlet attack damage penalty regression"
-            );
-
-            ISpellContainer.createImbuedContainer(io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(), 1, stack);
-            stack.enchant(EnchantmentRegistry.ALACRITY.get(), 1);
-            stack.enchant(EnchantmentRegistry.REFLUX.get(), 1);
-            stack.enchant(EnchantmentRegistry.RESERVOIR.get(), 1);
-            stack.enchant(EnchantmentRegistry.SURGE.get(), 1);
-            stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
-            stack.enchant(EnchantmentRegistry.TENSE.get(), 1);
-
-            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
-            helper.assertTrue(imbuedSchool != null, "Enchanted Circlet imbued school could not be resolved");
-
-            var resolvedSpellPower = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
-            helper.assertTrue(resolvedSpellPower != null,
-                    "Enchanted Circlet could not resolve spell power attribute for Attunement: " + imbuedSchool.getId());
-
-            assertCurioModifierAmount(
-                    helper,
-                    item,
-                    slotContext,
-                    stack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get(),
-                    0.02D,
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    "Enchanted Circlet Alacrity regression"
-            );
-            assertCurioModifierAmount(
-                    helper,
-                    item,
-                    slotContext,
-                    stack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get(),
-                    0.05D,
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    "Enchanted Circlet Reflux regression"
-            );
-            assertCurioModifierAmount(
-                    helper,
-                    item,
-                    slotContext,
-                    stack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get(),
-                    20.0D,
-                    AttributeModifier.Operation.ADDITION,
-                    "Enchanted Circlet Reservoir regression"
-            );
-            assertCurioModifierAmount(
-                    helper,
-                    item,
-                    slotContext,
-                    stack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get(),
-                    0.02D,
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    "Enchanted Circlet Surge regression"
-            );
-            assertCurioModifierAmount(
-                    helper,
-                    item,
-                    slotContext,
-                    stack,
-                    resolvedSpellPower,
-                    0.04D,
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    "Enchanted Circlet Attunement regression"
-            );
-            assertCurioModifierAmount(
-                    helper,
-                    item,
-                    slotContext,
-                    stack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get(),
-                    0.05D,
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    "Enchanted Circlet Tense regression"
-            );
-        });
-    }
-    static void enchantedCircletWorkbenchExtractionTagDoesNotAffectAshenCirclet(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            helper.assertTrue(new ItemStack(ItemRegistry.ENCHANTED_CIRCLET.get()).is(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE),
-                    "Enchanted Circlet should be extractable in Spellcaster Workbench");
-            helper.assertFalse(new ItemStack(ItemRegistry.ASHEN_CIRCLET.get()).is(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE),
-                    "Ashen Circlet should remain non-extractable in Spellcaster Workbench");
-        });
-    }
-    static void enchantedCircletWisdomMatchesArmorRate(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "enchanted_circlet_wisdom_test"));
-            var baseExperience = 20;
-
-            var withoutCirclet = new LivingExperienceDropEvent(helper.spawn(EntityType.ZOMBIE, new BlockPos(0, 2, 0)), player, baseExperience);
-            MinecraftForge.EVENT_BUS.post(withoutCirclet);
-            helper.assertTrue(withoutCirclet.getDroppedExperience() == baseExperience,
-                    "Wisdom baseline should stay unchanged without enchanted circlet");
-
-            var circletStack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
-            circletStack.enchant(EnchantmentRegistry.WISDOM.get(), 1);
-
-            var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
-                    .orElseThrow(() -> new IllegalStateException("Missing curios inventory for wisdom test"));
-            curiosInventory.setEquippedCurio(CuriosSlotConstants.HEAD, 0, circletStack);
-
-            var withCirclet = new LivingExperienceDropEvent(helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0)), player, baseExperience);
-            MinecraftForge.EVENT_BUS.post(withCirclet);
-            helper.assertTrue(withCirclet.getDroppedExperience() == 21,
-                    "Enchanted Circlet Wisdom should match armor rate (+5% at level 1) but got " + withCirclet.getDroppedExperience());
-
-            var roundedUp = new LivingExperienceDropEvent(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0)), player, 1);
-            MinecraftForge.EVENT_BUS.post(roundedUp);
-            helper.assertTrue(roundedUp.getDroppedExperience() == 2,
-                    "Wisdom should round enemy experience up from 1 to 2 at +5% but got " + roundedUp.getDroppedExperience());
-        });
-    }
-    static void wisdomAppliesToBlockBreakExperienceAndRoundsUp(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = helper.getLevel();
-            var state = Blocks.DIAMOND_ORE.defaultBlockState();
-
-            var baselinePlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_block_break_baseline_test"));
-            var baselineExperience = new BlockEvent.BreakEvent(level, new BlockPos(0, 2, 0), state, baselinePlayer);
-            baselineExperience.setExpToDrop(3);
-            WisdomExperienceDropEvent.onBlockBreak(baselineExperience);
-            helper.assertTrue(baselineExperience.getExpToDrop() == 3,
-                    "Block experience should stay unchanged without Wisdom but got " + baselineExperience.getExpToDrop());
-
-            var curioPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_block_break_curio_test"));
-            var circletStack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
-            circletStack.enchant(EnchantmentRegistry.WISDOM.get(), 1);
-
-            var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(curioPlayer)
-                    .orElseThrow(() -> new IllegalStateException("Missing curios inventory for block wisdom test"));
-            curiosInventory.setEquippedCurio(CuriosSlotConstants.HEAD, 0, circletStack);
-
-            var roundedCurioExperience = new BlockEvent.BreakEvent(level, new BlockPos(1, 2, 0), state, curioPlayer);
-            roundedCurioExperience.setExpToDrop(1);
-            WisdomExperienceDropEvent.onBlockBreak(roundedCurioExperience);
-            helper.assertTrue(roundedCurioExperience.getExpToDrop() == 2,
-                    "Curio Wisdom should round block experience up from 1 to 2 at +5% but got " + roundedCurioExperience.getExpToDrop());
-
-            var heldPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_block_break_held_test"));
-            var spellGunStack = new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get());
-            spellGunStack.enchant(EnchantmentRegistry.WISDOM.get(), 1);
-            heldPlayer.setItemInHand(InteractionHand.MAIN_HAND, spellGunStack);
-
-            var heldExperience = new BlockEvent.BreakEvent(level, new BlockPos(2, 2, 0), state, heldPlayer);
-            heldExperience.setExpToDrop(3);
-            WisdomExperienceDropEvent.onBlockBreak(heldExperience);
-            helper.assertTrue(heldExperience.getExpToDrop() == 4,
-                    "Held Wisdom should increase block experience from 3 to 4 at +20% but got " + heldExperience.getExpToDrop());
-
-            assertHeldWisdomBlockExperience(helper, level, state, ItemRegistry.PASTEL_STAFF.get(), 3, 4,
-                    "Pastel Staff");
-            assertHeldWisdomBlockExperience(helper, level, state, ItemRegistry.MULTICAST_ECHO_STAFF.get(), 3, 4,
-                    "Multicast Echo Staff");
-        });
-    }
-    private static void assertHeldWisdomBlockExperience(
+    static void assertHeldWisdomBlockExperience(
             GameTestHelper helper,
             ServerLevel level,
             BlockState state,
@@ -6604,78 +3699,9 @@ public final class ApprenticeCodexGameTestScenarios {
                         + " to " + expectedExperience + " but got " + event.getExpToDrop());
     }
 
-    static void craftsmansDelightAppliesToExternalSpellManaAndCooldown(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "craftsmans_external_spell_discount_test");
-            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
-            var touchDigSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.TOUCH_DIG.get();
-            var spectralHammerSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.SPECTRAL_HAMMER_SPELL.get();
 
-            var touchDigManaEvent = new SpellOnCastEvent(
-                    player,
-                    CraftsmansDelightSpellSupport.TOUCH_DIG_SPELL_ID,
-                    1,
-                    15,
-                    touchDigSpell.getSchoolType(),
-                    CastSource.SPELLBOOK
-            );
-            CraftsmansDelightManaCostDiscountEvent.onSpellCast(touchDigManaEvent);
-            helper.assertTrue(touchDigManaEvent.getManaCost() == 8,
-                    "CraftsmansDelight should halve Touch Dig mana to 8 but got " + touchDigManaEvent.getManaCost());
-            var expectedTouchDigBaseCooldown = Math.max(1, touchDigSpell.getSpellCooldown() / 3);
-            helper.assertTrue(CraftsmansDelight.applyCooldownDiscount(touchDigSpell.getSpellCooldown(), player) == expectedTouchDigBaseCooldown,
-                    "CraftsmansDelight should reduce Touch Dig base cooldown to one third before player modifiers");
 
-            var touchDigCooldownEvent = new SpellCooldownAddedEvent.Pre(
-                    10,
-                    touchDigSpell,
-                    player,
-                    CastSource.SPELLBOOK
-            );
-            CraftsmansDelightCooldownReductionEvent.onSpellCooldownAdded(touchDigCooldownEvent);
-            helper.assertTrue(touchDigCooldownEvent.getEffectiveCooldown()
-                            == CraftsmansDelight.getReducedEffectiveCooldown(touchDigSpell, player, CastSource.SPELLBOOK),
-                    "CraftsmansDelight should route Touch Dig cooldown through the reduced cooldown helper");
-
-            var spectralHammerManaEvent = new SpellOnCastEvent(
-                    player,
-                    CraftsmansDelightSpellSupport.SPECTRAL_HAMMER_SPELL_ID,
-                    1,
-                    15,
-                    spectralHammerSpell.getSchoolType(),
-                    CastSource.SPELLBOOK
-            );
-            CraftsmansDelightManaCostDiscountEvent.onSpellCast(spectralHammerManaEvent);
-            helper.assertTrue(spectralHammerManaEvent.getManaCost() == 8,
-                    "CraftsmansDelight should halve Spectral Hammer mana to 8 but got " + spectralHammerManaEvent.getManaCost());
-            var expectedSpectralHammerBaseCooldown = Math.max(1, spectralHammerSpell.getSpellCooldown() / 3);
-            helper.assertTrue(CraftsmansDelight.applyCooldownDiscount(spectralHammerSpell.getSpellCooldown(), player) == expectedSpectralHammerBaseCooldown,
-                    "CraftsmansDelight should reduce Spectral Hammer base cooldown to one third before player modifiers");
-
-            var spectralHammerCooldownEvent = new SpellCooldownAddedEvent.Pre(
-                    40,
-                    spectralHammerSpell,
-                    player,
-                    CastSource.SPELLBOOK
-            );
-            CraftsmansDelightCooldownReductionEvent.onSpellCooldownAdded(spectralHammerCooldownEvent);
-            helper.assertTrue(spectralHammerCooldownEvent.getEffectiveCooldown()
-                            == CraftsmansDelight.getReducedEffectiveCooldown(spectralHammerSpell, player, CastSource.SPELLBOOK),
-                    "CraftsmansDelight should route Spectral Hammer cooldown through the reduced cooldown helper");
-        });
-    }
-
-    static void craftsmansDelightAppliesToHarvestMoonAndEarthForgeManaAndCooldown(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "craftsmans_apprentice_spell_discount_test");
-            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
-
-            assertCraftsmansDelightBasicDiscountOnly(helper, player, SpellRegistry.HARVEST_MOON.get(), 60, "Harvest Moon");
-            assertCraftsmansDelightBasicDiscountOnly(helper, player, SpellRegistry.EARTH_FORGE.get(), 20, "Earth Forge");
-        });
-    }
-
-    private static void assertCraftsmansDelightBasicDiscountOnly(
+    static void assertCraftsmansDelightBasicDiscountOnly(
             GameTestHelper helper,
             FakePlayer player,
             AbstractSpell spell,
@@ -6723,2202 +3749,35 @@ public final class ApprenticeCodexGameTestScenarios {
                 spellName + " cooldown should route through the reduced cooldown helper");
     }
 
-    static void craftsmansDelightExtendsTouchDigRange(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var spell = new TouchDigSpell();
-            var playerPos = new BlockPos(0, 12, 0);
-            prepareMiningSpellIsolationArea(helper, playerPos);
-            var player = createEquipmentTestPlayer(helper, playerPos, "touch_dig_range_test");
-            var magicData = MagicData.getPlayerMagicData(player);
-            var targetPos = helper.absolutePos(new BlockPos(0, 23, 0));
 
-            helper.assertTrue(magicData != null, "Touch Dig range test could not resolve player mana data");
-            player.setYRot(0.0f);
-            player.setXRot(-90.0f);
-            helper.getLevel().setBlock(targetPos, Blocks.STONE.defaultBlockState(), 3);
 
-            helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
-                    "Touch Dig should keep the default 8 block range without CraftsmansDelight");
 
-            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
-            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
-                    "Touch Dig should reach a target 12 blocks away when CraftsmansDelight is equipped");
-            helper.assertTrue(spell.getUniqueInfo(1, player).stream().anyMatch(component -> component.getString().contains("16")),
-                    "Touch Dig unique info should display 16 block range while CraftsmansDelight is equipped");
 
-            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
-            helper.assertTrue(helper.getLevel().getBlockState(targetPos).isAir(),
-                    "Touch Dig should destroy the targeted block inside the extended range");
-        });
-    }
-    static void touchDigMergesRingMiningEnchantments(GameTestHelper helper) {
-        helper.runAtTickTime(1, () -> {
-            var playerPos = new BlockPos(0, 12, 0);
-            prepareMiningSpellIsolationArea(helper, playerPos);
-            var player = createEquipmentTestPlayer(helper, playerPos, "touch_dig_ring_enchant_merge_test");
-            var heldTool = new ItemStack(Items.DIAMOND_PICKAXE);
-            heldTool.enchant(Enchantments.BLOCK_FORTUNE, 1);
-            player.setItemInHand(InteractionHand.MAIN_HAND, heldTool);
 
-            var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
-            ringStack.enchant(Enchantments.BLOCK_FORTUNE, 3);
-            equipRingCurio(player, ringStack);
 
-            var mergedFortuneTool = CraftsmansDelight.createTouchDigTool(player);
-            helper.assertTrue(mergedFortuneTool.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE) == 3,
-                    "Touch Dig should prefer the higher Fortune level from the ring");
 
-            ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
-            ringStack.enchant(Enchantments.SILK_TOUCH, 1);
-            equipRingCurio(player, ringStack);
 
-            var mergedSilkTool = CraftsmansDelight.createTouchDigTool(player);
-            helper.assertTrue(mergedSilkTool.getEnchantmentLevel(Enchantments.SILK_TOUCH) == 1,
-                    "Touch Dig should inherit Silk Touch from the ring");
-            helper.assertTrue(mergedSilkTool.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE) == 0,
-                    "Touch Dig should drop Fortune when Silk Touch is present");
 
-            var blockPos = helper.absolutePos(new BlockPos(0, 12, 1));
-            helper.getLevel().setBlock(blockPos, Blocks.STONE.defaultBlockState(), 3);
-            invokeTouchDigDestroyBlock(new TouchDigSpell(), helper.getLevel(), blockPos, player);
 
-            var drops = getFreshItemDrops(helper.getLevel(), blockPos, 1.5D);
-            helper.assertTrue(drops.stream().anyMatch(itemEntity -> itemEntity.getItem().is(Blocks.STONE.asItem())),
-                    "Touch Dig with ring Silk Touch should drop stone");
-            helper.assertTrue(drops.stream().noneMatch(itemEntity -> itemEntity.getItem().is(Blocks.COBBLESTONE.asItem())),
-                    "Touch Dig with ring Silk Touch should not drop cobblestone");
-            helper.succeed();
-        });
-    }
-    static void touchDigUsesRingMiningEnchantmentsWhenCastBareHanded(GameTestHelper helper) {
-        helper.runAtTickTime(1, () -> {
-            var playerPos = new BlockPos(0, 12, 0);
-            prepareMiningSpellIsolationArea(helper, playerPos);
-            var player = createEquipmentTestPlayer(helper, playerPos, "touch_dig_bare_hand_ring_enchant_test");
-            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
 
-            var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
-            ringStack.enchant(Enchantments.SILK_TOUCH, 1);
-            equipRingCurio(player, ringStack);
 
-            var synthesizedTool = CraftsmansDelight.createTouchDigTool(player);
-            helper.assertFalse(synthesizedTool.isEmpty(),
-                    "Touch Dig should synthesize a mining tool when the caster is bare-handed but the ring has mining enchantments");
-            helper.assertTrue(synthesizedTool.getEnchantmentLevel(Enchantments.SILK_TOUCH) == 1,
-                    "Touch Dig should copy Silk Touch onto the synthesized bare-hand tool");
 
-            var blockPos = helper.absolutePos(new BlockPos(0, 12, 2));
-            helper.getLevel().setBlock(blockPos, Blocks.STONE.defaultBlockState(), 3);
-            invokeTouchDigDestroyBlock(new TouchDigSpell(), helper.getLevel(), blockPos, player);
 
-            var drops = getFreshItemDrops(helper.getLevel(), blockPos, 1.5D);
-            helper.assertTrue(drops.stream().anyMatch(itemEntity -> itemEntity.getItem().is(Blocks.STONE.asItem())),
-                    "Bare-hand Touch Dig with ring Silk Touch should drop stone");
-            helper.assertTrue(drops.stream().noneMatch(itemEntity -> itemEntity.getItem().is(Blocks.COBBLESTONE.asItem())),
-                    "Bare-hand Touch Dig with ring Silk Touch should not drop cobblestone");
-            helper.succeed();
-        });
-    }
-    static void spectralHammerUsesCraftsmansDelightRingMiningEnchantments(GameTestHelper helper) {
-        helper.runAtTickTime(1, () -> {
-            var playerPos = new BlockPos(0, 12, 0);
-            prepareMiningSpellIsolationArea(helper, playerPos);
-            var player = createEquipmentTestPlayer(helper, playerPos, "spectral_hammer_ring_enchant_test");
-            var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
-            ringStack.enchant(Enchantments.SILK_TOUCH, 1);
-            equipRingCurio(player, ringStack);
 
-            var targetPos = helper.absolutePos(new BlockPos(0, 12, 2));
-            helper.getLevel().setBlock(targetPos, Blocks.STONE.defaultBlockState(), 3);
 
-            var hammer = new SpectralHammer(
-                    helper.getLevel(),
-                    player,
-                    new BlockHitResult(Vec3.atCenterOf(targetPos), Direction.NORTH, targetPos, false),
-                    0,
-                    1
-            );
-            var hammerPos = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 12, 1)));
-            hammer.setPos(hammerPos.x, hammerPos.y, hammerPos.z);
-            helper.getLevel().addFreshEntity(hammer);
 
-            for (var tick = 0; tick < 20 && !hammer.isRemoved(); tick++) {
-                hammer.tick();
-            }
 
-            var drops = getFreshItemDrops(helper.getLevel(), targetPos, 2.0D);
-            helper.assertTrue(drops.stream().anyMatch(itemEntity -> itemEntity.getItem().is(Blocks.STONE.asItem())),
-                    "Spectral Hammer with ring Silk Touch should drop stone");
-            helper.assertTrue(drops.stream().noneMatch(itemEntity -> itemEntity.getItem().is(Blocks.COBBLESTONE.asItem())),
-                    "Spectral Hammer with ring Silk Touch should not drop cobblestone");
-            helper.succeed();
-        });
-    }
-    static void tinyLumberjackWithCraftsmansDelightMovesJobDropsToOrigin(GameTestHelper helper) {
-        helper.runAtTickTime(1, () -> {
-            var level = helper.getLevel();
-            var playerPos = new BlockPos(0, 12, 0);
-            prepareMiningSpellIsolationArea(helper, playerPos);
-            var player = createEquipmentTestPlayer(helper, playerPos, "tiny_lumberjack_drop_move_test");
-            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
 
-            var originPos = helper.absolutePos(new BlockPos(1, 12, 1));
-            var logPos = originPos.above();
-            level.setBlock(originPos, Blocks.AIR.defaultBlockState(), 3);
-            level.setBlock(logPos, Blocks.OAK_LOG.defaultBlockState(), 3);
 
-            var existingItemPos = Vec3.atCenterOf(logPos);
-            var existingItem = new ItemEntity(
-                    level,
-                    existingItemPos.x,
-                    existingItemPos.y,
-                    existingItemPos.z,
-                    new ItemStack(Items.COBBLESTONE)
-            );
-            level.addFreshEntity(existingItem);
 
-            var job = new TinyLumberjackJob(originPos, 1, player);
-            job.tick(level);
 
-            helper.assertTrue(hasItemEntityWithin(level, Items.OAK_LOG, Vec3.atCenterOf(originPos), 0.25D),
-                    "Tiny Lumberjack should move new log drops to the initial chopped block while CraftsmansDelight is equipped");
-            helper.assertTrue(!existingItem.isRemoved() && existingItem.position().distanceToSqr(existingItemPos) < 0.01D,
-                    "Tiny Lumberjack drop moving should not move ItemEntities that existed before the block break");
-            helper.succeed();
-        });
-    }
 
-    static void tinyLumberjackDropMoveFollowsCurrentCraftsmansDelightEquipment(GameTestHelper helper) {
-        helper.runAtTickTime(1, () -> {
-            var level = helper.getLevel();
-            var playerPos = new BlockPos(0, 12, 0);
-            prepareMiningSpellIsolationArea(helper, playerPos);
-            var player = createEquipmentTestPlayer(helper, playerPos, "tiny_lumberjack_drop_move_unequip_test");
-            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
 
-            var originPos = helper.absolutePos(new BlockPos(1, 12, 1));
-            var logPos = originPos.above();
-            level.setBlock(originPos, Blocks.AIR.defaultBlockState(), 3);
-            level.setBlock(logPos, Blocks.OAK_LOG.defaultBlockState(), 3);
 
-            var job = new TinyLumberjackJob(originPos, 1, player);
-            equipRingCurio(player, ItemStack.EMPTY);
-            job.tick(level);
 
-            helper.assertFalse(hasItemEntityWithin(level, Items.OAK_LOG, Vec3.atCenterOf(originPos), 0.25D),
-                    "Tiny Lumberjack should stop moving job drops after CraftsmansDelight is unequipped");
-            helper.assertTrue(hasItemEntityWithin(level, Items.OAK_LOG, Vec3.atCenterOf(logPos), 1.25D),
-                    "Tiny Lumberjack should leave log drops near the broken block when CraftsmansDelight is not currently equipped");
-            helper.succeed();
-        });
-    }
 
-    static void worldFlatterPenetratedArmorEffectAndDamageTags(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "world_flatter_penetrated_armor_test");
-            var armor = player.getAttribute(Attributes.ARMOR);
-            var toughness = player.getAttribute(Attributes.ARMOR_TOUGHNESS);
-            helper.assertTrue(armor != null, "Player is missing armor attribute");
-            helper.assertTrue(toughness != null, "Player is missing armor toughness attribute");
 
-            armor.setBaseValue(10.0D);
-            toughness.setBaseValue(8.0D);
-            player.addEffect(new MobEffectInstance(EffectRegistry.PENETRATED_ARMOR.get(), 100, 0));
-            helper.assertTrue(Math.abs(player.getAttributeValue(Attributes.ARMOR) - 8.0D) < 1.0E-6D,
-                    "Penetrated Armor I should reduce armor by 20%");
-            helper.assertTrue(Math.abs(player.getAttributeValue(Attributes.ARMOR_TOUGHNESS)) < 1.0E-6D,
-                    "Penetrated Armor should reduce armor toughness by 100%");
-
-            player.removeEffect(EffectRegistry.PENETRATED_ARMOR.get());
-            player.addEffect(new MobEffectInstance(EffectRegistry.PENETRATED_ARMOR.get(), 100, 3));
-            helper.assertTrue(Math.abs(player.getAttributeValue(Attributes.ARMOR) - 2.0D) < 1.0E-6D,
-                    "Penetrated Armor IV should reduce armor by 80%");
-            helper.assertTrue(Math.abs(player.getAttributeValue(Attributes.ARMOR_TOUGHNESS)) < 1.0E-6D,
-                    "Penetrated Armor toughness reduction should not depend on amplifier");
-
-            var source = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(
-                    helper.getLevel(),
-                    player,
-                    DamageTypes.WORLD_FLATTER
-            );
-            helper.assertTrue(source.is(DamageTypes.WORLD_FLATTER),
-                    "World Flatter damage source should use apprenticecodex:world_flatter");
-            helper.assertTrue(!source.is(DamageTypeTagGenerator.BYPASSES_IFRAME),
-                    "World Flatter should no longer use apprenticecodex:bypasses_iframe");
-            helper.assertTrue(!source.is(DamageTypeTags.BYPASSES_COOLDOWN),
-                    "World Flatter should no longer bypass vanilla cooldown i-frame");
-        });
-    }
-
-    static void worldFlatterBlockTargetFilterMatchesPickaxeOrShovel(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = helper.getLevel();
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "world_flatter_block_filter_test");
-            var pos = helper.absolutePos(new BlockPos(0, 2, 0));
-
-            helper.assertTrue(WorldFlatterDrillEntity.canBreakTarget(
-                            level, player, pos, Blocks.STONE.defaultBlockState(), Blocks.STONE.defaultBlockState()),
-                    "World Flatter should target pickaxe-mineable stone");
-            helper.assertTrue(WorldFlatterDrillEntity.canBreakTarget(
-                            level, player, pos, Blocks.DIRT.defaultBlockState(), Blocks.DIRT.defaultBlockState()),
-                    "World Flatter should target shovel-mineable dirt");
-            helper.assertFalse(WorldFlatterDrillEntity.canBreakTarget(
-                            level, player, pos, Blocks.GLASS.defaultBlockState(), Blocks.GLASS.defaultBlockState()),
-                    "World Flatter should reject glass because it has no specific pickaxe/shovel tool tag");
-            helper.assertFalse(WorldFlatterDrillEntity.canBreakTarget(
-                            level, player, pos, Blocks.OAK_LOG.defaultBlockState(), Blocks.OAK_LOG.defaultBlockState()),
-                    "World Flatter should reject axe-mineable logs");
-            helper.assertFalse(WorldFlatterDrillEntity.canBreakTarget(
-                            level, player, pos, Blocks.BEDROCK.defaultBlockState(), Blocks.BEDROCK.defaultBlockState()),
-                    "World Flatter should reject unbreakable blocks");
-            helper.assertFalse(WorldFlatterDrillEntity.canBreakTarget(
-                            level, player, pos, Blocks.DIAMOND_ORE.defaultBlockState(), Blocks.STONE.defaultBlockState()),
-                    "World Flatter should not splash unrelated ore blocks from a non-ore center");
-        });
-    }
-
-    static void worldFlatterEntityAttackRequiresArrivalAndHitsSingleTarget(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = helper.getLevel();
-            var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "world_flatter_single_target_owner");
-            owner.setYRot(0.0F);
-            owner.setXRot(0.0F);
-
-            var target = helper.spawn(EntityType.SHEEP, new BlockPos(0, 2, 4));
-            var bystander = helper.spawn(EntityType.SHEEP, new BlockPos(1, 2, 4));
-            target.setNoAi(true);
-            bystander.setNoAi(true);
-            var targetHealth = target.getHealth();
-            var bystanderHealth = bystander.getHealth();
-
-            var weapon = new WorldFlatterDrillEntity(EntityRegistry.WORLD_FLATTER_DRILL.get(), level, owner);
-            weapon.setDamage(4.0F);
-            weapon.setPenetratedArmorAmplifier(1);
-            weapon.setToolSpeed(4.0F);
-            weapon.updateOwnerTarget(level, new RaycastTools.TargetResult(
-                    RaycastTools.TargetType.LIVING_ENTITY,
-                    target.getBoundingBox().getCenter(),
-                    target,
-                    null
-            ));
-
-            for (var i = 0; i < 14; ++i) {
-                target.setPos(target.getX() + 0.08D, target.getY(), target.getZ());
-                weapon.tickOnServer(level);
-            }
-            helper.assertTrue(Math.abs(target.getHealth() - targetHealth) < 1.0E-6F,
-                    "World Flatter should not damage an entity before the 15 tick attach completes");
-
-            target.setPos(target.getX() + 0.08D, target.getY(), target.getZ());
-            weapon.tickOnServer(level);
-            helper.assertTrue(target.getHealth() < targetHealth,
-                    "World Flatter should damage the attached moving target after 15 ticks");
-            helper.assertTrue(target.hasEffect(EffectRegistry.PENETRATED_ARMOR.get()),
-                    "World Flatter should apply Penetrated Armor after successful damage");
-            helper.assertTrue(Math.abs(bystander.getHealth() - bystanderHealth) < 1.0E-6F,
-                    "World Flatter should not damage nearby non-target entities");
-        });
-    }
-
-    static void rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> assertCategoryEnchantments(
-                helper,
-                "Right Click Magic Weapon",
-                // 1.21.1申し送り事項:
-                // 1.20.1 では StaffItem にしていない武器でも、1.21.1 側では StaffItem 化する場合がある。
-                // ここは 1.20.1 の AbstractRightClickMagicWeaponItem 系の付与面を固定し、
-                // port 時に StaffItem へ寄せた結果の差分を意図的に見えるようにしておく。
-                item -> item instanceof AbstractRightClickMagicWeaponItem && !(item instanceof SmashcastScepter),
-                ApprenticeCodexGameTestScenarios::expectedRightClickMagicWeaponEnchantments
-        ));
-    }
-
-    static void smashcastScepterKeepsExpectedStatsImbueAndEnchantingRules(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get());
-            var item = (SmashcastScepter) stack.getItem();
-            var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
-
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(Attributes.ATTACK_DAMAGE),
-                    AttributeModifier.Operation.ADDITION,
-                    SmashcastScepter.ATTACK_DAMAGE_MODIFIER,
-                    "Smashcast Scepter attack damage modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(Attributes.ATTACK_SPEED),
-                    AttributeModifier.Operation.ADDITION,
-                    SmashcastScepter.ATTACK_SPEED_MODIFIER,
-                    "Smashcast Scepter attack speed modifier changed"
-            );
-            helper.assertTrue(stack.getMaxDamage() == 0,
-                    "Smashcast Scepter should stay non-damageable");
-            helper.assertFalse(stack.is(SPELLCASTER_WORKBENCH_EXTRACTABLE),
-                    "Smashcast Scepter should not need the legacy Spellcaster Workbench extraction tag");
-            helper.assertTrue(stack.is(MALUM_SOUL_HUNTER_WEAPON),
-                    "Smashcast Scepter should join Malum soul hunter weapon tag");
-            helper.assertTrue(stack.is(TOMAGIC_REVERSAL_WEAPON),
-                    "Smashcast Scepter should join Travel Optics reversal tag");
-            helper.assertFalse(stack.is(IRONS_STAFF),
-                    "Smashcast Scepter should not join Iron's staff tag");
-            helper.assertFalse(stack.getItem() instanceof io.redspace.ironsspellbooks.item.UniqueItem,
-                    "Smashcast Scepter should not block external imbue as a UniqueItem");
-            helper.assertFalse(stack.getItem() instanceof ManaBypassSpellItem,
-                    "Smashcast Scepter should consume normal spell mana");
-
-            item.initializeSpellContainer(stack);
-            helper.assertTrue(Utils.canImbue(stack),
-                    "Smashcast Scepter should be accepted by Iron's imbuement checks after initialization");
-            var spellContainer = ISpellContainer.get(stack);
-            helper.assertTrue(spellContainer != null, "Smashcast Scepter spell container is null");
-            helper.assertTrue(spellContainer != null && spellContainer.getMaxSpellCount() == 1,
-                    "Smashcast Scepter should expose exactly one imbue slot");
-            helper.assertTrue(spellContainer != null && spellContainer.isSpellWheel(),
-                    "Smashcast Scepter imbue slot should be visible to the spell wheel");
-            var removableMutable = ISpellContainer.create(1, true, false).mutableCopy();
-            helper.assertTrue(removableMutable.addSpellAtIndex(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1, 0, false),
-                    "Smashcast Scepter removable imbue test setup failed");
-            ISpellContainer.set(stack, removableMutable.toImmutable());
-            var removableContainer = ISpellContainer.get(stack);
-            var removableSpellData = removableContainer == null ? SpellData.EMPTY : removableContainer.getSpellAtIndex(0);
-            helper.assertTrue(removableContainer != null && item.canRemoveWorkbenchSpell(stack, removableContainer, 0, removableSpellData),
-                    "Smashcast Scepter imbue slot should be removable at the Spellcaster Workbench");
-            helper.assertTrue(item.canImbueSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1),
-                    "Smashcast Scepter should accept non-continuous imbues");
-            var arcaneBlastResult = item.createArcaneAnvilImbueResult(stack, new SpellData(SpellRegistry.ARCANE_BLAST.get(), 1));
-            var arcaneBlastContainer = ISpellContainer.get(arcaneBlastResult);
-            helper.assertTrue(arcaneBlastContainer != null,
-                    "Smashcast Scepter Arcane Blast imbue result should keep a spell container");
-            assertSpellData(helper, arcaneBlastContainer, 0, SpellRegistry.ARCANE_BLAST.get(), 1, false,
-                    "Smashcast Scepter should accept Arcane Blast as a removable imbue");
-            helper.assertTrue(arcaneBlastContainer != null
-                            && item.canRemoveWorkbenchSpell(arcaneBlastResult, arcaneBlastContainer, 0, arcaneBlastContainer.getSpellAtIndex(0)),
-                    "Smashcast Scepter Arcane Blast imbue should remain extractable");
-            helper.assertFalse(item.canImbueSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get(), 1),
-                    "Smashcast Scepter should reject CONTINUOUS imbues");
-
-            var mutable = ISpellContainer.create(1, true, false).mutableCopy();
-            helper.assertTrue(mutable.addSpellAtIndex(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get(), 1, 0, false),
-                    "Smashcast Scepter continuous imbue test setup failed");
-            ISpellContainer.set(stack, mutable.toImmutable());
-            item.normalizeImbuedSpellContainer(stack);
-            var normalizedContainer = ISpellContainer.get(stack);
-            helper.assertTrue(normalizedContainer != null && normalizedContainer.getSpellAtIndex(0) == SpellData.EMPTY,
-                    "Smashcast Scepter should clear rejected CONTINUOUS imbues during normalization");
-            assertClose(helper, SmashcastScepter.calculateReleaseBounceImpulse(0),
-                    0.0D, 1.0E-6D, "Smashcast Scepter Release level 0 should not launch");
-            assertClose(helper, SmashcastScepter.calculateReleaseBounceImpulse(1),
-                    1.2D, 1.0E-6D, "Smashcast Scepter Release level 1 should match Wind Burst");
-            assertClose(helper, SmashcastScepter.calculateReleaseBounceImpulse(2),
-                    1.75D, 1.0E-6D, "Smashcast Scepter Release level 2 should match Wind Burst");
-            assertClose(helper, SmashcastScepter.calculateReleaseBounceImpulse(3),
-                    2.2D, 1.0E-6D, "Smashcast Scepter Release level 3 should match Wind Burst");
-            assertClose(helper, SmashcastScepter.calculateReleaseBounceImpulse(4),
-                    2.55D, 1.0E-6D, "Smashcast Scepter Release should use Wind Burst fallback above level 3");
-            assertClose(helper, SmashcastScepter.calculateReleaseBounceImpulse(5),
-                    2.9D, 1.0E-6D, "Smashcast Scepter Release should not clamp above level 3");
-
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 4, 0), "smashcast_scepter_pending_test");
-            player.setOnGround(false);
-            player.fallDistance = SmashcastScepter.SMASH_ATTACK_FALL_DISTANCE_THRESHOLD + 1.0F;
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            helper.assertTrue(SmashcastScepterAttackEvent.canRegisterSmashcast(player, stack),
-                    "Smashcast Scepter should register a smash without an imbued spell");
-            helper.assertTrue(SmashcastScepterReadyStateSyncEvent.resolveReadyState(player),
-                    "Smashcast Scepter server ready state should match a valid smash attack");
-            helper.assertFalse(item.tryCastSmashSpell(player, stack, player.fallDistance),
-                    "Smashcast Scepter should skip spell casting without an imbued spell");
-            player.fallDistance = 0.0F;
-            helper.assertFalse(SmashcastScepterReadyStateSyncEvent.resolveReadyState(player),
-                    "Smashcast Scepter server ready state should reject reset fall distance");
-            player.fallDistance = SmashcastScepter.SMASH_ATTACK_FALL_DISTANCE_THRESHOLD + 1.0F;
-            player.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 20, 0));
-            helper.assertFalse(SmashcastScepterReadyStateSyncEvent.resolveReadyState(player),
-                    "Smashcast Scepter server ready state should reject Slow Falling");
-            player.removeEffect(MobEffects.SLOW_FALLING);
-            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-            helper.assertFalse(SmashcastScepterReadyStateSyncEvent.resolveReadyState(player),
-                    "Smashcast Scepter server ready state should require mainhand Smashcast Scepter");
-            player.setItemInHand(InteractionHand.MAIN_HAND, arcaneBlastResult);
-            helper.assertTrue(SmashcastScepterAttackEvent.canRegisterSmashcast(player, arcaneBlastResult),
-                    "Smashcast Scepter should register a smashcast when a valid spell is imbued");
-            var arcaneBlastSpell = SpellRegistry.ARCANE_BLAST.get();
-            var arcaneBlastManaCost = arcaneBlastSpell.getManaCost(1);
-            MagicData.getPlayerMagicData(player).setPlayerCastingItem(arcaneBlastResult);
-            var arcaneBlastManaEvent = new SpellOnCastEvent(
-                    player,
-                    arcaneBlastSpell.getSpellId(),
-                    1,
-                    arcaneBlastManaCost,
-                    arcaneBlastSpell.getSchoolType(),
-                    CastSource.SWORD
-            );
-            ItemManaBypassCastEvent.onSpellCast(arcaneBlastManaEvent);
-            helper.assertTrue(arcaneBlastManaEvent.getManaCost() == arcaneBlastManaCost,
-                    "Smashcast Scepter should keep normal spell mana cost: " + arcaneBlastManaEvent.getManaCost());
-
-            var compressedStack = new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get());
-            compressedStack.enchant(EnchantmentRegistry.COMPRESS.get(), 2);
-            assertClose(helper, SmashcastScepter.calculateSmashBonusDamage(new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()), 5.0F),
-                    16.0D, 1.0E-6D, "Smashcast Scepter mace-like smash damage changed");
-            assertClose(helper, SmashcastScepter.calculateSmashBonusDamage(compressedStack, 5.0F),
-                    21.0D, 1.0E-6D, "Smashcast Scepter Compress damage bonus changed");
-            assertClose(helper, SmashcastScepter.calculateSmashSpellPowerMultiplier(new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()), 15.0F),
-                    2.25D, 1.0E-6D, "Smashcast Scepter spell power falloff changed");
-            assertClose(helper, SmashcastScepter.calculateSmashSpellPowerMultiplier(compressedStack, 15.0F),
-                    2.85D, 1.0E-6D, "Smashcast Scepter Compress spell power bonus changed");
-            assertClose(helper, SmashcastScepter.calculateSmashSpellPowerMultiplier(compressedStack, 200.0F),
-                    11.0D, 1.0E-6D, "Smashcast Scepter spell power cap changed");
-
-            var epicFightStack = new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get());
-            player.setItemInHand(InteractionHand.MAIN_HAND, epicFightStack);
-            var target = EntityType.ARMOR_STAND.create(helper.getLevel());
-            helper.assertTrue(target != null, "Armor Stand target could not be created for Epic Fight Smashcast test");
-            target.setPos(helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 1, 0))));
-            helper.getLevel().addFreshEntity(target);
-            var secondTarget = EntityType.ARMOR_STAND.create(helper.getLevel());
-            helper.assertTrue(secondTarget != null, "Second Armor Stand target could not be created for Epic Fight Smashcast test");
-            secondTarget.setPos(helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(1, 1, 0))));
-            helper.getLevel().addFreshEntity(secondTarget);
-
-            var epicFightFallDistance = 4.0F;
-            var expectedEpicFightBonus = SmashcastScepter.calculateSmashBonusDamage(epicFightStack, epicFightFallDistance);
-            var damageSource = player.damageSources().playerAttack(player);
-            var firstEpicFightDamage = new net.minecraftforge.event.entity.living.LivingDamageEvent(target, damageSource, 1.0F);
-            SmashcastScepterAttackEvent.registerEpicFightSmashcastImpact(
-                    player,
-                    target,
-                    firstEpicFightDamage,
-                    epicFightFallDistance
-            );
-            assertClose(helper, firstEpicFightDamage.getAmount(), 1.0F + expectedEpicFightBonus, 1.0E-6D,
-                    "Epic Fight Smashcast should apply bonus damage to the first target");
-
-            var duplicateEpicFightDamage = new net.minecraftforge.event.entity.living.LivingDamageEvent(target, damageSource, 1.0F);
-            SmashcastScepterAttackEvent.registerEpicFightSmashcastImpact(
-                    player,
-                    target,
-                    duplicateEpicFightDamage,
-                    epicFightFallDistance
-            );
-            assertClose(helper, duplicateEpicFightDamage.getAmount(), 1.0F, 1.0E-6D,
-                    "Epic Fight Smashcast should not apply duplicate bonus damage to the same target in one tick");
-
-            var secondEpicFightDamage = new net.minecraftforge.event.entity.living.LivingDamageEvent(secondTarget, damageSource, 1.0F);
-            SmashcastScepterAttackEvent.registerEpicFightSmashcastImpact(
-                    player,
-                    secondTarget,
-                    secondEpicFightDamage,
-                    epicFightFallDistance
-            );
-            assertClose(helper, secondEpicFightDamage.getAmount(), 1.0F + expectedEpicFightBonus, 1.0E-6D,
-                    "Epic Fight Smashcast should keep bonus damage for a different target in the same tick");
-
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()),
-                    expectedSmashcastScepterEnchantingTableEnchantments(stack),
-                    expectedSmashcastScepterBookEnchantments(stack),
-                    expectedSmashcastScepterBookEnchantments(stack),
-                    "Smashcast Scepter"
-            );
-        });
-    }
-
-    static void smashcastScepterFallProtectionKeepsFallDistanceAndCancelsNextFall(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 4, 0),
-                    "smashcast_scepter_fall_protection_test");
-            player.fallDistance = 6.0F;
-            player.setDeltaMovement(0.12D, -0.8D, -0.08D);
-
-            SmashcastScepterFallProtectionEvent.register(player);
-
-            helper.assertTrue(player.fallDistance == 6.0F,
-                    "Smashcast Scepter fall protection should not reset fall distance");
-            helper.assertTrue(Math.abs(player.getDeltaMovement().y - SmashcastScepter.WIND_BURST_MOTION_EPSILON) < 1.0E-6D,
-                    "Smashcast Scepter fall protection should mimic vanilla Mace landing motion");
-
-            var protectedFall = postLivingFallEventForGameTest(player, 6.0F, 1.0F);
-            helper.assertTrue(protectedFall.isCanceled(),
-                    "Smashcast Scepter fall protection should cancel the next fall damage event");
-
-            var repeatedFall = postLivingFallEventForGameTest(player, 6.0F, 1.0F);
-            helper.assertFalse(repeatedFall.isCanceled(),
-                    "Smashcast Scepter fall protection should be consumed after one fall event");
-
-            var unprotectedPlayer = createTrackedEquipmentTestPlayer(helper, new BlockPos(2, 4, 0),
-                    "smashcast_scepter_unprotected_fall_test");
-            var unprotectedFall = postLivingFallEventForGameTest(unprotectedPlayer, 6.0F, 1.0F);
-            helper.assertFalse(unprotectedFall.isCanceled(),
-                    "Smashcast Scepter fall protection should not cancel unrelated player falls");
-        });
-    }
-
-    static void smashcastScepterFallProtectionExpiresAfterGracePeriod(GameTestHelper helper) {
-        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 4, 0),
-                "smashcast_scepter_fall_protection_expire_test");
-        SmashcastScepterFallProtectionEvent.register(player);
-
-        helper.runAfterDelay(45, () -> {
-            var expiredFall = postLivingFallEventForGameTest(player, 6.0F, 1.0F);
-            helper.assertFalse(expiredFall.isCanceled(),
-                    "Smashcast Scepter fall protection should expire before late fall damage");
-            helper.succeed();
-        });
-    }
-
-    static void rightClickMagicWeaponTooltipsStartWithShieldHint(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var rightClickMagicWeapons = ForgeRegistries.ITEMS.getValues().stream()
-                    .filter(item -> item instanceof AbstractRightClickMagicWeaponItem && !(item instanceof SmashcastScepter))
-                    .toList();
-            helper.assertTrue(!rightClickMagicWeapons.isEmpty(),
-                    "Right Click Magic Weapon tooltip test found no target items");
-
-            for (var item : rightClickMagicWeapons) {
-                var stack = new ItemStack(item);
-                var tooltipLines = new ArrayList<Component>();
-                item.appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
-                helper.assertTrue(!tooltipLines.isEmpty(),
-                        item + " should expose right click magic weapon tooltip");
-                assertTranslatableKey(
-                        helper,
-                        tooltipLines.get(0),
-                        "item.apprenticecodex.right_click_magic_weapon.desc",
-                        item + " should show shield priority tooltip first"
-                );
-            }
-
-            assertTooltipKeyAt(
-                    helper,
-                    new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get()),
-                    1,
-                    "item.apprenticecodex.crystal_bladed_staff.desc",
-                    "Crystal Bladed Staff should show its ability tooltip after shield priority tooltip"
-            );
-            assertTooltipKeyAt(
-                    helper,
-                    new ItemStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get()),
-                    1,
-                    "item.apprenticecodex.swingcast.common.desc",
-                    "Swingcast Staff should show swingcast tooltip after shield priority tooltip"
-            );
-            assertTooltipKeyAt(
-                    helper,
-                    new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get()),
-                    1,
-                    "item.apprenticecodex.swingcast.common.desc",
-                    "Revolvercast Staff should show swingcast tooltip after shield priority tooltip"
-            );
-            assertTooltipKeyUsesColor(
-                    helper,
-                    new ItemStack(ItemRegistry.COPPER_SPELLCASTER_GUN.get()),
-                    "item.apprenticecodex.spellgun.tooltip.hint",
-                    ChatFormatting.YELLOW,
-                    "Spell Gun shift hint should stand out"
-            );
-            assertTooltipKeyUsesColor(
-                    helper,
-                    new ItemStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get()),
-                    "item.apprenticecodex.spellgun.tooltip.hint",
-                    ChatFormatting.YELLOW,
-                    "Swingcast Staff shift hint should stand out"
-            );
-            assertTooltipKeyUsesColor(
-                    helper,
-                    new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get()),
-                    "item.apprenticecodex.spellgun.tooltip.hint",
-                    ChatFormatting.YELLOW,
-                    "Reflectcast Shield shift hint should stand out"
-            );
-        });
-    }
-
-    static void chargedTwinBladeStaffKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedChargedTwinBladeStaffEnchantments(stack),
-                    "Charged Twin Blade Staff"
-            );
-        });
-    }
-    static void manaForceBladeKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.MANA_FORCE_BLADE.get());
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedManaForceBladeEnchantments(stack),
-                    "Mana Force Blade"
-            );
-        });
-    }
-    static void chargedTwinBladeStaffExposesExpectedMainhandAttributes(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-            var modifiers = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
-
-            helper.assertTrue(Math.abs(sumModifierAmount(
-                    modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE),
-                    AttributeModifier.Operation.ADDITION
-            ) - 10.0D) < 1.0e-9D, "Charged Twin Blade Staff attack damage regression: " + describeModifiers(modifiers));
-            helper.assertTrue(Math.abs(sumModifierAmount(
-                    modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED),
-                    AttributeModifier.Operation.ADDITION
-            ) - (-3.0D)) < 1.0e-9D, "Charged Twin Blade Staff attack speed regression: " + describeModifiers(modifiers));
-            helper.assertTrue(Math.abs(sumModifierAmount(
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            ) - 0.10D) < 1.0e-9D, "Charged Twin Blade Staff spell power regression: " + describeModifiers(modifiers));
-        });
-    }
-    static void chargedTwinBladeStaffResolveThrownDamageIncludesApplicableEnchantments(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var baseStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-            var baseDamage = ChargedTwinBladeStaff.resolveThrownDamage(baseStack, MobType.UNDEFINED);
-            helper.assertTrue(Math.abs(baseDamage - 11.0D) < 1.0e-9D,
-                    "Charged Twin Blade Staff base thrown damage regression: " + baseDamage);
-
-            var sharpnessStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-            sharpnessStack.enchant(Enchantments.SHARPNESS, 3);
-            assertChargedTwinBladeStaffThrownDamage(
-                    helper,
-                    sharpnessStack,
-                    MobType.UNDEFINED,
-                    baseDamage + EnchantmentHelper.getDamageBonus(sharpnessStack, MobType.UNDEFINED),
-                    "Charged Twin Blade Staff sharpness thrown damage regression"
-            );
-
-            var smiteStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-            smiteStack.enchant(Enchantments.SMITE, 2);
-            assertChargedTwinBladeStaffThrownDamage(
-                    helper,
-                    smiteStack,
-                    MobType.UNDEAD,
-                    baseDamage + EnchantmentHelper.getDamageBonus(smiteStack, MobType.UNDEAD),
-                    "Charged Twin Blade Staff smite thrown damage regression"
-            );
-            assertChargedTwinBladeStaffThrownDamage(
-                    helper,
-                    smiteStack,
-                    MobType.UNDEFINED,
-                    baseDamage + EnchantmentHelper.getDamageBonus(smiteStack, MobType.UNDEFINED),
-                    "Charged Twin Blade Staff smite fallback damage regression"
-            );
-
-            var baneStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-            baneStack.enchant(Enchantments.BANE_OF_ARTHROPODS, 2);
-            assertChargedTwinBladeStaffThrownDamage(
-                    helper,
-                    baneStack,
-                    MobType.ARTHROPOD,
-                    baseDamage + EnchantmentHelper.getDamageBonus(baneStack, MobType.ARTHROPOD),
-                    "Charged Twin Blade Staff bane thrown damage regression"
-            );
-            assertChargedTwinBladeStaffThrownDamage(
-                    helper,
-                    baneStack,
-                    MobType.UNDEFINED,
-                    baseDamage + EnchantmentHelper.getDamageBonus(baneStack, MobType.UNDEFINED),
-                    "Charged Twin Blade Staff bane fallback damage regression"
-            );
-
-            var impalingStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-            impalingStack.enchant(Enchantments.IMPALING, 2);
-            assertChargedTwinBladeStaffThrownDamage(
-                    helper,
-                    impalingStack,
-                    MobType.WATER,
-                    baseDamage + EnchantmentHelper.getDamageBonus(impalingStack, MobType.WATER),
-                    "Charged Twin Blade Staff impaling thrown damage regression"
-            );
-            assertChargedTwinBladeStaffThrownDamage(
-                    helper,
-                    impalingStack,
-                    MobType.UNDEFINED,
-                    baseDamage + EnchantmentHelper.getDamageBonus(impalingStack, MobType.UNDEFINED),
-                    "Charged Twin Blade Staff impaling fallback damage regression"
-            );
-        });
-    }
-    static void chargedTwinBladeStaffThrowConsumesMana(GameTestHelper helper) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_throw_mana_test");
-        var stack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-        var magicData = MagicData.getPlayerMagicData(player);
-        helper.assertTrue(magicData != null, "Charged Twin Blade Staff mana test could not resolve player mana data");
-        magicData.setMana(100.0F);
-
-        helper.runAtTickTime(1, () -> stack.getItem().releaseUsing(
-                stack,
-                helper.getLevel(),
-                player,
-                stack.getUseDuration() - jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff.THROW_THRESHOLD_TICKS
-        ));
-        helper.succeedWhen(() -> {
-            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                    "Charged Twin Blade Staff normal throw should consume 100 mana but left " + magicData.getMana());
-            var projectiles = helper.getLevel().getEntitiesOfClass(
-                    jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity.class,
-                    new AABB(player.blockPosition()).inflate(8.0D)
-            );
-            helper.assertTrue(!projectiles.isEmpty(), "Charged Twin Blade Staff throw did not spawn its projectile");
-        });
-    }
-    static void chargedTwinBladeStaffLoyaltyReducesThrowManaCost(GameTestHelper helper) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_loyalty_mana_test");
-        var stack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-        stack.enchant(net.minecraft.world.item.enchantment.Enchantments.LOYALTY, 2);
-        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-        var magicData = MagicData.getPlayerMagicData(player);
-        helper.assertTrue(magicData != null, "Charged Twin Blade Staff loyalty mana test could not resolve player mana data");
-        magicData.setMana(100.0F);
-
-        helper.runAtTickTime(1, () -> stack.getItem().releaseUsing(
-                stack,
-                helper.getLevel(),
-                player,
-                stack.getUseDuration() - jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff.THROW_THRESHOLD_TICKS
-        ));
-        helper.succeedWhen(() -> {
-            helper.assertTrue(Math.abs(magicData.getMana() - (100.0F - 100.0F / 3.0F)) < 1.0e-3F,
-                    "Charged Twin Blade Staff loyalty mana discount regressed: " + magicData.getMana());
-        });
-    }
-    static void chargedTwinBladeStaffRiptideWorksOnDryGroundWithoutProjectile(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_riptide_test");
-            var stack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-            stack.enchant(net.minecraft.world.item.enchantment.Enchantments.RIPTIDE, 1);
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Charged Twin Blade Staff riptide test could not resolve player mana data");
-            magicData.setMana(50.0F);
-
-            stack.getItem().releaseUsing(
-                    stack,
-                    helper.getLevel(),
-                    player,
-                    stack.getUseDuration() - jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff.THROW_THRESHOLD_TICKS
-            );
-            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                    "Charged Twin Blade Staff riptide should consume 50 mana on dry ground");
-            helper.assertTrue(player.getDeltaMovement().lengthSqr() > 0.01D,
-                    "Charged Twin Blade Staff riptide should propel the player even without rain or water");
-            var projectiles = helper.getLevel().getEntitiesOfClass(
-                    jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity.class,
-                    new AABB(player.blockPosition()).inflate(8.0D)
-            );
-            helper.assertTrue(projectiles.isEmpty(),
-                    "Charged Twin Blade Staff riptide should not spawn a projectile");
-        });
-    }
-    static void chargedTwinBladeStaffImpactForwardUsesHistoryAndFallback(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var historyResolved = jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity.resolveImpactForwardForTesting(
-                    new Vec3(4.0D, 0.0D, 0.0D),
-                    Vec3.ZERO,
-                    new Vec3(1.0D, 0.0D, 0.0D)
-            );
-            helper.assertTrue(historyResolved.distanceTo(new Vec3(1.0D, 0.0D, 0.0D)) < 1.0E-6D,
-                    "Charged Twin Blade Staff impact forward should prefer recent flight history: " + historyResolved);
-
-            var shortHistoryFallback = jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity.resolveImpactForwardForTesting(
-                    new Vec3(0.001D, 0.0D, 0.0D),
-                    Vec3.ZERO,
-                    new Vec3(0.0D, 0.0D, 1.0D)
-            );
-            helper.assertTrue(shortHistoryFallback.distanceTo(new Vec3(0.0D, 0.0D, 1.0D)) < 1.0E-6D,
-                    "Charged Twin Blade Staff impact forward should fall back when history is too short: " + shortHistoryFallback);
-
-            var reversedHistoryFallback = jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity.resolveImpactForwardForTesting(
-                    new Vec3(-4.0D, 0.0D, 0.0D),
-                    Vec3.ZERO,
-                    new Vec3(1.0D, 0.0D, 0.0D)
-            );
-            helper.assertTrue(reversedHistoryFallback.distanceTo(new Vec3(1.0D, 0.0D, 0.0D)) < 1.0E-6D,
-                    "Charged Twin Blade Staff impact forward should fall back when history reverses initial throw: " + reversedHistoryFallback);
-        });
-    }
-    static void chargedTwinBladeStaffImpactCastManagerCastsInstantAndLongSpells(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = (ServerLevel) helper.getLevel();
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_impact_cast_test");
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Charged Twin Blade Staff impact cast test could not resolve player mana data");
-            magicData.setMana(200.0F);
-            var sourceStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-            var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
-            var forward = new Vec3(0.0D, 0.0D, 1.0D);
-
-            var instantPayload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "magic_missile"),
-                    1,
-                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-            );
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                            level, player, sourceStack, instantPayload, impactPos, forward
-                    ),
-                    "Charged Twin Blade Staff impact manager failed to cast an INSTANT payload"
-            );
-            var instantProjectiles = level.getEntitiesOfClass(
-                    io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
-                    new AABB(impactPos, impactPos).inflate(12.0D)
-            );
-            helper.assertTrue(!instantProjectiles.isEmpty(),
-                    "Charged Twin Blade Staff INSTANT impact cast did not spawn Magic Missile projectiles");
-            helper.assertTrue(instantProjectiles.stream().anyMatch(projectile -> projectile.position().distanceTo(impactPos) < 2.0D),
-                    "Charged Twin Blade Staff INSTANT impact cast spawned Magic Missile away from the impact point: "
-                            + instantProjectiles.stream().map(projectile -> projectile.position().toString()).toList());
-
-            var longPayload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                    ResourceLocation.fromNamespaceAndPath("apprenticecodex", "compound_phial"),
-                    1,
-                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-            );
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                            level, player, sourceStack, longPayload, impactPos, forward
-                    ),
-                    "Charged Twin Blade Staff impact manager failed to cast a LONG payload"
-            );
-            var longProjectiles = level.getEntitiesOfClass(CompoundPhialProjectileEntity.class, new AABB(impactPos, impactPos).inflate(12.0D));
-            helper.assertTrue(!longProjectiles.isEmpty(),
-                    "Charged Twin Blade Staff LONG impact cast did not spawn Compound Phial projectiles");
-        });
-    }
-
-    static void chargedTwinBladeStaffImpactCastManagerCastsInstantWhileOwnerBusy(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = (ServerLevel) helper.getLevel();
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_busy_impact_test");
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Charged Twin Blade Staff busy impact test could not resolve player mana data");
-            magicData.setMana(500.0F);
-            var triggerSpell = SpellRegistry.MYSTIC_SHIELD.get();
-            magicData.getSyncedData().learnSpell(triggerSpell, false);
-            magicData.initiateCast(
-                    triggerSpell,
-                    1,
-                    triggerSpell.getEffectiveCastTime(1, player),
-                    CastSource.SWORD,
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-            );
-
-            var impactSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
-            var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
-            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                    impactSpell.getSpellResource(),
-                    1,
-                    CastSource.SWORD.name(),
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-            );
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                            level,
-                            player,
-                            new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
-                            payload,
-                            impactPos,
-                            new Vec3(0.0D, 0.0D, 1.0D)
-                    ),
-                    "Charged Twin Blade Staff impact manager should cast through the RemoteOwner busy fallback"
-            );
-
-            helper.assertTrue(magicData.isCasting(),
-                    "Charged Twin Blade Staff busy fallback should not clear the original cast state");
-            helper.assertTrue(magicData.getCastingSpellId().equals(triggerSpell.getSpellId()),
-                    "Charged Twin Blade Staff busy fallback should preserve the original spell id");
-            helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(impactSpell),
-                    "Charged Twin Blade Staff busy fallback should apply the impact spell cooldown");
-            var projectiles = level.getEntitiesOfClass(
-                    io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
-                    new AABB(impactPos, impactPos).inflate(12.0D)
-            );
-            helper.assertTrue(!projectiles.isEmpty(),
-                    "Charged Twin Blade Staff busy impact cast did not spawn Magic Missile projectiles");
-        });
-    }
-
-    static void chargedTwinBladeStaffBusyFallbackDoesNotBypassCooldown(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = (ServerLevel) helper.getLevel();
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_busy_cooldown_test");
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Charged Twin Blade Staff busy cooldown test could not resolve player mana data");
-            magicData.setMana(500.0F);
-            var triggerSpell = SpellRegistry.MYSTIC_SHIELD.get();
-            magicData.getSyncedData().learnSpell(triggerSpell, false);
-            magicData.initiateCast(
-                    triggerSpell,
-                    1,
-                    triggerSpell.getEffectiveCastTime(1, player),
-                    CastSource.SWORD,
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-            );
-
-            var impactSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
-            io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, impactSpell, CastSource.SWORD);
-            var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
-            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                    impactSpell.getSpellResource(),
-                    1,
-                    CastSource.SWORD.name(),
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-            );
-
-            helper.assertFalse(
-                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                            level,
-                            player,
-                            new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
-                            payload,
-                            impactPos,
-                            new Vec3(0.0D, 0.0D, 1.0D)
-                    ),
-                    "Charged Twin Blade Staff busy fallback should not bypass owner cooldowns"
-            );
-            helper.assertTrue(magicData.isCasting(),
-                    "Charged Twin Blade Staff cooldown rejection should not clear the original cast state");
-            helper.assertTrue(magicData.getCastingSpellId().equals(triggerSpell.getSpellId()),
-                    "Charged Twin Blade Staff cooldown rejection should preserve the original spell id");
-            var projectiles = level.getEntitiesOfClass(
-                    io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
-                    new AABB(impactPos, impactPos).inflate(12.0D)
-            );
-            helper.assertTrue(projectiles.isEmpty(),
-                    "Charged Twin Blade Staff cooldown rejection should not spawn Magic Missile projectiles");
-        });
-    }
-
-    static void spellThrowableCardImpactCastManagerCastsInstantWhileOwnerBusy(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = (ServerLevel) helper.getLevel();
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_throwable_card_busy_impact_test");
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Spell Throwable Card busy impact test could not resolve player mana data");
-            magicData.setMana(500.0F);
-            var triggerSpell = SpellRegistry.MYSTIC_SHIELD.get();
-            magicData.getSyncedData().learnSpell(triggerSpell, false);
-            magicData.initiateCast(
-                    triggerSpell,
-                    1,
-                    triggerSpell.getEffectiveCastTime(1, player),
-                    CastSource.SWORD,
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-            );
-
-            var impactSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
-            var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
-            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                    impactSpell.getSpellResource(),
-                    1,
-                    CastSource.SWORD.name(),
-                    AbstractSpellThrowableCardItem.CASTING_SLOT
-            );
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                            level,
-                            player,
-                            new ItemStack(ItemRegistry.SPELL_INVOKE_CARD.get()),
-                            payload,
-                            impactPos,
-                            new Vec3(0.0D, 0.0D, 1.0D)
-                    ),
-                    "Spell Throwable Card impact manager should cast through the RemoteOwner busy fallback"
-            );
-
-            helper.assertTrue(magicData.isCasting(),
-                    "Spell Throwable Card busy fallback should not clear the original cast state");
-            helper.assertTrue(magicData.getCastingSpellId().equals(triggerSpell.getSpellId()),
-                    "Spell Throwable Card busy fallback should preserve the original spell id");
-            var projectiles = level.getEntitiesOfClass(
-                    io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
-                    new AABB(impactPos, impactPos).inflate(12.0D)
-            );
-            helper.assertTrue(!projectiles.isEmpty(),
-                    "Spell Throwable Card busy impact cast did not spawn Magic Missile projectiles");
-        });
-    }
-
-    static void chargedTwinBladeStaffRemoteOwnerDenylistBlocksRuntimeWithoutFallback(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = (ServerLevel) helper.getLevel();
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_remote_denylist_test");
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Charged Twin Blade Staff remote denylist test could not resolve player mana data");
-            magicData.setMana(200.0F);
-            var sourceStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-            var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
-            var forward = new Vec3(0.0D, 0.0D, 1.0D);
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
-            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                    spell.getSpellResource(),
-                    1,
-                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-            );
-
-            try (var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
-                    true,
-                    List.of(spell.getSpellResource().toString())
-            )) {
-                helper.assertFalse(
-                        jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                                level, player, sourceStack, payload, impactPos, forward
-                        ),
-                        "Charged Twin Blade Staff should not fall back when Remote Owner Cast is denylisted"
-                );
-            }
-
-            var projectiles = level.getEntitiesOfClass(
-                    io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
-                    new AABB(impactPos, impactPos).inflate(12.0D)
-            );
-            helper.assertTrue(projectiles.isEmpty(),
-                    "Charged Twin Blade Staff Remote Owner denylist should prevent Magic Missile projectiles");
-        });
-    }
-    static void chargedTwinBladeStaffImpactCastManagerCastsPlayerSelfProfile(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = (ServerLevel) helper.getLevel();
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_self_profile_test");
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Charged Twin Blade Staff self profile test could not resolve player mana data");
-            magicData.setMana(200.0F);
-            var sourceStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "oakskin"),
-                    1,
-                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-            );
-
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                            level, player, sourceStack, payload, helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3))), new Vec3(0.0D, 0.0D, 1.0D)
-                    ),
-                    "Charged Twin Blade Staff self profile failed to cast Oakskin"
-            );
-            helper.assertTrue(player.hasEffect(io.redspace.ironsspellbooks.registries.MobEffectRegistry.OAKSKIN.get()),
-                    "Charged Twin Blade Staff self profile should apply Oakskin to the real player");
-        });
-    }
-    static void chargedTwinBladeStaffCreativeImpactCastUsesRemoteOwnerProfileWithZeroMana(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = (ServerLevel) helper.getLevel();
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_creative_remote_owner_profile_test");
-            player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Charged Twin Blade Staff creative RemoteOwner profile test could not resolve player mana data");
-            magicData.setMana(0.0F);
-            var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
-            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "magic_missile"),
-                    1,
-                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-            );
-
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                            level,
-                            player,
-                            new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
-                            payload,
-                            impactPos,
-                            new Vec3(0.0D, 0.0D, 1.0D)
-                    ),
-                    "Charged Twin Blade Staff creative impact cast should use RemoteOwner profile with zero mana"
-            );
-            var projectiles = level.getEntitiesOfClass(
-                    io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
-                    new AABB(impactPos, impactPos).inflate(12.0D)
-            );
-            helper.assertTrue(!projectiles.isEmpty(),
-                    "Charged Twin Blade Staff creative RemoteOwner profile should spawn Magic Missile projectiles");
-            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                    "Charged Twin Blade Staff creative RemoteOwner profile should leave mana at zero but got " + magicData.getMana());
-        });
-    }
-    static void chargedTwinBladeStaffCreativeImpactCastUsesStaffProfileWithZeroMana(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = (ServerLevel) helper.getLevel();
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_creative_staff_profile_test");
-            player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Charged Twin Blade Staff creative staff profile test could not resolve player mana data");
-            magicData.setMana(0.0F);
-            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "oakskin"),
-                    1,
-                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-            );
-
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                            level,
-                            player,
-                            new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
-                            payload,
-                            helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3))),
-                            new Vec3(0.0D, 0.0D, 1.0D)
-                    ),
-                    "Charged Twin Blade Staff creative impact cast should use staff profile with zero mana"
-            );
-            helper.assertTrue(player.hasEffect(io.redspace.ironsspellbooks.registries.MobEffectRegistry.OAKSKIN.get()),
-                    "Charged Twin Blade Staff creative staff profile should apply Oakskin to the real player");
-            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                    "Charged Twin Blade Staff creative staff profile should leave mana at zero but got " + magicData.getMana());
-        });
-    }
-    static void chargedTwinBladeStaffImpactCastManagerCastsInitialRaiseDeadProfile(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = (ServerLevel) helper.getLevel();
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_raise_dead_test");
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Charged Twin Blade Staff Raise Dead test could not resolve player mana data");
-            magicData.setMana(500.0F);
-            var sourceStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-            var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
-            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "raise_dead"),
-                    1,
-                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-            );
-
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                            level, player, sourceStack, payload, impactPos, new Vec3(0.0D, 0.0D, 1.0D)
-                    ),
-                    "Charged Twin Blade Staff Raise Dead profile failed its initial cast"
-            );
-            var summons = level.getEntitiesOfClass(
-                    net.minecraft.world.entity.monster.Monster.class,
-                    new AABB(impactPos, impactPos).inflate(12.0D),
-                    monster -> monster instanceof io.redspace.ironsspellbooks.entity.mobs.IMagicSummon
-            );
-            helper.assertTrue(!summons.isEmpty(),
-                    "Charged Twin Blade Staff Raise Dead profile should summon mobs near the impact");
-            helper.assertTrue(magicData.getPlayerRecasts().hasRecastForSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.RAISE_DEAD_SPELL.get()),
-                    "Charged Twin Blade Staff Raise Dead profile should register recast on the real player");
-            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(io.redspace.ironsspellbooks.api.registry.SpellRegistry.RAISE_DEAD_SPELL.get()),
-                    "Charged Twin Blade Staff Raise Dead profile should not add a normal cooldown for a recast spell");
-            summons.forEach(net.minecraft.world.entity.Entity::discard);
-        });
-    }
-    static void chargedTwinBladeStaffImpactCastManagerBlocksRaiseDeadWhenRecastExists(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = (ServerLevel) helper.getLevel();
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_raise_dead_recast_test");
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Charged Twin Blade Staff Raise Dead recast test could not resolve player mana data");
-            magicData.setMana(500.0F);
-            var sourceStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-            var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
-            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "raise_dead"),
-                    1,
-                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-            );
-
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                            level, player, sourceStack, payload, impactPos, new Vec3(0.0D, 0.0D, 1.0D)
-                    ),
-                    "Charged Twin Blade Staff Raise Dead recast setup failed"
-            );
-            helper.assertFalse(
-                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                            level, player, sourceStack, payload, impactPos, new Vec3(0.0D, 0.0D, 1.0D)
-                    ),
-                    "Charged Twin Blade Staff Raise Dead should not recast while an initial recast is active"
-            );
-            level.getEntitiesOfClass(
-                    net.minecraft.world.entity.monster.Monster.class,
-                    new AABB(impactPos, impactPos).inflate(12.0D),
-                    monster -> monster instanceof io.redspace.ironsspellbooks.entity.mobs.IMagicSummon
-            ).forEach(net.minecraft.world.entity.Entity::discard);
-        });
-    }
-    static void chargedTwinBladeStaffRaiseDeadPreservesWheelSelectionAfterRecast(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = (ServerLevel) helper.getLevel();
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_raise_dead_selection_test");
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Charged Twin Blade Staff Raise Dead selection test could not resolve player mana data");
-            magicData.setMana(500.0F);
-
-            var amplifierStack = new ItemStack(ItemRegistry.COPPER_SPELL_AMPLIFIER.get());
-            var mutable = ISpellContainer.create(2, true, false).mutableCopy();
-            helper.assertTrue(mutable.addSpellAtIndex(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1, 0, false),
-                    "Failed to prepare first wheel spell for Raise Dead selection regression");
-            helper.assertTrue(mutable.addSpellAtIndex(io.redspace.ironsspellbooks.api.registry.SpellRegistry.RAISE_DEAD_SPELL.get(), 1, 1, false),
-                    "Failed to prepare Raise Dead wheel spell for selection regression");
-            ISpellContainer.set(amplifierStack, mutable.toImmutable());
-            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-            magicData.getSyncedData().setSpellSelection(new io.redspace.ironsspellbooks.gui.overlays.SpellSelection(
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND,
-                    1
-            ));
-
-            var beforeSelection = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player).getSelection();
-            helper.assertTrue(beforeSelection != null
-                            && beforeSelection.spellData.getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.RAISE_DEAD_SPELL.get(),
-                    "Raise Dead selection regression setup should select Raise Dead but got " + beforeSelection);
-
-            var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
-            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "raise_dead"),
-                    1,
-                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND
-            );
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                            level,
-                            player,
-                            new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
-                            payload,
-                            impactPos,
-                            new Vec3(0.0D, 0.0D, 1.0D)
-                    ),
-                    "Charged Twin Blade Staff Raise Dead selection regression failed its initial cast"
-            );
-
-            var afterSelection = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player).getSelection();
-            helper.assertTrue(afterSelection != null
-                            && afterSelection.spellData.getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.RAISE_DEAD_SPELL.get(),
-                    "Raise Dead impact cast should preserve the selected wheel spell but got " + afterSelection);
-            var recastPayload = jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload.capture(afterSelection, player);
-            helper.assertFalse(recastPayload.isPresent(),
-                    "Raise Dead active recast should not fall back to a different wheel spell payload");
-
-            level.getEntitiesOfClass(
-                    net.minecraft.world.entity.monster.Monster.class,
-                    new AABB(impactPos, impactPos).inflate(12.0D),
-                    monster -> monster instanceof io.redspace.ironsspellbooks.entity.mobs.IMagicSummon
-            ).forEach(net.minecraft.world.entity.Entity::discard);
-        });
-    }
-    static void chargedTwinBladeStaffImpactCastManagerRejectsUnprofiledSpell(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = (ServerLevel) helper.getLevel();
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_unprofiled_test");
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Charged Twin Blade Staff unprofiled test could not resolve player mana data");
-            magicData.setMana(500.0F);
-            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "ray_of_siphoning"),
-                    1,
-                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-            );
-
-            helper.assertFalse(
-                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                            level,
-                            player,
-                            new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
-                            payload,
-                            helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3))),
-                            new Vec3(0.0D, 0.0D, 1.0D)
-                    ),
-                    "Charged Twin Blade Staff should reject spells without a RemoteOwner impact profile"
-            );
-        });
-    }
-    static void chargedTwinBladeStaffImpactCastManagerStartsContinuousSpells(GameTestHelper helper) {
-        var level = (ServerLevel) helper.getLevel();
-        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_impact_continuous_test");
-        var magicData = MagicData.getPlayerMagicData(player);
-        helper.assertTrue(magicData != null, "Charged Twin Blade Staff continuous impact test could not resolve player mana data");
-        magicData.setMana(200.0F);
-        var sourceStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-        var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
-        var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "fire_breath"),
-                1,
-                io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
-                io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-        );
-
-        helper.runAtTickTime(1, () -> helper.assertTrue(
-                jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                        level, player, sourceStack, payload, impactPos, new Vec3(0.0D, 0.0D, 1.0D)
-                ),
-                "Charged Twin Blade Staff impact manager failed to start a CONTINUOUS payload"
-        ));
-        helper.succeedWhen(() -> {
-            var projectiles = level.getEntitiesOfClass(FireBreathProjectile.class, new AABB(impactPos, impactPos).inflate(16.0D));
-            helper.assertTrue(!projectiles.isEmpty(),
-                    "Charged Twin Blade Staff CONTINUOUS impact cast did not spawn Fire Breath projectiles");
-            var anchorOwner = projectiles.stream()
-                    .map(FireBreathProjectile::getOwner)
-                    .filter(RemoteOwnerCastAnchorEntity.class::isInstance)
-                    .map(RemoteOwnerCastAnchorEntity.class::cast)
-                    .findFirst();
-            helper.assertTrue(anchorOwner.isPresent(),
-                    "Charged Twin Blade Staff CONTINUOUS impact cast should use a Remote Owner anchor for Fire Breath owner tracking");
-            helper.assertTrue(anchorOwner.get().getDisplayName().getString().equals(player.getDisplayName().getString()),
-                    "Remote Owner anchor should expose the player name for death messages");
-        });
-    }
-
-    static void chargedTwinBladeStaffContinuousRemoteOwnerIgnoresMissingDispenserProfile(GameTestHelper helper) {
-        var level = (ServerLevel) helper.getLevel();
-        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_remote_continuous_profile_test");
-        var magicData = MagicData.getPlayerMagicData(player);
-        helper.assertTrue(magicData != null, "Charged Twin Blade Staff RemoteOwner-only continuous test could not resolve player mana data");
-        magicData.setMana(200.0F);
-        var sourceStack = new ItemStack(ItemRegistry.SPELL_INVOKE_CARD.get());
-        var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
-        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
-        var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                spell.getSpellResource(),
-                1,
-                CastSource.SWORD.name(),
-                io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-        );
-
-        helper.runAtTickTime(1, () -> {
-            try (var ignoredRemoteProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
-                    requireSpellId(spell),
-                    remotePlayerGeometryProfile(false)
-            ))) {
-                helper.assertTrue(
-                        jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                                level, player, sourceStack, payload, impactPos, new Vec3(0.0D, 0.0D, 1.0D)
-                        ),
-                        "Charged Twin Blade Staff should start RemoteOwner CONTINUOUS casts without a Spell Dispenser profile"
-                );
-            }
-        });
-        helper.succeedWhen(() -> {
-            var projectiles = level.getEntitiesOfClass(FireBreathProjectile.class, new AABB(impactPos, impactPos).inflate(16.0D));
-            helper.assertTrue(!projectiles.isEmpty(),
-                    "RemoteOwner-only CONTINUOUS impact cast did not spawn Fire Breath projectiles");
-            var anchorOwner = projectiles.stream()
-                    .map(FireBreathProjectile::getOwner)
-                    .filter(RemoteOwnerCastAnchorEntity.class::isInstance)
-                    .map(RemoteOwnerCastAnchorEntity.class::cast)
-                    .findFirst();
-            helper.assertTrue(anchorOwner.isPresent(),
-                    "RemoteOwner-only CONTINUOUS impact cast should keep Fire Breath owned by a Remote Owner anchor");
-        });
-    }
-
-    static void chargedTwinBladeStaffContinuousThrowableCardUsesCardCooldownPolicy(GameTestHelper helper) {
-        var level = (ServerLevel) helper.getLevel();
-        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_card_continuous_cooldown_test");
-        var magicData = MagicData.getPlayerMagicData(player);
-        helper.assertTrue(magicData != null, "Charged Twin Blade Staff card continuous cooldown test could not resolve player mana data");
-        magicData.setMana(500.0F);
-        var cardStack = new ItemStack(ItemRegistry.SPELL_INVOKE_CARD.get());
-        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
-        var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
-        var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                spell.getSpellResource(),
-                1,
-                CastSource.SWORD.name(),
-                AbstractSpellThrowableCardItem.CASTING_SLOT
-        );
-
-        var cardPolicyCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
-                spell,
-                player,
-                CastSource.SWORD,
-                cardStack
-        );
-        var emptyStackCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
-                spell,
-                player,
-                CastSource.SWORD,
-                ItemStack.EMPTY
-        );
-        helper.assertTrue(cardPolicyCooldown > emptyStackCooldown,
-                "Throwable Card cooldown regression needs a visible policy difference: "
-                        + cardPolicyCooldown + " / empty " + emptyStackCooldown);
-
-        helper.runAtTickTime(1, () -> helper.assertTrue(
-                jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                        level, player, cardStack, payload, impactPos, new Vec3(0.0D, 0.0D, 1.0D)
-                ),
-                "Charged Twin Blade Staff impact manager failed to start a Throwable Card CONTINUOUS payload"
-        ));
-
-        helper.succeedWhen(() -> {
-            var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
-            helper.assertTrue(cooldown != null,
-                    "Throwable Card CONTINUOUS impact cast has not finished its cooldown yet");
-            var remainingCooldown = cooldown.getCooldownRemaining();
-            helper.assertTrue(remainingCooldown > emptyStackCooldown,
-                    "Throwable Card CONTINUOUS cooldown used the empty-stack weapon imbue policy: "
-                            + remainingCooldown + " / empty " + emptyStackCooldown);
-            helper.assertTrue(remainingCooldown <= cardPolicyCooldown,
-                    "Throwable Card CONTINUOUS cooldown exceeded the card policy cooldown: "
-                            + remainingCooldown + " / card " + cardPolicyCooldown);
-        });
-    }
-
-    static void chargedTwinBladeStaffImpactCastManagerSkipsWhenOwnerCannotCast(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = (ServerLevel) helper.getLevel();
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_impact_fail_test");
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Charged Twin Blade Staff impact fail test could not resolve player mana data");
-            magicData.setMana(0.0F);
-            var sourceStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-            var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
-            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "magic_missile"),
-                    1,
-                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-            );
-
-            helper.assertFalse(
-                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                            level, player, sourceStack, payload, impactPos, new Vec3(0.0D, 0.0D, 1.0D)
-                    ),
-                    "Charged Twin Blade Staff impact manager should skip casts when the owner cannot pay the spell mana"
-            );
-        });
-    }
-    static void mithrilFreecastStaffBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
-            var item = (MithrilFreecastStaff) stack.getItem();
-            item.initializeSpellContainer(stack);
-            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
-
-            helper.assertFalse(stack.getItem() instanceof RestrictedSpellImbuableItem,
-                    "Mithril Freecast Staff should not expose the restricted imbue API");
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
-                    "Mithril Freecast Staff should reject Arcane Anvil spell imbuing"
-            );
-        });
-    }
-
-    static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
-            helper.assertTrue(stack.is(MALUM_SOUL_HUNTER_WEAPON),
-                    "Reflectcast Shield is missing malum:soul_hunter_weapon");
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedReflectcastShieldEnchantments(stack),
-                    "Reflectcast Shield"
-            );
-        });
-    }
-    static void spellcastersFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> assertCategoryEnchantments(
-                helper,
-                "Spellcasters Flask",
-                item -> item.getClass() == SpellcastersFlask.class,
-                expectedFlaskEnchantments()
-        ));
-    }
-    static void alchemistsFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> assertCategoryEnchantments(
-                helper,
-                "Alchemists Flask",
-                item -> item.getClass() == AlchemistsFlask.class,
-                expectedAlchemistsFlaskEnchantments()
-        ));
-    }
-    static void apprenticeEnchantmentsKeepExpectedAcquisitionFlags(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            // 1.21.1申し送り事項:
-            // treasure / tradeable / discoverable は定義形式の変更で見落としやすい。
-            // フラグだけ移したつもりでも司書取引や戦利品生成がズレるので、移植時は個別に再検証すること。
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.ALACRITY, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.REFLUX, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.RESERVOIR, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.SURGE, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.ATTUNEMENT, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.TENSE, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.WISDOM, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.PLUNDER, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.TRANSCENDENCE, true, true, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.GUZZLE, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.LARGE_MUG, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.RED_ENERGY, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.GLOW_ENERGY, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.SYNTHESIS, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.SHELL, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.SYNCHRONIZATION, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.NEUTRALIZATION, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.COMPRESS, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.RELEASE, false, false, true);
-        });
-    }
-    static void randomApplicableBookEnchantmentsExcludeFlaskEnchantments(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            // 1.21.1申し送り事項:
-            // 本棚由来の抽選可否は enchanting table 可否だけでは追えず、book/anvil 側の定義差分でも崩れる。
-            // Flask 系除外は「今も本から引けないか」を seed 探索込みで見直し、そのまま移植前提にしない。
-            var function = EnchantRandomlyFunction.randomApplicableEnchantment().build();
-            var seenApprenticeEnchantments = new LinkedHashSet<ResourceLocation>();
-
-            for (long seed = 0L; seed < 4096L; ++seed) {
-                var result = function.apply(new ItemStack(Items.BOOK), createEmptyLootContext(helper, seed));
-                var enchantments = EnchantmentHelper.getEnchantments(result);
-                helper.assertTrue(result.is(Items.ENCHANTED_BOOK),
-                        "Random applicable enchantment loot should convert books into enchanted books");
-                helper.assertTrue(enchantments.size() == 1,
-                        "Random applicable enchantment loot should apply exactly one enchantment: " + enchantments);
-
-                for (var enchantment : enchantments.keySet()) {
-                    var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-                    if (enchantmentId == null || !ApprenticeCodex.MODID.equals(enchantmentId.getNamespace())) {
-                        continue;
-                    }
-
-                    helper.assertFalse(ApprenticeEnchantmentAvailability.isExcludedFromRandomBookLoot(enchantment),
-                            "Random applicable enchantment loot included excluded enchantment: " + enchantmentId + " at seed " + seed);
-                    seenApprenticeEnchantments.add(enchantmentId);
-                }
-            }
-
-            var expectedEnchantments = expectedRandomBookLootEnchantments();
-            helper.assertTrue(seenApprenticeEnchantments.containsAll(expectedEnchantments),
-                    "Random applicable enchantment loot lost apprentice enchantments: "
-                            + describeEnchantmentDifference(expectedEnchantments, seenApprenticeEnchantments));
-        });
-    }
-    static void magicArmorKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            assertCategoryEnchantments(
-                    helper,
-                    "Enchantress Robe",
-                    item -> item instanceof EnchantressRobeItem,
-                    ApprenticeCodexGameTestScenarios::expectedEnchantressRobeEnchantments
-            );
-            assertCategoryEnchantments(
-                    helper,
-                    "Stealth Rune Armor",
-                    item -> item instanceof StealthRuneArmorItem,
-                    ApprenticeCodexGameTestScenarios::expectedStealthRuneArmorEnchantments
-            );
-            assertCategoryEnchantments(
-                    helper,
-                    "Chromatic Magia Dress",
-                    item -> item instanceof ChromaticMagiaDressItem,
-                    ApprenticeCodexGameTestScenarios::expectedChromaticMagiaDressEnchantments
-            );
-            assertCategoryEnchantments(
-                    helper,
-                    "Element Maiden Robe",
-                    item -> item instanceof ElementMaidenRobeItem,
-                    ApprenticeCodexGameTestScenarios::expectedElementMaidenRobeEnchantments
-            );
-        });
-    }
-
-    static void scrollcasterGauntletKeepsExpectedStatsAndBenchEnchantingRules(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    Set.of(),
-                    "Scrollcaster Gauntlet"
-            );
-
-            ScrollcasterGauntlet.setCalibrationScroll(
-                    stack,
-                    0,
-                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get())
-            );
-            stack.enchant(EnchantmentRegistry.ALACRITY.get(), 1);
-            stack.enchant(EnchantmentRegistry.REFLUX.get(), 1);
-            stack.enchant(EnchantmentRegistry.RESERVOIR.get(), 1);
-            stack.enchant(EnchantmentRegistry.SURGE.get(), 1);
-            stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
-            stack.enchant(EnchantmentRegistry.TENSE.get(), 1);
-
-            var modifiers = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
-            assertModifierWithId(
-                    helper,
-                    modifiers.get(Attributes.ATTACK_DAMAGE),
-                    VANILLA_BASE_ATTACK_DAMAGE_MODIFIER_ID,
-                    AttributeModifier.Operation.ADDITION,
-                    5.0D,
-                    "Scrollcaster Gauntlet attack damage modifier should keep vanilla weapon tooltip UUID"
-            );
-            assertModifierWithId(
-                    helper,
-                    modifiers.get(Attributes.ATTACK_SPEED),
-                    VANILLA_BASE_ATTACK_SPEED_MODIFIER_ID,
-                    AttributeModifier.Operation.ADDITION,
-                    -2.2D,
-                    "Scrollcaster Gauntlet attack speed modifier should keep vanilla weapon tooltip UUID"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.02D,
-                    "Scrollcaster Gauntlet Alacrity modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.05D,
-                    "Scrollcaster Gauntlet Reflux modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get()),
-                    AttributeModifier.Operation.ADDITION,
-                    20.0D,
-                    "Scrollcaster Gauntlet Reservoir modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.07D,
-                    "Scrollcaster Gauntlet base + Surge spell power modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.05D,
-                    "Scrollcaster Gauntlet Tense modifier changed"
-            );
-
-            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
-            helper.assertTrue(imbuedSchool != null,
-                    "Scrollcaster Gauntlet test could not resolve the selected spell school");
-            var attunementAttribute = jp.aquafactory.apprenticecodex.utility.MagicTools
-                    .resolveSchoolPowerAttribute(imbuedSchool);
-            helper.assertTrue(attunementAttribute != null,
-                    "Scrollcaster Gauntlet test could not resolve the Attunement spell power attribute: " + imbuedSchool.getId());
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(attunementAttribute),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.04D,
-                    "Scrollcaster Gauntlet Attunement modifier changed"
-            );
-        });
-    }
-
-    static void apprenticeMageRobeKeepsExpectedAttributeBonuses(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
-            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
-            var expectedSpellPower = ApprenticeCodexServerConfig.apprenticeMageRobeSpellPowerBonusPerPiece();
-            var pieces = Map.of(
-                    ArmorItem.Type.HELMET, (ApprenticeMageRobeItem) ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
-                    ArmorItem.Type.CHESTPLATE, (ApprenticeMageRobeItem) ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
-                    ArmorItem.Type.LEGGINGS, (ApprenticeMageRobeItem) ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
-                    ArmorItem.Type.BOOTS, (ApprenticeMageRobeItem) ItemRegistry.APPRENTICE_MAGE_BOOTS.get()
-            );
-
-            for (var entry : pieces.entrySet()) {
-                var armorType = entry.getKey();
-                var item = entry.getValue();
-                var stack = new ItemStack(item);
-                item.initializeSpellContainer(stack);
-
-                var modifiers = item.getAttributeModifiers(armorType.getSlot(), stack);
-                var maxManaBonus = sumModifierAmount(modifiers.get(maxManaAttribute), AttributeModifier.Operation.ADDITION);
-                helper.assertTrue(Math.abs(maxManaBonus - 50.0D) < 1.0e-9D,
-                        "Apprentice Mage Robe " + armorType + " max mana regression: " + describeModifiers(modifiers));
-
-                var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.MULTIPLY_BASE);
-                helper.assertTrue(Math.abs(spellPowerBonus - expectedSpellPower) < 1.0e-9D,
-                        "Apprentice Mage Robe " + armorType + " spell power config regression: " + describeModifiers(modifiers));
-
-                helper.assertTrue(ISpellContainer.isSpellContainer(stack) == (armorType == ArmorItem.Type.CHESTPLATE),
-                        "Apprentice Mage Robe " + armorType + " imbue surface regression");
-            }
-        });
-    }
-
-    static void enchantressRobeKeepsExpectedAttributeBonusesAndImbueSurface(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
-            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
-            var lightningSpellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.LIGHTNING_SPELL_POWER.get();
-            var expectedSpellPower = ApprenticeCodexServerConfig.enchantressRobeSpellPowerBonusPerPiece();
-            var pieces = Map.of(
-                    ArmorItem.Type.HELMET, (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_HAT.get(),
-                    ArmorItem.Type.CHESTPLATE, (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_ROBE.get(),
-                    ArmorItem.Type.LEGGINGS, (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
-                    ArmorItem.Type.BOOTS, (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_BOOTS.get()
-            );
-
-            for (var entry : pieces.entrySet()) {
-                var armorType = entry.getKey();
-                var item = entry.getValue();
-                var stack = new ItemStack(item);
-                item.initializeSpellContainer(stack);
-
-                var modifiers = item.getAttributeModifiers(armorType.getSlot(), stack);
-                var maxManaBonus = sumModifierAmount(modifiers.get(maxManaAttribute), AttributeModifier.Operation.ADDITION);
-                helper.assertTrue(Math.abs(maxManaBonus - EnchantressRobeStats.MAX_MANA_BONUS_PER_PIECE) < 1.0e-9D,
-                        "Enchantress Robe " + armorType + " max mana regression: " + describeModifiers(modifiers));
-
-                var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.MULTIPLY_BASE);
-                helper.assertTrue(Math.abs(spellPowerBonus - expectedSpellPower) < 1.0e-9D,
-                        "Enchantress Robe " + armorType + " spell power config regression: " + describeModifiers(modifiers));
-
-                helper.assertTrue(ISpellContainer.isSpellContainer(stack) == item.hasImbueSlot(),
-                        "Enchantress Robe " + armorType + " imbue surface regression: hasImbueSlot="
-                                + item.hasImbueSlot() + " stack=" + stack);
-
-                var lightningSpellPowerBonus = sumModifierAmount(
-                        modifiers.get(lightningSpellPowerAttribute),
-                        AttributeModifier.Operation.MULTIPLY_BASE
-                );
-                helper.assertTrue(Math.abs(lightningSpellPowerBonus) < 1.0e-9D,
-                        "Enchantress Robe " + armorType + " should not gain school spell power before imbue: "
-                                + describeModifiers(modifiers));
-            }
-        });
-    }
-    static void enchantressRobeChestplateAddsImbuedSchoolSpellPowerWithoutChangingGlobalSpellPower(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_ROBE.get();
-            var stack = new ItemStack(item);
-            item.initializeSpellContainer(stack);
-            ISpellContainer.createImbuedContainer(io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(), 1, stack);
-
-            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
-            helper.assertTrue(imbuedSchool != null,
-                    "Enchantress Robe chestplate test could not resolve imbued school");
-            var imbuedSpellPowerAttribute =
-                    jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
-            helper.assertTrue(imbuedSpellPowerAttribute != null,
-                    "Enchantress Robe chestplate test could not resolve school spell power attribute");
-
-            var modifiers = item.getAttributeModifiers(EquipmentSlot.CHEST, stack);
-            var globalSpellPowerBonus = sumModifierAmount(
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            );
-            var expectedGlobalSpellPower = ApprenticeCodexServerConfig.enchantressRobeSpellPowerBonusPerPiece();
-            helper.assertTrue(Math.abs(globalSpellPowerBonus - expectedGlobalSpellPower) < 1.0e-9D,
-                    "Enchantress Robe chestplate should keep configured spell power after imbue: " + describeModifiers(modifiers));
-
-            var imbuedSchoolSpellPowerBonus = sumModifierAmount(
-                    modifiers.get(imbuedSpellPowerAttribute),
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            );
-            helper.assertTrue(Math.abs(imbuedSchoolSpellPowerBonus - 0.05D) < 1.0e-9D,
-                    "Enchantress Robe chestplate should add +0.05 imbued school spell power: " + describeModifiers(modifiers));
-        });
-    }
-    static void chromaticMagiaDressKeepsExpectedStatsAndImbueSurface(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
-            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
-            var expectedSpellPower = ApprenticeCodexServerConfig.chromaticMagiaDressSpellPowerBonusPerPiece();
-            var pieces = Map.of(
-                    ArmorItem.Type.HELMET, (ChromaticMagiaDressItem) ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
-                    ArmorItem.Type.CHESTPLATE, (ChromaticMagiaDressItem) ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
-                    ArmorItem.Type.LEGGINGS, (ChromaticMagiaDressItem) ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
-                    ArmorItem.Type.BOOTS, (ChromaticMagiaDressItem) ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()
-            );
-
-            for (var entry : pieces.entrySet()) {
-                var armorType = entry.getKey();
-                var item = entry.getValue();
-                var stack = new ItemStack(item);
-                item.initializeSpellContainer(stack);
-
-                helper.assertTrue(item.getMaterial().getDefenseForType(armorType) == ArmorMaterials.IRON.getDefenseForType(armorType),
-                        "Chromatic Magia Dress " + armorType + " defense should match iron");
-                helper.assertTrue(Math.abs(item.getMaterial().getToughness() - 1.0F) < 1.0e-6F,
-                        "Chromatic Magia Dress " + armorType + " toughness should be 1");
-                helper.assertTrue(item.getEnchantmentValue(stack) == ChromaticMagiaDressStats.enchantmentValue(),
-                        "Chromatic Magia Dress " + armorType + " enchantment value changed");
-                helper.assertTrue(item.isValidRepairItem(
-                                stack,
-                                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
-                        ),
-                        "Chromatic Magia Dress " + armorType + " should repair with mithril scrap");
-
-                var modifiers = item.getAttributeModifiers(armorType.getSlot(), stack);
-                var maxManaBonus = sumModifierAmount(modifiers.get(maxManaAttribute), AttributeModifier.Operation.ADDITION);
-                helper.assertTrue(Math.abs(maxManaBonus - 125.0D) < 1.0e-9D,
-                        "Chromatic Magia Dress " + armorType + " max mana regression: " + describeModifiers(modifiers));
-
-                var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.MULTIPLY_BASE);
-                helper.assertTrue(Math.abs(spellPowerBonus - expectedSpellPower) < 1.0e-9D,
-                        "Chromatic Magia Dress " + armorType + " spell power config regression: " + describeModifiers(modifiers));
-
-                helper.assertTrue(ISpellContainer.isSpellContainer(stack) == item.hasImbueSlot(),
-                        "Chromatic Magia Dress " + armorType + " imbue surface regression");
-
-                var tooltipLines = new ArrayList<Component>();
-                item.appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
-                helper.assertTrue(tooltipLines.stream().anyMatch(line ->
-                                line.getContents() instanceof TranslatableContents contents
-                                        && (item.getDescriptionId() + ".desc").equals(contents.getKey())),
-                        "Chromatic Magia Dress " + armorType + " should show its lang desc key");
-            }
-        });
-    }
-    static void elementMaidenRobeKeepsExpectedStatsImbueAndMagicEnchantments(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
-            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
-            var expectedSpellPower = ApprenticeCodexServerConfig.elementMaidenRobeSpellPowerBonus();
-            var pieces = Map.of(
-                    ArmorItem.Type.HELMET, (ElementMaidenRobeItem) ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
-                    ArmorItem.Type.CHESTPLATE, (ElementMaidenRobeItem) ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
-                    ArmorItem.Type.LEGGINGS, (ElementMaidenRobeItem) ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
-                    ArmorItem.Type.BOOTS, (ElementMaidenRobeItem) ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get()
-            );
-
-            for (var entry : pieces.entrySet()) {
-                var armorType = entry.getKey();
-                var item = entry.getValue();
-                var stack = new ItemStack(item);
-                item.initializeSpellContainer(stack);
-
-                helper.assertTrue(item instanceof io.redspace.ironsspellbooks.item.UniqueItem,
-                        "Element Maiden Robe " + armorType + " should be a unique item");
-                helper.assertTrue(stack.getRarity() == Rarity.EPIC,
-                        "Element Maiden Robe " + armorType + " rarity should be epic");
-                helper.assertTrue(item.getMaterial().getDefenseForType(armorType) == ArmorMaterials.LEATHER.getDefenseForType(armorType),
-                        "Element Maiden Robe " + armorType + " defense should match leather");
-                helper.assertTrue(Math.abs(item.getMaterial().getToughness() - 4.0F) < 1.0e-6F,
-                        "Element Maiden Robe " + armorType + " toughness should be 4");
-                helper.assertTrue(item.getEnchantmentValue(stack) == ElementMaidenRobeStats.enchantmentValue(),
-                        "Element Maiden Robe " + armorType + " enchantment value changed");
-                helper.assertTrue(item.isValidRepairItem(
-                                stack,
-                                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
-                        ),
-                        "Element Maiden Robe " + armorType + " should repair with mithril scrap");
-
-                var modifiers = item.getAttributeModifiers(armorType.getSlot(), stack);
-                var maxManaBonus = sumModifierAmount(modifiers.get(maxManaAttribute), AttributeModifier.Operation.ADDITION);
-                helper.assertTrue(Math.abs(maxManaBonus - ElementMaidenRobeStats.MAX_MANA_BONUS) < 1.0e-9D,
-                        "Element Maiden Robe " + armorType + " max mana regression: " + describeModifiers(modifiers));
-
-                var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.MULTIPLY_BASE);
-                helper.assertTrue(Math.abs(spellPowerBonus - expectedSpellPower) < 1.0e-9D,
-                        "Element Maiden Robe " + armorType + " spell power config regression: " + describeModifiers(modifiers));
-
-                helper.assertTrue(ISpellContainer.isSpellContainer(stack) == item.hasImbueSlot(),
-                        "Element Maiden Robe " + armorType + " imbue surface regression");
-
-                var tooltipLines = new ArrayList<Component>();
-                item.appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
-                helper.assertTrue(tooltipLines.stream().anyMatch(line ->
-                                line.getContents() instanceof TranslatableContents contents
-                                        && "item.apprenticecodex.element_maiden_robe.desc".equals(contents.getKey())),
-                        "Element Maiden Robe " + armorType + " should show its common lang desc key");
-            }
-
-            var chestplate = (ElementMaidenRobeItem) ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get();
-            var chestStack = new ItemStack(chestplate);
-            chestplate.initializeSpellContainer(chestStack);
-            var initialContainer = ISpellContainer.get(chestStack);
-            helper.assertTrue(initialContainer != null
-                            && initialContainer.getSpellAtIndex(0).getSpell() == SpellRegistry.DIVINE_POSSESSION.get(),
-                    "Element Maiden Robe chestplate should initialize Divine Possession as its imbue spell");
-            ISpellContainer.createImbuedContainer(io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(), 1, chestStack);
-            chestStack.enchant(EnchantmentRegistry.SURGE.get(), 1);
-            chestStack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
-
-            var imbuedSchool = MagicTools.getImbuedSpellSchool(chestStack);
-            helper.assertTrue(imbuedSchool != null,
-                    "Element Maiden Robe chestplate test could not resolve imbued school");
-            var imbuedSpellPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
-            helper.assertTrue(imbuedSpellPowerAttribute != null,
-                    "Element Maiden Robe chestplate test could not resolve school spell power attribute");
-
-            var enchantedModifiers = chestplate.getAttributeModifiers(EquipmentSlot.CHEST, chestStack);
-            var enchantedGlobalSpellPower = sumModifierAmount(
-                    enchantedModifiers.get(spellPowerAttribute),
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            );
-            helper.assertTrue(Math.abs(enchantedGlobalSpellPower
-                            - (expectedSpellPower + ElementMaidenRobeStats.SURGE_SPELL_POWER_PER_LEVEL)) < 1.0e-9D,
-                    "Element Maiden Robe chestplate should add Surge spell power: " + describeModifiers(enchantedModifiers));
-
-            var attunementSpellPower = sumModifierAmount(
-                    enchantedModifiers.get(imbuedSpellPowerAttribute),
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            );
-            helper.assertTrue(Math.abs(attunementSpellPower
-                            - ElementMaidenRobeStats.ATTUNEMENT_SPELL_POWER_PER_LEVEL) < 1.0e-9D,
-                    "Element Maiden Robe chestplate should add Attunement school spell power: "
-                            + describeModifiers(enchantedModifiers));
-        });
-    }
-
-    static void elementMaidenRobeSchoolSpellPowerDistributesSpellbookSchools(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            try (var ignored = ApprenticeCodexServerConfig.useElementMaidenRobeSchoolSpellPowerBonusOverrideForGameTest(0.20D)) {
-                // GameTest では SpellConfig 経由の school 解決が Evocation に寄ることがあるため、
-                // 分配ルール自体は SchoolRegistry から直接検証する.
-                var directBonuses = ElementMaidenRobeSchoolPowerBonusEvents.resolveSchoolPowerBonuses(10, Map.of(
-                        SchoolRegistry.FIRE.get(), 4,
-                        SchoolRegistry.ICE.get(), 3
-                ), 0.20D);
-                assertElementMaidenSchoolPowerBonusAmount(helper, directBonuses,
-                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get(),
-                        0.14D,
-                        "Element Maiden Robe should distribute empty slots to the strongest spellbook school");
-                assertElementMaidenSchoolPowerBonusAmount(helper, directBonuses,
-                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.ICE_SPELL_POWER.get(),
-                        0.06D,
-                        "Element Maiden Robe should keep lower spellbook school share");
-
-                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
-                        "element_maiden_robe_school_power_distribution_test");
-                player.setItemSlot(EquipmentSlot.CHEST, new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()));
-                player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get()));
-
-                equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
-                        createElementMaidenRobeSchoolPowerSpellbook(helper,
-                                io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get()));
-
-                helper.assertTrue(player.getItemBySlot(EquipmentSlot.CHEST).getItem() instanceof ElementMaidenRobeItem,
-                        "Element Maiden Robe dynamic test player is not wearing the robe");
-                var resolvedBonuses = ElementMaidenRobeSchoolPowerBonusEvents.resolveSchoolPowerBonuses(player, 0.20D);
-                helper.assertTrue(!resolvedBonuses.isEmpty(),
-                        "Element Maiden Robe dynamic test could not resolve spellbook schools from Curios slot");
-                helper.assertTrue(Math.abs(ApprenticeCodexServerConfig.elementMaidenRobeSchoolSpellPowerBonus() - 0.20D) < 1.0e-9D,
-                        "Element Maiden Robe dynamic test config override did not apply");
-                var appliedBonuses = ElementMaidenRobeSchoolPowerBonusEvents.refresh(player);
-                assertElementMaidenDynamicSchoolPowerBonuses(helper, player, appliedBonuses,
-                        "Element Maiden Robe should apply Curios spellbook-derived school spell power");
-            }
-        });
-    }
-
-    static void elementMaidenRobeSchoolSpellPowerSplitsEmptySlotsBetweenTiedSchools(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            try (var ignored = ApprenticeCodexServerConfig.useElementMaidenRobeSchoolSpellPowerBonusOverrideForGameTest(0.20D)) {
-                var directBonuses = ElementMaidenRobeSchoolPowerBonusEvents.resolveSchoolPowerBonuses(10, Map.of(
-                        SchoolRegistry.FIRE.get(), 3,
-                        SchoolRegistry.ICE.get(), 3,
-                        SchoolRegistry.NATURE.get(), 1
-                ), 0.20D);
-                assertElementMaidenSchoolPowerBonusAmount(helper, directBonuses,
-                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get(),
-                        0.09D,
-                        "Element Maiden Robe should split empty slots between tied strongest schools");
-                assertElementMaidenSchoolPowerBonusAmount(helper, directBonuses,
-                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.ICE_SPELL_POWER.get(),
-                        0.09D,
-                        "Element Maiden Robe should split empty slots between tied strongest schools");
-                assertElementMaidenSchoolPowerBonusAmount(helper, directBonuses,
-                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.NATURE_SPELL_POWER.get(),
-                        0.02D,
-                        "Element Maiden Robe should floor smaller spellbook school shares to 1% units");
-            }
-        });
-    }
-
-    static void elementMaidenRobeSchoolSpellPowerIgnoresHandsAndZeroConfig(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var fire = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
-                    "element_maiden_robe_school_power_ignore_hand_test");
-            player.setItemSlot(EquipmentSlot.CHEST, new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()));
-            player.setItemInHand(InteractionHand.MAIN_HAND, createElementMaidenRobeSchoolPowerSpellbook(helper, fire));
-
-            try (var ignored = ApprenticeCodexServerConfig.useElementMaidenRobeSchoolSpellPowerBonusOverrideForGameTest(0.20D)) {
-                ElementMaidenRobeSchoolPowerBonusEvents.refresh(player);
-                assertNoElementMaidenDynamicSchoolPower(helper, player,
-                        "Element Maiden Robe should ignore spell containers outside the Curios spellbook slot");
-            }
-
-            equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
-                    createElementMaidenRobeSchoolPowerSpellbook(helper, fire));
-            try (var ignored = ApprenticeCodexServerConfig.useElementMaidenRobeSchoolSpellPowerBonusOverrideForGameTest(0.0D)) {
-                ElementMaidenRobeSchoolPowerBonusEvents.refresh(player);
-                assertNoElementMaidenDynamicSchoolPower(helper, player,
-                        "Element Maiden Robe school spell power config 0 should disable the dynamic bonus");
-            }
-        });
-    }
-
-    static void elementMaidenRobeSchoolSpellPowerRefreshesArchivistsAndEnderGrimoireSources(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            try (var ignored = ApprenticeCodexServerConfig.useElementMaidenRobeSchoolSpellPowerBonusOverrideForGameTest(0.20D)) {
-                var fire = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
-                var ice = SpellRegistry.FROST_RUNE.get();
-
-                var archivistsPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
-                        "element_maiden_robe_archivists_source_test");
-                archivistsPlayer.setItemSlot(EquipmentSlot.CHEST, new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()));
-                var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
-                ArchivistsGrimoire.setUpgradeCount(grimoireStack, 2);
-                var inventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack);
-                inventory.setStackInSlot(0, createSpellScroll(fire));
-                inventory.setStackInSlot(ArchivistsGrimoire.COLUMN_COUNT, createSpellScroll(ice));
-                ArchivistsGrimoire.setSelectedRow(grimoireStack, 0);
-                equipCurio(archivistsPlayer, io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT, grimoireStack);
-
-                var firstArchivistsBonuses = ElementMaidenRobeSchoolPowerBonusEvents.refresh(archivistsPlayer);
-                helper.assertTrue(!firstArchivistsBonuses.isEmpty(),
-                        "Element Maiden Robe should resolve the selected Archivists Grimoire page");
-                assertElementMaidenDynamicSchoolPowerBonuses(helper, archivistsPlayer, firstArchivistsBonuses,
-                        "Element Maiden Robe should read the selected Archivists Grimoire page");
-                ArchivistsGrimoire.setSelectedRow(grimoireStack, 1);
-                var secondArchivistsBonuses = ElementMaidenRobeSchoolPowerBonusEvents.refresh(archivistsPlayer);
-                helper.assertTrue(!secondArchivistsBonuses.isEmpty(),
-                        "Element Maiden Robe should resolve the new Archivists Grimoire page");
-                assertElementMaidenDynamicSchoolPowerBonuses(helper, archivistsPlayer, secondArchivistsBonuses,
-                        "Element Maiden Robe should apply the new Archivists Grimoire page bonus");
-
-                var enderPlayer = createEquipmentTestPlayer(helper, new BlockPos(2, 2, 0),
-                        "element_maiden_robe_ender_source_test");
-                enderPlayer.setItemSlot(EquipmentSlot.CHEST, new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()));
-                var enderData = Capabilities.getEnderGrimoireSpellbookOrNull(enderPlayer);
-                helper.assertTrue(enderData != null, "Ender Grimoire school spell power test is missing player capability");
-                var mutable = ISpellContainer.create(15, true, true).mutableCopy();
-                helper.assertTrue(mutable.addSpellAtIndex(fire, 1, 0, false),
-                        "Failed to prepare Ender Grimoire fire spell");
-                enderData.setSpellContainer(mutable.toImmutable());
-                equipCurio(enderPlayer, io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
-                        new ItemStack(ItemRegistry.ENDER_GRIMOIRE.get()));
-
-                var enderBonuses = ElementMaidenRobeSchoolPowerBonusEvents.refresh(enderPlayer);
-                helper.assertTrue(!enderBonuses.isEmpty(),
-                        "Element Maiden Robe should resolve Ender Grimoire spells from the player capability");
-                assertElementMaidenDynamicSchoolPowerBonuses(helper, enderPlayer, enderBonuses,
-                        "Element Maiden Robe should read Ender Grimoire spells from the player capability");
-            }
-        });
-    }
-
-    static void stealthRuneArmorKeepsExpectedAttributeBonusesAndImbueSurface(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
-            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
-            var expectedSpellPower = ApprenticeCodexServerConfig.stealthRuneArmorSpellPowerBonusPerPiece();
-            var pieces = Map.of(
-                    ArmorItem.Type.HELMET, (StealthRuneArmorItem) ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),
-                    ArmorItem.Type.CHESTPLATE, (StealthRuneArmorItem) ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
-                    ArmorItem.Type.LEGGINGS, (StealthRuneArmorItem) ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
-                    ArmorItem.Type.BOOTS, (StealthRuneArmorItem) ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get()
-            );
-
-            for (var entry : pieces.entrySet()) {
-                var armorType = entry.getKey();
-                var item = entry.getValue();
-                var stack = new ItemStack(item);
-                item.initializeSpellContainer(stack);
-
-                var modifiers = item.getAttributeModifiers(armorType.getSlot(), stack);
-                var maxManaBonus = sumModifierAmount(modifiers.get(maxManaAttribute), AttributeModifier.Operation.ADDITION);
-                helper.assertTrue(Math.abs(maxManaBonus - 50.0D) < 1.0e-9D,
-                        "Stealth Rune Armor " + armorType + " max mana regression: " + describeModifiers(modifiers));
-
-                var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.MULTIPLY_BASE);
-                helper.assertTrue(Math.abs(spellPowerBonus - expectedSpellPower) < 1.0e-9D,
-                        "Stealth Rune Armor " + armorType + " spell power config regression: " + describeModifiers(modifiers));
-
-                helper.assertTrue(ISpellContainer.isSpellContainer(stack) == item.hasImbueSlot(),
-                        "Stealth Rune Armor " + armorType + " imbue surface regression");
-
-                var tooltipLines = new ArrayList<Component>();
-                item.appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
-                helper.assertTrue(tooltipLines.stream().anyMatch(line ->
-                                line.getContents() instanceof TranslatableContents contents
-                                        && ("item." + ApprenticeCodex.MODID + ".stealth_rune_armor.desc").equals(contents.getKey())),
-                        "Stealth Rune Armor " + armorType + " should show its lang desc key");
-            }
-        });
-    }
-
-    static void chromaticMagiaDressRecordsCastHistoryByArmorTypeAndIgnoresRecasts(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "chromatic_magia_dress_history_test");
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Chromatic Magia Dress test could not resolve player mana data");
-
-            var helmet = new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get());
-            var chestplate = new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get());
-            var leggings = new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get());
-            var boots = new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get());
-            player.setItemSlot(EquipmentSlot.HEAD, helmet);
-            player.setItemSlot(EquipmentSlot.CHEST, chestplate);
-            player.setItemSlot(EquipmentSlot.LEGS, leggings);
-            player.setItemSlot(EquipmentSlot.FEET, boots);
-            var schoolSpellPowerBonusPerHistory =
-                    ApprenticeCodexServerConfig.chromaticMagiaDressSchoolSpellPowerBonusPerHistory();
-
-            var longSpell = SpellRegistry.COMPOUND_PHIAL.get();
-            for (int i = 0; i < 21; ++i) {
-                postSpellOnCast(player, longSpell, 1);
-            }
-            assertSchoolSpellPowerBonus(helper, helmet, EquipmentSlot.HEAD, longSpell,
-                    20.0D * schoolSpellPowerBonusPerHistory,
-                    "Chromatic Magia Dress helmet should keep only the latest 20 LONG histories");
-            assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, longSpell, 0.0D,
-                    "Chromatic Magia Dress chestplate should ignore non-recast LONG spells");
-
-            var continuousSpell = SpellRegistry.FORCE_FIELD.get();
-            postSpellOnCast(player, continuousSpell, 1);
-            assertSchoolSpellPowerBonus(helper, leggings, EquipmentSlot.LEGS, continuousSpell, schoolSpellPowerBonusPerHistory,
-                    "Chromatic Magia Dress leggings should record CONTINUOUS spells");
-
-            var instantSpell = SpellRegistry.MANA_SLASH.get();
-            postSpellOnCast(player, instantSpell, 1);
-            assertSchoolSpellPowerBonus(helper, boots, EquipmentSlot.FEET, instantSpell, schoolSpellPowerBonusPerHistory,
-                    "Chromatic Magia Dress boots should record INSTANT spells");
-
-            var recastSpell = SpellRegistry.ARCHER_MULTIPLE.get();
-            postSpellOnCast(player, recastSpell, 1);
-            assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, recastSpell, schoolSpellPowerBonusPerHistory,
-                    "Chromatic Magia Dress chestplate should record initial recast-capable casts");
-
-            magicData.getPlayerRecasts().addRecast(new RecastInstance(
-                    recastSpell.getSpellId(),
-                    1,
-                    2,
-                    100,
-                    CastSource.SPELLBOOK,
-                    null
-            ), magicData);
-            postSpellOnCast(player, recastSpell, 1);
-            assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, recastSpell, schoolSpellPowerBonusPerHistory,
-                    "Chromatic Magia Dress chestplate should ignore casts while the same spell is in Recast");
-        });
-    }
-    static void pastelStaffKeepsItsLocalEnchantingRules(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var pastelStack = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
-            var multicastStack = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
-
-            assertStaffKeepsExpectedEnchantingRules(helper, pastelStack, "Pastel Staff");
-            assertStaffKeepsExpectedEnchantingRules(helper, multicastStack, "Multicast Echo Staff");
-            assertEnchantingSurfacesMatch(helper, pastelStack, multicastStack, "Pastel Staff", "Multicast Echo Staff");
-        });
-    }
-
-    private static void assertStaffKeepsExpectedEnchantingRules(
+    static void assertStaffKeepsExpectedEnchantingRules(
             GameTestHelper helper,
             ItemStack stack,
             String itemName
@@ -9009,7 +3868,7 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
-    private static void assertEnchantingSurfacesMatch(
+    static void assertEnchantingSurfacesMatch(
             GameTestHelper helper,
             ItemStack leftStack,
             ItemStack rightStack,
@@ -9043,177 +3902,9 @@ public final class ApprenticeCodexGameTestScenarios {
                         + describeEnchantmentDifference(leftBookEnchantments, rightBookEnchantments));
     }
 
-    static void circuitHeatStaffKeepsExpectedStatsAndEnchantingRules(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-            var item = (CircuitHeatStaff) stack.getItem();
-            var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
 
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(Attributes.ATTACK_DAMAGE),
-                    AttributeModifier.Operation.ADDITION,
-                    3.0D,
-                    "Circuit Heat Staff attack damage modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(Attributes.ATTACK_SPEED),
-                    AttributeModifier.Operation.ADDITION,
-                    -3.0D,
-                    "Circuit Heat Staff attack speed modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.10D,
-                    "Circuit Heat Staff spell power modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.05D,
-                    "Circuit Heat Staff fire spell power modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.LIGHTNING_SPELL_POWER.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.05D,
-                    "Circuit Heat Staff lightning spell power modifier changed"
-            );
-            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
-                    "Circuit Heat Staff should not expose an imbue spell container");
 
-            CircuitHeatStaff.startStaffOverheat(stack, helper.getLevel(), 20 * 45);
-            var remainingOverheatTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(stack, helper.getLevel());
-            helper.assertTrue(remainingOverheatTicks == 20 * 45,
-                    "Circuit Heat Staff item overheat should keep the requested duration: "
-                            + remainingOverheatTicks);
 
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedCircuitHeatStaffEnchantments(stack),
-                    "Circuit Heat Staff"
-            );
-        });
-    }
-
-    static void multipurposeStaffrifleKeepsExpectedStatsAndEnchantingRules(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
-            var item = (MultipurposeStaffrifle) stack.getItem();
-            var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
-
-            helper.assertTrue(modifiers.get(Attributes.ATTACK_DAMAGE).isEmpty(),
-                    "Multipurpose Staffrifle should not add attack damage modifiers");
-            helper.assertTrue(modifiers.get(Attributes.ATTACK_SPEED).isEmpty(),
-                    "Multipurpose Staffrifle should not add attack speed modifiers");
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.10D,
-                    "Multipurpose Staffrifle spell power modifier changed"
-            );
-
-            var enchantedStack = stack.copy();
-            enchantedStack.enchant(EnchantmentRegistry.ALACRITY.get(), 1);
-            enchantedStack.enchant(EnchantmentRegistry.REFLUX.get(), 1);
-            enchantedStack.enchant(EnchantmentRegistry.RESERVOIR.get(), 1);
-            enchantedStack.enchant(EnchantmentRegistry.SURGE.get(), 1);
-            enchantedStack.enchant(EnchantmentRegistry.TENSE.get(), 1);
-            var enchantedModifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, enchantedStack);
-            assertSingleModifierAmount(
-                    helper,
-                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.02D,
-                    "Multipurpose Staffrifle Alacrity modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.05D,
-                    "Multipurpose Staffrifle Reflux modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get()),
-                    AttributeModifier.Operation.ADDITION,
-                    20.0D,
-                    "Multipurpose Staffrifle Reservoir modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.12D,
-                    "Multipurpose Staffrifle base + Surge spell power modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.05D,
-                    "Multipurpose Staffrifle Tense modifier changed"
-            );
-
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedMultipurposeStaffrifleEnchantments(stack),
-                    "Multipurpose Staffrifle"
-            );
-        });
-    }
-
-    static void multipurposeStaffrifleTooltipShowsControlsBeforeShiftHint(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
-            var tooltipLines = new ArrayList<Component>();
-            stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
-
-            helper.assertTrue(tooltipLines.size() >= 4,
-                    "Multipurpose Staffrifle tooltip should include controls, spacer, and shift hint");
-            assertTranslatableKey(
-                    helper,
-                    tooltipLines.get(0),
-                    "item.apprenticecodex.multipurpose_staffrifle.desc_1",
-                    "Multipurpose Staffrifle should show left-click control first"
-            );
-            assertTranslatableKey(
-                    helper,
-                    tooltipLines.get(1),
-                    "item.apprenticecodex.multipurpose_staffrifle.desc_2",
-                    "Multipurpose Staffrifle should show right-click control second"
-            );
-            helper.assertTrue(tooltipLines.get(2).getString().isEmpty(),
-                    "Multipurpose Staffrifle should separate controls from the shift hint with a blank line");
-            assertTranslatableKey(
-                    helper,
-                    tooltipLines.get(3),
-                    "item.apprenticecodex.spellgun.tooltip.hint",
-                    "Multipurpose Staffrifle should show shift hint after controls"
-            );
-        });
-    }
-
-    static void multipurposeStaffrifleSpecialCooldownPolicyMatchesDefaults(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (MultipurposeStaffrifle) ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get();
-            helper.assertTrue(item.resolveSpecialCooldownTicks(20 * 10) == 0,
-                    "Multipurpose Staffrifle should remove cooldowns at the default bypass threshold");
-            helper.assertTrue(item.resolveSpecialCooldownTicks(20 * 11) == 20 * 10,
-                    "Multipurpose Staffrifle should not reduce longer cooldowns below the default minimum");
-            helper.assertTrue(item.resolveSpecialCooldownTicks(20 * 60) == 20 * 30,
-                    "Multipurpose Staffrifle should subtract the default 30 seconds from long cooldowns");
-        });
-    }
 
     static void multipurposeStaffrifleServerDenylistBlocksSpecialCastSpell(GameTestHelper helper) {
         helper.succeedIf(() -> {
@@ -9271,138 +3962,9 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    static void multipurposeStaffrifleUsesDedicatedAmmoAndCasingReturnPolicy(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
-            var item = (MultipurposeStaffrifle) stack.getItem();
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_staffrifle_ammo_policy_test");
 
-            helper.assertTrue(item.getAmmoItem(stack) == ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(),
-                    "Multipurpose Staffrifle should use Multi-purpose Spell Round");
-            helper.assertTrue(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get() instanceof SpellcasterRoundItem,
-                    "Multi-purpose Spell Round should be a SpellcasterRoundItem");
-            var roundItem = (SpellcasterRoundItem) ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get();
-            helper.assertTrue(roundItem.getEmptyCasingItem() == ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get(),
-                    "Multi-purpose Spell Round should return Empty Multi-purpose Spell Casing");
-            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.0F,
-                    "Multipurpose Staffrifle should not return empty casings without Spellcaster Ammo Pouch");
 
-            equipCurio(player, CuriosSlotConstants.BELT, new ItemStack(ItemRegistry.SPELLCASTER_AMMO_POUCH.get()));
-            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.2F,
-                    "Multipurpose Staffrifle should use 20% empty casing return chance with Spellcaster Ammo Pouch");
-        });
-    }
 
-    static void multipurposeStaffrifleRecastSkipsAmmoConsumption(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
-            var item = (MultipurposeStaffrifle) stack.getItem();
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_staffrifle_recast_ammo_test");
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            var ammoStack = new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 1);
-            player.getInventory().add(ammoStack);
-
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
-            var magicData = MagicData.getPlayerMagicData(player);
-            magicData.setPlayerCastingItem(stack);
-            try (var ignored = MultipurposeStaffrifleCastContext.open(player.getUUID(), stack, spell, true)) {
-                MultipurposeStaffrifleCastEvent.onSpellCast(new SpellOnCastEvent(
-                        player,
-                        spell.getSpellId(),
-                        1,
-                        spell.getManaCost(1),
-                        spell.getSchoolType(),
-                        CastSource.SWORD
-                ));
-            } catch (Exception exception) {
-                throw new IllegalStateException("Failed to close Multipurpose Staffrifle test context.", exception);
-            }
-
-            helper.assertTrue(SpellGunCastEvent.countAvailableAmmo(
-                    player,
-                    player.getInventory(),
-                    item.getAmmoItem(stack)
-            ) == 1, "Multipurpose Staffrifle recast should not consume Multi-purpose Spell Round");
-        });
-    }
-
-    static void multipurposeStaffrifleKeepsNormalManaCost(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_staffrifle_mana_policy_test");
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-
-            helper.assertFalse(stack.getItem() instanceof ManaBypassSpellItem,
-                    "Multipurpose Staffrifle should not bypass mana consumption");
-
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
-            var manaCost = spell.getManaCost(1);
-            var magicData = MagicData.getPlayerMagicData(player);
-            magicData.setPlayerCastingItem(stack);
-
-            try (var ignored = MultipurposeStaffrifleCastContext.open(player.getUUID(), stack, spell, false)) {
-                var event = new SpellOnCastEvent(
-                        player,
-                        spell.getSpellId(),
-                        1,
-                        manaCost,
-                        spell.getSchoolType(),
-                        CastSource.SWORD
-                );
-                ItemManaBypassCastEvent.onSpellCast(event);
-                helper.assertTrue(event.getManaCost() == manaCost,
-                        "Multipurpose Staffrifle should keep normal mana cost: " + event.getManaCost());
-            } catch (Exception exception) {
-                throw new IllegalStateException("Failed to close Multipurpose Staffrifle mana policy test context.", exception);
-            }
-        });
-    }
-
-    static void multipurposeStaffrifleInstantCastConsumesAmmoAndAppliesCooldownPolicy(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
-            var item = (MultipurposeStaffrifle) stack.getItem();
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_staffrifle_instant_policy_test");
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            player.getInventory().add(new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 1));
-
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
-            var magicData = MagicData.getPlayerMagicData(player);
-            magicData.setPlayerCastingItem(stack);
-            MultipurposeStaffrifleCastContext.rememberPending(
-                    player.getUUID(),
-                    stack,
-                    spell,
-                    false,
-                    helper.getLevel().getGameTime()
-            );
-
-            MultipurposeStaffrifleCastEvent.onSpellCast(new SpellOnCastEvent(
-                    player,
-                    spell.getSpellId(),
-                    1,
-                    spell.getManaCost(1),
-                    spell.getSchoolType(),
-                    CastSource.SWORD
-            ));
-            helper.assertTrue(SpellGunCastEvent.countAvailableAmmo(
-                    player,
-                    player.getInventory(),
-                    item.getAmmoItem(stack)
-            ) == 0, "Multipurpose Staffrifle instant cast should consume Multi-purpose Spell Round");
-
-            var cooldownEvent = new SpellCooldownAddedEvent.Pre(
-                    20 * 10,
-                    spell,
-                    player,
-                    CastSource.SWORD
-            );
-            MultipurposeStaffrifleCastEvent.onSpellCooldownAdded(cooldownEvent);
-            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == 0,
-                    "Multipurpose Staffrifle instant cast should bypass cooldowns at the threshold: "
-                            + cooldownEvent.getEffectiveCooldown());
-        });
-    }
 
     static void multicastEchoStaffInstantCastRunsAfterDelayAndAppliesPenaltyCooldown(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multicast_echo_staff_delay_test");
@@ -10027,7 +4589,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    private static void prepareMulticastEchoStaffCast(
+    static void prepareMulticastEchoStaffCast(
             FakePlayer player,
             ItemStack staffStack,
             AbstractSpell spell,
@@ -10042,7 +4604,7 @@ public final class ApprenticeCodexGameTestScenarios {
         player.addEffect(new MobEffectInstance(EffectRegistry.ECHO_SPELL.get(), 200, amplifier));
     }
 
-    private static void completeMulticastEchoStaffCast(
+    static void completeMulticastEchoStaffCast(
             ServerLevel level,
             FakePlayer player,
             ItemStack staffStack,
@@ -10055,7 +4617,7 @@ public final class ApprenticeCodexGameTestScenarios {
         finishStartedSpellCast(level, player, spell, spellLevel);
     }
 
-    private static void beginMulticastEchoStaffCast(
+    static void beginMulticastEchoStaffCast(
             ServerLevel level,
             FakePlayer player,
             ItemStack staffStack,
@@ -10078,7 +4640,7 @@ public final class ApprenticeCodexGameTestScenarios {
         spell.onServerPreCast(level, spellLevel, player, magicData);
     }
 
-    private static void finishStartedSpellCast(
+    static void finishStartedSpellCast(
             ServerLevel level,
             FakePlayer player,
             AbstractSpell spell,
@@ -10089,7 +4651,7 @@ public final class ApprenticeCodexGameTestScenarios {
         spell.onServerCastComplete(level, spellLevel, player, magicData, false);
     }
 
-    private static int expectedMulticastEchoStaffCooldown(
+    static int expectedMulticastEchoStaffCooldown(
             AbstractSpell spell,
             ServerPlayer player,
             CastSource castSource,
@@ -10110,466 +4672,17 @@ public final class ApprenticeCodexGameTestScenarios {
         return Math.min(cooldownCapTicks, (int) Math.ceil(cooldownComponent + castTimeComponent));
     }
 
-    static void circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var baseManaCost = 100;
-            var step = 1;
 
-            var referenceAdditionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
-                    .getAdditionalManaCost(baseManaCost, step, 20 * 10);
-            helper.assertTrue(referenceAdditionalMana == 20,
-                    "Circuit Heat Staff skipped 10 seconds should keep the old step-1 extra mana: "
-                            + referenceAdditionalMana);
 
-            var shortAdditionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
-                    .getAdditionalManaCost(baseManaCost, step, 20 * 5);
-            helper.assertTrue(shortAdditionalMana == 10,
-                    "Circuit Heat Staff skipped 5 seconds should halve the step-1 extra mana: "
-                            + shortAdditionalMana);
 
-            var longAdditionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
-                    .getAdditionalManaCost(baseManaCost, step, 20 * 40);
-            helper.assertTrue(longAdditionalMana == 80,
-                    "Circuit Heat Staff skipped 40 seconds should quadruple the step-1 extra mana: "
-                            + longAdditionalMana);
 
-            var noSkippedCooldownAdditionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
-                    .getAdditionalManaCost(baseManaCost, step, 0);
-            helper.assertTrue(noSkippedCooldownAdditionalMana == 0,
-                    "Circuit Heat Staff should not add mana when no cooldown is skipped: "
-                            + noSkippedCooldownAdditionalMana);
-        });
-    }
 
-    static void circuitHeatStaffAdditionalManaUsesServerConfig(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            try (var ignored = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
-                    100,
-                    0.50D,
-                    0.25D,
-                    0,
-                    List.of(),
-                    1.0D,
-                    20 * 10,
-                    0,
-                    true,
-                    10,
-                    20 * 10,
-                    3,
-                    true,
-                    true
-            )) {
-                var additionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
-                        .getAdditionalManaCost(100, 2, 50);
-                helper.assertTrue(additionalMana == 100,
-                        "Circuit Heat Staff extra mana should use server config multipliers: " + additionalMana);
-            }
-        });
-    }
 
-    static void circuitHeatStaffOverheatUsesCastCooldownPlusSkippedCooldown(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_overheat_duration_test");
-            var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGIC_SPEAR.get();
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Circuit Heat Staff overheat duration test could not resolve player mana data");
 
-            player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
-            magicData.setPlayerCastingItem(staffStack);
 
-            var castCooldownTicks = 20 * 120;
-            var skippedCooldownTicks = 20 * 40;
-            var expectedOverheatTicks = castCooldownTicks + skippedCooldownTicks;
-            var plannedManaCost = Math.max(1, spell.getManaCost(1));
-            CircuitHeatStaffCastEvent.reserveOverheatCast(
-                    player,
-                    spell.getSpellId(),
-                    plannedManaCost,
-                    plannedManaCost,
-                    expectedOverheatTicks
-            );
 
-            magicData.setMana(plannedManaCost);
-            var event = new SpellOnCastEvent(
-                    player,
-                    spell.getSpellId(),
-                    1,
-                    spell.getManaCost(1),
-                    spell.getSchoolType(),
-                    CastSource.SPELLBOOK
-            );
-            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(event);
 
-            var remainingOverheatTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(staffStack, helper.getLevel());
-            helper.assertTrue(remainingOverheatTicks == expectedOverheatTicks,
-                    "Circuit Heat Staff item overheat should use cast cooldown plus skipped cooldown: "
-                            + remainingOverheatTicks + " / expected " + expectedOverheatTicks);
-
-            CircuitHeatStaffCastEvent.clearReservedOverheatCast(player);
-        });
-    }
-
-    static void circuitHeatStaffOverheatDurationUsesServerMinTicks(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            try (var ignored = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
-                    20 * 10,
-                    0.0D,
-                    0.0D,
-                    0,
-                    List.of(),
-                    0.0D,
-                    20 * 10,
-                    0,
-                    true,
-                    10,
-                    20 * 10,
-                    3,
-                    true,
-                    true
-            )) {
-                var context = createCircuitHeatStaffBypassTestContext(
-                        helper,
-                        "circuit_heat_staff_overheat_min_config_test",
-                        SpellRegistry.MANA_SLASH.get()
-                );
-                var baseManaCost = context.spell().getManaCost(1);
-                context.magicData().setMana(baseManaCost);
-
-                var result = context.staffStack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
-                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.CONSUME,
-                        "Circuit Heat Staff min overheat config test should cast but got " + result.getResult());
-                context.magicData().setPlayerCastingItem(context.staffStack());
-                postCircuitHeatStaffSpellOnCastEvent(context, baseManaCost);
-
-                var remainingOverheatTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(
-                        context.staffStack(),
-                        helper.getLevel()
-                );
-                helper.assertTrue(remainingOverheatTicks == 20 * 10,
-                        "Circuit Heat Staff item overheat should use configured minimum: " + remainingOverheatTicks);
-            }
-        });
-    }
-
-    static void circuitHeatStaffOverheatDurationUsesServerCapTicks(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            try (var ignored = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
-                    20 * 10,
-                    0.0D,
-                    0.0D,
-                    0,
-                    List.of(),
-                    100.0D,
-                    0,
-                    40,
-                    true,
-                    10,
-                    20 * 10,
-                    3,
-                    true,
-                    true
-            )) {
-                var context = createCircuitHeatStaffBypassTestContext(
-                        helper,
-                        "circuit_heat_staff_overheat_cap_config_test",
-                        SpellRegistry.MANA_SLASH.get()
-                );
-                var baseManaCost = context.spell().getManaCost(1);
-                context.magicData().setMana(baseManaCost);
-
-                var result = context.staffStack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
-                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.CONSUME,
-                        "Circuit Heat Staff cap overheat config test should cast but got " + result.getResult());
-                context.magicData().setPlayerCastingItem(context.staffStack());
-                postCircuitHeatStaffSpellOnCastEvent(context, baseManaCost);
-
-                var remainingOverheatTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(
-                        context.staffStack(),
-                        helper.getLevel()
-                );
-                helper.assertTrue(remainingOverheatTicks == 40,
-                        "Circuit Heat Staff item overheat should use configured cap: " + remainingOverheatTicks);
-            }
-        });
-    }
-
-    static void circuitHeatStaffBypassKeepsBaseManaGate(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_base_mana_gate_test");
-            var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-            var amplifierStack = new ItemStack(amplifierItem);
-            amplifierItem.initializeSpellContainer(amplifierStack);
-            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
-            setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
-
-            player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
-            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Circuit Heat Staff mana gate test could not resolve player mana data");
-            var baseManaCost = spell.getManaCost(1);
-            magicData.setMana(baseManaCost - 1.0F);
-
-            var selection = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player).getSelection();
-            helper.assertTrue(selection != null && selection.spellData.getSpell() == spell,
-                    "Circuit Heat Staff mana gate test could not resolve the selected spell: " + selection);
-            io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, selection.getCastSource());
-
-            var result = staffStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
-                    "Circuit Heat Staff should fail forced casts when base mana is insufficient but got " + result.getResult());
-            helper.assertTrue(Math.abs(magicData.getMana() - (baseManaCost - 1.0F)) < 1.0e-4F,
-                    "Circuit Heat Staff base mana failure should not mutate mana: " + magicData.getMana());
-            helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
-                    "Circuit Heat Staff should restore the original cooldown after base mana failure");
-            helper.assertFalse(jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
-                            .getState(player, spell.getSpellId()).active(),
-                    "Circuit Heat Staff should not store bypass overheat state after base mana failure");
-            helper.assertFalse(CircuitHeatStaff.isStaffOverheated(staffStack, helper.getLevel()),
-                    "Circuit Heat Staff item should not enter overheat cooldown after base mana failure");
-        });
-    }
-
-    static void circuitHeatStaffCooldownLimitBlocksBypass(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            try (var ignored = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
-                    20 * 10,
-                    0.10D,
-                    0.10D,
-                    1,
-                    List.of(),
-                    1.0D,
-                    20 * 10,
-                    0,
-                    true,
-                    10,
-                    20 * 10,
-                    3,
-                    true,
-                    true
-            )) {
-                var context = createCircuitHeatStaffBypassTestContext(
-                        helper,
-                        "circuit_heat_staff_cooldown_limit_config_test",
-                        SpellRegistry.MANA_SLASH.get()
-                );
-                context.magicData().setMana(context.spell().getManaCost(1) * 10.0F);
-
-                var result = context.staffStack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
-                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
-                        "Circuit Heat Staff should fail cooldown bypass above server limit but got " + result.getResult());
-                helper.assertTrue(context.magicData().getPlayerCooldowns().isOnCooldown(context.spell()),
-                        "Circuit Heat Staff should keep cooldown when server limit blocks bypass");
-                helper.assertFalse(CircuitHeatStaff.isStaffOverheated(context.staffStack(), helper.getLevel()),
-                        "Circuit Heat Staff should not overheat when server limit blocks bypass");
-            }
-        });
-    }
-
-    static void circuitHeatStaffSpellDenylistBlocksBypass(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var spell = SpellRegistry.MANA_SLASH.get();
-            try (var ignored = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
-                    20 * 10,
-                    0.10D,
-                    0.10D,
-                    0,
-                    List.of(spell.getSpellId()),
-                    1.0D,
-                    20 * 10,
-                    0,
-                    true,
-                    10,
-                    20 * 10,
-                    3,
-                    true,
-                    true
-            )) {
-                var context = createCircuitHeatStaffBypassTestContext(
-                        helper,
-                        "circuit_heat_staff_spell_denylist_config_test",
-                        spell
-                );
-                context.magicData().setMana(spell.getManaCost(1) * 10.0F);
-
-                var result = context.staffStack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
-                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
-                        "Circuit Heat Staff should fail cooldown bypass for denied spells but got " + result.getResult());
-                helper.assertTrue(context.magicData().getPlayerCooldowns().isOnCooldown(spell),
-                        "Circuit Heat Staff should keep cooldown when spell denylist blocks bypass");
-                helper.assertFalse(CircuitHeatStaff.isStaffOverheated(context.staffStack(), helper.getLevel()),
-                        "Circuit Heat Staff should not overheat when spell denylist blocks bypass");
-            }
-        });
-    }
-
-    static void circuitHeatStaffContinuousBypassKeepsOverheatManaCost(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_continuous_mana_test");
-            var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get();
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Circuit Heat Staff continuous mana test could not resolve player mana data");
-
-            player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
-            magicData.getSyncedData();
-            magicData.initiateCast(
-                    spell,
-                    1,
-                    spell.getCastTime(1),
-                    CastSource.SPELLBOOK,
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-            );
-            magicData.setPlayerCastingItem(staffStack);
-
-            var baseManaCost = spell.getManaCost(1);
-            var plannedManaCost = baseManaCost
-                    + jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
-                    .getAdditionalManaCost(baseManaCost, 1, 20 * 10);
-            CircuitHeatStaffCastEvent.reserveOverheatCast(
-                    player,
-                    spell.getSpellId(),
-                    plannedManaCost,
-                    plannedManaCost * 3.0F,
-                    60,
-                    true
-            );
-
-            magicData.setMana(plannedManaCost * 3.0F);
-            var firstEvent = new SpellOnCastEvent(
-                    player,
-                    spell.getSpellId(),
-                    1,
-                    baseManaCost,
-                    spell.getSchoolType(),
-                    CastSource.SPELLBOOK
-            );
-            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(firstEvent);
-            helper.assertTrue(firstEvent.getManaCost() == plannedManaCost,
-                    "Circuit Heat Staff continuous first tick should use overheated mana cost: " + firstEvent.getManaCost());
-            helper.assertFalse(CircuitHeatStaff.isStaffOverheated(staffStack, helper.getLevel()),
-                    "Circuit Heat Staff should not enter item overheat while overheated continuous mana can still be paid");
-
-            magicData.setMana(plannedManaCost + 5.0F);
-            var secondEvent = new SpellOnCastEvent(
-                    player,
-                    spell.getSpellId(),
-                    1,
-                    baseManaCost,
-                    spell.getSchoolType(),
-                    CastSource.SPELLBOOK
-            );
-            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(secondEvent);
-            helper.assertTrue(secondEvent.getManaCost() == plannedManaCost,
-                    "Circuit Heat Staff continuous later tick should keep overheated mana cost: " + secondEvent.getManaCost());
-            helper.assertFalse(CircuitHeatStaff.isStaffOverheated(staffStack, helper.getLevel()),
-                    "Circuit Heat Staff should still avoid item overheat while continuous mana remains above the overheated cost");
-
-            magicData.setMana(plannedManaCost);
-            var depletionEvent = new SpellOnCastEvent(
-                    player,
-                    spell.getSpellId(),
-                    1,
-                    baseManaCost,
-                    spell.getSchoolType(),
-                    CastSource.SPELLBOOK
-            );
-            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(depletionEvent);
-            helper.assertTrue(depletionEvent.getManaCost() == plannedManaCost,
-                    "Circuit Heat Staff continuous depletion tick should keep overheated mana cost: " + depletionEvent.getManaCost());
-            helper.assertTrue(CircuitHeatStaff.isStaffOverheated(staffStack, helper.getLevel()),
-                    "Circuit Heat Staff should enter item overheat when the overheated continuous cost depletes mana");
-            helper.assertTrue(
-                    CircuitHeatStaff.formatOverheatManaCostForDisplay(spell, plannedManaCost).equals(plannedManaCost * 2 + "/s"),
-                    "Circuit Heat Staff continuous warning should display per-second mana"
-            );
-
-            CircuitHeatStaffCastEvent.clearReservedOverheatCast(player);
-            magicData.resetCastingState();
-        });
-    }
-
-    static void circuitHeatStaffRecastDoesNotTouchBypassOverheatState(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_recast_neutral_test");
-            var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-            var amplifierStack = new ItemStack(amplifierItem);
-            amplifierItem.initializeSpellContainer(amplifierStack);
-            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
-            setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
-
-            player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
-            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Circuit Heat Staff recast test could not resolve player mana data");
-            magicData.setMana(0.0F);
-
-            jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager.applyAfterBypass(
-                    player,
-                    spell.getSpellId(),
-                    200
-            );
-            jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager.applyAfterBypass(
-                    player,
-                    spell.getSpellId(),
-                    200
-            );
-            var stateBefore = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
-                    .getState(player, spell.getSpellId());
-            helper.assertTrue(stateBefore.active() && stateBefore.chainDepth() == 2,
-                    "Circuit Heat Staff recast setup should start from bypass chain depth 2 but got " + stateBefore);
-
-            magicData.getPlayerRecasts().addRecast(new RecastInstance(
-                    spell.getSpellId(),
-                    1,
-                    2,
-                    100,
-                    CastSource.SPELLBOOK,
-                    null
-            ), magicData);
-            helper.assertTrue(magicData.getPlayerRecasts().hasRecastForSpell(spell),
-                    "Circuit Heat Staff recast setup should create an active recast");
-            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
-                    "Circuit Heat Staff recast setup should not leave a normal cooldown");
-            CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 100);
-            var staffOverheatBefore = CircuitHeatStaff.getStaffOverheatRemainingTicks(staffStack, helper.getLevel());
-            helper.assertTrue(staffOverheatBefore > 0,
-                    "Circuit Heat Staff recast setup should start from item overheat cooldown");
-
-            var result = staffStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.CONSUME,
-                    "Circuit Heat Staff recast should start through the recast-neutral path during item overheat but got "
-                            + result.getResult());
-            var stateAfterUse = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
-                    .getState(player, spell.getSpellId());
-            helper.assertTrue(stateAfterUse.active()
-                            && stateAfterUse.chainDepth() == stateBefore.chainDepth()
-                            && stateAfterUse.expireGameTime() == stateBefore.expireGameTime(),
-                    "Circuit Heat Staff recast use should not mutate bypass state: " + stateAfterUse
-                            + " / before " + stateBefore);
-            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                    "Circuit Heat Staff recast use should not consume mana before cast resolution: " + magicData.getMana());
-
-            spell.castSpell(helper.getLevel(), 1, player, CastSource.SPELLBOOK, true);
-            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                    "Circuit Heat Staff recast resolution should keep Iron's no-mana recast behavior: " + magicData.getMana());
-            helper.assertTrue(CircuitHeatStaff.getStaffOverheatRemainingTicks(staffStack, helper.getLevel()) == staffOverheatBefore,
-                    "Circuit Heat Staff recast should ignore existing item overheat without clearing or refreshing it");
-            var stateAfterCast = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
-                    .getState(player, spell.getSpellId());
-            helper.assertTrue(stateAfterCast.active()
-                            && stateAfterCast.chainDepth() == stateBefore.chainDepth()
-                            && stateAfterCast.expireGameTime() == stateBefore.expireGameTime(),
-                    "Circuit Heat Staff recast resolution should not mutate bypass state: " + stateAfterCast
-                            + " / before " + stateBefore);
-
-            magicData.resetCastingState();
-        });
-    }
-
-    private static CircuitHeatStaffBypassTestContext createCircuitHeatStaffBypassTestContext(
+    static CircuitHeatStaffBypassTestContext createCircuitHeatStaffBypassTestContext(
             GameTestHelper helper,
             String playerName,
             AbstractSpell spell
@@ -10590,7 +4703,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return new CircuitHeatStaffBypassTestContext(player, staffStack, magicData, spell);
     }
 
-    private static void postCircuitHeatStaffSpellOnCastEvent(CircuitHeatStaffBypassTestContext context, int manaCost) {
+    static void postCircuitHeatStaffSpellOnCastEvent(CircuitHeatStaffBypassTestContext context, int manaCost) {
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new SpellOnCastEvent(
                 context.player(),
                 context.spell().getSpellId(),
@@ -10601,7 +4714,7 @@ public final class ApprenticeCodexGameTestScenarios {
         ));
     }
 
-    private record CircuitHeatStaffBypassTestContext(
+    record CircuitHeatStaffBypassTestContext(
             ServerPlayer player,
             ItemStack staffStack,
             MagicData magicData,
@@ -10609,375 +4722,16 @@ public final class ApprenticeCodexGameTestScenarios {
     ) {
     }
 
-    static void circuitHeatStaffDropCoolingConsumesWaterSource(GameTestHelper helper) {
-        var waterPos = new BlockPos(0, 2, 0);
-        placeWaterTestBasin(helper, waterPos);
-        helper.setBlock(waterPos, Blocks.WATER);
 
-        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
-        var itemEntity = spawnItem(helper, waterPos, staffStack);
 
-        helper.runAtTickTime(40, () -> {
-            var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
-            helper.assertTrue(itemEntity.getAge() == Short.MIN_VALUE,
-                    "Circuit Heat Staff drop should use unlimited lifetime while dropped: " + itemEntity.getAge());
-            helper.assertTrue(remainingTicks <= 20 * 30,
-                    "Circuit Heat Staff water-source cooling should reduce at least 30 seconds after three cycles: "
-                            + remainingTicks);
-            helper.assertTrue(helper.getBlockState(waterPos).isAir(),
-                    "Circuit Heat Staff water-source cooling should consume the source after three cycles");
-            helper.succeed();
-        });
-    }
 
-    static void circuitHeatStaffDropCoolingDisabledByServerConfig(GameTestHelper helper) {
-        var waterPos = new BlockPos(0, 2, 0);
-        placeWaterTestBasin(helper, waterPos);
-        helper.setBlock(waterPos, Blocks.WATER);
 
-        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
-        var itemEntity = spawnItem(helper, waterPos, staffStack);
-        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
-        override[0] = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
-                20 * 10,
-                0.10D,
-                0.10D,
-                0,
-                List.of(),
-                1.0D,
-                20 * 10,
-                0,
-                false,
-                10,
-                20 * 10,
-                3,
-                true,
-                true
-        );
 
-        helper.runAtTickTime(40, () -> {
-            try {
-                var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
-                helper.assertTrue(remainingTicks > 20 * 55,
-                        "Circuit Heat Staff cooling should not reduce while disabled by server config: " + remainingTicks);
-                helper.assertTrue(helper.getBlockState(waterPos).is(Blocks.WATER),
-                        "Circuit Heat Staff cooling should not consume water while disabled by server config");
-                helper.succeed();
-            } finally {
-                override[0].close();
-            }
-        });
-    }
 
-    static void circuitHeatStaffDropCoolingIgnoresFlowingWater(GameTestHelper helper) {
-        var waterPos = new BlockPos(0, 2, 0);
-        placeWaterTestBasin(helper, waterPos);
-        helper.setBlock(waterPos, Blocks.WATER.defaultBlockState().setValue(LiquidBlock.LEVEL, 1));
 
-        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
-        var itemEntity = spawnItem(helper, waterPos, staffStack);
 
-        helper.runAtTickTime(40, () -> {
-            var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
-            helper.assertTrue(remainingTicks > 20 * 55,
-                    "Circuit Heat Staff should not use flowing water for cooling: " + remainingTicks);
-            helper.succeed();
-        });
-    }
 
-    static void circuitHeatStaffDropCoolingKeepsWaterSourceWhenConsumptionDisabled(GameTestHelper helper) {
-        var waterPos = new BlockPos(0, 2, 0);
-        placeWaterTestBasin(helper, waterPos);
-        helper.setBlock(waterPos, Blocks.WATER);
 
-        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
-        var itemEntity = spawnItem(helper, waterPos, staffStack);
-        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
-        override[0] = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
-                20 * 10,
-                0.10D,
-                0.10D,
-                0,
-                List.of(),
-                1.0D,
-                20 * 10,
-                0,
-                true,
-                10,
-                20 * 10,
-                3,
-                false,
-                true
-        );
-
-        helper.runAtTickTime(40, () -> {
-            try {
-                var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
-                helper.assertTrue(remainingTicks <= 20 * 30,
-                        "Circuit Heat Staff water-source cooling should still reduce when consumption is disabled: "
-                                + remainingTicks);
-                helper.assertTrue(helper.getBlockState(waterPos).is(Blocks.WATER),
-                        "Circuit Heat Staff water-source cooling should keep water when consumption is disabled");
-                helper.succeed();
-            } finally {
-                override[0].close();
-            }
-        });
-    }
-
-    static void circuitHeatStaffDropCoolingConsumesCauldronLevel(GameTestHelper helper) {
-        var cauldronPos = new BlockPos(0, 2, 0);
-        helper.setBlock(
-                cauldronPos,
-                Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3)
-        );
-
-        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
-        var itemEntity = spawnNoGravityItem(helper, cauldronPos, staffStack);
-
-        helper.runAtTickTime(40, () -> {
-            var state = helper.getBlockState(cauldronPos);
-            var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
-            helper.assertTrue(remainingTicks <= 20 * 30,
-                    "Circuit Heat Staff cauldron cooling should reduce at least 30 seconds after three cycles: "
-                            + remainingTicks);
-            helper.assertTrue(state.is(Blocks.WATER_CAULDRON) && state.getValue(LayeredCauldronBlock.LEVEL) == 2,
-                    "Circuit Heat Staff cauldron cooling should consume one water level after three cycles: " + state);
-            helper.succeed();
-        });
-    }
-
-    static void circuitHeatStaffDropCoolingKeepsWaterCauldronWhenConsumptionDisabled(GameTestHelper helper) {
-        var cauldronPos = new BlockPos(0, 2, 0);
-        helper.setBlock(
-                cauldronPos,
-                Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3)
-        );
-
-        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
-        var itemEntity = spawnNoGravityItem(helper, cauldronPos, staffStack);
-        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
-        override[0] = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
-                20 * 10,
-                0.10D,
-                0.10D,
-                0,
-                List.of(),
-                1.0D,
-                20 * 10,
-                0,
-                true,
-                10,
-                20 * 10,
-                3,
-                true,
-                false
-        );
-
-        helper.runAtTickTime(40, () -> {
-            try {
-                var state = helper.getBlockState(cauldronPos);
-                var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
-                helper.assertTrue(remainingTicks <= 20 * 30,
-                        "Circuit Heat Staff cauldron cooling should still reduce when consumption is disabled: "
-                                + remainingTicks);
-                helper.assertTrue(state.is(Blocks.WATER_CAULDRON) && state.getValue(LayeredCauldronBlock.LEVEL) == 3,
-                        "Circuit Heat Staff cauldron cooling should keep water level when consumption is disabled: "
-                                + state);
-                helper.succeed();
-            } finally {
-                override[0].close();
-            }
-        });
-    }
-
-    static void circuitHeatStaffDropCoolingKeepsPowderSnowBlock(GameTestHelper helper) {
-        var powderSnowPos = new BlockPos(0, 2, 0);
-        helper.setBlock(powderSnowPos, Blocks.POWDER_SNOW);
-
-        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
-        var itemEntity = spawnNoGravityItem(helper, powderSnowPos, staffStack);
-
-        helper.runAtTickTime(40, () -> {
-            var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
-            helper.assertTrue(remainingTicks <= 20 * 30,
-                    "Circuit Heat Staff powder snow cooling should reduce at least 30 seconds after three cycles: "
-                            + remainingTicks);
-            helper.assertTrue(helper.getBlockState(powderSnowPos).is(Blocks.POWDER_SNOW),
-                    "Circuit Heat Staff powder snow cooling should not consume powder snow block");
-            helper.succeed();
-        });
-    }
-
-    static void circuitHeatStaffDropCoolingKeepsPowderSnowCauldronLevel(GameTestHelper helper) {
-        var cauldronPos = new BlockPos(0, 2, 0);
-        helper.setBlock(
-                cauldronPos,
-                Blocks.POWDER_SNOW_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3)
-        );
-
-        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
-        var itemEntity = spawnNoGravityItem(helper, cauldronPos, staffStack);
-
-        helper.runAtTickTime(40, () -> {
-            var state = helper.getBlockState(cauldronPos);
-            var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
-            helper.assertTrue(remainingTicks <= 20 * 30,
-                    "Circuit Heat Staff powder snow cauldron cooling should reduce at least 30 seconds after three cycles: "
-                            + remainingTicks);
-            helper.assertTrue(state.is(Blocks.POWDER_SNOW_CAULDRON) && state.getValue(LayeredCauldronBlock.LEVEL) == 3,
-                    "Circuit Heat Staff powder snow cauldron cooling should not consume cauldron level: " + state);
-            helper.succeed();
-        });
-    }
-
-    static void circuitHeatStaffDropCoolingIgnoresNonOverheatedStaff(GameTestHelper helper) {
-        var waterPos = new BlockPos(0, 2, 0);
-        placeWaterTestBasin(helper, waterPos);
-        helper.setBlock(waterPos, Blocks.WATER);
-
-        var itemEntity = spawnItem(helper, waterPos, new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get()));
-
-        helper.runAtTickTime(40, () -> {
-            helper.assertTrue(itemEntity.getAge() == Short.MIN_VALUE,
-                    "Circuit Heat Staff drop should use unlimited lifetime even when it is not overheated: "
-                            + itemEntity.getAge());
-            helper.assertTrue(helper.getBlockState(waterPos).is(Blocks.WATER),
-                    "Circuit Heat Staff should not consume water when it is not overheated");
-            helper.succeed();
-        });
-    }
-
-    static void circuitHeatStaffDropCoolingIgnoresNonOverheatedStaffInPowderSnow(GameTestHelper helper) {
-        var powderSnowPos = new BlockPos(0, 2, 0);
-        helper.setBlock(powderSnowPos, Blocks.POWDER_SNOW);
-
-        var itemEntity = spawnNoGravityItem(helper, powderSnowPos, new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get()));
-
-        helper.runAtTickTime(40, () -> {
-            helper.assertTrue(itemEntity.getAge() == Short.MIN_VALUE,
-                    "Circuit Heat Staff drop should use unlimited lifetime in powder snow even when it is not overheated: "
-                            + itemEntity.getAge());
-            helper.assertTrue(helper.getBlockState(powderSnowPos).is(Blocks.POWDER_SNOW),
-                    "Circuit Heat Staff should not change powder snow when it is not overheated");
-            helper.succeed();
-        });
-    }
-
-    static void malumHauntedBonusResolvesFromSupportedMainhandWeapons(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
-                return;
-            }
-
-            var haunted = MalumHauntedCompat.getHauntedEnchantment();
-            helper.assertTrue(haunted != null, "malum:haunted is not registered");
-
-            var pastelStaff = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
-            pastelStaff.enchant(haunted, 1);
-            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(pastelStaff),
-                    "Pastel Staff should be a supported Haunted main hand item");
-            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(pastelStaff) > 0.0D,
-                    "Pastel Staff should resolve a positive Haunted magic damage bonus");
-
-            var multicastEchoStaff = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
-            multicastEchoStaff.enchant(haunted, 1);
-            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(multicastEchoStaff),
-                    "Multicast Echo Staff should be a supported Haunted main hand item");
-            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(multicastEchoStaff) > 0.0D,
-                    "Multicast Echo Staff should resolve a positive Haunted magic damage bonus");
-
-            var crystalBladedStaff = new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
-            crystalBladedStaff.enchant(haunted, 1);
-            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(crystalBladedStaff),
-                    "Crystal Bladed Staff should be a supported Haunted main hand item");
-            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(crystalBladedStaff) > 0.0D,
-                    "Crystal Bladed Staff should resolve a positive Haunted magic damage bonus");
-
-            var focusStaffbow = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            focusStaffbow.enchant(haunted, 1);
-            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(focusStaffbow),
-                    "Focus Staffbow should be a supported Haunted main hand item");
-            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(focusStaffbow) > 0.0D,
-                    "Focus Staffbow should resolve a positive Haunted magic damage bonus");
-
-            var chargedTwinBladeStaff = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-            chargedTwinBladeStaff.enchant(haunted, 1);
-            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(chargedTwinBladeStaff),
-                    "Charged Twin Blade Staff should be a supported Haunted main hand item");
-            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(chargedTwinBladeStaff) > 0.0D,
-                    "Charged Twin Blade Staff should resolve a positive Haunted magic damage bonus");
-
-            var manaForceBlade = new ItemStack(ItemRegistry.MANA_FORCE_BLADE.get());
-            manaForceBlade.enchant(haunted, 1);
-            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(manaForceBlade),
-                    "Mana Force Blade should be a supported Haunted main hand item");
-            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(manaForceBlade) > 0.0D,
-                    "Mana Force Blade should resolve a positive Haunted magic damage bonus");
-
-            helper.assertFalse(MalumHauntedCompat.isSupportedHauntedMainhandItem(new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get())),
-                    "Spellgun should stay outside Haunted support");
-            helper.assertFalse(MalumHauntedCompat.isSupportedHauntedMainhandItem(new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get())),
-                    "Reflectcast Shield should stay outside Haunted support");
-        });
-    }
-    static void malumHauntedBonusUsesDedicatedDamageType(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var attacker = helper.spawn(net.minecraft.world.entity.EntityType.ZOMBIE, new BlockPos(0, 2, 0));
-            var source = MalumHauntedCompat.createHauntedBonusDamageSource(attacker);
-            helper.assertTrue(source.is(DamageTypes.HAUNTED_BONUS),
-                    "Haunted bonus should use apprenticecodex:haunted_bonus");
-            helper.assertTrue(source.is(DamageTypeTagGenerator.MAGIC_DAMAGE),
-                    "Haunted bonus should stay on the magic damage tag path");
-            helper.assertTrue(source.is(DamageTypeTagGenerator.FORGE_IS_MAGIC),
-                    "Haunted bonus should stay on the forge:is_magic path for Lodestone magic_proficiency");
-            helper.assertTrue(source.is(DamageTypeTagGenerator.BYPASSES_IFRAME),
-                    "Haunted bonus should bypass cooldown-based I-Frame checks");
-        });
-    }
-    static void magicDamageTagActuallyScalesWithLodestoneMagicProficiency(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            if (!ModList.get().isLoaded(LODESTONE_MOD_ID)) {
-                return;
-            }
-
-            var magicProficiency = ForgeRegistries.ATTRIBUTES.getValue(LODESTONE_MAGIC_PROFICIENCY);
-            helper.assertTrue(magicProficiency != null, "lodestone:magic_proficiency is not registered");
-
-            var attacker = helper.spawn(net.minecraft.world.entity.EntityType.ZOMBIE, new BlockPos(0, 2, 0));
-            var proficiencyInstance = attacker.getAttribute(magicProficiency);
-            helper.assertTrue(proficiencyInstance != null, "Attacker is missing lodestone:magic_proficiency");
-
-            var baselineTarget = helper.spawn(net.minecraft.world.entity.EntityType.SHEEP, new BlockPos(1, 2, 0));
-            var amplifiedTarget = helper.spawn(net.minecraft.world.entity.EntityType.SHEEP, new BlockPos(2, 2, 0));
-            var baseDamage = 4.0F;
-
-            var baselineHealth = baselineTarget.getHealth();
-            helper.assertTrue(baselineTarget.hurt(MalumHauntedCompat.createHauntedBonusDamageSource(attacker), baseDamage),
-                    "Baseline haunted bonus damage should apply");
-            var baselineTaken = baselineHealth - baselineTarget.getHealth();
-            helper.assertTrue(Math.abs(baselineTaken - baseDamage) < 1.0e-4F,
-                    "Baseline haunted bonus damage should stay unscaled at proficiency 1.0, actual=" + baselineTaken);
-
-            proficiencyInstance.setBaseValue(1.5D);
-            var amplifiedHealth = amplifiedTarget.getHealth();
-            helper.assertTrue(amplifiedTarget.hurt(MalumHauntedCompat.createHauntedBonusDamageSource(attacker), baseDamage),
-                    "Amplified haunted bonus damage should apply");
-            var amplifiedTaken = amplifiedHealth - amplifiedTarget.getHealth();
-            helper.assertTrue(Math.abs(amplifiedTaken - 6.0F) < 1.0e-4F,
-                    "Amplified haunted bonus damage should scale to 6.0 at proficiency 1.5, actual=" + amplifiedTaken);
-            helper.assertTrue(amplifiedTaken > baselineTaken,
-                    "Amplified haunted bonus damage should exceed baseline damage");
-        });
-    }
     static void healingBloomLightHasReducedLevelAndNoOutline(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
@@ -11268,14 +5022,14 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    private static void setHealingBloomFruitCount(HealingBloomEntity bloom, int fruitCount) {
+    static void setHealingBloomFruitCount(HealingBloomEntity bloom, int fruitCount) {
         var tag = new CompoundTag();
         bloom.addAdditionalSaveData(tag);
         tag.putInt("FruitCount", fruitCount);
         bloom.readAdditionalSaveData(tag);
     }
 
-    private static UUID prepareHealingBloomDeadWhileOwnerOffline(GameTestHelper helper, FakePlayer owner, BlockPos anchorPos) {
+    static UUID prepareHealingBloomDeadWhileOwnerOffline(GameTestHelper helper, FakePlayer owner, BlockPos anchorPos) {
         castHealingBloom(helper, owner, 1, anchorPos, false);
         var bloom = getSingleLivingHealingBloom(helper, owner);
         var bloomUuid = bloom.getUUID();
@@ -11290,20 +5044,20 @@ public final class ApprenticeCodexGameTestScenarios {
         return bloomUuid;
     }
 
-    private static void clearHealingBloomCachedOwner(HealingBloomEntity bloom) {
+    static void clearHealingBloomCachedOwner(HealingBloomEntity bloom) {
         var tag = new CompoundTag();
         bloom.addAdditionalSaveData(tag);
         bloom.readAdditionalSaveData(tag);
     }
 
-    private static void assertManagedHealingBloomUuid(GameTestHelper helper, FakePlayer owner, UUID expectedUuid, String message) {
+    static void assertManagedHealingBloomUuid(GameTestHelper helper, FakePlayer owner, UUID expectedUuid, String message) {
         var spellData = Capabilities.getSpellDataOrNull(owner);
         helper.assertTrue(spellData != null, "Healing Bloom state assertion could not resolve spell data capability");
         helper.assertTrue(expectedUuid.equals(spellData.get(CodexSpellStateTypeRegister.HEALING_BLOOM_STATE).getBloomUuid()),
                 message);
     }
 
-    private static void killHealingBloom(ServerLevel level, HealingBloomEntity bloom) {
+    static void killHealingBloom(ServerLevel level, HealingBloomEntity bloom) {
         bloom.setHealth(0.0f);
         bloom.die(level.damageSources().genericKill());
     }
@@ -12070,7 +5824,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    private static MysticShield beginMysticShieldCast(ServerLevel level, FakePlayer player, int spellLevel) {
+    static MysticShield beginMysticShieldCast(ServerLevel level, FakePlayer player, int spellLevel) {
         var spell = (MysticShield) SpellRegistry.MYSTIC_SHIELD.get();
         var magicData = MagicData.getPlayerMagicData(player);
         magicData.setMana(1000.0f);
@@ -12088,7 +5842,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return spell;
     }
 
-    private static void completeMysticShieldCast(ServerLevel level, FakePlayer player, int spellLevel, boolean cancelled) {
+    static void completeMysticShieldCast(ServerLevel level, FakePlayer player, int spellLevel, boolean cancelled) {
         var spell = (MysticShield) SpellRegistry.MYSTIC_SHIELD.get();
         var magicData = MagicData.getPlayerMagicData(player);
         spell.onServerCastComplete(level, spellLevel, player, magicData, cancelled);
@@ -12146,7 +5900,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    private static void assertMagicMobEffect(GameTestHelper helper, MobEffect effect, String effectName) {
+    static void assertMagicMobEffect(GameTestHelper helper, MobEffect effect, String effectName) {
         helper.assertTrue(effect instanceof MagicMobEffect,
                 effectName + " should be removable by Counterspell as MagicMobEffect");
     }
@@ -12515,19 +6269,19 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    private static void assertAntiMagicDiscard(GameTestHelper helper, FakePlayer caster, net.minecraft.world.entity.Entity entity, String entityName) {
+    static void assertAntiMagicDiscard(GameTestHelper helper, FakePlayer caster, net.minecraft.world.entity.Entity entity, String entityName) {
         helper.assertTrue(entity instanceof AntiMagicSusceptible,
                 entityName + " should implement AntiMagicSusceptible");
         ((AntiMagicSusceptible) entity).onAntiMagic(MagicData.getPlayerMagicData(caster));
         helper.assertTrue(entity.isRemoved(), entityName + " should be discarded by anti-magic");
     }
 
-    private static void assertHealthUnchanged(GameTestHelper helper, net.minecraft.world.entity.LivingEntity target, float expectedHealth, String message) {
+    static void assertHealthUnchanged(GameTestHelper helper, net.minecraft.world.entity.LivingEntity target, float expectedHealth, String message) {
         helper.assertTrue(Math.abs(target.getHealth() - expectedHealth) < 0.001F,
                 message + ": expected=" + expectedHealth + ", actual=" + target.getHealth());
     }
 
-    private static void spawnCounterspellTestEntity(GameTestHelper helper, net.minecraft.world.entity.Entity entity, Vec3 localPos) {
+    static void spawnCounterspellTestEntity(GameTestHelper helper, net.minecraft.world.entity.Entity entity, Vec3 localPos) {
         var absolutePos = helper.absoluteVec(localPos);
         entity.moveTo(absolutePos.x, absolutePos.y, absolutePos.z, 0.0F, 0.0F);
         entity.setDeltaMovement(Vec3.ZERO);
@@ -12587,7 +6341,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    private static void assertInscribeIceDaggerLaunch(GameTestHelper helper, InscribeIceDaggerEntity projectile) {
+    static void assertInscribeIceDaggerLaunch(GameTestHelper helper, InscribeIceDaggerEntity projectile) {
         helper.assertTrue(projectile.isNoGravity(), "Inscribe Ice dagger should not use gravity");
         helper.assertTrue(projectile.getDeltaMovement().y > 0.1D,
                 "Inscribe Ice dagger should follow the caster's upward look direction");
@@ -12671,7 +6425,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    private static void assertNotchedFrozen(GameTestHelper helper, LivingEntity target, int expectedAmplifier) {
+    static void assertNotchedFrozen(GameTestHelper helper, LivingEntity target, int expectedAmplifier) {
         var instance = target.getEffect(EffectRegistry.NOTCHED_FROZEN.get());
         helper.assertTrue(instance != null, "Target should have Notched Frozen");
         helper.assertTrue(instance != null && instance.getAmplifier() == expectedAmplifier,
@@ -12683,7 +6437,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 "Notched Frozen should suppress vanilla potion particles");
     }
 
-    private static void setMaxHealthForDamageTest(LivingEntity target, float health) {
+    static void setMaxHealthForDamageTest(LivingEntity target, float health) {
         target.getAttribute(Attributes.MAX_HEALTH).setBaseValue(health);
         target.setHealth(health);
     }
@@ -12970,7 +6724,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    private static void assertMistFormModifierAmount(
+    static void assertMistFormModifierAmount(
             GameTestHelper helper,
             net.minecraft.world.effect.MobEffect effect,
             Attribute attribute,
@@ -12991,11 +6745,11 @@ public final class ApprenticeCodexGameTestScenarios {
                 message + ": expected level 9 amount to remain " + expectedAmount);
     }
 
-    private static boolean isCollisionShapeEmptyForPlayer(GameTestHelper helper, BlockState state, Player player) {
+    static boolean isCollisionShapeEmptyForPlayer(GameTestHelper helper, BlockState state, Player player) {
         return state.getCollisionShape(helper.getLevel(), helper.absolutePos(BlockPos.ZERO), CollisionContext.of(player)).isEmpty();
     }
 
-    private static final List<MistFormCollisionSample> MIST_FORM_PASSABLE_COLLISION_SAMPLES = List.of(
+    static final List<MistFormCollisionSample> MIST_FORM_PASSABLE_COLLISION_SAMPLES = List.of(
             new MistFormCollisionSample("fence", Blocks.OAK_FENCE.defaultBlockState()),
             new MistFormCollisionSample("fence_gate", Blocks.OAK_FENCE_GATE.defaultBlockState()),
             new MistFormCollisionSample("door", Blocks.OAK_DOOR.defaultBlockState()),
@@ -13004,10 +6758,10 @@ public final class ApprenticeCodexGameTestScenarios {
             new MistFormCollisionSample("leaves", Blocks.OAK_LEAVES.defaultBlockState())
     );
 
-    private record MistFormCollisionSample(String name, BlockState state) {
+    record MistFormCollisionSample(String name, BlockState state) {
     }
 
-    private static double moveAfterStuckInBlock(Player player, BlockState state, Vec3 motionMultiplier) {
+    static double moveAfterStuckInBlock(Player player, BlockState state, Vec3 motionMultiplier) {
         player.setDeltaMovement(Vec3.ZERO);
         var beforeX = player.getX();
         player.makeStuckInBlock(state, motionMultiplier);
@@ -13015,13 +6769,13 @@ public final class ApprenticeCodexGameTestScenarios {
         return player.getX() - beforeX;
     }
 
-    private static void resetPlayerPosition(GameTestHelper helper, Player player, BlockPos pos) {
+    static void resetPlayerPosition(GameTestHelper helper, Player player, BlockPos pos) {
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         player.setDeltaMovement(Vec3.ZERO);
     }
 
-    private static final List<MistFormMovementRestrictionSample> MIST_FORM_MOVEMENT_RESTRICTION_SAMPLES = List.of(
+    static final List<MistFormMovementRestrictionSample> MIST_FORM_MOVEMENT_RESTRICTION_SAMPLES = List.of(
             new MistFormMovementRestrictionSample(
                     "cobweb",
                     Blocks.COBWEB.defaultBlockState(),
@@ -13039,10 +6793,10 @@ public final class ApprenticeCodexGameTestScenarios {
             )
     );
 
-    private record MistFormMovementRestrictionSample(String name, BlockState state, Vec3 motionMultiplier) {
+    record MistFormMovementRestrictionSample(String name, BlockState state, Vec3 motionMultiplier) {
     }
 
-    private static net.minecraft.world.entity.monster.Zombie createTargetingZombie(
+    static net.minecraft.world.entity.monster.Zombie createTargetingZombie(
             GameTestHelper helper,
             BlockPos pos,
             Player target,
@@ -13059,7 +6813,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return zombie;
     }
 
-    private static void placeAbsoluteFluidTestBasin(ServerLevel level, BlockPos fluidPos, BlockState fluidState) {
+    static void placeAbsoluteFluidTestBasin(ServerLevel level, BlockPos fluidPos, BlockState fluidState) {
         level.setBlock(fluidPos.below(), Blocks.STONE.defaultBlockState(), 3);
         for (var direction : Direction.Plane.HORIZONTAL) {
             level.setBlock(fluidPos.relative(direction), Blocks.STONE.defaultBlockState(), 3);
@@ -13067,7 +6821,7 @@ public final class ApprenticeCodexGameTestScenarios {
         level.setBlock(fluidPos, fluidState, 3);
     }
 
-    private static FakePlayer createHarvestMoonPlayer(GameTestHelper helper, BlockPos pos, ItemStack mainHandStack) {
+    static FakePlayer createHarvestMoonPlayer(GameTestHelper helper, BlockPos pos, ItemStack mainHandStack) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "harvest_moon_test"));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
@@ -13076,7 +6830,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return player;
     }
 
-    private static FakePlayer createEquipmentTestPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+    static FakePlayer createEquipmentTestPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
@@ -13084,7 +6838,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return player;
     }
 
-    private static ItemEntity spawnItem(GameTestHelper helper, BlockPos pos, ItemStack stack) {
+    static ItemEntity spawnItem(GameTestHelper helper, BlockPos pos, ItemStack stack) {
         var absolutePos = helper.absoluteVec(new Vec3(pos.getX() + 0.5D, pos.getY() + 0.45D, pos.getZ() + 0.5D));
         var itemEntity = new ItemEntity(helper.getLevel(), absolutePos.x, absolutePos.y, absolutePos.z, stack);
         itemEntity.setDeltaMovement(Vec3.ZERO);
@@ -13092,14 +6846,14 @@ public final class ApprenticeCodexGameTestScenarios {
         return itemEntity;
     }
 
-    private static void placeWaterTestBasin(GameTestHelper helper, BlockPos waterPos) {
+    static void placeWaterTestBasin(GameTestHelper helper, BlockPos waterPos) {
         helper.setBlock(waterPos.below(), Blocks.STONE);
         for (var direction : Direction.Plane.HORIZONTAL) {
             helper.setBlock(waterPos.relative(direction), Blocks.STONE);
         }
     }
 
-    private static ItemEntity spawnNoGravityItem(GameTestHelper helper, BlockPos pos, ItemStack stack) {
+    static ItemEntity spawnNoGravityItem(GameTestHelper helper, BlockPos pos, ItemStack stack) {
         var absolutePos = helper.absoluteVec(new Vec3(pos.getX() + 0.5D, pos.getY() + 0.45D, pos.getZ() + 0.5D));
         var itemEntity = new ItemEntity(helper.getLevel(), absolutePos.x, absolutePos.y, absolutePos.z, stack);
         itemEntity.setNoGravity(true);
@@ -13108,7 +6862,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return itemEntity;
     }
 
-    private static FakePlayer createEquipmentTestPlayer(ServerLevel level, BlockPos absolutePos, String profileName) {
+    static FakePlayer createEquipmentTestPlayer(ServerLevel level, BlockPos absolutePos, String profileName) {
         var player = new FakePlayer(level, new GameProfile(UUID.randomUUID(), profileName));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absoluteVec = Vec3.atBottomCenterOf(absolutePos);
@@ -13116,11 +6870,11 @@ public final class ApprenticeCodexGameTestScenarios {
         return player;
     }
 
-    private static void setFocusStaffbowArrowCatalyst(FakePlayer player, ItemStack arrowStack) {
+    static void setFocusStaffbowArrowCatalyst(FakePlayer player, ItemStack arrowStack) {
         player.getInventory().setItem(1, arrowStack.copy());
     }
 
-    private static ApprenticeCodexServerConfig.GameTestConfigOverride useFocusStaffbowConfigOverrideForGameTest(
+    static ApprenticeCodexServerConfig.GameTestConfigOverride useFocusStaffbowConfigOverrideForGameTest(
             boolean enableContinuousFocusedCast,
             boolean enableManaLoan,
             boolean enableArrowCatalystRequirement,
@@ -13146,7 +6900,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static ApprenticeCodexServerConfig.GameTestConfigOverride useElementalBowConfigOverrideForGameTest(
+    static ApprenticeCodexServerConfig.GameTestConfigOverride useElementalBowConfigOverrideForGameTest(
             double magicReadyDrawTicksMultiplier,
             double overheatAdditionalManaLinearMultiplier,
             double overheatAdditionalManaQuadraticMultiplier,
@@ -13166,7 +6920,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static int getFocusStaffbowArrowCount(Player player) {
+    static int getFocusStaffbowArrowCount(Player player) {
         int count = 0;
         for (var stack : player.getInventory().items) {
             if (stack.getItem() instanceof ArrowItem) {
@@ -13181,13 +6935,13 @@ public final class ApprenticeCodexGameTestScenarios {
         return count;
     }
 
-    private static void equipCurio(FakePlayer player, String slotId, ItemStack stack) {
+    static void equipCurio(FakePlayer player, String slotId, ItemStack stack) {
         var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
                 .orElseThrow(() -> new IllegalStateException("Missing curios inventory for curio equip test"));
         curiosInventory.setEquippedCurio(slotId, 0, stack);
     }
 
-    private static void assertManaShieldCharmEquipped(GameTestHelper helper, ServerPlayer player, String context) {
+    static void assertManaShieldCharmEquipped(GameTestHelper helper, ServerPlayer player, String context) {
         var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
                 .orElseThrow(() -> new IllegalStateException("Missing curios inventory for Mana Shield Charm " + context + " test"));
         helper.assertTrue(curiosInventory.isEquipped(ItemRegistry.MANA_SHIELD_CHARM.get()),
@@ -13196,7 +6950,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 "Mana Shield Charm should be discoverable via findFirstCurio during " + context + " test");
     }
 
-    private static net.minecraftforge.event.entity.living.LivingAttackEvent postLivingAttackEventForGameTest(
+    static net.minecraftforge.event.entity.living.LivingAttackEvent postLivingAttackEventForGameTest(
             ServerPlayer player,
             net.minecraft.world.damagesource.DamageSource source,
             float amount
@@ -13206,7 +6960,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return event;
     }
 
-    private static net.minecraftforge.event.entity.living.LivingFallEvent postLivingFallEventForGameTest(
+    static net.minecraftforge.event.entity.living.LivingFallEvent postLivingFallEventForGameTest(
             ServerPlayer player,
             float distance,
             float damageMultiplier
@@ -13216,21 +6970,21 @@ public final class ApprenticeCodexGameTestScenarios {
         return event;
     }
 
-    private static void equipRingCurio(FakePlayer player, ItemStack ringStack) {
+    static void equipRingCurio(FakePlayer player, ItemStack ringStack) {
         equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.RING_SLOT, ringStack);
     }
 
-    private static void equipNecklaceCurio(FakePlayer player, ItemStack necklaceStack) {
+    static void equipNecklaceCurio(FakePlayer player, ItemStack necklaceStack) {
         equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, necklaceStack);
     }
 
-    private static FakePlayer createTrackedEquipmentTestPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+    static FakePlayer createTrackedEquipmentTestPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = createEquipmentTestPlayer(helper, pos, profileName);
         helper.getLevel().addFreshEntity(player);
         return player;
     }
 
-    private static ItemStack getEquippedAutocastAmulet(FakePlayer player) {
+    static ItemStack getEquippedAutocastAmulet(FakePlayer player) {
         return top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
                 .map(inventory -> inventory.findCurios(stack -> stack.getItem() instanceof AutocastAmulet).stream()
                         .findFirst()
@@ -13239,13 +6993,13 @@ public final class ApprenticeCodexGameTestScenarios {
                 .orElseThrow(() -> new IllegalStateException("Missing curios inventory for Autocast Amulet GameTest"));
     }
 
-    private static ManaShieldCharmState getManaShieldCharmState(Player player) {
+    static ManaShieldCharmState getManaShieldCharmState(Player player) {
         return player.getCapability(Capabilities.SPELL_DATA)
                 .map(data -> data.get(CodexSpellStateTypeRegister.MANA_SHIELD_CHARM_STATE))
                 .orElseThrow(() -> new IllegalStateException("Missing spell data for Mana Shield Charm GameTest"));
     }
 
-    private static void invokeTouchDigDestroyBlock(TouchDigSpell spell, Level level, BlockPos pos, Player player) {
+    static void invokeTouchDigDestroyBlock(TouchDigSpell spell, Level level, BlockPos pos, Player player) {
         try {
             var method = TouchDigSpell.class.getDeclaredMethod("doDestroyBlock", Level.class, BlockPos.class, net.minecraft.world.entity.LivingEntity.class);
             method.setAccessible(true);
@@ -13255,7 +7009,7 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
-    private static List<ItemEntity> getFreshItemDrops(ServerLevel level, BlockPos pos, double radius) {
+    static List<ItemEntity> getFreshItemDrops(ServerLevel level, BlockPos pos, double radius) {
         return level.getEntitiesOfClass(
                 ItemEntity.class,
                 new AABB(pos).inflate(radius),
@@ -13263,14 +7017,14 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static int countFreshItemDrops(ServerLevel level, Item item, BlockPos pos, double radius) {
+    static int countFreshItemDrops(ServerLevel level, Item item, BlockPos pos, double radius) {
         return getFreshItemDrops(level, pos, radius).stream()
                 .filter(itemEntity -> itemEntity.getItem().is(item))
                 .mapToInt(itemEntity -> itemEntity.getItem().getCount())
                 .sum();
     }
 
-    private static boolean hasItemEntityWithin(ServerLevel level, Item item, Vec3 pos, double radius) {
+    static boolean hasItemEntityWithin(ServerLevel level, Item item, Vec3 pos, double radius) {
         return !level.getEntitiesOfClass(
                 ItemEntity.class,
                 new AABB(pos, pos).inflate(radius),
@@ -13278,7 +7032,7 @@ public final class ApprenticeCodexGameTestScenarios {
         ).isEmpty();
     }
 
-    private static FakePlayer createAssistWingsPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+    static FakePlayer createAssistWingsPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
@@ -13286,7 +7040,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return player;
     }
 
-    private static int getAssistWingsDoneJump(Player player) {
+    static int getAssistWingsDoneJump(Player player) {
         var spellData = Capabilities.getSpellDataOrNull(player);
         if (spellData == null) {
             return -1;
@@ -13294,14 +7048,14 @@ public final class ApprenticeCodexGameTestScenarios {
         return spellData.get(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE).doneJump;
     }
 
-    private static void setAssistWingsState(Player player, int doneJump, int localEntityId) {
+    static void setAssistWingsState(Player player, int doneJump, int localEntityId) {
         Capabilities.withSpellData(player, data -> data.edit(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE, state -> {
             state.doneJump = doneJump;
             state.localEntityId = localEntityId;
         }));
     }
 
-    private static int countActiveAssistWingsWings(GameTestHelper helper, Player player) {
+    static int countActiveAssistWingsWings(GameTestHelper helper, Player player) {
         return helper.getLevel().getEntitiesOfClass(
                 AssistWingsWingEntity.class,
                 new AABB(player.position(), player.position()).inflate(16.0D),
@@ -13309,7 +7063,7 @@ public final class ApprenticeCodexGameTestScenarios {
         ).size();
     }
 
-    private static FakePlayer createExtractPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+    static FakePlayer createExtractPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
@@ -13317,7 +7071,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return player;
     }
 
-    private static FakePlayer createBetterCombatHiddenOffhandPlayer(
+    static FakePlayer createBetterCombatHiddenOffhandPlayer(
             GameTestHelper helper,
             ItemStack mainHandStack,
             ItemStack offhandStack,
@@ -13335,12 +7089,12 @@ public final class ApprenticeCodexGameTestScenarios {
         return player;
     }
 
-    private static void castHarvestMoon(GameTestHelper helper, FakePlayer player, int spellLevel) {
+    static void castHarvestMoon(GameTestHelper helper, FakePlayer player, int spellLevel) {
         var spell = SpellRegistry.HARVEST_MOON.get();
         spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
     }
 
-    private static void castEarthForge(GameTestHelper helper, FakePlayer player, BlockPos centerPos, Direction effectDirection, int radius) {
+    static void castEarthForge(GameTestHelper helper, FakePlayer player, BlockPos centerPos, Direction effectDirection, int radius) {
         var spell = (EarthForge) SpellRegistry.EARTH_FORGE.get();
         var absoluteCenterPos = helper.absolutePos(centerPos);
         var tag = new CompoundTag();
@@ -13357,7 +7111,7 @@ public final class ApprenticeCodexGameTestScenarios {
         spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
     }
 
-    private static FakePlayer createSenseEvilPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+    static FakePlayer createSenseEvilPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
@@ -13365,7 +7119,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return player;
     }
 
-    private static FakePlayer createSenseEvilPlayer(ServerLevel level, BlockPos absolutePos, String profileName) {
+    static FakePlayer createSenseEvilPlayer(ServerLevel level, BlockPos absolutePos, String profileName) {
         var player = new FakePlayer(level, new GameProfile(UUID.randomUUID(), profileName));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absoluteVec = Vec3.atBottomCenterOf(absolutePos);
@@ -13374,7 +7128,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return player;
     }
 
-    private static net.minecraft.world.entity.LivingEntity spawnPositionedZombie(ServerLevel level, Vec3 targetCenter) {
+    static net.minecraft.world.entity.LivingEntity spawnPositionedZombie(ServerLevel level, Vec3 targetCenter) {
         forceLoadChunk(level, BlockPos.containing(targetCenter));
         var zombie = EntityType.ZOMBIE.create(level);
         if (zombie == null) {
@@ -13387,7 +7141,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return zombie;
     }
 
-    private static void placeZombieSpawner(ServerLevel level, BlockPos pos) {
+    static void placeZombieSpawner(ServerLevel level, BlockPos pos) {
         forceLoadChunk(level, pos);
         level.setBlock(pos, Blocks.SPAWNER.defaultBlockState(), 3);
         var blockEntity = level.getBlockEntity(pos);
@@ -13398,14 +7152,14 @@ public final class ApprenticeCodexGameTestScenarios {
         spawner.setChanged();
     }
 
-    private static void forceLoadChunk(ServerLevel level, BlockPos pos) {
+    static void forceLoadChunk(ServerLevel level, BlockPos pos) {
         var chunkX = SectionPos.blockToSectionCoord(pos.getX());
         var chunkZ = SectionPos.blockToSectionCoord(pos.getZ());
         level.setChunkForced(chunkX, chunkZ, true);
         level.getChunk(chunkX, chunkZ);
     }
 
-    private static double getSenseEvilRange(SenseEvil spell, net.minecraft.world.entity.LivingEntity caster, int spellLevel) {
+    static double getSenseEvilRange(SenseEvil spell, net.minecraft.world.entity.LivingEntity caster, int spellLevel) {
         try {
             var method = SenseEvil.class.getDeclaredMethod("getRange", int.class, net.minecraft.world.entity.LivingEntity.class);
             method.setAccessible(true);
@@ -13416,7 +7170,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @SuppressWarnings("unchecked")
-    private static List<SenseEvilHighlightsPacket.TargetData> collectSenseEvilHighlights(
+    static List<SenseEvilHighlightsPacket.TargetData> collectSenseEvilHighlights(
             SenseEvil spell,
             ServerLevel level,
             int spellLevel,
@@ -13431,7 +7185,7 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
-    private static void assertSenseEvilHighlightPresent(
+    static void assertSenseEvilHighlightPresent(
             GameTestHelper helper,
             List<SenseEvilHighlightsPacket.TargetData> highlights,
             Vec3 expectedPosition,
@@ -13443,7 +7197,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.assertTrue(found, message + " / expected near " + expectedPosition + " but got " + highlights);
     }
 
-    private static FakePlayer createHealingBloomPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+    static FakePlayer createHealingBloomPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
@@ -13451,7 +7205,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return player;
     }
 
-    private static void castHealingBloom(GameTestHelper helper, FakePlayer player, int spellLevel, BlockPos anchorPos, boolean forceReplace) {
+    static void castHealingBloom(GameTestHelper helper, FakePlayer player, int spellLevel, BlockPos anchorPos, boolean forceReplace) {
         var spell = (HealingBloom) SpellRegistry.HEALING_BLOOM.get();
         var castData = new HealingBloom.HealingBloomCastData();
         var absoluteAnchorPos = helper.absolutePos(anchorPos);
@@ -13466,7 +7220,7 @@ public final class ApprenticeCodexGameTestScenarios {
         spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, magicData);
     }
 
-    private static java.util.List<HealingBloomEntity> getOwnedHealingBlooms(GameTestHelper helper, FakePlayer owner) {
+    static java.util.List<HealingBloomEntity> getOwnedHealingBlooms(GameTestHelper helper, FakePlayer owner) {
         var blooms = new java.util.ArrayList<HealingBloomEntity>();
         for (var entity : helper.getLevel().getAllEntities()) {
             if (entity instanceof HealingBloomEntity bloom
@@ -13478,13 +7232,13 @@ public final class ApprenticeCodexGameTestScenarios {
         return blooms;
     }
 
-    private static HealingBloomEntity getSingleLivingHealingBloom(GameTestHelper helper, FakePlayer owner) {
+    static HealingBloomEntity getSingleLivingHealingBloom(GameTestHelper helper, FakePlayer owner) {
         var blooms = getOwnedHealingBlooms(helper, owner);
         helper.assertTrue(blooms.size() == 1, "Expected exactly one living Healing Bloom but found " + blooms.size());
         return blooms.get(0);
     }
 
-    private static FakePlayer createArcherMultiplePlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+    static FakePlayer createArcherMultiplePlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
@@ -13495,19 +7249,19 @@ public final class ApprenticeCodexGameTestScenarios {
         return player;
     }
 
-    private static void equipGreaterConjurersTalisman(FakePlayer player) {
+    static void equipGreaterConjurersTalisman(FakePlayer player) {
         var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
                 .orElseThrow(() -> new IllegalStateException("Missing curios inventory for Greater Conjurer's Talisman test"));
         curiosInventory.setEquippedCurio(io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, 0,
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.GREATER_CONJURERS_TALISMAN.get()));
     }
 
-    private static void castArcherMultiple(GameTestHelper helper, FakePlayer player, int spellLevel) {
+    static void castArcherMultiple(GameTestHelper helper, FakePlayer player, int spellLevel) {
         var spell = SpellRegistry.ARCHER_MULTIPLE.get();
         spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
     }
 
-    private static List<ArcherMultipleBowEntity> getOwnedArcherMultipleBows(GameTestHelper helper, FakePlayer owner) {
+    static List<ArcherMultipleBowEntity> getOwnedArcherMultipleBows(GameTestHelper helper, FakePlayer owner) {
         return helper.getLevel().getEntitiesOfClass(
                 ArcherMultipleBowEntity.class,
                 new AABB(owner.position(), owner.position()).inflate(32.0),
@@ -13518,7 +7272,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static <T extends jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity> List<T> getOwnedSummonWeapons(
+    static <T extends jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity> List<T> getOwnedSummonWeapons(
             GameTestHelper helper,
             FakePlayer owner,
             Class<T> weaponType
@@ -13533,7 +7287,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static FakePlayer createCompanionTrunkPlayer(GameTestHelper helper, BlockPos pos) {
+    static FakePlayer createCompanionTrunkPlayer(GameTestHelper helper, BlockPos pos) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "companion_trunk_test"));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
@@ -13541,19 +7295,19 @@ public final class ApprenticeCodexGameTestScenarios {
         return player;
     }
 
-    private static void prepareWideSearchIsolationArea(GameTestHelper helper, BlockPos centerPos) {
+    static void prepareWideSearchIsolationArea(GameTestHelper helper, BlockPos centerPos) {
         prepareHighIsolationPlatform(helper, centerPos);
     }
 
-    private static void prepareMiningSpellIsolationArea(GameTestHelper helper, BlockPos centerPos) {
+    static void prepareMiningSpellIsolationArea(GameTestHelper helper, BlockPos centerPos) {
         prepareHighIsolationPlatform(helper, centerPos);
     }
 
-    private static void prepareSummonedEntityIsolationArea(GameTestHelper helper, BlockPos centerPos) {
+    static void prepareSummonedEntityIsolationArea(GameTestHelper helper, BlockPos centerPos) {
         prepareHighIsolationPlatform(helper, centerPos);
     }
 
-    private static void prepareHighIsolationPlatform(GameTestHelper helper, BlockPos centerPos) {
+    static void prepareHighIsolationPlatform(GameTestHelper helper, BlockPos centerPos) {
         // basic_floor は 5x3x5 と小さく、batch 近接配置の地形へ探索やレイが吸われやすい。
         // 足場を高所へ自前で作って、各テストが自分の 5x5 領域だけを参照するように固定する。
         var floorY = centerPos.getY() - 1;
@@ -13566,11 +7320,11 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
-    private static BlockPos createRemoteIsolationOrigin(GameTestHelper helper, BlockPos relativePos, int xOffset, int zOffset) {
+    static BlockPos createRemoteIsolationOrigin(GameTestHelper helper, BlockPos relativePos, int xOffset, int zOffset) {
         return helper.absolutePos(relativePos).offset(xOffset, 0, zOffset);
     }
 
-    private static void prepareAbsoluteIsolationPlatform(ServerLevel level, BlockPos centerPos) {
+    static void prepareAbsoluteIsolationPlatform(ServerLevel level, BlockPos centerPos) {
         var floorY = centerPos.getY() - 1;
         for (var x = -2; x <= 2; ++x) {
             for (var z = -2; z <= 2; ++z) {
@@ -13585,7 +7339,7 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
-    private static void prepareAbsoluteIsolationTargetPlatform(ServerLevel level, Vec3 targetCenter) {
+    static void prepareAbsoluteIsolationTargetPlatform(ServerLevel level, Vec3 targetCenter) {
         var floorPos = BlockPos.containing(targetCenter.x, targetCenter.y - 1.0D, targetCenter.z);
         forceLoadChunk(level, floorPos);
         level.setBlock(floorPos, Blocks.STONE.defaultBlockState(), 3);
@@ -13593,7 +7347,7 @@ public final class ApprenticeCodexGameTestScenarios {
         level.setBlock(floorPos.above(2), Blocks.AIR.defaultBlockState(), 3);
     }
 
-    private static FakePlayer createPersonalShelfPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+    static FakePlayer createPersonalShelfPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
@@ -13604,7 +7358,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return player;
     }
 
-    private static BlockPos castPersonalShelf(GameTestHelper helper, FakePlayer player, BlockPos shelfPos, boolean exportMode, Direction exportFacing) {
+    static BlockPos castPersonalShelf(GameTestHelper helper, FakePlayer player, BlockPos shelfPos, boolean exportMode, Direction exportFacing) {
         var spell = (PersonalShelf) SpellRegistry.PERSONAL_SHELF.get();
         var castData = new PersonalShelf.PersonalShelfCastData();
         var absoluteShelfPos = helper.absolutePos(shelfPos);
@@ -13621,19 +7375,19 @@ public final class ApprenticeCodexGameTestScenarios {
         return absoluteShelfPos;
     }
 
-    private static PersonalShelfChestBlockEntity getPersonalShelfBlockEntity(GameTestHelper helper, BlockPos absoluteShelfPos) {
+    static PersonalShelfChestBlockEntity getPersonalShelfBlockEntity(GameTestHelper helper, BlockPos absoluteShelfPos) {
         var blockEntity = helper.getLevel().getBlockEntity(absoluteShelfPos);
         helper.assertTrue(blockEntity instanceof PersonalShelfChestBlockEntity,
                 "Expected Personal Shelf block entity but found " + blockEntity);
         return (PersonalShelfChestBlockEntity) blockEntity;
     }
 
-    private static void castCompanionTrunk(GameTestHelper helper, FakePlayer player, int spellLevel) {
+    static void castCompanionTrunk(GameTestHelper helper, FakePlayer player, int spellLevel) {
         var spell = SpellRegistry.COMPANION_TRUNK.get();
         spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
     }
 
-    private static jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity getSingleExtractProjectile(
+    static jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity getSingleExtractProjectile(
             GameTestHelper helper,
             FakePlayer owner
     ) {
@@ -13647,7 +7401,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return projectiles.get(0);
     }
 
-    private static CompanionTrunkEntity createCompanionTrunk(GameTestHelper helper, FakePlayer owner, BlockPos pos) {
+    static CompanionTrunkEntity createCompanionTrunk(GameTestHelper helper, FakePlayer owner, BlockPos pos) {
         var trunk = new CompanionTrunkEntity(EntityRegistry.COMPANION_TRUNK.get(), helper.getLevel(), owner);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         trunk.moveTo(absolutePos.x, absolutePos.y, absolutePos.z, 0.0f, 0.0f);
@@ -13655,7 +7409,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return trunk;
     }
 
-    private static String describeCompanionTrunkMovement(CompanionTrunkEntity trunk) {
+    static String describeCompanionTrunkMovement(CompanionTrunkEntity trunk) {
         return "blockPos=" + trunk.blockPosition()
                 + ", position=" + trunk.position()
                 + ", delta=" + trunk.getDeltaMovement()
@@ -13663,7 +7417,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 + ", tickCount=" + trunk.tickCount;
     }
 
-    private static CompanionTrunkEntity getSingleCompanionTrunk(GameTestHelper helper, FakePlayer owner) {
+    static CompanionTrunkEntity getSingleCompanionTrunk(GameTestHelper helper, FakePlayer owner) {
         var trunks = helper.getLevel().getEntitiesOfClass(
                 CompanionTrunkEntity.class,
                 new AABB(owner.position(), owner.position()).inflate(16.0),
@@ -13673,7 +7427,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return trunks.get(0);
     }
 
-    private static BlockPos findCompanionTrunkChest(GameTestHelper helper, BlockPos center) {
+    static BlockPos findCompanionTrunkChest(GameTestHelper helper, BlockPos center) {
         for (var y = -1; y <= 1; ++y) {
             for (var x = -1; x <= 1; ++x) {
                 for (var z = -1; z <= 1; ++z) {
@@ -13687,7 +7441,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return null;
     }
 
-    private static boolean containsItem(ChestBlockEntity chest, Item item, int count) {
+    static boolean containsItem(ChestBlockEntity chest, Item item, int count) {
         for (var slot = 0; slot < chest.getContainerSize(); ++slot) {
             var stack = chest.getItem(slot);
             if (stack.is(item) && stack.getCount() == count) {
@@ -13697,7 +7451,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return false;
     }
 
-    private static int countMatureHarvestMoonPlants(GameTestHelper helper, List<BlockPos> cropPositions) {
+    static int countMatureHarvestMoonPlants(GameTestHelper helper, List<BlockPos> cropPositions) {
         var count = 0;
         for (var pos : cropPositions) {
             var state = helper.getBlockState(pos);
@@ -13714,38 +7468,38 @@ public final class ApprenticeCodexGameTestScenarios {
         return count;
     }
 
-    private static Block requireForgeBlock(GameTestHelper helper, ResourceLocation id) {
+    static Block requireForgeBlock(GameTestHelper helper, ResourceLocation id) {
         var block = ForgeRegistries.BLOCKS.getValue(id);
         helper.assertTrue(block != null, "Missing required block for GameTest: " + id);
         return block;
     }
 
-    private static Item requireForgeItem(GameTestHelper helper, ResourceLocation id) {
+    static Item requireForgeItem(GameTestHelper helper, ResourceLocation id) {
         var item = ForgeRegistries.ITEMS.getValue(id);
         helper.assertTrue(item != null, "Missing required item for GameTest: " + id);
         return item;
     }
 
-    private static BlockState withIntegerProperty(GameTestHelper helper, BlockState state, String propertyName, int value) {
+    static BlockState withIntegerProperty(GameTestHelper helper, BlockState state, String propertyName, int value) {
         var property = findIntegerProperty(helper, state, propertyName);
         helper.assertTrue(property.getPossibleValues().contains(value),
                 "Property " + propertyName + " does not accept " + value + " on " + state);
         return state.setValue(property, value);
     }
 
-    private static int getIntegerPropertyValue(GameTestHelper helper, BlockState state, String propertyName) {
+    static int getIntegerPropertyValue(GameTestHelper helper, BlockState state, String propertyName) {
         return state.getValue(findIntegerProperty(helper, state, propertyName));
     }
 
-    private static BlockState withBooleanProperty(GameTestHelper helper, BlockState state, String propertyName, boolean value) {
+    static BlockState withBooleanProperty(GameTestHelper helper, BlockState state, String propertyName, boolean value) {
         return state.setValue(findBooleanProperty(helper, state, propertyName), value);
     }
 
-    private static boolean getBooleanPropertyValue(GameTestHelper helper, BlockState state, String propertyName) {
+    static boolean getBooleanPropertyValue(GameTestHelper helper, BlockState state, String propertyName) {
         return state.getValue(findBooleanProperty(helper, state, propertyName));
     }
 
-    private static IntegerProperty findIntegerProperty(GameTestHelper helper, BlockState state, String propertyName) {
+    static IntegerProperty findIntegerProperty(GameTestHelper helper, BlockState state, String propertyName) {
         for (var property : state.getProperties()) {
             if (property instanceof IntegerProperty integerProperty && integerProperty.getName().equals(propertyName)) {
                 return integerProperty;
@@ -13755,7 +7509,7 @@ public final class ApprenticeCodexGameTestScenarios {
         throw new IllegalStateException("Unreachable after helper.fail");
     }
 
-    private static BooleanProperty findBooleanProperty(GameTestHelper helper, BlockState state, String propertyName) {
+    static BooleanProperty findBooleanProperty(GameTestHelper helper, BlockState state, String propertyName) {
         for (var property : state.getProperties()) {
             if (property instanceof BooleanProperty booleanProperty && booleanProperty.getName().equals(propertyName)) {
                 return booleanProperty;
@@ -13765,12 +7519,12 @@ public final class ApprenticeCodexGameTestScenarios {
         throw new IllegalStateException("Unreachable after helper.fail");
     }
 
-    private static boolean isApprenticeSpell(AbstractSpell spell) {
+    static boolean isApprenticeSpell(AbstractSpell spell) {
         var spellId = spell.getSpellResource();
         return spellId != null && ApprenticeCodex.MODID.equals(spellId.getNamespace());
     }
 
-    private static void assertCategoryEnchantments(
+    static void assertCategoryEnchantments(
             GameTestHelper helper,
             String categoryName,
             Predicate<net.minecraft.world.item.Item> itemPredicate,
@@ -13779,7 +7533,7 @@ public final class ApprenticeCodexGameTestScenarios {
         assertCategoryEnchantments(helper, categoryName, itemPredicate, stack -> expectedEnchantments);
     }
 
-    private static void assertCategoryEnchantments(
+    static void assertCategoryEnchantments(
             GameTestHelper helper,
             String categoryName,
             Predicate<net.minecraft.world.item.Item> itemPredicate,
@@ -13798,7 +7552,7 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
-    private static void assertExactEnchantmentSurfaces(
+    static void assertExactEnchantmentSurfaces(
             GameTestHelper helper,
             ItemStack stack,
             Set<ResourceLocation> expectedEnchantments,
@@ -13814,7 +7568,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static void assertExactEnchantmentSurfaces(
+    static void assertExactEnchantmentSurfaces(
             GameTestHelper helper,
             ItemStack stack,
             Set<ResourceLocation> expectedEnchantingTableEnchantments,
@@ -13850,7 +7604,7 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
-    private static List<ItemStack> getRegisteredItemStacks(Predicate<net.minecraft.world.item.Item> itemPredicate) {
+    static List<ItemStack> getRegisteredItemStacks(Predicate<net.minecraft.world.item.Item> itemPredicate) {
         return ItemRegistry.ITEMS.getEntries().stream()
                 .map(RegistryObject::get)
                 .filter(itemPredicate)
@@ -13859,7 +7613,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 .toList();
     }
 
-    private static Set<ResourceLocation> expectedSpellGunEnchantments(ItemStack stack) {
+    static Set<ResourceLocation> expectedSpellGunEnchantments(ItemStack stack) {
         var expectedEnchantments = registryIdSet(
                 EnchantmentRegistry.ALACRITY,
                 EnchantmentRegistry.REFLUX,
@@ -13875,7 +7629,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedOffhandEnchantments(ItemStack stack) {
+    static Set<ResourceLocation> expectedOffhandEnchantments(ItemStack stack) {
         return registryIdSet(
                 EnchantmentRegistry.ALACRITY,
                 EnchantmentRegistry.REFLUX,
@@ -13887,13 +7641,13 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static Set<ResourceLocation> expectedEnchantedCircletEnchantments(ItemStack stack) {
+    static Set<ResourceLocation> expectedEnchantedCircletEnchantments(ItemStack stack) {
         var expectedEnchantments = new LinkedHashSet<>(expectedOffhandEnchantments(stack));
         expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedRightClickMagicWeaponEnchantments(ItemStack stack) {
+    static Set<ResourceLocation> expectedRightClickMagicWeaponEnchantments(ItemStack stack) {
         var expectedEnchantments = collectAllowedEnchantments(
                 new ItemStack(Items.DIAMOND_SWORD),
                 enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD))
@@ -13911,7 +7665,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedSmashcastScepterEnchantingTableEnchantments(ItemStack stack) {
+    static Set<ResourceLocation> expectedSmashcastScepterEnchantingTableEnchantments(ItemStack stack) {
         var expectedEnchantments = new LinkedHashSet<ResourceLocation>();
         expectedEnchantments.add(ResourceLocation.withDefaultNamespace("smite"));
         expectedEnchantments.add(ResourceLocation.withDefaultNamespace("bane_of_arthropods"));
@@ -13928,13 +7682,13 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedSmashcastScepterBookEnchantments(ItemStack stack) {
+    static Set<ResourceLocation> expectedSmashcastScepterBookEnchantments(ItemStack stack) {
         var expectedEnchantments = new LinkedHashSet<>(expectedSmashcastScepterEnchantingTableEnchantments(stack));
         expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.RELEASE));
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedChargedTwinBladeStaffEnchantments(ItemStack stack) {
+    static Set<ResourceLocation> expectedChargedTwinBladeStaffEnchantments(ItemStack stack) {
         var expectedEnchantments = collectAllowedEnchantments(
                 new ItemStack(Items.DIAMOND_SWORD),
                 enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD))
@@ -13952,7 +7706,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedManaForceBladeEnchantments(ItemStack stack) {
+    static Set<ResourceLocation> expectedManaForceBladeEnchantments(ItemStack stack) {
         var expectedEnchantments = collectAllowedEnchantments(
                 new ItemStack(Items.DIAMOND_SWORD),
                 enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD))
@@ -13967,7 +7721,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedCircuitHeatStaffEnchantments(ItemStack stack) {
+    static Set<ResourceLocation> expectedCircuitHeatStaffEnchantments(ItemStack stack) {
         var expectedEnchantments = collectAllowedEnchantments(
                 new ItemStack(Items.DIAMOND_SWORD),
                 enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD))
@@ -13982,7 +7736,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedMultipurposeStaffrifleEnchantments(ItemStack stack) {
+    static Set<ResourceLocation> expectedMultipurposeStaffrifleEnchantments(ItemStack stack) {
         var expectedEnchantments = registryIdSet(
                 EnchantmentRegistry.ALACRITY,
                 EnchantmentRegistry.REFLUX,
@@ -13996,7 +7750,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static void assertChargedTwinBladeStaffThrownDamage(
+    static void assertChargedTwinBladeStaffThrownDamage(
             GameTestHelper helper,
             ItemStack stack,
             MobType mobType,
@@ -14008,7 +7762,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 failureMessage + ": mobType=" + mobType + ", expected=" + expectedDamage + ", actual=" + actualDamage);
     }
 
-    private static Set<ResourceLocation> expectedReflectcastShieldEnchantments(ItemStack stack) {
+    static Set<ResourceLocation> expectedReflectcastShieldEnchantments(ItemStack stack) {
         var expectedEnchantments = collectAllowedEnchantments(
                 new ItemStack(Items.SHIELD),
                 enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.SHIELD))
@@ -14017,7 +7771,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedElementalBowEnchantments() {
+    static Set<ResourceLocation> expectedElementalBowEnchantments() {
         var bowStack = new ItemStack(Items.BOW);
         var expectedEnchantments = collectAllowedEnchantments(
                 bowStack,
@@ -14032,7 +7786,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedElementalBowBookEnchantments() {
+    static Set<ResourceLocation> expectedElementalBowBookEnchantments() {
         var bowStack = new ItemStack(Items.BOW);
         var expectedEnchantments = collectAllowedEnchantments(
                 bowStack,
@@ -14047,7 +7801,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedFlaskEnchantments() {
+    static Set<ResourceLocation> expectedFlaskEnchantments() {
         return registryIdSet(
                 EnchantmentRegistry.GUZZLE,
                 EnchantmentRegistry.LARGE_MUG,
@@ -14056,7 +7810,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static Set<ResourceLocation> expectedAlchemistsFlaskEnchantments() {
+    static Set<ResourceLocation> expectedAlchemistsFlaskEnchantments() {
         return registryIdSet(
                 EnchantmentRegistry.LARGE_MUG,
                 EnchantmentRegistry.RED_ENERGY,
@@ -14065,7 +7819,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static Set<ResourceLocation> expectedRandomBookLootEnchantments() {
+    static Set<ResourceLocation> expectedRandomBookLootEnchantments() {
         return registryIdSet(
                 EnchantmentRegistry.ALACRITY,
                 EnchantmentRegistry.REFLUX,
@@ -14079,7 +7833,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static Set<ResourceLocation> expectedEnchantressRobeEnchantments(ItemStack stack) {
+    static Set<ResourceLocation> expectedEnchantressRobeEnchantments(ItemStack stack) {
         var probeStack = createArmorProbeStack(stack);
         var expectedEnchantments = collectAllowedEnchantments(
                 probeStack,
@@ -14089,7 +7843,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedStealthRuneArmorEnchantments(ItemStack stack) {
+    static Set<ResourceLocation> expectedStealthRuneArmorEnchantments(ItemStack stack) {
         var probeStack = createArmorProbeStack(stack);
         var expectedEnchantments = collectAllowedEnchantments(
                 probeStack,
@@ -14099,7 +7853,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedChromaticMagiaDressEnchantments(ItemStack stack) {
+    static Set<ResourceLocation> expectedChromaticMagiaDressEnchantments(ItemStack stack) {
         var probeStack = createArmorProbeStack(stack);
         var expectedEnchantments = collectAllowedEnchantments(
                 probeStack,
@@ -14109,7 +7863,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedElementMaidenRobeEnchantments(ItemStack stack) {
+    static Set<ResourceLocation> expectedElementMaidenRobeEnchantments(ItemStack stack) {
         var probeStack = createArmorProbeStack(stack);
         var expectedEnchantments = collectAllowedEnchantments(
                 probeStack,
@@ -14126,7 +7880,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static ItemStack createArmorProbeStack(ItemStack stack) {
+    static ItemStack createArmorProbeStack(ItemStack stack) {
         if (!(stack.getItem() instanceof ArmorItem armorItem)) {
             throw new IllegalArgumentException("Expected armor item for enchantment probe: " + stack);
         }
@@ -14139,7 +7893,7 @@ public final class ApprenticeCodexGameTestScenarios {
         };
     }
 
-    private static float getEquippedAttributeTotal(Player player, Attribute attribute) {
+    static float getEquippedAttributeTotal(Player player, Attribute attribute) {
         var total = 0.0F;
         for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
             var stack = player.getItemBySlot(slot);
@@ -14155,7 +7909,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return total;
     }
 
-    private static void equipProtectionIvIronArmor(ServerPlayer player) {
+    static void equipProtectionIvIronArmor(ServerPlayer player) {
         for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
             var armorStack = switch (slot) {
                 case HEAD -> new ItemStack(Items.IRON_HELMET);
@@ -14169,7 +7923,7 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
-    private static float findDamageForArmorReducedTarget(float armor, float toughness, float targetReducedDamage) {
+    static float findDamageForArmorReducedTarget(float armor, float toughness, float targetReducedDamage) {
         var low = 0.0F;
         var high = Math.max(targetReducedDamage * 2.0F, 1.0F);
         while (CombatRules.getDamageAfterAbsorb(high, armor, toughness) < targetReducedDamage) {
@@ -14188,7 +7942,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return high;
     }
 
-    private static float findDamageForMagicReducedTarget(int protection, float targetReducedDamage) {
+    static float findDamageForMagicReducedTarget(int protection, float targetReducedDamage) {
         var low = 0.0F;
         var high = Math.max(targetReducedDamage * 2.0F, 1.0F);
         while (CombatRules.getDamageAfterMagicAbsorb(high, protection) < targetReducedDamage) {
@@ -14207,7 +7961,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return high;
     }
 
-    private static float resolveExpectedBarrierManaAfterHitForGameTest(float incomingDamage, float availableMana) {
+    static float resolveExpectedBarrierManaAfterHitForGameTest(float incomingDamage, float availableMana) {
         var remainingDamage = incomingDamage;
         var remainingMana = availableMana;
         var manaPerDamage = ApprenticeCodexServerConfig.manaShieldCharmManaPerDamage();
@@ -14232,7 +7986,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return Math.max(remainingMana, 0.0F);
     }
 
-    private static float resolveExpectedSynchronizationManaAfterHitForGameTest(
+    static float resolveExpectedSynchronizationManaAfterHitForGameTest(
             float incomingDamage,
             float availableMana,
             int protection
@@ -14258,7 +8012,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return resolveExpectedBarrierManaAfterHitForGameTest(reducedDamage, remainingMana);
     }
 
-    private static int countWholeDamageStepsForGameTest(float damage) {
+    static int countWholeDamageStepsForGameTest(float damage) {
         var remainingDamage = damage;
         var count = 0;
         while (remainingDamage >= 1.0F) {
@@ -14268,7 +8022,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return count;
     }
 
-    private static void assertClose(
+    static void assertClose(
             GameTestHelper helper,
             double actual,
             double expected,
@@ -14279,7 +8033,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 failureMessage + ": expected=" + expected + ", actual=" + actual);
     }
 
-    private static Set<ResourceLocation> registryIdSet(RegistryObject<Enchantment>... enchantments) {
+    static Set<ResourceLocation> registryIdSet(RegistryObject<Enchantment>... enchantments) {
         var ids = new LinkedHashSet<ResourceLocation>();
         for (var enchantment : enchantments) {
             var id = enchantment.getId();
@@ -14290,17 +8044,17 @@ public final class ApprenticeCodexGameTestScenarios {
         return ids;
     }
 
-    private static List<Enchantment> getRegisteredEnchantments() {
+    static List<Enchantment> getRegisteredEnchantments() {
         return ForgeRegistries.ENCHANTMENTS.getValues().stream()
                 .sorted(Comparator.comparing(enchantment -> String.valueOf(ForgeRegistries.ENCHANTMENTS.getKey(enchantment))))
                 .toList();
     }
 
-    private static Set<ResourceLocation> allRegisteredEnchantmentIds() {
+    static Set<ResourceLocation> allRegisteredEnchantmentIds() {
         return collectAllowedEnchantments(ItemStack.EMPTY, enchantment -> true);
     }
 
-    private static void assertElementalBowSelection(
+    static void assertElementalBowSelection(
             GameTestHelper helper,
             ItemStack stack,
             @Nullable String expectedShotMode,
@@ -14328,14 +8082,14 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static String describeElementalBowSelectionView(ElementalBow.ModeSelectionView view) {
+    static String describeElementalBowSelectionView(ElementalBow.ModeSelectionView view) {
         return view.selection().selectionId() == null
                 ? view.selection().shotMode()
                 : view.selection().shotMode() + ":" + view.selection().selectionId();
     }
 
     @Nullable
-    private static ElementalBow.ModeSelectionView findElementalBowSelectionView(ServerPlayer player, ItemStack stack,
+    static ElementalBow.ModeSelectionView findElementalBowSelectionView(ServerPlayer player, ItemStack stack,
                                                                                 String shotMode, @Nullable ResourceLocation selectionId) {
         return ElementalBow.getAvailableSelectionViews(player, stack).stream()
                 .filter(view -> shotMode.equals(view.selection().shotMode())
@@ -14344,7 +8098,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 .orElse(null);
     }
 
-    private static void setElementalBowShotSelection(ItemStack stack, String shotMode, @Nullable ResourceLocation selectionId) {
+    static void setElementalBowShotSelection(ItemStack stack, String shotMode, @Nullable ResourceLocation selectionId) {
         var tag = stack.getOrCreateTag();
         tag.putString("ElementalBowShotMode", shotMode);
         if ("magic".equals(shotMode)) {
@@ -14363,7 +8117,7 @@ public final class ApprenticeCodexGameTestScenarios {
         tag.remove("ElementalBowMode");
     }
 
-    private static void assertTranslatableKey(GameTestHelper helper, Component component, String expectedKey, String message) {
+    static void assertTranslatableKey(GameTestHelper helper, Component component, String expectedKey, String message) {
         var contents = component.getContents();
         helper.assertTrue(contents instanceof TranslatableContents,
                 message + " (component was not translatable: " + component + ")");
@@ -14373,7 +8127,7 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
-    private static void assertTooltipKeyAt(
+    static void assertTooltipKeyAt(
             GameTestHelper helper,
             ItemStack stack,
             int index,
@@ -14387,7 +8141,7 @@ public final class ApprenticeCodexGameTestScenarios {
         assertTranslatableKey(helper, tooltipLines.get(index), expectedKey, message);
     }
 
-    private static void assertTooltipKeyUsesColor(
+    static void assertTooltipKeyUsesColor(
             GameTestHelper helper,
             ItemStack stack,
             String expectedKey,
@@ -14410,7 +8164,7 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
-    private static void assertTooltipKeyArgumentUsesColor(
+    static void assertTooltipKeyArgumentUsesColor(
             GameTestHelper helper,
             ItemStack stack,
             String expectedKey,
@@ -14447,7 +8201,7 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
-    private static void assertTooltipKeyAbsent(GameTestHelper helper, ItemStack stack, String key, String message) {
+    static void assertTooltipKeyAbsent(GameTestHelper helper, ItemStack stack, String key, String message) {
         var tooltipLines = new ArrayList<Component>();
         stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
         var present = tooltipLines.stream()
@@ -14456,7 +8210,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.assertFalse(present, message + " (unexpected tooltip key=" + key + ")");
     }
 
-    private static Set<ResourceLocation> collectAllowedEnchantments(
+    static Set<ResourceLocation> collectAllowedEnchantments(
             ItemStack stack,
             Predicate<Enchantment> predicate
     ) {
@@ -14471,11 +8225,11 @@ public final class ApprenticeCodexGameTestScenarios {
         return allowedEnchantments;
     }
 
-    private static ItemStack createEnchantedBook(Enchantment enchantment) {
+    static ItemStack createEnchantedBook(Enchantment enchantment) {
         return createEnchantedBook(new EnchantmentInstance(enchantment, 1));
     }
 
-    private static ItemStack createEnchantedBook(EnchantmentInstance... enchantments) {
+    static ItemStack createEnchantedBook(EnchantmentInstance... enchantments) {
         var book = new ItemStack(Items.ENCHANTED_BOOK);
         for (var enchantment : enchantments) {
             EnchantedBookItem.addEnchantment(book, enchantment);
@@ -14483,23 +8237,23 @@ public final class ApprenticeCodexGameTestScenarios {
         return book;
     }
 
-    private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
+    static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
         return enchantment.canApplyAtEnchantingTable(new ItemStack(Items.ELYTRA));
     }
 
-    private static void addExpectedMalumSpiritPlunderIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
+    static void addExpectedMalumSpiritPlunderIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
         if (ModList.get().isLoaded(MALUM_MOD_ID) && stack.is(MALUM_SOUL_HUNTER_WEAPON)) {
             expectedEnchantments.add(MALUM_SPIRIT_PLUNDER);
         }
     }
 
-    private static void addExpectedMalumHauntedIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
+    static void addExpectedMalumHauntedIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
         if (ModList.get().isLoaded(MALUM_MOD_ID) && MalumHauntedCompat.isSupportedHauntedMainhandItem(stack)) {
             expectedEnchantments.add(MALUM_HAUNTED);
         }
     }
 
-    private static String describeEnchantmentDifference(
+    static String describeEnchantmentDifference(
             Set<ResourceLocation> expectedEnchantments,
             Set<ResourceLocation> actualEnchantments
     ) {
@@ -14512,7 +8266,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return "missing=" + missingEnchantments + ", unexpected=" + unexpectedEnchantments;
     }
 
-    private static void assertApprenticeEnchantmentFlags(
+    static void assertApprenticeEnchantmentFlags(
             GameTestHelper helper,
             RegistryObject<Enchantment> enchantmentRegistryObject,
             boolean expectedTreasureOnly,
@@ -14529,7 +8283,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 "Discoverable flag changed for " + enchantmentId + ": expected " + expectedDiscoverable + " but got " + enchantment.isDiscoverable());
     }
 
-    private static void assertSwingcastStaffTier(
+    static void assertSwingcastStaffTier(
             GameTestHelper helper,
             AbstractSwingcastStaffItem item,
             Set<SpellGunCastType> expectedCastTypes,
@@ -14554,7 +8308,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 itemName + " should continue rejecting continuous spells");
     }
 
-    private static void assertSpellgunCooldownOverride(
+    static void assertSpellgunCooldownOverride(
             GameTestHelper helper,
             ServerPlayer player,
             ItemStack stack,
@@ -14578,7 +8332,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 message + ": expected " + expectedCooldownTicks + " but got " + cooldownEvent.getEffectiveCooldown());
     }
 
-    private static void assertModifierAmount(
+    static void assertModifierAmount(
             GameTestHelper helper,
             jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem item,
             ItemStack stack,
@@ -14596,7 +8350,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         + " modifiers=" + describeModifiers(item.getAttributeModifiers(EquipmentSlot.OFFHAND, stack)));
     }
 
-    private static void assertCurioModifierAmount(
+    static void assertCurioModifierAmount(
             GameTestHelper helper,
             top.theillusivec4.curios.api.type.capability.ICurioItem item,
             top.theillusivec4.curios.api.SlotContext slotContext,
@@ -14613,7 +8367,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         + " modifiers=" + describeModifiers(modifiers));
     }
 
-    private static void assertSpellStainedRunicTabletSchoolPower(
+    static void assertSpellStainedRunicTabletSchoolPower(
             GameTestHelper helper,
             SpellStainedRunicTablet item,
             top.theillusivec4.curios.api.SlotContext slotContext,
@@ -14632,7 +8386,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static void assertSpellStainedRunicTabletSchoolPower(
+    static void assertSpellStainedRunicTabletSchoolPower(
             GameTestHelper helper,
             SpellStainedRunicTablet item,
             top.theillusivec4.curios.api.SlotContext slotContext,
@@ -14655,7 +8409,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static ItemStack createSpellStainedRunicTabletStack(GameTestHelper helper, SpellEntry... entries) {
+    static ItemStack createSpellStainedRunicTabletStack(GameTestHelper helper, SpellEntry... entries) {
         var item = (SpellStainedRunicTablet) ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get();
         var stack = new ItemStack(item);
         item.initializeSpellContainer(stack);
@@ -14694,7 +8448,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return stack;
     }
 
-    private static ItemStack createElementMaidenRobeSchoolPowerSpellbook(GameTestHelper helper, AbstractSpell... spells) {
+    static ItemStack createElementMaidenRobeSchoolPowerSpellbook(GameTestHelper helper, AbstractSpell... spells) {
         var item = io.redspace.ironsspellbooks.registries.ItemRegistry.DIAMOND_SPELL_BOOK.get();
         var stack = new ItemStack(item);
         if (item instanceof IPresetSpellContainer presetSpellContainer) {
@@ -14717,7 +8471,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return stack;
     }
 
-    private static void assertElementMaidenSchoolPowerBonusAmount(
+    static void assertElementMaidenSchoolPowerBonusAmount(
             GameTestHelper helper,
             Map<Attribute, Double> bonuses,
             Attribute attribute,
@@ -14731,7 +8485,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         + " bonuses=" + bonuses);
     }
 
-    private static void assertElementMaidenDynamicSchoolPowerBonuses(
+    static void assertElementMaidenDynamicSchoolPowerBonuses(
             GameTestHelper helper,
             Player player,
             Map<Attribute, Double> expectedBonuses,
@@ -14786,7 +8540,7 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
-    private static void assertNoElementMaidenDynamicSchoolPower(
+    static void assertNoElementMaidenDynamicSchoolPower(
             GameTestHelper helper,
             Player player,
             String message
@@ -14794,7 +8548,7 @@ public final class ApprenticeCodexGameTestScenarios {
         assertElementMaidenDynamicSchoolPowerBonuses(helper, player, Map.of(), message);
     }
 
-    private static List<EquippedArmorStack> findElementMaidenDynamicBonusTargets(Player player) {
+    static List<EquippedArmorStack> findElementMaidenDynamicBonusTargets(Player player) {
         var result = new java.util.ArrayList<EquippedArmorStack>();
         for (var slot : List.of(EquipmentSlot.CHEST, EquipmentSlot.HEAD, EquipmentSlot.LEGS, EquipmentSlot.FEET)) {
             var stack = player.getItemBySlot(slot);
@@ -14805,7 +8559,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return result;
     }
 
-    private static void assertAllElementMaidenRobeStacksHaveNoStoredSchoolPower(
+    static void assertAllElementMaidenRobeStacksHaveNoStoredSchoolPower(
             GameTestHelper helper,
             Player player,
             String message
@@ -14813,7 +8567,7 @@ public final class ApprenticeCodexGameTestScenarios {
         assertOtherElementMaidenRobeStacksHaveNoStoredSchoolPower(helper, player, ItemStack.EMPTY, message);
     }
 
-    private static void assertOtherElementMaidenRobeStacksHaveNoStoredSchoolPower(
+    static void assertOtherElementMaidenRobeStacksHaveNoStoredSchoolPower(
             GameTestHelper helper,
             Player player,
             ItemStack excludedStack,
@@ -14831,10 +8585,10 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
-    private record EquippedArmorStack(EquipmentSlot slot, ItemStack stack) {
+    record EquippedArmorStack(EquipmentSlot slot, ItemStack stack) {
     }
 
-    private static ExpectedSpellStainedRunicTabletAttributes resolveExpectedSpellStainedRunicTabletAttributes(
+    static ExpectedSpellStainedRunicTabletAttributes resolveExpectedSpellStainedRunicTabletAttributes(
             GameTestHelper helper,
             ItemStack stack
     ) {
@@ -14873,7 +8627,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static Map<Attribute, Double> filterExpectedSpellStainedRunicTabletSchoolPower(
+    static Map<Attribute, Double> filterExpectedSpellStainedRunicTabletSchoolPower(
             Map<Attribute, Double> schoolSpellPower,
             SpellStainedRunicTabletServerConfig.Values values
     ) {
@@ -14886,7 +8640,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return filtered;
     }
 
-    private static boolean shouldExpectSpellStainedRunicTabletSchoolPower(
+    static boolean shouldExpectSpellStainedRunicTabletSchoolPower(
             double amount,
             SpellStainedRunicTabletServerConfig.Values values
     ) {
@@ -14899,7 +8653,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return false;
     }
 
-    private static top.theillusivec4.curios.api.SlotContext createSpellbookSlotContext(GameTestHelper helper) {
+    static top.theillusivec4.curios.api.SlotContext createSpellbookSlotContext(GameTestHelper helper) {
         return new top.theillusivec4.curios.api.SlotContext(
                 io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
                 helper.spawn(net.minecraft.world.entity.EntityType.PIG, new BlockPos(0, 2, 0)),
@@ -14909,18 +8663,18 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static SpellEntry spellEntry(AbstractSpell spell, SpellRarity rarity) {
+    static SpellEntry spellEntry(AbstractSpell spell, SpellRarity rarity) {
         return new SpellEntry(spell, rarity);
     }
 
-    private static SpellStainedRunicTabletServerConfig.RarityBonuses sameRarityBonuses(double value) {
+    static SpellStainedRunicTabletServerConfig.RarityBonuses sameRarityBonuses(double value) {
         return new SpellStainedRunicTabletServerConfig.RarityBonuses(value, value, value, value, value, value);
     }
 
-    private record SpellEntry(AbstractSpell spell, SpellRarity rarity) {
+    record SpellEntry(AbstractSpell spell, SpellRarity rarity) {
     }
 
-    private record ExpectedSpellStainedRunicTabletAttributes(
+    record ExpectedSpellStainedRunicTabletAttributes(
             double maxMana,
             double generalSpellPower,
             Map<Attribute, Double> schoolSpellPower,
@@ -14929,7 +8683,7 @@ public final class ApprenticeCodexGameTestScenarios {
     ) {
     }
 
-    private static void assertScrollcasterGauntletSpellPower(
+    static void assertScrollcasterGauntletSpellPower(
             GameTestHelper helper,
             ItemStack stack,
             double expectedGlobalSpellPower,
@@ -14962,7 +8716,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         + " modifiers=" + describeModifiers(modifiers));
     }
 
-    private static void assertCastingMoveSpeedAdjustment(
+    static void assertCastingMoveSpeedAdjustment(
             GameTestHelper helper,
             double externalBonus,
             double expectedAmount,
@@ -14973,7 +8727,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 message + ": expected " + expectedAmount + " but got " + actualAmount + " for external bonus " + externalBonus);
     }
 
-    private static void assertCastingMoveSpeedModifierAmount(
+    static void assertCastingMoveSpeedModifierAmount(
             GameTestHelper helper,
             net.minecraft.world.entity.ai.attributes.AttributeInstance attributeInstance,
             @org.jetbrains.annotations.Nullable UUID excludedModifierId,
@@ -14990,14 +8744,14 @@ public final class ApprenticeCodexGameTestScenarios {
                         + " modifiers=" + attributeInstance.getModifiers());
     }
 
-    private static void assertUpgradeable(GameTestHelper helper, ItemStack stack, String message) {
+    static void assertUpgradeable(GameTestHelper helper, ItemStack stack, String message) {
         helper.assertTrue(stack.is(io.redspace.ironsspellbooks.util.ModTags.CAN_BE_UPGRADED),
                 message + " (missing upgrade whitelist tag on " + ForgeRegistries.ITEMS.getKey(stack.getItem()) + ")");
         helper.assertTrue(Utils.canBeUpgraded(stack),
                 message + " (Utils.canBeUpgraded returned false for " + ForgeRegistries.ITEMS.getKey(stack.getItem()) + ")");
     }
 
-    private static UpgradeData createUpgradeData(
+    static UpgradeData createUpgradeData(
             RegistryAccess registryAccess,
             ItemStack stack,
             net.minecraft.resources.ResourceKey<io.redspace.ironsspellbooks.item.armor.UpgradeOrbType> upgradeKey,
@@ -15013,7 +8767,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @Nullable
-    private static net.minecraft.resources.ResourceKey<io.redspace.ironsspellbooks.item.armor.UpgradeOrbType> findUpgradeKeyForPowerAttribute(
+    static net.minecraft.resources.ResourceKey<io.redspace.ironsspellbooks.item.armor.UpgradeOrbType> findUpgradeKeyForPowerAttribute(
             Attribute spellPowerAttribute
     ) {
         if (Objects.equals(spellPowerAttribute, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get())) {
@@ -15043,7 +8797,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return null;
     }
 
-    private static double sumModifierAmount(
+    static double sumModifierAmount(
             Collection<AttributeModifier> modifiers,
             AttributeModifier.Operation operation
     ) {
@@ -15053,7 +8807,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 .sum();
     }
 
-    private static void assertSingleModifierAmount(
+    static void assertSingleModifierAmount(
             GameTestHelper helper,
             Collection<AttributeModifier> modifiers,
             AttributeModifier.Operation operation,
@@ -15070,7 +8824,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 message + ": expected " + expectedAmount + " but got " + actualAmount);
     }
 
-    private static void assertModifierWithId(
+    static void assertModifierWithId(
             GameTestHelper helper,
             Collection<AttributeModifier> modifiers,
             UUID expectedId,
@@ -15089,7 +8843,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 message + ": expected " + operation + " " + expectedAmount + " but got " + modifier);
     }
 
-    private static void postSpellOnCast(ServerPlayer player, AbstractSpell spell, int spellLevel) {
+    static void postSpellOnCast(ServerPlayer player, AbstractSpell spell, int spellLevel) {
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new SpellOnCastEvent(
                 player,
                 spell.getSpellId(),
@@ -15100,7 +8854,7 @@ public final class ApprenticeCodexGameTestScenarios {
         ));
     }
 
-    private static void assertSchoolSpellPowerBonus(
+    static void assertSchoolSpellPowerBonus(
             GameTestHelper helper,
             ItemStack stack,
             EquipmentSlot slot,
@@ -15120,14 +8874,14 @@ public final class ApprenticeCodexGameTestScenarios {
                         + ", modifiers=" + describeModifiers(stack.getAttributeModifiers(slot)));
     }
 
-    private static String describeModifiers(com.google.common.collect.Multimap<Attribute, AttributeModifier> modifiers) {
+    static String describeModifiers(com.google.common.collect.Multimap<Attribute, AttributeModifier> modifiers) {
         return modifiers.entries().stream()
                 .map(entry -> ForgeRegistries.ATTRIBUTES.getKey(entry.getKey()) + "="
                         + entry.getValue().getAmount() + "@" + entry.getValue().getOperation())
                 .collect(Collectors.joining(", "));
     }
 
-    private static void placeAndAssertBlockEntity(
+    static void placeAndAssertBlockEntity(
             GameTestHelper helper,
             BlockPos pos,
             net.minecraft.world.level.block.Block block,
@@ -15142,7 +8896,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 "Block entity type mismatch for " + BuiltInRegistries.BLOCK.getKey(block) + ": " + BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(blockEntity.getType()));
     }
 
-    private static void assertArcanumInAJarComparatorOutput(
+    static void assertArcanumInAJarComparatorOutput(
             GameTestHelper helper,
             BlockPos pos,
             int storedParameterCount,
@@ -15170,7 +8924,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 "Arcanum in a Jar comparator output mismatch: expected " + expectedOutput + " but got " + output);
     }
 
-    private static void assertAtelierStationComparatorOutput(
+    static void assertAtelierStationComparatorOutput(
             GameTestHelper helper,
             BlockPos pos,
             int storedFluidAmount,
@@ -15218,7 +8972,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 "Atelier Station comparator output mismatch: expected " + expectedOutput + " but got " + output);
     }
 
-    private static void assertRecipeLoaded(
+    static void assertRecipeLoaded(
             GameTestHelper helper,
             RecipeManager recipeManager,
             ResourceLocation recipeId,
@@ -15235,7 +8989,7 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
-    private static void assertSearchBeaconTarget(GameTestHelper helper, Item item, String expectedTarget) {
+    static void assertSearchBeaconTarget(GameTestHelper helper, Item item, String expectedTarget) {
         var definition = SearchBeaconTargetManager.getDefinition(new ItemStack(item));
         helper.assertTrue(definition != null, "SearchBeacon target missing for " + BuiltInRegistries.ITEM.getKey(item));
         helper.assertTrue(
@@ -15245,7 +8999,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static void assertVillageHousePoolContains(
+    static void assertVillageHousePoolContains(
             GameTestHelper helper,
             Registry<StructureTemplatePool> templatePoolRegistry,
             ResourceLocation poolId,
@@ -15275,7 +9029,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 "Expanded template count mismatch in " + poolId + ": " + expandedMatchCount);
     }
 
-    private static boolean isMatchingSinglePoolElement(
+    static boolean isMatchingSinglePoolElement(
             StructurePoolElement element,
             ResourceLocation expectedStructureId,
             ResourceLocation expectedProcessorId
@@ -15292,23 +9046,23 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedStructureId.equals(structureId) && expectedProcessorId.equals(processorId);
     }
 
-    private static LootParams createChestLootParams(GameTestHelper helper) {
+    static LootParams createChestLootParams(GameTestHelper helper) {
         return new LootParams.Builder(helper.getLevel())
                 .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(new BlockPos(0, 1, 0)))
                 .create(LootContextParamSets.CHEST);
     }
 
-    private static LootParams createEmptyLootParams(GameTestHelper helper) {
+    static LootParams createEmptyLootParams(GameTestHelper helper) {
         return new LootParams.Builder(helper.getLevel()).create(LootContextParamSets.EMPTY);
     }
 
-    private static LootContext createEmptyLootContext(GameTestHelper helper, long seed) {
+    static LootContext createEmptyLootContext(GameTestHelper helper, long seed) {
         return new LootContext.Builder(createEmptyLootParams(helper))
                 .withOptionalRandomSeed(seed)
                 .create(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "gametest/random_applicable_enchantment"));
     }
 
-    private static List<AbstractSpell> getNonLootableApprenticeSpells() {
+    static List<AbstractSpell> getNonLootableApprenticeSpells() {
         return List.of(
                 SpellRegistry.EXTRACT.get(),
                 SpellRegistry.UNITE_LUNA.get(),
@@ -15318,7 +9072,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static void assertLootTableGeneratesAllItems(
+    static void assertLootTableGeneratesAllItems(
             GameTestHelper helper,
             ResourceLocation lootTableId,
             LootParams lootParams,
@@ -15335,7 +9089,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         + remainingItems.stream().map(BuiltInRegistries.ITEM::getKey).toList());
     }
 
-    private static void assertLootTableGeneratesAnyItem(
+    static void assertLootTableGeneratesAnyItem(
             GameTestHelper helper,
             ResourceLocation lootTableId,
             LootParams lootParams,
@@ -15354,7 +9108,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         + expectedItems.stream().map(BuiltInRegistries.ITEM::getKey).toList());
     }
 
-    private static void assertLootTableNeverGeneratesBlockedSpells(
+    static void assertLootTableNeverGeneratesBlockedSpells(
             GameTestHelper helper,
             ResourceLocation lootTableId,
             LootParams lootParams,
@@ -15387,7 +9141,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 "Loot table " + lootTableId + " generated blocked apprentice scrolls: " + seenBlockedSpells);
     }
 
-    private static void sampleLootTable(
+    static void sampleLootTable(
             GameTestHelper helper,
             ResourceLocation lootTableId,
             LootParams lootParams,
@@ -15400,7 +9154,7 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
-    private static ExplorersCodexGuidebookTransferRecipe getExplorersCodexGuidebookTransferRecipe(GameTestHelper helper) {
+    static ExplorersCodexGuidebookTransferRecipe getExplorersCodexGuidebookTransferRecipe(GameTestHelper helper) {
         var recipe = helper.getLevel().getRecipeManager()
                 .byKey(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "explorers_codex_guidebook_transfer"))
                 .orElse(null);
@@ -15409,13 +9163,13 @@ public final class ApprenticeCodexGameTestScenarios {
         return (ExplorersCodexGuidebookTransferRecipe) recipe;
     }
 
-    private static ItemStack createSpellScroll(AbstractSpell spell) {
+    static ItemStack createSpellScroll(AbstractSpell spell) {
         var stack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
         ISpellContainer.createScrollContainer(spell, 1, stack);
         return stack;
     }
 
-    private static void assertScrollcasterGauntletOffhandUseCasts(
+    static void assertScrollcasterGauntletOffhandUseCasts(
             GameTestHelper helper,
             ItemStack mainHandStack,
             AbstractSpell spell,
@@ -15442,7 +9196,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 "Scrollcaster Gauntlet offhand use should cast with the offhand gauntlet stack");
     }
 
-    private static void assertScrollcasterGauntletOffhandUseDefersToMainhandSpellItem(
+    static void assertScrollcasterGauntletOffhandUseDefersToMainhandSpellItem(
             GameTestHelper helper,
             ItemStack mainHandStack,
             AbstractSpell gauntletSpell,
@@ -15468,7 +9222,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 "Scrollcaster Gauntlet offhand defer should not set a casting item");
     }
 
-    private static void assertArchivistsGrimoireInscribeHintTooltip(
+    static void assertArchivistsGrimoireInscribeHintTooltip(
             GameTestHelper helper,
             ItemStack stack,
             boolean expected,
@@ -15477,7 +9231,7 @@ public final class ApprenticeCodexGameTestScenarios {
         assertTooltipTranslationKey(helper, stack, "item.apprenticecodex.special_spellbook.inscribe_hint", expected, message);
     }
 
-    private static void assertTooltipTranslationKey(
+    static void assertTooltipTranslationKey(
             GameTestHelper helper,
             ItemStack stack,
             String translationKey,
@@ -15492,7 +9246,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.assertTrue(hasKey == expected, message);
     }
 
-    private static void assertScrollSpell(
+    static void assertScrollSpell(
             GameTestHelper helper,
             ItemStack stack,
             AbstractSpell expectedSpell,
@@ -15506,7 +9260,7 @@ public final class ApprenticeCodexGameTestScenarios {
         assertSpellData(helper, spellContainer.getSpellAtIndex(0), expectedSpell, 1, message);
     }
 
-    private static @Nullable AbstractSpell getScrollSpell(ItemStack stack) {
+    static @Nullable AbstractSpell getScrollSpell(ItemStack stack) {
         if (!stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get())) {
             return null;
         }
@@ -15524,17 +9278,17 @@ public final class ApprenticeCodexGameTestScenarios {
         return spellData.getSpell();
     }
 
-    private static ItemStack createInstantManaPotion(net.minecraft.world.item.alchemy.Potion potion) {
+    static ItemStack createInstantManaPotion(net.minecraft.world.item.alchemy.Potion potion) {
         return PotionUtils.setPotion(new ItemStack(Items.POTION), potion);
     }
 
-    private static FluidStack createIronsManaPotionFluid(net.minecraft.world.item.alchemy.Potion potion, int amountMb) {
+    static FluidStack createIronsManaPotionFluid(net.minecraft.world.item.alchemy.Potion potion, int amountMb) {
         var fluid = io.redspace.ironsspellbooks.fluids.PotionFluid.from(PotionUtils.setPotion(new ItemStack(Items.POTION), potion));
         fluid.setAmount(amountMb);
         return fluid;
     }
 
-    private static FluidStack createCreateManaPotionFluid(net.minecraft.world.item.alchemy.Potion potion, int amountMb) {
+    static FluidStack createCreateManaPotionFluid(net.minecraft.world.item.alchemy.Potion potion, int amountMb) {
         var createPotion = ForgeRegistries.FLUIDS.getValue(ResourceLocation.fromNamespaceAndPath("create", "potion"));
         if (createPotion == null) {
             return FluidStack.EMPTY;
@@ -15547,7 +9301,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return fluid;
     }
 
-    private static void assertPotionEffect(
+    static void assertPotionEffect(
             GameTestHelper helper,
             net.minecraft.world.item.alchemy.Potion potion,
             String expectedPotionId,
@@ -15573,7 +9327,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         + (effect == null ? "missing" : effect.getAmplifier()));
     }
 
-    private static ItemStack createFilledSpellcastersFlask(ItemStack storedItem, int doseCount, int glowEnergyLevel) {
+    static ItemStack createFilledSpellcastersFlask(ItemStack storedItem, int doseCount, int glowEnergyLevel) {
         var flask = new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get());
         if (EnchantmentRegistry.GLOW_ENERGY.isPresent() && glowEnergyLevel > 0) {
             flask.enchant(EnchantmentRegistry.GLOW_ENERGY.get(), glowEnergyLevel);
@@ -15581,7 +9335,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return SpellcastersFlask.copyWithAddedDoses(flask, storedItem, doseCount);
     }
 
-    private static ItemStack createFilledAlchemistsFlask(ItemStack storedItem, int doseCount, int glowEnergyLevel) {
+    static ItemStack createFilledAlchemistsFlask(ItemStack storedItem, int doseCount, int glowEnergyLevel) {
         var flask = new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get());
         if (EnchantmentRegistry.GLOW_ENERGY.isPresent() && glowEnergyLevel > 0) {
             flask.enchant(EnchantmentRegistry.GLOW_ENERGY.get(), glowEnergyLevel);
@@ -15589,7 +9343,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return SpellcastersFlask.copyWithAddedDoses(flask, storedItem, doseCount);
     }
 
-    private static ItemStack createInitializedPresetStack(Item item) {
+    static ItemStack createInitializedPresetStack(Item item) {
         var stack = new ItemStack(item);
         if (item instanceof IPresetSpellContainer presetSpellContainer) {
             presetSpellContainer.initializeSpellContainer(stack);
@@ -15597,20 +9351,20 @@ public final class ApprenticeCodexGameTestScenarios {
         return stack;
     }
 
-    private static SpellcasterWorkbenchMenu createSpellcasterWorkbenchMenuWithSingleInput(Player player, ItemStack stack) {
+    static SpellcasterWorkbenchMenu createSpellcasterWorkbenchMenuWithSingleInput(Player player, ItemStack stack) {
         var menu = new SpellcasterWorkbenchMenu(0, player.getInventory());
         menu.getSlot(0).set(stack);
         return menu;
     }
 
-    private static SpellcasterWorkbenchMenu createSpellcasterWorkbenchMenuWithInputs(Player player, ItemStack first, ItemStack second) {
+    static SpellcasterWorkbenchMenu createSpellcasterWorkbenchMenuWithInputs(Player player, ItemStack first, ItemStack second) {
         var menu = new SpellcasterWorkbenchMenu(0, player.getInventory());
         menu.getSlot(0).set(first);
         menu.getSlot(1).set(second);
         return menu;
     }
 
-    private static SpellcasterWorkbenchMenu createSpellcasterWorkbenchMenuWithInputs(Player player, ItemStack first, ItemStack second,
+    static SpellcasterWorkbenchMenu createSpellcasterWorkbenchMenuWithInputs(Player player, ItemStack first, ItemStack second,
                                                                                      ItemStack third) {
         var menu = new SpellcasterWorkbenchMenu(0, player.getInventory());
         menu.getSlot(0).set(first);
@@ -15619,13 +9373,13 @@ public final class ApprenticeCodexGameTestScenarios {
         return menu;
     }
 
-    private static SpellCalibrationBenchMenu createSpellCalibrationBenchMenuWithTarget(Player player, ItemStack stack) {
+    static SpellCalibrationBenchMenu createSpellCalibrationBenchMenuWithTarget(Player player, ItemStack stack) {
         var menu = new SpellCalibrationBenchMenu(0, player.getInventory());
         menu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).set(stack);
         return menu;
     }
 
-    private static SpellCalibrationBenchMenu createSpellCalibrationBenchMenu(GameTestHelper helper, Player player,
+    static SpellCalibrationBenchMenu createSpellCalibrationBenchMenu(GameTestHelper helper, Player player,
                                                                              BlockPos pos) {
         helper.setBlock(pos, BlockRegistry.SPELL_CALIBRATION_BENCH.get());
         return new SpellCalibrationBenchMenu(
@@ -15635,7 +9389,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static void assertStackHasSpell(
+    static void assertStackHasSpell(
             GameTestHelper helper,
             ItemStack stack,
             AbstractSpell expectedSpell,
@@ -15660,7 +9414,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.assertTrue(false, message + ": expected spell was not found");
     }
 
-    private static void applyRestrictedImbueNormalization(
+    static void applyRestrictedImbueNormalization(
             GameTestHelper helper,
             ItemStack stack,
             RestrictedSpellImbuableItem item,
@@ -15681,7 +9435,7 @@ public final class ApprenticeCodexGameTestScenarios {
         item.normalizeImbuedSpellContainer(stack);
     }
 
-    private static void setSingleUnlockedSpell(GameTestHelper helper, ItemStack stack, AbstractSpell spell, int spellLevel) {
+    static void setSingleUnlockedSpell(GameTestHelper helper, ItemStack stack, AbstractSpell spell, int spellLevel) {
         var spellContainer = ISpellContainer.get(stack);
         helper.assertTrue(spellContainer != null, "Missing spell container before Focus Staffbow spell setup");
 
@@ -15695,7 +9449,7 @@ public final class ApprenticeCodexGameTestScenarios {
         ISpellContainer.set(stack, mutable.toImmutable());
     }
 
-    private static void applyPresetSpellExtraction(GameTestHelper helper, ItemStack stack) {
+    static void applyPresetSpellExtraction(GameTestHelper helper, ItemStack stack) {
         var spellContainer = ISpellContainer.get(stack);
         helper.assertTrue(spellContainer != null, "Missing spell container before preset extraction test");
 
@@ -15708,7 +9462,7 @@ public final class ApprenticeCodexGameTestScenarios {
         PresetSpellContainerStateHelper.rememberCleared(stack);
     }
 
-    private static void applyLegacyLockedReplacement(GameTestHelper helper, ItemStack stack, AbstractSpell spell, int spellLevel) {
+    static void applyLegacyLockedReplacement(GameTestHelper helper, ItemStack stack, AbstractSpell spell, int spellLevel) {
         var spellContainer = ISpellContainer.get(stack);
         helper.assertTrue(spellContainer != null, "Missing spell container before legacy replacement test");
 
@@ -15723,11 +9477,11 @@ public final class ApprenticeCodexGameTestScenarios {
         PresetSpellContainerStateHelper.clearRememberedState(stack);
     }
 
-    private static ItemStack roundTripItemStack(ItemStack stack) {
+    static ItemStack roundTripItemStack(ItemStack stack) {
         return ItemStack.of(stack.save(new CompoundTag()));
     }
 
-    private static void repairPresetSpellContainerStateIfNeeded(ItemStack stack) {
+    static void repairPresetSpellContainerStateIfNeeded(ItemStack stack) {
         var item = stack.getItem();
         if (item instanceof AbstractSpellGunItem spellGunItem) {
             spellGunItem.repairPresetSpellContainerStateIfNeeded(stack);
@@ -15738,7 +9492,7 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
-    private static void assertClearedSpellContainer(GameTestHelper helper, ItemStack stack, String message) {
+    static void assertClearedSpellContainer(GameTestHelper helper, ItemStack stack, String message) {
         var spellContainer = ISpellContainer.get(stack);
         helper.assertTrue(spellContainer != null, message + ": spell container is null");
         helper.assertTrue(spellContainer.getActiveSpellCount() <= 0,
@@ -15747,7 +9501,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 message + ": slot 0 unexpectedly contains " + spellContainer.getSpellAtIndex(0).getSpell().getSpellResource());
     }
 
-    private static CraftingContainer createCraftingContainer(ItemStack... stacks) {
+    static CraftingContainer createCraftingContainer(ItemStack... stacks) {
         var menu = new AbstractContainerMenu(null, -1) {
             @Override
             public ItemStack quickMoveStack(Player player, int index) {
@@ -15767,7 +9521,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return container;
     }
 
-    private static void fillSpellContainerToActiveCount(
+    static void fillSpellContainerToActiveCount(
             GameTestHelper helper,
             io.redspace.ironsspellbooks.api.spells.ISpellContainerMutable mutable,
             int targetActiveCount
@@ -15789,7 +9543,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         + mutable.getActiveSpellCount());
     }
 
-    private static ItemStack createAutocastAmuletStack(GameTestHelper helper, int spellSlotCount, SpellData... spells) {
+    static ItemStack createAutocastAmuletStack(GameTestHelper helper, int spellSlotCount, SpellData... spells) {
         var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
         var upgradeItem = (SpellSlotUpgradeItem) io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get();
         var stack = item.getDefaultInstance();
@@ -15815,7 +9569,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return stack;
     }
 
-    private static List<AutoMagnetFamiliarEntity> getOwnedAutoMagnetFamiliars(GameTestHelper helper, FakePlayer owner) {
+    static List<AutoMagnetFamiliarEntity> getOwnedAutoMagnetFamiliars(GameTestHelper helper, FakePlayer owner) {
         return helper.getLevel().getEntitiesOfClass(
                 AutoMagnetFamiliarEntity.class,
                 new AABB(owner.position(), owner.position()).inflate(32.0),
@@ -15826,7 +9580,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static boolean invokeAutocastBeginCast(
+    static boolean invokeAutocastBeginCast(
             ServerPlayer player,
             MagicData magicData,
             ItemStack stack,
@@ -15853,7 +9607,7 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
-    private static void runAutocastAmuletServerTick(FakePlayer player, int tickCount) {
+    static void runAutocastAmuletServerTick(FakePlayer player, int tickCount) {
         player.tickCount = tickCount;
         AutocastAmuletAutoCastEvent.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
         jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletCastEvent.onPlayerTick(
@@ -15861,7 +9615,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    private static void assertSpellData(
+    static void assertSpellData(
             GameTestHelper helper,
             SpellData spellData,
             AbstractSpell expectedSpell,
@@ -15876,7 +9630,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 message + " (level mismatch: " + spellData.getLevel() + ")");
     }
 
-    private static void assertSpellData(
+    static void assertSpellData(
             GameTestHelper helper,
             ISpellContainer spellContainer,
             int index,
@@ -15896,7 +9650,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 message + " (locked mismatch: " + spellData.isLocked() + ")");
     }
 
-    private static Int2ObjectOpenHashMap<List<VillagerTrades.ItemListing>> createEmptyVillagerTrades() {
+    static Int2ObjectOpenHashMap<List<VillagerTrades.ItemListing>> createEmptyVillagerTrades() {
         var trades = new Int2ObjectOpenHashMap<List<VillagerTrades.ItemListing>>();
         for (var level = 1; level <= 5; level++) {
             trades.put(level, new ArrayList<>());
@@ -15904,7 +9658,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return trades;
     }
 
-    private static List<MerchantOffer> createOffers(List<VillagerTrades.ItemListing> listings, long randomSeed) {
+    static List<MerchantOffer> createOffers(List<VillagerTrades.ItemListing> listings, long randomSeed) {
         var random = RandomSource.create(randomSeed);
         var offers = new ArrayList<MerchantOffer>();
         for (var listing : listings) {
@@ -15916,20 +9670,20 @@ public final class ApprenticeCodexGameTestScenarios {
         return offers;
     }
 
-    private static void assertContainsOffer(GameTestHelper helper, List<MerchantOffer> offers,
+    static void assertContainsOffer(GameTestHelper helper, List<MerchantOffer> offers,
                                             ItemStack costA, ItemStack costB, ItemStack result,
                                             int maxUses, String message) {
         helper.assertTrue(offers.stream().anyMatch(offer -> offerMatches(offer, costA, costB, result, maxUses)), message);
     }
 
-    private static boolean offerMatches(MerchantOffer offer, ItemStack costA, ItemStack costB, ItemStack result, int maxUses) {
+    static boolean offerMatches(MerchantOffer offer, ItemStack costA, ItemStack costB, ItemStack result, int maxUses) {
         return stackMatches(offer.getBaseCostA(), costA)
                 && stackMatches(offer.getCostB(), costB)
                 && stackMatches(offer.getResult(), result)
                 && offer.getMaxUses() == maxUses;
     }
 
-    private static boolean stackMatches(ItemStack actual, ItemStack expected) {
+    static boolean stackMatches(ItemStack actual, ItemStack expected) {
         if (expected.isEmpty()) {
             return actual.isEmpty();
         }
@@ -15937,11 +9691,11 @@ public final class ApprenticeCodexGameTestScenarios {
         return actual.is(expected.getItem()) && actual.getCount() == expected.getCount();
     }
 
-    private static boolean hasBaseCostItem(List<MerchantOffer> offers, Item item) {
+    static boolean hasBaseCostItem(List<MerchantOffer> offers, Item item) {
         return offers.stream().anyMatch(offer -> offer.getBaseCostA().is(item));
     }
 
-    private static int countBaseCostItems(List<MerchantOffer> offers, Item... items) {
+    static int countBaseCostItems(List<MerchantOffer> offers, Item... items) {
         var count = 0;
         for (var offer : offers) {
             for (var item : items) {
@@ -15954,7 +9708,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return count;
     }
 
-    private static <T> void assertForgeRegistryEntries(
+    static <T> void assertForgeRegistryEntries(
             GameTestHelper helper,
             String registryName,
             IForgeRegistry<T> registry,
@@ -15968,7 +9722,7 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
-    private static <T> void assertBuiltinRegistryEntries(
+    static <T> void assertBuiltinRegistryEntries(
             GameTestHelper helper,
             String registryName,
             Registry<T> registry,
