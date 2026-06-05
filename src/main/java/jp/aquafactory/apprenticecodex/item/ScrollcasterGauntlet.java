@@ -14,6 +14,7 @@ import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.Scroll;
 import io.redspace.ironsspellbooks.item.UniqueItem;
+import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
@@ -51,6 +52,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
@@ -104,6 +106,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     private static final RawAnimation ANIM_CAST = RawAnimation.begin().thenPlay("cast");
     private static final double ATTACK_DAMAGE_BONUS = 5.0D;
     private static final double ATTACK_SPEED_BONUS = -2.2D;
+    private static final double EPIC_FIGHT_ATTACK_DAMAGE_BONUS = 2.0D;
+    private static final double EPIC_FIGHT_ATTACK_SPEED_BONUS = 0.0D;
     private static final double SPELL_POWER_BONUS = 0.05D;
     private static final double SCHOOL_SPELL_POWER_BONUS = 0.10D;
     private static final UUID SPELL_POWER_MODIFIER_ID = UUID.fromString("be797f84-cdc5-41fd-871f-685cebb23f5c");
@@ -282,12 +286,14 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     private static Multimap<Attribute, AttributeModifier> buildMainhandModifiers(ItemStack stack) {
         var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+        var attackDamageBonus = getAttackDamageBonus();
+        var attackSpeedBonus = getAttackSpeedBonus();
         builder.put(
                 Attributes.ATTACK_DAMAGE,
                 new AttributeModifier(
                         Item.BASE_ATTACK_DAMAGE_UUID,
                         "Weapon modifier",
-                        ATTACK_DAMAGE_BONUS,
+                        attackDamageBonus,
                         AttributeModifier.Operation.ADDITION
                 )
         );
@@ -296,7 +302,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                 new AttributeModifier(
                         Item.BASE_ATTACK_SPEED_UUID,
                         "Weapon modifier",
-                        ATTACK_SPEED_BONUS,
+                        attackSpeedBonus,
                         AttributeModifier.Operation.ADDITION
                 )
         );
@@ -323,6 +329,19 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             );
         }
         return builder.build();
+    }
+
+    private static double getAttackDamageBonus() {
+        return isEpicFightLoaded() ? EPIC_FIGHT_ATTACK_DAMAGE_BONUS : ATTACK_DAMAGE_BONUS;
+    }
+
+    private static double getAttackSpeedBonus() {
+        return isEpicFightLoaded() ? EPIC_FIGHT_ATTACK_SPEED_BONUS : ATTACK_SPEED_BONUS;
+    }
+
+    private static boolean isEpicFightLoaded() {
+        // Epic Fight の fist モーションは攻撃速度 4 前提のため、導入時だけ表示値ごとグローブ相当に寄せる。
+        return ModList.get().isLoaded(EpicFightCompat.MOD_ID);
     }
 
     private static boolean shouldApplyBaseSpellPowerBonus(ItemStack stack) {
