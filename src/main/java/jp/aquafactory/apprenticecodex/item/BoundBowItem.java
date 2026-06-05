@@ -101,7 +101,7 @@ public class BoundBowItem extends BowItem {
         if (!isBoundBow(stack)) {
             return 1.0F;
         }
-        CompoundTag tag = stack.getTag();
+        CompoundTag tag = getCustomDataTag(stack);
         return tag != null && tag.contains(SUMMON_DAMAGE_MULTIPLIER_TAG)
                 ? tag.getFloat(SUMMON_DAMAGE_MULTIPLIER_TAG)
                 : 1.0F;
@@ -155,7 +155,7 @@ public class BoundBowItem extends BowItem {
 
             EnchantmentHelper.onProjectileSpawned((ServerLevel) level, stack, arrow, ignored -> {
             });
-            arrow.setBaseDamage(arrow.getBaseDamage() * getSummonDamageMultiplier(stack));
+            applySummonDamageMultiplier(arrow, stack);
 
             stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(player.getUsedItemHand()));
             if (infiniteAmmo || shouldForgeArrow
@@ -286,6 +286,22 @@ public class BoundBowItem extends BowItem {
             }
         }
         return 0;
+    }
+
+    private static void applySummonDamageMultiplier(AbstractArrow arrow, ItemStack stack) {
+        var multiplier = getSummonDamageMultiplier(stack);
+        if (Math.abs(multiplier - 1.0F) < 0.0001F) {
+            return;
+        }
+
+        var powerDamageBonus = getPowerDamageBonus(stack);
+        var adjustedBaseDamage = (arrow.getBaseDamage() + powerDamageBonus) * multiplier - powerDamageBonus;
+        arrow.setBaseDamage(Math.max(0.0D, adjustedBaseDamage));
+    }
+
+    private static double getPowerDamageBonus(ItemStack stack) {
+        var powerLevel = getEnchantmentLevel(stack, Enchantments.POWER);
+        return powerLevel <= 0 ? 0.0D : 0.5D + (double) (powerLevel - 1) * 0.5D;
     }
 
     private static @Nullable CompoundTag getCustomDataTag(ItemStack stack) {

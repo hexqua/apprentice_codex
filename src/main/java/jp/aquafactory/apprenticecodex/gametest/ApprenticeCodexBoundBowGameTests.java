@@ -127,8 +127,8 @@ public final class ApprenticeCodexBoundBowGameTests {
             bow.getItem().releaseUsing(bow, helper.getLevel(), player, bow.getUseDuration(player) - 20);
 
             var arrow = getSingleArrow(helper, player);
-            helper.assertTrue(Math.abs(arrow.getBaseDamage() - 4.5D) < 0.0001D,
-                    "Bound Bow arrow base damage should apply snapshotted Summon Damage after Power");
+            helper.assertTrue(Math.abs(arrow.getBaseDamage() - 3.25D) < 0.0001D,
+                    "Bound Bow arrow base damage should pre-adjust snapshotted Summon Damage for Power");
         }
         helper.succeed();
     }
@@ -145,7 +145,7 @@ public final class ApprenticeCodexBoundBowGameTests {
             bow.getItem().releaseUsing(bow, helper.getLevel(), player, bow.getUseDuration(player) - 20);
 
             var arrow = getSingleArrow(helper, player);
-            helper.assertTrue(Math.abs(arrow.getBaseDamage() - 3.0D) < 0.0001D,
+            helper.assertTrue(Math.abs(arrow.getBaseDamage() - 2.0D) < 0.0001D,
                     "Bound Bow legacy factory should keep neutral Summon Damage");
         }
         helper.succeed();

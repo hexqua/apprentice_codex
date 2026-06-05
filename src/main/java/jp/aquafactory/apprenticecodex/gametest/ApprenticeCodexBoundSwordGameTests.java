@@ -242,7 +242,7 @@ public final class ApprenticeCodexBoundSwordGameTests {
         helper.assertTrue(Math.abs(BoundSwordItem.getDisplayDamage(sword) - 9.0F) < 0.0001F,
                 "Bound Sword display damage should snapshot Summon Damage at cast time");
 
-        var attackDamage = sword.getAttributeModifiers().modifiers()
+        var attackDamage = ((BoundSwordItem) sword.getItem()).getDefaultAttributeModifiers(sword).modifiers()
                 .stream()
                 .filter(entry -> entry.slot().equals(EquipmentSlotGroup.MAINHAND)
                         && entry.attribute().equals(Attributes.ATTACK_DAMAGE))
