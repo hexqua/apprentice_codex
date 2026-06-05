@@ -46,6 +46,7 @@ import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWork
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat;
+import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
@@ -575,21 +576,24 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             stack.enchant(enchantmentLookup.getOrThrow(Enchantments.TENSE), 1);
 
             var modifiers = toModifierMultimap(stack.getItem().getDefaultAttributeModifiers(stack));
+            var epicFightLoaded = ModList.get().isLoaded(EpicFightCompat.MOD_ID);
+            var expectedAttackDamageBonus = epicFightLoaded ? 2.0D : 5.0D;
+            var expectedAttackSpeedBonus = epicFightLoaded ? 0.0D : -2.2D;
             assertModifierWithId(
                     helper,
                     modifiers.get(Attributes.ATTACK_DAMAGE),
                     VANILLA_BASE_ATTACK_DAMAGE_MODIFIER_ID,
                     AttributeModifier.Operation.ADD_VALUE,
-                    5.0D,
-                    "Scrollcaster Gauntlet attack damage modifier should keep vanilla weapon tooltip UUID"
+                    expectedAttackDamageBonus,
+                    "Scrollcaster Gauntlet attack damage modifier should match the loaded combat environment"
             );
             assertModifierWithId(
                     helper,
                     modifiers.get(Attributes.ATTACK_SPEED),
                     VANILLA_BASE_ATTACK_SPEED_MODIFIER_ID,
                     AttributeModifier.Operation.ADD_VALUE,
-                    -2.2D,
-                    "Scrollcaster Gauntlet attack speed modifier should keep vanilla weapon tooltip UUID"
+                    expectedAttackSpeedBonus,
+                    "Scrollcaster Gauntlet attack speed modifier should match the loaded combat environment"
             );
             assertSingleModifierAmount(
                     helper,
