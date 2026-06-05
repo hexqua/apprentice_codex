@@ -14,11 +14,13 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
     private static final String JEI_MOD_ID = "jei";
     private static final String EPIC_FIGHT_MOD_ID = "epicfight";
     private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
+    private static final String EFIS_COMPAT_MOD_ID = "efiscompat";
     private static final String EASY_MAGIC_MIXIN = "jp.aquafactory.apprenticecodex.mixin.EasyMagicModEnchantmentMenuMixin";
     private static final String ARCANE_ANVIL_JEI_RECIPE_MIXIN =
             "jp.aquafactory.apprenticecodex.mixin.ArcaneAnvilJeiRecipeMixin";
     private static final String EPIC_FIGHT_MIXIN_PREFIX = "jp.aquafactory.apprenticecodex.mixin.EpicFight";
     private static final String BETTER_COMBAT_MIXIN_PREFIX = "jp.aquafactory.apprenticecodex.mixin.BetterCombat";
+    private static final String EFIS_COMPAT_MIXIN_PREFIX = "jp.aquafactory.apprenticecodex.mixin.EfisCompat";
 
     @Override
     public void onLoad(String mixinPackage) {
@@ -52,6 +54,10 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
         if (mixinClassName.startsWith(BETTER_COMBAT_MIXIN_PREFIX)) {
             var loadingModList = FMLLoader.getLoadingModList();
             return loadingModList != null && loadingModList.getModFileById(BETTER_COMBAT_MOD_ID) != null;
+        }
+        if (mixinClassName.startsWith(EFIS_COMPAT_MIXIN_PREFIX)) {
+            var loadingModList = FMLLoader.getLoadingModList();
+            return loadingModList != null && loadingModList.getModFileById(EFIS_COMPAT_MOD_ID) != null;
         }
         return true;
     }

@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
+import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -262,7 +263,7 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
             int spellLevel,
             @Nullable MagicData magicData
     ) {
-        return NoopAutoCloseable.INSTANCE;
+        return SwingcastStaffCastContext.open(player.getUUID(), stack, spell);
     }
 
     protected boolean tryCastSpell(Player player, ItemStack stack, AbstractSpell spell, int spellLevel, @Nullable MagicData magicData) {
@@ -321,11 +322,4 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
         lines.add(Component.translatable("item.apprenticecodex.swingcast.common.desc").withStyle(ChatFormatting.GRAY));
     }
 
-    private enum NoopAutoCloseable implements AutoCloseable {
-        INSTANCE;
-
-        @Override
-        public void close() {
-        }
-    }
 }

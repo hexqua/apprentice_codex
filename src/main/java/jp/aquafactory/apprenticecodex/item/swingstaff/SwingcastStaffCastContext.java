@@ -24,6 +24,15 @@ public final class SwingcastStaffCastContext implements AutoCloseable {
     }
 
     static boolean matches(UUID playerId, ItemStack stack, AbstractSpell spell) {
+        if (!matches(playerId, spell.getSpellId())) {
+            return false;
+        }
+
+        var current = ACTIVE_CONTEXTS.get().peek();
+        return current != null && current.item() == stack.getItem();
+    }
+
+    public static boolean matches(UUID playerId, String spellId) {
         var contexts = ACTIVE_CONTEXTS.get();
         if (contexts.isEmpty()) {
             return false;
@@ -32,8 +41,7 @@ public final class SwingcastStaffCastContext implements AutoCloseable {
         var current = contexts.peek();
         return current != null
                 && current.playerId().equals(playerId)
-                && current.item() == stack.getItem()
-                && current.spellId().equals(spell.getSpellId());
+                && current.spellId().equals(spellId);
     }
 
     @Override

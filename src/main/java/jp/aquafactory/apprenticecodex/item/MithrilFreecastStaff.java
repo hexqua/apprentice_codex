@@ -12,8 +12,9 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
-import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
+import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
@@ -142,7 +143,8 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
         }
 
         var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
-        try (var ignored = MithrilFreecastStaffCastContext.open(player.getUUID(), stack, spell)) {
+        try (var swingTriggeredContext = SwingcastStaffCastContext.open(player.getUUID(), stack, spell);
+             var ignored = MithrilFreecastStaffCastContext.open(player.getUUID(), stack, spell)) {
             var casted = spell.attemptInitiateCast(
                     stack,
                     spellLevel,
