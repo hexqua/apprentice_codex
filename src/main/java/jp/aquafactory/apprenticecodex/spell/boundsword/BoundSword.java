@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.spell.boundsword;
 
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
@@ -58,7 +59,9 @@ public class BoundSword extends AbstractSpell {
 
     private float getWeaponDamage(int spellLevel, LivingEntity entity) {
         var rawDamage = 3 + 3 * getSpellPower(spellLevel, entity) / 100.0f;
-        return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.BOUND_SWORD);
+        return rawDamage
+                * (float) entity.getAttributeValue(AttributeRegistry.SUMMON_DAMAGE)
+                * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.BOUND_SWORD);
     }
 
     int getDuration() {
@@ -151,6 +154,18 @@ public class BoundSword extends AbstractSpell {
     }
 
     @Override
+    public void castSpell(Level world, int spellLevel, ServerPlayer serverPlayer, CastSource castSource,
+                          boolean triggerCooldown) {
+        var magicData = MagicData.getPlayerMagicData(serverPlayer);
+        var wasBoundSwordRecast = magicData.getPlayerRecasts().hasRecastForSpell(this);
+        super.castSpell(world, spellLevel, serverPlayer, castSource, triggerCooldown);
+        if (wasBoundSwordRecast && hasGreaterConjurersTalisman(serverPlayer)
+                && magicData.getPlayerCooldowns().removeCooldown(getSpellId())) {
+            magicData.getPlayerCooldowns().syncToPlayer(serverPlayer);
+        }
+    }
+
+    @Override
     public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         return entity instanceof Player && super.checkPreCastConditions(level, spellLevel, entity, playerMagicData);
     }
@@ -159,7 +174,15 @@ public class BoundSword extends AbstractSpell {
     public void onRecastFinished(ServerPlayer serverPlayer, RecastInstance recastInstance, RecastResult recastResult,
                                  ICastDataSerializable castDataSerializable) {
         BoundSwordManager.deactivate(serverPlayer, false);
+        if (hasGreaterConjurersTalisman(serverPlayer)) {
+            return;
+        }
         super.onRecastFinished(serverPlayer, recastInstance, recastResult, castDataSerializable);
+    }
+
+    private static boolean hasGreaterConjurersTalisman(ServerPlayer serverPlayer) {
+        return io.redspace.ironsspellbooks.registries.ItemRegistry.GREATER_CONJURERS_TALISMAN.get()
+                .isEquippedBy(serverPlayer);
     }
 
     public static class BoundSwordCastData implements ICastDataSerializable {

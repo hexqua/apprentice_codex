@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
@@ -115,6 +116,75 @@ public final class ApprenticeCodexBoundBowGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void boundBowSnapshotsSummonDamageIntoArrowBaseDamage(GameTestHelper helper) {
+        var player = createBoundBowTestPlayer(helper, "bound_bow_summon_damage_test");
+        var magicData = resolveMagicData(helper, player);
+        try (var ignored = ApprenticeCodexServerConfig.useBoundBowConfigOverrideForGameTest(6, 25.0F)) {
+            magicData.setMana(40.0F);
+            var bow = BoundBowItem.create(UUID.randomUUID(), 1, helper.getLevel().registryAccess(), 1.5F);
+            player.setItemInHand(InteractionHand.MAIN_HAND, bow);
+
+            bow.getItem().releaseUsing(bow, helper.getLevel(), player, bow.getUseDuration(player) - 20);
+
+            var arrow = getSingleArrow(helper, player);
+            helper.assertTrue(Math.abs(arrow.getBaseDamage() - 3.25D) < 0.0001D,
+                    "Bound Bow arrow base damage should pre-adjust snapshotted Summon Damage for Power");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void boundBowLegacyCreateUsesNeutralSummonDamage(GameTestHelper helper) {
+        var player = createBoundBowTestPlayer(helper, "bound_bow_neutral_summon_damage_test");
+        var magicData = resolveMagicData(helper, player);
+        try (var ignored = ApprenticeCodexServerConfig.useBoundBowConfigOverrideForGameTest(6, 25.0F)) {
+            magicData.setMana(40.0F);
+            var bow = BoundBowItem.create(UUID.randomUUID(), 1, helper.getLevel().registryAccess());
+            player.setItemInHand(InteractionHand.MAIN_HAND, bow);
+
+            bow.getItem().releaseUsing(bow, helper.getLevel(), player, bow.getUseDuration(player) - 20);
+
+            var arrow = getSingleArrow(helper, player);
+            helper.assertTrue(Math.abs(arrow.getBaseDamage() - 2.0D) < 0.0001D,
+                    "Bound Bow legacy factory should keep neutral Summon Damage");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void boundBowGreaterConjurersTalismanSkipsRecastCooldown(GameTestHelper helper) {
+        var player = createBoundBowTestPlayer(helper, "bound_bow_greater_conjurer_cooldown_test");
+        var magicData = resolveMagicData(helper, player);
+        equipGreaterConjurersTalisman(player);
+
+        BoundBowManager.activate(player, 1, CastSource.SPELLBOOK, magicData, boundBow(), 1);
+        var recast = magicData.getPlayerRecasts().getRecastInstance(boundBow().getSpellId());
+        helper.assertTrue(recast != null, "Bound Bow should create an active recast");
+
+        magicData.getPlayerRecasts().removeRecast(recast, RecastResult.TIMEOUT);
+
+        helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(boundBow()),
+                "Greater Conjurer's Talisman should suppress Bound Bow cooldown when the recast ends");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void boundBowGreaterConjurersTalismanSkipsManualRecastCooldown(GameTestHelper helper) {
+        var player = createBoundBowTestPlayer(helper, "bound_bow_greater_conjurer_manual_recast_test");
+        var magicData = resolveMagicData(helper, player);
+        equipGreaterConjurersTalisman(player);
+
+        BoundBowManager.activate(player, 1, CastSource.SPELLBOOK, magicData, boundBow(), 1);
+        boundBow().castSpell(helper.getLevel(), 1, player, CastSource.SPELLBOOK, true);
+
+        helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(boundBow()),
+                "Manual Bound Bow recast should remove the active recast");
+        helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(boundBow()),
+                "Greater Conjurer's Talisman should suppress Bound Bow cooldown after manual recast deactivation");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void boundBowConsumesManaToForgeArrowWithoutAmmo(GameTestHelper helper) {
         var player = createBoundBowTestPlayer(helper, "bound_bow_forge_arrow_test");
         var magicData = resolveMagicData(helper, player);
@@ -177,6 +247,13 @@ public final class ApprenticeCodexBoundBowGameTests {
                 .size();
     }
 
+    private static AbstractArrow getSingleArrow(GameTestHelper helper, FakePlayer player) {
+        var arrows = helper.getLevel()
+                .getEntitiesOfClass(AbstractArrow.class, new AABB(player.position(), player.position()).inflate(16.0D));
+        helper.assertTrue(arrows.size() == 1, "Expected exactly one Bound Bow arrow but found " + arrows.size());
+        return arrows.get(0);
+    }
+
     private static FakePlayer createBoundBowTestPlayer(GameTestHelper helper, String name) {
         var player = new FakePlayer((ServerLevel) helper.getLevel(), new GameProfile(UUID.randomUUID(), name));
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 2, 0)));
@@ -189,6 +266,13 @@ public final class ApprenticeCodexBoundBowGameTests {
         var magicData = MagicData.getPlayerMagicData(player);
         helper.assertTrue(magicData != null, "Bound Bow test could not resolve player magic data");
         return magicData;
+    }
+
+    private static void equipGreaterConjurersTalisman(FakePlayer player) {
+        var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+                .orElseThrow(() -> new IllegalStateException("Missing curios inventory for Bound Bow Greater Conjurer's Talisman test"));
+        curiosInventory.setEquippedCurio(io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, 0,
+                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.GREATER_CONJURERS_TALISMAN.get()));
     }
 
     private static BoundBow boundBow() {

@@ -48,14 +48,23 @@ import java.util.UUID;
 public class BoundBowItem extends BowItem {
     public static final int DURABILITY = 1561;
     public static final String INSTANCE_ID_TAG = "apprenticecodex:bound_bow_instance_id";
+    public static final String SUMMON_DAMAGE_MULTIPLIER_TAG = "apprenticecodex:bound_bow_summon_damage_multiplier";
 
     public BoundBowItem() {
         super(new Item.Properties().stacksTo(1).durability(DURABILITY).rarity(Rarity.RARE));
     }
 
     public static ItemStack create(UUID instanceId, int powerLevel, HolderLookup.Provider registries) {
+        return create(instanceId, powerLevel, registries, 1.0F);
+    }
+
+    public static ItemStack create(UUID instanceId, int powerLevel, HolderLookup.Provider registries,
+                                   float summonDamageMultiplier) {
         var stack = new ItemStack(ItemRegistry.BOUND_BOW.get());
-        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putUUID(INSTANCE_ID_TAG, instanceId));
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putUUID(INSTANCE_ID_TAG, instanceId);
+            tag.putFloat(SUMMON_DAMAGE_MULTIPLIER_TAG, summonDamageMultiplier);
+        });
         if (powerLevel > 0) {
             registries.lookupOrThrow(Registries.ENCHANTMENT).get(Enchantments.POWER)
                     .ifPresent(power -> stack.enchant(power, powerLevel));
@@ -86,6 +95,16 @@ public class BoundBowItem extends BowItem {
             return false;
         }
         return getInstanceId(stack).map(instanceId::equals).orElse(false);
+    }
+
+    public static float getSummonDamageMultiplier(ItemStack stack) {
+        if (!isBoundBow(stack)) {
+            return 1.0F;
+        }
+        CompoundTag tag = getCustomDataTag(stack);
+        return tag != null && tag.contains(SUMMON_DAMAGE_MULTIPLIER_TAG)
+                ? tag.getFloat(SUMMON_DAMAGE_MULTIPLIER_TAG)
+                : 1.0F;
     }
 
     @Override
@@ -136,6 +155,7 @@ public class BoundBowItem extends BowItem {
 
             EnchantmentHelper.onProjectileSpawned((ServerLevel) level, stack, arrow, ignored -> {
             });
+            applySummonDamageMultiplier(arrow, stack);
 
             stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(player.getUsedItemHand()));
             if (infiniteAmmo || shouldForgeArrow
@@ -266,6 +286,22 @@ public class BoundBowItem extends BowItem {
             }
         }
         return 0;
+    }
+
+    private static void applySummonDamageMultiplier(AbstractArrow arrow, ItemStack stack) {
+        var multiplier = getSummonDamageMultiplier(stack);
+        if (Math.abs(multiplier - 1.0F) < 0.0001F) {
+            return;
+        }
+
+        var powerDamageBonus = getPowerDamageBonus(stack);
+        var adjustedBaseDamage = (arrow.getBaseDamage() + powerDamageBonus) * multiplier - powerDamageBonus;
+        arrow.setBaseDamage(Math.max(0.0D, adjustedBaseDamage));
+    }
+
+    private static double getPowerDamageBonus(ItemStack stack) {
+        var powerLevel = getEnchantmentLevel(stack, Enchantments.POWER);
+        return powerLevel <= 0 ? 0.0D : 0.5D + (double) (powerLevel - 1) * 0.5D;
     }
 
     private static @Nullable CompoundTag getCustomDataTag(ItemStack stack) {
