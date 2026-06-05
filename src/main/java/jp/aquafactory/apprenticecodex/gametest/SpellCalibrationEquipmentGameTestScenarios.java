@@ -1,0 +1,614 @@
+package jp.aquafactory.apprenticecodex.gametest;
+
+import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.api.events.CounterSpellEvent;
+import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
+import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
+import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
+import io.redspace.ironsspellbooks.api.item.UpgradeData;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
+import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
+import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
+import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.effect.MagicMobEffect;
+import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
+import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectile;
+import io.redspace.ironsspellbooks.entity.spells.fireball.SmallMagicFireball;
+import io.redspace.ironsspellbooks.entity.spells.spectral_hammer.SpectralHammer;
+import io.redspace.ironsspellbooks.entity.spells.target_area.TargetedAreaEntity;
+import io.redspace.ironsspellbooks.spells.nature.TouchDigSpell;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntity;
+import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntity;
+import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastAnchorMode;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCasterMode;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaFluidHelper;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfile;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfileManager;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserVariant;
+import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
+import jp.aquafactory.apprenticecodex.capability.Capabilities;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
+import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
+import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
+import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
+import jp.aquafactory.apprenticecodex.event.ErrandMageVillagerTradesEvent;
+import jp.aquafactory.apprenticecodex.event.errandmage.ErrandMageTradeManager;
+import jp.aquafactory.apprenticecodex.event.ScrollcasterGauntletGrindstoneEvent;
+import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastMode;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
+import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
+import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
+import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
+import jp.aquafactory.apprenticecodex.item.CircuitHeatStaff;
+import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffCastEvent;
+import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffRightClickItemEvent;
+import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
+import jp.aquafactory.apprenticecodex.item.ElementalBow;
+import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
+import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
+import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
+import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
+import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfile;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfileManager;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffCastHelper;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectHandler;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectProfile;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectProfileManager;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
+import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
+import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffManaCostEvent;
+import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffPowerHelper;
+import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
+import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
+import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterAttackEvent;
+import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
+import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
+import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntletCastEvent;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellListManager;
+import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightCooldownReductionEvent;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightManaCostDiscountEvent;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightSpellSupport;
+import jp.aquafactory.apprenticecodex.item.curios.manashieldcharm.ManaShieldCharm;
+import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverPickupEvent;
+import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
+import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
+import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
+import jp.aquafactory.apprenticecodex.item.spellthrowablecard.AbstractSpellThrowableCardItem;
+import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
+import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
+import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
+import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTransferRecipe;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
+import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
+import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWings;
+import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsManager;
+import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper;
+import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
+import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
+import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
+import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarManager;
+import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
+import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.harvestmoon.HarvestMoon;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
+import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
+import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarStarEntity;
+import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
+import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceBurst;
+import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerEntity;
+import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileEntity;
+import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShield;
+import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldDefenseEvent;
+import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldShieldEntity;
+import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
+import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
+import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxCounterSpellEvent;
+import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
+import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
+import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
+import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
+import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
+import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackBlockClassifier;
+import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackJob;
+import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonEntity;
+import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillEntity;
+import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
+import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressStats;
+import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeSchoolPowerBonusEvents;
+import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeStats;
+import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
+import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastCooldownMode;
+import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
+import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
+import jp.aquafactory.apprenticecodex.registry.CreativeTabRegistry;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.LootConditionRegistry;
+import jp.aquafactory.apprenticecodex.registry.PoiTypeRegistry;
+import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
+import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeStats;
+import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
+import jp.aquafactory.apprenticecodex.utility.BlockTools;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
+import jp.aquafactory.apprenticecodex.utility.BlockTools;
+import jp.aquafactory.apprenticecodex.utility.ErrandMageTradeHelper;
+import jp.aquafactory.apprenticecodex.utility.ProcessingRecipeDenylist;
+import jp.aquafactory.apprenticecodex.utility.RaycastTools;
+import jp.aquafactory.apprenticecodex.utility.RightClickSpellResolver;
+import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
+import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
+import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponentPredicate;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.SectionPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.EnchantmentTags;
+import net.minecraft.tags.PoiTypeTags;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.village.poi.PoiTypes;
+import net.minecraft.world.entity.npc.VillagerData;
+import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.VillagerTrades;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ChestMenu;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.TransientCraftingContainer;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterials;
+import net.minecraft.world.item.ArrowItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.item.trading.ItemCost;
+import net.minecraft.world.item.trading.MerchantOffer;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+import net.minecraft.world.damagesource.CombatRules;
+import net.minecraft.world.level.block.AttachedStemBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.FlowerPotBlock;
+import net.minecraft.world.level.block.LayeredCauldronBlock;
+import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.block.NetherWartBlock;
+import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
+import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
+import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.functions.EnchantRandomlyFunction;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.damagesource.DamageContainer;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.GrindstoneEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
+import net.neoforged.neoforge.event.level.BlockDropsEvent;
+import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
+import net.neoforged.neoforge.event.village.VillagerTradesEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.fml.ModList;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.lang.reflect.Method;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGameTestScenarios {
+    private SpellCalibrationEquipmentGameTestScenarios() {
+    }
+
+    static void photonSiphonStartsWithLockedManaChargeAndIsNotUnique(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = ItemRegistry.PHOTON_SIPHON.get();
+            var stack = createInitializedPresetStack(item);
+            var spellContainer = ISpellContainer.get(stack);
+
+            helper.assertFalse(item instanceof io.redspace.ironsspellbooks.item.UniqueItem,
+                    "Photon Siphon should not block external imbue as a UniqueItem");
+            helper.assertTrue(spellContainer != null, "Photon Siphon default spell container is null");
+            assertSpellData(helper, spellContainer, 0, SpellRegistry.MANA_CHARGE.get(), 1, true,
+                    "Photon Siphon should still start with locked Mana Charge");
+        });
+    }
+
+    static void photonSiphonCalibrationRepairUnlocksLegacyReplacementOnly(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "photon_siphon_calibration_repair_test");
+            var item = (PhotonSiphon) ItemRegistry.PHOTON_SIPHON.get();
+            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+
+            var legacyReplacementStack = createInitializedPresetStack(item);
+            applyLegacyLockedReplacement(helper, legacyReplacementStack, replacementSpell, 1);
+            createSpellCalibrationBenchMenuWithTarget(player, legacyReplacementStack);
+            var repairedReplacementContainer = ISpellContainer.get(legacyReplacementStack);
+            helper.assertTrue(repairedReplacementContainer != null,
+                    "Photon Siphon repaired replacement spell container is null");
+            assertSpellData(helper, repairedReplacementContainer, 0, replacementSpell, 1, false,
+                    "Photon Siphon Calibration Bench repair should unlock legacy non-default replacement spells");
+
+            var defaultStack = createInitializedPresetStack(item);
+            createSpellCalibrationBenchMenuWithTarget(player, defaultStack);
+            var defaultContainer = ISpellContainer.get(defaultStack);
+            helper.assertTrue(defaultContainer != null, "Photon Siphon default spell container is null after Calibration Bench check");
+            assertSpellData(helper, defaultContainer, 0, SpellRegistry.MANA_CHARGE.get(), 1, true,
+                    "Photon Siphon Calibration Bench repair should not unlock the default Mana Charge");
+        });
+    }
+
+    static void spellCalibrationBenchTargetsExposeExpectedSlots(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_calibration_target_slots_test");
+            var autocastAmulet = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
+            var emptyAmulet = new ItemStack(autocastAmulet);
+            autocastAmulet.initializeSpellContainer(emptyAmulet);
+
+            var emptyAmuletMenu = createSpellCalibrationBenchMenuWithTarget(player, emptyAmulet);
+            helper.assertTrue(emptyAmuletMenu.hasCalibrationTarget(),
+                    "Empty Autocast Amulet should be accepted by Spell Calibration Bench");
+            helper.assertTrue(emptyAmuletMenu.getScrollItem(0).isEmpty(),
+                    "Empty Autocast Amulet should not expose a scroll");
+
+            var imbuedAmulet = autocastAmulet.createArcaneAnvilImbueResult(
+                    new ItemStack(autocastAmulet),
+                    new SpellData(SpellRegistry.SENSE_EVIL.get(), 1)
+            );
+            var imbuedAmuletMenu = createSpellCalibrationBenchMenuWithTarget(player, imbuedAmulet);
+            helper.assertTrue(imbuedAmuletMenu.getScrollItem(0)
+                            .is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
+                    "Imbued Autocast Amulet should expose a removable scroll");
+
+            var manaForceBlade = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+            var emptyBlade = new ItemStack(manaForceBlade);
+            manaForceBlade.initializeSpellContainer(emptyBlade);
+            var bladeMenu = new SpellCalibrationBenchMenu(0, player.getInventory());
+            helper.assertTrue(bladeMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(emptyBlade),
+                    "Mana Force Blade should be accepted by Spell Calibration Bench because it shows Can be Imbued");
+
+            var imbuedBlade = new ItemStack(manaForceBlade);
+            manaForceBlade.initializeSpellContainer(imbuedBlade);
+            setSingleUnlockedSpell(helper, imbuedBlade,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1);
+            helper.assertTrue(bladeMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(imbuedBlade),
+                    "Imbued Mana Force Blade should be accepted by Spell Calibration Bench because it shows Can be Imbued");
+            var imbuedBladeMenu = createSpellCalibrationBenchMenuWithTarget(player, imbuedBlade);
+            helper.assertFalse(imbuedBladeMenu.hasOperationalImbueTarget(),
+                    "Mana Force Blade should still be unsupported by Calibration Bench operations");
+            helper.assertTrue(imbuedBladeMenu.hasTargetSpellAt(0),
+                    "Imbued Mana Force Blade spell should be visible for unsupported slot hints");
+            helper.assertTrue(imbuedBladeMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).getItem().isEmpty(),
+                    "Unsupported Calibration Bench targets should not expose a real removable scroll");
+            helper.assertTrue(imbuedBladeMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).remove(1).isEmpty(),
+                    "Unsupported Calibration Bench targets should not allow scroll extraction");
+
+            var emptyEnchantressRobe = new ItemStack(ItemRegistry.ENCHANTRESS_ROBE.get());
+            helper.assertTrue(bladeMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(emptyEnchantressRobe),
+                    "Enchantress Robe chestplate should be accepted by Spell Calibration Bench because it shows Can be Imbued");
+            helper.assertFalse(SpellCalibrationImbueHelper.isSupportedTarget(emptyEnchantressRobe),
+                    "Enchantress Robe chestplate should remain unsupported by Calibration Bench operations");
+
+            helper.assertFalse(bladeMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(new ItemStack(ItemRegistry.ENCHANTRESS_HAT.get())),
+                    "Enchantress Hat should not be accepted by Spell Calibration Bench");
+
+            var presetStaffMenu = createSpellCalibrationBenchMenuWithTarget(
+                    player,
+                    createInitializedPresetStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get())
+            );
+            helper.assertTrue(presetStaffMenu.getScrollItem(0).isEmpty(),
+                    "Copper Swingcast Staff preset spell should not expose a removable scroll");
+            helper.assertTrue(presetStaffMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START)
+                            .mayPlace(createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())),
+                    "Copper Swingcast Staff preset slot should accept a replacement scroll");
+            var uninitializedPresetStaff = new ItemStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get());
+            ISpellContainer.remove(uninitializedPresetStaff);
+            helper.assertFalse(ISpellContainer.isSpellContainer(uninitializedPresetStaff),
+                    "Prepared Copper Swingcast Staff test stack should not have spell_container");
+            helper.assertTrue(bladeMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(uninitializedPresetStaff),
+                    "Uninitialized preset spell containers should be accepted by Spell Calibration Bench");
+            createSpellCalibrationBenchMenuWithTarget(player, uninitializedPresetStaff);
+            helper.assertTrue(ISpellContainer.isSpellContainer(uninitializedPresetStaff),
+                    "Spell Calibration Bench should initialize accepted preset spell containers");
+
+            var spellcastersFlaskMenu = createSpellcasterWorkbenchMenuWithSingleInput(
+                    player,
+                    new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get())
+            );
+            var spellcastersFlaskResult = spellcastersFlaskMenu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem();
+            helper.assertTrue(spellcastersFlaskResult.is(ItemRegistry.SPELLCASTERS_FLASK.get()),
+                    "Spellcaster's Flask should keep the Workbench particle toggle result");
+            helper.assertTrue(SpellcastersFlask.isEffectParticlesSuppressed(spellcastersFlaskResult),
+                    "Spellcaster's Flask Workbench result should toggle particles off from the default state");
+
+            var alchemistsFlask = (AlchemistsFlask) ItemRegistry.ALCHEMISTS_FLASK.get();
+            var defaultAlchemistsFlask = new ItemStack(alchemistsFlask);
+            alchemistsFlask.initializeSpellContainer(defaultAlchemistsFlask);
+            var alchemistsFlaskMenu = createSpellCalibrationBenchMenuWithTarget(player, defaultAlchemistsFlask);
+            helper.assertTrue(alchemistsFlaskMenu.getScrollItem(0).isEmpty(),
+                    "Alchemist's Flask preset Extract should not expose a removable scroll");
+        });
+    }
+
+    static void spellCalibrationBenchImbueOnlySupportsExtractableTargets(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_calibration_imbue_test");
+            var autocastAmulet = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
+            var upgradeItem = (SpellSlotUpgradeItem) io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get();
+            var senseEvil = SpellRegistry.SENSE_EVIL.get();
+            var heal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+
+            var emptyAmulet = new ItemStack(autocastAmulet);
+            autocastAmulet.initializeSpellContainer(emptyAmulet);
+            var emptyAmuletMenu = createSpellCalibrationBenchMenuWithTarget(player, emptyAmulet);
+            emptyAmuletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(createSpellScroll(heal));
+            assertStackHasSpell(helper, emptyAmulet, heal, 1,
+                    "Calibration-imbued Autocast Amulet should contain heal");
+
+            var twoSlotAmulet = autocastAmulet.createSpellSlotUpgradeResult(new ItemStack(autocastAmulet), upgradeItem);
+            twoSlotAmulet = autocastAmulet.createArcaneAnvilImbueResult(twoSlotAmulet, new SpellData(senseEvil, 1));
+            var twoSlotAmuletMenu = createSpellCalibrationBenchMenuWithTarget(player, twoSlotAmulet);
+            twoSlotAmuletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START + 1).set(createSpellScroll(heal));
+            var twoSlotContainer = ISpellContainer.get(twoSlotAmulet);
+            helper.assertTrue(twoSlotContainer != null && twoSlotContainer.getActiveSpellCount() == 2,
+                    "Calibration imbue should add a second Autocast Amulet spell");
+            assertStackHasSpell(helper, twoSlotAmulet, senseEvil, 1,
+                    "Calibration imbue should keep the existing Autocast Amulet spell");
+            assertStackHasSpell(helper, twoSlotAmulet, heal, 1,
+                    "Calibration imbue should add heal to the empty Autocast Amulet slot");
+
+            var removedScroll = twoSlotAmuletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).remove(1);
+            helper.assertTrue(removedScroll.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
+                    "Calibration Bench should return a scroll when removing an Autocast Amulet spell");
+            twoSlotAmuletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).onTake(player, removedScroll);
+            var afterRemovalContainer = ISpellContainer.get(twoSlotAmulet);
+            helper.assertTrue(afterRemovalContainer != null
+                            && afterRemovalContainer.getSpellAtIndex(0) == SpellData.EMPTY
+                            && afterRemovalContainer.getSpellAtIndex(1) != SpellData.EMPTY,
+                    "Calibration Bench should not compact spell slots while removing a scroll");
+            createSpellCalibrationBenchMenuWithTarget(player, twoSlotAmulet);
+            var afterReinsertContainer = ISpellContainer.get(twoSlotAmulet);
+            helper.assertTrue(afterReinsertContainer != null
+                            && afterReinsertContainer.getSpellAtIndex(0) == SpellData.EMPTY
+                            && afterReinsertContainer.getSpellAtIndex(1) != SpellData.EMPTY,
+                    "Calibration Bench should preserve empty spell slots when opening an existing target");
+
+            var manaForceBlade = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+            var unsupportedMenu = new SpellCalibrationBenchMenu(0, player.getInventory());
+            var manaForceBladeStack = new ItemStack(manaForceBlade);
+            manaForceBlade.initializeSpellContainer(manaForceBladeStack);
+            helper.assertTrue(unsupportedMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(manaForceBladeStack),
+                    "Calibration Bench should accept Can be Imbued targets for unsupported-operation hints");
+
+            var externalSpellContainerStack = new ItemStack(Items.DIAMOND_SWORD);
+            ISpellContainer.set(externalSpellContainerStack, ISpellContainer.create(1, false, false));
+            helper.assertTrue(unsupportedMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(externalSpellContainerStack),
+                    "Calibration Bench should accept items that show Iron's Can be Imbued tooltip");
+            helper.assertFalse(SpellCalibrationImbueHelper.isSupportedTarget(externalSpellContainerStack),
+                    "Generic external ISpellContainer items should remain unsupported by Calibration Bench operations");
+
+            var magicMissileScroll = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+            helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(manaForceBladeStack, 0, magicMissileScroll),
+                    "Calibration Bench server logic should reject non-extractable Can be Imbued targets");
+            helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(externalSpellContainerStack, 0, magicMissileScroll),
+                    "Calibration Bench server logic should reject generic external ISpellContainer items");
+
+            var illuminateStellarStaff = createInitializedPresetStack(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get());
+            helper.assertFalse(unsupportedMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(illuminateStellarStaff),
+                    "Calibration Bench should reject UniqueItem imbue targets");
+            helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(illuminateStellarStaff, 0, magicMissileScroll),
+                    "Calibration Bench server logic should reject UniqueItem imbue targets");
+            helper.assertFalse(SpellCalibrationImbueHelper.setScrollAt(illuminateStellarStaff, 0, magicMissileScroll.copy()),
+                    "Calibration Bench should not directly set spells on UniqueItem targets");
+
+            var crystalBladedStaff = createInitializedPresetStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
+            helper.assertFalse(unsupportedMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(crystalBladedStaff),
+                    "Calibration Bench should keep Crystal Bladed Staff unsupported");
+            helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(crystalBladedStaff, 0, magicMissileScroll),
+                    "Calibration Bench server logic should not expose Crystal Bladed Staff replacement");
+
+            var mithrilFreecastStaff = createInitializedPresetStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
+            helper.assertFalse(unsupportedMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(mithrilFreecastStaff),
+                    "Calibration Bench should reject Arcane Anvil imbue blocked items");
+            helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(mithrilFreecastStaff, 0, magicMissileScroll),
+                    "Calibration Bench server logic should reject Arcane Anvil imbue blocked items");
+            helper.assertFalse(SpellCalibrationImbueHelper.setScrollAt(mithrilFreecastStaff, 0, magicMissileScroll.copy()),
+                    "Calibration Bench should not directly set spells on Arcane Anvil imbue blocked items");
+
+            var disallowedSpellMenu = createSpellCalibrationBenchMenuWithTarget(player, new ItemStack(autocastAmulet));
+            helper.assertFalse(disallowedSpellMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START)
+                            .mayPlace(magicMissileScroll.copy()),
+                    "Calibration Bench should not accept a spell rejected by the target item");
+
+            var spellAmplifier = new ItemStack(ItemRegistry.IRON_SPELL_AMPLIFIER.get());
+            var spellAmplifierMenu = createSpellCalibrationBenchMenuWithTarget(player, spellAmplifier);
+            spellAmplifierMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(createSpellScroll(heal));
+            assertStackHasSpell(helper, spellAmplifier, heal, 1,
+                    "Calibration Bench should imbue generic extractable Spell Amplifiers");
+            helper.assertTrue(spellAmplifierMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).remove(1)
+                            .is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
+                    "Calibration Bench should extract generic Spell Amplifier spells");
+
+            var circlet = new ItemStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+            var circletMenu = createSpellCalibrationBenchMenuWithTarget(player, circlet);
+            circletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(createSpellScroll(heal));
+            assertStackHasSpell(helper, circlet, heal, 1,
+                    "Calibration Bench should imbue tag-allowed extractable Curios");
+        });
+    }
+
+    static void mithrilFreecastStaffBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
+            var item = (MithrilFreecastStaff) stack.getItem();
+            item.initializeSpellContainer(stack);
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+
+            helper.assertFalse(stack.getItem() instanceof RestrictedSpellImbuableItem,
+                    "Mithril Freecast Staff should not expose the restricted imbue API");
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
+                    "Mithril Freecast Staff should reject Arcane Anvil spell imbuing"
+            );
+        });
+    }
+}

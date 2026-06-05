@@ -1,0 +1,1164 @@
+package jp.aquafactory.apprenticecodex.gametest;
+
+import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.api.events.CounterSpellEvent;
+import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
+import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
+import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
+import io.redspace.ironsspellbooks.api.item.UpgradeData;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
+import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
+import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
+import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.effect.MagicMobEffect;
+import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
+import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectile;
+import io.redspace.ironsspellbooks.entity.spells.fireball.SmallMagicFireball;
+import io.redspace.ironsspellbooks.entity.spells.spectral_hammer.SpectralHammer;
+import io.redspace.ironsspellbooks.entity.spells.target_area.TargetedAreaEntity;
+import io.redspace.ironsspellbooks.spells.nature.TouchDigSpell;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntity;
+import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntity;
+import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastAnchorMode;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCasterMode;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaFluidHelper;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfile;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfileManager;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserVariant;
+import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
+import jp.aquafactory.apprenticecodex.capability.Capabilities;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
+import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
+import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
+import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
+import jp.aquafactory.apprenticecodex.event.ErrandMageVillagerTradesEvent;
+import jp.aquafactory.apprenticecodex.event.errandmage.ErrandMageTradeManager;
+import jp.aquafactory.apprenticecodex.event.ScrollcasterGauntletGrindstoneEvent;
+import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastMode;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
+import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
+import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
+import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
+import jp.aquafactory.apprenticecodex.item.CircuitHeatStaff;
+import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffCastEvent;
+import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffRightClickItemEvent;
+import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
+import jp.aquafactory.apprenticecodex.item.ElementalBow;
+import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
+import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
+import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
+import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
+import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfile;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfileManager;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffCastHelper;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectHandler;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectProfile;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectProfileManager;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
+import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
+import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffManaCostEvent;
+import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffPowerHelper;
+import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
+import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
+import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterAttackEvent;
+import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
+import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
+import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntletCastEvent;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellListManager;
+import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightCooldownReductionEvent;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightManaCostDiscountEvent;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightSpellSupport;
+import jp.aquafactory.apprenticecodex.item.curios.manashieldcharm.ManaShieldCharm;
+import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverPickupEvent;
+import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
+import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
+import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
+import jp.aquafactory.apprenticecodex.item.spellthrowablecard.AbstractSpellThrowableCardItem;
+import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
+import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
+import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
+import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTransferRecipe;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
+import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
+import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWings;
+import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsManager;
+import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper;
+import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
+import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
+import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
+import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarManager;
+import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
+import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.harvestmoon.HarvestMoon;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
+import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
+import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarStarEntity;
+import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
+import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceBurst;
+import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerEntity;
+import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileEntity;
+import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShield;
+import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldDefenseEvent;
+import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldShieldEntity;
+import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
+import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
+import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxCounterSpellEvent;
+import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
+import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
+import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
+import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
+import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
+import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackBlockClassifier;
+import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackJob;
+import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonEntity;
+import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillEntity;
+import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
+import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressStats;
+import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeSchoolPowerBonusEvents;
+import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeStats;
+import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
+import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastCooldownMode;
+import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
+import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
+import jp.aquafactory.apprenticecodex.registry.CreativeTabRegistry;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.LootConditionRegistry;
+import jp.aquafactory.apprenticecodex.registry.PoiTypeRegistry;
+import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
+import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeStats;
+import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
+import jp.aquafactory.apprenticecodex.utility.BlockTools;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
+import jp.aquafactory.apprenticecodex.utility.BlockTools;
+import jp.aquafactory.apprenticecodex.utility.ErrandMageTradeHelper;
+import jp.aquafactory.apprenticecodex.utility.ProcessingRecipeDenylist;
+import jp.aquafactory.apprenticecodex.utility.RaycastTools;
+import jp.aquafactory.apprenticecodex.utility.RightClickSpellResolver;
+import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
+import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
+import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponentPredicate;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.SectionPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.EnchantmentTags;
+import net.minecraft.tags.PoiTypeTags;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.village.poi.PoiTypes;
+import net.minecraft.world.entity.npc.VillagerData;
+import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.VillagerTrades;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ChestMenu;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.TransientCraftingContainer;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterials;
+import net.minecraft.world.item.ArrowItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.item.trading.ItemCost;
+import net.minecraft.world.item.trading.MerchantOffer;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+import net.minecraft.world.damagesource.CombatRules;
+import net.minecraft.world.level.block.AttachedStemBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.FlowerPotBlock;
+import net.minecraft.world.level.block.LayeredCauldronBlock;
+import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.block.NetherWartBlock;
+import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
+import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
+import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.functions.EnchantRandomlyFunction;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.damagesource.DamageContainer;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.GrindstoneEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
+import net.neoforged.neoforge.event.level.BlockDropsEvent;
+import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
+import net.neoforged.neoforge.event.village.VillagerTradesEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.fml.ModList;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.lang.reflect.Method;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScenarios {
+    private ManaShieldCharmGameTestScenarios() {
+    }
+
+    static void manaShieldCharmUsesCharmSlotAndAppearsInCreativeTab(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+            helper.assertTrue(stack.is(CURIOS_CHARM),
+                    "Mana Shield Charm should be tagged for the Curios charm slot");
+            helper.assertTrue(stack.getItem() instanceof ManaShieldCharm,
+                    "Mana Shield Charm should resolve to the dedicated curio item implementation");
+        });
+    }
+
+    static void manaShieldCharmKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertExactEnchantmentSurfaces(
+                helper,
+                new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()),
+                registryIdSet(
+                        Enchantments.SHELL,
+                        Enchantments.SYNCHRONIZATION,
+                        Enchantments.NEUTRALIZATION
+                ),
+                "Mana Shield Charm"
+        ));
+    }
+
+    static void manaShieldCharmExclusiveEnchantmentsStayMutuallyExclusive(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var shell = enchantmentLookup.getOrThrow(Enchantments.SHELL);
+            var synchronization = enchantmentLookup.getOrThrow(Enchantments.SYNCHRONIZATION);
+            var neutralization = enchantmentLookup.getOrThrow(Enchantments.NEUTRALIZATION);
+
+            helper.assertFalse(Enchantment.areCompatible(shell, synchronization),
+                    "Shell and Synchronization should stay mutually exclusive");
+            helper.assertFalse(Enchantment.areCompatible(shell, neutralization),
+                    "Shell and Neutralization should stay mutually exclusive");
+            helper.assertFalse(Enchantment.areCompatible(synchronization, neutralization),
+                    "Synchronization and Neutralization should stay mutually exclusive");
+        });
+    }
+
+    static void manaShieldCharmFullyNegatesDamageAndPreservesArmorDurability(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_full_negate_test");
+            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            assertManaShieldCharmEquipped(helper, player, "full negate");
+
+            var chestplate = new ItemStack(Items.DIAMOND_CHESTPLATE);
+            player.setItemSlot(EquipmentSlot.CHEST, chestplate);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Mana Shield Charm full negate test could not resolve player mana data");
+            magicData.setMana(100.0F);
+            player.invulnerableTime = 0;
+            var initialHealth = player.getHealth();
+            var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 2.0F);
+            helper.assertTrue(event.isCanceled(),
+                    "Mana Shield Charm should cancel the fully absorbed LivingAttackEvent");
+            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
+                    "Mana Shield Charm should keep health unchanged after fully negating damage");
+            helper.assertTrue(Math.abs(magicData.getMana() - 50.0F) < 1.0e-4F,
+                    "Mana Shield Charm should spend 50 mana to negate 2 damage but got " + magicData.getMana());
+            helper.assertTrue(chestplate.getDamageValue() == 0,
+                    "Mana Shield Charm should not damage armor durability on a fully negated hit");
+            helper.assertFalse(getManaShieldCharmState(player).cooldownActive,
+                    "Mana Shield Charm should stay active while mana remains after a fully negated hit");
+        });
+    }
+
+    static void manaShieldCharmBurnedOutFullNegateCancelsHitAndStartsCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_burned_out_full_negate_test");
+            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            assertManaShieldCharmEquipped(helper, player, "burned out full negate");
+
+            var chestplate = new ItemStack(Items.DIAMOND_CHESTPLATE);
+            player.setItemSlot(EquipmentSlot.CHEST, chestplate);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Mana Shield Charm burned-out full negate test could not resolve player mana data");
+            magicData.setMana(25.0F);
+            player.invulnerableTime = 0;
+            var initialHealth = player.getHealth();
+
+            var firstEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+            helper.assertTrue(firstEvent.isCanceled(),
+                    "Mana Shield Charm should cancel the hit even when the last full negate burns out the shield");
+            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
+                    "Mana Shield Charm should keep health unchanged when the last full negate burns out the shield");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Mana Shield Charm should clamp mana to zero after the last full negate but got " + magicData.getMana());
+            helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
+                    "Mana Shield Charm should enter cooldown immediately after the last full negate burns out the shield");
+            helper.assertTrue(player.invulnerableTime >= 20,
+                    "Mana Shield Charm should still apply vanilla-style invulnerability time when the last full negate burns out the shield");
+            helper.assertTrue(chestplate.getDamageValue() == 0,
+                    "Mana Shield Charm should not damage armor durability when the burned-out hit is still fully negated");
+
+            var secondEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+            helper.assertTrue(secondEvent.isCanceled(),
+                    "Mana Shield Charm should still cancel repeated contact damage during the burned-out full-negate i-frame");
+            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
+                    "Mana Shield Charm should not leak damage during the burned-out full-negate i-frame");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Mana Shield Charm should not spend additional mana during the burned-out full-negate i-frame but got " + magicData.getMana());
+        });
+    }
+
+    static void manaShieldCharmLowManaBurnedOutFullNegateStillCancelsHit(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_low_mana_burnout_test");
+            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            assertManaShieldCharmEquipped(helper, player, "low mana burned out full negate");
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Low mana Mana Shield Charm test could not resolve player mana data");
+            magicData.setMana(24.0F);
+            player.invulnerableTime = 0;
+            var initialHealth = player.getHealth();
+
+            var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+            helper.assertTrue(event.isCanceled(),
+                    "Mana Shield Charm should still cancel a 1 damage hit when only 24 mana remains before cooldown");
+            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
+                    "Low mana Mana Shield Charm burnout should still leave health unchanged");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Low mana Mana Shield Charm burnout should clamp mana to zero but got " + magicData.getMana());
+            helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
+                    "Low mana Mana Shield Charm burnout should enter cooldown immediately");
+            helper.assertTrue(player.invulnerableTime >= 20,
+                    "Low mana Mana Shield Charm burnout should still apply vanilla-style invulnerability time");
+        });
+    }
+
+    static void manaShieldCharmDoesNotRespendManaDuringVanillaStyleIFrame(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_iframe_test");
+            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            assertManaShieldCharmEquipped(helper, player, "iframe");
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Mana Shield Charm iframe test could not resolve player mana data");
+            magicData.setMana(100.0F);
+
+            var firstEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+            helper.assertTrue(firstEvent.isCanceled(),
+                    "Mana Shield Charm should cancel the first fully negated hit before starting its i-frame");
+            helper.assertTrue(player.invulnerableTime >= 20,
+                    "Mana Shield Charm should apply vanilla-style invulnerability time after a fully negated hit");
+            helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
+                    "Mana Shield Charm should spend 25 mana on the first fully negated hit but got " + magicData.getMana());
+
+            var secondEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+            helper.assertTrue(secondEvent.isCanceled(),
+                    "Mana Shield Charm should also cancel repeated contact damage during its vanilla-style i-frame");
+            helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
+                    "Mana Shield Charm should not spend additional mana during its vanilla-style i-frame but got " + magicData.getMana());
+        });
+    }
+
+    static void manaShieldCharmPartialReductionEntersCooldownAndKeepsArmorMitigation(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var armored = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_partial_armor_test");
+            var unarmored = createTrackedEquipmentTestPlayer(helper, new BlockPos(3, 2, 0), "mana_shield_partial_plain_test");
+
+            equipCurio(armored, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            equipCurio(unarmored, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            assertManaShieldCharmEquipped(helper, armored, "partial armored");
+            assertManaShieldCharmEquipped(helper, unarmored, "partial unarmored");
+            armored.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.DIAMOND_CHESTPLATE));
+
+            var armoredMana = MagicData.getPlayerMagicData(armored);
+            var unarmoredMana = MagicData.getPlayerMagicData(unarmored);
+            helper.assertTrue(armoredMana != null && unarmoredMana != null,
+                    "Mana Shield Charm partial reduction test could not resolve player mana data");
+            armoredMana.setMana(40.0F);
+            unarmoredMana.setMana(40.0F);
+            var armoredEvent = postLivingAttackEventForGameTest(armored, helper.getLevel().damageSources().lava(), 3.0F);
+            var unarmoredEvent = postLivingAttackEventForGameTest(unarmored, helper.getLevel().damageSources().lava(), 3.0F);
+            var expectedRemainingMana = resolveExpectedBarrierManaAfterHitForGameTest(3.0F, 40.0F);
+
+            helper.assertTrue(Math.abs(armoredMana.getMana() - expectedRemainingMana) < 1.0e-4F,
+                    "Mana Shield Charm partial reduction should apply the one-hit low mana rescue consistently for the armored player"
+                            + " expectedMana=" + expectedRemainingMana
+                            + " actualMana=" + armoredMana.getMana());
+            helper.assertTrue(Math.abs(unarmoredMana.getMana() - expectedRemainingMana) < 1.0e-4F,
+                    "Mana Shield Charm partial reduction should apply the one-hit low mana rescue consistently for the unarmored player"
+                            + " expectedMana=" + expectedRemainingMana
+                            + " actualMana=" + unarmoredMana.getMana());
+            helper.assertTrue(armoredEvent.isCanceled(),
+                    "Mana Shield Charm partial reduction should cancel the original armored LivingAttackEvent");
+            helper.assertTrue(unarmoredEvent.isCanceled(),
+                    "Mana Shield Charm partial reduction should cancel the original unarmored LivingAttackEvent");
+            helper.assertTrue(getManaShieldCharmState(armored).cooldownActive == (expectedRemainingMana <= 0.0F),
+                    "Mana Shield Charm armored partial reduction cooldown should match the rescued remaining mana expectation");
+            helper.assertTrue(getManaShieldCharmState(unarmored).cooldownActive == (expectedRemainingMana <= 0.0F),
+                    "Mana Shield Charm unarmored partial reduction cooldown should match the rescued remaining mana expectation");
+        });
+    }
+
+    static void manaShieldCharmCooldownRecoversAtOneHundredMana(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_recovery_threshold_test");
+            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            assertManaShieldCharmEquipped(helper, player, "recovery");
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Mana Shield Charm cooldown recovery test could not resolve player mana data");
+            var state = getManaShieldCharmState(player);
+            state.reset();
+            state.cooldownActive = true;
+
+            magicData.setMana(99.0F);
+            var blockedEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+            helper.assertTrue(state.cooldownActive,
+                    "Mana Shield Charm should stay disabled below the 100 mana recovery threshold");
+            helper.assertFalse(blockedEvent.isCanceled(),
+                    "Mana Shield Charm should not cancel the hit while cooldown remains locked below 100 mana");
+            helper.assertTrue(Math.abs(magicData.getMana() - 99.0F) < 1.0e-4F,
+                    "Mana Shield Charm should not spend mana while cooldown remains locked below 100 mana");
+
+            state.cooldownActive = true;
+            magicData.setMana(100.0F);
+            var recoveredEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+
+            helper.assertFalse(state.cooldownActive,
+                    "Mana Shield Charm should recover immediately once mana reaches 100");
+            helper.assertTrue(recoveredEvent.isCanceled(),
+                    "Mana Shield Charm should cancel the recovered hit once the cooldown is lifted");
+            helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
+                    "Mana Shield Charm should spend 25 mana after recovering at the threshold but got " + magicData.getMana());
+        });
+    }
+
+    static void manaShieldCharmShellUsesArmorOnlyOnNormalDamageAndWearsArmor(GameTestHelper helper) {
+        var armored = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_shell_armored_test");
+        var unarmored = createTrackedEquipmentTestPlayer(helper, new BlockPos(3, 2, 0), "mana_shield_shell_unarmored_test");
+        var bypassArmor = createTrackedEquipmentTestPlayer(helper, new BlockPos(6, 2, 0), "mana_shield_shell_bypass_test");
+        var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+
+        var shellCharm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+        shellCharm.enchant(enchantmentLookup.getOrThrow(Enchantments.SHELL), 1);
+        equipCurio(armored, CuriosSlotConstants.CHARM, shellCharm.copy());
+        equipCurio(unarmored, CuriosSlotConstants.CHARM, shellCharm.copy());
+        equipCurio(bypassArmor, CuriosSlotConstants.CHARM, shellCharm.copy());
+
+        var head = new ItemStack(Items.IRON_HELMET);
+        var chest = new ItemStack(Items.IRON_CHESTPLATE);
+        var legs = new ItemStack(Items.IRON_LEGGINGS);
+        var boots = new ItemStack(Items.IRON_BOOTS);
+        armored.setItemSlot(EquipmentSlot.HEAD, head);
+        armored.setItemSlot(EquipmentSlot.CHEST, chest);
+        armored.setItemSlot(EquipmentSlot.LEGS, legs);
+        armored.setItemSlot(EquipmentSlot.FEET, boots);
+
+        var bypassChest = new ItemStack(Items.IRON_CHESTPLATE);
+        bypassArmor.setItemSlot(EquipmentSlot.CHEST, bypassChest);
+
+        var armoredMana = MagicData.getPlayerMagicData(armored);
+        var unarmoredMana = MagicData.getPlayerMagicData(unarmored);
+        var bypassMana = MagicData.getPlayerMagicData(bypassArmor);
+        helper.assertTrue(armoredMana != null && unarmoredMana != null && bypassMana != null,
+                "Mana Shield Charm Shell test could not resolve player mana data");
+
+        helper.runAtTickTime(1, () -> {
+            armoredMana.setMana(50.0F);
+            unarmoredMana.setMana(50.0F);
+            bypassMana.setMana(50.0F);
+            armored.invulnerableTime = 0;
+            unarmored.invulnerableTime = 0;
+            bypassArmor.invulnerableTime = 0;
+            var armoredInitialHealth = armored.getHealth();
+            var unarmoredInitialHealth = unarmored.getHealth();
+            var bypassInitialHealth = bypassArmor.getHealth();
+            var armoredEvent = postLivingAttackEventForGameTest(armored, helper.getLevel().damageSources().lava(), 3.0F);
+            var unarmoredEvent = postLivingAttackEventForGameTest(unarmored, helper.getLevel().damageSources().lava(), 3.0F);
+            var bypassSource = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(helper.getLevel(), bypassArmor, DamageTypes.UNITE_LUNA);
+            var bypassEvent = postLivingAttackEventForGameTest(bypassArmor, bypassSource, 2.0F);
+            helper.assertTrue(armoredEvent.isCanceled() && unarmoredEvent.isCanceled() && bypassEvent.isCanceled(),
+                    "Mana Shield Charm Shell test should cancel all intercepted LivingAttackEvent instances");
+            helper.assertTrue(armored.getHealth() > unarmored.getHealth(),
+                    "Shell should apply armor reduction before the normal mana shoulder path"
+                            + " armoredHealth=" + armored.getHealth()
+                            + " unarmoredHealth=" + unarmored.getHealth()
+                            + " armoredMana=" + armoredMana.getMana()
+                            + " unarmoredMana=" + unarmoredMana.getMana());
+            helper.assertTrue(armoredMana.getMana() > unarmoredMana.getMana(),
+                    "Shell should reduce barrier mana consumption when armor mitigates the intercepted hit"
+                            + " armoredMana=" + armoredMana.getMana()
+                            + " unarmoredMana=" + unarmoredMana.getMana());
+            helper.assertTrue(Math.abs(unarmoredMana.getMana()) < 1.0e-4F,
+                    "Shell should still burn out the unarmored player at 50 mana"
+                            + " armoredMana=" + armoredMana.getMana()
+                            + " unarmoredMana=" + unarmoredMana.getMana());
+            helper.assertTrue(head.getDamageValue() == 1
+                            && chest.getDamageValue() == 1
+                            && legs.getDamageValue() == 1
+                            && boots.getDamageValue() == 1,
+                    "Shell should spend one durability on each equipped armor piece");
+            helper.assertTrue(Math.abs(bypassArmor.getHealth() - bypassInitialHealth) < 1.0e-4F,
+                    "Shell should not leak armor-bypass damage when base shield mana fully negates it");
+            helper.assertTrue(Math.abs(bypassMana.getMana()) < 1.0e-4F,
+                    "Shell should fall back to the normal 25 mana per damage path on armor-bypass hits");
+            helper.assertTrue(bypassChest.getDamageValue() == 0,
+                    "Shell should not damage armor durability on armor-bypass hits");
+            helper.assertTrue(armored.getHealth() < armoredInitialHealth && unarmored.getHealth() < unarmoredInitialHealth,
+                    "Shell normal damage test should leave residual health damage on both players");
+            helper.succeed();
+        });
+    }
+
+    static void manaShieldCharmShellLowManaBurnoutStillUsesArmorPath(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_shell_low_mana_test");
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+            charm.enchant(enchantmentLookup.getOrThrow(Enchantments.SHELL), 1);
+            equipCurio(player, CuriosSlotConstants.CHARM, charm);
+
+            var chestplate = new ItemStack(Items.IRON_CHESTPLATE);
+            player.setItemSlot(EquipmentSlot.CHEST, chestplate);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Shell low mana test could not resolve player mana data");
+            magicData.setMana(24.0F);
+            player.invulnerableTime = 0;
+            var initialHealth = player.getHealth();
+            var armor = getEquippedAttributeTotal(player, Attributes.ARMOR);
+            var toughness = getEquippedAttributeTotal(player, Attributes.ARMOR_TOUGHNESS);
+            var source = helper.getLevel().damageSources().lava();
+            var incomingDamage = findDamageForArmorReducedTarget(player, source, armor, toughness, 1.0F);
+            var reducedDamage = CombatRules.getDamageAfterAbsorb(player, incomingDamage, source, armor, toughness);
+
+            helper.assertTrue(Math.abs(reducedDamage - 1.0F) < 1.0e-3F,
+                    "Shell low mana test should configure an armor-reduced hit worth exactly one barrier step"
+                            + " reducedDamage=" + reducedDamage
+                            + " incomingDamage=" + incomingDamage);
+
+            var event = postLivingAttackEventForGameTest(player, source, incomingDamage);
+            helper.assertTrue(event.isCanceled(),
+                    "Shell should still cancel the hit when only the last armor-reduced barrier step can be rescued");
+            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-3F,
+                    "Shell low mana rescue should still keep health unchanged");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Shell low mana rescue should clamp mana to zero");
+            helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
+                    "Shell low mana rescue should enter cooldown");
+            helper.assertTrue(player.invulnerableTime >= 20,
+                    "Shell low mana rescue should still apply vanilla-style invulnerability time");
+            helper.assertTrue(chestplate.getDamageValue() == 1,
+                    "Shell low mana rescue should preserve armor durability loss on the armor path");
+        });
+    }
+
+    static void manaShieldCharmSynchronizationChargesEnchantReductionBeforeNormalBarrier(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_cost_test");
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+            charm.enchant(enchantmentLookup.getOrThrow(Enchantments.SYNCHRONIZATION), 1);
+            equipCurio(player, CuriosSlotConstants.CHARM, charm);
+            var allDamageProtection = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.PROTECTION);
+
+            for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+                var armorStack = switch (slot) {
+                    case HEAD -> new ItemStack(Items.IRON_HELMET);
+                    case CHEST -> new ItemStack(Items.IRON_CHESTPLATE);
+                    case LEGS -> new ItemStack(Items.IRON_LEGGINGS);
+                    case FEET -> new ItemStack(Items.IRON_BOOTS);
+                    default -> ItemStack.EMPTY;
+                };
+                armorStack.enchant(allDamageProtection, 4);
+                player.setItemSlot(slot, armorStack);
+            }
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Synchronization cost test could not resolve player mana data");
+            magicData.setMana(120.0F);
+            var availableMana = magicData.getMana();
+            player.invulnerableTime = 0;
+
+            var source = helper.getLevel().damageSources().lava();
+            var protection = EnchantmentHelper.getDamageProtection(helper.getLevel(), player, source);
+            var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(5.0F, protection);
+            var expectedRemainingMana = resolveExpectedSynchronizationManaAfterHitForGameTest(5.0F, availableMana, protection);
+
+            var event = postLivingAttackEventForGameTest(player, source, 5.0F);
+            helper.assertTrue(event.isCanceled(),
+                    "Synchronization should cancel the original LivingAttackEvent when it intercepts the hit");
+            helper.assertTrue(Math.abs(magicData.getMana() - expectedRemainingMana) < 1.0e-4F,
+                    "Synchronization should charge enchant mitigation before the normal barrier stage"
+                            + " protection=" + protection
+                            + " reducedDamage=" + reducedDamage
+                            + " expectedMana=" + expectedRemainingMana
+                            + " actualMana=" + magicData.getMana());
+            helper.assertTrue(getManaShieldCharmState(player).cooldownActive == (expectedRemainingMana <= 0.0F),
+                    "Synchronization cooldown state did not match the remaining mana expectation"
+                            + " expectedRemainingMana=" + expectedRemainingMana
+                            + " cooldown=" + getManaShieldCharmState(player).cooldownActive);
+            helper.succeed();
+        });
+    }
+
+    static void manaShieldCharmSynchronizationBurnoutStopsAfterEnchantReduction(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_burnout_test");
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+            charm.enchant(enchantmentLookup.getOrThrow(Enchantments.SYNCHRONIZATION), 1);
+            equipCurio(player, CuriosSlotConstants.CHARM, charm);
+            var allDamageProtection = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.PROTECTION);
+
+            for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+                var armorStack = switch (slot) {
+                    case HEAD -> new ItemStack(Items.IRON_HELMET);
+                    case CHEST -> new ItemStack(Items.IRON_CHESTPLATE);
+                    case LEGS -> new ItemStack(Items.IRON_LEGGINGS);
+                    case FEET -> new ItemStack(Items.IRON_BOOTS);
+                    default -> ItemStack.EMPTY;
+                };
+                armorStack.enchant(allDamageProtection, 4);
+                player.setItemSlot(slot, armorStack);
+            }
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Synchronization burnout test could not resolve player mana data");
+            magicData.setMana(20.0F);
+            player.invulnerableTime = 0;
+            var initialHealth = player.getHealth();
+            var expectedArmor = getEquippedAttributeTotal(player, Attributes.ARMOR);
+            var expectedToughness = getEquippedAttributeTotal(player, Attributes.ARMOR_TOUGHNESS);
+            var source = helper.getLevel().damageSources().lava();
+            var protection = EnchantmentHelper.getDamageProtection(helper.getLevel(), player, source);
+
+            var event = postLivingAttackEventForGameTest(player, source, 5.0F);
+            var expectedHealthLoss = CombatRules.getDamageAfterAbsorb(
+                    player,
+                    CombatRules.getDamageAfterMagicAbsorb(5.0F, protection),
+                    source,
+                    expectedArmor,
+                    expectedToughness
+            );
+
+            helper.assertTrue(event.isCanceled(),
+                    "Synchronization burnout test should still cancel the original LivingAttackEvent");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Synchronization burnout should clamp mana to zero");
+            helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
+                    "Synchronization burnout should enter cooldown during the enchant-reduction stage");
+            helper.assertTrue(Math.abs((initialHealth - player.getHealth()) - expectedHealthLoss) < 1.0e-3F,
+                    "Synchronization burnout should stop before the normal barrier stage and leave only enchant-reduced damage"
+                            + " actualLoss=" + (initialHealth - player.getHealth())
+                            + " expectedLoss=" + expectedHealthLoss
+                            + " mana=" + magicData.getMana());
+            helper.succeed();
+        });
+    }
+
+    static void manaShieldCharmSynchronizationLowManaBurnoutStopsAfterEnchantStage(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_low_mana_stage_test");
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+            charm.enchant(enchantmentLookup.getOrThrow(Enchantments.SYNCHRONIZATION), 1);
+            equipCurio(player, CuriosSlotConstants.CHARM, charm);
+
+            equipProtectionIvIronArmor(helper, player);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Synchronization low mana enchant-stage test could not resolve player mana data");
+            player.invulnerableTime = 0;
+            var initialHealth = player.getHealth();
+            var expectedArmor = getEquippedAttributeTotal(player, Attributes.ARMOR);
+            var expectedToughness = getEquippedAttributeTotal(player, Attributes.ARMOR_TOUGHNESS);
+            var source = helper.getLevel().damageSources().lava();
+            var protection = EnchantmentHelper.getDamageProtection(helper.getLevel(), player, source);
+            var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(5.0F, protection);
+            var synchronizationSteps = countWholeDamageStepsForGameTest(5.0F - reducedDamage);
+            helper.assertTrue(synchronizationSteps > 0,
+                    "Synchronization low mana enchant-stage test should require at least one enchant mitigation cost step");
+            magicData.setMana(synchronizationSteps * ApprenticeCodexServerConfig.manaShieldCharmSynchronizationManaPerDamage() - 1.0F);
+
+            var event = postLivingAttackEventForGameTest(player, source, 5.0F);
+            var expectedHealthLoss = CombatRules.getDamageAfterAbsorb(
+                    player,
+                    reducedDamage,
+                    source,
+                    expectedArmor,
+                    expectedToughness
+            );
+
+            helper.assertTrue(event.isCanceled(),
+                    "Synchronization low mana enchant-stage test should still cancel the original LivingAttackEvent");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Synchronization low mana enchant-stage rescue should clamp mana to zero");
+            helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
+                    "Synchronization low mana enchant-stage rescue should enter cooldown");
+            helper.assertTrue(Math.abs((initialHealth - player.getHealth()) - expectedHealthLoss) < 1.0e-3F,
+                    "Synchronization low mana enchant-stage rescue should stop before the normal barrier stage"
+                            + " actualLoss=" + (initialHealth - player.getHealth())
+                            + " expectedLoss=" + expectedHealthLoss
+                            + " reducedDamage=" + reducedDamage
+                            + " mana=" + magicData.getMana());
+            helper.succeed();
+        });
+    }
+
+    static void manaShieldCharmSynchronizationLowManaBurnoutAfterBarrierStage(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_low_mana_barrier_test");
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+            charm.enchant(enchantmentLookup.getOrThrow(Enchantments.SYNCHRONIZATION), 1);
+            equipCurio(player, CuriosSlotConstants.CHARM, charm);
+
+            equipProtectionIvIronArmor(helper, player);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Synchronization low mana barrier-stage test could not resolve player mana data");
+            player.invulnerableTime = 0;
+            var initialHealth = player.getHealth();
+            var source = helper.getLevel().damageSources().lava();
+            var protection = EnchantmentHelper.getDamageProtection(helper.getLevel(), player, source);
+            var incomingDamage = findDamageForMagicReducedTarget(protection, 1.0F);
+            var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(incomingDamage, protection);
+            var synchronizationSteps = countWholeDamageStepsForGameTest(incomingDamage - reducedDamage);
+
+            helper.assertTrue(Math.abs(reducedDamage - 1.0F) < 1.0e-3F,
+                    "Synchronization low mana barrier-stage test should configure exactly one normal barrier step"
+                            + " reducedDamage=" + reducedDamage
+                            + " incomingDamage=" + incomingDamage);
+            helper.assertTrue(synchronizationSteps > 0,
+                    "Synchronization low mana barrier-stage test should still require enchant mitigation cost before the barrier");
+
+            magicData.setMana(synchronizationSteps * ApprenticeCodexServerConfig.manaShieldCharmSynchronizationManaPerDamage()
+                    + ApprenticeCodexServerConfig.manaShieldCharmManaPerDamage() - 1.0F);
+            var event = postLivingAttackEventForGameTest(player, source, incomingDamage);
+
+            helper.assertTrue(event.isCanceled(),
+                    "Synchronization low mana barrier-stage rescue should still cancel the original LivingAttackEvent");
+            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-3F,
+                    "Synchronization low mana barrier-stage rescue should keep health unchanged");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Synchronization low mana barrier-stage rescue should clamp mana to zero");
+            helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
+                    "Synchronization low mana barrier-stage rescue should enter cooldown");
+            helper.assertTrue(player.invulnerableTime >= 20,
+                    "Synchronization low mana barrier-stage rescue should still apply vanilla-style invulnerability time");
+            helper.succeed();
+        });
+    }
+
+    static void manaShieldCharmNeutralizationAbsorbsBypassArmorDamageDuringCooldown(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_neutralization_test");
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+            charm.enchant(enchantmentLookup.getOrThrow(Enchantments.NEUTRALIZATION), 1);
+            equipCurio(player, CuriosSlotConstants.CHARM, charm);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Neutralization test could not resolve player mana data");
+            magicData.setMana(10.0F);
+            var state = getManaShieldCharmState(player);
+            state.reset();
+            state.cooldownActive = true;
+            player.invulnerableTime = 0;
+            var initialHealth = player.getHealth();
+            var source = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(helper.getLevel(), player, DamageTypes.UNITE_LUNA);
+
+            var event = postLivingAttackEventForGameTest(player, source, 2.0F);
+
+            helper.assertTrue(event.isCanceled(),
+                    "Neutralization should cancel armor-bypass damage even while cooldown is active");
+            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
+                    "Neutralization should fully negate armor-bypass damage");
+            helper.assertTrue(Math.abs(magicData.getMana() - 60.0F) < 1.0e-4F,
+                    "Neutralization should recover mana instead of consuming it");
+            helper.assertTrue(state.cooldownActive,
+                    "Neutralization should not clear cooldown until mana reaches the normal recovery threshold");
+            helper.succeed();
+        });
+    }
+
+    static void manaShieldCharmFreeManaCostConfigAbsorbsWithoutDepletionCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    0.0D,
+                    100,
+                    30.0D,
+                    25.0D,
+                    1,
+                    20
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_free_cost_test");
+                equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Mana Shield Charm free-cost test could not resolve player mana data");
+                magicData.setMana(0.0F);
+                player.invulnerableTime = 0;
+                var initialHealth = player.getHealth();
+
+                var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 2.0F);
+
+                helper.assertTrue(event.isCanceled(),
+                        "Mana Shield Charm should absorb whole damage steps without mana when manaPerDamage is zero");
+                helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
+                        "Free-cost Mana Shield Charm should keep health unchanged");
+                helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                        "Free-cost Mana Shield Charm should not recover or spend mana");
+                helper.assertFalse(getManaShieldCharmState(player).cooldownActive,
+                        "Free-cost Mana Shield Charm should not enter depletion cooldown without spending mana");
+            }
+        });
+    }
+
+    static void manaShieldCharmZeroRecoveryThresholdDisablesDepletionCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    25.0D,
+                    0,
+                    30.0D,
+                    25.0D,
+                    1,
+                    20
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_no_cooldown_test");
+                equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Mana Shield Charm zero-threshold test could not resolve player mana data");
+                var state = getManaShieldCharmState(player);
+                state.reset();
+                state.cooldownActive = true;
+                magicData.setMana(25.0F);
+                player.invulnerableTime = 0;
+
+                var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+
+                helper.assertTrue(event.isCanceled(),
+                        "Mana Shield Charm should clear existing cooldown and absorb while recovery threshold is zero");
+                helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                        "Mana Shield Charm should still spend mana when only depletion cooldown is disabled");
+                helper.assertFalse(state.cooldownActive,
+                        "Mana Shield Charm should not enter depletion cooldown when recovery threshold is zero");
+            }
+        });
+    }
+
+    static void manaShieldCharmSynchronizationManaCostUsesServerConfig(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    25.0D,
+                    100,
+                    10.0D,
+                    25.0D,
+                    1,
+                    20
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_config_test");
+                var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+                var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+                charm.enchant(enchantmentLookup.getOrThrow(Enchantments.SYNCHRONIZATION), 1);
+                equipCurio(player, CuriosSlotConstants.CHARM, charm);
+                var protectionEnchantment = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.PROTECTION);
+                for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+                    var armorStack = switch (slot) {
+                        case HEAD -> new ItemStack(Items.IRON_HELMET);
+                        case CHEST -> new ItemStack(Items.IRON_CHESTPLATE);
+                        case LEGS -> new ItemStack(Items.IRON_LEGGINGS);
+                        case FEET -> new ItemStack(Items.IRON_BOOTS);
+                        default -> ItemStack.EMPTY;
+                    };
+                    armorStack.enchant(protectionEnchantment, 10);
+                    player.setItemSlot(slot, armorStack);
+                }
+
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Synchronization config test could not resolve player mana data");
+                magicData.setMana(100.0F);
+                var source = helper.getLevel().damageSources().lava();
+                var protection = EnchantmentHelper.getDamageProtection(player.serverLevel(), player, source);
+                var incomingDamage = 1.5F;
+                var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(incomingDamage, protection);
+                helper.assertTrue(reducedDamage < 1.0F,
+                        "Synchronization config test should isolate the enchant-reduction cost before the barrier stage"
+                                + " protection=" + protection
+                                + " reducedDamage=" + reducedDamage);
+                var expectedRemainingMana = resolveExpectedSynchronizationManaAfterHitForGameTest(incomingDamage, 100.0F, protection);
+
+                var event = postLivingAttackEventForGameTest(player, source, incomingDamage);
+
+                helper.assertTrue(event.isCanceled(),
+                        "Synchronization config test should cancel the intercepted hit");
+                helper.assertTrue(Math.abs(magicData.getMana() - expectedRemainingMana) < 1.0e-4F,
+                        "Synchronization should use configured mana cost"
+                                + " expectedMana=" + expectedRemainingMana
+                                + " actualMana=" + magicData.getMana());
+                helper.succeed();
+            }
+        });
+    }
+
+    static void manaShieldCharmNeutralizationZeroRecoveryStillNullifies(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    25.0D,
+                    100,
+                    30.0D,
+                    0.0D,
+                    1,
+                    20
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_neutralization_zero_test");
+                var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+                charm.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                        .getOrThrow(Enchantments.NEUTRALIZATION), 1);
+                equipCurio(player, CuriosSlotConstants.CHARM, charm);
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Neutralization zero-recovery test could not resolve player mana data");
+                magicData.setMana(10.0F);
+                player.invulnerableTime = 0;
+                var initialHealth = player.getHealth();
+                var source = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(helper.getLevel(), player, DamageTypes.UNITE_LUNA);
+
+                var event = postLivingAttackEventForGameTest(player, source, 2.0F);
+
+                helper.assertTrue(event.isCanceled(),
+                        "Neutralization should still nullify armor-bypass damage when configured recovery is zero");
+                helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
+                        "Neutralization zero-recovery should fully negate armor-bypass damage");
+                helper.assertTrue(Math.abs(magicData.getMana() - 10.0F) < 1.0e-4F,
+                        "Neutralization zero-recovery should leave mana unchanged");
+                helper.succeed();
+            }
+        });
+    }
+
+    static void manaShieldCharmShellArmorDurabilityDamageUsesServerConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    25.0D,
+                    100,
+                    30.0D,
+                    25.0D,
+                    0,
+                    20
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_shell_durability_config_test");
+                var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+                charm.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                        .getOrThrow(Enchantments.SHELL), 1);
+                equipCurio(player, CuriosSlotConstants.CHARM, charm);
+                var chestplate = new ItemStack(Items.IRON_CHESTPLATE);
+                player.setItemSlot(EquipmentSlot.CHEST, chestplate);
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Shell durability config test could not resolve player mana data");
+                magicData.setMana(100.0F);
+                player.invulnerableTime = 0;
+                var armor = getEquippedAttributeTotal(player, Attributes.ARMOR);
+                var toughness = getEquippedAttributeTotal(player, Attributes.ARMOR_TOUGHNESS);
+                var source = helper.getLevel().damageSources().lava();
+                var incomingDamage = findDamageForArmorReducedTarget(player, source, armor, toughness, 1.0F);
+
+                var event = postLivingAttackEventForGameTest(player, source, incomingDamage);
+
+                helper.assertTrue(event.isCanceled(),
+                        "Shell durability config test should still intercept normal damage");
+                helper.assertTrue(chestplate.getDamageValue() == 0,
+                        "Shell should not damage armor when configured durability damage is zero");
+            }
+        });
+    }
+
+    static void manaShieldCharmInvulnerableTimeUsesServerConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    25.0D,
+                    100,
+                    30.0D,
+                    25.0D,
+                    1,
+                    6
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_iframe_config_test");
+                equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Mana Shield Charm i-frame config test could not resolve player mana data");
+                magicData.setMana(100.0F);
+                player.invulnerableTime = 0;
+
+                var firstEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+                helper.assertTrue(firstEvent.isCanceled(),
+                        "Mana Shield Charm i-frame config test should cancel the first hit");
+                helper.assertTrue(player.invulnerableTime >= 6,
+                        "Mana Shield Charm should apply configured invulnerable time");
+                helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
+                        "Mana Shield Charm should spend mana on the first configured i-frame hit");
+
+                var secondEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+                helper.assertTrue(secondEvent.isCanceled(),
+                        "Mana Shield Charm should cancel repeated damage while configured i-frame gate is active");
+                helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
+                        "Mana Shield Charm should not spend mana again inside configured i-frame gate");
+            }
+        });
+    }
+}
