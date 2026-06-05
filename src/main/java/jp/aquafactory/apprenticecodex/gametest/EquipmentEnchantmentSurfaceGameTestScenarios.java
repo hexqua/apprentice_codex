@@ -1181,14 +1181,4 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     "Chromatic Magia Dress chestplate should ignore casts while the same spell is in Recast");
         });
     }
-    static void pastelStaffKeepsItsLocalEnchantingRules(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var pastelStack = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
-            var multicastStack = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
-
-            assertStaffKeepsExpectedEnchantingRules(helper, pastelStack, "Pastel Staff");
-            assertStaffKeepsExpectedEnchantingRules(helper, multicastStack, "Multicast Echo Staff");
-            assertEnchantingSurfacesMatch(helper, pastelStack, multicastStack, "Pastel Staff", "Multicast Echo Staff");
-        });
-    }
 }

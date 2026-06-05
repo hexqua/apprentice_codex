@@ -4939,7 +4939,7 @@ public class ApprenticeCodexGameTestScenarios {
         ));
     }
 
-    private record CircuitHeatStaffBypassTestContext(
+    record CircuitHeatStaffBypassTestContext(
             ServerPlayer player,
             ItemStack staffStack,
             MagicData magicData,
@@ -7473,6 +7473,14 @@ public class ApprenticeCodexGameTestScenarios {
         }
     }
 
+    static List<ItemEntity> getFreshItemDrops(ServerLevel level, BlockPos pos, double radius) {
+        return level.getEntitiesOfClass(
+                ItemEntity.class,
+                new AABB(pos).inflate(radius),
+                itemEntity -> itemEntity.getAge() <= 1
+        );
+    }
+
     static int countFreshItemDrops(ServerLevel level, Item item, BlockPos pos, double radius) {
         return getFreshItemDrops(level, pos, radius).stream()
                 .filter(itemEntity -> itemEntity.getItem().is(item))
@@ -7517,6 +7525,14 @@ public class ApprenticeCodexGameTestScenarios {
                 new AABB(player.position(), player.position()).inflate(16.0D),
                 wing -> !wing.isRemoved()
         ).size();
+    }
+
+    static FakePlayer createSpellDispenserPlacer(GameTestHelper helper, BlockPos pos, String profileName) {
+        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        return player;
     }
 
     static FakePlayer createBetterCombatHiddenOffhandPlayer(
@@ -9762,6 +9778,39 @@ public class ApprenticeCodexGameTestScenarios {
                 "Atelier Station comparator output mismatch: expected " + expectedOutput + " but got " + output);
     }
 
+    static void assertSpellDispenserComparatorOutput(
+            GameTestHelper helper,
+            BlockPos pos,
+            int currentMana,
+            boolean insertInventoryScroll,
+            int expectedOutput
+    ) {
+        helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+
+        var blockEntity = helper.getBlockEntity(pos);
+        helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity,
+                "Spell Dispenser block entity was not created");
+
+        if (blockEntity instanceof SpellDispenserBlockEntity spellDispenser) {
+            spellDispenser.setCurrentMana(currentMana);
+            if (insertInventoryScroll) {
+                spellDispenser.getInventory().setStackInSlot(
+                        SpellDispenserBlockEntity.SPELL_SLOT_INDEX,
+                        createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())
+                );
+            }
+        }
+
+        var absolutePos = helper.absolutePos(pos);
+        var state = helper.getLevel().getBlockState(absolutePos);
+        helper.assertTrue(state.hasAnalogOutputSignal(),
+                "Spell Dispenser should advertise comparator output");
+
+        var output = state.getAnalogOutputSignal(helper.getLevel(), absolutePos);
+        helper.assertTrue(output == expectedOutput,
+                "Spell Dispenser comparator output mismatch: expected " + expectedOutput + " but got " + output);
+    }
+
     static void assertRecipeLoaded(
             GameTestHelper helper,
             RecipeManager recipeManager,
@@ -10001,6 +10050,12 @@ public class ApprenticeCodexGameTestScenarios {
         return (ExplorersCodexGuidebookTransferRecipe) recipe;
     }
 
+    static ItemStack createSpellScroll(AbstractSpell spell) {
+        var stack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+        ISpellContainer.createScrollContainer(spell, 1, stack);
+        return stack;
+    }
+
     static void assertScrollcasterGauntletOffhandUseCasts(
             GameTestHelper helper,
             ItemStack mainHandStack,
@@ -10110,6 +10165,27 @@ public class ApprenticeCodexGameTestScenarios {
         return spellData.getSpell();
     }
 
+    static ItemStack createInstantManaPotion(net.minecraft.world.item.alchemy.Potion potion) {
+        return PotionContentsHelper.createPotionStack(Items.POTION, potion);
+    }
+
+    static FluidStack createIronsManaPotionFluid(net.minecraft.world.item.alchemy.Potion potion, int amountMb) {
+        var fluid = io.redspace.ironsspellbooks.fluids.PotionFluid.from(PotionContentsHelper.createPotionStack(Items.POTION, potion));
+        fluid.setAmount(amountMb);
+        return fluid;
+    }
+
+    static FluidStack createCreateManaPotionFluid(net.minecraft.world.item.alchemy.Potion potion, int amountMb) {
+        var createPotion = BuiltInRegistries.FLUID.get(ResourceLocation.fromNamespaceAndPath("create", "potion"));
+        if (createPotion == null) {
+            return FluidStack.EMPTY;
+        }
+
+        var fluid = new FluidStack(createPotion, amountMb);
+        fluid.set(DataComponents.POTION_CONTENTS, PotionContentsHelper.createPotionStack(Items.POTION, potion).get(DataComponents.POTION_CONTENTS));
+        return fluid;
+    }
+
     static void assertPotionEffect(
             GameTestHelper helper,
             net.minecraft.world.item.alchemy.Potion potion,
@@ -10136,6 +10212,36 @@ public class ApprenticeCodexGameTestScenarios {
                         + (effect == null ? "missing" : effect.getAmplifier()));
     }
 
+    static ItemStack createFilledSpellcastersFlask(
+            RegistryAccess registryAccess,
+            ItemStack storedItem,
+            int doseCount,
+            int glowEnergyLevel
+    ) {
+        var flask = new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get());
+        if (glowEnergyLevel > 0) {
+            registryAccess.lookupOrThrow(Registries.ENCHANTMENT)
+                    .get(Enchantments.GLOW_ENERGY)
+                    .ifPresent(enchantment -> flask.enchant(enchantment, glowEnergyLevel));
+        }
+        return SpellcastersFlask.copyWithAddedDoses(flask, storedItem, doseCount);
+    }
+
+    static ItemStack createFilledAlchemistsFlask(
+            RegistryAccess registryAccess,
+            ItemStack storedItem,
+            int doseCount,
+            int glowEnergyLevel
+    ) {
+        var flask = new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get());
+        if (glowEnergyLevel > 0) {
+            registryAccess.lookupOrThrow(Registries.ENCHANTMENT)
+                    .get(Enchantments.GLOW_ENERGY)
+                    .ifPresent(enchantment -> flask.enchant(enchantment, glowEnergyLevel));
+        }
+        return SpellcastersFlask.copyWithAddedDoses(flask, storedItem, doseCount);
+    }
+
     static FakePlayer createExtractPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
@@ -10156,6 +10262,116 @@ public class ApprenticeCodexGameTestScenarios {
         helper.assertTrue(projectiles.size() == 1,
                 "Expected exactly one Extract projectile but found " + projectiles.size());
         return projectiles.get(0);
+    }
+
+    static SpellDispenserSpellValidator.ValidationResult createSpellDispenserValidation(ItemStack stack, AbstractSpell spell) {
+        return new SpellDispenserSpellValidator.ValidationResult(stack, new SpellData(spell, 1), SpellDispenserSpellValidator.FailureReason.NONE);
+    }
+
+    static GameProfile createSpellDispenserOwnerProfile(String name) {
+        return new GameProfile(UUID.randomUUID(), name);
+    }
+
+    static boolean skipWhenCreateMissing(GameTestHelper helper) {
+        if (ModList.get().isLoaded("create")) {
+            return false;
+        }
+
+        // optional 依存の absent 環境では Create 専用テストを成功扱いで抜け、通常検証の起動性を優先する。
+        helper.succeed();
+        return true;
+    }
+
+    static void assertNoSpellDispenserProxy(GameTestHelper helper, BlockPos castPos, ItemStack spellSource, String message) {
+        var proxyBox = new AABB(castPos).inflate(3.0D);
+        var remainingProxies = helper.getLevel().getEntitiesOfClass(ArmorStand.class, proxyBox, stand ->
+                stand.isInvisible() && stand.getMainHandItem().is(spellSource.getItem()));
+        helper.assertTrue(remainingProxies.isEmpty(), message + ": " + remainingProxies.size());
+
+        var remainingAnchors = helper.getLevel().getEntitiesOfClass(SpellDispenserAnchorEntity.class, proxyBox);
+        helper.assertTrue(remainingAnchors.isEmpty(), message + " (tracked anchors): " + remainingAnchors.size());
+    }
+
+    static Object createSpellDispenserMovementHarness(
+            ServerLevel level,
+            BlockPos worldPos,
+            ItemStackHandler mountedInventory,
+            GameProfile ownerProfile
+    ) {
+        return invokeCreateGameTestHook(
+                "createSpellDispenserMovementHarness",
+                new Class<?>[]{ServerLevel.class, BlockPos.class, ItemStackHandler.class, GameProfile.class},
+                level, worldPos, mountedInventory, ownerProfile
+        );
+    }
+
+    static Object createSpellDispenserMovementHarness(
+            ServerLevel level,
+            BlockPos worldPos,
+            ItemStackHandler mountedInventory,
+            GameProfile ownerProfile,
+            int currentMana,
+            ItemStackHandler externalInventory,
+            boolean externalAvailableForFuel
+    ) {
+        return invokeCreateGameTestHook(
+                "createSpellDispenserMovementHarness",
+                new Class<?>[]{ServerLevel.class, BlockPos.class, ItemStackHandler.class, GameProfile.class, int.class, ItemStackHandler.class, boolean.class},
+                level, worldPos, mountedInventory, ownerProfile, currentMana, externalInventory, externalAvailableForFuel
+        );
+    }
+
+    static void startCreateSpellDispenserMovement(Object harness) {
+        invokeCreateGameTestHook("startMoving", new Class<?>[]{Object.class}, harness);
+    }
+
+    static void tickCreateSpellDispenserMovement(Object harness) {
+        invokeCreateGameTestHook("tick", new Class<?>[]{Object.class}, harness);
+    }
+
+    static void visitCreateSpellDispenserPosition(Object harness, BlockPos pos) {
+        invokeCreateGameTestHook("visitNewPosition", new Class<?>[]{Object.class, BlockPos.class}, harness, pos);
+    }
+
+    static void stopCreateSpellDispenserMovement(Object harness) {
+        invokeCreateGameTestHook("stopMoving", new Class<?>[]{Object.class}, harness);
+    }
+
+    static void setCreateSpellDispenserDisabled(Object harness, boolean disabled) {
+        invokeCreateGameTestHook("setDisabled", new Class<?>[]{Object.class, boolean.class}, harness, disabled);
+    }
+
+    static boolean hasCreateSpellDispenserContinuousCast(Object harness) {
+        return invokeCreateGameTestHookBoolean("hasRunningContinuousCast", harness);
+    }
+
+    static boolean createSpellDispenserRequiresReset(Object harness) {
+        return invokeCreateGameTestHookBoolean("requiresContinuousReset", harness);
+    }
+
+    static boolean createSpellDispenserIsCoolingDown(Object harness) {
+        return invokeCreateGameTestHookBoolean("isCoolingDown", harness);
+    }
+
+    static boolean invokeCreateGameTestHookBoolean(String methodName, Object harness) {
+        return (boolean) invokeCreateGameTestHook(methodName, new Class<?>[]{Object.class}, harness);
+    }
+
+    static Object invokeCreateGameTestHook(String methodName, Class<?>[] parameterTypes, Object... args) {
+        try {
+            var hooksClass = Class.forName(CREATE_GAMETEST_HOOKS_CLASS);
+            return hooksClass.getMethod(methodName, parameterTypes).invoke(null, args);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Create GameTest helper call failed: " + methodName, exception);
+        }
+    }
+
+    static ItemStack createInitializedPresetStack(Item item) {
+        var stack = new ItemStack(item);
+        if (item instanceof IPresetSpellContainer presetSpellContainer) {
+            presetSpellContainer.initializeSpellContainer(stack);
+        }
+        return stack;
     }
 
     static SpellcasterWorkbenchMenu createSpellcasterWorkbenchMenuWithSingleInput(Player player, ItemStack stack) {

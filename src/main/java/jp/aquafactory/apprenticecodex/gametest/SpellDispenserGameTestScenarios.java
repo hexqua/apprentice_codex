@@ -363,9 +363,9 @@ final class SpellDispenserGameTestScenarios {
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("create", "contraption_controlled")
     );
+
     private SpellDispenserGameTestScenarios() {
     }
-
     static void spellDispenserValidatorAcceptsSingleMagicMissileScroll(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
@@ -2069,15 +2069,12 @@ final class SpellDispenserGameTestScenarios {
             ServerLevel level,
             BlockPos worldPos,
             ItemStackHandler mountedInventory,
-            GameProfile ownerProfile,
-            int currentMana,
-            ItemStackHandler externalInventory,
-            boolean externalAvailableForFuel
+            GameProfile ownerProfile
     ) {
         return invokeCreateGameTestHook(
                 "createSpellDispenserMovementHarness",
-                new Class<?>[]{ServerLevel.class, BlockPos.class, ItemStackHandler.class, GameProfile.class, int.class, ItemStackHandler.class, boolean.class},
-                level, worldPos, mountedInventory, ownerProfile, currentMana, externalInventory, externalAvailableForFuel
+                new Class<?>[]{ServerLevel.class, BlockPos.class, ItemStackHandler.class, GameProfile.class},
+                level, worldPos, mountedInventory, ownerProfile
         );
     }
 
