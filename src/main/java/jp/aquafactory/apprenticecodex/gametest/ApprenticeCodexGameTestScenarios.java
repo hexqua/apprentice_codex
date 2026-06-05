@@ -2,16 +2,15 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.events.CounterSpellEvent;
-import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.item.UpgradeData;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
-import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
@@ -23,55 +22,84 @@ import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectile;
 import io.redspace.ironsspellbooks.entity.spells.spectral_hammer.SpectralHammer;
 import io.redspace.ironsspellbooks.entity.spells.target_area.TargetedAreaEntity;
+import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.spells.nature.TouchDigSpell;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.UUID;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntity;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
+import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfile;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfileManager;
-import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
-import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
-import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
-import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
 import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
-import jp.aquafactory.apprenticecodex.event.ErrandMageVillagerTradesEvent;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.event.errandmage.ErrandMageTradeManager;
+import jp.aquafactory.apprenticecodex.event.ErrandMageVillagerTradesEvent;
 import jp.aquafactory.apprenticecodex.event.ScrollcasterGauntletGrindstoneEvent;
-import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
-import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
-import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastMode;
-import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
-import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
-import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
-import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
-import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
-import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
+import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
-import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
+import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
+import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressStats;
+import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeSchoolPowerBonusEvents;
+import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeStats;
+import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeStats;
+import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffCastEvent;
-import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
-import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
+import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellListManager;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightCooldownReductionEvent;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightManaCostDiscountEvent;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightSpellSupport;
+import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
+import jp.aquafactory.apprenticecodex.item.curios.manashieldcharm.ManaShieldCharm;
+import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
+import jp.aquafactory.apprenticecodex.item.ElementalBow;
+import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
+import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
+import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
-import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
-import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfile;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfileManager;
@@ -81,53 +109,62 @@ import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectProfileManager;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
-import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
-import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffManaCostEvent;
-import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffPowerHelper;
+import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
+import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
-import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
+import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
+import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
+import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntletCastEvent;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterAttackEvent;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterFallProtectionEvent;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterReadyStateSyncEvent;
+import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
+import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
-import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
-import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
-import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntletCastEvent;
-import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
-import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
-import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellListManager;
-import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
-import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
-import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightCooldownReductionEvent;
-import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightManaCostDiscountEvent;
-import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightSpellSupport;
-import jp.aquafactory.apprenticecodex.item.curios.manashieldcharm.ManaShieldCharm;
-import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
-import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
-import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverPickupEvent;
-import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
-import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
-import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
-import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
-import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.spellthrowablecard.AbstractSpellThrowableCardItem;
-import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
+import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
+import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastCooldownMode;
+import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffManaCostEvent;
+import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffPowerHelper;
 import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
 import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
+import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTransferRecipe;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
+import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
+import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
+import jp.aquafactory.apprenticecodex.registry.CreativeTabRegistry;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.LootConditionRegistry;
+import jp.aquafactory.apprenticecodex.registry.PoiTypeRegistry;
+import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
+import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastMode;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
+import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
+import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
+import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
+import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarManager;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWings;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsManager;
 import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper;
-import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
-import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
-import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
-import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarManager;
 import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
 import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
@@ -148,40 +185,14 @@ import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldShieldEntit
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxCounterSpellEvent;
-import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
+import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackJob;
 import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonEntity;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillEntity;
-import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
-import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
-import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressStats;
-import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
-import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeSchoolPowerBonusEvents;
-import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeStats;
-import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
-import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeStats;
-import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
-import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
-import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastCooldownMode;
-import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
-import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
-import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
-import jp.aquafactory.apprenticecodex.registry.CreativeTabRegistry;
-import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
-import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
-import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.registry.LootConditionRegistry;
-import jp.aquafactory.apprenticecodex.registry.PoiTypeRegistry;
-import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
-import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
-import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
-import jp.aquafactory.apprenticecodex.registry.TagRegistry;
-import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
 import jp.aquafactory.apprenticecodex.utility.ApprenticeEnchantmentAvailability;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
@@ -192,38 +203,32 @@ import jp.aquafactory.apprenticecodex.utility.ProcessingRecipeDenylist;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RightClickSpellResolver;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
-import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
+import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.core.Registry;
-import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.SectionPos;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextColor;
-import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.PoiTypeTags;
-import net.minecraft.tags.DamageTypeTags;
-import net.minecraft.tags.TagKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.tags.PoiTypeTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MoverType;
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.damagesource.CombatRules;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -232,44 +237,49 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.village.poi.PoiTypes;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobType;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerTrades;
-import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.TransientCraftingContainer;
+import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterials;
 import net.minecraft.world.item.ArrowItem;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.EnchantedBookItem;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.alchemy.PotionUtils;
-import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.trading.MerchantOffer;
-import net.minecraft.world.damagesource.CombatRules;
 import net.minecraft.world.level.block.AttachedStemBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
 import net.minecraft.world.level.block.FlowerPotBlock;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.StairBlock;
-import net.minecraft.world.level.block.entity.ChestBlockEntity;
-import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
@@ -277,47 +287,31 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.world.level.storage.loot.functions.EnchantRandomlyFunction;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootParams;
-import net.minecraft.world.level.storage.loot.functions.EnchantRandomlyFunction;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.SimpleContainer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
+import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.GrindstoneEvent;
-import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
+import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.ModList;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryObject;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public final class ApprenticeCodexGameTestScenarios {
     private static final double SENSE_EVIL_HIGHLIGHT_POSITION_TOLERANCE = 1.5D;
@@ -6588,55 +6582,6 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Multicast Echo Staff");
         });
     }
-    static void elementalBowHeldWisdomAndPlunderWorkInBothHands(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = helper.getLevel();
-            var state = Blocks.DIAMOND_ORE.defaultBlockState();
-
-            var mainhandPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "elemental_bow_mainhand_held_enchant_test"));
-            var mainhandBow = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            mainhandBow.enchant(EnchantmentRegistry.WISDOM.get(), 1);
-            mainhandBow.enchant(EnchantmentRegistry.PLUNDER.get(), 2);
-            mainhandPlayer.setItemInHand(InteractionHand.MAIN_HAND, mainhandBow);
-
-            var mainhandExperience = new BlockEvent.BreakEvent(level, new BlockPos(3, 2, 0), state, mainhandPlayer);
-            mainhandExperience.setExpToDrop(3);
-            WisdomExperienceDropEvent.onBlockBreak(mainhandExperience);
-            helper.assertTrue(mainhandExperience.getExpToDrop() == 4,
-                    "Elemental Bow mainhand Wisdom should increase block experience from 3 to 4 but got " + mainhandExperience.getExpToDrop());
-
-            var mainhandLootingEvent = new net.minecraftforge.event.entity.living.LootingLevelEvent(
-                    helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 1)),
-                    mainhandPlayer.damageSources().playerAttack(mainhandPlayer),
-                    0
-            );
-            jp.aquafactory.apprenticecodex.enchantment.PlunderLootingLevelEvent.onLootingLevel(mainhandLootingEvent);
-            helper.assertTrue(mainhandLootingEvent.getLootingLevel() == 2,
-                    "Elemental Bow mainhand Plunder should set looting level to 2 but got " + mainhandLootingEvent.getLootingLevel());
-
-            var offhandPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "elemental_bow_offhand_held_enchant_test"));
-            var offhandBow = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            offhandBow.enchant(EnchantmentRegistry.WISDOM.get(), 1);
-            offhandBow.enchant(EnchantmentRegistry.PLUNDER.get(), 3);
-            offhandPlayer.setItemInHand(InteractionHand.OFF_HAND, offhandBow);
-
-            var offhandExperience = new BlockEvent.BreakEvent(level, new BlockPos(4, 2, 0), state, offhandPlayer);
-            offhandExperience.setExpToDrop(3);
-            WisdomExperienceDropEvent.onBlockBreak(offhandExperience);
-            helper.assertTrue(offhandExperience.getExpToDrop() == 4,
-                    "Elemental Bow offhand Wisdom should increase block experience from 3 to 4 but got " + offhandExperience.getExpToDrop());
-
-            var offhandLootingEvent = new net.minecraftforge.event.entity.living.LootingLevelEvent(
-                    helper.spawn(EntityType.ZOMBIE, new BlockPos(4, 2, 1)),
-                    offhandPlayer.damageSources().playerAttack(offhandPlayer),
-                    0
-            );
-            jp.aquafactory.apprenticecodex.enchantment.PlunderLootingLevelEvent.onLootingLevel(offhandLootingEvent);
-            helper.assertTrue(offhandLootingEvent.getLootingLevel() == 3,
-                    "Elemental Bow offhand Plunder should set looting level to 3 but got " + offhandLootingEvent.getLootingLevel());
-        });
-    }
-
     private static void assertHeldWisdomBlockExperience(
             GameTestHelper helper,
             ServerLevel level,
@@ -7392,1529 +7337,6 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    static void elementalBowKeepsVanillaBowEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            var expectedEnchantments = expectedElementalBowEnchantments();
-            var expectedBookEnchantments = expectedElementalBowBookEnchantments();
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedEnchantments,
-                    expectedBookEnchantments,
-                    expectedEnchantments,
-                    "Elemental Bow"
-            );
-        });
-    }
-    static void elementalBowBuildsSelectionViewsFromHeldAmmo(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_selection_view_test");
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.enchant(Enchantments.INFINITY_ARROWS, 1);
-            var healingArrow = PotionUtils.setPotion(new ItemStack(Items.TIPPED_ARROW), net.minecraft.world.item.alchemy.Potions.HEALING);
-            var regenerationArrow = PotionUtils.setPotion(new ItemStack(Items.TIPPED_ARROW), net.minecraft.world.item.alchemy.Potions.REGENERATION);
-            var healingId = ForgeRegistries.POTIONS.getKey(PotionUtils.getPotion(healingArrow));
-            var regenerationId = ForgeRegistries.POTIONS.getKey(PotionUtils.getPotion(regenerationArrow));
-            helper.assertTrue(healingId != null && regenerationId != null,
-                    "Elemental Bow selection view test could not resolve tipped arrow potion ids");
-            var availablePotionIds = new LinkedHashSet<ResourceLocation>();
-            if (healingId != null) {
-                availablePotionIds.add(healingId);
-            }
-            if (regenerationId != null) {
-                availablePotionIds.add(regenerationId);
-            }
-            var expectedPotionOrder = ForgeRegistries.POTIONS.getValues().stream()
-                    .map(ForgeRegistries.POTIONS::getKey)
-                    .filter(id -> id != null && availablePotionIds.contains(id))
-                    .toList();
-
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW));
-            player.getInventory().setItem(2, healingArrow);
-            player.getInventory().setItem(3, regenerationArrow);
-
-            var views = ElementalBow.getAvailableSelectionViews(player, stack);
-            var actualSelections = views.stream()
-                    .map(ApprenticeCodexGameTestScenarios::describeElementalBowSelectionView)
-                    .toList();
-            var expectedSelections = new ArrayList<String>();
-            expectedSelections.add("normal");
-            expectedSelections.add("arrow");
-            expectedSelections.add("special:minecraft:spectral_arrow");
-            for (var potionId : expectedPotionOrder) {
-                expectedSelections.add("special:" + potionId);
-            }
-            expectedSelections.add("magic:" + SchoolRegistry.FIRE_RESOURCE);
-            expectedSelections.add("magic:" + SchoolRegistry.ENDER_RESOURCE);
-            expectedSelections.add("magic:" + SchoolRegistry.NATURE_RESOURCE);
-            helper.assertTrue(actualSelections.equals(expectedSelections),
-                    "Elemental Bow selection view order mismatch: expected=" + expectedSelections + ", actual=" + actualSelections);
-            helper.assertTrue(views.get(0).iconStack().is(Items.BOW),
-                    "Elemental Bow vanilla mode selection should render as a bow icon");
-            helper.assertTrue(views.get(0).badgeText() == null,
-                    "Elemental Bow vanilla mode selection should not show an ammo badge");
-            helper.assertTrue(views.get(1).iconStack().is(Items.ARROW),
-                    "Elemental Bow arrow-only selection should render as an arrow icon");
-            helper.assertTrue("\u221e".equals(views.get(1).badgeText()),
-                    "Elemental Bow arrow-only selection should show infinity while Infinity is enchanted: " + views.get(1).badgeText());
-
-            var fireView = views.stream()
-                    .filter(view -> "magic".equals(view.selection().shotMode()) && SchoolRegistry.FIRE_RESOURCE.equals(view.selection().selectionId()))
-                    .findFirst()
-                    .orElse(null);
-            helper.assertTrue(fireView != null, "Elemental Bow selection view should include Fire magic");
-            if (fireView != null) {
-                helper.assertTrue(fireView.iconKind() == ElementalBow.SelectionIconKind.SPELL,
-                        "Elemental Bow magic selection should render as a spell icon");
-                helper.assertTrue(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get().getSpellIconResource().equals(fireView.spellIcon()),
-                        "Elemental Bow Fire magic selection should use the Fire Arrow spell icon");
-            }
-        });
-    }
-    static void elementalBowInventoryOverlayReflectsCurrentSelection(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            helper.assertTrue(ElementalBow.getInventoryOverlayView(stack) == null,
-                    "Elemental Bow normal mode should not expose an inventory overlay");
-
-            setElementalBowShotSelection(stack, "arrow", null);
-            var arrowOverlay = ElementalBow.getInventoryOverlayView(stack);
-            helper.assertTrue(arrowOverlay != null,
-                    "Elemental Bow arrow-only selection should expose an inventory overlay");
-            if (arrowOverlay != null) {
-                helper.assertTrue(arrowOverlay.iconKind() == ElementalBow.SelectionIconKind.ITEM,
-                        "Elemental Bow arrow-only selection should render as an item overlay");
-                helper.assertTrue(arrowOverlay.iconStack().is(Items.ARROW),
-                        "Elemental Bow arrow-only selection should render the arrow icon");
-            }
-
-            var spectralArrowId = ResourceLocation.tryParse("minecraft:spectral_arrow");
-            setElementalBowShotSelection(stack, "special", spectralArrowId);
-            var spectralOverlay = ElementalBow.getInventoryOverlayView(stack);
-            helper.assertTrue(spectralOverlay != null,
-                    "Elemental Bow spectral selection should expose an inventory overlay");
-            if (spectralOverlay != null) {
-                helper.assertTrue(spectralOverlay.iconKind() == ElementalBow.SelectionIconKind.ITEM,
-                        "Elemental Bow spectral selection should render as an item overlay");
-                helper.assertTrue(spectralOverlay.iconStack().is(Items.SPECTRAL_ARROW),
-                        "Elemental Bow spectral selection should render the spectral arrow icon");
-            }
-
-            var healingArrow = PotionUtils.setPotion(new ItemStack(Items.TIPPED_ARROW), net.minecraft.world.item.alchemy.Potions.HEALING);
-            var healingId = ForgeRegistries.POTIONS.getKey(PotionUtils.getPotion(healingArrow));
-            helper.assertTrue(healingId != null,
-                    "Elemental Bow overlay test could not resolve the healing arrow potion id");
-            if (healingId != null) {
-                setElementalBowShotSelection(stack, "special", healingId);
-                var tippedOverlay = ElementalBow.getInventoryOverlayView(stack);
-                helper.assertTrue(tippedOverlay != null,
-                        "Elemental Bow tipped arrow selection should expose an inventory overlay");
-                if (tippedOverlay != null) {
-                    helper.assertTrue(tippedOverlay.iconStack().is(Items.TIPPED_ARROW),
-                            "Elemental Bow tipped arrow selection should render a tipped arrow icon");
-                    helper.assertTrue(PotionUtils.getPotion(tippedOverlay.iconStack()) == net.minecraft.world.item.alchemy.Potions.HEALING,
-                            "Elemental Bow tipped arrow overlay should keep the selected potion");
-                }
-            }
-
-            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
-            var fireOverlay = ElementalBow.getInventoryOverlayView(stack);
-            helper.assertTrue(fireOverlay != null,
-                    "Elemental Bow magic selection should expose an inventory overlay");
-            if (fireOverlay != null) {
-                helper.assertTrue(fireOverlay.iconKind() == ElementalBow.SelectionIconKind.ITEM,
-                        "Elemental Bow magic selection should render as an item overlay");
-                helper.assertTrue(fireOverlay.iconStack().is(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get()),
-                        "Elemental Bow Fire mode should render the Fire rune icon");
-            }
-        });
-    }
-    static void elementalBowSelectionViewExposesOverheatOverlayState(GameTestHelper helper) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_selection_overheat_overlay_test");
-        var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-        stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
-        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-
-        helper.runAtTickTime(1, () -> {
-            var fireView = findElementalBowSelectionView(player, stack, "magic", SchoolRegistry.FIRE_RESOURCE);
-            helper.assertTrue(fireView != null, "Elemental Bow overheat overlay test should expose the Fire magic selection");
-            if (fireView != null) {
-                helper.assertFalse(fireView.overheatActive(),
-                        "Elemental Bow Fire selection should not be overheated before any cast");
-                helper.assertTrue(fireView.overheatFillRatio() == 0.0F,
-                        "Elemental Bow Fire selection should start with an empty overheat overlay");
-            }
-
-            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
-                    player,
-                    SchoolRegistry.FIRE_RESOURCE,
-                    40
-            );
-            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
-                    player,
-                    SchoolRegistry.NATURE_RESOURCE,
-                    20
-            );
-
-            var overheatedFireView = findElementalBowSelectionView(player, stack, "magic", SchoolRegistry.FIRE_RESOURCE);
-            helper.assertTrue(overheatedFireView != null && overheatedFireView.overheatActive(),
-                    "Elemental Bow Fire selection should report active overheat immediately after cast");
-            if (overheatedFireView != null) {
-                helper.assertTrue(overheatedFireView.overheatFillRatio() == 1.0F,
-                        "Elemental Bow Fire selection should start with a full overheat overlay: " + overheatedFireView.overheatFillRatio());
-            }
-        });
-
-        helper.runAtTickTime(11, () -> {
-            var fireView = findElementalBowSelectionView(player, stack, "magic", SchoolRegistry.FIRE_RESOURCE);
-            helper.assertTrue(fireView != null && fireView.overheatActive(),
-                    "Elemental Bow Fire selection should still be overheated mid-cooldown");
-            if (fireView != null) {
-                helper.assertTrue(Mth.equal(fireView.overheatFillRatio(), 0.75F),
-                        "Elemental Bow Fire selection should decay based on its own cooldown: " + fireView.overheatFillRatio());
-            }
-
-            var natureView = findElementalBowSelectionView(player, stack, "magic", SchoolRegistry.NATURE_RESOURCE);
-            helper.assertTrue(natureView != null && natureView.overheatActive(),
-                    "Elemental Bow Nature selection should track its own overheat independently");
-            if (natureView != null) {
-                helper.assertTrue(Mth.equal(natureView.overheatFillRatio(), 0.5F),
-                        "Elemental Bow Nature selection should show its shorter cooldown independently: " + natureView.overheatFillRatio());
-            }
-
-            var enderView = findElementalBowSelectionView(player, stack, "magic", SchoolRegistry.ENDER_RESOURCE);
-            helper.assertTrue(enderView != null, "Elemental Bow overheat overlay test should expose the Ender magic selection");
-            if (enderView != null) {
-                helper.assertFalse(enderView.overheatActive(),
-                        "Elemental Bow Ender selection should stay inactive when untouched");
-                helper.assertTrue(enderView.overheatFillRatio() == 0.0F,
-                        "Elemental Bow Ender selection should not show an overheat overlay");
-            }
-        });
-
-        helper.runAtTickTime(42, () -> {
-            var fireView = findElementalBowSelectionView(player, stack, "magic", SchoolRegistry.FIRE_RESOURCE);
-            helper.assertTrue(fireView != null, "Elemental Bow Fire selection should remain in the selection list after cooldown");
-            if (fireView != null) {
-                helper.assertFalse(fireView.overheatActive(),
-                        "Elemental Bow Fire selection should clear overheat after cooldown expires");
-                helper.assertTrue(fireView.overheatFillRatio() == 0.0F,
-                        "Elemental Bow Fire selection overlay should be empty after cooldown expires");
-            }
-        });
-
-        helper.runAtTickTime(43, helper::succeed);
-    }
-    static void elementalBowKeepsCurrentEmptySpecialSelectionOnlyWhileSelected(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_empty_selection_test");
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            setElementalBowShotSelection(stack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"));
-
-            var selectedViews = ElementalBow.getAvailableSelectionViews(player, stack);
-            var spectralView = selectedViews.stream()
-                    .filter(view -> "special".equals(view.selection().shotMode())
-                            && ResourceLocation.tryParse("minecraft:spectral_arrow").equals(view.selection().selectionId()))
-                    .findFirst()
-                    .orElse(null);
-            helper.assertTrue(spectralView != null, "Elemental Bow should keep the empty current special selection in the UI");
-            if (spectralView != null) {
-                helper.assertTrue("0".equals(spectralView.badgeText()),
-                        "Elemental Bow empty current special selection should show 0 ammo");
-                helper.assertTrue(spectralView.badgeColor() == 0xFF5555,
-                        "Elemental Bow empty current special selection should render its ammo count in red");
-            }
-
-            setElementalBowShotSelection(stack, "normal", null);
-            var normalViews = ElementalBow.getAvailableSelectionViews(player, stack);
-            helper.assertTrue(normalViews.stream().noneMatch(view ->
-                            "special".equals(view.selection().shotMode())
-                                    && ResourceLocation.tryParse("minecraft:spectral_arrow").equals(view.selection().selectionId())),
-                    "Elemental Bow should drop the empty special selection after another mode is chosen");
-            var arrowView = normalViews.stream()
-                    .filter(view -> "arrow".equals(view.selection().shotMode()))
-                    .findFirst()
-                    .orElse(null);
-            helper.assertTrue(arrowView != null, "Elemental Bow should always expose the arrow-only selection");
-            if (arrowView != null) {
-                helper.assertTrue("0".equals(arrowView.badgeText()),
-                        "Elemental Bow arrow-only selection should show 0 ammo while empty");
-                helper.assertTrue(arrowView.badgeColor() == 0xFF5555,
-                        "Elemental Bow arrow-only selection should render empty ammo in red even while another mode is selected");
-            }
-        });
-    }
-    static void elementalBowRequiresManaBeforeStartingElementalDraw(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_mana_gate_test");
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            player.getInventory().setItem(1, new ItemStack(Items.ARROW));
-
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Elemental Bow mana gate test could not resolve player mana data");
-            magicData.setMana(0.0F);
-
-            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
-                    "Elemental Bow should fail to start drawing when mana is insufficient: " + result.getResult());
-            helper.assertFalse(player.isUsingItem(), "Elemental Bow should not enter use state without enough mana");
-        });
-    }
-    static void elementalBowFallsBackToNoneWhenLegacyModeCannotResolve(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
-            var stack = new ItemStack(item);
-            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
-
-            item.initializeSpellContainer(stack);
-
-            assertElementalBowSelection(helper, stack, null, null,
-                    "Elemental Bow should clear unresolved legacy mode values back to normal mode");
-            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
-                    "Elemental Bow should remove its spell container after falling back to normal mode");
-        });
-    }
-    static void elementalBowSynchronizesSpellContainerToCurrentMode(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
-            var stack = new ItemStack(item);
-            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
-            item.initializeSpellContainer(stack);
-
-            var spellContainer = ISpellContainer.get(stack);
-            helper.assertTrue(spellContainer != null, "Elemental Bow should expose a spell container outside NONE mode");
-            helper.assertTrue(spellContainer != null && !spellContainer.isSpellWheel(),
-                    "Elemental Bow should keep its derived spell out of the spell wheel");
-            assertSpellData(
-                    helper,
-                    spellContainer,
-                    0,
-                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
-                    1,
-                    true,
-                    "Elemental Bow should sync Fire mode into a locked spell container"
-            );
-        });
-    }
-    static void elementalBowSpellContainerAppliesPowerFlameAndClearsInNoneMode(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
-            var stack = new ItemStack(item);
-            stack.enchant(Enchantments.POWER_ARROWS, 2);
-            stack.enchant(EnchantmentRegistry.TRANSCENDENCE.get(), 1);
-            stack.enchant(Enchantments.FLAMING_ARROWS, 1);
-
-            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
-            item.initializeSpellContainer(stack);
-            helper.assertTrue(stack.getEnchantmentLevel(Enchantments.POWER_ARROWS) == 2,
-                    "Elemental Bow spell container test should preserve POWER II on the stack");
-            helper.assertTrue(stack.getEnchantmentLevel(Enchantments.FLAMING_ARROWS) == 1,
-                    "Elemental Bow spell container test should preserve FLAME I on the stack");
-            helper.assertTrue(stack.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get()) == 1,
-                    "Elemental Bow spell container test should preserve TRANSCENDENCE I on the stack");
-            var fireMode = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.getResolvedDefinition(SchoolRegistry.FIRE_RESOURCE);
-            helper.assertTrue(fireMode != null, "Elemental Bow Fire mode should resolve from the loaded mode definitions");
-            var expectedFireLevel = fireMode != null ? fireMode.resolveSpellLevel(stack) : 1;
-            var fireProfile = ElementalBow.getDisplayedSpellProfile(stack);
-            helper.assertTrue(fireProfile != null, "Elemental Bow should expose a displayed spell profile in Fire mode");
-            helper.assertTrue(fireProfile.spell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
-                    "Elemental Bow Fire mode should resolve Fire Arrow");
-            helper.assertTrue(fireProfile.spellLevel() == expectedFireLevel,
-                    "Elemental Bow Fire mode display level should stay in sync with the loaded mode resolver but got " + fireProfile.spellLevel());
-            var fireContainer = ISpellContainer.get(stack);
-            helper.assertTrue(fireContainer != null, "Elemental Bow Fire mode should keep a synced spell container");
-            helper.assertTrue(fireContainer != null && !fireContainer.isSpellWheel(),
-                    "Elemental Bow Fire mode container should stay hidden from the spell wheel");
-            assertSpellData(
-                    helper,
-                    fireContainer,
-                    0,
-                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
-                    expectedFireLevel,
-                    true,
-                    "Elemental Bow Fire mode container should stay in sync with the loaded mode resolver"
-            );
-
-            setElementalBowShotSelection(stack, "magic", SchoolRegistry.ENDER_RESOURCE);
-            item.initializeSpellContainer(stack);
-            var enderMode = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.getResolvedDefinition(SchoolRegistry.ENDER_RESOURCE);
-            helper.assertTrue(enderMode != null, "Elemental Bow Ender mode should resolve from the loaded mode definitions");
-            var expectedEnderLevel = enderMode != null ? enderMode.resolveSpellLevel(stack) : 1;
-            var enderProfile = ElementalBow.getDisplayedSpellProfile(stack);
-            helper.assertTrue(enderProfile != null, "Elemental Bow should expose a displayed spell profile in Ender mode");
-            helper.assertTrue(enderProfile.spell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get(),
-                    "Elemental Bow Ender mode should resolve Magic Arrow");
-            helper.assertTrue(enderProfile.spellLevel() == expectedEnderLevel,
-                    "Elemental Bow Ender mode display level should stay in sync with the loaded mode resolver but got " + enderProfile.spellLevel());
-            var enderContainer = ISpellContainer.get(stack);
-            helper.assertTrue(enderContainer != null, "Elemental Bow Ender mode should keep a synced spell container");
-            helper.assertTrue(enderContainer != null && !enderContainer.isSpellWheel(),
-                    "Elemental Bow Ender mode container should stay hidden from the spell wheel");
-            assertSpellData(
-                    helper,
-                    enderContainer,
-                    0,
-                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get(),
-                    expectedEnderLevel,
-                    true,
-                    "Elemental Bow Ender mode container should stay in sync with the loaded mode resolver"
-            );
-
-            stack.getOrCreateTag().remove("ElementalBowMode");
-            item.initializeSpellContainer(stack);
-            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
-                    "Elemental Bow should remove its spell container in NONE mode");
-        });
-    }
-    static void elementalBowDoesNotAddDerivedSpellToMainhandSpellWheel(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_spell_wheel_test");
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
-            ((ElementalBow) stack.getItem()).initializeSpellContainer(stack);
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-
-            var selectionManager = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player);
-            var mainhandSelections = selectionManager.getSpellsForSlot(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND);
-            helper.assertTrue(mainhandSelections.isEmpty(),
-                    "Elemental Bow should not add its derived spell to the mainhand spell wheel: " + mainhandSelections);
-            helper.assertTrue(selectionManager.getSelection() == null,
-                    "Elemental Bow should not create a selected spell from its derived container");
-        });
-    }
-    static void focusStaffbowRejectsOffhandUse(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_offhand_reject_test");
-            var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            player.setItemInHand(InteractionHand.OFF_HAND, stack);
-            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.IRON_SWORD));
-
-            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.OFF_HAND);
-            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
-                    "Focus Staffbow should fail immediately when used from offhand but got " + result.getResult());
-            helper.assertFalse(player.isUsingItem(),
-                    "Focus Staffbow should not enter use state when offhand use is rejected");
-        });
-    }
-    static void focusStaffbowAllowsMainhandUseWithOffhandSelection(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_offhand_selection_test");
-            var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-            var amplifierStack = new ItemStack(amplifierItem);
-            amplifierItem.initializeSpellContainer(amplifierStack);
-
-            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-            setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Focus Staffbow offhand selection test could not resolve player mana data");
-            if (magicData != null) {
-                magicData.setMana(100.0F);
-            }
-
-            var selectionManager = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player);
-            var selection = selectionManager.getSelection();
-            helper.assertTrue(selection != null && io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND.equals(selection.slot),
-                    "Focus Staffbow offhand selection test should resolve offhand spell selection but got " + selection);
-
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult() != net.minecraft.world.InteractionResult.FAIL,
-                    "Focus Staffbow mainhand use should remain available even when selected spell slot is offhand but got "
-                            + result.getResult());
-        });
-    }
-    static void focusStaffbowShowsLongSummonWeaponDuringPendingCast(GameTestHelper helper) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_pending_summon_test");
-        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-        var amplifierStack = new ItemStack(amplifierItem);
-        amplifierItem.initializeSpellContainer(amplifierStack);
-        setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE.get(), 1);
-
-        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
-        MagicData.getPlayerMagicData(player).setMana(100.0F);
-
-        helper.runAtTickTime(1, () -> {
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Focus Staffbow should enter pending cast for LONG summon spells but got " + result.getResult());
-        });
-        helper.runAtTickTime(2, () -> {
-            var spellData = Capabilities.getSpellDataOrNull(player);
-            helper.assertTrue(spellData != null, "Focus Staffbow pending summon test could not resolve spell data capability");
-            helper.assertTrue(spellData != null
-                            && spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isActive(),
-                    "Focus Staffbow should keep a pending cast state while charging");
-            helper.assertTrue(getOwnedSummonWeapons(helper, player, jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity.class).size() == 1,
-                    "Focus Staffbow should expose the summon weapon during pending charge");
-            helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
-                    "Focus Staffbow should not consume its catalyst arrow before the LONG cast completes");
-            helper.assertTrue(player.isUsingItem(), "Focus Staffbow should still be in use while the summon weapon is pending");
-        });
-        helper.runAtTickTime(3, () ->
-                bowStack.getItem().releaseUsing(
-                        bowStack,
-                        helper.getLevel(),
-                        player,
-                        bowStack.getUseDuration() - jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE.get().getEffectiveCastTime(1, player)
-                )
-        );
-        helper.succeedWhen(() -> {
-            var spellData = Capabilities.getSpellDataOrNull(player);
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(spellData != null, "Focus Staffbow pending summon test lost spell data capability");
-            helper.assertTrue(spellData != null
-                            && !spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isActive(),
-                    "Focus Staffbow pending state should clear after the charged cast completes");
-            helper.assertTrue(magicData.getAdditionalCastData() == null,
-                    "Focus Staffbow charged cast should clear simulated additional cast data after completion");
-            helper.assertTrue(getFocusStaffbowArrowCount(player) == 0,
-                    "Focus Staffbow should consume exactly one catalyst arrow after the LONG cast completes");
-        });
-    }
-    static void focusStaffbowCancelsPendingSummonWeaponBeforeRequiredCharge(GameTestHelper helper) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_pending_cancel_test");
-        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-        var amplifierStack = new ItemStack(amplifierItem);
-        amplifierItem.initializeSpellContainer(amplifierStack);
-        setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE.get(), 1);
-
-        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
-        MagicData.getPlayerMagicData(player).setMana(100.0F);
-
-        helper.runAtTickTime(1, () -> {
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Focus Staffbow cancel test should start a pending cast but got " + result.getResult());
-        });
-        helper.runAtTickTime(2, () ->
-                helper.assertTrue(
-                        getOwnedSummonWeapons(helper, player, jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity.class).size() == 1,
-                        "Focus Staffbow cancel test should spawn the summon weapon during pending charge"
-                )
-        );
-        helper.runAtTickTime(3, () ->
-                bowStack.getItem().releaseUsing(
-                        bowStack,
-                        helper.getLevel(),
-                        player,
-                        bowStack.getUseDuration() - (jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE.get().getEffectiveCastTime(1, player) - 1)
-                )
-        );
-        helper.succeedWhen(() -> {
-            var spellData = Capabilities.getSpellDataOrNull(player);
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(spellData != null, "Focus Staffbow cancel test lost spell data capability");
-            helper.assertTrue(spellData != null
-                            && !spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isActive(),
-                    "Focus Staffbow should clear the pending state when released before the required charge");
-            helper.assertTrue(getOwnedSummonWeapons(helper, player, jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity.class).isEmpty(),
-                    "Focus Staffbow should remove the simulated summon weapon when the charge is cancelled");
-            helper.assertTrue(magicData.getAdditionalCastData() == null,
-                    "Focus Staffbow should clear simulated additional cast data when the charge is cancelled");
-            helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
-                    "Focus Staffbow should keep its catalyst arrow when the LONG cast is cancelled early");
-        });
-    }
-    static void focusStaffbowContinuousCastStaysActivePastSpellDuration(GameTestHelper helper) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_hold_test");
-        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-        var amplifierStack = new ItemStack(amplifierItem);
-        amplifierItem.initializeSpellContainer(amplifierStack);
-        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get();
-        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
-
-        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 2));
-        MagicData.getPlayerMagicData(player).setMana(10000.0F);
-
-        helper.runAtTickTime(1, () -> {
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Focus Staffbow continuous test should start casting but got " + result.getResult());
-        });
-        helper.runAtTickTime(2, () -> {
-            var spellData = Capabilities.getSpellDataOrNull(player);
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(spellData != null, "Focus Staffbow continuous test could not resolve spell data capability");
-            helper.assertTrue(spellData != null
-                            && spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isContinuous(),
-                    "Focus Staffbow continuous test should store a CONTINUOUS cast state");
-            helper.assertTrue(magicData.isCasting(),
-                    "Focus Staffbow continuous test should keep Iron's casting state active after start");
-            helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
-                    "Focus Staffbow continuous cast should consume one catalyst arrow as soon as casting starts");
-            helper.assertTrue(player.isUsingItem(),
-                    "Focus Staffbow continuous test should keep the player in use state while held");
-        });
-        helper.runAtTickTime(3, () -> {
-            var spellPowerAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get());
-            helper.assertTrue(spellPowerAttribute != null, "Focus Staffbow continuous multiplier test could not resolve spell power attribute");
-            var modifier = spellPowerAttribute == null ? null : spellPowerAttribute.getModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
-            helper.assertTrue(modifier != null && modifier.getAmount() > 0.0D,
-                    "Focus Staffbow continuous multiplier should start rising immediately after cast start");
-        });
-        helper.runAtTickTime(101, () -> {
-            var spellData = Capabilities.getSpellDataOrNull(player);
-            var magicData = MagicData.getPlayerMagicData(player);
-            var spellPowerAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get());
-            helper.assertTrue(spellData != null, "Focus Staffbow continuous duration test lost spell data capability");
-            helper.assertTrue(spellData != null
-                            && spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isContinuous(),
-                    "Focus Staffbow continuous cast should stay active past the spell's normal duration cap");
-            helper.assertTrue(magicData.isCasting(),
-                    "Focus Staffbow continuous cast should keep Iron's casting state active past the normal duration cap");
-            helper.assertTrue(magicData.getCastDurationRemaining() < 10,
-                    "Focus Staffbow continuous cast should have passed Iron's normal remaining-duration stop window: " + magicData.getCastDurationRemaining());
-            helper.assertTrue(spellPowerAttribute != null, "Focus Staffbow continuous midpoint test could not resolve spell power attribute");
-            var continuousState = spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
-            var expectedMultiplier = jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(
-                    continuousState.getElapsedTicks(player.level().getGameTime())
-            );
-            var modifier = spellPowerAttribute == null ? null : spellPowerAttribute.getModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
-            var actualAmount = modifier == null ? 0.0D : modifier.getAmount();
-            helper.assertTrue(Math.abs(actualAmount - (expectedMultiplier - 1.0D)) < 1.0e-9D,
-                    "Focus Staffbow continuous multiplier should match the fixed early-stage curve: " + actualAmount);
-            helper.assertTrue(Math.abs(expectedMultiplier - 1.5D) < 1.0e-9D,
-                    "Focus Staffbow continuous multiplier should reach 1.5x after 100 ticks: " + expectedMultiplier);
-            helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
-                    "Focus Staffbow continuous cast should not keep consuming arrows while the button stays held");
-        });
-        helper.runAtTickTime(251, () -> {
-            var spellData = Capabilities.getSpellDataOrNull(player);
-            var magicData = MagicData.getPlayerMagicData(player);
-            var spellPowerAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get());
-            helper.assertTrue(spellData != null, "Focus Staffbow continuous cap test lost spell data capability");
-            helper.assertTrue(spellData != null
-                            && spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isContinuous(),
-                    "Focus Staffbow continuous cast should remain active after reaching the 2x cap");
-            helper.assertTrue(magicData.isCasting(),
-                    "Focus Staffbow continuous cast should keep running after reaching the 2x cap while mana remains");
-            helper.assertTrue(spellPowerAttribute != null, "Focus Staffbow continuous cap test could not resolve spell power attribute");
-            var continuousState = spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
-            var expectedMultiplier = jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(
-                    continuousState.getElapsedTicks(player.level().getGameTime())
-            );
-            var modifier = spellPowerAttribute == null ? null : spellPowerAttribute.getModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
-            var actualAmount = modifier == null ? 0.0D : modifier.getAmount();
-            helper.assertTrue(Math.abs(expectedMultiplier - 2.0D) < 1.0e-9D,
-                    "Focus Staffbow continuous multiplier should cap at 2.0x after 250 ticks: " + expectedMultiplier);
-            helper.assertTrue(Math.abs(actualAmount - 1.0D) < 1.0e-9D,
-                    "Focus Staffbow continuous spell power bonus should stop at +100%: " + actualAmount);
-        });
-        helper.runAtTickTime(252, () ->
-                bowStack.getItem().releaseUsing(
-                        bowStack,
-                        helper.getLevel(),
-                        player,
-                        bowStack.getUseDuration() - 251
-                )
-        );
-        helper.succeedWhen(() -> {
-            var spellData = Capabilities.getSpellDataOrNull(player);
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(spellData != null, "Focus Staffbow continuous release test lost spell data capability");
-            helper.assertTrue(spellData != null
-                            && !spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isActive(),
-                    "Focus Staffbow continuous cast state should clear after releasing the button");
-            helper.assertFalse(magicData.isCasting(),
-                    "Focus Staffbow continuous release should clear Iron's casting state");
-        });
-    }
-    static void focusStaffbowRejectsUseWithoutArrowCatalyst(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_arrow_gate_test");
-            var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-            var amplifierStack = new ItemStack(amplifierItem);
-            amplifierItem.initializeSpellContainer(amplifierStack);
-            setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
-
-            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-            MagicData.getPlayerMagicData(player).setMana(100.0F);
-
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
-                    "Focus Staffbow should fail immediately when no catalyst arrow is available but got " + result.getResult());
-            helper.assertFalse(player.isUsingItem(),
-                    "Focus Staffbow should not enter use state without a catalyst arrow");
-        });
-    }
-    static void focusStaffbowContinuousCastUsesStandardCastTimeWithoutAttributeAdjustment(GameTestHelper helper) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_standard_time_test");
-        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-        var amplifierStack = new ItemStack(amplifierItem);
-        amplifierItem.initializeSpellContainer(amplifierStack);
-        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get();
-        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
-
-        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 2));
-        MagicData.getPlayerMagicData(player).setMana(300.0F);
-
-        var castTimeReductionAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get());
-        helper.assertTrue(castTimeReductionAttribute != null,
-                "Focus Staffbow continuous standard time test could not resolve cast time reduction attribute");
-        if (castTimeReductionAttribute != null) {
-            castTimeReductionAttribute.addPermanentModifier(new AttributeModifier(
-                    UUID.fromString("6cc24610-4701-4af1-a197-f1403c48f2fb"),
-                    "apprenticecodex.focus_staffbow.continuous_standard_time_test",
-                    0.75D,
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            ));
-        }
-
-        helper.runAtTickTime(1, () -> {
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Focus Staffbow continuous standard time test should start casting but got " + result.getResult());
-        });
-        helper.runAtTickTime(2, () -> {
-            var spellData = Capabilities.getSpellDataOrNull(player);
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(spellData != null, "Focus Staffbow continuous standard time test lost spell data capability");
-            helper.assertTrue(spellData != null
-                            && spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isContinuous(),
-                    "Focus Staffbow continuous standard time test should store a CONTINUOUS cast state");
-            var continuousState = spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
-            helper.assertTrue(continuousState.requiredCastTicks == spell.getCastTime(1),
-                    "Focus Staffbow continuous standard time should ignore cast-time attributes and use the spell's base castTime");
-            helper.assertTrue(magicData.getCastDuration() == spell.getCastTime(1),
-                    "Focus Staffbow continuous standard time should sync Iron's cast duration with the base castTime");
-        });
-        helper.runAtTickTime(3, () ->
-                bowStack.getItem().releaseUsing(
-                        bowStack,
-                        helper.getLevel(),
-                        player,
-                        bowStack.getUseDuration() - 2
-                )
-        );
-        helper.succeedWhen(() -> {
-            var spellData = Capabilities.getSpellDataOrNull(player);
-            helper.assertTrue(spellData != null, "Focus Staffbow continuous standard time release test lost spell data capability");
-            helper.assertTrue(spellData != null
-                            && !spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isActive(),
-                    "Focus Staffbow continuous standard time test should clear after release");
-        });
-    }
-    static void focusStaffbowContinuousCastStopsWhenManaRunsOut(GameTestHelper helper) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_mana_test");
-        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-        var amplifierStack = new ItemStack(amplifierItem);
-        amplifierItem.initializeSpellContainer(amplifierStack);
-        setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get(), 1);
-
-        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 2));
-        MagicData.getPlayerMagicData(player).setMana(15.0F);
-
-        helper.runAtTickTime(1, () -> {
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Focus Staffbow continuous mana test should start casting but got " + result.getResult());
-        });
-        helper.runAtTickTime(2, () -> {
-            var spellData = Capabilities.getSpellDataOrNull(player);
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(spellData != null, "Focus Staffbow continuous mana test could not resolve spell data capability");
-            helper.assertTrue(spellData != null
-                            && spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isContinuous(),
-                    "Focus Staffbow continuous mana test should start with a CONTINUOUS cast state");
-            helper.assertTrue(magicData.isCasting(),
-                    "Focus Staffbow continuous mana test should still be casting immediately after start");
-        });
-        helper.succeedWhen(() -> {
-            var spellData = Capabilities.getSpellDataOrNull(player);
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(spellData != null, "Focus Staffbow continuous mana stop test lost spell data capability");
-            helper.assertTrue(spellData != null
-                            && !spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isActive(),
-                    "Focus Staffbow continuous cast should stop once it cannot pay the next tick's mana cost");
-            helper.assertFalse(magicData.isCasting(),
-                    "Focus Staffbow continuous mana stop should clear Iron's casting state");
-            helper.assertTrue(magicData.getMana() >= 0.0F,
-                    "Focus Staffbow continuous mana stop should not drive mana below zero: " + magicData.getMana());
-            helper.assertTrue(magicData.getMana() <= 15.0F,
-                    "Focus Staffbow continuous mana stop consumed an unexpected amount of mana: " + magicData.getMana());
-        });
-    }
-    static void focusStaffbowInstantImmediateReleaseConsumesBaseMana(GameTestHelper helper) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_instant_base_mana_test");
-        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-        var amplifierStack = new ItemStack(amplifierItem);
-        amplifierItem.initializeSpellContainer(amplifierStack);
-        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
-        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
-
-        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
-        var magicData = MagicData.getPlayerMagicData(player);
-        helper.assertTrue(magicData != null, "Focus Staffbow instant base mana test could not resolve player mana data");
-        var baseManaCost = spell.getManaCost(1);
-        magicData.setMana(baseManaCost + 40.0F);
-        var initialMana = magicData.getMana();
-
-        helper.runAtTickTime(1, () -> {
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Focus Staffbow instant test should start charging immediately but got " + result.getResult());
-        });
-        helper.runAtTickTime(2, () ->
-                bowStack.getItem().releaseUsing(
-                        bowStack,
-                        helper.getLevel(),
-                        player,
-                        bowStack.getUseDuration()
-                )
-        );
-        helper.succeedWhen(() -> {
-            helper.assertTrue(Math.abs(magicData.getMana() - (initialMana - baseManaCost)) < 1.0e-4F,
-                    "Focus Staffbow instant immediate release should only consume base mana: " + magicData.getMana());
-            helper.assertTrue(getFocusStaffbowArrowCount(player) == 0,
-                    "Focus Staffbow instant cast should consume one catalyst arrow on release");
-        });
-    }
-    static void focusStaffbowShortLongReleaseStaysAtBaseMultiplier(GameTestHelper helper) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_short_long_base_mana_test");
-        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-        var amplifierStack = new ItemStack(amplifierItem);
-        amplifierItem.initializeSpellContainer(amplifierStack);
-        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE.get();
-        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
-
-        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
-        var magicData = MagicData.getPlayerMagicData(player);
-        helper.assertTrue(magicData != null, "Focus Staffbow short LONG base mana test could not resolve player mana data");
-        var baseManaCost = spell.getManaCost(1);
-        magicData.setMana(baseManaCost + 60.0F);
-        var initialMana = magicData.getMana();
-
-        helper.runAtTickTime(1, () -> {
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Focus Staffbow short LONG test should enter pending charge but got " + result.getResult());
-        });
-        helper.runAtTickTime(2, () -> {
-            var spellData = Capabilities.getSpellDataOrNull(player);
-            helper.assertTrue(spellData != null, "Focus Staffbow short LONG test lost spell data capability");
-            helper.assertTrue(spellData != null
-                            && spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).chargeBaselineTicks
-                            == jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic.MINIMUM_OVERCHARGE_BASELINE_TICKS,
-                    "Focus Staffbow short LONG test should clamp the overcharge baseline to one second");
-        });
-        helper.runAtTickTime(3, () ->
-                bowStack.getItem().releaseUsing(
-                        bowStack,
-                        helper.getLevel(),
-                        player,
-                        bowStack.getUseDuration() - spell.getEffectiveCastTime(1, player)
-                )
-        );
-        helper.succeedWhen(() -> {
-            helper.assertTrue(Math.abs(magicData.getMana() - (initialMana - baseManaCost)) < 1.0e-4F,
-                    "Focus Staffbow short LONG release should stay at base mana within the first second: " + magicData.getMana());
-            helper.assertTrue(getFocusStaffbowArrowCount(player) == 0,
-                    "Focus Staffbow short LONG cast should still consume only one catalyst arrow after completion");
-        });
-    }
-    static void focusStaffbowConfigCurveAndManaFormulaUsesFixedTimeToMax(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var settings = new jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings(
-                    4.0D,
-                    3.0D,
-                    20,
-                    1.0D,
-                    0.5D
-            );
-            var pendingMaxTicks = 20L + 20L * 2L + 20L * 3L;
-            var pendingMultiplier = jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic
-                    .computePendingChargeMultiplier(pendingMaxTicks, 20, settings);
-            helper.assertTrue(Math.abs(pendingMultiplier - 4.0D) < 1.0e-9D,
-                    "Focus Staffbow pending config should reach custom max within the fixed existing time window: "
-                            + pendingMultiplier);
-
-            var continuousMidpoint = jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic
-                    .computeContinuousChargeMultiplier(100L, settings);
-            helper.assertTrue(Math.abs(continuousMidpoint - 2.0D) < 1.0e-9D,
-                    "Focus Staffbow continuous config should reach the midpoint at 100 ticks: " + continuousMidpoint);
-            var continuousMax = jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic
-                    .computeContinuousChargeMultiplier(250L, settings);
-            helper.assertTrue(Math.abs(continuousMax - 3.0D) < 1.0e-9D,
-                    "Focus Staffbow continuous config should reach custom max at 250 ticks: " + continuousMax);
-
-            var manaCost = jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic
-                    .computeScaledManaCost(10, 4.0D, settings);
-            helper.assertTrue(manaCost == 20,
-                    "Focus Staffbow mana config should apply multiplier and exponent before flooring: " + manaCost);
-        });
-    }
-    static void focusStaffbowStillRejectsCastWhenBaseManaIsInsufficient(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_base_mana_gate_test");
-            var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-            var amplifierStack = new ItemStack(amplifierItem);
-            amplifierItem.initializeSpellContainer(amplifierStack);
-            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
-            setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
-
-            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-            setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Focus Staffbow mana gate test could not resolve player mana data");
-            magicData.setMana(spell.getManaCost(1) - 1.0F);
-
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
-                    "Focus Staffbow should still fail immediately when base mana is insufficient but got " + result.getResult());
-            helper.assertFalse(player.isUsingItem(),
-                    "Focus Staffbow should not enter use state when even base mana is missing");
-        });
-    }
-    static void focusStaffbowArrowRequirementConfigAllowsArrowlessCasting(GameTestHelper helper) {
-        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
-        override[0] = useFocusStaffbowConfigOverrideForGameTest(
-                true,
-                true,
-                false,
-                1.0D,
-                List.of(),
-                false,
-                List.of()
-        );
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_arrow_config_test");
-        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-        var amplifierStack = new ItemStack(amplifierItem);
-        amplifierItem.initializeSpellContainer(amplifierStack);
-        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
-        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
-
-        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-        MagicData.getPlayerMagicData(player).setMana(100.0F);
-
-        helper.runAtTickTime(1, () -> {
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Focus Staffbow should start without arrows when arrow catalysts are disabled but got " + result.getResult());
-        });
-        helper.runAtTickTime(2, () ->
-                bowStack.getItem().releaseUsing(
-                        bowStack,
-                        helper.getLevel(),
-                        player,
-                        bowStack.getUseDuration()
-                )
-        );
-        helper.runAtTickTime(3, () -> {
-            try {
-                helper.assertTrue(getFocusStaffbowArrowCount(player) == 0,
-                        "Focus Staffbow arrow-disabled config should not create or consume arrows");
-                helper.succeed();
-            } finally {
-                override[0].close();
-            }
-        });
-    }
-    static void focusStaffbowContinuousConfigRejectsWithoutConsumingArrow(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            try (var ignored = useFocusStaffbowConfigOverrideForGameTest(
-                    false,
-                    true,
-                    true,
-                    1.0D,
-                    List.of(),
-                    false,
-                    List.of()
-            )) {
-                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_config_test");
-                var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-                var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-                var amplifierStack = new ItemStack(amplifierItem);
-                amplifierItem.initializeSpellContainer(amplifierStack);
-                setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get(), 1);
-
-                player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-                player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-                setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
-                MagicData.getPlayerMagicData(player).setMana(1000.0F);
-
-                var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
-                        "Focus Staffbow should reject continuous spells when disabled but got " + result.getResult());
-                helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
-                        "Focus Staffbow should reject disabled continuous casts before consuming arrows");
-            }
-        });
-    }
-    static void focusStaffbowManaLoanConfigRejectsBorrowedPendingCast(GameTestHelper helper) {
-        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
-        override[0] = useFocusStaffbowConfigOverrideForGameTest(
-                true,
-                false,
-                true,
-                1.0D,
-                List.of(),
-                false,
-                List.of()
-        );
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_config_test");
-        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-        var amplifierStack = new ItemStack(amplifierItem);
-        amplifierItem.initializeSpellContainer(amplifierStack);
-        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
-        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
-
-        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
-        var magicData = MagicData.getPlayerMagicData(player);
-        magicData.setMana(spell.getManaCost(1));
-
-        helper.runAtTickTime(1, () -> {
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Focus Staffbow loan-disabled test should still start when base mana is available but got " + result.getResult());
-        });
-        helper.runAtTickTime(2, () ->
-                bowStack.getItem().releaseUsing(
-                        bowStack,
-                        helper.getLevel(),
-                        player,
-                        bowStack.getUseDuration() - 120
-                )
-        );
-        helper.runAtTickTime(3, () -> {
-            try {
-                var spellData = Capabilities.getSpellDataOrNull(player);
-                helper.assertTrue(spellData != null, "Focus Staffbow loan-disabled test lost spell data capability");
-                helper.assertTrue(spellData != null
-                                && !spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE).hasOutstandingLoan(),
-                        "Focus Staffbow should not create loan state when loan is disabled");
-                helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
-                        "Focus Staffbow should reject disabled loan before consuming arrows");
-                helper.succeed();
-            } finally {
-                override[0].close();
-            }
-        });
-    }
-    static void focusStaffbowLoanRatioConfigRejectsExcessBorrowing(GameTestHelper helper) {
-        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
-        override[0] = useFocusStaffbowConfigOverrideForGameTest(
-                true,
-                true,
-                true,
-                0.0D,
-                List.of(),
-                false,
-                List.of()
-        );
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_ratio_test");
-        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-        var amplifierStack = new ItemStack(amplifierItem);
-        amplifierItem.initializeSpellContainer(amplifierStack);
-        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
-        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
-
-        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
-        var magicData = MagicData.getPlayerMagicData(player);
-        magicData.setMana(spell.getManaCost(1));
-
-        helper.runAtTickTime(1, () -> {
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Focus Staffbow loan-ratio test should still start when base mana is available but got " + result.getResult());
-        });
-        helper.runAtTickTime(2, () ->
-                bowStack.getItem().releaseUsing(
-                        bowStack,
-                        helper.getLevel(),
-                        player,
-                        bowStack.getUseDuration() - 120
-                )
-        );
-        helper.runAtTickTime(3, () -> {
-            try {
-                var spellData = Capabilities.getSpellDataOrNull(player);
-                helper.assertTrue(spellData != null, "Focus Staffbow loan-ratio test lost spell data capability");
-                helper.assertTrue(spellData != null
-                                && !spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE).hasOutstandingLoan(),
-                        "Focus Staffbow should not create loan state above the configured ratio");
-                helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
-                        "Focus Staffbow should reject loan-ratio overflow before consuming arrows");
-                helper.succeed();
-            } finally {
-                override[0].close();
-            }
-        });
-    }
-    static void focusStaffbowSpellDenylistBlocksBeforeAmmo(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
-            try (var ignored = useFocusStaffbowConfigOverrideForGameTest(
-                    true,
-                    true,
-                    true,
-                    1.0D,
-                    List.of(spell.getSpellId()),
-                    false,
-                    List.of()
-            )) {
-                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_denylist_test");
-                var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-                var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-                var amplifierStack = new ItemStack(amplifierItem);
-                amplifierItem.initializeSpellContainer(amplifierStack);
-                setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
-
-                player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-                player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-                setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
-                MagicData.getPlayerMagicData(player).setMana(100.0F);
-
-                var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
-                        "Focus Staffbow should reject denylisted spells but got " + result.getResult());
-                helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
-                        "Focus Staffbow should reject denylisted spells before consuming arrows");
-            }
-        });
-    }
-    static void focusStaffbowSpellAllowlistBlocksMissingSpellBeforeAmmo(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
-            try (var ignored = useFocusStaffbowConfigOverrideForGameTest(
-                    true,
-                    true,
-                    true,
-                    1.0D,
-                    List.of(),
-                    true,
-                    List.of("irons_spellbooks:magic_arrow")
-            )) {
-                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_allowlist_test");
-                var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-                var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-                var amplifierStack = new ItemStack(amplifierItem);
-                amplifierItem.initializeSpellContainer(amplifierStack);
-                setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
-
-                player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-                player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-                setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
-                MagicData.getPlayerMagicData(player).setMana(100.0F);
-
-                var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
-                        "Focus Staffbow should reject spells missing from the allowlist but got " + result.getResult());
-                helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
-                        "Focus Staffbow should reject allowlist misses before consuming arrows");
-            }
-        });
-    }
-    static void focusStaffbowOverchargeLoanConsumesRecoveredMana(GameTestHelper helper) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_repay_test");
-        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-        var amplifierStack = new ItemStack(amplifierItem);
-        amplifierItem.initializeSpellContainer(amplifierStack);
-        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
-        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
-
-        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
-        var magicData = MagicData.getPlayerMagicData(player);
-        helper.assertTrue(magicData != null, "Focus Staffbow loan test could not resolve player mana data");
-        var baseManaCost = spell.getManaCost(1);
-        magicData.setMana(baseManaCost);
-
-        helper.runAtTickTime(1, () -> {
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Focus Staffbow loan test should start charging but got " + result.getResult());
-        });
-        helper.runAtTickTime(2, () -> {
-            var spellData = Capabilities.getSpellDataOrNull(player);
-            helper.assertTrue(spellData != null, "Focus Staffbow loan test lost spell data capability before release");
-            helper.assertTrue(spellData != null
-                            && spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).requiredCastTicks == 0,
-                    "Focus Staffbow loan test should treat INSTANT spells as zero required cast ticks");
-        });
-        helper.runAtTickTime(3, () ->
-                bowStack.getItem().releaseUsing(
-                        bowStack,
-                        helper.getLevel(),
-                        player,
-                        bowStack.getUseDuration() - 60
-                )
-        );
-        helper.runAtTickTime(4, () -> {
-            var spellData = Capabilities.getSpellDataOrNull(player);
-            helper.assertTrue(spellData != null, "Focus Staffbow loan test lost spell data capability after cast");
-            var loanState = spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE);
-            var expectedLoanMana = baseManaCost * 3.0F;
-            helper.assertTrue(Math.abs(loanState.remainingLoanMana - expectedLoanMana) < 1.0F,
-                    "Focus Staffbow loan test should create three base-cost worth of debt at x2 but got "
-                            + loanState.remainingLoanMana + " expected " + expectedLoanMana);
-            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                    "Focus Staffbow loan test should leave current mana at zero after borrowed cast: " + magicData.getMana());
-            helper.assertTrue(getFocusStaffbowArrowCount(player) == 0,
-                    "Focus Staffbow borrowed cast should still consume exactly one catalyst arrow");
-            magicData.setMana(10.0F);
-            jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager.tickLoanRepayment(player);
-            helper.assertTrue(Math.abs(loanState.remainingLoanMana - (expectedLoanMana - 10.0F)) < 1.0F,
-                    "Focus Staffbow loan repay test should consume recovered mana into the debt first but got "
-                            + loanState.remainingLoanMana);
-            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                    "Focus Staffbow loan repay test should keep displayed mana at zero while debt remains: " + magicData.getMana());
-            helper.succeed();
-        });
-    }
-    static void focusStaffbowCreativeOverchargeDoesNotConsumeManaOrCreateLoan(GameTestHelper helper) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_creative_overcharge_test");
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
-        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-        var amplifierStack = new ItemStack(amplifierItem);
-        amplifierItem.initializeSpellContainer(amplifierStack);
-        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
-        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
-
-        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-        var magicData = MagicData.getPlayerMagicData(player);
-        helper.assertTrue(magicData != null, "Focus Staffbow creative overcharge test could not resolve player mana data");
-        magicData.setMana(17.0F);
-
-        helper.runAtTickTime(1, () -> {
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Focus Staffbow creative overcharge test should start charging but got " + result.getResult());
-        });
-        helper.runAtTickTime(3, () ->
-                bowStack.getItem().releaseUsing(
-                        bowStack,
-                        helper.getLevel(),
-                        player,
-                        bowStack.getUseDuration() - 120
-                )
-        );
-        helper.runAtTickTime(4, () -> {
-            var spellData = Capabilities.getSpellDataOrNull(player);
-            helper.assertTrue(spellData != null, "Focus Staffbow creative overcharge test lost spell data capability");
-            var loanState = spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE);
-            helper.assertFalse(loanState.hasOutstandingLoan(),
-                    "Focus Staffbow creative overcharge test should not create loan mana");
-            helper.assertTrue(Math.abs(magicData.getMana() - 17.0F) < 1.0e-4F,
-                    "Focus Staffbow creative overcharge test should leave mana unchanged but got " + magicData.getMana());
-            helper.succeed();
-        });
-    }
-    static void focusStaffbowBlocksUseWhileLoanRemains(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_block_test");
-            var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-            var amplifierStack = new ItemStack(amplifierItem);
-            amplifierItem.initializeSpellContainer(amplifierStack);
-            setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
-
-            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-            setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
-            var spellData = Capabilities.getSpellDataOrNull(player);
-            helper.assertTrue(spellData != null, "Focus Staffbow loan block test could not resolve spell data capability");
-            if (spellData != null) {
-                spellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE, state -> state.addLoan(7.0F));
-            }
-
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
-                    "Focus Staffbow should reject new casts while borrowed mana remains but got " + result.getResult());
-            helper.assertFalse(player.isUsingItem(),
-                    "Focus Staffbow should not remain in use state while a loan blocks casting");
-        });
-    }
-    static void focusStaffbowRejectsUseWhileSpellCooldownRemains(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_cooldown_block_test");
-            var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-            var amplifierStack = new ItemStack(amplifierItem);
-            amplifierItem.initializeSpellContainer(amplifierStack);
-            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
-            setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
-
-            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-            setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
-            MagicData.getPlayerMagicData(player).setMana(200.0F);
-            var selection = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player).getSelection();
-            helper.assertTrue(selection != null, "Focus Staffbow cooldown test could not resolve the selected spell");
-            io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, selection.getCastSource());
-
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
-                    "Focus Staffbow should reject use while the selected spell is on cooldown but got " + result.getResult());
-            helper.assertFalse(player.isUsingItem(),
-                    "Focus Staffbow should not enter use state while spell cooldown blocks casting");
-        });
-    }
-    static void focusStaffbowLoanMessageUsesExpectedTranslationKey(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var message = jp.aquafactory.apprenticecodex.item.FocusStaffbow.createLoanBlockedMessage(5.1F);
-            assertTranslatableKey(
-                    helper,
-                    message,
-                    "ui.apprenticecodex.focus_staffbow.loan_mana",
-                    "Focus Staffbow loan block message should use the dedicated translation key"
-            );
-        });
-    }
-    static void focusStaffbowInsufficientArrowMessageUsesExpectedTranslationKey(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var message = jp.aquafactory.apprenticecodex.item.FocusStaffbow.createInsufficientArrowMessage();
-            assertTranslatableKey(
-                    helper,
-                    message,
-                    "ui.apprenticecodex.focus_staffbow.insufficient_arrow",
-                    "Focus Staffbow insufficient arrow message should use the dedicated translation key"
-            );
-        });
-    }
-    static void focusStaffbowRejectsUnconfiguredSpecialArrow(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_special_arrow_reject_test");
-            var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-            var amplifierStack = new ItemStack(amplifierItem);
-            amplifierItem.initializeSpellContainer(amplifierStack);
-            setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
-
-            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-            player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW, 1));
-            MagicData.getPlayerMagicData(player).setMana(100.0F);
-
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
-                    "Focus Staffbow should reject special arrows that are not in arrowCatalystItems but got " + result.getResult());
-            helper.assertTrue(player.getInventory().getItem(1).getCount() == 1,
-                    "Focus Staffbow should not consume an unconfigured special arrow");
-        });
-    }
-    static void focusStaffbowArrowCatalystItemListAllowsConfiguredSpecialArrow(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            try (var ignored = ApprenticeCodexServerConfig.useFocusStaffbowConfigOverrideForGameTest(
-                    true,
-                    true,
-                    true,
-                    List.of("minecraft:spectral_arrow"),
-                    3.0D,
-                    2.0D,
-                    20,
-                    2.0D,
-                    1.0D,
-                    1.0D,
-                    List.of(),
-                    false,
-                    List.of()
-            )) {
-                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_special_arrow_test");
-                var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-                var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-                var amplifierStack = new ItemStack(amplifierItem);
-                amplifierItem.initializeSpellContainer(amplifierStack);
-                setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
-
-                player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-                player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-                player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW, 1));
-                MagicData.getPlayerMagicData(player).setMana(100.0F);
-
-                var configuredSpecialArrowId = ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow");
-                helper.assertTrue(ApprenticeCodexServerConfig.focusStaffbowArrowCatalystItemIds().contains(configuredSpecialArrowId),
-                        "Focus Staffbow arrowCatalystItems override should contain " + configuredSpecialArrowId);
-                helper.assertTrue(
-                        BowCastAmmoResolver.resolveFocusStaffbowAmmoRoute(
-                                player,
-                                bowStack,
-                                true,
-                                ApprenticeCodexServerConfig.focusStaffbowArrowCatalystItemIds()
-                        ) == BowCastAmmoResolver.FocusStaffbowAmmoRoute.ARROW_CATALYST,
-                        "Focus Staffbow should resolve configured special arrow as arrow catalyst"
-                );
-                var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-                helper.assertTrue(result.getResult().consumesAction(),
-                        "Focus Staffbow should start when a configured special arrow is available but got " + result.getResult());
-                bowStack.getItem().releaseUsing(
-                        bowStack,
-                        helper.getLevel(),
-                        player,
-                        bowStack.getUseDuration()
-                );
-                helper.assertTrue(player.getInventory().getItem(1).isEmpty(),
-                        "Focus Staffbow should consume the configured special arrow");
-            }
-        });
-    }
-    static void focusStaffbowSynthesisAllowsArrowlessCasting(GameTestHelper helper) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_synthesis_test");
-        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        bowStack.enchant(EnchantmentRegistry.SYNTHESIS.get(), 1);
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-        var amplifierStack = new ItemStack(amplifierItem);
-        amplifierItem.initializeSpellContainer(amplifierStack);
-        setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
-
-        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-        MagicData.getPlayerMagicData(player).setMana(100.0F);
-
-        helper.runAtTickTime(1, () -> {
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Focus Staffbow should start without arrows when Synthesis is enchanted but got " + result.getResult());
-        });
-        helper.runAtTickTime(2, () ->
-                bowStack.getItem().releaseUsing(
-                        bowStack,
-                        helper.getLevel(),
-                        player,
-                        bowStack.getUseDuration()
-                )
-        );
-        helper.succeedWhen(() ->
-                helper.assertTrue(getFocusStaffbowArrowCount(player) == 0,
-                        "Focus Staffbow Synthesis path should not require or consume a catalyst arrow")
-        );
-    }
-    static void focusStaffbowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_quiver_priority_test");
-            var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
-            var amplifierStack = new ItemStack(amplifierItem);
-            amplifierItem.initializeSpellContainer(amplifierStack);
-            setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
-
-            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
-            MagicData.getPlayerMagicData(player).setMana(100.0F);
-
-            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
-            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.ARROW, 2));
-            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
-
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Focus Staffbow should start when Spellcaster Quiver holds the catalyst arrow but got " + result.getResult());
-
-            bowStack.getItem().releaseUsing(bowStack, helper.getLevel(), player, bowStack.getUseDuration());
-            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 1,
-                    "Focus Staffbow should consume the equipped Spellcaster Quiver arrow before loose inventory arrows");
-            helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
-                    "Focus Staffbow should leave loose inventory arrows untouched while the quiver still has arrows");
-        });
-    }
-    static void focusStaffbowAcceptsSynthesisEnchantments(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            var item = (FocusStaffbow) stack.getItem();
-            helper.assertTrue(stack.getItem().canApplyAtEnchantingTable(stack, EnchantmentRegistry.SYNTHESIS.get()),
-                    "Focus Staffbow should accept Synthesis at the enchanting table");
-            helper.assertTrue(stack.getItem().isBookEnchantable(stack, createEnchantedBook(EnchantmentRegistry.SYNTHESIS.get())),
-                    "Focus Staffbow should accept Synthesis from enchanted books");
-            helper.assertTrue(item.isAnvilMergeEnchantmentAllowed(stack, EnchantmentRegistry.SYNTHESIS.get()),
-                    "Focus Staffbow should allow Synthesis through anvil merges");
-            helper.assertFalse(stack.getItem().canApplyAtEnchantingTable(stack, Enchantments.INFINITY_ARROWS),
-                    "Focus Staffbow should reject Infinity at the enchanting table");
-            helper.assertFalse(stack.getItem().isBookEnchantable(stack, createEnchantedBook(Enchantments.INFINITY_ARROWS)),
-                    "Focus Staffbow should reject Infinity from enchanted books");
-            helper.assertFalse(item.isAnvilMergeEnchantmentAllowed(stack, Enchantments.INFINITY_ARROWS),
-                    "Focus Staffbow should reject Infinity through anvil merges");
-            helper.assertFalse(stack.getItem().canApplyAtEnchantingTable(stack, EnchantmentRegistry.TRANSCENDENCE.get()),
-                    "Focus Staffbow should reject Transcendence at the enchanting table");
-            helper.assertFalse(stack.getItem().isBookEnchantable(stack, createEnchantedBook(EnchantmentRegistry.TRANSCENDENCE.get())),
-                    "Focus Staffbow should reject Transcendence from enchanted books");
-            helper.assertFalse(item.isAnvilMergeEnchantmentAllowed(stack, EnchantmentRegistry.TRANSCENDENCE.get()),
-                    "Focus Staffbow should reject Transcendence through anvil merges");
-
-            if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
-                return;
-            }
-
-            var haunted = MalumHauntedCompat.getHauntedEnchantment();
-            helper.assertTrue(haunted != null, "malum:haunted is not registered");
-            helper.assertTrue(stack.getItem().canApplyAtEnchantingTable(stack, haunted),
-                    "Focus Staffbow should allow malum:haunted at the enchanting table");
-            helper.assertTrue(stack.getItem().isBookEnchantable(stack, createEnchantedBook(haunted)),
-                    "Focus Staffbow should allow malum:haunted from enchanted books");
-            helper.assertTrue(item.isAnvilMergeEnchantmentAllowed(stack, haunted),
-                    "Focus Staffbow should allow malum:haunted through anvil merges");
-
-            var animated = ForgeRegistries.ENCHANTMENTS.getValue(MALUM_ANIMATED);
-            helper.assertTrue(animated != null, "malum:animated is not registered");
-            helper.assertFalse(stack.getItem().canApplyAtEnchantingTable(stack, animated),
-                    "Focus Staffbow should keep rejecting malum:animated at the enchanting table");
-            helper.assertFalse(stack.getItem().isBookEnchantable(stack, createEnchantedBook(animated)),
-                    "Focus Staffbow should keep rejecting malum:animated from enchanted books");
-            helper.assertFalse(item.isAnvilMergeEnchantmentAllowed(stack, animated),
-                    "Focus Staffbow should keep rejecting malum:animated through anvil merges");
-        });
-    }
-    static void focusStaffbowExposesExpectedMainhandAttributes(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            var modifiers = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
-
-            helper.assertTrue(Math.abs(sumModifierAmount(
-                    modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE),
-                    AttributeModifier.Operation.ADDITION
-            ) - 3.0D) < 1.0e-9D, "Focus Staffbow attack damage regression: " + describeModifiers(modifiers));
-            helper.assertTrue(Math.abs(sumModifierAmount(
-                    modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED),
-                    AttributeModifier.Operation.ADDITION
-            ) - (-3.0D)) < 1.0e-9D, "Focus Staffbow attack speed regression: " + describeModifiers(modifiers));
-            helper.assertTrue(Math.abs(sumModifierAmount(
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            ) - 0.10D) < 1.0e-9D, "Focus Staffbow spell power regression: " + describeModifiers(modifiers));
-        });
-    }
     static void chargedTwinBladeStaffKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
@@ -9775,19 +8197,6 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-    static void elementalBowBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
-            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
-
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
-                    "Elemental Bow should reject Arcane Anvil spell imbuing regardless of scroll spell"
-            );
-        });
-    }
-
     static void mithrilFreecastStaffBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
@@ -9801,954 +8210,6 @@ public final class ApprenticeCodexGameTestScenarios {
                     jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
                     "Mithril Freecast Staff should reject Arcane Anvil spell imbuing"
             );
-        });
-    }
-
-    static void elementalBowManaErrorUsesIronsSpellbooksTranslationKey(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var message = ElementalBow.createInsufficientManaMessage(
-                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
-                    null
-            );
-            assertTranslatableKey(
-                    helper,
-                    message,
-                    "ui.irons_spellbooks.cast_error_mana",
-                    "Elemental Bow mana error should use Iron's cast_error_mana key"
-            );
-        });
-    }
-    static void elementalBowDoesNotConsumeResourcesBeforeFullDraw(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_partial_release_test");
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
-
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Elemental Bow partial release test could not resolve player mana data");
-            magicData.setMana(250.0F);
-            var initialMana = magicData.getMana();
-
-            var useResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(useResult.getResult().consumesAction(),
-                    "Elemental Bow should start drawing when mana and ammo are available: " + useResult.getResult());
-
-            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 19);
-            helper.assertTrue(stack.getDamageValue() == 0, "Elemental Bow should not lose durability before full draw");
-            helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
-                    "Elemental Bow should not consume arrows before full draw");
-            helper.assertTrue(Math.abs(magicData.getMana() - initialMana) < 1.0e-4F,
-                    "Elemental Bow should not consume mana before full draw: " + magicData.getMana());
-        });
-    }
-    static void elementalBowInfinityAllowsVanillaDrawWithoutArrows(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_infinity_draw_test");
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.enchant(Enchantments.INFINITY_ARROWS, 1);
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-
-            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Elemental Bow should start vanilla draw with Infinity even without arrows: " + result.getResult());
-            helper.assertTrue(player.isUsingItem(), "Elemental Bow should enter use state for Infinity vanilla draw");
-        });
-    }
-    static void elementalBowVanillaModeConsumesSpecialArrowWhenNormalArrowsAreMissing(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_vanilla_special_test");
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW));
-
-            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Elemental Bow vanilla mode should start drawing with only special arrows available: " + result.getResult());
-            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 20);
-            helper.assertTrue(player.getInventory().getItem(1).isEmpty(),
-                    "Elemental Bow vanilla mode should consume the special arrow that vanilla resolution selected");
-        });
-    }
-    static void elementalBowArrowModeRequiresNormalArrowsEvenWhenSpecialArrowsExist(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_only_mode_test");
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            setElementalBowShotSelection(stack, "arrow", null);
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW));
-
-            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
-                    "Elemental Bow arrow-only mode should fail when only special arrows are available: " + result.getResult());
-            helper.assertFalse(player.isUsingItem(), "Elemental Bow arrow-only mode should not enter use state without normal arrows");
-            helper.assertTrue(player.getInventory().getItem(1).getCount() == 1,
-                    "Elemental Bow arrow-only mode should not consume special arrows");
-            assertElementalBowSelection(helper, stack, "arrow", null,
-                    "Elemental Bow arrow-only mode should keep its selection while empty");
-        });
-    }
-    static void elementalBowInfinityAllowsArrowModeDrawWithoutArrows(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_infinity_test");
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.enchant(Enchantments.INFINITY_ARROWS, 1);
-            setElementalBowShotSelection(stack, "arrow", null);
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-
-            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Elemental Bow arrow-only mode should start drawing with Infinity even without arrows: " + result.getResult());
-            helper.assertTrue(player.isUsingItem(), "Elemental Bow arrow-only mode should enter use state for Infinity draw");
-        });
-    }
-    static void elementalBowSpecialModeInfinityKeepsSelectionAndAllowsEmptyReuse(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_special_arrow_test");
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.enchant(Enchantments.INFINITY_ARROWS, 1);
-            setElementalBowShotSelection(stack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"));
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW));
-
-            var firstUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(firstUse.getResult().consumesAction(),
-                    "Elemental Bow special mode should start drawing while the selected arrow exists: " + firstUse.getResult());
-            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 20);
-            helper.assertTrue(player.getInventory().getItem(1).isEmpty(),
-                    "Elemental Bow special mode should consume the selected arrow even with Infinity");
-
-            var secondUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(secondUse.getResult().consumesAction(),
-                    "Elemental Bow special mode should start drawing again with Infinity after the selected arrow runs out: " + secondUse.getResult());
-            helper.assertTrue(player.isUsingItem(),
-                    "Elemental Bow special mode should enter use state again while keeping its empty selection");
-            assertElementalBowSelection(helper, stack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"),
-                    "Elemental Bow special mode should keep the selected arrow after ammo loss");
-        });
-    }
-    static void elementalBowMagicModeIgnoresInfinityWithoutAmmo(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_infinity_test");
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.enchant(Enchantments.INFINITY_ARROWS, 1);
-            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-
-            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
-                    "Elemental Bow magic mode should fail to start without ammo even with Infinity: " + result.getResult());
-            helper.assertFalse(player.isUsingItem(), "Elemental Bow magic mode should not enter use state without ammo");
-        });
-    }
-    static void elementalBowAcceptsSynthesisEnchantmentsAndTooltip(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            helper.assertTrue(stack.getItem().canApplyAtEnchantingTable(stack, EnchantmentRegistry.SYNTHESIS.get()),
-                    "Elemental Bow should accept Synthesis at the enchanting table");
-            helper.assertTrue(stack.getItem().isBookEnchantable(stack, createEnchantedBook(EnchantmentRegistry.SYNTHESIS.get())),
-                    "Elemental Bow should accept Synthesis from enchanted books");
-            helper.assertFalse(EnchantmentRegistry.SYNTHESIS.get().isCompatibleWith(Enchantments.INFINITY_ARROWS),
-                    "Synthesis should be incompatible with Infinity");
-            helper.assertFalse(EnchantmentRegistry.SYNTHESIS.get().isCompatibleWith(Enchantments.MENDING),
-                    "Synthesis should be incompatible with Mending");
-
-            assertTooltipKeyAt(helper, stack, 0, "item.apprenticecodex.elemental_bow.mode",
-                    "Elemental Bow should always show the current mode tooltip line");
-            assertTooltipKeyUsesColor(helper, stack, "item.apprenticecodex.elemental_bow.desc", ChatFormatting.GRAY,
-                    "Elemental Bow should always show the description tooltip line");
-            assertTooltipKeyAbsent(helper, stack, "item.apprenticecodex.elemental_bow.spell.no_enchantment",
-                    "Elemental Bow should not show spell ammo tooltip while not in magic mode");
-            assertTooltipKeyAbsent(helper, stack, "item.apprenticecodex.elemental_bow.spell.with_infinity",
-                    "Elemental Bow should not show Infinity spell tooltip while not in magic mode");
-            assertTooltipKeyAbsent(helper, stack, "item.apprenticecodex.elemental_bow.spell.with_synthesis",
-                    "Elemental Bow should not show Synthesis spell tooltip while not in magic mode");
-
-            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
-            assertTooltipKeyAt(helper, stack, 1, "item.apprenticecodex.elemental_bow.desc",
-                    "Elemental Bow should show the description below the mode tooltip line");
-            assertTooltipKeyUsesColor(helper, stack, "item.apprenticecodex.elemental_bow.spell.no_enchantment", ChatFormatting.YELLOW,
-                    "Elemental Bow should show the no-enchantment spell tooltip in magic mode");
-
-            var infinityStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            setElementalBowShotSelection(infinityStack, "magic", SchoolRegistry.FIRE_RESOURCE);
-            infinityStack.enchant(Enchantments.INFINITY_ARROWS, 1);
-            assertTooltipKeyUsesColor(helper, infinityStack, "item.apprenticecodex.elemental_bow.spell.with_infinity", ChatFormatting.YELLOW,
-                    "Elemental Bow should show the Infinity spell tooltip in magic mode");
-
-            var synthesisStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            setElementalBowShotSelection(synthesisStack, "magic", SchoolRegistry.FIRE_RESOURCE);
-            synthesisStack.enchant(EnchantmentRegistry.SYNTHESIS.get(), 1);
-            assertTooltipKeyUsesColor(helper, synthesisStack, "item.apprenticecodex.elemental_bow.spell.with_synthesis", ChatFormatting.AQUA,
-                    "Elemental Bow should show the Synthesis spell tooltip in magic mode");
-            assertTooltipKeyAbsent(helper, synthesisStack, "item.apprenticecodex.elemental_bow.with_synthesis",
-                    "Elemental Bow should no longer show the legacy Synthesis tooltip key");
-
-            synthesisStack.enchant(Enchantments.INFINITY_ARROWS, 1);
-            assertTooltipKeyUsesColor(helper, synthesisStack, "item.apprenticecodex.elemental_bow.spell.with_synthesis", ChatFormatting.AQUA,
-                    "Elemental Bow should prefer the Synthesis spell tooltip when Synthesis and Infinity are both present");
-            assertTooltipKeyAbsent(helper, synthesisStack, "item.apprenticecodex.elemental_bow.spell.with_infinity",
-                    "Elemental Bow should not show the Infinity spell tooltip when Synthesis is also present");
-        });
-    }
-    static void elementalBowSynthesisAllowsMagicModeWithoutArrows(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_synthesis_empty_test");
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.enchant(EnchantmentRegistry.SYNTHESIS.get(), 1);
-            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Elemental Bow Synthesis test could not resolve player mana data");
-            magicData.setMana(250.0F);
-            var initialMana = magicData.getMana();
-
-            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Elemental Bow magic mode should start without arrows when Synthesis is enchanted: " + result.getResult());
-            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
-            player.stopUsingItem();
-
-            helper.assertTrue(stack.getDamageValue() == 1,
-                    "Elemental Bow Synthesis magic shot should still damage the bow after a successful cast");
-            helper.assertTrue(magicData.getMana() < initialMana,
-                    "Elemental Bow Synthesis magic shot should still consume spell mana");
-        });
-    }
-    static void elementalBowSynthesisDoesNotConsumeMagicModeArrows(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_synthesis_ammo_test");
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.enchant(EnchantmentRegistry.SYNTHESIS.get(), 1);
-            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
-
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Elemental Bow Synthesis ammo test could not resolve player mana data");
-            magicData.setMana(250.0F);
-
-            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Elemental Bow magic mode should start with Synthesis while arrows are present: " + result.getResult());
-            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
-            player.stopUsingItem();
-
-            helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
-                    "Elemental Bow Synthesis magic shot should not consume arrows even when arrows are available");
-        });
-    }
-    static void spellcasterQuiverUsesBackSlotAndCapsStoredArrows(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
-            helper.assertTrue(quiverStack.is(CURIOS_BACK),
-                    "Spellcaster Quiver should be tagged for the Curios back slot");
-
-            var firstInsert = SpellcasterQuiver.store(quiverStack, new ItemStack(Items.ARROW, 300));
-            var secondInsert = SpellcasterQuiver.store(quiverStack, new ItemStack(Items.SPECTRAL_ARROW, 300));
-            helper.assertTrue(firstInsert == 300, "Spellcaster Quiver should store the full first stack");
-            helper.assertTrue(secondInsert == 212,
-                    "Spellcaster Quiver should stop at 512 arrows but inserted " + secondInsert);
-            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 512,
-                    "Spellcaster Quiver should cap total storage at 512");
-
-            var removalOrderQuiver = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
-            SpellcasterQuiver.store(removalOrderQuiver, new ItemStack(Items.ARROW, 32));
-            SpellcasterQuiver.store(removalOrderQuiver, new ItemStack(Items.SPECTRAL_ARROW, 7));
-            var removed = SpellcasterQuiver.removeOneStack(removalOrderQuiver);
-            helper.assertTrue(removed.is(Items.SPECTRAL_ARROW) && removed.getCount() == 7,
-                    "Spellcaster Quiver should remove the smallest stored arrow stack first");
-        });
-    }
-    static void equippedSpellcasterQuiverAutoStoresPickedUpArrows(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_pickup_test");
-            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
-            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
-
-            var itemEntity = new ItemEntity(helper.getLevel(), player.getX(), player.getY(), player.getZ(), new ItemStack(Items.ARROW, 12));
-            SpellcasterQuiverPickupEvent.onEntityItemPickup(new EntityItemPickupEvent(player, itemEntity));
-
-            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 12,
-                    "Equipped Spellcaster Quiver should auto-store picked up arrows");
-            helper.assertTrue(itemEntity.isRemoved(),
-                    "Spellcaster Quiver pickup handling should finish the ItemEntity when all arrows were stored");
-        });
-    }
-    static void elementalBowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_quiver_priority_test");
-            var bowStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            setElementalBowShotSelection(bowStack, "arrow", null);
-            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
-
-            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
-            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.ARROW, 5));
-            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
-
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Elemental Bow should start drawing when only the equipped Spellcaster Quiver provides arrows");
-
-            bowStack.getItem().releaseUsing(bowStack, helper.getLevel(), player, bowStack.getUseDuration() - 20);
-            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 4,
-                    "Elemental Bow should consume the equipped Spellcaster Quiver arrow first");
-            helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
-                    "Elemental Bow should leave loose inventory arrows untouched while the quiver has arrows");
-        });
-    }
-    static void elementalBowSelectionViewsIncludeSpellcasterQuiverArrows(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_quiver_selection_test");
-            var bowStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-
-            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
-            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.ARROW, 3));
-            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.SPECTRAL_ARROW, 2));
-            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
-
-            var normalView = findElementalBowSelectionView(player, bowStack, "arrow", null);
-            helper.assertTrue(normalView != null, "Elemental Bow should expose normal arrow selection");
-            helper.assertTrue(normalView != null && "3".equals(normalView.badgeText()),
-                    "Elemental Bow selection badge should count normal arrows stored in Spellcaster Quiver");
-
-            var view = findElementalBowSelectionView(player, bowStack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"));
-            helper.assertTrue(view != null, "Elemental Bow should expose spectral arrow selection from Spellcaster Quiver contents");
-            helper.assertTrue(view != null && "2".equals(view.badgeText()),
-                    "Elemental Bow selection badge should count Spellcaster Quiver arrows");
-        });
-    }
-    static void vanillaBowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_quiver_priority_test");
-            var bowStack = new ItemStack(Items.BOW);
-            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
-
-            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
-            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.ARROW, 5));
-            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
-
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Vanilla Bow should start drawing when Spellcaster Quiver provides arrows: " + result.getResult());
-
-            bowStack.getItem().releaseUsing(bowStack, helper.getLevel(), player, bowStack.getUseDuration() - 20);
-            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 4,
-                    "Vanilla Bow should consume the Spellcaster Quiver arrow before loose inventory arrows");
-            helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
-                    "Vanilla Bow should leave loose inventory arrows untouched while the quiver has arrows");
-        });
-    }
-    static void vanillaBowPrefersHeldSpecialArrowOverQuiverNormalArrows(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_held_special_test");
-            var bowStack = new ItemStack(Items.BOW);
-            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SPECTRAL_ARROW, 1));
-
-            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
-            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.ARROW, 5));
-            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
-
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Vanilla Bow should start drawing when only the held special arrow should be selected: " + result.getResult());
-
-            bowStack.getItem().releaseUsing(bowStack, helper.getLevel(), player, bowStack.getUseDuration() - 20);
-            helper.assertTrue(player.getOffhandItem().isEmpty(),
-                    "Vanilla Bow should consume the held special arrow before Spellcaster Quiver normal arrows");
-            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 5,
-                    "Vanilla Bow should leave Spellcaster Quiver normal arrows untouched when a held special arrow was chosen");
-        });
-    }
-    static void vanillaBowPrefersNormalArrowOverMoreNumerousQuiverSpecialArrows(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_normal_priority_test");
-            var bowStack = new ItemStack(Items.BOW);
-            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 1));
-
-            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
-            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.SPECTRAL_ARROW, 8));
-            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
-
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Vanilla Bow should start drawing when normal arrows exist outside the quiver: " + result.getResult());
-
-            bowStack.getItem().releaseUsing(bowStack, helper.getLevel(), player, bowStack.getUseDuration() - 20);
-            helper.assertTrue(player.getInventory().getItem(1).isEmpty(),
-                    "Vanilla Bow should consume the lone normal arrow before more numerous Spellcaster Quiver special arrows");
-            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 8,
-                    "Vanilla Bow should not consume Spellcaster Quiver special arrows while a normal arrow existed");
-        });
-    }
-    static void vanillaBowInfinityFallsBackToNormalArrowBeforeQuiverSpecialArrows(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_infinity_quiver_test");
-            var bowStack = new ItemStack(Items.BOW);
-            bowStack.enchant(Enchantments.INFINITY_ARROWS, 1);
-            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-
-            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
-            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.SPECTRAL_ARROW, 8));
-            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
-
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Vanilla Bow should start drawing with Infinity and only Spellcaster Quiver special arrows: " + result.getResult());
-
-            bowStack.getItem().releaseUsing(bowStack, helper.getLevel(), player, bowStack.getUseDuration() - 20);
-            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 8,
-                    "Vanilla Bow Infinity fallback should stop at normal arrow mode and leave Spellcaster Quiver special arrows untouched");
-        });
-    }
-    static void elementalBowVanillaModePrefersHeldSpecialArrowOverQuiverNormalArrows(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_held_special_quiver_test");
-            var bowStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SPECTRAL_ARROW, 1));
-
-            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
-            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.ARROW, 5));
-            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
-
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Elemental Bow vanilla mode should start drawing when a held special arrow exists: " + result.getResult());
-
-            bowStack.getItem().releaseUsing(bowStack, helper.getLevel(), player, bowStack.getUseDuration() - 20);
-            helper.assertTrue(player.getOffhandItem().isEmpty(),
-                    "Elemental Bow vanilla mode should consume the held special arrow before Spellcaster Quiver normal arrows");
-            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 5,
-                    "Elemental Bow vanilla mode should leave Spellcaster Quiver normal arrows untouched when a held special arrow was chosen");
-        });
-    }
-    static void elementalBowVanillaModeInfinityFallsBackToNormalArrowBeforeQuiverSpecialArrows(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_infinity_quiver_test");
-            var bowStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            bowStack.enchant(Enchantments.INFINITY_ARROWS, 1);
-            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-
-            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
-            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.SPECTRAL_ARROW, 8));
-            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
-
-            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Elemental Bow vanilla mode should start drawing with Infinity and only Spellcaster Quiver special arrows: " + result.getResult());
-
-            bowStack.getItem().releaseUsing(bowStack, helper.getLevel(), player, bowStack.getUseDuration() - 20);
-            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 8,
-                    "Elemental Bow vanilla mode Infinity fallback should leave Spellcaster Quiver special arrows untouched");
-        });
-    }
-    static void spellcasterQuiverSlowdownHelperTracksEquippedBowUse(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_slowdown_test");
-            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
-            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
-
-            var bowStack = new ItemStack(Items.BOW);
-            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 1));
-
-            bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(SpellcasterQuiver.shouldIgnoreBowSlowdown(player),
-                    "Spellcaster Quiver slowdown helper should activate while a bow is being drawn");
-
-            player.stopUsingItem();
-            helper.assertFalse(SpellcasterQuiver.shouldIgnoreBowSlowdown(player),
-                    "Spellcaster Quiver slowdown helper should stop once bow use ends");
-        });
-    }
-    static void spellcasterQuiverSlowdownHelperTracksFocusStaffbowDrawUse(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_focus_staffbow_slowdown_test");
-            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
-            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
-
-            var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
-            player.startUsingItem(InteractionHand.MAIN_HAND);
-
-            helper.assertTrue(FocusStaffbow.isBowDrawUse(player),
-                    "Focus Staffbow draw helper should activate while the item is being held");
-            helper.assertTrue(SpellcasterQuiver.shouldIgnoreBowSlowdown(player),
-                    "Spellcaster Quiver slowdown helper should activate while Focus Staffbow is being drawn");
-
-            player.stopUsingItem();
-            helper.assertFalse(FocusStaffbow.isBowDrawUse(player),
-                    "Focus Staffbow draw helper should stop once use ends");
-            helper.assertFalse(SpellcasterQuiver.shouldIgnoreBowSlowdown(player),
-                    "Spellcaster Quiver slowdown helper should stop once Focus Staffbow use ends");
-        });
-    }
-    static void elementalBowNonMagicModesHideDerivedSpellPresentation(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
-            var stack = new ItemStack(item);
-            setElementalBowShotSelection(stack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"));
-
-            item.initializeSpellContainer(stack);
-
-            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
-                    "Elemental Bow should not expose a spell container outside magic mode");
-            helper.assertTrue(ElementalBow.getDisplayedSpellProfile(stack) == null,
-                    "Elemental Bow should not expose a displayed spell profile outside magic mode");
-        });
-    }
-    static void elementalBowCooldownHelperIgnoresWeaponMultiplierButKeepsPlayerCooldownReduction(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_helper_test");
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-
-            var fireArrow = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
-            var cooldownAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get());
-            helper.assertTrue(cooldownAttribute != null, "Elemental Bow cooldown helper test could not resolve cooldown attribute");
-            cooldownAttribute.addPermanentModifier(new AttributeModifier(
-                    UUID.fromString("24565bf4-5900-4a8f-8e05-a9f4a0db3dd7"),
-                    "apprenticecodex.elemental_bow.cooldown_helper_test",
-                    0.35D,
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            ));
-
-            var expectedCooldown = (int) (fireArrow.getSpellCooldown() * (2 - Utils.softCapFormula(
-                    player.getAttributeValue(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get())
-            )));
-            var helperCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
-                    fireArrow,
-                    player,
-                    CastSource.SWORD,
-                    stack
-            );
-            helper.assertTrue(helperCooldown == expectedCooldown,
-                    "Elemental Bow cooldown helper should keep player cooldown reduction but ignore sword multiplier: "
-                            + helperCooldown + " / expected " + expectedCooldown);
-
-            var vanillaCooldown = io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
-                    fireArrow,
-                    player,
-                    CastSource.SWORD
-            );
-            var fallbackCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
-                    fireArrow,
-                    player,
-                    CastSource.SWORD,
-                    ItemStack.EMPTY
-            );
-            helper.assertTrue(fallbackCooldown == vanillaCooldown,
-                    "Non-opt-in cooldown helper path should match Iron's default cooldown calculation");
-
-            var swordCooldownMultiplier = io.redspace.ironsspellbooks.config.ServerConfigs.SWORDS_CD_MULTIPLIER.get().floatValue();
-            if (swordCooldownMultiplier != 1.0F) {
-                helper.assertTrue(helperCooldown != vanillaCooldown,
-                        "Elemental Bow cooldown helper should diverge from the sword multiplier path when the config multiplier is not 1");
-            }
-        });
-    }
-    static void elementalBowSuppressesElementalArrowCooldown(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_test");
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Elemental Bow cooldown test could not resolve player mana data");
-            magicData.setPlayerCastingItem(stack.copy());
-
-            var fireArrow = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
-            var expectedStoredCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
-                    fireArrow,
-                    player,
-                    CastSource.SWORD,
-                    stack
-            );
-            var cooldownEvent = new SpellCooldownAddedEvent.Pre(
-                    io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(fireArrow, player, CastSource.SWORD),
-                    fireArrow,
-                    player,
-                    CastSource.SWORD
-            );
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(cooldownEvent);
-            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == 0,
-                    "Elemental Bow should suppress elemental arrow cooldowns but got " + cooldownEvent.getEffectiveCooldown());
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
-                            player,
-                            SchoolRegistry.FIRE_RESOURCE,
-                            0
-                    ) == expectedStoredCooldown,
-                    "Elemental Bow should store the helper cooldown for overheat timing"
-            );
-
-            var controlEvent = new SpellCooldownAddedEvent.Pre(
-                    160,
-                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.TOUCH_DIG.get(),
-                    player,
-                    CastSource.SWORD
-            );
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(controlEvent);
-            helper.assertTrue(controlEvent.getEffectiveCooldown() == 160,
-                    "Elemental Bow cooldown suppression should not affect unrelated spells");
-        });
-    }
-    static void elementalBowConsumesAdditionalManaWhileOverheated(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_mana_test");
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 2));
-
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Elemental Bow overheat mana test could not resolve player mana data");
-
-            var item = (ElementalBow) stack.getItem();
-            item.initializeSpellContainer(stack);
-            var fireProfile = ElementalBow.getDisplayedSpellProfile(stack);
-            helper.assertTrue(fireProfile != null, "Elemental Bow overheat mana test should resolve the active Fire profile");
-            var fireArrow = fireProfile != null
-                    ? fireProfile.spell()
-                    : io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
-            var baseMana = fireProfile != null ? fireProfile.spell().getManaCost(fireProfile.spellLevel()) : fireArrow.getManaCost(1);
-
-            magicData.setMana(300.0F);
-            var initialMana = magicData.getMana();
-
-            magicData.setPlayerCastingItem(stack.copy());
-            var cooldownEvent = new SpellCooldownAddedEvent.Pre(
-                    io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(fireArrow, player, CastSource.SWORD),
-                    fireArrow,
-                    player,
-                    CastSource.SWORD
-            );
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(cooldownEvent);
-            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
-                    player,
-                    SchoolRegistry.FIRE_RESOURCE,
-                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
-                            player,
-                            SchoolRegistry.FIRE_RESOURCE,
-                            fireArrow.getSpellCooldown()
-                    )
-            );
-
-            var extraMana = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getAdditionalManaCost(
-                    player,
-                    SchoolRegistry.FIRE_RESOURCE,
-                    baseMana
-            );
-            helper.assertTrue(extraMana > 0.0F, "Elemental Bow should charge extra mana once Fire overheat is active");
-
-            var overheatedUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(overheatedUseResult.getResult().consumesAction(),
-                    "Elemental Bow should still allow a second overheated draw: " + overheatedUseResult.getResult());
-            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
-            player.stopUsingItem();
-
-            var manaAfterOverheatedShot = magicData.getMana();
-            helper.assertTrue(Math.abs(manaAfterOverheatedShot - (initialMana - baseMana - extraMana)) < 1.0e-3F,
-                    "Elemental Bow overheated shot consumed the wrong mana: " + manaAfterOverheatedShot);
-            var state = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE);
-            helper.assertTrue(state.active() && state.chainDepth() >= 2,
-                    "Elemental Bow overheated shot should keep Fire overheat active and deepen the chain: " + state);
-        });
-    }
-    static void elementalBowOverheatTracksSchoolsSeparately(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_school_test");
-            var fireStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            fireStack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
-
-            var natureStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            natureStack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.NATURE_RESOURCE.toString());
-
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Elemental Bow school overheat test could not resolve player mana data");
-
-            magicData.setPlayerCastingItem(fireStack.copy());
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
-                    new SpellCooldownAddedEvent.Pre(
-                            160,
-                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
-                            player,
-                            CastSource.SWORD
-                    )
-            );
-            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
-                    player,
-                    SchoolRegistry.FIRE_RESOURCE,
-                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
-                            player,
-                            SchoolRegistry.FIRE_RESOURCE,
-                            0
-                    )
-            );
-
-            magicData.setPlayerCastingItem(natureStack.copy());
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
-                    new SpellCooldownAddedEvent.Pre(
-                            120,
-                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.POISON_ARROW_SPELL.get(),
-                            player,
-                            CastSource.SWORD
-                    )
-            );
-            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
-                    player,
-                    SchoolRegistry.NATURE_RESOURCE,
-                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
-                            player,
-                            SchoolRegistry.NATURE_RESOURCE,
-                            0
-                    )
-            );
-
-            var fireState = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE);
-            helper.assertTrue(fireState.active() && fireState.chainDepth() == 1,
-                    "Elemental Bow fire overheat should stay isolated at depth 1: " + fireState);
-
-            var natureState = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.NATURE_RESOURCE);
-            helper.assertTrue(natureState.active() && natureState.chainDepth() == 1,
-                    "Elemental Bow nature overheat should stay isolated at depth 1: " + natureState);
-
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getAdditionalManaCost(
-                            player,
-                            SchoolRegistry.ENDER_RESOURCE,
-                            10.0F
-                    ) == 0.0F,
-                    "Elemental Bow should not leak overheat into untouched schools"
-            );
-        });
-    }
-    static void elementalBowOverheatRefreshesDurationAfterRepeatedCast(GameTestHelper helper) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_refresh_test");
-        var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-        setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
-        var magicData = MagicData.getPlayerMagicData(player);
-        var firstExpire = new java.util.concurrent.atomic.AtomicLong();
-        var fireArrow = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
-        var expectedCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
-                fireArrow,
-                player,
-                CastSource.SWORD,
-                stack
-        );
-
-        helper.assertTrue(magicData != null, "Elemental Bow overheat refresh test could not resolve player mana data");
-
-        helper.runAtTickTime(1, () -> {
-            magicData.setPlayerCastingItem(stack.copy());
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
-                    new SpellCooldownAddedEvent.Pre(
-                            io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(fireArrow, player, CastSource.SWORD),
-                            fireArrow,
-                            player,
-                            CastSource.SWORD
-                    )
-            );
-            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
-                    player,
-                    SchoolRegistry.FIRE_RESOURCE,
-                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
-                            player,
-                            SchoolRegistry.FIRE_RESOURCE,
-                            expectedCooldown
-                    )
-            );
-            firstExpire.set(jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE).expireGameTime());
-        });
-
-        helper.runAtTickTime(40, () -> {
-            magicData.setPlayerCastingItem(stack.copy());
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
-                    new SpellCooldownAddedEvent.Pre(
-                            io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(fireArrow, player, CastSource.SWORD),
-                            fireArrow,
-                            player,
-                            CastSource.SWORD
-                    )
-            );
-            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
-                    player,
-                    SchoolRegistry.FIRE_RESOURCE,
-                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
-                            player,
-                            SchoolRegistry.FIRE_RESOURCE,
-                            expectedCooldown
-                    )
-            );
-
-            var state = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE);
-            helper.assertTrue(state.active(), "Elemental Bow repeated cast should keep fire overheat active");
-            helper.assertTrue(state.chainDepth() == 2, "Elemental Bow repeated cast should raise overheat chain depth to 2: " + state.chainDepth());
-            helper.assertTrue(state.expireGameTime() > firstExpire.get(),
-                    "Elemental Bow repeated cast should refresh overheat expiry but got " + state.expireGameTime() + " <= " + firstExpire.get());
-            helper.assertTrue(state.expireGameTime() - helper.getLevel().getGameTime() == expectedCooldown,
-                    "Elemental Bow repeated cast should reset overheat duration from the latest cast");
-        });
-
-        helper.runAtTickTime(41, helper::succeed);
-    }
-    static void elementalBowMagicDrawTicksUseProfileAndServerMultiplier(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            try (var ignored = useElementalBowConfigOverrideForGameTest(
-                    1.5D,
-                    0.20D,
-                    0.08D,
-                    1.0D,
-                    0,
-                    0,
-                    1.0D
-            )) {
-                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_draw_config_test");
-                var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-                setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
-                player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-                player.getInventory().setItem(1, new ItemStack(Items.ARROW, 2));
-
-                var magicData = MagicData.getPlayerMagicData(player);
-                helper.assertTrue(magicData != null, "Elemental Bow draw config test could not resolve player mana data");
-                magicData.setMana(300.0F);
-                var initialMana = magicData.getMana();
-
-                helper.assertTrue(ElementalBow.resolveMagicRequiredDrawTicks(stack) == 30,
-                        "Elemental Bow required draw ticks should use profile ticks and server multiplier");
-                var shortUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-                helper.assertTrue(shortUseResult.getResult().consumesAction(),
-                        "Elemental Bow draw config test should start drawing: " + shortUseResult.getResult());
-                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 29);
-                player.stopUsingItem();
-                helper.assertTrue(stack.getDamageValue() == 0,
-                        "Elemental Bow should not fire before configured draw ticks");
-                helper.assertTrue(player.getInventory().getItem(1).getCount() == 2,
-                        "Elemental Bow should not consume arrows before configured draw ticks");
-                helper.assertTrue(magicData.getMana() == initialMana,
-                        "Elemental Bow should not consume mana before configured draw ticks");
-
-                var readyUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-                helper.assertTrue(readyUseResult.getResult().consumesAction(),
-                        "Elemental Bow draw config test should restart drawing: " + readyUseResult.getResult());
-                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 30);
-                player.stopUsingItem();
-                helper.assertTrue(stack.getDamageValue() == 1,
-                        "Elemental Bow should fire at configured draw ticks");
-                helper.assertTrue(player.getInventory().getItem(1).getCount() == 1,
-                        "Elemental Bow should consume one arrow after configured draw ticks");
-                helper.assertTrue(magicData.getMana() < initialMana,
-                        "Elemental Bow should consume spell mana after configured draw ticks");
-            }
-        });
-    }
-
-    static void elementalBowAdditionalManaUsesServerConfig(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            try (var ignored = useElementalBowConfigOverrideForGameTest(
-                    1.0D,
-                    0.5D,
-                    0.25D,
-                    1.0D,
-                    0,
-                    0,
-                    1.0D
-            )) {
-                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_mana_config_test");
-                jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
-                        player,
-                        SchoolRegistry.FIRE_RESOURCE,
-                        100
-                );
-
-                var extraMana = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getAdditionalManaCost(
-                        player,
-                        SchoolRegistry.FIRE_RESOURCE,
-                        100.0F
-                );
-                helper.assertTrue(Math.abs(extraMana - 75.0F) < 1.0e-3F,
-                        "Elemental Bow additional mana should use its server config but got " + extraMana);
-            }
-        });
-    }
-
-    static void elementalBowOverheatDurationUsesServerConfig(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            try (var ignored = useElementalBowConfigOverrideForGameTest(
-                    1.0D,
-                    0.20D,
-                    0.08D,
-                    2.0D,
-                    30,
-                    50,
-                    1.0D
-            )) {
-                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_duration_config_test");
-
-                jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
-                        player,
-                        SchoolRegistry.FIRE_RESOURCE,
-                        10
-                );
-                var minState = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE);
-                helper.assertTrue(minState.active()
-                                && minState.expireGameTime() - helper.getLevel().getGameTime() == 30,
-                        "Elemental Bow overheat duration should use configured minimum: " + minState);
-
-                jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.clear(player, SchoolRegistry.FIRE_RESOURCE);
-                jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
-                        player,
-                        SchoolRegistry.FIRE_RESOURCE,
-                        100
-                );
-                var capState = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE);
-                helper.assertTrue(capState.active()
-                                && capState.expireGameTime() - helper.getLevel().getGameTime() == 50,
-                        "Elemental Bow overheat duration should use configured cap: " + capState);
-            }
-        });
-    }
-
-    static void elementalBowPowerSpellLevelBonusUsesServerConfig(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            try (var ignored = useElementalBowConfigOverrideForGameTest(
-                    1.0D,
-                    0.20D,
-                    0.08D,
-                    1.0D,
-                    0,
-                    0,
-                    0.5D
-            )) {
-                var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
-                var stack = new ItemStack(item);
-                stack.enchant(Enchantments.POWER_ARROWS, 3);
-                setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
-
-                item.initializeSpellContainer(stack);
-
-                var fireMode = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.getResolvedDefinition(SchoolRegistry.FIRE_RESOURCE);
-                helper.assertTrue(fireMode != null, "Elemental Bow power config test should resolve Fire mode");
-                var powerBonus = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.resolvePowerArrowSpellLevelBonus(stack);
-                helper.assertTrue(powerBonus == 1,
-                        "Elemental Bow Power III should add floor(3 * 0.5) spell levels but got " + powerBonus);
-                var expectedLevel = fireMode == null ? 1 : Mth.clamp(1 + powerBonus, fireMode.spell().getMinLevel(), fireMode.spell().getMaxLevel());
-                var profile = ElementalBow.getDisplayedSpellProfile(stack);
-                helper.assertTrue(profile != null, "Elemental Bow power config test should expose a displayed spell profile");
-                helper.assertTrue(profile != null && profile.spellLevel() == expectedLevel,
-                        "Elemental Bow Power spell level should use the configured bonus before spell level clamp but got "
-                                + (profile == null ? "null" : profile.spellLevel()));
-            }
         });
     }
 
