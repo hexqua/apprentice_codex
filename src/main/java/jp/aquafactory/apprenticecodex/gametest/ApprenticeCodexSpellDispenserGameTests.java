@@ -46,13 +46,8 @@ public final class ApprenticeCodexSpellDispenserGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void spellDispenserValidatorRejectsDenylistedSpell(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserValidatorRejectsDenylistedSpell(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserValidatorRejectsRayOfSiphoning(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserValidatorRejectsRayOfSiphoning(helper);
+    public static void spellDispenserValidatorRejectsUnprofiledRayOfSiphoning(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserValidatorRejectsUnprofiledRayOfSiphoning(helper);
     }
 
     @GameTest(template = TEMPLATE)

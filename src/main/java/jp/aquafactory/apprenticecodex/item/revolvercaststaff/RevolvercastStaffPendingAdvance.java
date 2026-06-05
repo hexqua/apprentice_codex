@@ -62,6 +62,10 @@ public final class RevolvercastStaffPendingAdvance {
     ) {
         PENDING_ADVANCES.computeIfPresent(player.getUUID(), (ignored, pending) -> {
             var castingItem = playerMagicData.getPlayerCastingItem();
+            // Followcast など同時に完了した別詠唱の通知で、Revolvercast の予約を消さない。
+            if (!pending.matchesCastingItem(castingItem)) {
+                return pending;
+            }
             if (!pending.matches(castingItem, spell)) {
                 return null;
             }
@@ -134,8 +138,12 @@ public final class RevolvercastStaffPendingAdvance {
             return readyGameTime >= 0L && gameTime >= readyGameTime;
         }
 
+        private boolean matchesCastingItem(ItemStack stack) {
+            return stack.getItem() == item && stack.getItem() instanceof RevolvercastStaff;
+        }
+
         private boolean matches(ItemStack stack, AbstractSpell completedSpell) {
-            if (stack.getItem() != item || !(stack.getItem() instanceof RevolvercastStaff)) {
+            if (!matchesCastingItem(stack)) {
                 return false;
             }
 

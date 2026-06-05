@@ -835,8 +835,23 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void chargedTwinBladeStaffRemoteOwnerDenylistFallsBackToDispenserProfile(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffRemoteOwnerDenylistFallsBackToDispenserProfile(helper);
+    public static void chargedTwinBladeStaffImpactCastManagerCastsInstantWhileOwnerBusy(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerCastsInstantWhileOwnerBusy(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffBusyFallbackDoesNotBypassCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffBusyFallbackDoesNotBypassCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellThrowableCardImpactCastManagerCastsInstantWhileOwnerBusy(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellThrowableCardImpactCastManagerCastsInstantWhileOwnerBusy(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffRemoteOwnerDenylistBlocksRuntimeWithoutFallback(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffRemoteOwnerDenylistBlocksRuntimeWithoutFallback(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -845,8 +860,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void chargedTwinBladeStaffCreativeImpactCastUsesDispenserProfileWithZeroMana(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffCreativeImpactCastUsesDispenserProfileWithZeroMana(helper);
+    public static void chargedTwinBladeStaffCreativeImpactCastUsesRemoteOwnerProfileWithZeroMana(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffCreativeImpactCastUsesRemoteOwnerProfileWithZeroMana(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -862,11 +877,6 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffImpactCastManagerBlocksRaiseDeadWhenRecastExists(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerBlocksRaiseDeadWhenRecastExists(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void chargedTwinBladeStaffPayloadKeepsRecastFallbackWhenRemoteProfilesDisabled(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffPayloadKeepsRecastFallbackWhenRemoteProfilesDisabled(helper);
     }
 
     @GameTest(template = TEMPLATE)

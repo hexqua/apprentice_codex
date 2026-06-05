@@ -594,32 +594,12 @@ final class ItemsServerConfig {
         return remoteOwnerCastConfig.enableRemotePlayerGeometry();
     }
 
-    boolean remoteOwnerCastForceProxyOwnerMagic() {
-        return remoteOwnerCastConfig.forceProxyOwnerMagic();
-    }
-
-    boolean isRemotePlayerGeometrySpellDenied(ResourceLocation spellId) {
-        return remoteOwnerCastConfig.isRemotePlayerGeometrySpellDenied(spellId);
-    }
-
     boolean isRemoteOwnerCastSpellDenied(ResourceLocation spellId) {
         return remoteOwnerCastConfig.isRemoteOwnerCastSpellDenied(spellId);
     }
 
-    List<String> remotePlayerGeometryDenylist() {
-        return remoteOwnerCastConfig.remotePlayerGeometryDenylist();
-    }
-
     List<String> remoteOwnerCastDenylist() {
         return remoteOwnerCastConfig.remoteOwnerCastDenylist();
-    }
-
-    boolean satelliteFollowcastUsesRemoteOwnerProfiles() {
-        return remoteOwnerCastConfig.satelliteFollowcastUsesRemoteOwnerProfiles();
-    }
-
-    boolean chargedTwinBladeStaffUsesRemoteOwnerProfiles() {
-        return remoteOwnerCastConfig.chargedTwinBladeStaffUsesRemoteOwnerProfiles();
     }
 
     List<String> multipurposeStaffrifleSpellDenylist() {
@@ -823,19 +803,11 @@ final class ItemsServerConfig {
 
     void setRemoteOwnerCastConfigForGameTest(
             boolean enableRemotePlayerGeometry,
-            boolean forceProxyOwnerMagic,
-            List<String> remotePlayerGeometryDenylist,
-            List<String> remoteOwnerCastDenylist,
-            boolean satelliteFollowcastUsesRemoteOwnerProfiles,
-            boolean chargedTwinBladeStaffUsesRemoteOwnerProfiles
+            List<String> remoteOwnerCastDenylist
     ) {
         remoteOwnerCastConfig.setForGameTest(
                 enableRemotePlayerGeometry,
-                forceProxyOwnerMagic,
-                remotePlayerGeometryDenylist,
-                remoteOwnerCastDenylist,
-                satelliteFollowcastUsesRemoteOwnerProfiles,
-                chargedTwinBladeStaffUsesRemoteOwnerProfiles
+                remoteOwnerCastDenylist
         );
     }
 }
