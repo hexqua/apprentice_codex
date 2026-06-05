@@ -6,12 +6,13 @@ import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
+import jp.aquafactory.apprenticecodex.utility.SpellManaAccessHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 
 public final class SpellDispenserManaHelper {
-    public static final int MAX_MANA = 1000;
+    public static final int MAX_MANA = SpellManaAccessHelper.MAX_MANA;
     public static final int REFILL_INTERVAL_TICKS = 40;
     private static final int INSTANT_MANA_BASE_RECOVERY = 25;
     private static final float INSTANT_MANA_MAX_MANA_RATIO = 0.05F;
@@ -20,7 +21,7 @@ public final class SpellDispenserManaHelper {
     }
 
     public static int clampMana(int mana) {
-        return Math.max(0, Math.min(MAX_MANA, mana));
+        return SpellManaAccessHelper.clampMana(mana);
     }
 
     public static boolean isSupportedFlaskSlotItem(@NotNull ItemStack stack) {
@@ -71,38 +72,19 @@ public final class SpellDispenserManaHelper {
     }
 
     public static int getSpellManaCost(SpellData spellData) {
-        if (spellData == SpellData.EMPTY) {
-            return 0;
-        }
-
-        return Math.max(0, spellData.getSpell().getManaCost(spellData.getLevel()));
+        return SpellManaAccessHelper.getSpellManaCost(spellData);
     }
 
     public static boolean canAffordSpell(int currentMana, SpellData spellData) {
-        return currentMana >= getSpellManaCost(spellData);
+        return SpellManaAccessHelper.canAffordSpell(currentMana, spellData);
     }
 
     public static boolean canAffordSpell(@NotNull ManaAccess manaAccess, SpellData spellData) {
-        return manaAccess.isManaConsumptionExempt() || canAffordSpell(manaAccess.getCurrentMana(), spellData);
+        return SpellManaAccessHelper.canAffordSpell(manaAccess, spellData);
     }
 
     public static boolean tryConsumeSpellMana(@NotNull ManaAccess manaAccess, SpellData spellData) {
-        if (manaAccess.isManaConsumptionExempt()) {
-            return true;
-        }
-
-        var manaCost = getSpellManaCost(spellData);
-        if (manaCost <= 0) {
-            return true;
-        }
-
-        var currentMana = clampMana(manaAccess.getCurrentMana());
-        if (currentMana < manaCost) {
-            return false;
-        }
-
-        manaAccess.setCurrentMana(currentMana - manaCost);
-        return true;
+        return SpellManaAccessHelper.tryConsumeSpellMana(manaAccess, spellData);
     }
 
     public static boolean tryRefillMana(@NotNull ManaAccess manaAccess) {
@@ -207,24 +189,12 @@ public final class SpellDispenserManaHelper {
         return Enchantments.getLevel(flaskStack, Enchantments.GLOW_ENERGY);
     }
 
-    public interface ManaAccess {
-        int getCurrentMana();
-
-        void setCurrentMana(int mana);
-
+    public interface ManaAccess extends SpellManaAccessHelper.ManaAccess {
         int getInventorySlotCount();
 
         @NotNull ItemStack getInventoryStack(int slot);
 
         void setInventoryStack(int slot, @NotNull ItemStack stack);
-
-        default boolean isManaConsumptionExempt() {
-            return false;
-        }
-
-        default double cooldownMultiplier() {
-            return jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig.spellDispenserCooldownMultiplier();
-        }
     }
 
     private record RefillCandidate(int slot, int recoveredMana, ItemStack remainingStack) {

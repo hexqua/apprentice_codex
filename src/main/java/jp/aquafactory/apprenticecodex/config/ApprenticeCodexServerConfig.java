@@ -93,10 +93,6 @@ public final class ApprenticeCodexServerConfig {
         return BLOCKS_CONFIG.arcanumInAJarTicksPerStoredParameter();
     }
 
-    public static boolean spellDispenserIgnoreSpellProfileAndDenylistFiles() {
-        return BLOCKS_CONFIG.spellDispenserIgnoreSpellProfileAndDenylistFiles();
-    }
-
     public static boolean spellDispenserEnable() {
         return BLOCKS_CONFIG.spellDispenserEnable();
     }
@@ -188,32 +184,12 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.remoteOwnerCastEnableRemotePlayerGeometry();
     }
 
-    public static boolean remoteOwnerCastForceProxyOwnerMagic() {
-        return ITEMS_CONFIG.remoteOwnerCastForceProxyOwnerMagic();
-    }
-
-    public static boolean isRemotePlayerGeometrySpellDenied(ResourceLocation spellId) {
-        return ITEMS_CONFIG.isRemotePlayerGeometrySpellDenied(spellId);
-    }
-
     public static boolean isRemoteOwnerCastSpellDenied(ResourceLocation spellId) {
         return ITEMS_CONFIG.isRemoteOwnerCastSpellDenied(spellId);
     }
 
-    public static List<String> remotePlayerGeometryDenylist() {
-        return ITEMS_CONFIG.remotePlayerGeometryDenylist();
-    }
-
     public static List<String> remoteOwnerCastDenylist() {
         return ITEMS_CONFIG.remoteOwnerCastDenylist();
-    }
-
-    public static boolean satelliteFollowcastUsesRemoteOwnerProfiles() {
-        return ITEMS_CONFIG.satelliteFollowcastUsesRemoteOwnerProfiles();
-    }
-
-    public static boolean chargedTwinBladeStaffUsesRemoteOwnerProfiles() {
-        return ITEMS_CONFIG.chargedTwinBladeStaffUsesRemoteOwnerProfiles();
     }
 
     public static GameTestConfigOverride useSatelliteFollowcastAmuletSpellDenylistOverrideForGameTest(
@@ -226,34 +202,18 @@ public final class ApprenticeCodexServerConfig {
 
     public static GameTestConfigOverride useRemoteOwnerCastConfigOverrideForGameTest(
             boolean enableRemotePlayerGeometry,
-            boolean forceProxyOwnerMagic,
-            List<String> remotePlayerGeometryDenylist,
-            List<String> remoteOwnerCastDenylist,
-            boolean satelliteFollowcastUsesRemoteOwnerProfiles,
-            boolean chargedTwinBladeStaffUsesRemoteOwnerProfiles
+            List<String> remoteOwnerCastDenylist
     ) {
         var previousEnableRemotePlayerGeometry = ITEMS_CONFIG.remoteOwnerCastEnableRemotePlayerGeometry();
-        var previousForceProxyOwnerMagic = ITEMS_CONFIG.remoteOwnerCastForceProxyOwnerMagic();
-        var previousRemotePlayerGeometryDenylist = ITEMS_CONFIG.remotePlayerGeometryDenylist();
         var previousRemoteOwnerCastDenylist = ITEMS_CONFIG.remoteOwnerCastDenylist();
-        var previousSatelliteFollowcastUsesRemoteOwnerProfiles = ITEMS_CONFIG.satelliteFollowcastUsesRemoteOwnerProfiles();
-        var previousChargedTwinBladeStaffUsesRemoteOwnerProfiles = ITEMS_CONFIG.chargedTwinBladeStaffUsesRemoteOwnerProfiles();
 
         ITEMS_CONFIG.setRemoteOwnerCastConfigForGameTest(
                 enableRemotePlayerGeometry,
-                forceProxyOwnerMagic,
-                remotePlayerGeometryDenylist,
-                remoteOwnerCastDenylist,
-                satelliteFollowcastUsesRemoteOwnerProfiles,
-                chargedTwinBladeStaffUsesRemoteOwnerProfiles
+                remoteOwnerCastDenylist
         );
         return () -> ITEMS_CONFIG.setRemoteOwnerCastConfigForGameTest(
                 previousEnableRemotePlayerGeometry,
-                previousForceProxyOwnerMagic,
-                previousRemotePlayerGeometryDenylist,
-                previousRemoteOwnerCastDenylist,
-                previousSatelliteFollowcastUsesRemoteOwnerProfiles,
-                previousChargedTwinBladeStaffUsesRemoteOwnerProfiles
+                previousRemoteOwnerCastDenylist
         );
     }
 

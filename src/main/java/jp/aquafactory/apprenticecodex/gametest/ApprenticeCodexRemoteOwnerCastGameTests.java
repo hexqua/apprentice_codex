@@ -79,29 +79,25 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = CONFIG_BATCH)
-    public static void remoteOwnerCastConfigDenylistAllowsFollowcastFallback(GameTestHelper helper) {
+    public static void remoteOwnerCastConfigDenylistDoesNotBlockFollowcastImbue(GameTestHelper helper) {
         var spellId = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get().getSpellResource();
         var profile = RemoteOwnerCastProfile.REMOTE_PLAYER_GEOMETRY;
 
         try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(spellId, profile));
              var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
                      true,
-                     false,
-                     List.of(),
-                     List.of(spellId.toString()),
-                     true,
-                     true
+                     List.of(spellId.toString())
              )) {
             var amulet = (SatelliteFollowcastAmulet) ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get();
             helper.assertTrue(amulet.canImbueSpell(jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get(), 1),
-                    "Remote Owner Cast denylist should still allow Satellite Followcast Amulet Spell Dispenser fallback.");
+                    "Remote Owner Cast denylist should block runtime casts, not profile-based Imbue.");
         }
 
         helper.succeed();
     }
 
     @GameTest(template = TEMPLATE, batch = CONFIG_BATCH)
-    public static void remoteOwnerCastConfigDowngradesGeometryBeforeCast(GameTestHelper helper) {
+    public static void remoteOwnerCastGeometryConfigKeepsProfileIdentity(GameTestHelper helper) {
         var spellId = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get().getSpellResource();
 
         try (var ignoredProfiles = RemoteOwnerCastProfileManager.useProfilesForGameTest(Map.of(
@@ -109,18 +105,14 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
                 RemoteOwnerCastProfile.REMOTE_PLAYER_GEOMETRY
         )); var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
                 true,
-                true,
-                List.of(),
-                List.of(),
-                true,
-                true
+                List.of()
         )) {
             var profile = RemoteOwnerCastProfileManager.getUsableProfile(
                     jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get(),
                     RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST
             );
-            helper.assertTrue(profile.isPresent() && profile.get().castMode() == RemoteOwnerCastMode.PROXY_OWNER_MAGIC,
-                    "forceProxyOwnerMagic should downgrade remote_player_geometry before casting.");
+            helper.assertTrue(profile.isPresent() && profile.get().castMode() == RemoteOwnerCastMode.REMOTE_PLAYER_GEOMETRY,
+                    "Remote Owner Cast config should not rewrite profile cast modes.");
         }
 
         helper.succeed();

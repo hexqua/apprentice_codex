@@ -15,7 +15,6 @@ import jp.aquafactory.apprenticecodex.datagen.spell.SenseEvilHighlightDataGenera
 import jp.aquafactory.apprenticecodex.datagen.spell.MulticastEchoStaffAttackProfileDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.MulticastEchoStaffMobEffectProfileDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.RemoteOwnerCastSpellProfileDataGenerator;
-import jp.aquafactory.apprenticecodex.datagen.spell.SpellDispenserSpellListDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SpellDispenserSpellProfileDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SpellGunSpellListDataGenerator;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -45,7 +44,6 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), new ItemTagGenerator(output, lookupProvider, blockTagGenerator.contentsGetter(), existing));
         generator.addProvider(event.includeServer(), new PoiTypeTagGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new EnchantmentTagGenerator(output, datapackProvider.getRegistryProvider(), existing));
-        generator.addProvider(event.includeServer(), new SpellDispenserSpellListDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new SpellDispenserSpellProfileDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new RemoteOwnerCastSpellProfileDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new MulticastEchoStaffAttackProfileDataGenerator(output, lookupProvider, existing));

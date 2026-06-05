@@ -116,6 +116,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void revolvercastStaffPendingAdvanceSurvivesUnrelatedCastCompletion(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.revolvercastStaffPendingAdvanceSurvivesUnrelatedCastCompletion(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void revolvercastStaffCancelledCastDoesNotAdvancePendingSelection(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.revolvercastStaffCancelledCastDoesNotAdvancePendingSelection(helper);
     }
