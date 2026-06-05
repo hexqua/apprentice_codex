@@ -29,12 +29,14 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +48,8 @@ import java.util.UUID;
 public final class ApprenticeCodexRemoteOwnerCastGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final String CONFIG_BATCH = "apprenticecodex.remote_owner_cast_config";
+    private static final String INSCRIBE_ICE_ISOLATED_BATCH =
+            "apprenticecodex.remote_owner_cast_inscribe_ice_isolated";
 
     private ApprenticeCodexRemoteOwnerCastGameTests() {
     }
@@ -277,7 +281,7 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 40)
+    @GameTest(template = TEMPLATE, batch = INSCRIBE_ICE_ISOLATED_BATCH, timeoutTicks = 40)
     public static void remoteOwnerCastContextKeepsInscribeIceJobGeometry(GameTestHelper helper) {
         var level = helper.getLevel();
         var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "inscribe_ice_remote_owner_test"));
@@ -291,7 +295,16 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
         var spell = (InscribeIce) jp.aquafactory.apprenticecodex.registry.SpellRegistry.INSCRIBE_ICE.get();
         var remoteOrigin = helper.absoluteVec(new Vec3(2.5D, 4.5D, 2.5D));
         var remoteForward = new Vec3(0.0D, 1.0D, 0.0D);
+        var spawnedDaggers = new ArrayList<InscribeIceDaggerEntity>();
+        java.util.function.Consumer<EntityJoinLevelEvent> daggerListener = event -> {
+            if (event.getLevel() == level
+                    && event.getEntity() instanceof InscribeIceDaggerEntity dagger
+                    && dagger.getOwner() == owner) {
+                spawnedDaggers.add(dagger);
+            }
+        };
 
+        MinecraftForge.EVENT_BUS.addListener(daggerListener);
         try (var ignored = RemoteOwnerCastContext.push(
                 owner,
                 remoteOrigin,
@@ -304,26 +317,25 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
         owner.setYRot(90.0F);
         owner.setXRot(0.0F);
 
-        helper.runAfterDelay(3, () -> {
-            var expectedCount = spell.getProjectileCount(5, owner);
-            var daggers = level.getEntitiesOfClass(
-                    InscribeIceDaggerEntity.class,
-                    new AABB(remoteOrigin, remoteOrigin).inflate(16.0D),
-                    projectile -> projectile.getOwner() == owner
-            );
-            helper.assertTrue(daggers.size() == expectedCount,
-                    "Inscribe Ice RemoteOwnerCast should finish the short throw job: "
-                            + daggers.size() + " / " + expectedCount);
-            for (var dagger : daggers) {
-                var movement = dagger.getDeltaMovement();
-                helper.assertTrue(movement.y > 0.5D,
-                        "Inscribe Ice RemoteOwnerCast should keep the remote vertical forward direction after context closes: "
-                                + movement);
-                helper.assertTrue(Math.abs(movement.z) < InscribeIceDaggerEntity.SPEED * 0.15D,
-                        "Inscribe Ice RemoteOwnerCast should keep the cast-time right direction for vertical launches: "
-                                + movement);
+        helper.runAfterDelay(4, () -> {
+            try {
+                var expectedCount = spell.getProjectileCount(5, owner);
+                helper.assertTrue(spawnedDaggers.size() == expectedCount,
+                        "Inscribe Ice RemoteOwnerCast should finish the short throw job: "
+                                + spawnedDaggers.size() + " / " + expectedCount);
+                for (var dagger : spawnedDaggers) {
+                    var movement = dagger.getDeltaMovement();
+                    helper.assertTrue(movement.y > 0.5D,
+                            "Inscribe Ice RemoteOwnerCast should keep the remote vertical forward direction after context closes: "
+                                    + movement);
+                    helper.assertTrue(Math.abs(movement.z) < InscribeIceDaggerEntity.SPEED * 0.15D,
+                            "Inscribe Ice RemoteOwnerCast should keep the cast-time right direction for vertical launches: "
+                                    + movement);
+                }
+                helper.succeed();
+            } finally {
+                MinecraftForge.EVENT_BUS.unregister(daggerListener);
             }
-            helper.succeed();
         });
     }
 

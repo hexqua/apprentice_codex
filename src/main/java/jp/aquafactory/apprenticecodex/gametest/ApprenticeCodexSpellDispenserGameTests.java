@@ -22,311 +22,311 @@ public final class ApprenticeCodexSpellDispenserGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserValidatorAcceptsSingleMagicMissileScroll(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserValidatorAcceptsSingleMagicMissileScroll(helper);
+        SpellDispenserGameTestScenarios.spellDispenserValidatorAcceptsSingleMagicMissileScroll(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserValidatorAcceptsNonIronsNamespaceScroll(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserValidatorAcceptsNonIronsNamespaceScroll(helper);
+        SpellDispenserGameTestScenarios.spellDispenserValidatorAcceptsNonIronsNamespaceScroll(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserValidatorAcceptsLongScroll(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserValidatorAcceptsLongScroll(helper);
+        SpellDispenserGameTestScenarios.spellDispenserValidatorAcceptsLongScroll(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SERVER_DISABLED_CONFIG_BATCH)
     public static void spellDispenserValidatorRejectsWhenServerDisabled(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserValidatorRejectsWhenServerDisabled(helper);
+        SpellDispenserGameTestScenarios.spellDispenserValidatorRejectsWhenServerDisabled(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SERVER_ALLOWLIST_CONFIG_BATCH)
     public static void spellDispenserValidatorRequiresServerAllowlist(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserValidatorRequiresServerAllowlist(helper);
+        SpellDispenserGameTestScenarios.spellDispenserValidatorRequiresServerAllowlist(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserValidatorRejectsUnprofiledRayOfSiphoning(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserValidatorRejectsUnprofiledRayOfSiphoning(helper);
+        SpellDispenserGameTestScenarios.spellDispenserValidatorRejectsUnprofiledRayOfSiphoning(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserValidatorRejectsContinuousScroll(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserValidatorRejectsContinuousScroll(helper);
+        SpellDispenserGameTestScenarios.spellDispenserValidatorRejectsContinuousScroll(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserValidatorAcceptsProfiledContinuousScroll(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserValidatorAcceptsProfiledContinuousScroll(helper);
+        SpellDispenserGameTestScenarios.spellDispenserValidatorAcceptsProfiledContinuousScroll(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserValidatorRejectsRecastScroll(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserValidatorRejectsRecastScroll(helper);
+        SpellDispenserGameTestScenarios.spellDispenserValidatorRejectsRecastScroll(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserValidatorRejectsNonScrollSpellContainer(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserValidatorRejectsNonScrollSpellContainer(helper);
+        SpellDispenserGameTestScenarios.spellDispenserValidatorRejectsNonScrollSpellContainer(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserCastHelperCleansUpProxy(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserCastHelperCleansUpProxy(helper);
+        SpellDispenserGameTestScenarios.spellDispenserCastHelperCleansUpProxy(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserCastHelperAllowsOwnerOptionalSpellWithoutOwnerProfile(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserCastHelperAllowsOwnerOptionalSpellWithoutOwnerProfile(helper);
+        SpellDispenserGameTestScenarios.spellDispenserCastHelperAllowsOwnerOptionalSpellWithoutOwnerProfile(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserCastHelperUsesNeutralLivingCasterProfileForMagicMissile(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserCastHelperUsesNeutralLivingCasterProfileForMagicMissile(helper);
+        SpellDispenserGameTestScenarios.spellDispenserCastHelperUsesNeutralLivingCasterProfileForMagicMissile(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserCastHelperCompletesLongCastImmediately(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserCastHelperCompletesLongCastImmediately(helper);
+        SpellDispenserGameTestScenarios.spellDispenserCastHelperCompletesLongCastImmediately(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserCastHelperTicksLongCastBeforeCompletion(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserCastHelperTicksLongCastBeforeCompletion(helper);
+        SpellDispenserGameTestScenarios.spellDispenserCastHelperTicksLongCastBeforeCompletion(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserPrecisionJackLowManaCleansUpKnife(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserPrecisionJackLowManaCleansUpKnife(helper);
+        SpellDispenserGameTestScenarios.spellDispenserPrecisionJackLowManaCleansUpKnife(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserCastHelperStopsContinuousCastAtDurationCap(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserCastHelperStopsContinuousCastAtDurationCap(helper);
+        SpellDispenserGameTestScenarios.spellDispenserCastHelperStopsContinuousCastAtDurationCap(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserContinuousBreathBindsProjectileToTrackedAnchor(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserContinuousBreathBindsProjectileToTrackedAnchor(helper);
+        SpellDispenserGameTestScenarios.spellDispenserContinuousBreathBindsProjectileToTrackedAnchor(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserBlockEntityStopsContinuousCastWhenSignalTurnsOff(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserBlockEntityStopsContinuousCastWhenSignalTurnsOff(helper);
+        SpellDispenserGameTestScenarios.spellDispenserBlockEntityStopsContinuousCastWhenSignalTurnsOff(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserBlockEntityDoesNotRestartContinuousCastWhileSignalStaysOn(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserBlockEntityDoesNotRestartContinuousCastWhileSignalStaysOn(helper);
+        SpellDispenserGameTestScenarios.spellDispenserBlockEntityDoesNotRestartContinuousCastWhileSignalStaysOn(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserBlockEntityMarksContinuousResetRequirementAfterHeldCompletion(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserBlockEntityMarksContinuousResetRequirementAfterHeldCompletion(helper);
+        SpellDispenserGameTestScenarios.spellDispenserBlockEntityMarksContinuousResetRequirementAfterHeldCompletion(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserBlockEntityStartsAndClearsInstantCooldown(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserBlockEntityStartsAndClearsInstantCooldown(helper);
+        SpellDispenserGameTestScenarios.spellDispenserBlockEntityStartsAndClearsInstantCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = BLOCK_SERVER_DISABLED_CONFIG_BATCH)
     public static void spellDispenserBlockEntityReportsServerDisabledActivation(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserBlockEntityReportsServerDisabledActivation(helper);
+        SpellDispenserGameTestScenarios.spellDispenserBlockEntityReportsServerDisabledActivation(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = BLOCK_COOLDOWN_MULTIPLIER_CONFIG_BATCH)
     public static void spellDispenserBlockEntityAppliesCooldownMultiplier(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserBlockEntityAppliesCooldownMultiplier(helper);
+        SpellDispenserGameTestScenarios.spellDispenserBlockEntityAppliesCooldownMultiplier(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserAutomationOnlyAcceptsManaContainers(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserAutomationOnlyAcceptsManaContainers(helper);
+        SpellDispenserGameTestScenarios.spellDispenserAutomationOnlyAcceptsManaContainers(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserFluidAcceptsOnlyRegularManaPotions(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserFluidAcceptsOnlyRegularManaPotions(helper);
+        SpellDispenserGameTestScenarios.spellDispenserFluidAcceptsOnlyRegularManaPotions(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserFluidConsumesPotionDoseImmediately(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserFluidConsumesPotionDoseImmediately(helper);
+        SpellDispenserGameTestScenarios.spellDispenserFluidConsumesPotionDoseImmediately(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserFluidDrainsUnconsumedPotionOnly(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserFluidDrainsUnconsumedPotionOnly(helper);
+        SpellDispenserGameTestScenarios.spellDispenserFluidDrainsUnconsumedPotionOnly(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserFluidPersistsThroughNbt(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserFluidPersistsThroughNbt(helper);
+        SpellDispenserGameTestScenarios.spellDispenserFluidPersistsThroughNbt(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserFluidAcceptsCreateManaPotion(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserFluidAcceptsCreateManaPotion(helper);
+        SpellDispenserGameTestScenarios.spellDispenserFluidAcceptsCreateManaPotion(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserPlacementStartsAtZeroManaAndStoresOwnerProfile(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserPlacementStartsAtZeroManaAndStoresOwnerProfile(helper);
+        SpellDispenserGameTestScenarios.spellDispenserPlacementStartsAtZeroManaAndStoresOwnerProfile(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void creativeSpellDispenserPlacementStartsAtZeroManaAndSkipsOwnerProfile(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.creativeSpellDispenserPlacementStartsAtZeroManaAndSkipsOwnerProfile(helper);
+        SpellDispenserGameTestScenarios.creativeSpellDispenserPlacementStartsAtZeroManaAndSkipsOwnerProfile(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void creativeSpellDispenserIgnoresOwnerProfileNbt(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.creativeSpellDispenserIgnoresOwnerProfileNbt(helper);
+        SpellDispenserGameTestScenarios.creativeSpellDispenserIgnoresOwnerProfileNbt(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = CREATIVE_CONFIG_BATCH)
     public static void creativeSpellDispenserUsesCreativeManaConfig(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.creativeSpellDispenserUsesCreativeManaConfig(helper);
+        SpellDispenserGameTestScenarios.creativeSpellDispenserUsesCreativeManaConfig(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = CREATIVE_CONFIG_BATCH)
     public static void creativeSpellDispenserAllowsZeroCooldownMultiplier(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.creativeSpellDispenserAllowsZeroCooldownMultiplier(helper);
+        SpellDispenserGameTestScenarios.creativeSpellDispenserAllowsZeroCooldownMultiplier(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void creativeSpellDispenserDropsNoStoredItems(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.creativeSpellDispenserDropsNoStoredItems(helper);
+        SpellDispenserGameTestScenarios.creativeSpellDispenserDropsNoStoredItems(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void creativeSpellDispenserRestrictsMenuAccess(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.creativeSpellDispenserRestrictsMenuAccess(helper);
+        SpellDispenserGameTestScenarios.creativeSpellDispenserRestrictsMenuAccess(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserComparatorOutputMatchesStoredMana(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserComparatorOutputMatchesStoredMana(helper);
+        SpellDispenserGameTestScenarios.spellDispenserComparatorOutputMatchesStoredMana(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserSneakPlacementStartsAtZeroMana(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserSneakPlacementStartsAtZeroMana(helper);
+        SpellDispenserGameTestScenarios.spellDispenserSneakPlacementStartsAtZeroMana(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserRefillsFromHighestManaPotionThatFits(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserRefillsFromHighestManaPotionThatFits(helper);
+        SpellDispenserGameTestScenarios.spellDispenserRefillsFromHighestManaPotionThatFits(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserRefillsFromGlowEnergyFlask(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserRefillsFromGlowEnergyFlask(helper);
+        SpellDispenserGameTestScenarios.spellDispenserRefillsFromGlowEnergyFlask(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserActivationFailsWhenManaIsInsufficient(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserActivationFailsWhenManaIsInsufficient(helper);
+        SpellDispenserGameTestScenarios.spellDispenserActivationFailsWhenManaIsInsufficient(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserContinuousCastStopsWhenManaRunsOut(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserContinuousCastStopsWhenManaRunsOut(helper);
+        SpellDispenserGameTestScenarios.spellDispenserContinuousCastStopsWhenManaRunsOut(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserCreateContinuousCastRequiresDisableBeforeRestart(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserCreateContinuousCastRequiresDisableBeforeRestart(helper);
+        SpellDispenserGameTestScenarios.spellDispenserCreateContinuousCastRequiresDisableBeforeRestart(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserCreateContinuousCastStopsWhenDisabled(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserCreateContinuousCastStopsWhenDisabled(helper);
+        SpellDispenserGameTestScenarios.spellDispenserCreateContinuousCastStopsWhenDisabled(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserCreateInstantCastUsesCooldown(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserCreateInstantCastUsesCooldown(helper);
+        SpellDispenserGameTestScenarios.spellDispenserCreateInstantCastUsesCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = CREATE_COOLDOWN_MULTIPLIER_CONFIG_BATCH)
     public static void spellDispenserCreateAppliesCooldownMultiplier(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserCreateAppliesCooldownMultiplier(helper);
+        SpellDispenserGameTestScenarios.spellDispenserCreateAppliesCooldownMultiplier(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserCreateAllowsOwnerOptionalSpellWithoutOwnerProfile(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserCreateAllowsOwnerOptionalSpellWithoutOwnerProfile(helper);
+        SpellDispenserGameTestScenarios.spellDispenserCreateAllowsOwnerOptionalSpellWithoutOwnerProfile(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserCreateRefillsFromFuelStorageAndReturnsBottle(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserCreateRefillsFromFuelStorageAndReturnsBottle(helper);
+        SpellDispenserGameTestScenarios.spellDispenserCreateRefillsFromFuelStorageAndReturnsBottle(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserCreateIgnoresProtectedFuelStorage(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserCreateIgnoresProtectedFuelStorage(helper);
+        SpellDispenserGameTestScenarios.spellDispenserCreateIgnoresProtectedFuelStorage(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserBlockEntityRejectsActivationWithoutOwnerProfile(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserBlockEntityRejectsActivationWithoutOwnerProfile(helper);
+        SpellDispenserGameTestScenarios.spellDispenserBlockEntityRejectsActivationWithoutOwnerProfile(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserBlockEntityAllowsOwnerOptionalActivationWithoutOwnerProfile(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserBlockEntityAllowsOwnerOptionalActivationWithoutOwnerProfile(helper);
+        SpellDispenserGameTestScenarios.spellDispenserBlockEntityAllowsOwnerOptionalActivationWithoutOwnerProfile(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserSidedAutomationProtectsScrollSlot(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserSidedAutomationProtectsScrollSlot(helper);
+        SpellDispenserGameTestScenarios.spellDispenserSidedAutomationProtectsScrollSlot(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserSidedAutomationExtractsOnlyEmptyContainers(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserSidedAutomationExtractsOnlyEmptyContainers(helper);
+        SpellDispenserGameTestScenarios.spellDispenserSidedAutomationExtractsOnlyEmptyContainers(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserMountedMenuKeepsContraptionInventoryAccessible(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserMountedMenuKeepsContraptionInventoryAccessible(helper);
+        SpellDispenserGameTestScenarios.spellDispenserMountedMenuKeepsContraptionInventoryAccessible(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserMountedMenuTreatsOwnerOptionalSpellAsReadyWithoutOwnerProfile(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserMountedMenuTreatsOwnerOptionalSpellAsReadyWithoutOwnerProfile(helper);
+        SpellDispenserGameTestScenarios.spellDispenserMountedMenuTreatsOwnerOptionalSpellAsReadyWithoutOwnerProfile(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserIsTaggedForContraptionControls(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserIsTaggedForContraptionControls(helper);
+        SpellDispenserGameTestScenarios.spellDispenserIsTaggedForContraptionControls(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void creativeSpellDispenserIsTaggedForContraptionControls(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.creativeSpellDispenserIsTaggedForContraptionControls(helper);
+        SpellDispenserGameTestScenarios.creativeSpellDispenserIsTaggedForContraptionControls(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserOwnerProfileCanBeReadFromSavedTag(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserOwnerProfileCanBeReadFromSavedTag(helper);
+        SpellDispenserGameTestScenarios.spellDispenserOwnerProfileCanBeReadFromSavedTag(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserOwnerProfilePersistsThroughNbt(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserOwnerProfilePersistsThroughNbt(helper);
+        SpellDispenserGameTestScenarios.spellDispenserOwnerProfilePersistsThroughNbt(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserCastHelperSupportsDiagonalVectorFacing(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserCastHelperSupportsDiagonalVectorFacing(helper);
+        SpellDispenserGameTestScenarios.spellDispenserCastHelperSupportsDiagonalVectorFacing(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellDispenserCastHelperSupportsSpectralHammer(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellDispenserCastHelperSupportsSpectralHammer(helper);
+        SpellDispenserGameTestScenarios.spellDispenserCastHelperSupportsSpectralHammer(helper);
     }
 }
