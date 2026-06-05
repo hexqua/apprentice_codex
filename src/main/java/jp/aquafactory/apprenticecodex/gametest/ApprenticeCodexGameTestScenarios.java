@@ -86,6 +86,7 @@ import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfile;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfileManager;
@@ -95,6 +96,7 @@ import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectProfileManager;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
+import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffManaCostEvent;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffPowerHelper;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
@@ -3841,6 +3843,248 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void spellCalibrationBenchStoresScrollsOnRevolvercastStaff(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "revolvercast_staff_storage_test");
+            var menu = createSpellCalibrationBenchMenu(helper, player, new BlockPos(0, 1, 0));
+            var staff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
+            var lesserUpgrade = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get());
+            var recoveryRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get());
+            var enchantedBook = new ItemStack(Items.ENCHANTED_BOOK);
+            var firstScroll = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+            var continuousScroll = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get());
+
+            helper.assertTrue(menu.getSlot(0).mayPlace(staff),
+                    "Revolvercast Staff should be accepted in the Spell Calibration Bench target slot");
+            menu.getSlot(0).set(staff);
+            helper.assertTrue(menu.isScrollSlotEnabled(0), "Revolvercast Staff scroll slot 0 should be enabled by default");
+            helper.assertTrue(menu.isScrollSlotEnabled(3), "Revolvercast Staff scroll slot 3 should be enabled by default");
+            helper.assertFalse(menu.isScrollSlotEnabled(4),
+                    "Revolvercast Staff scroll slot 4 should be locked before adding an upgrade");
+            helper.assertFalse(menu.getImbueRestrictionTooltipLines().isEmpty(),
+                    "Revolvercast Staff should expose Calibration Bench spell restriction tooltip lines");
+            helper.assertTrue(menu.getSlot(1).mayPlace(lesserUpgrade),
+                    "Revolvercast Staff should accept slot upgrade adjustments");
+            helper.assertTrue(menu.getSlot(1).mayPlace(recoveryRune),
+                    "Revolvercast Staff should accept Recovery Rune adjustments");
+            helper.assertFalse(menu.getSlot(1).mayPlace(enchantedBook),
+                    "Revolvercast Staff should reject enchantment book adjustments");
+
+            menu.getSlot(1).set(recoveryRune);
+            helper.assertTrue(RevolvercastStaff.hasRecoveryRune(staff),
+                    "Revolvercast Staff should enter skip mode after storing a Recovery Rune");
+            helper.assertFalse(menu.getSlot(2).mayPlace(recoveryRune),
+                    "Revolvercast Staff should reject a duplicate Recovery Rune adjustment");
+
+            menu.getSlot(2).set(lesserUpgrade);
+            helper.assertTrue(menu.isScrollSlotEnabled(5),
+                    "One lesser slot upgrade should unlock six Revolvercast Staff scroll slots");
+            helper.assertFalse(menu.isScrollSlotEnabled(6),
+                    "One lesser slot upgrade should not unlock the seventh Revolvercast Staff scroll slot");
+            helper.assertTrue(menu.getSlot(9).mayPlace(firstScroll.copy()),
+                    "Newly unlocked Revolvercast Staff scroll slot should accept scrolls");
+            helper.assertFalse(menu.getSlot(9).mayPlace(continuousScroll),
+                    "Revolvercast Staff should reject unsupported continuous scrolls in the Spell Calibration Bench");
+            menu.getSlot(9).set(firstScroll);
+            helper.assertFalse(RevolvercastStaff.getCalibrationScroll(staff, 5).isEmpty(),
+                    "Scroll should be stored on the Revolvercast Staff NBT");
+        });
+    }
+
+    static void revolvercastStaffSelectedScrollNormalizesAndDrivesSpellWheel(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var staff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
+            RevolvercastStaff.refreshSelectedSpellContainer(staff);
+            helper.assertFalse(ISpellContainer.isSpellContainer(staff),
+                    "Empty Revolvercast Staff should not expose a spell container");
+
+            var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var heal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+            var fireball = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIREBALL_SPELL.get();
+            RevolvercastStaff.setCalibrationScroll(staff, 0, createSpellScroll(magicMissile));
+            RevolvercastStaff.setCalibrationScroll(staff, 2, createSpellScroll(heal));
+
+            helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 0,
+                    "First enabled Revolvercast Staff scroll should become selected");
+            var spellContainer = ISpellContainer.get(staff);
+            helper.assertTrue(spellContainer != null, "Selected Revolvercast Staff spell container is null");
+            helper.assertTrue(spellContainer.isSpellWheel(),
+                    "Selected Revolvercast Staff spell should be visible to Iron's spell wheel");
+            assertSpellData(helper, spellContainer, 0, magicMissile, 1, false,
+                    "Initial Revolvercast Staff selected spell mismatch");
+
+            helper.assertTrue(RevolvercastStaff.advanceToNextValidScrollIndex(staff),
+                    "Revolvercast Staff should advance to the next valid scroll");
+            helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 2,
+                    "Revolvercast Staff should skip empty scroll slots while advancing");
+            assertSpellData(helper, ISpellContainer.get(staff), 0, heal, 1, false,
+                    "Advanced Revolvercast Staff selected spell mismatch");
+
+            RevolvercastStaff.setCalibrationScroll(staff, 3, createSpellScroll(fireball));
+            RevolvercastStaff.setCalibrationScroll(staff, 2, ItemStack.EMPTY);
+            helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 3,
+                    "Invalid Revolvercast Staff index should normalize to the next valid scroll");
+            assertSpellData(helper, ISpellContainer.get(staff), 0, fireball, 1, false,
+                    "Normalized Revolvercast Staff selected spell mismatch");
+
+            RevolvercastStaff.setCalibrationScroll(staff, 3, ItemStack.EMPTY);
+            helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 0,
+                    "Removing the selected last scroll should wrap to the first valid scroll");
+            RevolvercastStaff.setCalibrationScroll(staff, 0, ItemStack.EMPTY);
+            helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == -1,
+                    "Removing every Revolvercast Staff scroll should clear the selected index");
+            helper.assertFalse(ISpellContainer.isSpellContainer(staff),
+                    "Removing every Revolvercast Staff scroll should clear the exposed spell container");
+        });
+    }
+
+    static void revolvercastStaffCooldownFailureAdvancesOnlyInSkipMode(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var staff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
+            var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var heal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+            RevolvercastStaff.setCalibrationScroll(staff, 0, createSpellScroll(magicMissile));
+            RevolvercastStaff.setCalibrationScroll(staff, 2, createSpellScroll(heal));
+            RevolvercastStaff.setSelectedScrollIndex(staff, 0);
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "revolvercast_staff_cooldown_failure_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, staff);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null,
+                    "Revolvercast Staff cooldown failure test could not resolve player magic data");
+            magicData.setMana(1000.0F);
+            io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, magicMissile, CastSource.SWORD);
+
+            helper.assertFalse(((RevolvercastStaff) staff.getItem()).tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
+                    "Revolvercast Staff should fail to swing-cast a spell that is on cooldown");
+            helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 0,
+                    "Normal Revolvercast Staff mode should stay on a failed cooldown spell");
+
+            RevolvercastStaff.setCalibrationAdjustment(
+                    staff,
+                    0,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get())
+            );
+            helper.assertFalse(((RevolvercastStaff) staff.getItem()).tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
+                    "Skip mode Revolvercast Staff should still fail to cast a spell that is on cooldown");
+            helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 2,
+                    "Skip mode Revolvercast Staff should advance after a cooldown failure");
+            magicData.getPlayerCooldowns().removeCooldown(magicMissile.getSpellId());
+        });
+    }
+
+    static void revolvercastStaffSuccessfulCastAdvancesAfterCompletionTick(GameTestHelper helper) {
+        var staff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
+        var fireball = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIREBALL_SPELL.get();
+        var heal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+        RevolvercastStaff.setCalibrationScroll(staff, 0, createSpellScroll(fireball));
+        RevolvercastStaff.setCalibrationScroll(staff, 2, createSpellScroll(heal));
+        RevolvercastStaff.setSelectedScrollIndex(staff, 0);
+
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "revolvercast_staff_pending_success_test");
+        player.setItemInHand(InteractionHand.MAIN_HAND, staff);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null,
+                "Revolvercast Staff pending success test could not resolve player magic data");
+        magicData.setMana(1000.0F);
+
+        helper.runAtTickTime(1, () -> {
+            helper.assertTrue(((RevolvercastStaff) staff.getItem()).tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
+                    "Revolvercast Staff should successfully initiate the selected spell");
+            helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 0,
+                    "Revolvercast Staff should not advance in the same tick as cast initiation");
+
+            RevolvercastStaffPendingAdvance.tickPlayer(player);
+            helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 0,
+                    "Revolvercast Staff should wait until the next game tick before advancing");
+        });
+
+        helper.runAtTickTime(3, () -> {
+            RevolvercastStaffPendingAdvance.tickPlayer(player);
+            helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 2,
+                    "Revolvercast Staff should advance after the successful cast completes and a tick passes");
+            helper.succeed();
+        });
+    }
+
+    static void revolvercastStaffCancelledCastDoesNotAdvancePendingSelection(GameTestHelper helper) {
+        var staff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
+        var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        var heal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+        RevolvercastStaff.setCalibrationScroll(staff, 0, createSpellScroll(magicMissile));
+        RevolvercastStaff.setCalibrationScroll(staff, 2, createSpellScroll(heal));
+        RevolvercastStaff.setSelectedScrollIndex(staff, 0);
+
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "revolvercast_staff_pending_cancel_test");
+        player.setItemInHand(InteractionHand.MAIN_HAND, staff);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null,
+                "Revolvercast Staff pending cancel test could not resolve player magic data");
+
+        RevolvercastStaffPendingAdvance.reserve(player, InteractionHand.MAIN_HAND, staff, magicMissile, 0);
+        magicData.setPlayerCastingItem(staff);
+        RevolvercastStaffPendingAdvance.onServerCastComplete(player, magicMissile, magicData, true);
+
+        helper.runAtTickTime(2, () -> {
+            RevolvercastStaffPendingAdvance.tickPlayer(player);
+            helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 0,
+                    "Revolvercast Staff should discard pending advancement when the cast is cancelled");
+            helper.succeed();
+        });
+    }
+
+    static void revolvercastStaffBlocksArcaneAnvilAndUsesDiamondSwingcastRestrictions(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+            var staff = (RevolvercastStaff) stack.getItem();
+            var modifiers = toModifierMultimap(staff.getDefaultAttributeModifiers(stack));
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                    0.10D,
+                    "Revolvercast Staff general spell power modifier changed"
+            );
+            RevolvercastStaff.setCalibrationAdjustment(
+                    stack,
+                    0,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get())
+            );
+            modifiers = toModifierMultimap(staff.getDefaultAttributeModifiers(stack));
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                    0.15D,
+                    "Fire rune should replace Revolvercast Staff general spell power with a stronger fire spell power bonus"
+            );
+            helper.assertTrue(modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER).isEmpty(),
+                    "Fire-tuned Revolvercast Staff should not keep its general spell power modifier");
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
+                    "Revolvercast Staff should reject Arcane Anvil spell imbuing"
+            );
+            helper.assertTrue(staff.canImbueSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1),
+                    "Revolvercast Staff should accept instant spells like Diamond Swingcast Staff");
+            helper.assertTrue(staff.canImbueSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get(), 1),
+                    "Revolvercast Staff should accept long spells like Diamond Swingcast Staff");
+            helper.assertFalse(staff.canImbueSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get(), 1),
+                    "Revolvercast Staff should reject continuous spells like Diamond Swingcast Staff");
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "revolvercast_staff_cooldown_mode_test");
+            var longSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+            var currentCooldown = 80;
+            var resolvedCooldown = staff.resolveSwingcastCooldownTicks(player, stack, longSpell, currentCooldown);
+            helper.assertTrue(resolvedCooldown == currentCooldown + longSpell.getEffectiveCastTime(1, player),
+                    "Revolvercast Staff long spell cooldown should be extended like Diamond Swingcast Staff");
+        });
+    }
+
     static void scrollcasterGauntletStopsCreativeBlockAttackLikeVanillaSword(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
@@ -3916,11 +4160,22 @@ public final class ApprenticeCodexGameTestScenarios {
             var enchantedBook = new ItemStack(Items.ENCHANTED_BOOK);
             var lesserUpgrade = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get());
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var recoveryRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get());
 
             helper.assertTrue(lesserUpgrade.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES),
                     "Lesser spell slot upgrade should be tagged as a Scrollcaster Gauntlet slot upgrade");
             helper.assertTrue(enchantedBook.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS),
                     "Vanilla enchanted book should be tagged as a Scrollcaster Gauntlet enchantment book");
+            player.getInventory().setItem(9, recoveryRune.copy());
+            var quickMovedRecoveryRune = menu.quickMoveStack(
+                    player,
+                    SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START + ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOT_COUNT
+            );
+            helper.assertTrue(quickMovedRecoveryRune.is(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()),
+                    "Recovery Rune shift-click without a target should fall back to normal inventory movement");
+            helper.assertTrue(player.getInventory().getItem(9).isEmpty()
+                            && player.getInventory().getItem(0).is(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()),
+                    "Recovery Rune should move from main inventory to hotbar when no Calibration Bench target is present");
             menu.getSlot(0).set(gauntlet);
             helper.assertTrue(
                     ScrollcasterSchoolRuneResolver.resolveSchool(fireRune)
@@ -8052,6 +8307,13 @@ public final class ApprenticeCodexGameTestScenarios {
                     1,
                     "item.apprenticecodex.swingcast.common.desc",
                     "Swingcast Staff should show swingcast tooltip after shield priority tooltip"
+            );
+            assertTooltipKeyAt(
+                    helper,
+                    new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get()),
+                    1,
+                    "item.apprenticecodex.swingcast.common.desc",
+                    "Revolvercast Staff should show swingcast tooltip after shield priority tooltip"
             );
             assertTooltipKeyUsesColor(
                     helper,
@@ -18230,7 +18492,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 Enchantments.TRANSCENDENCE,
                 Enchantments.WISDOM
         ));
-        if (stack.getItem() instanceof MithrilFreecastStaff) {
+        if (stack.getItem() instanceof MithrilFreecastStaff || stack.getItem() instanceof RevolvercastStaff) {
             expectedEnchantments.remove(Enchantments.TRANSCENDENCE.location());
         }
         addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);

@@ -621,6 +621,19 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .addCriterion("crafted_iron_swingcast_staff", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.IRON_SWINGCAST_STAFF.getId()))
                 .save(saver, advancementId("craft_iron_swingcast_staff"), existingFileHelper);
 
+        Advancement.Builder.advancement()
+                .parent(ironSwing)
+                .display(ItemRegistry.REVOLVERCAST_STAFF.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_revolvercast_staff.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_revolvercast_staff.description"),
+                        null,
+                        AdvancementType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_revolvercast_staff", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.REVOLVERCAST_STAFF.getId()))
+                .save(saver, advancementId("craft_revolvercast_staff"), existingFileHelper);
+
         var silverSwing = Advancement.Builder.advancement()
                 .parent(ironSwing)
                 .display(ItemRegistry.SILVER_SWINGCAST_STAFF.get(),

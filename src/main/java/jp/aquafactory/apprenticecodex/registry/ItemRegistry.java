@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
+import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationBenchItem;
@@ -345,6 +346,8 @@ public final class ItemRegistry {
             ITEMS.register("netherite_swingcast_staff", NetheriteSwingcastStaff::new);
     public static final DeferredHolder<Item, Item> MITHRIL_FREECAST_STAFF =
             ITEMS.register("mithril_freecast_staff", MithrilFreecastStaff::new);
+    public static final DeferredHolder<Item, Item> REVOLVERCAST_STAFF =
+            ITEMS.register("revolvercast_staff", RevolvercastStaff::new);
     public static final DeferredHolder<Item, Item> CRYSTAL_BLADED_STAFF =
             ITEMS.register("crystal_bladed_staff", CrystalBladedStaff::new);
     public static final DeferredHolder<Item, Item> ILLUMINATE_STELLAR_STAFF =
