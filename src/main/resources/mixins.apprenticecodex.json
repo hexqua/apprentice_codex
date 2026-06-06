@@ -20,6 +20,7 @@
     "EnchantmentMenuMixin",
     "FluidStackMixin",
     "EntitySharedFlagAccessor",
+    "EfisCompatPlayerAnimationEventsMixin",
     "EpicFightLivingEntityPatchMixin",
     "EpicFightPlayerPatchMixin",
     "ItemNameMixin",
