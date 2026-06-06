@@ -12,6 +12,7 @@ import net.bettercombat.logic.AnimatedHand;
 import net.bettercombat.logic.WeaponRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 
 import java.util.List;
@@ -60,20 +61,21 @@ public final class BetterCombatClientCompat {
     }
 
     private static void onAttackHit(LocalPlayer player, AttackHand attackHand, List<Entity> targets, Entity cursorTarget) {
-        if (attackHand.isOffHand()) {
-            return;
-        }
-
         var minecraft = Minecraft.getInstance();
         if (player != minecraft.player) {
             return;
         }
 
-        if (player.getMainHandItem().getItem() instanceof MultipurposeStaffrifle
+        if (!attackHand.isOffHand()
+                && player.getMainHandItem().getItem() instanceof MultipurposeStaffrifle
                 && !MultipurposeStaffrifleClientAdsState.isLocalAdsKeyHeld(player)) {
             ClientMultipurposeStaffrifleInputEvent.trySendNonAdsSpecialCast(minecraft);
         }
-        ClientSwingMagicAttackTrigger.trySendForBetterCombat(minecraft);
+        ClientSwingMagicAttackTrigger.trySendForBetterCombat(minecraft, resolveHand(attackHand));
+    }
+
+    private static InteractionHand resolveHand(AttackHand attackHand) {
+        return attackHand.isOffHand() ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
     }
 
     private static boolean hasAttackSequence(WeaponAttributes attributes) {
