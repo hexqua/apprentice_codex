@@ -2298,7 +2298,7 @@ public class ApprenticeCodexGameTestScenarios {
 
             helper.assertTrue(gauntletItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
                     "Scrollcaster Gauntlet should swing-cast the selected instant spell with a Mithril Freecast Staff adjustment");
-            helper.assertTrue(ItemStack.isSameItemSameTags(magicData.getPlayerCastingItem(), gauntlet),
+            helper.assertTrue(ItemStack.isSameItemSameComponents(magicData.getPlayerCastingItem(), gauntlet),
                     "Scrollcaster Gauntlet freecast should cast with the gauntlet stack");
             helper.assertTrue(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND.equals(magicData.getCastingEquipmentSlot()),
                     "Scrollcaster Gauntlet freecast should mark the mainhand casting slot");
@@ -2391,7 +2391,7 @@ public class ApprenticeCodexGameTestScenarios {
                             .triggerSwingMagicFromAttackPhase(player, InteractionHand.OFF_HAND, -1, 0),
                     "Epic Fight mirrored offhand attack should trigger the mainhand Gauntlet Swingcast"
             );
-            helper.assertTrue(ItemStack.isSameItemSameTags(magicData.getPlayerCastingItem(), gauntlet),
+            helper.assertTrue(ItemStack.isSameItemSameComponents(magicData.getPlayerCastingItem(), gauntlet),
                     "Epic Fight mirrored Gauntlet Swingcast should cast with the mainhand Gauntlet stack");
             helper.assertTrue(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND.equals(magicData.getCastingEquipmentSlot()),
                     "Epic Fight mirrored Gauntlet Swingcast should mark the mainhand casting slot");
