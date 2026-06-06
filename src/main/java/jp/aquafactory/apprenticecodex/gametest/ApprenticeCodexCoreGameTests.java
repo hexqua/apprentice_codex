@@ -96,6 +96,26 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void scrollcasterGauntletFreecastStaffAdjustmentEnablesSwingcast(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.scrollcasterGauntletFreecastStaffAdjustmentEnablesSwingcast(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void scrollcasterGauntletEpicFightMirroredOffhandSwingcastUsesMainhand(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.scrollcasterGauntletEpicFightMirroredOffhandSwingcastUsesMainhand(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void scrollcasterGauntletEpicFightFallbackIgnoresUnadjustedGauntlet(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.scrollcasterGauntletEpicFightFallbackIgnoresUnadjustedGauntlet(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellCalibrationBenchAcceptsGauntletFreecastStaffAdjustment(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellCalibrationBenchAcceptsGauntletFreecastStaffAdjustment(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellCalibrationBenchStoresScrollsOnRevolvercastStaff(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellCalibrationBenchStoresScrollsOnRevolvercastStaff(helper);
     }

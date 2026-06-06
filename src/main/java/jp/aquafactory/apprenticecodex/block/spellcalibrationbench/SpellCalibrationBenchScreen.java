@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.block.spellcalibrationbench;
 import com.mojang.blaze3d.systems.RenderSystem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -316,11 +317,15 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
                     TagRegistry.Items.SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS,
                     new ItemStack(Items.ENCHANTED_BOOK)
             );
+            lines.add(Component.translatable(
+                    "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_single_specific_item",
+                    new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()).getHoverName()
+            ));
         }
         lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_runes"));
         if (menu.hasRevolvercastStaff()) {
             lines.add(Component.translatable(
-                    "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_recovery_rune",
+                    "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_single_specific_item",
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()).getHoverName()
             ));
         }

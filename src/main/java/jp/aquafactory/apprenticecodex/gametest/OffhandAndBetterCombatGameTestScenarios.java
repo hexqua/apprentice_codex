@@ -815,6 +815,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(expectedSpell));
             ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
+            ScrollcasterGauntlet.setCalibrationAdjustment(gauntlet, 0, new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()));
 
             var player = createBetterCombatHiddenOffhandPlayer(
                     helper,
@@ -825,6 +826,8 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             helper.assertTrue(player.getOffhandItem().isEmpty(),
                     "Better Combat should hide getOffhandItem() for spellbreaker Scrollcaster test but returned "
                             + player.getOffhandItem());
+            helper.assertFalse(((ScrollcasterGauntlet) gauntlet.getItem()).tryTriggerSpellOnSwing(player, InteractionHand.OFF_HAND, true),
+                    "Scrollcaster Gauntlet freecast swing should not resolve Better Combat hidden physical offhand stacks");
             helper.assertFalse(
                     jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat
                             .isRescueActive(player),

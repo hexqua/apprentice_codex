@@ -11,7 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public record ClientSwingMagicAttackPacket(boolean bypassChargeCheck) implements CustomPacketPayload {
+public record ClientSwingMagicAttackPacket(boolean bypassChargeCheck, InteractionHand hand) implements CustomPacketPayload {
     public static final Type<ClientSwingMagicAttackPacket> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "client_swing_magic_attack"));
     public static final StreamCodec<RegistryFriendlyByteBuf, ClientSwingMagicAttackPacket> STREAM_CODEC =
@@ -24,10 +24,11 @@ public record ClientSwingMagicAttackPacket(boolean bypassChargeCheck) implements
 
     public static void encode(ClientSwingMagicAttackPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBoolean(packet.bypassChargeCheck());
+        buffer.writeEnum(packet.hand());
     }
 
     public static ClientSwingMagicAttackPacket decode(FriendlyByteBuf buffer) {
-        return new ClientSwingMagicAttackPacket(buffer.readBoolean());
+        return new ClientSwingMagicAttackPacket(buffer.readBoolean(), buffer.readEnum(InteractionHand.class));
     }
 
     public static void handle(ClientSwingMagicAttackPacket packet, IPayloadContext context) {
@@ -36,11 +37,12 @@ public record ClientSwingMagicAttackPacket(boolean bypassChargeCheck) implements
                 return;
             }
 
-            var mainHandItem = sender.getMainHandItem().getItem();
-            if (mainHandItem instanceof SwingTriggeredMagicItem swingTriggeredMagicItem) {
+            var stack = sender.getItemInHand(packet.hand());
+            if (stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem
+                    && swingTriggeredMagicItem.canTriggerSpellOnSwing(sender, packet.hand())) {
                 swingTriggeredMagicItem.tryTriggerSpellOnSwing(
                         sender,
-                        InteractionHand.MAIN_HAND,
+                        packet.hand(),
                         packet.bypassChargeCheck()
                 );
             }
