@@ -368,8 +368,24 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         return false;
     }
 
+    private boolean hasFreecastStaffAdjustmentExcept(int excludedSlot) {
+        for (var slot = 0; slot < ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            if (slot == excludedSlot) {
+                continue;
+            }
+            if (ScrollcasterGauntlet.isFreecastStaffAdjustment(getAdjustment(slot))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     static boolean isAdjustmentItem(@NotNull ItemStack stack) {
-        return isSpellSlotUpgrade(stack) || isSchoolRune(stack) || isEnchantmentBook(stack) || isRecoveryRune(stack);
+        return isSpellSlotUpgrade(stack)
+                || isSchoolRune(stack)
+                || isEnchantmentBook(stack)
+                || isRecoveryRune(stack)
+                || isFreecastStaff(stack);
     }
 
     static boolean isSchoolRune(@NotNull ItemStack stack) {
@@ -386,6 +402,10 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
     static boolean isRecoveryRune(@NotNull ItemStack stack) {
         return RevolvercastStaff.isRecoveryRune(stack);
+    }
+
+    static boolean isFreecastStaff(@NotNull ItemStack stack) {
+        return ScrollcasterGauntlet.isFreecastStaffAdjustment(stack);
     }
 
     private static boolean isScroll(@NotNull ItemStack stack) {
@@ -600,8 +620,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             }
 
             if (hasGauntlet()) {
-                return (isSpellSlotUpgrade(stack) || isSchoolRune(stack) || isEnchantmentBook(stack))
-                        && (!isSchoolRune(stack) || !hasSchoolRuneAdjustmentExcept(calibrationSlot));
+                return (isSpellSlotUpgrade(stack) || isSchoolRune(stack) || isEnchantmentBook(stack) || isFreecastStaff(stack))
+                        && (!isSchoolRune(stack) || !hasSchoolRuneAdjustmentExcept(calibrationSlot))
+                        && (!isFreecastStaff(stack) || !hasFreecastStaffAdjustmentExcept(calibrationSlot));
             }
             if (hasRevolvercastStaff()) {
                 return RevolvercastStaff.isCalibrationAdjustmentItem(stack)

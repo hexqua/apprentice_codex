@@ -97,6 +97,7 @@ import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntletFreecastContext;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffManaCostEvent;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffPowerHelper;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
@@ -2262,6 +2263,114 @@ public class ApprenticeCodexGameTestScenarios {
                     "Removing every scroll should clear the selected gauntlet index");
             helper.assertFalse(ISpellContainer.isSpellContainer(gauntlet),
                     "Removing every scroll should clear the exposed gauntlet spell container");
+        });
+    }
+
+    static void scrollcasterGauntletFreecastStaffAdjustmentEnablesSwingcast(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var gauntletItem = (ScrollcasterGauntlet) gauntlet.getItem();
+            var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var fireBreath = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
+            var heal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+            ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(magicMissile));
+            ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "scrollcaster_gauntlet_freecast_swing_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, gauntlet);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null,
+                    "Scrollcaster Gauntlet freecast swing test could not resolve player magic data");
+            magicData.setMana(1000.0F);
+
+            helper.assertFalse(gauntletItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
+                    "Scrollcaster Gauntlet should not swing-cast without a Mithril Freecast Staff adjustment");
+            ScrollcasterGauntlet.setCalibrationAdjustment(gauntlet, 0, new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()));
+            helper.assertTrue(ScrollcasterGauntlet.hasFreecastStaffAdjustment(gauntlet),
+                    "Scrollcaster Gauntlet should detect its Mithril Freecast Staff adjustment");
+            assertTooltipKeyAt(helper, gauntlet, 2, "item.apprenticecodex.freecast.common.desc",
+                    "Freecast-adjusted Scrollcaster Gauntlet should show the generic freecast tooltip");
+
+            helper.assertTrue(gauntletItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
+                    "Scrollcaster Gauntlet should swing-cast the selected instant spell with a Mithril Freecast Staff adjustment");
+            helper.assertTrue(ItemStack.isSameItemSameTags(magicData.getPlayerCastingItem(), gauntlet),
+                    "Scrollcaster Gauntlet freecast should cast with the gauntlet stack");
+            helper.assertTrue(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND.equals(magicData.getCastingEquipmentSlot()),
+                    "Scrollcaster Gauntlet freecast should mark the mainhand casting slot");
+            magicData.getPlayerCooldowns().removeCooldown(magicMissile.getSpellId());
+
+            ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(fireBreath));
+            ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
+            helper.assertFalse(gauntletItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
+                    "Scrollcaster Gauntlet freecast should reject continuous spells like Mithril Freecast Staff");
+
+            ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(magicMissile));
+            ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
+            io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, magicMissile, CastSource.SWORD);
+            helper.assertFalse(gauntletItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
+                    "Scrollcaster Gauntlet freecast should reject spells that are already on cooldown");
+            magicData.getPlayerCooldowns().removeCooldown(magicMissile.getSpellId());
+
+            ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(heal));
+            ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
+            magicData.setPlayerCastingItem(gauntlet.copy());
+            var baseCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    heal,
+                    player,
+                    CastSource.SWORD,
+                    gauntlet
+            );
+            var normalEvent = new SpellCooldownAddedEvent.Pre(
+                    io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(heal, player, CastSource.SWORD),
+                    heal,
+                    player,
+                    CastSource.SWORD
+            );
+            ScrollcasterGauntletCastEvent.onSpellCooldownAdded(normalEvent);
+            helper.assertTrue(normalEvent.getEffectiveCooldown() == baseCooldown,
+                    "Normal Scrollcaster Gauntlet casts should keep the base gauntlet cooldown");
+
+            try (var ignored = ScrollcasterGauntletFreecastContext.open(player.getUUID(), gauntlet, heal)) {
+                var freecastEvent = new SpellCooldownAddedEvent.Pre(
+                        io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(heal, player, CastSource.SWORD),
+                        heal,
+                        player,
+                        CastSource.SWORD
+                );
+                ScrollcasterGauntletCastEvent.onSpellCooldownAdded(freecastEvent);
+                var expectedCooldown = baseCooldown + heal.getEffectiveCastTime(1, player);
+                helper.assertTrue(freecastEvent.getEffectiveCooldown() == expectedCooldown,
+                        "Scrollcaster Gauntlet freecast should extend long spell cooldown by cast time but got "
+                                + freecastEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+            }
+        });
+    }
+
+    static void spellCalibrationBenchAcceptsGauntletFreecastStaffAdjustment(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "spell_calibration_freecast_adjustment_test");
+            var menu = createSpellCalibrationBenchMenu(helper, player, new BlockPos(0, 1, 0));
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var staff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
+            var freecastStaff = new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
+
+            helper.assertFalse(menu.getSlot(1).mayPlace(freecastStaff),
+                    "Mithril Freecast Staff adjustment should be rejected without a calibration target");
+            menu.getSlot(0).set(gauntlet);
+            helper.assertTrue(menu.getSlot(1).mayPlace(freecastStaff),
+                    "Scrollcaster Gauntlet should accept a Mithril Freecast Staff adjustment");
+            menu.getSlot(1).set(freecastStaff.copy());
+            helper.assertTrue(ScrollcasterGauntlet.hasFreecastStaffAdjustment(gauntlet),
+                    "Mithril Freecast Staff adjustment should be stored on the gauntlet");
+            helper.assertFalse(menu.getSlot(2).mayPlace(freecastStaff),
+                    "Scrollcaster Gauntlet should reject duplicate Mithril Freecast Staff adjustments");
+
+            menu.getSlot(1).set(ItemStack.EMPTY);
+            menu.getSlot(0).set(staff);
+            helper.assertFalse(menu.getSlot(1).mayPlace(freecastStaff),
+                    "Revolvercast Staff should not accept a Mithril Freecast Staff adjustment");
         });
     }
 
