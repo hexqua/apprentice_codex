@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntletFreecastContext;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -25,12 +26,24 @@ public final class ScrollcasterGauntletCastEvent {
         }
 
         var castingItem = magicData.getPlayerCastingItem();
-        if (!(castingItem.getItem() instanceof ScrollcasterGauntlet)) {
+        if (!(castingItem.getItem() instanceof ScrollcasterGauntlet gauntlet)) {
             return;
         }
 
-        event.setEffectiveCooldown(
-                WeaponImbueCooldownHelper.getEffectiveSpellCooldown(event.getSpell(), player, event.getCastSource(), castingItem)
+        var effectiveCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                event.getSpell(),
+                player,
+                event.getCastSource(),
+                castingItem
         );
+        if (ScrollcasterGauntletFreecastContext.matches(player.getUUID(), castingItem, event.getSpell())) {
+            effectiveCooldown = gauntlet.resolveFreecastSwingCooldownTicks(
+                    player,
+                    castingItem,
+                    event.getSpell(),
+                    effectiveCooldown
+            );
+        }
+        event.setEffectiveCooldown(effectiveCooldown);
     }
 }

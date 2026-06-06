@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.compat.epicfight;
 
-import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
 import net.minecraft.server.level.ServerPlayer;
@@ -158,7 +157,7 @@ public final class EpicFightSwingMagicCompat {
         }
 
         var hand = resolveAttackHand(event);
-        triggerSwingMagic(player, hand, TriggerSource.ATTACK_PHASE, getAnimationId(event.getAnimation()), event.getPhaseOrder());
+        triggerSwingMagicFromAttackPhase(player, hand, getAnimationId(event.getAnimation()), event.getPhaseOrder());
     }
 
     private static void onBasicAttack(BasicAttackEvent event) {
@@ -200,35 +199,50 @@ public final class EpicFightSwingMagicCompat {
         }
     }
 
-    private static void triggerSwingMagic(
+    public static boolean triggerSwingMagicFromAttackPhase(
+            Player player,
+            InteractionHand hand,
+            int animationId,
+            int triggerIndex
+    ) {
+        return triggerSwingMagic(player, hand, TriggerSource.ATTACK_PHASE, animationId, triggerIndex);
+    }
+
+    public static InteractionHand resolveSwingMagicTriggerHand(Player player, InteractionHand hand) {
+        return EpicFightScrollcasterGauntletOffhandBridge.resolveSwingMagicHand(player, hand);
+    }
+
+    private static boolean triggerSwingMagic(
             Player player,
             InteractionHand hand,
             TriggerSource source,
             int animationId,
             int triggerIndex
     ) {
-        var stack = player.getItemInHand(hand);
-        if (!(stack.getItem() instanceof SwingTriggeredMagicItem)
-                && !(stack.getItem() instanceof MultipurposeStaffrifle)) {
-            return;
+        var triggerHand = resolveSwingMagicTriggerHand(player, hand);
+        var stack = player.getItemInHand(triggerHand);
+        if (!isSupportedAttackTriggeredItem(player, triggerHand)) {
+            return false;
         }
 
-        var triggerKey = new TriggerKey(player.getUUID(), hand, source, animationId, triggerIndex);
+        var triggerKey = new TriggerKey(player.getUUID(), triggerHand, source, animationId, triggerIndex);
         var gameTime = player.level().getGameTime();
         var lastTriggeredTick = LAST_TRIGGERED_TICKS.put(triggerKey, gameTime);
         if (lastTriggeredTick != null && lastTriggeredTick == gameTime) {
-            return;
+            return false;
         }
 
         if (stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem) {
-            swingTriggeredMagicItem.tryTriggerSpellOnSwing(player, hand, true);
-        } else if (hand == InteractionHand.MAIN_HAND
+            return swingTriggeredMagicItem.tryTriggerSpellOnSwing(player, triggerHand, true);
+        } else if (triggerHand == InteractionHand.MAIN_HAND
                 && player instanceof ServerPlayer serverPlayer
                 && stack.getItem() instanceof MultipurposeStaffrifle staffrifle) {
             if (staffrifle.tryTriggerSelectedSpell(serverPlayer, false)) {
                 playStaffrifleShotAnimation(serverPlayer);
+                return true;
             }
         }
+        return false;
     }
 
     public static void playStaffrifleShotAnimation(ServerPlayer player) {
@@ -255,22 +269,31 @@ public final class EpicFightSwingMagicCompat {
         EpicFightNetworkManager.sendToAllPlayerTrackingThisEntityWithSelf(packet, player);
     }
 
+    public static InteractionHand resolveAvailableSwingMagicTriggerHand(Player player, InteractionHand preferredHand) {
+        return resolveAvailableSwingMagicHand(player, preferredHand);
+    }
+
     private static InteractionHand resolveAvailableSwingMagicHand(Player player, InteractionHand preferredHand) {
-        if (isSupportedAttackTriggeredItem(player.getItemInHand(preferredHand))) {
-            return preferredHand;
+        var resolvedPreferredHand = resolveSwingMagicTriggerHand(player, preferredHand);
+        if (isSupportedAttackTriggeredItem(player, resolvedPreferredHand)) {
+            return resolvedPreferredHand;
         }
 
         var fallbackHand = preferredHand == InteractionHand.MAIN_HAND
                 ? InteractionHand.OFF_HAND
                 : InteractionHand.MAIN_HAND;
-        return isSupportedAttackTriggeredItem(player.getItemInHand(fallbackHand))
-                ? fallbackHand
+        var resolvedFallbackHand = resolveSwingMagicTriggerHand(player, fallbackHand);
+        return isSupportedAttackTriggeredItem(player, resolvedFallbackHand)
+                ? resolvedFallbackHand
                 : preferredHand;
     }
 
-    private static boolean isSupportedAttackTriggeredItem(net.minecraft.world.item.ItemStack stack) {
-        return stack.getItem() instanceof SwingTriggeredMagicItem
-                || stack.getItem() instanceof MultipurposeStaffrifle;
+    private static boolean isSupportedAttackTriggeredItem(Player player, InteractionHand hand) {
+        var stack = player.getItemInHand(hand);
+        if (stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem) {
+            return swingTriggeredMagicItem.canTriggerSpellOnSwing(player, hand);
+        }
+        return stack.getItem() instanceof MultipurposeStaffrifle;
     }
 
     private static InteractionHand resolveAttackHand(AttackPhaseEndEvent event) {
