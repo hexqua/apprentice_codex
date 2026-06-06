@@ -38,7 +38,8 @@ public record ClientSwingMagicAttackPacket(boolean bypassChargeCheck, Interactio
             }
 
             var stack = sender.getItemInHand(packet.hand());
-            if (stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem) {
+            if (stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem
+                    && swingTriggeredMagicItem.canTriggerSpellOnSwing(sender, packet.hand())) {
                 swingTriggeredMagicItem.tryTriggerSpellOnSwing(
                         sender,
                         packet.hand(),

@@ -242,17 +242,20 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     @Override
+    public boolean canTriggerSpellOnSwing(Player player, InteractionHand hand) {
+        var stack = player.getItemInHand(hand);
+        return stack.getItem() == this && hasFreecastStaffAdjustment(stack);
+    }
+
+    @Override
     public boolean tryTriggerSpellOnSwing(Player player, InteractionHand hand, boolean bypassChargeCheck) {
         if (player.level().isClientSide) {
             return false;
         }
 
         var stack = player.getItemInHand(hand);
-        if (stack.getItem() != this || (!bypassChargeCheck && !AbstractRightClickMagicWeaponItem.isFullyChargedAttack(player))) {
-            return false;
-        }
-
-        if (!hasFreecastStaffAdjustment(stack)) {
+        if (!canTriggerSpellOnSwing(player, hand)
+                || (!bypassChargeCheck && !AbstractRightClickMagicWeaponItem.isFullyChargedAttack(player))) {
             return false;
         }
 

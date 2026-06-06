@@ -106,6 +106,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void scrollcasterGauntletEpicFightFallbackIgnoresUnadjustedGauntlet(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.scrollcasterGauntletEpicFightFallbackIgnoresUnadjustedGauntlet(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellCalibrationBenchAcceptsGauntletFreecastStaffAdjustment(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellCalibrationBenchAcceptsGauntletFreecastStaffAdjustment(helper);
     }
