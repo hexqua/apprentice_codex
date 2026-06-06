@@ -2,12 +2,14 @@ package jp.aquafactory.apprenticecodex.item;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
@@ -23,6 +25,8 @@ import jp.aquafactory.apprenticecodex.renderer.item.ScrollcasterGauntletRenderer
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntletFreecastContext;
+import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -69,12 +73,13 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
         WeaponImbueCooldownPolicyItem, ItemTransformPreservingCastAnimationItem,
-        BetterCombatOffhandDualWieldingPolicyItem, IJeiInfoItem {
+        BetterCombatOffhandDualWieldingPolicyItem, SwingTriggeredMagicItem, IJeiInfoItem {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.scrollcaster_gauntlet.desc_";
 
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
@@ -230,7 +235,82 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                     resolvedSchool.getDisplayName()
             ).withStyle(ChatFormatting.GRAY));
         }
+        if (hasFreecastStaffAdjustment(stack)) {
+            lines.add(Component.translatable("item.apprenticecodex.freecast.common.desc")
+                    .withStyle(ChatFormatting.GRAY));
+        }
         super.appendHoverText(stack, level, lines, flag);
+    }
+
+    @Override
+    public boolean tryTriggerSpellOnSwing(Player player, InteractionHand hand, boolean bypassChargeCheck) {
+        if (player.level().isClientSide) {
+            return false;
+        }
+
+        var stack = player.getItemInHand(hand);
+        if (stack.getItem() != this || (!bypassChargeCheck && !AbstractRightClickMagicWeaponItem.isFullyChargedAttack(player))) {
+            return false;
+        }
+
+        if (!hasFreecastStaffAdjustment(stack)) {
+            return false;
+        }
+
+        refreshSelectedSpellContainer(stack);
+        var spellData = getSelectedSpellData(stack);
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            return false;
+        }
+
+        var spell = spellData.getSpell();
+        if (!MithrilFreecastStaff.canSwingCastSpell(spell)) {
+            return false;
+        }
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData != null && magicData.getPlayerCooldowns().isOnCooldown(spell)) {
+            return false;
+        }
+
+        var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
+        var slotId = resolveSpellSelectionSlot(hand);
+        try (var swingContext = SwingcastStaffCastContext.open(player.getUUID(), stack, spell);
+             var freecastContext = ScrollcasterGauntletFreecastContext.open(player.getUUID(), stack, spell)) {
+            var casted = spell.attemptInitiateCast(
+                    stack,
+                    spellLevel,
+                    player.level(),
+                    player,
+                    CastSource.SWORD,
+                    true,
+                    slotId
+            );
+            if (!casted) {
+                return false;
+            }
+
+            TriggeredSpellCastHelper.applyLongCastDurationOverride(
+                    player,
+                    spellLevel,
+                    spell,
+                    magicData,
+                    slotId,
+                    spell.getCastType() == CastType.LONG ? 0 : null
+            );
+            if (player instanceof ServerPlayer serverPlayer) {
+                triggerCastAnimation(serverPlayer, stack);
+            }
+            return true;
+        } catch (Exception exception) {
+            throw new IllegalStateException("Scrollcaster Gauntlet freecast swing context failed to close.", exception);
+        }
+    }
+
+    public int resolveFreecastSwingCooldownTicks(Player player, ItemStack stack, AbstractSpell spell, int currentEffectiveCooldown) {
+        var spellLevel = resolveEffectiveSpellLevel(player, stack, spell);
+        return currentEffectiveCooldown
+                + (spell.getCastType() == CastType.LONG ? spell.getEffectiveCastTime(spellLevel, player) : 0);
     }
 
     @Override
@@ -478,6 +558,19 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     public static boolean hasAnyCalibrationScroll(@NotNull ItemStack gauntletStack) {
         return findFirstValidScrollIndex(gauntletStack) >= 0;
+    }
+
+    public static boolean hasFreecastStaffAdjustment(@NotNull ItemStack gauntletStack) {
+        if (!isValidCalibrationAccess(gauntletStack, 0, 1)) {
+            return false;
+        }
+
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            if (isFreecastStaffAdjustment(getCalibrationAdjustment(gauntletStack, slot))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static void refreshCalibrationEnchantments(@NotNull ItemStack gauntletStack) {
@@ -760,6 +853,30 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     public static boolean isCalibrationSlotUpgrade(@NotNull ItemStack stack) {
         return !stack.isEmpty() && stack.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES);
+    }
+
+    public static boolean isFreecastStaffAdjustment(@NotNull ItemStack stack) {
+        return !stack.isEmpty() && stack.getItem() instanceof MithrilFreecastStaff;
+    }
+
+    private static int resolveEffectiveSpellLevel(Player player, ItemStack stack, AbstractSpell spell) {
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData != null
+                && Objects.equals(spell.getSpellId(), magicData.getCastingSpellId())
+                && magicData.getCastingSpellLevel() > 0) {
+            return magicData.getCastingSpellLevel();
+        }
+
+        var spellData = getSelectedSpellData(stack);
+        if (spellData != SpellData.EMPTY && spell.equals(spellData.getSpell())) {
+            return spell.getLevelFor(spellData.getLevel(), player);
+        }
+
+        return spell.getLevelFor(1, player);
+    }
+
+    private static String resolveSpellSelectionSlot(InteractionHand hand) {
+        return hand == InteractionHand.OFF_HAND ? SpellSelectionManager.OFFHAND : SpellSelectionManager.MAINHAND;
     }
 
     private static @NotNull SpellData getScrollSpellData(@NotNull ItemStack scrollStack) {
