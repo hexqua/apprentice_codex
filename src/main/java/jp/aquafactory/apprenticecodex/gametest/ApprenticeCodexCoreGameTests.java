@@ -91,6 +91,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void scrollcasterGauntletEpicFightMirroredOffhandSwingcastUsesMainhand(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.scrollcasterGauntletEpicFightMirroredOffhandSwingcastUsesMainhand(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellCalibrationBenchAcceptsGauntletFreecastStaffAdjustment(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellCalibrationBenchAcceptsGauntletFreecastStaffAdjustment(helper);
     }

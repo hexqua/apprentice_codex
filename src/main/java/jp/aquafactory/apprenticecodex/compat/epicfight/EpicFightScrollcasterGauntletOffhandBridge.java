@@ -28,8 +28,20 @@ public final class EpicFightScrollcasterGauntletOffhandBridge {
 
         // 実アイテムがオフハンドにある場合は Epic Fight 本来の判定を優先する.
         var livingEntity = entityPatch.getOriginal();
-        return livingEntity.getMainHandItem().getItem() instanceof ScrollcasterGauntlet
-                && livingEntity.getOffhandItem().isEmpty();
+        return hasMainhandGauntletAndEmptyOffhand(livingEntity.getMainHandItem(), livingEntity.getOffhandItem());
+    }
+
+    public static boolean shouldMirrorMainhand(Player player, InteractionHand hand) {
+        if (hand != InteractionHand.OFF_HAND) {
+            return false;
+        }
+
+        return hasMainhandGauntletAndEmptyOffhand(player.getMainHandItem(), player.getOffhandItem());
+    }
+
+    public static InteractionHand resolveSwingMagicHand(Player player, InteractionHand hand) {
+        // Epic Fight のミラーOFF_HANDは実アイテムが空なので、詠唱元と選択スロットは実体のあるMAIN_HANDへ寄せる。
+        return shouldMirrorMainhand(player, hand) ? InteractionHand.MAIN_HAND : hand;
     }
 
     public static CapabilityItem getMirroredCapability(LivingEntityPatch<?> entityPatch) {
@@ -58,6 +70,10 @@ public final class EpicFightScrollcasterGauntletOffhandBridge {
         }
 
         return ItemStack.EMPTY;
+    }
+
+    private static boolean hasMainhandGauntletAndEmptyOffhand(ItemStack mainHandStack, ItemStack offhandStack) {
+        return mainHandStack.getItem() instanceof ScrollcasterGauntlet && offhandStack.isEmpty();
     }
 
     private static boolean isOffhandVisualDisabledByMainhandItem(ItemStack mainHandStack) {
