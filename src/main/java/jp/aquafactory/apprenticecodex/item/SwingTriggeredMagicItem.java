@@ -4,5 +4,9 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 
 public interface SwingTriggeredMagicItem {
+    default boolean canTriggerSpellOnSwing(Player player, InteractionHand hand) {
+        return true;
+    }
+
     boolean tryTriggerSpellOnSwing(Player player, InteractionHand hand, boolean bypassChargeCheck);
 }

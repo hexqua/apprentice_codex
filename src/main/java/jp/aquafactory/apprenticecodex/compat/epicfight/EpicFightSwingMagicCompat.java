@@ -221,8 +221,7 @@ public final class EpicFightSwingMagicCompat {
     ) {
         var triggerHand = resolveSwingMagicTriggerHand(player, hand);
         var stack = player.getItemInHand(triggerHand);
-        if (!(stack.getItem() instanceof SwingTriggeredMagicItem)
-                && !(stack.getItem() instanceof MultipurposeStaffrifle)) {
+        if (!isSupportedAttackTriggeredItem(player, triggerHand)) {
             return false;
         }
 
@@ -270,9 +269,13 @@ public final class EpicFightSwingMagicCompat {
         EpicFightNetworkManager.sendToAllPlayerTrackingThisEntityWithSelf(packet, player);
     }
 
+    public static InteractionHand resolveAvailableSwingMagicTriggerHand(Player player, InteractionHand preferredHand) {
+        return resolveAvailableSwingMagicHand(player, preferredHand);
+    }
+
     private static InteractionHand resolveAvailableSwingMagicHand(Player player, InteractionHand preferredHand) {
         var resolvedPreferredHand = resolveSwingMagicTriggerHand(player, preferredHand);
-        if (isSupportedAttackTriggeredItem(player.getItemInHand(resolvedPreferredHand))) {
+        if (isSupportedAttackTriggeredItem(player, resolvedPreferredHand)) {
             return resolvedPreferredHand;
         }
 
@@ -280,14 +283,17 @@ public final class EpicFightSwingMagicCompat {
                 ? InteractionHand.OFF_HAND
                 : InteractionHand.MAIN_HAND;
         var resolvedFallbackHand = resolveSwingMagicTriggerHand(player, fallbackHand);
-        return isSupportedAttackTriggeredItem(player.getItemInHand(resolvedFallbackHand))
+        return isSupportedAttackTriggeredItem(player, resolvedFallbackHand)
                 ? resolvedFallbackHand
                 : preferredHand;
     }
 
-    private static boolean isSupportedAttackTriggeredItem(net.minecraft.world.item.ItemStack stack) {
-        return stack.getItem() instanceof SwingTriggeredMagicItem
-                || stack.getItem() instanceof MultipurposeStaffrifle;
+    private static boolean isSupportedAttackTriggeredItem(Player player, InteractionHand hand) {
+        var stack = player.getItemInHand(hand);
+        if (stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem) {
+            return swingTriggeredMagicItem.canTriggerSpellOnSwing(player, hand);
+        }
+        return stack.getItem() instanceof MultipurposeStaffrifle;
     }
 
     private static InteractionHand resolveAttackHand(AttackPhaseEndEvent event) {

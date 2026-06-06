@@ -10,8 +10,10 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.EnumMap;
+
 public final class ClientSwingMagicAttackTrigger {
-    private static long lastSentTick = Long.MIN_VALUE;
+    private static final EnumMap<InteractionHand, Long> LAST_SENT_TICKS = new EnumMap<>(InteractionHand.class);
 
     private ClientSwingMagicAttackTrigger() {
     }
@@ -35,7 +37,7 @@ public final class ClientSwingMagicAttackTrigger {
             return;
         }
 
-        lastSentTick = player.level().getGameTime();
+        LAST_SENT_TICKS.put(hand, player.level().getGameTime());
         ClientSwingcastStaffCastContext.beginPending(player.getUUID(), player.getItemInHand(hand));
         Networks.sendToServer(new ClientSwingMagicAttackPacket(bypassChargeCheck, hand));
     }
@@ -56,7 +58,7 @@ public final class ClientSwingMagicAttackTrigger {
         }
 
         var stack = player.getItemInHand(hand);
-        if (!(stack.getItem() instanceof SwingTriggeredMagicItem)) {
+        if (!(stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem)) {
             if (logEmptyHandFailure && stack.isEmpty()) {
                 ApprenticeCodex.LOGGER.error(
                         "Better Combat swing magic trigger skipped because {} resolved to an empty stack.",
@@ -65,12 +67,15 @@ public final class ClientSwingMagicAttackTrigger {
             }
             return false;
         }
+        if (!swingTriggeredMagicItem.canTriggerSpellOnSwing(player, hand)) {
+            return false;
+        }
 
         // Swing 系は地形ヒットもフルスイング入力として扱い、空振り時と同じ発動条件へ寄せる。
         if (!bypassChargeCheck && !AbstractRightClickMagicWeaponItem.isFullyChargedAttack(player)) {
             return false;
         }
 
-        return player.level().getGameTime() != lastSentTick;
+        return player.level().getGameTime() != LAST_SENT_TICKS.getOrDefault(hand, Long.MIN_VALUE);
     }
 }

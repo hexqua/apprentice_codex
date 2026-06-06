@@ -2111,11 +2111,15 @@ public class ApprenticeCodexGameTestScenarios {
                     "Scrollcaster Gauntlet freecast swing test could not resolve player magic data");
             magicData.setMana(1000.0F);
 
+            helper.assertFalse(gauntletItem.canTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND),
+                    "Scrollcaster Gauntlet should not be treated as swing-triggerable before freecast adjustment");
             helper.assertFalse(gauntletItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
                     "Scrollcaster Gauntlet should not swing-cast without a Mithril Freecast Staff adjustment");
             ScrollcasterGauntlet.setCalibrationAdjustment(gauntlet, 0, new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()));
             helper.assertTrue(ScrollcasterGauntlet.hasFreecastStaffAdjustment(gauntlet),
                     "Scrollcaster Gauntlet should detect its Mithril Freecast Staff adjustment");
+            helper.assertTrue(gauntletItem.canTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND),
+                    "Scrollcaster Gauntlet should be treated as swing-triggerable after freecast adjustment");
             assertTooltipKeyAt(helper, gauntlet, 2, "item.apprenticecodex.freecast.common.desc",
                     "Freecast-adjusted Scrollcaster Gauntlet should show the generic freecast tooltip");
 
@@ -2218,6 +2222,27 @@ public class ApprenticeCodexGameTestScenarios {
                     "Epic Fight mirrored Gauntlet Swingcast should cast with the mainhand Gauntlet stack");
             helper.assertTrue(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND.equals(magicData.getCastingEquipmentSlot()),
                     "Epic Fight mirrored Gauntlet Swingcast should mark the mainhand casting slot");
+        });
+    }
+
+    static void scrollcasterGauntletEpicFightFallbackIgnoresUnadjustedGauntlet(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat.MOD_ID)) {
+                return;
+            }
+
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var fallbackStaff = new ItemStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get());
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "scrollcaster_gauntlet_epicfight_fallback_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, gauntlet);
+            player.setItemInHand(InteractionHand.OFF_HAND, fallbackStaff);
+
+            var resolvedHand = jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat
+                    .resolveAvailableSwingMagicTriggerHand(player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(resolvedHand == InteractionHand.OFF_HAND,
+                    "Epic Fight timed swing trigger should fall back from an unadjusted mainhand Gauntlet to the offhand Swingcast item but resolved "
+                            + resolvedHand);
         });
     }
 
