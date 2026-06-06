@@ -2347,6 +2347,53 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void scrollcasterGauntletEpicFightMirroredOffhandSwingcastUsesMainhand(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat.MOD_ID)) {
+                return;
+            }
+
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(magicMissile));
+            ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
+            ScrollcasterGauntlet.setCalibrationAdjustment(
+                    gauntlet,
+                    0,
+                    new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get())
+            );
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "scrollcaster_gauntlet_epicfight_mirror_swing_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, gauntlet);
+            player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null,
+                    "Scrollcaster Gauntlet Epic Fight mirror swing test could not resolve player magic data");
+            magicData.setMana(1000.0F);
+
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightScrollcasterGauntletOffhandBridge
+                            .shouldMirrorMainhand(player, InteractionHand.OFF_HAND),
+                    "Epic Fight mirrored offhand state should resolve from a mainhand Gauntlet and empty offhand"
+            );
+            var resolvedHand = jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat
+                    .resolveSwingMagicTriggerHand(player, InteractionHand.OFF_HAND);
+            helper.assertTrue(resolvedHand == InteractionHand.MAIN_HAND,
+                    "Epic Fight mirrored offhand swing should use the mainhand Gauntlet but resolved " + resolvedHand);
+
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat
+                            .triggerSwingMagicFromAttackPhase(player, InteractionHand.OFF_HAND, -1, 0),
+                    "Epic Fight mirrored offhand attack should trigger the mainhand Gauntlet Swingcast"
+            );
+            helper.assertTrue(ItemStack.isSameItemSameTags(magicData.getPlayerCastingItem(), gauntlet),
+                    "Epic Fight mirrored Gauntlet Swingcast should cast with the mainhand Gauntlet stack");
+            helper.assertTrue(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND.equals(magicData.getCastingEquipmentSlot()),
+                    "Epic Fight mirrored Gauntlet Swingcast should mark the mainhand casting slot");
+        });
+    }
+
     static void spellCalibrationBenchAcceptsGauntletFreecastStaffAdjustment(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
