@@ -1,11 +1,13 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.InteractionHand;
 import org.jetbrains.annotations.Nullable;
 
 public final class ClientSwingMagicAttackTrigger {
@@ -15,31 +17,52 @@ public final class ClientSwingMagicAttackTrigger {
     }
 
     public static void trySend(Minecraft minecraft) {
-        trySend(minecraft, false);
+        trySend(minecraft, InteractionHand.MAIN_HAND, false, false);
     }
 
-    public static void trySendForBetterCombat(Minecraft minecraft) {
-        trySend(minecraft, true);
+    public static void trySendForBetterCombat(Minecraft minecraft, InteractionHand hand) {
+        trySend(minecraft, hand, true, true);
     }
 
-    private static void trySend(Minecraft minecraft, boolean bypassChargeCheck) {
+    private static void trySend(
+            Minecraft minecraft,
+            InteractionHand hand,
+            boolean bypassChargeCheck,
+            boolean logEmptyHandFailure
+    ) {
         var player = minecraft.player;
-        if (!canSend(minecraft, player, bypassChargeCheck) || player == null) {
+        if (!canSend(minecraft, player, hand, bypassChargeCheck, logEmptyHandFailure) || player == null) {
             return;
         }
 
         lastSentTick = player.level().getGameTime();
-        ClientSwingcastStaffCastContext.beginPending(player.getUUID(), player.getMainHandItem());
-        Networks.sendToServer(new ClientSwingMagicAttackPacket(bypassChargeCheck));
+        ClientSwingcastStaffCastContext.beginPending(player.getUUID(), player.getItemInHand(hand));
+        Networks.sendToServer(new ClientSwingMagicAttackPacket(bypassChargeCheck, hand));
     }
 
-    private static boolean canSend(Minecraft minecraft, @Nullable LocalPlayer player, boolean bypassChargeCheck) {
+    private static boolean canSend(
+            Minecraft minecraft,
+            @Nullable LocalPlayer player,
+            InteractionHand hand,
+            boolean bypassChargeCheck,
+            boolean logEmptyHandFailure
+    ) {
         if (minecraft.screen != null) {
             return false;
         }
 
-        if (player == null || player.isSpectator()
-                || !(player.getMainHandItem().getItem() instanceof SwingTriggeredMagicItem)) {
+        if (player == null || player.isSpectator()) {
+            return false;
+        }
+
+        var stack = player.getItemInHand(hand);
+        if (!(stack.getItem() instanceof SwingTriggeredMagicItem)) {
+            if (logEmptyHandFailure && stack.isEmpty()) {
+                ApprenticeCodex.LOGGER.error(
+                        "Better Combat swing magic trigger skipped because {} resolved to an empty stack.",
+                        hand
+                );
+            }
             return false;
         }
 
