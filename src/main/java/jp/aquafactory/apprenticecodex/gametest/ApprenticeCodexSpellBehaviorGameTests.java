@@ -255,6 +255,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.earthForgeReplacesWaterButKeepsUnsafeFluidBlocks(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = EARTH_FORGE_ISOLATED_BATCH)
+    public static void blockToolsTemporaryUseKeepsOneCountStackAndHands(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.blockToolsTemporaryUseKeepsOneCountStackAndHands(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = COMPOUND_PHIAL_ISOLATED_BATCH, timeoutTicks = 40)
     public static void compoundPhialSplashDamageUsesWeakFalloffAndKeepsSelfHit(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.compoundPhialSplashDamageUsesWeakFalloffAndKeepsSelfHit(helper);
