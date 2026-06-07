@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.item.smashcastscepter;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.particle.SmashcastDustPillarParticleOptions;
-import jp.aquafactory.apprenticecodex.particle.SmashcastTremorBlockParticleOptions;
+import jp.aquafactory.apprenticecodex.particle.ImpactTremorBlockParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
@@ -316,7 +316,7 @@ public final class SmashcastScepterAttackEvent {
         }
 
         level.sendParticles(
-                new SmashcastTremorBlockParticleOptions(state, new Vec3(0.0D, impulseStrength, 0.0D)),
+                new ImpactTremorBlockParticleOptions(state, new Vec3(0.0D, impulseStrength, 0.0D)),
                 particlePos.getX() + 0.5D,
                 particlePos.getY(),
                 particlePos.getZ() + 0.5D,

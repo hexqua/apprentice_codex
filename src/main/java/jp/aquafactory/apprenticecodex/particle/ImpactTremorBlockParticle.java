@@ -31,14 +31,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
-public class SmashcastTremorBlockParticle extends TextureSheetParticle {
+public class ImpactTremorBlockParticle extends TextureSheetParticle {
     private static final List<RenderableBlock> BLOCKS_TO_RENDER = new ArrayList<>();
 
     private final BlockState state;
     private final BlockPos originalPos;
 
-    protected SmashcastTremorBlockParticle(ClientLevel level, double x, double y, double z,
-                                           SmashcastTremorBlockParticleOptions options) {
+    protected ImpactTremorBlockParticle(ClientLevel level, double x, double y, double z,
+                                        ImpactTremorBlockParticleOptions options) {
         super(level, x, y, z, 0.0D, 0.0D, 0.0D);
         this.state = options.state();
         this.originalPos = BlockPos.containing(x, y, z);
@@ -143,20 +143,24 @@ public class SmashcastTremorBlockParticle extends TextureSheetParticle {
     private record RenderableBlock(BlockPos worldPos, BlockPos originalPos, Vec3 relativePos, BlockState state) {
     }
 
-    public static class Provider implements ParticleProvider<SmashcastTremorBlockParticleOptions> {
+    public static class Provider implements ParticleProvider<ImpactTremorBlockParticleOptions> {
         @Override
-        public @Nullable Particle createParticle(@NotNull SmashcastTremorBlockParticleOptions options,
+        public @Nullable Particle createParticle(@NotNull ImpactTremorBlockParticleOptions options,
                                                 @NotNull ClientLevel level,
                                                 double x,
                                                 double y,
                                                 double z,
-                                                double xd,
-                                                double yd,
-                                                double zd) {
-            if (!ApprenticeCodexClientConfig.enableSmashcastScepterTremorBlockRendering()) {
+            double xd,
+            double yd,
+            double zd) {
+            var enabled = switch (options.source()) {
+                case SMASHCAST_SCEPTER -> ApprenticeCodexClientConfig.enableSmashcastScepterTremorBlockRendering();
+                case HEAVENLY_FIST -> ApprenticeCodexClientConfig.enableHeavenlyFistTremorBlockRendering();
+            };
+            if (!enabled) {
                 return null;
             }
-            return new SmashcastTremorBlockParticle(level, x, y, z, options);
+            return new ImpactTremorBlockParticle(level, x, y, z, options);
         }
     }
 }

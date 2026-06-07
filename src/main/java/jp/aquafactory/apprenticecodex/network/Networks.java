@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPa
 import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
+import jp.aquafactory.apprenticecodex.network.packet.HeavenlyFistPulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
@@ -221,6 +222,13 @@ public final class Networks {
                 HealingBloomPulsePacket::encode,
                 HealingBloomPulsePacket::decode,
                 HealingBloomPulsePacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                HeavenlyFistPulsePacket.class,
+                HeavenlyFistPulsePacket::encode,
+                HeavenlyFistPulsePacket::decode,
+                HeavenlyFistPulsePacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

@@ -12,6 +12,7 @@ public final class ApprenticeCodexClientConfig {
     private static final ForgeConfigSpec.BooleanValue ENABLE_SPELLGUN_AMMO_HUD;
     private static final ForgeConfigSpec.BooleanValue ENABLE_MANA_FORCE_BLADE_HOTBAR_SHEATH_RENDERING;
     private static final ForgeConfigSpec.BooleanValue ENABLE_SMASHCAST_SCEPTER_TREMOR_BLOCK_RENDERING;
+    private static final ForgeConfigSpec.BooleanValue ENABLE_HEAVENLY_FIST_TREMOR_BLOCK_RENDERING;
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>>
             SCROLLCASTER_GAUNTLET_OFFHAND_VISUAL_DISABLED_MAINHAND_CATEGORIES;
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>>
@@ -87,6 +88,14 @@ public final class ApprenticeCodexClientConfig {
                         value -> value instanceof String text && ResourceLocation.tryParse(text) != null);
         builder.pop();
 
+        builder.push("Spells");
+        builder.push("HeavenlyFist");
+        ENABLE_HEAVENLY_FIST_TREMOR_BLOCK_RENDERING = builder
+                .comment("Render temporary block tremors when Heavenly Fist impacts the ground.")
+                .define("enableTremorBlockRendering", true);
+        builder.pop();
+        builder.pop();
+
         builder.push("Blocks");
         DISABLE_ESSENCE_SMOKER_PARTICLE_TEXTURE_ANALYSIS = builder
                 .comment("Disable Essence Smoker particle texture analysis and always use fallback colors.")
@@ -113,6 +122,10 @@ public final class ApprenticeCodexClientConfig {
 
     public static boolean enableSmashcastScepterTremorBlockRendering() {
         return ENABLE_SMASHCAST_SCEPTER_TREMOR_BLOCK_RENDERING.get();
+    }
+
+    public static boolean enableHeavenlyFistTremorBlockRendering() {
+        return ENABLE_HEAVENLY_FIST_TREMOR_BLOCK_RENDERING.get();
     }
 
     public static boolean isScrollcasterGauntletOffhandVisualDisabledForMainhandCategory(String categoryName) {
