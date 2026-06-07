@@ -238,12 +238,8 @@ if (devRuntimeMods != null && !devRuntimeMods.trim().isEmpty()) {
 
 // 依存のmavenをココに追加していく.
 repositories {
-    // 前提MODをCFから引っ張るため.
-    maven {
-        url = uri("https://www.cursemaven.com")
-    }
-
-    // Optional MOD 検証用(EasyMagic / Puzzles Lib).
+    // 個別のmavenが無いものはModrinthから取得.
+    // CurseForgeはCDN次第ではCIがコケるため極力使用しない.
     maven {
         name = "Modrinth"
         url = uri("https://api.modrinth.com/maven")
@@ -301,16 +297,16 @@ dependencies {
     implementation fg.deobf("io.redspace:irons_spellbooks:${irons_spells_version}")
 
     // ISS前提MOD(2026/1/21時点それぞれ最新,動作確認用のみなのでruntimeOnly)
-    runtimeOnly fg.deobf("curse.maven:curios-309927:6418456")
-    runtimeOnly fg.deobf("curse.maven:geckolib-388172:7025129")
-    runtimeOnly fg.deobf("curse.maven:playeranimator-658587:4587214")
+    runtimeOnly fg.deobf("maven.modrinth:curios:IPQlZkz1")
+    runtimeOnly fg.deobf("maven.modrinth:geckolib:HVdLnQMI")
+    runtimeOnly fg.deobf("maven.modrinth:playeranimator:xe2EVE6q")
 
     // Create.
     // Create 連携のコンパイル用.
     // ランタイム検証では compat profile から読み込む.
-    compileOnly fg.deobf("curse.maven:create-328085:7178761")
+    compileOnly fg.deobf("maven.modrinth:create:8amzvn9x")
     compileOnly fg.deobf("com.tterrag.registrate:Registrate:MC1.20-1.3.3")
-    add(optionalRuntimeModuleConfigurations.create, fg.deobf("curse.maven:create-328085:7178761"))
+    add(optionalRuntimeModuleConfigurations.create, fg.deobf("maven.modrinth:create:8amzvn9x"))
 
     // Botania.
     // Solegnolia 判定だけを optional compat から参照する。
@@ -337,8 +333,8 @@ dependencies {
     // Epic Fight.
     // コンパイルは最低対応版に固定し、新しいAPIの誤使用を検出する.
     // ランタイムは epic_fight profile で20.14系最新を使い、最新側の挙動を見る.
-    compileOnly fg.deobf("maven.modrinth:epic-fight:${epicfight_compile_version}")
-    add(optionalRuntimeModuleConfigurations.epic_fight, fg.deobf("curse.maven:epic-fight-mod-405076:${epicfight_runtime_file_id}"))
+    compileOnly "maven.modrinth:epic-fight:${epicfight_compile_modrinth_version_id}"
+    add(optionalRuntimeModuleConfigurations.epic_fight, fg.deobf("maven.modrinth:epic-fight:${epicfight_runtime_modrinth_version_id}"))
 
     // Lootr.
     // TreasureDivination が Lootr の個人開封済み判定へ接続するためのコンパイル用.
@@ -346,10 +342,10 @@ dependencies {
 
     // Lodestone / Malum.
     // compat profile から読み込む。通常開発では追加要素による調査ノイズを避ける.
-    compileOnly fg.deobf("curse.maven:lodestone-616457:6213794")
-    compileOnly fg.deobf("curse.maven:malum-484064:6646111")
-    add(optionalRuntimeModuleConfigurations.lodestone, fg.deobf("curse.maven:lodestone-616457:6213794"))
-    add(optionalRuntimeModuleConfigurations.malum, fg.deobf("curse.maven:malum-484064:6646111"))
+    compileOnly fg.deobf("maven.modrinth:lodestonelib:dRIycWqx")
+    compileOnly fg.deobf("maven.modrinth:malum:U88VbrNU")
+    add(optionalRuntimeModuleConfigurations.lodestone, fg.deobf("maven.modrinth:lodestonelib:dRIycWqx"))
+    add(optionalRuntimeModuleConfigurations.malum, fg.deobf("maven.modrinth:malum:U88VbrNU"))
 
     // JEI.
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
