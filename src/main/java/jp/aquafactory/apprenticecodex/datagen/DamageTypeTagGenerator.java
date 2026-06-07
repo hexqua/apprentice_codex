@@ -90,7 +90,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 FROST_RUNE,
                 MYSTIC_SHIELD,
                 INSCRIBE_ICE,
-                INSCRIBE_ICE_BURST
+                INSCRIBE_ICE_BURST,
+                HEAVENLY_FIST
         );
 
         // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
@@ -169,7 +170,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 FROST_RUNE,
                 MYSTIC_SHIELD,
                 INSCRIBE_ICE,
-                INSCRIBE_ICE_BURST
+                INSCRIBE_ICE_BURST,
+                HEAVENLY_FIST
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.
