@@ -91,15 +91,29 @@ public final class BlockTools {
         }
 
         var originalItem = player.getMainHandItem();
+        var effectiveInteractionStack = normalizeInteractionStackForTemporaryUse(interactionStack);
         // まずは通常の useItemOn 経路へ流し、mod 独自の右クリック収穫を優先する。
         var hitResult = new BlockHitResult(Vec3.atCenterOf(pos), hitFace, pos, false);
         try {
             // 右クリック判定だけ現在手持ちのコピーへ差し替え、耐久や個数は本物へ反映しない。
-            player.setItemInHand(InteractionHand.MAIN_HAND, interactionStack);
-            return player.gameMode.useItemOn(player, level, interactionStack, InteractionHand.MAIN_HAND, hitResult);
+            player.setItemInHand(InteractionHand.MAIN_HAND, effectiveInteractionStack);
+            return player.gameMode.useItemOn(player, level, effectiveInteractionStack, InteractionHand.MAIN_HAND, hitResult);
         } finally {
             player.setItemInHand(InteractionHand.MAIN_HAND, originalItem);
         }
+    }
+
+    private static ItemStack normalizeInteractionStackForTemporaryUse(ItemStack interactionStack) {
+        if (interactionStack.isEmpty()) {
+            return interactionStack;
+        }
+
+        var normalizedStack = interactionStack.copy();
+        // 仮想スタックが空になると AutoStock 系 mod が本物の手持ちスロットを補充対象と誤認しうる。
+        if (normalizedStack.getCount() <= 1 && normalizedStack.getMaxStackSize() > 1) {
+            normalizedStack.setCount(2);
+        }
+        return normalizedStack;
     }
 
     public static InteractionResult useBlockByPlayerMainHand(Level level, ServerPlayer player, BlockPos pos,

@@ -6070,6 +6070,46 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void blockToolsTemporaryUseKeepsOneCountStackAndHands(GameTestHelper helper) {
+        var placePos = new BlockPos(2, 3, 2);
+        var player = createEquipmentTestPlayer(helper, new BlockPos(1, 4, 1), "block_tools_temporary_use_test");
+        var originalMainHand = new ItemStack(Items.STICK);
+        var inventoryDirt = new ItemStack(Items.DIRT, 32);
+        var virtualDirt = new ItemStack(Items.DIRT);
+
+        helper.setBlock(placePos.below(), Blocks.STONE);
+        player.setItemInHand(InteractionHand.MAIN_HAND, originalMainHand.copy());
+        player.getInventory().setItem(9, inventoryDirt.copy());
+
+        helper.runAtTickTime(1, () -> {
+            var result = BlockTools.useItemOnBlockByPlayerMainHand(
+                    helper.getLevel(),
+                    player,
+                    helper.absolutePos(placePos),
+                    virtualDirt,
+                    Direction.UP
+            );
+
+            helper.assertTrue(result.consumesAction(), "Temporary dirt use should consume action");
+            helper.assertBlockPresent(Blocks.DIRT, placePos);
+            helper.assertTrue(
+                    ItemStack.isSameItemSameTags(player.getMainHandItem(), originalMainHand)
+                            && player.getMainHandItem().getCount() == originalMainHand.getCount(),
+                    "Temporary use should restore original main hand"
+            );
+            helper.assertTrue(
+                    virtualDirt.is(Items.DIRT) && virtualDirt.getCount() == 1,
+                    "Temporary one-count stack should not be consumed"
+            );
+            var storedDirt = player.getInventory().getItem(9);
+            helper.assertTrue(
+                    storedDirt.is(Items.DIRT) && storedDirt.getCount() == inventoryDirt.getCount(),
+                    "Inventory dirt should stay in its original slot"
+            );
+            helper.succeed();
+        });
+    }
+
     static void counterspellCompatMagicMobEffectsAreMagicMobEffects(GameTestHelper helper) {
         helper.succeedIf(() -> {
             assertMagicMobEffect(helper, EffectRegistry.ARCANE_CHARGE.get(), "ArcaneCharge");
