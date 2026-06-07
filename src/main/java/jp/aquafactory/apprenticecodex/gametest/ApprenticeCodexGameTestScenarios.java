@@ -149,6 +149,7 @@ import jp.aquafactory.apprenticecodex.spell.harvestmoon.HarvestMoon;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
+import jp.aquafactory.apprenticecodex.spell.heavenlyfist.HeavenlyFistFistEntity;
 import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarStarEntity;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
@@ -7084,6 +7085,61 @@ public class ApprenticeCodexGameTestScenarios {
     static void setMaxHealthForDamageTest(LivingEntity target, float health) {
         target.getAttribute(Attributes.MAX_HEALTH).setBaseValue(health);
         target.setHealth(health);
+    }
+
+    static void heavenlyFistImpactAabbAppliesDamageAndGravityBound(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "heavenly_fist_owner_test");
+        var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0));
+        target.setNoAi(true);
+        setMaxHealthForDamageTest(target, 100.0F);
+
+        var center = helper.absolutePos(new BlockPos(2, 2, 0)).getCenter();
+        var fist = new HeavenlyFistFistEntity(EntityRegistry.HEAVENLY_FIST_FIST.get(), level, owner, center, 8.0F, 2.0F, 0);
+        level.addFreshEntity(fist);
+
+        helper.runAtTickTime(28, () -> {
+            helper.assertTrue(target.getHealth() < 100.0F,
+                    "Heavenly Fist should damage CombatTarget inside its locked AABB");
+            helper.assertTrue(target.hasEffect(EffectRegistry.GRAVITY_BOUND.get()),
+                    "Heavenly Fist should apply Gravity Bound to damaged CombatTarget");
+            helper.succeed();
+        });
+    }
+
+    static void heavenlyFistImpactDoesNotTrackMovedTarget(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "heavenly_fist_lock_owner_test");
+        var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0));
+        target.setNoAi(true);
+        setMaxHealthForDamageTest(target, 100.0F);
+
+        var center = helper.absolutePos(new BlockPos(2, 2, 0)).getCenter();
+        var fist = new HeavenlyFistFistEntity(EntityRegistry.HEAVENLY_FIST_FIST.get(), level, owner, center, 8.0F, 1.0F, 0);
+        level.addFreshEntity(fist);
+
+        helper.runAtTickTime(5, () -> target.moveTo(helper.absolutePos(new BlockPos(7, 2, 0)).getCenter()));
+        helper.runAtTickTime(28, () -> {
+            helper.assertTrue(Math.abs(target.getHealth() - 100.0F) < 0.01F,
+                    "Heavenly Fist should not chase a target after locking the impact position");
+            helper.assertFalse(target.hasEffect(EffectRegistry.GRAVITY_BOUND.get()),
+                    "Heavenly Fist should not apply Gravity Bound to a moved-out target");
+            helper.succeed();
+        });
+    }
+
+    static void gravityBoundPullsAirborneTargetsDown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var phantom = helper.spawn(EntityType.PHANTOM, new BlockPos(0, 6, 0));
+            phantom.setNoAi(true);
+            phantom.setDeltaMovement(0.0D, 0.6D, 0.0D);
+
+            EffectRegistry.GRAVITY_BOUND.get().applyEffectTick(phantom, 9);
+
+            helper.assertTrue(phantom.getDeltaMovement().y <= -1.25D,
+                    "Gravity Bound should force airborne targets downward regardless of amplifier: "
+                            + phantom.getDeltaMovement().y);
+        });
     }
 
     static void mistFormAppliesEffectAndFixedAttributes(GameTestHelper helper) {

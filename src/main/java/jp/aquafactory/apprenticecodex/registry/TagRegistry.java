@@ -84,5 +84,7 @@ public final class TagRegistry {
 
         public static final TagKey<EntityType<?>> COUNTS_AS_UNDEAD =
                 createEntityTypeTag("counts_as_undead");
+        public static final TagKey<EntityType<?>> GRAVITY_BOUND_DENYLIST =
+                createEntityTypeTag("gravity_bound_denylist");
     }
 }

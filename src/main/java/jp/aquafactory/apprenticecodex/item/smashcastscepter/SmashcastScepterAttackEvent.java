@@ -2,7 +2,8 @@ package jp.aquafactory.apprenticecodex.item.smashcastscepter;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
-import jp.aquafactory.apprenticecodex.particle.SmashcastTremorBlockParticleOptions;
+import jp.aquafactory.apprenticecodex.particle.ImpactTremorBlockParticleOptions;
+import jp.aquafactory.apprenticecodex.particle.SmashcastDustPillarParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -261,7 +262,29 @@ public final class SmashcastScepterAttackEvent {
             player.setSpawnExtraParticlesOnFall(true);
         }
         player.serverLevel().levelEvent(MACE_SMASH_LEVEL_EVENT, impactTarget.getOnPos(), MACE_SMASH_LEVEL_EVENT_DATA);
-        spawnTremorBlocks(player.serverLevel(), impactTarget.position(), fallDistance);
+        var center = impactTarget.position();
+        spawnMaceLikeBlockDust(player.serverLevel(), center);
+        spawnTremorBlocks(player.serverLevel(), center, fallDistance);
+    }
+
+    private static void spawnMaceLikeBlockDust(ServerLevel level, Vec3 center) {
+        var impactBlock = findVisibleGroundBlock(level, center.x, center.y + 1.0D, center.z, 4);
+        if (impactBlock == null) {
+            return;
+        }
+
+        var impactState = level.getBlockState(impactBlock);
+        level.sendParticles(
+                new SmashcastDustPillarParticleOptions(impactState),
+                impactBlock.getX() + 0.5D,
+                impactBlock.getY() + 1.0D,
+                impactBlock.getZ() + 0.5D,
+                0,
+                0.0D,
+                0.0D,
+                0.0D,
+                0.0D
+        );
     }
 
     private static void spawnTremorBlocks(ServerLevel level, Vec3 center, float fallDistance) {
@@ -302,7 +325,7 @@ public final class SmashcastScepterAttackEvent {
         }
 
         level.sendParticles(
-                new SmashcastTremorBlockParticleOptions(state, new Vec3(0.0D, impulseStrength, 0.0D)),
+                new ImpactTremorBlockParticleOptions(state, new Vec3(0.0D, impulseStrength, 0.0D)),
                 particlePos.getX() + 0.5D,
                 particlePos.getY(),
                 particlePos.getZ() + 0.5D,

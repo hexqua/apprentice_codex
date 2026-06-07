@@ -31,6 +31,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String MIST_FORM_ISOLATED_BATCH = "apprenticecodex.mist_form_isolated";
     private static final String COUNTERSPELL_COMPAT_ISOLATED_BATCH = "apprenticecodex.counterspell_compat_isolated";
     private static final String INSCRIBE_ICE_ISOLATED_BATCH = "apprenticecodex.inscribe_ice_isolated";
+    private static final String HEAVENLY_FIST_ISOLATED_BATCH = "apprenticecodex.heavenly_fist_isolated";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
     }
@@ -453,6 +454,21 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = INSCRIBE_ICE_ISOLATED_BATCH)
     public static void inscribeIceBurstUsesHalfDamageForChainedBurstsAndSkipsPlayers(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.inscribeIceBurstUsesHalfDamageForChainedBurstsAndSkipsPlayers(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 60)
+    public static void heavenlyFistImpactAabbAppliesDamageAndGravityBound(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.heavenlyFistImpactAabbAppliesDamageAndGravityBound(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 60)
+    public static void heavenlyFistImpactDoesNotTrackMovedTarget(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.heavenlyFistImpactDoesNotTrackMovedTarget(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void gravityBoundPullsAirborneTargetsDown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.gravityBoundPullsAirborneTargetsDown(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)

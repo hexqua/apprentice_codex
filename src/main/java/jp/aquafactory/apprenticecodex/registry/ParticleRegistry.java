@@ -1,8 +1,9 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
+import jp.aquafactory.apprenticecodex.particle.ImpactTremorBlockParticleOptions;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
-import jp.aquafactory.apprenticecodex.particle.SmashcastTremorBlockParticleOptions;
+import jp.aquafactory.apprenticecodex.particle.SmashcastDustPillarParticleOptions;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -71,16 +72,29 @@ public final class ParticleRegistry {
                 }
             });
 
-    public static final DeferredHolder<ParticleType<?>, ParticleType<SmashcastTremorBlockParticleOptions>> SMASHCAST_TREMOR_BLOCK =
-            PARTICLES.register("smashcast_tremor_block", () -> new ParticleType<>(true) {
+    public static final DeferredHolder<ParticleType<?>, ParticleType<ImpactTremorBlockParticleOptions>> IMPACT_TREMOR_BLOCK =
+            PARTICLES.register("impact_tremor_block", () -> new ParticleType<>(true) {
                 @Override
-                public com.mojang.serialization.@NotNull MapCodec<SmashcastTremorBlockParticleOptions> codec() {
-                    return SmashcastTremorBlockParticleOptions.mapCodec(this);
+                public com.mojang.serialization.@NotNull MapCodec<ImpactTremorBlockParticleOptions> codec() {
+                    return ImpactTremorBlockParticleOptions.mapCodec(this);
                 }
 
                 @Override
-                public @NotNull StreamCodec<? super RegistryFriendlyByteBuf, SmashcastTremorBlockParticleOptions> streamCodec() {
-                    return SmashcastTremorBlockParticleOptions.streamCodec(this);
+                public @NotNull StreamCodec<? super RegistryFriendlyByteBuf, ImpactTremorBlockParticleOptions> streamCodec() {
+                    return ImpactTremorBlockParticleOptions.streamCodec(this);
+                }
+            });
+
+    public static final DeferredHolder<ParticleType<?>, ParticleType<SmashcastDustPillarParticleOptions>> SMASHCAST_DUST_PILLAR =
+            PARTICLES.register("smashcast_dust_pillar", () -> new ParticleType<>(true) {
+                @Override
+                public com.mojang.serialization.@NotNull MapCodec<SmashcastDustPillarParticleOptions> codec() {
+                    return SmashcastDustPillarParticleOptions.mapCodec(this);
+                }
+
+                @Override
+                public @NotNull StreamCodec<? super RegistryFriendlyByteBuf, SmashcastDustPillarParticleOptions> streamCodec() {
+                    return SmashcastDustPillarParticleOptions.streamCodec(this);
                 }
             });
 }

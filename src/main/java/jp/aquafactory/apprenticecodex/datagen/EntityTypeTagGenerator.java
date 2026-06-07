@@ -25,5 +25,6 @@ public final class EntityTypeTagGenerator extends TagsProvider<EntityType<?>> {
         tag(TagRegistry.EntityTypes.COUNTS_AS_UNDEAD)
                 .addOptional(ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "summoned_zombie"))
                 .addOptional(ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "summoned_skeleton"));
+        tag(TagRegistry.EntityTypes.GRAVITY_BOUND_DENYLIST);
     }
 }

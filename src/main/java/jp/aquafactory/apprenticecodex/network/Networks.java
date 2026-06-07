@@ -148,6 +148,11 @@ public final class Networks {
                 HealingBloomPulsePacket::handle
         );
         registrar.playToClient(
+                HeavenlyFistPulsePacket.TYPE,
+                HeavenlyFistPulsePacket.STREAM_CODEC,
+                HeavenlyFistPulsePacket::handle
+        );
+        registrar.playToClient(
                 ManaSiphonOrbEffectPacket.TYPE,
                 ManaSiphonOrbEffectPacket.STREAM_CODEC,
                 ManaSiphonOrbEffectPacket::handle

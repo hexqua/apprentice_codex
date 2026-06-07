@@ -24,6 +24,7 @@ import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntit
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudEntity;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
+import jp.aquafactory.apprenticecodex.spell.heavenlyfist.HeavenlyFistFistEntity;
 import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarStarEntity;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeProjectileEntity;
@@ -204,6 +205,10 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<HealingBloomEntity>> HEALING_BLOOM =
             regLiving("healing_bloom", HealingBloomEntity::new, HealingBloomEntity.WIDTH, HealingBloomEntity.HEIGHT, 32);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<HeavenlyFistFistEntity>> HEAVENLY_FIST_FIST =
+            reg("heavenly_fist_fist", HeavenlyFistFistEntity::new, MobCategory.MISC,
+                    0.1f, 0.1f, 64, 1, false);
 
     public static final DeferredHolder<EntityType<?>, EntityType<IlluminateStellarStarEntity>> ILLUMINATE_STELLAR_STAR =
             regProjectile("illuminate_stellar_star", IlluminateStellarStarEntity::new, 96, 1);

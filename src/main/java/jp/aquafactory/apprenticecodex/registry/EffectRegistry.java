@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.effect.CraftsmansDelightMobility;
 import jp.aquafactory.apprenticecodex.effect.DivinePossessionEffect;
 import jp.aquafactory.apprenticecodex.effect.EchoSpell;
 import jp.aquafactory.apprenticecodex.effect.FrostTrapped;
+import jp.aquafactory.apprenticecodex.effect.GravityBound;
 import jp.aquafactory.apprenticecodex.effect.Intelligence;
 import jp.aquafactory.apprenticecodex.effect.LongStrideMobility;
 import jp.aquafactory.apprenticecodex.effect.ManaRegeneration;
@@ -64,6 +65,8 @@ public final class EffectRegistry {
             EFFECTS.register("frost_trapped", FrostTrapped::new);
     public static final DeferredHolder<MobEffect, MobEffect> NOTCHED_FROZEN =
             EFFECTS.register("notched_frozen", NotchedFrozenEffect::new);
+    public static final RegistryObject<MobEffect> GRAVITY_BOUND =
+            EFFECTS.register("gravity_bound", GravityBound::new);
 
     public static void register(IEventBus eventBus) {
         EFFECTS.register(eventBus);

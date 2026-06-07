@@ -24,7 +24,7 @@ import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsG
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticle;
 import jp.aquafactory.apprenticecodex.particle.ReticleDotParticle;
-import jp.aquafactory.apprenticecodex.particle.SmashcastTremorBlockParticle;
+import jp.aquafactory.apprenticecodex.particle.SmashcastDustPillarParticle;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
@@ -260,7 +260,8 @@ public final class ClientModBusEvents {
         event.registerSpriteSet(ParticleRegistry.ADDITIVE_SPARK.get(),
                 sprites -> new AdditiveGlowParticle.Provider(sprites, AdditiveGlowParticle.Preset.SPARK));
         event.registerSpriteSet(ParticleRegistry.MUZZLE_FLASH.get(), MuzzleFlashParticle.Provider::new);
-        event.registerSpecial(ParticleRegistry.SMASHCAST_TREMOR_BLOCK.get(), new SmashcastTremorBlockParticle.Provider());
+        event.registerSpecial(ParticleRegistry.IMPACT_TREMOR_BLOCK.get(), new ImpactTremorBlockParticle.Provider());
+        event.registerSpecial(ParticleRegistry.SMASHCAST_DUST_PILLAR.get(), new SmashcastDustPillarParticle.Provider());
     }
 
     private static void registerClientExtensions(RegisterClientExtensionsEvent event) {
@@ -637,6 +638,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.AUTO_TURRET.get(), AutoTurretRenderer::new);
         event.registerEntityRenderer(EntityRegistry.COMPANION_TRUNK.get(), CompanionTrunkRenderer::new);
         event.registerEntityRenderer(EntityRegistry.HEALING_BLOOM.get(), HealingBloomRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.HEAVENLY_FIST_FIST.get(), HeavenlyFistFistRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ILLUMINATE_STELLAR_STAR.get(), IlluminateStellarStarRenderer::new);
         event.registerEntityRenderer(EntityRegistry.UNITE_LUNA_MOON.get(), UniteLunaMoonRenderer::new);
         event.registerEntityRenderer(EntityRegistry.MAGIC_SPEAR_MISSILE.get(), MagicSpearMissileRenderer::new);
