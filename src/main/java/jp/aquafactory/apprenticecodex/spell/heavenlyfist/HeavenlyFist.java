@@ -14,9 +14,12 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -114,7 +117,15 @@ public class HeavenlyFist extends AbstractSpell implements ICraftsmansDelightAff
         if (level.isClientSide) {
             return true;
         }
-        return resolveTarget(level, entity).isPresent();
+
+        var result = resolveTarget(level, entity).isPresent();
+        if (!result) {
+            if (entity instanceof ServerPlayer serverPlayer) {
+                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.irons_spellbooks.cast_error_target", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
+            }
+        }
+
+        return result;
     }
 
     @Override

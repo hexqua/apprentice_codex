@@ -9,7 +9,9 @@ import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -77,6 +79,22 @@ public class HeavenlyFistFistEntity extends Entity implements GeoEntity, Traceab
     @Override
     protected void defineSynchedData() {
         // no synced data.
+    }
+
+    @Override
+    public void onClientRemoval(){
+        var level = level();
+        EffectTools.createStickParticle(
+                position(),
+                new Vec3(0,-1,0),
+                2.5,
+                24,
+                0.5f,
+                0.02,
+                ParticleTypes.END_ROD, level
+        );
+
+        super.onClientRemoval();
     }
 
     @Override
