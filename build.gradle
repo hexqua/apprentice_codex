@@ -12,12 +12,8 @@ tasks.named('wrapper', Wrapper).configure {
 version = mod_version
 group = mod_group_id
 repositories {
-    // 前提MODをCFから引っ張るため.
-    maven {
-        url = uri("https://www.cursemaven.com")
-    }
-
-    // Optional MOD 検証用(EasyMagic / Puzzles Lib).
+    // 個別のmavenが無いものはModrinthから取得.
+    // CurseForgeはCDN次第ではCIがコケるため極力使用しない.
     maven {
         name = "Modrinth"
         url = uri("https://api.modrinth.com/maven")
@@ -283,14 +279,14 @@ dependencies {
 
     // ISS前提MOD(2026/1/21時点それぞれ最新,動作確認用のみなのでruntimeOnly)
     runtimeOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}"
-    runtimeOnly "curse.maven:playeranimator-658587:6024462"
+    runtimeOnly "maven.modrinth:playeranimator:HJZB6bmA"
 
     // Create.
     // Create 連携のコンパイル用.
     // ランタイム検証では compat profile から読み込む.
-    compileOnly "curse.maven:create-328085:7178775"
+    compileOnly "maven.modrinth:create:88L641Un"
     compileOnly "com.tterrag.registrate:Registrate:${registrate_version}"
-    add(optionalRuntimeModuleConfigurations.create, "curse.maven:create-328085:7178775")
+    add(optionalRuntimeModuleConfigurations.create, "maven.modrinth:create:88L641Un")
 
     // EasyMagic.
     // easy_magic profile から読み込む。通常開発ではエンチャント挙動の変化を避ける.
@@ -320,10 +316,10 @@ dependencies {
 
     // Lodestone / Malum.
     // compat profile から読み込む。通常開発では追加要素による調査ノイズを避ける.
-    compileOnly "curse.maven:lodestone-616457:7264731"
-    compileOnly "curse.maven:malum-484064:7307339"
-    add(optionalRuntimeModuleConfigurations.lodestone, "curse.maven:lodestone-616457:7264731")
-    add(optionalRuntimeModuleConfigurations.malum, "curse.maven:malum-484064:7307339")
+    compileOnly "maven.modrinth:lodestonelib:CohX6yP1"
+    compileOnly "maven.modrinth:malum:BIbVs1fo"
+    add(optionalRuntimeModuleConfigurations.lodestone, "maven.modrinth:lodestonelib:CohX6yP1")
+    add(optionalRuntimeModuleConfigurations.malum, "maven.modrinth:malum:BIbVs1fo")
 
     // JEI.
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
