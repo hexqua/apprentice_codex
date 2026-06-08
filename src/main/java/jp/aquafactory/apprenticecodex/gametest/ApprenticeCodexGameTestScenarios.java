@@ -7107,6 +7107,22 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void heavenlyFistImpactDamagesNonLivingCombatTarget(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "heavenly_fist_crystal_owner_test");
+        var crystal = helper.spawn(EntityType.END_CRYSTAL, new BlockPos(2, 2, 0));
+
+        var center = helper.absolutePos(new BlockPos(2, 2, 0)).getCenter();
+        var fist = new HeavenlyFistFistEntity(EntityRegistry.HEAVENLY_FIST_FIST.get(), level, owner, center, 8.0F, 2.0F, 0);
+        level.addFreshEntity(fist);
+
+        helper.runAtTickTime(28, () -> {
+            helper.assertTrue(crystal.isRemoved() || !crystal.isAlive(),
+                    "Heavenly Fist should damage non-Living CombatTarget inside its locked AABB");
+            helper.succeed();
+        });
+    }
+
     static void heavenlyFistImpactDoesNotTrackMovedTarget(GameTestHelper helper) {
         var level = helper.getLevel();
         var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "heavenly_fist_lock_owner_test");

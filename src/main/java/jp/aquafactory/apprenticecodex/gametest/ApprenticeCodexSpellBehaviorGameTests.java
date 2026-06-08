@@ -462,6 +462,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 60)
+    public static void heavenlyFistImpactDamagesNonLivingCombatTarget(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.heavenlyFistImpactDamagesNonLivingCombatTarget(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 60)
     public static void heavenlyFistImpactDoesNotTrackMovedTarget(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.heavenlyFistImpactDoesNotTrackMovedTarget(helper);
     }
