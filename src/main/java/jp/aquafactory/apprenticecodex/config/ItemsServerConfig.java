@@ -270,6 +270,18 @@ final class ItemsServerConfig {
         return manaForceBladeConfig.perfectGuardTicks();
     }
 
+    int manaForceBladeReleaseCooldownTicks() {
+        return manaForceBladeConfig.releaseCooldownTicks();
+    }
+
+    int manaForceBladePerfectGuardReleaseCooldownGraceTicks() {
+        return manaForceBladeConfig.perfectGuardReleaseCooldownGraceTicks();
+    }
+
+    int manaForceBladePerfectGuardReleaseCooldownGraceUses() {
+        return manaForceBladeConfig.perfectGuardReleaseCooldownGraceUses();
+    }
+
     float manaShieldCharmManaPerDamage() {
         return manaShieldCharmConfig.manaPerDamage();
     }
@@ -735,6 +747,18 @@ final class ItemsServerConfig {
                 castTimeCooldownMultiplier,
                 cooldownCapTicks,
                 maxMulticastCount
+        );
+    }
+
+    void setManaForceBladeCooldownConfigForGameTest(
+            int releaseCooldownTicks,
+            int perfectGuardReleaseCooldownGraceTicks,
+            int perfectGuardReleaseCooldownGraceUses
+    ) {
+        manaForceBladeConfig.setCooldownConfigForGameTest(
+                releaseCooldownTicks,
+                perfectGuardReleaseCooldownGraceTicks,
+                perfectGuardReleaseCooldownGraceUses
         );
     }
 

@@ -334,6 +334,18 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.manaForceBladePerfectGuardTicks();
     }
 
+    public static int manaForceBladeReleaseCooldownTicks() {
+        return ITEMS_CONFIG.manaForceBladeReleaseCooldownTicks();
+    }
+
+    public static int manaForceBladePerfectGuardReleaseCooldownGraceTicks() {
+        return ITEMS_CONFIG.manaForceBladePerfectGuardReleaseCooldownGraceTicks();
+    }
+
+    public static int manaForceBladePerfectGuardReleaseCooldownGraceUses() {
+        return ITEMS_CONFIG.manaForceBladePerfectGuardReleaseCooldownGraceUses();
+    }
+
     public static float manaShieldCharmManaPerDamage() {
         return ITEMS_CONFIG.manaShieldCharmManaPerDamage();
     }
@@ -740,6 +752,29 @@ public final class ApprenticeCodexServerConfig {
                 previousNeutralizationRecoverManaPerDamage,
                 previousShellArmorDurabilityDamage,
                 previousInvulnerableTimeTicks
+        );
+    }
+
+    public static GameTestConfigOverride useManaForceBladeCooldownConfigOverrideForGameTest(
+            int releaseCooldownTicks,
+            int perfectGuardReleaseCooldownGraceTicks,
+            int perfectGuardReleaseCooldownGraceUses
+    ) {
+        var previousReleaseCooldownTicks = ITEMS_CONFIG.manaForceBladeReleaseCooldownTicks();
+        var previousPerfectGuardReleaseCooldownGraceTicks =
+                ITEMS_CONFIG.manaForceBladePerfectGuardReleaseCooldownGraceTicks();
+        var previousPerfectGuardReleaseCooldownGraceUses =
+                ITEMS_CONFIG.manaForceBladePerfectGuardReleaseCooldownGraceUses();
+
+        ITEMS_CONFIG.setManaForceBladeCooldownConfigForGameTest(
+                releaseCooldownTicks,
+                perfectGuardReleaseCooldownGraceTicks,
+                perfectGuardReleaseCooldownGraceUses
+        );
+        return () -> ITEMS_CONFIG.setManaForceBladeCooldownConfigForGameTest(
+                previousReleaseCooldownTicks,
+                previousPerfectGuardReleaseCooldownGraceTicks,
+                previousPerfectGuardReleaseCooldownGraceUses
         );
     }
 

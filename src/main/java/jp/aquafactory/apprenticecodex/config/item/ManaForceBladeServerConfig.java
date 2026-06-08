@@ -10,6 +10,12 @@ public final class ManaForceBladeServerConfig {
     private final ForgeConfigSpec.DoubleValue rangedGuardManaCost;
     private final ForgeConfigSpec.BooleanValue disableManaRecoveryWhileGuarding;
     private final ForgeConfigSpec.IntValue perfectGuardTicks;
+    private final ForgeConfigSpec.IntValue releaseCooldownTicks;
+    private final ForgeConfigSpec.IntValue perfectGuardReleaseCooldownGraceTicks;
+    private final ForgeConfigSpec.IntValue perfectGuardReleaseCooldownGraceUses;
+    private Integer releaseCooldownTicksOverride;
+    private Integer perfectGuardReleaseCooldownGraceTicksOverride;
+    private Integer perfectGuardReleaseCooldownGraceUsesOverride;
 
     private ManaForceBladeServerConfig(
             ForgeConfigSpec.DoubleValue imbueDamageMultiplierScale,
@@ -18,7 +24,10 @@ public final class ManaForceBladeServerConfig {
             ForgeConfigSpec.DoubleValue meleeGuardManaCost,
             ForgeConfigSpec.DoubleValue rangedGuardManaCost,
             ForgeConfigSpec.BooleanValue disableManaRecoveryWhileGuarding,
-            ForgeConfigSpec.IntValue perfectGuardTicks
+            ForgeConfigSpec.IntValue perfectGuardTicks,
+            ForgeConfigSpec.IntValue releaseCooldownTicks,
+            ForgeConfigSpec.IntValue perfectGuardReleaseCooldownGraceTicks,
+            ForgeConfigSpec.IntValue perfectGuardReleaseCooldownGraceUses
     ) {
         this.imbueDamageMultiplierScale = imbueDamageMultiplierScale;
         this.attackManaCostMultiplier = attackManaCostMultiplier;
@@ -27,6 +36,9 @@ public final class ManaForceBladeServerConfig {
         this.rangedGuardManaCost = rangedGuardManaCost;
         this.disableManaRecoveryWhileGuarding = disableManaRecoveryWhileGuarding;
         this.perfectGuardTicks = perfectGuardTicks;
+        this.releaseCooldownTicks = releaseCooldownTicks;
+        this.perfectGuardReleaseCooldownGraceTicks = perfectGuardReleaseCooldownGraceTicks;
+        this.perfectGuardReleaseCooldownGraceUses = perfectGuardReleaseCooldownGraceUses;
     }
 
     public static ManaForceBladeServerConfig define(ForgeConfigSpec.Builder builder) {
@@ -47,6 +59,15 @@ public final class ManaForceBladeServerConfig {
         var perfectGuardTicks = builder
                 .comment("Ticks treated as perfect guard for vanilla-style Mana Force Blade guard. Not used when Epic Fight is installed because Epic Fight guard skills take priority.")
                 .defineInRange("perfectGuardTicks", 10, 0, 72000);
+        var releaseCooldownTicks = builder
+                .comment("Cooldown ticks applied when releasing vanilla-style Mana Force Blade guard. 0 disables the release cooldown.")
+                .defineInRange("releaseCooldownTicks", 40, 0, 72000);
+        var perfectGuardReleaseCooldownGraceTicks = builder
+                .comment("Ticks after a successful perfect guard during which releasing Mana Force Blade guard skips release cooldown. 0 disables this grace.")
+                .defineInRange("perfectGuardReleaseCooldownGraceTicks", 40, 0, 72000);
+        var perfectGuardReleaseCooldownGraceUses = builder
+                .comment("Number of release cooldown skips granted by a successful perfect guard. 0 disables this grace. Use a large value for effectively unlimited skips.")
+                .defineInRange("perfectGuardReleaseCooldownGraceUses", 1, 0, 1000000);
 
         builder.pop();
         return new ManaForceBladeServerConfig(
@@ -56,7 +77,10 @@ public final class ManaForceBladeServerConfig {
                 meleeGuardManaCost,
                 rangedGuardManaCost,
                 disableManaRecoveryWhileGuarding,
-                perfectGuardTicks
+                perfectGuardTicks,
+                releaseCooldownTicks,
+                perfectGuardReleaseCooldownGraceTicks,
+                perfectGuardReleaseCooldownGraceUses
         );
     }
 
@@ -86,5 +110,31 @@ public final class ManaForceBladeServerConfig {
 
     public int perfectGuardTicks() {
         return perfectGuardTicks.get();
+    }
+
+    public int releaseCooldownTicks() {
+        return releaseCooldownTicksOverride == null ? releaseCooldownTicks.get() : releaseCooldownTicksOverride;
+    }
+
+    public int perfectGuardReleaseCooldownGraceTicks() {
+        return perfectGuardReleaseCooldownGraceTicksOverride == null
+                ? perfectGuardReleaseCooldownGraceTicks.get()
+                : perfectGuardReleaseCooldownGraceTicksOverride;
+    }
+
+    public int perfectGuardReleaseCooldownGraceUses() {
+        return perfectGuardReleaseCooldownGraceUsesOverride == null
+                ? perfectGuardReleaseCooldownGraceUses.get()
+                : perfectGuardReleaseCooldownGraceUsesOverride;
+    }
+
+    public void setCooldownConfigForGameTest(
+            int releaseCooldownTicks,
+            int perfectGuardReleaseCooldownGraceTicks,
+            int perfectGuardReleaseCooldownGraceUses
+    ) {
+        this.releaseCooldownTicksOverride = releaseCooldownTicks;
+        this.perfectGuardReleaseCooldownGraceTicksOverride = perfectGuardReleaseCooldownGraceTicks;
+        this.perfectGuardReleaseCooldownGraceUsesOverride = perfectGuardReleaseCooldownGraceUses;
     }
 }
