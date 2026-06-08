@@ -67,7 +67,8 @@ public final class ManaForceBladeConfigSyncEvents {
         return new SyncManaForceBladeConfigPacket(
                 ApprenticeCodexServerConfig.manaForceBladeImbueDamageMultiplierScale(),
                 ApprenticeCodexServerConfig.manaForceBladeAttackManaCostMultiplier(),
-                ApprenticeCodexServerConfig.manaForceBladeAttackManaSchoolMultiplierScale()
+                ApprenticeCodexServerConfig.manaForceBladeAttackManaSchoolMultiplierScale(),
+                ApprenticeCodexServerConfig.manaForceBladeReleaseCooldownTicks()
         );
     }
 

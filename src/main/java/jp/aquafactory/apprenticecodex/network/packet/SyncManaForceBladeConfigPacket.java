@@ -21,15 +21,18 @@ public final class SyncManaForceBladeConfigPacket implements CustomPacketPayload
     private final float imbueDamageMultiplierScale;
     private final float attackManaCostMultiplier;
     private final float attackManaSchoolMultiplierScale;
+    private final int releaseCooldownTicks;
 
     public SyncManaForceBladeConfigPacket(
             float imbueDamageMultiplierScale,
             float attackManaCostMultiplier,
-            float attackManaSchoolMultiplierScale
+            float attackManaSchoolMultiplierScale,
+            int releaseCooldownTicks
     ) {
         this.imbueDamageMultiplierScale = imbueDamageMultiplierScale;
         this.attackManaCostMultiplier = attackManaCostMultiplier;
         this.attackManaSchoolMultiplierScale = attackManaSchoolMultiplierScale;
+        this.releaseCooldownTicks = releaseCooldownTicks;
     }
 
     @Override
@@ -41,13 +44,15 @@ public final class SyncManaForceBladeConfigPacket implements CustomPacketPayload
         buffer.writeFloat(packet.imbueDamageMultiplierScale);
         buffer.writeFloat(packet.attackManaCostMultiplier);
         buffer.writeFloat(packet.attackManaSchoolMultiplierScale);
+        buffer.writeInt(packet.releaseCooldownTicks);
     }
 
     private static SyncManaForceBladeConfigPacket decode(FriendlyByteBuf buffer) {
         return new SyncManaForceBladeConfigPacket(
                 buffer.readFloat(),
                 buffer.readFloat(),
-                buffer.readFloat()
+                buffer.readFloat(),
+                buffer.readInt()
         );
     }
 
@@ -68,7 +73,8 @@ public final class SyncManaForceBladeConfigPacket implements CustomPacketPayload
             ManaForceBladeConfigState.set(
                     packet.imbueDamageMultiplierScale,
                     packet.attackManaCostMultiplier,
-                    packet.attackManaSchoolMultiplierScale
+                    packet.attackManaSchoolMultiplierScale,
+                    packet.releaseCooldownTicks
             );
         }
     }

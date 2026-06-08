@@ -15,8 +15,11 @@ import jp.aquafactory.apprenticecodex.renderer.item.ManaForceBladeRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -38,6 +41,7 @@ import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Tiers;
 import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -63,7 +67,7 @@ import java.util.function.Consumer;
 
 public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellContainer, SpellSlotUpgradeableItem {
     public static final float DISPLAY_ATTACK_DAMAGE = 6.0F;
-    public static final int COOLDOWN_TICKS = 40;
+    public static final int DEFAULT_RELEASE_COOLDOWN_TICKS = 40;
     private static final String EPICFIGHT_MOD_ID = "epicfight";
     private static final String DESCRIPTION_TRANSLATION_KEY = "item.apprenticecodex.mana_force_blade.desc";
     private static final String EPICFIGHT_DESCRIPTION_TRANSLATION_KEY = DESCRIPTION_TRANSLATION_KEY + ".epicfight";
@@ -74,6 +78,10 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
     private static final double ATTACK_DAMAGE_MODIFIER_AMOUNT = DISPLAY_ATTACK_DAMAGE - 1.0D;
     private static final double ATTACK_SPEED_MODIFIER_AMOUNT = -2.0D;
     private static final String ATTACK_MANA_SPENT_TICK_TAG = "apprenticecodex:mana_force_blade_attack_mana_spent_tick";
+    private static final String PERFECT_GUARD_RELEASE_COOLDOWN_GRACE_TICK_TAG =
+            "apprenticecodex:mana_force_blade_perfect_guard_release_cooldown_grace_tick";
+    private static final String PERFECT_GUARD_RELEASE_COOLDOWN_GRACE_USES_TAG =
+            "apprenticecodex:mana_force_blade_perfect_guard_release_cooldown_grace_uses";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD);
     private static final Set<String> EXTRA_ENCHANTMENTS = Set.of(
@@ -143,7 +151,14 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
     @Override
     public void releaseUsing(@NotNull ItemStack stack, @NotNull Level level, @NotNull LivingEntity livingEntity, int timeLeft) {
         if (!level.isClientSide && livingEntity instanceof Player player) {
-            player.getCooldowns().addCooldown(this, COOLDOWN_TICKS);
+            if (consumePerfectGuardReleaseCooldownGrace(stack, level)) {
+                return;
+            }
+
+            var cooldownTicks = ApprenticeCodexServerConfig.manaForceBladeReleaseCooldownTicks();
+            if (cooldownTicks > 0) {
+                player.getCooldowns().addCooldown(this, cooldownTicks);
+            }
         }
     }
 
@@ -391,6 +406,66 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
         if (player instanceof ServerPlayer serverPlayer) {
             PacketDistributor.sendToPlayer(serverPlayer, new SyncManaPacket(magicData));
         }
+    }
+
+    public static void rememberPerfectGuardReleaseCooldownGrace(ItemStack stack, long gameTime) {
+        var graceTicks = ApprenticeCodexServerConfig.manaForceBladePerfectGuardReleaseCooldownGraceTicks();
+        var graceUses = ApprenticeCodexServerConfig.manaForceBladePerfectGuardReleaseCooldownGraceUses();
+        if (stack.isEmpty() || graceTicks <= 0 || graceUses <= 0) {
+            return;
+        }
+
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putLong(PERFECT_GUARD_RELEASE_COOLDOWN_GRACE_TICK_TAG, gameTime);
+            tag.putInt(PERFECT_GUARD_RELEASE_COOLDOWN_GRACE_USES_TAG, graceUses);
+        });
+    }
+
+    private static boolean consumePerfectGuardReleaseCooldownGrace(ItemStack stack, Level level) {
+        var graceTicks = ApprenticeCodexServerConfig.manaForceBladePerfectGuardReleaseCooldownGraceTicks();
+        var configuredGraceUses = ApprenticeCodexServerConfig.manaForceBladePerfectGuardReleaseCooldownGraceUses();
+        if (stack.isEmpty() || graceTicks <= 0 || configuredGraceUses <= 0) {
+            return false;
+        }
+
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return false;
+        }
+
+        var tag = customData.copyTag();
+        if (tag == null
+                || !tag.contains(PERFECT_GUARD_RELEASE_COOLDOWN_GRACE_TICK_TAG, Tag.TAG_LONG)
+                || !tag.contains(PERFECT_GUARD_RELEASE_COOLDOWN_GRACE_USES_TAG, Tag.TAG_INT)) {
+            return false;
+        }
+
+        var remainingUses = tag.getInt(PERFECT_GUARD_RELEASE_COOLDOWN_GRACE_USES_TAG);
+        var elapsedTicks = level.getGameTime() - tag.getLong(PERFECT_GUARD_RELEASE_COOLDOWN_GRACE_TICK_TAG);
+        if (remainingUses <= 0 || elapsedTicks < 0 || elapsedTicks > graceTicks) {
+            clearPerfectGuardReleaseCooldownGrace(stack);
+            return false;
+        }
+
+        remainingUses -= 1;
+        var updatedRemainingUses = remainingUses;
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, updatedTag -> {
+            if (updatedRemainingUses <= 0) {
+                clearPerfectGuardReleaseCooldownGrace(updatedTag);
+            } else {
+                updatedTag.putInt(PERFECT_GUARD_RELEASE_COOLDOWN_GRACE_USES_TAG, updatedRemainingUses);
+            }
+        });
+        return true;
+    }
+
+    private static void clearPerfectGuardReleaseCooldownGrace(ItemStack stack) {
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, ManaForceBlade::clearPerfectGuardReleaseCooldownGrace);
+    }
+
+    private static void clearPerfectGuardReleaseCooldownGrace(CompoundTag tag) {
+        tag.remove(PERFECT_GUARD_RELEASE_COOLDOWN_GRACE_TICK_TAG);
+        tag.remove(PERFECT_GUARD_RELEASE_COOLDOWN_GRACE_USES_TAG);
     }
 
     private static void trySpendAttackManaOncePerTick(Player player, ItemStack stack) {
