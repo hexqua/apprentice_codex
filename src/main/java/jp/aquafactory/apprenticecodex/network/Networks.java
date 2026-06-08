@@ -44,8 +44,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
+
+import java.util.Optional;
 
 public final class Networks {
     private static final String PROTOCOL_VERSION = "36";
@@ -221,14 +224,16 @@ public final class Networks {
                 HealingBloomPulsePacket.class,
                 HealingBloomPulsePacket::encode,
                 HealingBloomPulsePacket::decode,
-                HealingBloomPulsePacket::handle
+                HealingBloomPulsePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
                 HeavenlyFistPulsePacket.class,
                 HeavenlyFistPulsePacket::encode,
                 HeavenlyFistPulsePacket::decode,
-                HeavenlyFistPulsePacket::handle
+                HeavenlyFistPulsePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
