@@ -65,7 +65,7 @@ public final class EffectRegistry {
             EFFECTS.register("frost_trapped", FrostTrapped::new);
     public static final DeferredHolder<MobEffect, MobEffect> NOTCHED_FROZEN =
             EFFECTS.register("notched_frozen", NotchedFrozenEffect::new);
-    public static final RegistryObject<MobEffect> GRAVITY_BOUND =
+    public static final DeferredHolder<MobEffect, MobEffect> GRAVITY_BOUND =
             EFFECTS.register("gravity_bound", GravityBound::new);
 
     public static void register(IEventBus eventBus) {

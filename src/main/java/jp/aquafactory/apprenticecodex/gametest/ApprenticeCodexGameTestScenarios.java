@@ -7101,7 +7101,7 @@ public class ApprenticeCodexGameTestScenarios {
         helper.runAtTickTime(28, () -> {
             helper.assertTrue(target.getHealth() < 100.0F,
                     "Heavenly Fist should damage CombatTarget inside its locked AABB");
-            helper.assertTrue(target.hasEffect(EffectRegistry.GRAVITY_BOUND.get()),
+            helper.assertTrue(target.hasEffect(EffectRegistry.GRAVITY_BOUND),
                     "Heavenly Fist should apply Gravity Bound to damaged CombatTarget");
             helper.succeed();
         });
@@ -7126,19 +7126,21 @@ public class ApprenticeCodexGameTestScenarios {
     static void heavenlyFistImpactDoesNotTrackMovedTarget(GameTestHelper helper) {
         var level = helper.getLevel();
         var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "heavenly_fist_lock_owner_test");
-        var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0));
+        var target = helper.spawn(EntityType.CREEPER, new BlockPos(2, 2, 0));
         target.setNoAi(true);
+        target.setNoGravity(true);
         setMaxHealthForDamageTest(target, 100.0F);
 
         var center = helper.absolutePos(new BlockPos(2, 2, 0)).getCenter();
         var fist = new HeavenlyFistFistEntity(EntityRegistry.HEAVENLY_FIST_FIST.get(), level, owner, center, 8.0F, 1.0F, 0);
         level.addFreshEntity(fist);
 
-        helper.runAtTickTime(5, () -> target.moveTo(helper.absolutePos(new BlockPos(7, 2, 0)).getCenter()));
+        helper.runAtTickTime(5, () -> target.moveTo(helper.absolutePos(new BlockPos(4, 2, 0)).getCenter()));
         helper.runAtTickTime(28, () -> {
             helper.assertTrue(Math.abs(target.getHealth() - 100.0F) < 0.01F,
-                    "Heavenly Fist should not chase a target after locking the impact position");
-            helper.assertFalse(target.hasEffect(EffectRegistry.GRAVITY_BOUND.get()),
+                    "Heavenly Fist should not chase a target after locking the impact position: health="
+                            + target.getHealth() + ", position=" + target.position());
+            helper.assertFalse(target.hasEffect(EffectRegistry.GRAVITY_BOUND),
                     "Heavenly Fist should not apply Gravity Bound to a moved-out target");
             helper.succeed();
         });

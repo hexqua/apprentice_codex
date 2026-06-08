@@ -23,6 +23,7 @@ import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireIns
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoireScreen;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticle;
+import jp.aquafactory.apprenticecodex.particle.ImpactTremorBlockParticle;
 import jp.aquafactory.apprenticecodex.particle.ReticleDotParticle;
 import jp.aquafactory.apprenticecodex.particle.SmashcastDustPillarParticle;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
@@ -82,6 +83,7 @@ import jp.aquafactory.apprenticecodex.spell.frostrune.FrostRuneTrapBlockEntityRe
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudRenderer;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelRenderer;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomRenderer;
+import jp.aquafactory.apprenticecodex.spell.heavenlyfist.HeavenlyFistFistRenderer;
 import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaRenderer;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarStarRenderer;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerRenderer;

@@ -19,15 +19,15 @@ public class GravityBound extends MobEffect {
     }
 
     @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         return true;
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity livingEntity, int amplifier) {
+    public boolean applyEffectTick(@NotNull LivingEntity livingEntity, int amplifier) {
         if (isDenied(livingEntity)) {
-            livingEntity.removeEffect(EffectRegistry.GRAVITY_BOUND.get());
-            return;
+            livingEntity.removeEffect(EffectRegistry.GRAVITY_BOUND);
+            return false;
         }
 
         var movement = livingEntity.getDeltaMovement();
@@ -41,6 +41,7 @@ public class GravityBound extends MobEffect {
         livingEntity.hurtMarked = true;
         livingEntity.setNoGravity(false);
         livingEntity.fallDistance = Math.max(livingEntity.fallDistance, 0.0F);
+        return true;
     }
 
     private static boolean isDenied(LivingEntity livingEntity) {

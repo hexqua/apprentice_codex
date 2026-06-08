@@ -3,16 +3,17 @@ package jp.aquafactory.apprenticecodex.spell.heavenlyfist;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -75,30 +76,30 @@ final class HeavenlyFistPressingProcessor {
         var processCount = Math.min(maxProcessCount, inputStack.getCount());
         var createRecipe = findCreatePressingRecipe(level, inputStack);
         if (createRecipe.isPresent()) {
-            var outputs = rollCreatePressingOutputs(level, createRecipe.get(), processCount);
+            var outputs = rollCreatePressingOutputs(level, createRecipe.get().value(), processCount);
             if (outputs.isPresent()) {
                 applyProcessingResult(level, itemEntity, outputs.get(), processCount, skipIds);
                 return processCount;
             }
-            logCreateReflectionFailureOnce(createRecipe.get().getId());
+            logCreateReflectionFailureOnce(createRecipe.get().id());
         }
 
         return 0;
     }
 
-    private static Optional<Recipe<?>> findCreatePressingRecipe(ServerLevel level, ItemStack inputStack) {
+    private static Optional<RecipeHolder<?>> findCreatePressingRecipe(ServerLevel level, ItemStack inputStack) {
         if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
             return Optional.empty();
         }
 
-        var type = ForgeRegistries.RECIPE_TYPES.getValue(CREATE_PRESSING_RECIPE_TYPE_ID);
-        if (type == null) {
+        var type = BuiltInRegistries.RECIPE_TYPE.getOptional(CREATE_PRESSING_RECIPE_TYPE_ID);
+        if (type.isEmpty()) {
             return Optional.empty();
         }
 
         return level.getRecipeManager().getRecipes().stream()
-                .filter(recipe -> recipe.getType() == type)
-                .filter(recipe -> matchesFirstIngredient(recipe, inputStack))
+                .filter(recipe -> recipe.value().getType() == type.get())
+                .filter(recipe -> matchesFirstIngredient(recipe.value(), inputStack))
                 .findFirst();
     }
 

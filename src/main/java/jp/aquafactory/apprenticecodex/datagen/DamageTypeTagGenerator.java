@@ -30,6 +30,7 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.GRACED_RAIN;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.GRIND_RUNNER;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HAUNTED_BONUS;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HEALING_BLOOM;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HEAVENLY_FIST;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HIGANBANA;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ILLUMINATE_STELLAR;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.INSCRIBE_ICE;
