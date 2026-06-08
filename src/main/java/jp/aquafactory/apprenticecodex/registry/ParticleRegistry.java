@@ -1,9 +1,9 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
+import jp.aquafactory.apprenticecodex.particle.ImpactTremorBlockParticleOptions;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.particle.SmashcastDustPillarParticleOptions;
-import jp.aquafactory.apprenticecodex.particle.SmashcastTremorBlockParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraftforge.registries.DeferredRegister;
@@ -53,12 +53,12 @@ public final class ParticleRegistry {
                 }
             });
 
-    public static final RegistryObject<ParticleType<SmashcastTremorBlockParticleOptions>> SMASHCAST_TREMOR_BLOCK =
-            PARTICLES.register("smashcast_tremor_block", () -> new ParticleType<>(true,
-                    SmashcastTremorBlockParticleOptions.DESERIALIZER) {
+    public static final RegistryObject<ParticleType<ImpactTremorBlockParticleOptions>> IMPACT_TREMOR_BLOCK =
+            PARTICLES.register("impact_tremor_block", () -> new ParticleType<>(true,
+                    ImpactTremorBlockParticleOptions.DESERIALIZER) {
                 @Override
-                public com.mojang.serialization.@NotNull Codec<SmashcastTremorBlockParticleOptions> codec() {
-                    return SmashcastTremorBlockParticleOptions.CODEC;
+                public com.mojang.serialization.@NotNull Codec<ImpactTremorBlockParticleOptions> codec() {
+                    return ImpactTremorBlockParticleOptions.CODEC;
                 }
             });
 

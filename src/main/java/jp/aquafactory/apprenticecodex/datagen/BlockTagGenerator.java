@@ -61,6 +61,35 @@ public final class BlockTagGenerator extends BlockTagsProvider {
                 .addOptional(ResourceLocation.fromNamespaceAndPath("lootr", "lootr_barrel"))
                 .addOptional(ResourceLocation.fromNamespaceAndPath("lootr", "lootr_shulker"));
 
+        tag(TagRegistry.Blocks.HEAVENLY_FIST_CRYSTAL_HARVEST_SOURCES)
+                .add(Blocks.BUDDING_AMETHYST)
+                .addOptionalTag(ResourceLocation.fromNamespaceAndPath("forge", "budding"))
+                .addOptionalTag(ResourceLocation.fromNamespaceAndPath("spectrum", "budding_blocks"))
+                .addOptionalTag(ResourceLocation.fromNamespaceAndPath("pastel", "budding_blocks"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("ae2", "quartz_block"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("primalmagick", "flawed_budding_amethyst_block"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("primalmagick", "damaged_budding_amethyst_block"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("primalmagick", "chipped_budding_amethyst_block"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("primalmagick", "flawed_budding_diamond_block"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("primalmagick", "damaged_budding_diamond_block"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("primalmagick", "chipped_budding_diamond_block"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("primalmagick", "flawed_budding_emerald_block"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("primalmagick", "damaged_budding_emerald_block"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("primalmagick", "chipped_budding_emerald_block"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("primalmagick", "flawed_budding_quartz_block"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("primalmagick", "damaged_budding_quartz_block"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("primalmagick", "chipped_budding_quartz_block"));
+
+        tag(TagRegistry.Blocks.HEAVENLY_FIST_CRYSTAL_HARVEST_TARGETS)
+                .add(Blocks.AMETHYST_CLUSTER)
+                .addOptionalTag(ResourceLocation.fromNamespaceAndPath("forge", "clusters"))
+                .addOptionalTag(ResourceLocation.fromNamespaceAndPath("spectrum", "gemstone_clusters"))
+                .addOptionalTag(ResourceLocation.fromNamespaceAndPath("pastel", "gemstone_clusters"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("primalmagick", "synthetic_amethyst_cluster"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("primalmagick", "synthetic_diamond_cluster"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("primalmagick", "synthetic_emerald_cluster"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("primalmagick", "synthetic_quartz_cluster"));
+
         // TinyLumberjack の強制原木判定.
         tag(TagRegistry.Blocks.TINY_LUMBERJACK_FORCED_LOGS);
 

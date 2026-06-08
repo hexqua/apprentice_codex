@@ -361,6 +361,13 @@
       "apprenticecodex:revolve"
     ]
   },
+  "amethyst_fist": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.amethyst_fist",
+    "sounds": [
+      "apprenticecodex:amethyst_fist"
+    ]
+  },
 
   "smashcast_scepter_smash_air": {
     "_apprentice_codex_note": "ベースはSoundEvents.PLAYER_ATTACK_CRIT",

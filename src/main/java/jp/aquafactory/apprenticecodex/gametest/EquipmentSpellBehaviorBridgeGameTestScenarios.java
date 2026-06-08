@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.spell.heavenlyfist.HeavenlyFistFistEntity;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackJob;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillEntity;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
@@ -37,6 +38,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.AmethystClusterBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -400,6 +402,110 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             helper.succeed();
         });
     }
+    static void heavenlyFistWithCraftsmansDelightHarvestsSilkTouchedBuddingCrystal(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var level = helper.getLevel();
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareMiningSpellIsolationArea(helper, playerPos);
+            var player = createEquipmentTestPlayer(helper, playerPos, "heavenly_fist_crystal_harvest_test");
+            var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
+            ringStack.enchant(Enchantments.SILK_TOUCH, 1);
+            equipRingCurio(player, ringStack);
+
+            var sourcePos = helper.absolutePos(new BlockPos(1, 12, 1));
+            var clusterPos = sourcePos.east();
+            level.setBlock(sourcePos, Blocks.BUDDING_AMETHYST.defaultBlockState(), 3);
+            level.setBlock(clusterPos, matureAmethystCluster(Direction.EAST), 3);
+
+            spawnHeavenlyFist(level, player, Vec3.atCenterOf(sourcePos), 2.0F);
+            helper.runAtTickTime(28, () -> {
+                helper.assertTrue(level.getBlockState(clusterPos).isAir(),
+                        "Heavenly Fist with CraftsmansDelight should harvest mature crystals growing from budding amethyst");
+                helper.assertTrue(level.getBlockState(sourcePos).is(Blocks.BUDDING_AMETHYST),
+                        "Heavenly Fist with CraftsmansDelight should leave budding amethyst intact");
+                helper.assertTrue(hasItemEntityWithin(level, Blocks.AMETHYST_CLUSTER.asItem(), Vec3.atCenterOf(clusterPos), 1.5D),
+                        "Heavenly Fist with ring Silk Touch should drop the crystal block itself");
+                helper.succeed();
+            });
+        });
+    }
+
+    static void heavenlyFistWithoutCraftsmansDelightLeavesBuddingCrystal(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var level = helper.getLevel();
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareMiningSpellIsolationArea(helper, playerPos);
+            var player = createEquipmentTestPlayer(helper, playerPos, "heavenly_fist_no_crystal_harvest_test");
+
+            var sourcePos = helper.absolutePos(new BlockPos(1, 12, 1));
+            var clusterPos = sourcePos.east();
+            level.setBlock(sourcePos, Blocks.BUDDING_AMETHYST.defaultBlockState(), 3);
+            level.setBlock(clusterPos, matureAmethystCluster(Direction.EAST), 3);
+
+            spawnHeavenlyFist(level, player, Vec3.atCenterOf(sourcePos), 2.0F);
+            helper.runAtTickTime(28, () -> {
+                helper.assertTrue(level.getBlockState(clusterPos).is(Blocks.AMETHYST_CLUSTER),
+                        "Heavenly Fist without CraftsmansDelight should leave the crystal intact");
+                helper.succeed();
+            });
+        });
+    }
+
+    static void heavenlyFistSkipsCrystalNotGrowingFromHarvestSource(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var level = helper.getLevel();
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareMiningSpellIsolationArea(helper, playerPos);
+            var player = createEquipmentTestPlayer(helper, playerPos, "heavenly_fist_crystal_source_guard_test");
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+
+            var supportPos = helper.absolutePos(new BlockPos(1, 12, 1));
+            var clusterPos = supportPos.east();
+            level.setBlock(supportPos, Blocks.AMETHYST_BLOCK.defaultBlockState(), 3);
+            level.setBlock(clusterPos, matureAmethystCluster(Direction.EAST), 3);
+
+            spawnHeavenlyFist(level, player, Vec3.atCenterOf(supportPos), 2.0F);
+            helper.runAtTickTime(28, () -> {
+                helper.assertTrue(level.getBlockState(clusterPos).is(Blocks.AMETHYST_CLUSTER),
+                        "Heavenly Fist with CraftsmansDelight should skip crystals not attached to harvest sources");
+                helper.succeed();
+            });
+        });
+    }
+
+    static void heavenlyFistSkipsImmatureAmethystBuds(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var level = helper.getLevel();
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareMiningSpellIsolationArea(helper, playerPos);
+            var player = createEquipmentTestPlayer(helper, playerPos, "heavenly_fist_immature_bud_test");
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+
+            var sourcePos = helper.absolutePos(new BlockPos(1, 12, 1));
+            var budPos = sourcePos.east();
+            level.setBlock(sourcePos, Blocks.BUDDING_AMETHYST.defaultBlockState(), 3);
+            level.setBlock(budPos, Blocks.LARGE_AMETHYST_BUD.defaultBlockState()
+                    .setValue(AmethystClusterBlock.FACING, Direction.EAST), 3);
+
+            spawnHeavenlyFist(level, player, Vec3.atCenterOf(sourcePos), 2.0F);
+            helper.runAtTickTime(28, () -> {
+                helper.assertTrue(level.getBlockState(budPos).is(Blocks.LARGE_AMETHYST_BUD),
+                        "Heavenly Fist with CraftsmansDelight should skip immature amethyst buds");
+                helper.succeed();
+            });
+        });
+    }
+
+    private static net.minecraft.world.level.block.state.BlockState matureAmethystCluster(Direction facing) {
+        return Blocks.AMETHYST_CLUSTER.defaultBlockState().setValue(AmethystClusterBlock.FACING, facing);
+    }
+
+    private static void spawnHeavenlyFist(net.minecraft.server.level.ServerLevel level, net.minecraft.world.entity.LivingEntity owner,
+                                          Vec3 center, float radius) {
+        var fist = new HeavenlyFistFistEntity(EntityRegistry.HEAVENLY_FIST_FIST.get(), level, owner, center, 0.0F, radius, 0);
+        level.addFreshEntity(fist);
+    }
+
     static void tinyLumberjackWithCraftsmansDelightMovesJobDropsToOrigin(GameTestHelper helper) {
         helper.runAtTickTime(1, () -> {
             var level = helper.getLevel();

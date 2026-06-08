@@ -23,5 +23,6 @@ public final class EntityTypeTagGenerator extends TagsProvider<EntityType<?>> {
         // 1.20.1 の一般判定から漏れる相手だけを明示追加する。
         tag(TagRegistry.EntityTypes.COUNTS_AS_UNDEAD)
                 .addOptional(ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "necromancer"));
+        tag(TagRegistry.EntityTypes.GRAVITY_BOUND_DENYLIST);
     }
 }
