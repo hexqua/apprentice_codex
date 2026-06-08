@@ -135,12 +135,10 @@ public class HeavenlyFistFistEntity extends Entity implements GeoEntity, Traceab
                 ? CombatTools.getDamageSource(level, this, owner, DamageTypes.HEAVENLY_FIST)
                 : CombatTools.getDamageSource(level, this, DamageTypes.HEAVENLY_FIST);
 
-        for (var rawTarget : level.getEntities(this, area, entity -> CombatTools.isValidCombatTarget(entity, owner))) {
-            var resolvedTarget = CombatTools.resolutePartEntity(rawTarget);
-            if (!(resolvedTarget instanceof LivingEntity livingTarget) || !livingTarget.isAlive()) {
-                continue;
-            }
-
+        var targets = CombatTools.resolveUniqueLivingTargets(
+                level.getEntities(this, area, entity -> CombatTools.isValidCombatTarget(entity, owner))
+        );
+        for (var livingTarget : targets) {
             var damaged = CombatTools.applyDamage(
                     livingTarget,
                     damage,
