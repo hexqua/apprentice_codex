@@ -61,7 +61,8 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
             SpellRegistry.GRIND_RUNNER,
             SpellRegistry.GRACED_RAIN,
             SpellRegistry.HARVEST_MOON,
-            SpellRegistry.EARTH_FORGE
+            SpellRegistry.EARTH_FORGE,
+            SpellRegistry.HEAVENLY_FIST
     );
     private final String slotIdentifier;
 
@@ -301,6 +302,14 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
         }
 
         return applyMiningEnchants(new ItemStack(Items.DIAMOND_PICKAXE), ringStack, entity);
+    }
+
+    public static ItemStack createHeavenlyFistCrystalHarvestTool(@Nullable LivingEntity entity) {
+        if (entity == null) {
+            return new ItemStack(Items.DIAMOND_PICKAXE);
+        }
+
+        return applyMiningEnchants(new ItemStack(Items.DIAMOND_PICKAXE), getEquippedStack(entity), entity);
     }
 
     private static ItemStack applyMiningEnchants(ItemStack baseTool, ItemStack ringStack, @Nullable LivingEntity entity) {

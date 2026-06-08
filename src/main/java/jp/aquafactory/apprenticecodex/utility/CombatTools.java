@@ -21,6 +21,10 @@ import net.neoforged.neoforge.entity.PartEntity;
 import net.neoforged.fml.ModList;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.UUID;
 
 public final class CombatTools {
     private CombatTools() {}
@@ -55,6 +59,20 @@ public final class CombatTools {
             return part.getParent();
         }
         return raw;
+    }
+
+    public static List<Entity> resolveUniqueCombatTargets(Iterable<? extends Entity> rawTargets) {
+        var resolvedTargets = new ArrayList<Entity>();
+        var resolvedIds = new HashSet<UUID>();
+
+        for (var rawTarget : rawTargets) {
+            var resolvedTarget = resolutePartEntity(rawTarget);
+            if (resolvedTarget.isAlive() && resolvedIds.add(resolvedTarget.getUUID())) {
+                resolvedTargets.add(resolvedTarget);
+            }
+        }
+
+        return resolvedTargets;
     }
 
     public static boolean isValidCombatTarget(Entity target, @Nullable Entity owner) {

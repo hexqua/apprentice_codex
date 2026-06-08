@@ -1,0 +1,81 @@
+{
+  "values": [
+    "minecraft:budding_amethyst",
+    {
+      "id": "#c:budding_blocks",
+      "required": false
+    },
+    {
+      "id": "#spectrum:budding_blocks",
+      "required": false
+    },
+    {
+      "id": "#pastel:budding_blocks",
+      "required": false
+    },
+    {
+      "id": "ae2:flawless_budding_quartz",
+      "required": false
+    },
+    {
+      "id": "ae2:flawed_budding_quartz",
+      "required": false
+    },
+    {
+      "id": "ae2:damaged_budding_quartz",
+      "required": false
+    },
+    {
+      "id": "ae2:chipped_budding_quartz",
+      "required": false
+    },
+    {
+      "id": "primalmagick:flawed_budding_amethyst_block",
+      "required": false
+    },
+    {
+      "id": "primalmagick:damaged_budding_amethyst_block",
+      "required": false
+    },
+    {
+      "id": "primalmagick:chipped_budding_amethyst_block",
+      "required": false
+    },
+    {
+      "id": "primalmagick:flawed_budding_diamond_block",
+      "required": false
+    },
+    {
+      "id": "primalmagick:damaged_budding_diamond_block",
+      "required": false
+    },
+    {
+      "id": "primalmagick:chipped_budding_diamond_block",
+      "required": false
+    },
+    {
+      "id": "primalmagick:flawed_budding_emerald_block",
+      "required": false
+    },
+    {
+      "id": "primalmagick:damaged_budding_emerald_block",
+      "required": false
+    },
+    {
+      "id": "primalmagick:chipped_budding_emerald_block",
+      "required": false
+    },
+    {
+      "id": "primalmagick:flawed_budding_quartz_block",
+      "required": false
+    },
+    {
+      "id": "primalmagick:damaged_budding_quartz_block",
+      "required": false
+    },
+    {
+      "id": "primalmagick:chipped_budding_quartz_block",
+      "required": false
+    }
+  ]
+}

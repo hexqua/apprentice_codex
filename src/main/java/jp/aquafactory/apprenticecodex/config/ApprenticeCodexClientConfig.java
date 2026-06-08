@@ -12,6 +12,7 @@ public final class ApprenticeCodexClientConfig {
     private static final ModConfigSpec.BooleanValue ENABLE_SPELLGUN_AMMO_HUD;
     private static final ModConfigSpec.BooleanValue ENABLE_MANA_FORCE_BLADE_HOTBAR_SHEATH_RENDERING;
     private static final ModConfigSpec.BooleanValue ENABLE_SMASHCAST_SCEPTER_TREMOR_BLOCK_RENDERING;
+    private static final ModConfigSpec.BooleanValue ENABLE_HEAVENLY_FIST_TREMOR_BLOCK_RENDERING;
     private static final ModConfigSpec.ConfigValue<List<? extends String>>
             SCROLLCASTER_GAUNTLET_OFFHAND_VISUAL_DISABLED_MAINHAND_CATEGORIES;
     private static final ModConfigSpec.ConfigValue<List<? extends String>>
@@ -87,6 +88,14 @@ public final class ApprenticeCodexClientConfig {
                         value -> value instanceof String text && ResourceLocation.tryParse(text) != null);
         builder.pop();
 
+        builder.push("Spells");
+        builder.push("HeavenlyFist");
+        ENABLE_HEAVENLY_FIST_TREMOR_BLOCK_RENDERING = builder
+                .comment("天からの鉄拳の着弾時に一時的なブロック揺れを描画する")
+                .define("enableTremorBlockRendering", true);
+        builder.pop();
+        builder.pop();
+
         builder.push("Blocks");
         DISABLE_ESSENCE_SMOKER_PARTICLE_TEXTURE_ANALYSIS = builder
                 .comment("エッセンス燻製台のパーティクル色解析を無効化し、常に代替色を使う")
@@ -113,6 +122,10 @@ public final class ApprenticeCodexClientConfig {
 
     public static boolean enableSmashcastScepterTremorBlockRendering() {
         return ENABLE_SMASHCAST_SCEPTER_TREMOR_BLOCK_RENDERING.get();
+    }
+
+    public static boolean enableHeavenlyFistTremorBlockRendering() {
+        return ENABLE_HEAVENLY_FIST_TREMOR_BLOCK_RENDERING.get();
     }
 
     public static boolean isScrollcasterGauntletOffhandVisualDisabledForMainhandCategory(String categoryName) {

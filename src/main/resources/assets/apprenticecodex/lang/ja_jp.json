@@ -294,6 +294,7 @@
   "jei.apprenticecodex.craftsmans_delight.desc_9": "- ワールドフラッター：ブロックの破壊レベルが鉄ツールからネザライトツール相当に上昇。",
   "jei.apprenticecodex.craftsmans_delight.desc_10": "- グラインドランナー：歯車の理が入っている時に削れるアイテムが追加される。",
   "jei.apprenticecodex.craftsmans_delight.desc_11": "- タッチディグ：射程が2倍に伸びる。",
+  "jei.apprenticecodex.craftsmans_delight.desc_12": "- 天からの鉄拳：近くの芽生えブロックから生えた最大成長の結晶を採掘する。",
   "jei.apprenticecodex.protection_spell_supporter.desc_1": "下記の魔法の性能を変化させ、使用中のマナ消費量も減少させる。",
   "jei.apprenticecodex.protection_spell_supporter.desc_2": "- フォースフィールド：盾で防げない攻撃も防げるようになる。",
   "jei.apprenticecodex.protection_spell_supporter.desc_3": "- ファランクスチャージ：盾を構えた時の移動速度が上昇し、前方からのカウンタースペルを無力化できる。",
@@ -464,6 +465,7 @@
   "entity.apprenticecodex.inscribe_ice_dagger": "刻印ダガー",
   "entity.apprenticecodex.spell_invoke_card": "術式発火の札",
   "entity.apprenticecodex.spell_autonomy_card": "術式自律発動の札",
+  "entity.apprenticecodex.heavenly_fist_fist": "紫水晶の拳",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "使い走り魔術師",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "使い走り魔術師",
@@ -608,6 +610,7 @@
   "spell.apprenticecodex.bound_bow": "魔力の弓",
   "spell.apprenticecodex.inscribe_ice": "インスクライブアイス",
   "spell.apprenticecodex.divine_possession": "神降ろし",
+  "spell.apprenticecodex.heavenly_fist": "天からの鉄拳",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -670,6 +673,7 @@
   "spell.apprenticecodex.bound_bow.guide": "魔力の弓を一時的に手元に錬成する。矢を持っていない状況でもマナを消費して矢を錬成できる。錬成時に手に持っていた武器は一時的に弓の中に封じ込まれ、手放すなどで弓が自壊した際に手元に戻る。他の錬成武器と同時に存在できない。大魔術師のお守りを装備していると錬成解除時に条件を問わずクールダウンが発生しない。",
   "spell.apprenticecodex.inscribe_ice.guide": "命中したモブに対して氷の魔力を刻み込む氷のダガーを生成して扇状に投擲する。三回刻み込むと氷の魔力が炸裂し大ダメージを与える。この魔力の炸裂は近くの刻み込まれた氷の魔力の炸裂を誘発する。",
   "spell.apprenticecodex.divine_possession.guide": "元素の乙女のローブの固有の潜在魔法。属性を司る存在をその身に降ろし、一定時間最も強い系統のボーナスを他の全ての系統に反映させる。その身に存在を降ろすためには全部位の元素の乙女の衣装を着込む必要がある。",
+  "spell.apprenticecodex.heavenly_fist.guide": "狙った場所にアメジストの魔導拳を召喚し、空間ごと打ち付ける。効果範囲内の対象は暫く地面に叩き落とされ、プレス加工できるアイテムであればプレスする。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -691,6 +695,7 @@
   "ui.apprenticecodex.growth_speed_rank.fast": "早い",
   "ui.apprenticecodex.growth_speed_rank.normal": "やや早い",
   "ui.apprenticecodex.process_item_per_second": "1秒間に処理できるアイテム数: %d",
+  "ui.apprenticecodex.process_item_per_operate": "1回に処理できるアイテム数: %d",
   "ui.apprenticecodex.mana_recover_speed": "秒間マナ回復: %d",
   "ui.apprenticecodex.drain_per_hit": "打ち消し時消費マナ: %d",
   "ui.apprenticecodex.looting_level": "ドロップ増加レベル: %d",
@@ -822,6 +827,7 @@
   "effect.apprenticecodex.mist_form": "ミストフォーム",
   "effect.apprenticecodex.notched_frozen": "氷の刻みつけ",
   "effect.apprenticecodex.divine_possession": "神降ろし",
+  "effect.apprenticecodex.gravity_bound": "重力縛り",
   "effect.apprenticecodex.school_affinity": "親和",
   "effect.apprenticecodex.school_affinity.dynamic": "%sへの親和",
 
@@ -843,6 +849,7 @@
   "effect.apprenticecodex.mist_form.description": "移動能力が向上して低速落下状態になる。この状態でモブにダメージを与えると強制的に解除される。",
   "effect.apprenticecodex.notched_frozen.description": "氷の魔力が刻み込まれた状態。氷結状態が解除されず、一定数刻み込まれると氷の魔力として炸裂する。",
   "effect.apprenticecodex.divine_possession.description": "その身に元素の存在の力を宿した状態。最も高い系統ボーナスを他の系統全てに反映させる。",
+  "effect.apprenticecodex.gravity_bound.description": "空中に漂うことが困難になり、ジャンプも自由にできなくなる。",
 
   "item.minecraft.potion.effect.intelligence": "知性のポーション",
   "item.minecraft.potion.effect.meditation": "瞑想のポーション",
@@ -892,6 +899,7 @@
   "death.attack.apprenticecodex.frost_rune": "%1$sは警戒を怠ったことを後悔した",
   "death.attack.apprenticecodex.mystic_shield": "%1$sは%2$sのオカルト殺法に敗北した",
   "death.attack.apprenticecodex.inscribe_ice": "%1$sは%2$sによって冷凍保存された",
+  "death.attack.apprenticecodex.heavenly_fist": "%1$sは%2$sによってペラペラにされた",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",
@@ -1042,6 +1050,7 @@
   "subtitle.apprenticecodex.sound.ice_dagger_hit": "ダガーが刺さる",
   "subtitle.apprenticecodex.sound.kami": "属性の力を纏う",
   "subtitle.apprenticecodex.sound.revolve": "機構が作動する",
+  "subtitle.apprenticecodex.sound.amethyst_fist": "宝石が叩きつけられる",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_air": "セプターを振り下ろす",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground": "セプターが地面を打つ",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground_heavy": "セプターが激しく叩きつけられる",

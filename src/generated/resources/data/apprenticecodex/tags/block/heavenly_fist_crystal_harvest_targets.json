@@ -1,0 +1,37 @@
+{
+  "values": [
+    "minecraft:amethyst_cluster",
+    {
+      "id": "#c:clusters",
+      "required": false
+    },
+    {
+      "id": "#spectrum:gemstone_clusters",
+      "required": false
+    },
+    {
+      "id": "#pastel:gemstone_clusters",
+      "required": false
+    },
+    {
+      "id": "ae2:quartz_cluster",
+      "required": false
+    },
+    {
+      "id": "primalmagick:synthetic_amethyst_cluster",
+      "required": false
+    },
+    {
+      "id": "primalmagick:synthetic_diamond_cluster",
+      "required": false
+    },
+    {
+      "id": "primalmagick:synthetic_emerald_cluster",
+      "required": false
+    },
+    {
+      "id": "primalmagick:synthetic_quartz_cluster",
+      "required": false
+    }
+  ]
+}

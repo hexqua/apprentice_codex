@@ -30,6 +30,7 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.GRACED_RAIN;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.GRIND_RUNNER;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HAUNTED_BONUS;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HEALING_BLOOM;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HEAVENLY_FIST;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HIGANBANA;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ILLUMINATE_STELLAR;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.INSCRIBE_ICE;
@@ -127,7 +128,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 FROST_RUNE,
                 MYSTIC_SHIELD,
                 INSCRIBE_ICE,
-                INSCRIBE_ICE_BURST
+                INSCRIBE_ICE_BURST,
+                HEAVENLY_FIST
         );
 
         // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
@@ -204,7 +206,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 FROST_RUNE,
                 MYSTIC_SHIELD,
                 INSCRIBE_ICE,
-                INSCRIBE_ICE_BURST
+                INSCRIBE_ICE_BURST,
+                HEAVENLY_FIST
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.
