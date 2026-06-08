@@ -13,28 +13,33 @@ public final class SyncManaForceBladeConfigPacket {
     private final float imbueDamageMultiplierScale;
     private final float attackManaCostMultiplier;
     private final float attackManaSchoolMultiplierScale;
+    private final int releaseCooldownTicks;
 
     public SyncManaForceBladeConfigPacket(
             float imbueDamageMultiplierScale,
             float attackManaCostMultiplier,
-            float attackManaSchoolMultiplierScale
+            float attackManaSchoolMultiplierScale,
+            int releaseCooldownTicks
     ) {
         this.imbueDamageMultiplierScale = imbueDamageMultiplierScale;
         this.attackManaCostMultiplier = attackManaCostMultiplier;
         this.attackManaSchoolMultiplierScale = attackManaSchoolMultiplierScale;
+        this.releaseCooldownTicks = releaseCooldownTicks;
     }
 
     public static void encode(SyncManaForceBladeConfigPacket packet, FriendlyByteBuf buffer) {
         buffer.writeFloat(packet.imbueDamageMultiplierScale);
         buffer.writeFloat(packet.attackManaCostMultiplier);
         buffer.writeFloat(packet.attackManaSchoolMultiplierScale);
+        buffer.writeInt(packet.releaseCooldownTicks);
     }
 
     public static SyncManaForceBladeConfigPacket decode(FriendlyByteBuf buffer) {
         return new SyncManaForceBladeConfigPacket(
                 buffer.readFloat(),
                 buffer.readFloat(),
-                buffer.readFloat()
+                buffer.readFloat(),
+                buffer.readInt()
         );
     }
 
@@ -55,7 +60,8 @@ public final class SyncManaForceBladeConfigPacket {
             ManaForceBladeConfigState.set(
                     packet.imbueDamageMultiplierScale,
                     packet.attackManaCostMultiplier,
-                    packet.attackManaSchoolMultiplierScale
+                    packet.attackManaSchoolMultiplierScale,
+                    packet.releaseCooldownTicks
             );
         }
     }
