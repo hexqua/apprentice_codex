@@ -61,16 +61,14 @@ public final class CombatTools {
         return raw;
     }
 
-    public static List<LivingEntity> resolveUniqueLivingTargets(Iterable<? extends Entity> rawTargets) {
-        var resolvedTargets = new ArrayList<LivingEntity>();
+    public static List<Entity> resolveUniqueCombatTargets(Iterable<? extends Entity> rawTargets) {
+        var resolvedTargets = new ArrayList<Entity>();
         var resolvedIds = new HashSet<UUID>();
 
         for (var rawTarget : rawTargets) {
             var resolvedTarget = resolutePartEntity(rawTarget);
-            if (resolvedTarget instanceof LivingEntity livingTarget
-                    && livingTarget.isAlive()
-                    && resolvedIds.add(livingTarget.getUUID())) {
-                resolvedTargets.add(livingTarget);
+            if (resolvedTarget.isAlive() && resolvedIds.add(resolvedTarget.getUUID())) {
+                resolvedTargets.add(resolvedTarget);
             }
         }
 
