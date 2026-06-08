@@ -2,7 +2,7 @@
   "values": [
     "minecraft:amethyst_cluster",
     {
-      "id": "#forge:clusters",
+      "id": "#c:clusters",
       "required": false
     },
     {
@@ -11,6 +11,10 @@
     },
     {
       "id": "#pastel:gemstone_clusters",
+      "required": false
+    },
+    {
+      "id": "ae2:quartz_cluster",
       "required": false
     },
     {
