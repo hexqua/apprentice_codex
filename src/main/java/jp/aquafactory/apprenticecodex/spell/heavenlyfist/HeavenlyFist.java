@@ -167,14 +167,16 @@ public class HeavenlyFist extends AbstractSpell implements ICraftsmansDelightAff
         ));
         var effectiveEnd = blockHit.getType() == HitResult.Type.BLOCK ? blockHit.getLocation() : maxEnd;
 
-        var itemHit = findEntityHit(level, caster, eye, effectiveEnd, look, entity -> entity instanceof ItemEntity);
-        if (itemHit != null) {
-            return Optional.of(new LockedTarget(itemHit.getEntity().position()));
-        }
-
         var combatHit = findEntityHit(level, caster, eye, effectiveEnd, look, entity -> CombatTools.isValidCombatTarget(entity, caster));
         if (combatHit != null) {
             return Optional.of(new LockedTarget(CombatTools.resolutePartEntity(combatHit.getEntity()).getBoundingBox().getCenter()));
+        }
+
+        if (HeavenlyFistPressingProcessor.canProcessItems()) {
+            var itemHit = findEntityHit(level, caster, eye, effectiveEnd, look, entity -> entity instanceof ItemEntity);
+            if (itemHit != null) {
+                return Optional.of(new LockedTarget(itemHit.getEntity().position()));
+            }
         }
 
         if (blockHit.getType() == HitResult.Type.BLOCK) {
