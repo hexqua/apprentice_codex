@@ -36,6 +36,10 @@ public final class TagRegistry {
                 createBlockTag("harvest_moon_denylist");
         public static final TagKey<Block> TREASURE_DIVINATION_TARGETS =
                 createBlockTag("treasure_divination_targets");
+        public static final TagKey<Block> HEAVENLY_FIST_CRYSTAL_HARVEST_SOURCES =
+                createBlockTag("heavenly_fist_crystal_harvest_sources");
+        public static final TagKey<Block> HEAVENLY_FIST_CRYSTAL_HARVEST_TARGETS =
+                createBlockTag("heavenly_fist_crystal_harvest_targets");
         public static final TagKey<Block> TINY_LUMBERJACK_FORCED_LOGS =
                 createBlockTag("tiny_lumberjack_forced_logs");
         public static final TagKey<Block> TINY_LUMBERJACK_FORCED_LEAVES =

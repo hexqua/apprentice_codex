@@ -161,6 +161,9 @@ public class HeavenlyFistFistEntity extends Entity implements GeoEntity, Traceab
         }
 
         HeavenlyFistPressingProcessor.processItems(level, lockedCenter, radius, maxProcessCount);
+        if (owner instanceof LivingEntity livingOwner) {
+            HeavenlyFistCrystalHarvestProcessor.harvest(level, livingOwner, lockedCenter, radius);
+        }
         playImpactEffects(level);
     }
 

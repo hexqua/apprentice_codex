@@ -293,6 +293,7 @@
   "jei.apprenticecodex.craftsmans_delight.desc_9": "- 地形平整器：破环能力从铁级提升至下界合金级",
   "jei.apprenticecodex.craftsmans_delight.desc_10": "- 研磨加速轮：当安装Create模组（齿轮法则生效）时，可研磨更多物品",
   "jei.apprenticecodex.craftsmans_delight.desc_11": "- 触控挖掘：范围翻倍",
+  "jei.apprenticecodex.craftsmans_delight.desc_12": "- 天堂铁拳：采掘附近从芽生方块上长出的最大结晶",
   "jei.apprenticecodex.protection_spell_supporter.desc_1": "修改以下法术，并在法术生效期间降低其法力值消耗：",
   "jei.apprenticecodex.protection_spell_supporter.desc_2": "- 力场：可抵挡盾牌无法防御的攻击",
   "jei.apprenticecodex.protection_spell_supporter.desc_3": "- 方阵冲锋：持盾格挡时提升移动速度，并可无效化来自前方的反制法术",
@@ -467,6 +468,7 @@
   "entity.apprenticecodex.inscribe_ice_dagger": "刻印匕首",
   "entity.apprenticecodex.spell_invoke_card": "术式触发符卡",
   "entity.apprenticecodex.spell_autonomy_card": "术式自主发动符卡",
+  "entity.apprenticecodex.heavenly_fist_fist": "紫水晶之拳",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "跑腿法师",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "跑腿法师",
@@ -610,6 +612,7 @@
   "spell.apprenticecodex.mist_form": "迷雾形态",
   "spell.apprenticecodex.inscribe_ice": "冰霜铭刻",
   "spell.apprenticecodex.divine_possession": "神降临",
+  "spell.apprenticecodex.heavenly_fist": "天堂铁拳",
 
   "spell.apprenticecodex.sky_edge.guide": "召唤一把武器朝你的视线方向发射。该法术有蓄力时间，且不造成击退，但可以无视目标的无敌帧。",
   "spell.apprenticecodex.archer_multiple.guide": "召唤一把跟随你的魔法弓，持续射击直至弹药耗尽，优先攻击你锁定的目标或附近的敌人。",
@@ -672,6 +675,7 @@
   "spell.apprenticecodex.mist_form.guide": "使自身化为迷雾般的状态，并短暂转移敌人的注意。处于迷雾状态时，移动能力略有提升，并能穿过部分方块。发动攻击会使迷雾变得不稳定，可能解除该状态，且会变得极其脆弱，尤其惧怕火焰和神圣系法术。",
   "spell.apprenticecodex.inscribe_ice.guide": "生成冰匕首并呈扇形投掷，向受到伤害的生物刻入冰之魔力。第三次成功刻印时，魔力会爆裂并造成大量伤害。该爆裂还会诱发附近已刻入的冰之魔力连锁爆裂。",
   "spell.apprenticecodex.divine_possession.guide": "元素少女法袍专属潜在法术。让司掌元素的存在降临于身，在一定时间内将最高的学派加成反映到其他所有学派。若要让该存在降临于身，必须穿戴全套元素少女服装。",
+  "spell.apprenticecodex.heavenly_fist.guide": "在瞄准位置召唤紫水晶魔导拳，连同空间一并砸下。范围内的目标会暂时被压回地面，可被压制加工的物品也会被压制。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "爆头伤害倍率：%d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "潜行伤害倍率：%d%%",
@@ -693,6 +697,7 @@
   "ui.apprenticecodex.growth_speed_rank.fast": "快",
   "ui.apprenticecodex.growth_speed_rank.normal": "较快",
   "ui.apprenticecodex.process_item_per_second": "每秒处理物品：%d",
+  "ui.apprenticecodex.process_item_per_operate": "每次操作可处理物品：%d",
   "ui.apprenticecodex.mana_recover_speed": "每秒法力值恢复：%d",
   "ui.apprenticecodex.drain_per_hit": "每次命中消耗法力值：%d",
   "ui.apprenticecodex.bound_sword.sword_damage_attribute": "召唤单手剑攻击力：%s",
@@ -824,6 +829,7 @@
   "effect.apprenticecodex.mist_form": "迷雾形态",
   "effect.apprenticecodex.notched_frozen": "冰痕刻印",
   "effect.apprenticecodex.divine_possession": "神降临",
+  "effect.apprenticecodex.gravity_bound": "重力束缚",
   "effect.apprenticecodex.school_affinity": "亲和",
   "effect.apprenticecodex.school_affinity.dynamic": "%s 亲和",
 
@@ -845,6 +851,7 @@
   "effect.apprenticecodex.mist_form.description": "提升移动能力并获得缓降状态。在此状态下对生物造成伤害时会被强制解除。",
   "effect.apprenticecodex.notched_frozen.description": "被刻入冰之魔力的状态。已有的冻结状态不会消退，积累到一定刻印后会化为冰之魔力爆裂。",
   "effect.apprenticecodex.divine_possession.description": "体内寄宿元素存在之力的状态。将最高的学派加成反映到其他所有学派。",
+  "effect.apprenticecodex.gravity_bound.description": "难以滞留空中，也无法自由跳跃。",
 
   "item.minecraft.potion.effect.intelligence": "智慧药水",
   "item.minecraft.potion.effect.meditation": "冥想药水",
@@ -894,6 +901,7 @@
   "death.attack.apprenticecodex.inscribe_ice": "%1$s 被 %2$s 瞬间冻结。",
   "death.attack.apprenticecodex.frost_rune": "%1$s 因疏于警戒，悔恨而亡。",
   "death.attack.apprenticecodex.mystic_shield": "%1$s 被 %2$s 的秘术反击击败。",
+  "death.attack.apprenticecodex.heavenly_fist": "%1$s 被 %2$s 压成了薄片。",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "学徒法典",
   "advancements.apprenticecodex.apprentice_codex.root.description": "踏上学徒法师的修行之路。",
@@ -1044,6 +1052,7 @@
   "subtitle.apprenticecodex.sound.ice_dagger_hit": "匕首刺中",
   "subtitle.apprenticecodex.sound.kami": "元素之力缠身",
   "subtitle.apprenticecodex.sound.revolve": "机关轮转",
+  "subtitle.apprenticecodex.sound.amethyst_fist": "宝石重击落下",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_air": "权杖猛击",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground": "权杖击打地面",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground_heavy": "权杖重击落下",
