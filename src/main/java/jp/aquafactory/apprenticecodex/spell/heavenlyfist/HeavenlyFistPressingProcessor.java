@@ -1,8 +1,11 @@
 package jp.aquafactory.apprenticecodex.spell.heavenlyfist;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.create.CreateExposedItemProcessingBridge;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.ItemStackProcessingResult;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -17,7 +20,9 @@ import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -50,6 +55,7 @@ final class HeavenlyFistPressingProcessor {
         }
 
         var skipIds = new ArrayList<UUID>();
+        var skipTransportedItems = Collections.newSetFromMap(new IdentityHashMap<>());
         var processed = 0;
         for (var item : items) {
             if (processed >= maxProcessCount) {
@@ -61,6 +67,29 @@ final class HeavenlyFistPressingProcessor {
 
             processed += tryProcessItem(level, item, maxProcessCount - processed, skipIds);
         }
+
+        if (processed < maxProcessCount) {
+            CreateExposedItemProcessingBridge.processBlocks(
+                    level,
+                    sampleCreateProcessTargets(center),
+                    maxProcessCount - processed,
+                    skipTransportedItems,
+                    (inputStack, remainingBudget) -> tryBuildPressingResult(level, inputStack, remainingBudget)
+            );
+        }
+    }
+
+    private static List<BlockPos> sampleCreateProcessTargets(Vec3 center) {
+        var centerPos = BlockPos.containing(center);
+        var positions = new ArrayList<BlockPos>(18);
+        for (var yOffset = 0; yOffset >= -1; yOffset--) {
+            for (var xOffset = -1; xOffset <= 1; xOffset++) {
+                for (var zOffset = -1; zOffset <= 1; zOffset++) {
+                    positions.add(centerPos.offset(xOffset, yOffset, zOffset));
+                }
+            }
+        }
+        return positions;
     }
 
     private static int tryProcessItem(ServerLevel level, ItemEntity itemEntity, int maxProcessCount, List<UUID> skipIds) {
@@ -74,17 +103,33 @@ final class HeavenlyFistPressingProcessor {
         }
 
         var processCount = Math.min(maxProcessCount, inputStack.getCount());
+        var processingResult = tryBuildPressingResult(level, inputStack, processCount);
+        processingResult.ifPresent(result -> applyProcessingResult(
+                level,
+                itemEntity,
+                result.outputStacks(),
+                result.processedCount(),
+                skipIds
+        ));
+        return processingResult.map(ItemStackProcessingResult::processedCount).orElse(0);
+    }
+
+    private static Optional<ItemStackProcessingResult> tryBuildPressingResult(ServerLevel level, ItemStack inputStack, int maxProcessCount) {
+        if (maxProcessCount <= 0 || inputStack.isEmpty() || inputStack.getCount() <= 0) {
+            return Optional.empty();
+        }
+
+        var processCount = Math.min(maxProcessCount, inputStack.getCount());
         var createRecipe = findCreatePressingRecipe(level, inputStack);
         if (createRecipe.isPresent()) {
             var outputs = rollCreatePressingOutputs(level, createRecipe.get().value(), processCount);
             if (outputs.isPresent()) {
-                applyProcessingResult(level, itemEntity, outputs.get(), processCount, skipIds);
-                return processCount;
+                return Optional.of(new ItemStackProcessingResult(processCount, normalizeOutputStacks(outputs.get())));
             }
             logCreateReflectionFailureOnce(createRecipe.get().id());
         }
 
-        return 0;
+        return Optional.empty();
     }
 
     private static Optional<RecipeHolder<?>> findCreatePressingRecipe(ServerLevel level, ItemStack inputStack) {
