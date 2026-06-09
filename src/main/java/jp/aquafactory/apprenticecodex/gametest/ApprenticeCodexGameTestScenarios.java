@@ -1372,6 +1372,8 @@ public class ApprenticeCodexGameTestScenarios {
                     ApprenticeCodex.MODID, "essence_smoker/infuse_coal_to_arcane_cinder");
             var grindRunnerRecipeId = ResourceLocation.fromNamespaceAndPath(
                     ApprenticeCodex.MODID, "grind_runner/bone_meal_from_bone");
+            var heavenlyFistCreateRecipeId = ResourceLocation.fromNamespaceAndPath(
+                    CREATE_MOD_ID, "pressing/sugar_cane");
             var deniedBlastingRecipeId = ResourceLocation.fromNamespaceAndPath(
                     "minecraft", "iron_ingot_from_blasting_iron_ore");
             var fallbackSmeltingRecipeId = ResourceLocation.fromNamespaceAndPath(
@@ -1381,6 +1383,7 @@ public class ApprenticeCodexGameTestScenarios {
                     List.of(spellcasterWorkbenchRecipeId.toString()),
                     List.of(essenceSmokerRecipeId.toString()),
                     List.of(grindRunnerRecipeId.toString()),
+                    List.of(heavenlyFistCreateRecipeId.toString()),
                     List.of(deniedBlastingRecipeId.toString())
             )) {
                 var spellcasterWorkbenchRecipe = recipeManager
@@ -1408,6 +1411,9 @@ public class ApprenticeCodexGameTestScenarios {
                 helper.assertFalse(ProcessingRecipeDenylist.isAllowed(grindRunnerRecipe),
                         "Grind Runner denylist did not reject configured recipe");
 
+                helper.assertTrue(ApprenticeCodexServerConfig.isHeavenlyFistCreateRecipeDenied(heavenlyFistCreateRecipeId),
+                        "Heavenly Fist Create denylist did not reject configured recipe");
+
                 var ironOreInput = new SingleRecipeInput(new ItemStack(Items.IRON_ORE));
                 var thermalProcessRecipe = ProcessingRecipeDenylist.findThermalProcessRecipe(
                         recipeManager, ironOreInput, helper.getLevel()
@@ -1418,6 +1424,44 @@ public class ApprenticeCodexGameTestScenarios {
                         "Thermal Process selected a denied blasting recipe");
                 helper.assertTrue(thermalProcessRecipe.get().id().equals(fallbackSmeltingRecipeId),
                         "Thermal Process fallback recipe mismatch: " + thermalProcessRecipe.get().id());
+            }
+        });
+    }
+
+    static void heavenlyFistCreatePressingDenylistLeavesDepotItems(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var level = helper.getLevel();
+        var targetPos = new BlockPos(2, 1, 0);
+        var deniedRecipeId = ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "pressing/sugar_cane");
+        var override = ApprenticeCodexServerConfig.useProcessingRecipeDenylistOverrideForGameTest(
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(deniedRecipeId.toString()),
+                List.of()
+        );
+        invokeCreateGameTestHookVoid(
+                "placeDepotWithItem",
+                new Class<?>[]{ServerLevel.class, BlockPos.class, ItemStack.class},
+                level,
+                helper.absolutePos(targetPos),
+                new ItemStack(Items.SUGAR_CANE)
+        );
+
+        spawnHeavenlyFistForCreateProcess(helper, targetPos, 1);
+
+        helper.runAtTickTime(28, () -> {
+            try {
+                var result = invokeCreateGameTestHookItemStack("getDepotItem", level, helper.absolutePos(targetPos));
+                helper.assertTrue(result.is(Items.SUGAR_CANE),
+                        "Heavenly Fist should leave denied Create pressing inputs untouched: " + result);
+                helper.succeed();
+            } finally {
+                override.close();
             }
         });
     }
@@ -7424,6 +7468,49 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(remainingCinderFlourCount == 1,
                     "Heavenly Fist should leave the second compacting input set when budget is one: " + remainingCinderFlourCount);
             helper.succeed();
+        });
+    }
+
+    static void heavenlyFistCreateCompactingDenylistLeavesBasinItems(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var level = helper.getLevel();
+        var targetPos = new BlockPos(2, 1, 0);
+        var deniedRecipeId = ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "compacting/blaze_cake");
+        var cinderFlour = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "cinder_flour"));
+        var blazeCakeBase = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "blaze_cake_base"));
+        var override = ApprenticeCodexServerConfig.useProcessingRecipeDenylistOverrideForGameTest(
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(deniedRecipeId.toString()),
+                List.of()
+        );
+        placeCreateBasinWithItems(
+                level,
+                helper.absolutePos(targetPos),
+                new ItemStack(Items.EGG),
+                new ItemStack(Items.SUGAR),
+                new ItemStack(cinderFlour)
+        );
+
+        spawnHeavenlyFistForCreateProcess(helper, targetPos, 1);
+
+        helper.runAtTickTime(28, () -> {
+            try {
+                var resultCount = getCreateBasinItemCount(level, helper.absolutePos(targetPos), new ItemStack(blazeCakeBase));
+                var remainingCinderFlourCount = getCreateBasinItemCount(level, helper.absolutePos(targetPos), new ItemStack(cinderFlour));
+                helper.assertTrue(resultCount == 0,
+                        "Heavenly Fist should not process denied Create Basin compacting recipes: " + resultCount);
+                helper.assertTrue(remainingCinderFlourCount == 1,
+                        "Heavenly Fist should leave denied compacting inputs untouched: " + remainingCinderFlourCount);
+                helper.succeed();
+            } finally {
+                override.close();
+            }
         });
     }
 

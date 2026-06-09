@@ -56,6 +56,10 @@ public final class ApprenticeCodexServerConfig {
         return PROCESSING_CONFIG.isGrindRunnerRecipeDenied(recipeId);
     }
 
+    public static boolean isHeavenlyFistCreateRecipeDenied(ResourceLocation recipeId) {
+        return PROCESSING_CONFIG.isHeavenlyFistCreateRecipeDenied(recipeId);
+    }
+
     public static boolean isThermalProcessRecipeDenied(ResourceLocation recipeId) {
         return PROCESSING_CONFIG.isThermalProcessRecipeDenied(recipeId);
     }
@@ -64,23 +68,27 @@ public final class ApprenticeCodexServerConfig {
             List<String> spellcasterWorkbenchRecipeDenylist,
             List<String> essenceSmokerRecipeDenylist,
             List<String> grindRunnerRecipeDenylist,
+            List<String> heavenlyFistCreateRecipeDenylist,
             List<String> thermalProcessRecipeDenylist
     ) {
         var previousSpellcasterWorkbenchRecipeDenylist = PROCESSING_CONFIG.spellcasterWorkbenchRecipeDenylist();
         var previousEssenceSmokerRecipeDenylist = PROCESSING_CONFIG.essenceSmokerRecipeDenylist();
         var previousGrindRunnerRecipeDenylist = PROCESSING_CONFIG.grindRunnerRecipeDenylist();
+        var previousHeavenlyFistCreateRecipeDenylist = PROCESSING_CONFIG.heavenlyFistCreateRecipeDenylist();
         var previousThermalProcessRecipeDenylist = PROCESSING_CONFIG.thermalProcessRecipeDenylist();
 
         PROCESSING_CONFIG.setRecipeDenylistsForGameTest(
                 spellcasterWorkbenchRecipeDenylist,
                 essenceSmokerRecipeDenylist,
                 grindRunnerRecipeDenylist,
+                heavenlyFistCreateRecipeDenylist,
                 thermalProcessRecipeDenylist
         );
         return () -> PROCESSING_CONFIG.setRecipeDenylistsForGameTest(
                 previousSpellcasterWorkbenchRecipeDenylist,
                 previousEssenceSmokerRecipeDenylist,
                 previousGrindRunnerRecipeDenylist,
+                previousHeavenlyFistCreateRecipeDenylist,
                 previousThermalProcessRecipeDenylist
         );
     }
