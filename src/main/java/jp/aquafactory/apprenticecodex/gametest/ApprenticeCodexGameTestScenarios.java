@@ -2164,10 +2164,12 @@ public class ApprenticeCodexGameTestScenarios {
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
             helper.assertTrue(gauntlet.getItem() instanceof io.redspace.ironsspellbooks.item.UniqueItem,
                     "Scrollcaster Gauntlet should be a UniqueItem to block Arcane Anvil imbue tooltips and normal imbue");
-            assertTooltipKeyAt(helper, gauntlet, 0, "item.apprenticecodex.scrollcaster_gauntlet.desc_1",
-            "Scrollcaster Gauntlet should show offhand priority tooltip first");
-            assertTooltipKeyAt(helper, gauntlet, 1, "item.apprenticecodex.scrollcaster_gauntlet.desc_2",
-                    "Scrollcaster Gauntlet should show selected spell cast tooltip second");
+            assertTooltipKeyAt(helper, gauntlet, 0, "item.apprenticecodex.right_click_magic_weapon.desc",
+                    "Scrollcaster Gauntlet should show offhand priority tooltip first");
+            assertTooltipKeyAt(helper, gauntlet, 1, "item.apprenticecodex.right_click_magic_weapon.item_type",
+                    "Scrollcaster Gauntlet should show offhand priority item type tooltip second");
+            assertTooltipKeyAt(helper, gauntlet, 2, "item.apprenticecodex.scrollcaster_gauntlet.desc",
+                    "Scrollcaster Gauntlet should show selected spell cast tooltip third");
             ScrollcasterGauntlet.refreshSelectedSpellContainer(gauntlet);
             helper.assertFalse(ISpellContainer.isSpellContainer(gauntlet),
                     "Empty Scrollcaster Gauntlet should not expose a spell container");
@@ -2294,7 +2296,7 @@ public class ApprenticeCodexGameTestScenarios {
                     "Scrollcaster Gauntlet should detect its Mithril Freecast Staff adjustment");
             helper.assertTrue(gauntletItem.canTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND),
                     "Scrollcaster Gauntlet should be treated as swing-triggerable after freecast adjustment");
-            assertTooltipKeyAt(helper, gauntlet, 2, "item.apprenticecodex.freecast.common.desc",
+            assertTooltipKeyAt(helper, gauntlet, 3, "item.apprenticecodex.freecast.common.desc",
                     "Freecast-adjusted Scrollcaster Gauntlet should show the generic freecast tooltip");
 
             helper.assertTrue(gauntletItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
