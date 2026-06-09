@@ -169,6 +169,7 @@ import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPow
 import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
 import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
@@ -320,6 +321,9 @@ public class ApprenticeCodexGameTestScenarios {
 
     static final String REQUIRED_OPTIONAL_MODS_PROPERTY = "apprenticecodex.requiredOptionalMods";
     static final String VANILLA_NAMESPACE = "minecraft";
+    static final String CREATE_MOD_ID = "create";
+    static final String CREATE_GAMETEST_HOOKS_CLASS =
+            "jp.aquafactory.apprenticecodex.gametest.create.CreateGameTestHooks";
     static final String FARMERS_DELIGHT_MOD_ID = "farmersdelight";
     static final String LODESTONE_MOD_ID = "lodestone";
     static final String MALUM_MOD_ID = "malum";
@@ -1152,6 +1156,8 @@ public class ApprenticeCodexGameTestScenarios {
                     ApprenticeCodex.MODID, "essence_smoker/infuse_coal_to_arcane_cinder");
             var grindRunnerRecipeId = ResourceLocation.fromNamespaceAndPath(
                     ApprenticeCodex.MODID, "grind_runner/bone_meal_from_bone");
+            var heavenlyFistCreateRecipeId = ResourceLocation.fromNamespaceAndPath(
+                    CREATE_MOD_ID, "pressing/sugar_cane");
             var deniedBlastingRecipeId = ResourceLocation.fromNamespaceAndPath(
                     "minecraft", "iron_ingot_from_blasting_iron_ore");
             var fallbackSmeltingRecipeId = ResourceLocation.fromNamespaceAndPath(
@@ -1161,6 +1167,7 @@ public class ApprenticeCodexGameTestScenarios {
                     List.of(spellcasterWorkbenchRecipeId.toString()),
                     List.of(essenceSmokerRecipeId.toString()),
                     List.of(grindRunnerRecipeId.toString()),
+                    List.of(heavenlyFistCreateRecipeId.toString()),
                     List.of(deniedBlastingRecipeId.toString())
             )) {
                 var spellcasterWorkbenchRecipe = recipeManager
@@ -1188,6 +1195,9 @@ public class ApprenticeCodexGameTestScenarios {
                 helper.assertFalse(ProcessingRecipeDenylist.isAllowed(grindRunnerRecipe),
                         "Grind Runner denylist did not reject configured recipe");
 
+                helper.assertTrue(ApprenticeCodexServerConfig.isHeavenlyFistCreateRecipeDenied(heavenlyFistCreateRecipeId),
+                        "Heavenly Fist Create denylist did not reject configured recipe");
+
                 var ironOreInput = new SimpleContainer(new ItemStack(Items.IRON_ORE));
                 var thermalProcessRecipe = ProcessingRecipeDenylist.findThermalProcessRecipe(
                         recipeManager, ironOreInput, helper.getLevel()
@@ -1200,6 +1210,235 @@ public class ApprenticeCodexGameTestScenarios {
                         "Thermal Process fallback recipe mismatch: " + thermalProcessRecipe.get().getId());
             }
         });
+    }
+
+    static void heavenlyFistCreatePressingDenylistLeavesDepotItems(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var level = helper.getLevel();
+        var targetPos = new BlockPos(2, 1, 0);
+        var deniedRecipeId = ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "pressing/sugar_cane");
+        var override = ApprenticeCodexServerConfig.useProcessingRecipeDenylistOverrideForGameTest(
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(deniedRecipeId.toString()),
+                List.of()
+        );
+        invokeCreateGameTestHookVoid(
+                "placeDepotWithItem",
+                new Class<?>[]{ServerLevel.class, BlockPos.class, ItemStack.class},
+                level,
+                helper.absolutePos(targetPos),
+                new ItemStack(Items.SUGAR_CANE)
+        );
+
+        spawnHeavenlyFistForCreateProcess(helper, targetPos, 1);
+
+        helper.runAtTickTime(28, () -> {
+            try {
+                var result = invokeCreateGameTestHookItemStack("getDepotItem", level, helper.absolutePos(targetPos));
+                helper.assertTrue(result.is(Items.SUGAR_CANE),
+                        "Heavenly Fist should leave denied Create pressing inputs untouched: " + result);
+                helper.succeed();
+            } finally {
+                override.close();
+            }
+        });
+    }
+
+    static void grindRunnerProcessesCreateCrushingWithoutCraftsmansDelight(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var harness = startSingleGrindRunnerItemProcess(helper, new ItemStack(Items.AMETHYST_CLUSTER));
+        helper.runAtTickTime(12, () -> assertProcessedGrindRunnerOutput(
+                helper,
+                harness,
+                output -> output.is(Items.AMETHYST_SHARD),
+                "Grind Runner should process Create crushing recipes without Craftsman's Delight"
+        ));
+    }
+
+    static void grindRunnerProcessesCreateMillingRecipes(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var wheatFlour = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "wheat_flour"));
+        var harness = startSingleGrindRunnerItemProcess(helper, new ItemStack(Items.WHEAT));
+        helper.runAtTickTime(12, () -> assertProcessedGrindRunnerOutput(
+                helper,
+                harness,
+                output -> output.is(wheatFlour),
+                "Grind Runner should process Create milling recipes after crushing misses"
+        ));
+    }
+
+    static void grindRunnerPrefersCreateCrushingBeforeMilling(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var harness = startSingleGrindRunnerItemProcess(helper, new ItemStack(Items.GRAVEL));
+        helper.runAtTickTime(12, () -> assertProcessedGrindRunnerOutput(
+                helper,
+                harness,
+                output -> output.is(Items.SAND),
+                "Grind Runner should prefer Create crushing over Create milling for overlapping inputs"
+        ));
+    }
+
+    static void grindRunnerProcessesCreateDepotItems(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var targetPos = new BlockPos(2, 1, 0);
+        var harness = startGrindRunnerCreateBlockProcess(helper, targetPos);
+        invokeCreateGameTestHookVoid(
+                "placeDepotWithItem",
+                new Class<?>[]{ServerLevel.class, BlockPos.class, ItemStack.class},
+                helper.getLevel(),
+                helper.absolutePos(targetPos),
+                new ItemStack(Items.GRAVEL)
+        );
+
+        helper.runAtTickTime(12, () -> {
+            try {
+                var result = invokeCreateGameTestHookItemStack("getDepotItem", helper.getLevel(), helper.absolutePos(targetPos));
+                helper.assertTrue(result.is(Items.SAND), "Grind Runner should process Create Depot items: " + result);
+            } finally {
+                harness.discard();
+            }
+            helper.succeed();
+        });
+    }
+
+    static void grindRunnerLeavesCreateChuteItemsUnprocessed(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var targetPos = new BlockPos(2, 1, 0);
+        helper.setBlock(targetPos.below(), Blocks.STONE);
+        var harness = startGrindRunnerCreateBlockProcess(helper, targetPos);
+        invokeCreateGameTestHookVoid(
+                "placeChuteWithItem",
+                new Class<?>[]{ServerLevel.class, BlockPos.class, ItemStack.class},
+                helper.getLevel(),
+                helper.absolutePos(targetPos),
+                new ItemStack(Items.GRAVEL)
+        );
+
+        helper.runAtTickTime(12, () -> {
+            try {
+                var result = invokeCreateGameTestHookItemStack("getChuteItem", helper.getLevel(), helper.absolutePos(targetPos));
+                helper.assertTrue(result.is(Items.GRAVEL), "Grind Runner should not process enclosed Create Chute items: " + result);
+            } finally {
+                harness.discard();
+            }
+            helper.succeed();
+        });
+    }
+
+    private static GrindRunnerProcessHarness startSingleGrindRunnerItemProcess(GameTestHelper helper, ItemStack inputStack) {
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(2, 2, 0), "grind_runner_processing_test");
+        helper.getLevel().addFreshEntity(owner);
+        var wheel = new GrindRunnerWheelEntity(EntityRegistry.GRIND_RUNNER_WHEEL.get(), helper.getLevel(), owner);
+        wheel.setGrindItemPerSecond(20.0F);
+        helper.getLevel().addFreshEntity(wheel);
+
+        var itemEntity = spawnNoGravityItem(helper, new BlockPos(2, 2, 0), inputStack.copyWithCount(1));
+        return new GrindRunnerProcessHarness(owner, wheel, itemEntity);
+    }
+
+    private static GrindRunnerCreateBlockHarness startGrindRunnerCreateBlockProcess(GameTestHelper helper, BlockPos targetPos) {
+        var owner = createEquipmentTestPlayer(helper, targetPos.above(), "grind_runner_create_block_processing_test");
+        helper.getLevel().addFreshEntity(owner);
+        var wheel = new GrindRunnerWheelEntity(EntityRegistry.GRIND_RUNNER_WHEEL.get(), helper.getLevel(), owner);
+        wheel.setGrindItemPerSecond(20.0F);
+        helper.getLevel().addFreshEntity(wheel);
+        return new GrindRunnerCreateBlockHarness(owner, wheel);
+    }
+
+    private static void assertProcessedGrindRunnerOutput(
+            GameTestHelper helper,
+            GrindRunnerProcessHarness harness,
+            Predicate<ItemStack> outputPredicate,
+            String message
+    ) {
+        var result = harness.itemEntity().isAlive() ? harness.itemEntity().getItem().copy() : ItemStack.EMPTY;
+        try {
+            helper.assertTrue(outputPredicate.test(result), message + ": " + result);
+        } finally {
+            harness.discard();
+        }
+        helper.succeed();
+    }
+
+    private record GrindRunnerProcessHarness(FakePlayer owner, GrindRunnerWheelEntity wheel, ItemEntity itemEntity) {
+        private void discard() {
+            itemEntity.discard();
+            wheel.discard();
+            owner.discard();
+        }
+    }
+
+    private record GrindRunnerCreateBlockHarness(FakePlayer owner, GrindRunnerWheelEntity wheel) {
+        private void discard() {
+            wheel.discard();
+            owner.discard();
+        }
+    }
+
+    private static void invokeCreateGameTestHookVoid(String methodName, Class<?>[] parameterTypes, Object... args) {
+        try {
+            var hookClass = Class.forName(CREATE_GAMETEST_HOOKS_CLASS);
+            hookClass.getMethod(methodName, parameterTypes).invoke(null, args);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Create GameTest hook invocation failed: " + methodName, exception);
+        }
+    }
+
+    private static ItemStack invokeCreateGameTestHookItemStack(String methodName, ServerLevel level, BlockPos pos) {
+        try {
+            var hookClass = Class.forName(CREATE_GAMETEST_HOOKS_CLASS);
+            var result = hookClass.getMethod(methodName, ServerLevel.class, BlockPos.class).invoke(null, level, pos);
+            return result instanceof ItemStack stack ? stack : ItemStack.EMPTY;
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Create GameTest hook invocation failed: " + methodName, exception);
+        }
+    }
+
+    private static void placeCreateBasinWithItems(ServerLevel level, BlockPos pos, ItemStack... stacks) {
+        invokeCreateGameTestHookVoid(
+                "placeBasinWithItems",
+                new Class<?>[]{ServerLevel.class, BlockPos.class, ItemStack[].class},
+                level,
+                pos,
+                stacks
+        );
+    }
+
+    private static int getCreateBasinItemCount(ServerLevel level, BlockPos pos, ItemStack prototype) {
+        try {
+            var hookClass = Class.forName(CREATE_GAMETEST_HOOKS_CLASS);
+            var result = hookClass.getMethod("getBasinItemCount", ServerLevel.class, BlockPos.class, ItemStack.class)
+                    .invoke(null, level, pos, prototype);
+            return result instanceof Integer count ? count : 0;
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Create GameTest hook invocation failed: getBasinItemCount", exception);
+        }
     }
 
     static void spellcastersFlaskAcceptsAllVanillaPotionTypes(GameTestHelper helper) {
@@ -6721,6 +6960,195 @@ public class ApprenticeCodexGameTestScenarios {
                     "Heavenly Fist should not apply Gravity Bound to a moved-out target");
             helper.succeed();
         });
+    }
+
+    static void heavenlyFistProcessesCreateDepotItems(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var level = helper.getLevel();
+        var targetPos = new BlockPos(2, 1, 0);
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "heavenly_fist_create_depot_owner_test");
+        invokeCreateGameTestHookVoid(
+                "placeDepotWithItem",
+                new Class<?>[]{ServerLevel.class, BlockPos.class, ItemStack.class},
+                level,
+                helper.absolutePos(targetPos),
+                new ItemStack(Items.SUGAR_CANE)
+        );
+
+        var center = helper.absolutePos(targetPos).getCenter();
+        var fist = new HeavenlyFistFistEntity(EntityRegistry.HEAVENLY_FIST_FIST.get(), level, owner, center, 0.0F, 2.0F, 1);
+        level.addFreshEntity(fist);
+
+        helper.runAtTickTime(28, () -> {
+            var result = invokeCreateGameTestHookItemStack("getDepotItem", level, helper.absolutePos(targetPos));
+            helper.assertTrue(result.is(Items.PAPER), "Heavenly Fist should process Create Depot items: " + result);
+            helper.succeed();
+        });
+    }
+
+    static void heavenlyFistLeavesDroppedCreateItemsOutsideProcessArea(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var level = helper.getLevel();
+        var targetPos = new BlockPos(2, 1, 0);
+        var farItemPos = targetPos.offset(3, 0, 0);
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "heavenly_fist_create_drop_area_owner_test");
+        spawnNoGravityItem(helper, farItemPos, new ItemStack(Items.SUGAR_CANE));
+
+        var center = helper.absolutePos(targetPos).getCenter();
+        var fist = new HeavenlyFistFistEntity(EntityRegistry.HEAVENLY_FIST_FIST.get(), level, owner, center, 0.0F, 4.0F, 1);
+        level.addFreshEntity(fist);
+
+        helper.runAtTickTime(28, () -> {
+            var farItemCenter = helper.absoluteVec(Vec3.atCenterOf(farItemPos));
+            helper.assertTrue(hasItemEntityWithin(level, Items.SUGAR_CANE, farItemCenter, 0.75D),
+                    "Heavenly Fist should leave dropped Create inputs outside its 3x2x3 process area");
+            helper.assertFalse(hasItemEntityWithin(level, Items.PAPER, farItemCenter, 0.75D),
+                    "Heavenly Fist should not process dropped Create items outside its 3x2x3 process area");
+            helper.succeed();
+        });
+    }
+
+    static void heavenlyFistProcessesCreateBasinCompacting(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var level = helper.getLevel();
+        var targetPos = new BlockPos(2, 1, 0);
+        var cinderFlour = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "cinder_flour"));
+        var blazeCakeBase = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "blaze_cake_base"));
+        placeCreateBasinWithItems(
+                level,
+                helper.absolutePos(targetPos),
+                new ItemStack(Items.EGG),
+                new ItemStack(Items.SUGAR),
+                new ItemStack(cinderFlour)
+        );
+
+        spawnHeavenlyFistForCreateProcess(helper, targetPos, 1);
+
+        helper.runAtTickTime(28, () -> {
+            var resultCount = getCreateBasinItemCount(level, helper.absolutePos(targetPos), new ItemStack(blazeCakeBase));
+            helper.assertTrue(resultCount == 1, "Heavenly Fist should process Create Basin compacting once: " + resultCount);
+            helper.succeed();
+        });
+    }
+
+    static void heavenlyFistCreateBasinCompactingConsumesOneBudgetPerRecipe(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var level = helper.getLevel();
+        var targetPos = new BlockPos(2, 1, 0);
+        var cinderFlour = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "cinder_flour"));
+        var blazeCakeBase = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "blaze_cake_base"));
+        placeCreateBasinWithItems(
+                level,
+                helper.absolutePos(targetPos),
+                new ItemStack(Items.EGG, 2),
+                new ItemStack(Items.SUGAR, 2),
+                new ItemStack(cinderFlour, 2)
+        );
+
+        spawnHeavenlyFistForCreateProcess(helper, targetPos, 1);
+
+        helper.runAtTickTime(28, () -> {
+            var resultCount = getCreateBasinItemCount(level, helper.absolutePos(targetPos), new ItemStack(blazeCakeBase));
+            var remainingCinderFlourCount = getCreateBasinItemCount(level, helper.absolutePos(targetPos), new ItemStack(cinderFlour));
+            helper.assertTrue(resultCount == 1, "Heavenly Fist should spend one budget per Basin recipe: " + resultCount);
+            helper.assertTrue(remainingCinderFlourCount == 1,
+                    "Heavenly Fist should leave the second compacting input set when budget is one: " + remainingCinderFlourCount);
+            helper.succeed();
+        });
+    }
+
+    static void heavenlyFistCreateCompactingDenylistLeavesBasinItems(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var level = helper.getLevel();
+        var targetPos = new BlockPos(2, 1, 0);
+        var deniedRecipeId = ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "compacting/blaze_cake");
+        var cinderFlour = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "cinder_flour"));
+        var blazeCakeBase = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "blaze_cake_base"));
+        var override = ApprenticeCodexServerConfig.useProcessingRecipeDenylistOverrideForGameTest(
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(deniedRecipeId.toString()),
+                List.of()
+        );
+        placeCreateBasinWithItems(
+                level,
+                helper.absolutePos(targetPos),
+                new ItemStack(Items.EGG),
+                new ItemStack(Items.SUGAR),
+                new ItemStack(cinderFlour)
+        );
+
+        spawnHeavenlyFistForCreateProcess(helper, targetPos, 1);
+
+        helper.runAtTickTime(28, () -> {
+            try {
+                var resultCount = getCreateBasinItemCount(level, helper.absolutePos(targetPos), new ItemStack(blazeCakeBase));
+                var remainingCinderFlourCount = getCreateBasinItemCount(level, helper.absolutePos(targetPos), new ItemStack(cinderFlour));
+                helper.assertTrue(resultCount == 0,
+                        "Heavenly Fist should not process denied Create Basin compacting recipes: " + resultCount);
+                helper.assertTrue(remainingCinderFlourCount == 1,
+                        "Heavenly Fist should leave denied compacting inputs untouched: " + remainingCinderFlourCount);
+                helper.succeed();
+            } finally {
+                override.close();
+            }
+        });
+    }
+
+    static void heavenlyFistSkipsCreateBasinCompressionCrafting(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var level = helper.getLevel();
+        var targetPos = new BlockPos(2, 1, 0);
+        var zincIngot = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "zinc_ingot"));
+        var zincBlock = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "zinc_block"));
+        placeCreateBasinWithItems(
+                level,
+                helper.absolutePos(targetPos),
+                new ItemStack(zincIngot, 9)
+        );
+
+        spawnHeavenlyFistForCreateProcess(helper, targetPos, 1);
+
+        helper.runAtTickTime(28, () -> {
+            var zincBlockCount = getCreateBasinItemCount(level, helper.absolutePos(targetPos), new ItemStack(zincBlock));
+            var zincIngotCount = getCreateBasinItemCount(level, helper.absolutePos(targetPos), new ItemStack(zincIngot));
+            helper.assertTrue(zincBlockCount == 0, "Heavenly Fist should not run Create Basin compression crafting: " + zincBlockCount);
+            helper.assertTrue(zincIngotCount == 9, "Heavenly Fist should leave compression crafting inputs untouched: " + zincIngotCount);
+            helper.succeed();
+        });
+    }
+
+    private static void spawnHeavenlyFistForCreateProcess(GameTestHelper helper, BlockPos targetPos, int maxProcessCount) {
+        var level = helper.getLevel();
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "heavenly_fist_create_process_owner_test");
+        var center = helper.absolutePos(targetPos).getCenter();
+        var fist = new HeavenlyFistFistEntity(EntityRegistry.HEAVENLY_FIST_FIST.get(), level, owner, center, 0.0F, 2.0F, maxProcessCount);
+        level.addFreshEntity(fist);
     }
 
     static void gravityBoundPullsAirborneTargetsDown(GameTestHelper helper) {

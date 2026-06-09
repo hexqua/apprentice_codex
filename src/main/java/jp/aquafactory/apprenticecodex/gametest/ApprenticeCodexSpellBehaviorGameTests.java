@@ -32,6 +32,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String COUNTERSPELL_COMPAT_ISOLATED_BATCH = "apprenticecodex.counterspell_compat_isolated";
     private static final String INSCRIBE_ICE_ISOLATED_BATCH = "apprenticecodex.inscribe_ice_isolated";
     private static final String HEAVENLY_FIST_ISOLATED_BATCH = "apprenticecodex.heavenly_fist_isolated";
+    private static final String HEAVENLY_FIST_CREATE_PRESSING_DENYLIST_BATCH =
+            "apprenticecodex.heavenly_fist_create_pressing_denylist";
+    private static final String HEAVENLY_FIST_CREATE_COMPACTING_DENYLIST_BATCH =
+            "apprenticecodex.heavenly_fist_create_compacting_denylist";
+    private static final String GRIND_RUNNER_ISOLATED_BATCH = "apprenticecodex.grind_runner_isolated";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
     }
@@ -251,6 +256,31 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.autoMagnetCollectsItemsWithoutSolegnoliaBlock(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = GRIND_RUNNER_ISOLATED_BATCH)
+    public static void grindRunnerProcessesCreateCrushingWithoutCraftsmansDelight(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.grindRunnerProcessesCreateCrushingWithoutCraftsmansDelight(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = GRIND_RUNNER_ISOLATED_BATCH)
+    public static void grindRunnerProcessesCreateMillingRecipes(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.grindRunnerProcessesCreateMillingRecipes(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = GRIND_RUNNER_ISOLATED_BATCH)
+    public static void grindRunnerPrefersCreateCrushingBeforeMilling(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.grindRunnerPrefersCreateCrushingBeforeMilling(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = GRIND_RUNNER_ISOLATED_BATCH)
+    public static void grindRunnerProcessesCreateDepotItems(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.grindRunnerProcessesCreateDepotItems(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = GRIND_RUNNER_ISOLATED_BATCH)
+    public static void grindRunnerLeavesCreateChuteItemsUnprocessed(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.grindRunnerLeavesCreateChuteItemsUnprocessed(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = EARTH_FORGE_ISOLATED_BATCH, timeoutTicks = 60)
     public static void earthForgeReplacesWaterButKeepsUnsafeFluidBlocks(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.earthForgeReplacesWaterButKeepsUnsafeFluidBlocks(helper);
@@ -459,6 +489,41 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 60)
     public static void heavenlyFistImpactDoesNotTrackMovedTarget(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.heavenlyFistImpactDoesNotTrackMovedTarget(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 60)
+    public static void heavenlyFistProcessesCreateDepotItems(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.heavenlyFistProcessesCreateDepotItems(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 60)
+    public static void heavenlyFistLeavesDroppedCreateItemsOutsideProcessArea(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.heavenlyFistLeavesDroppedCreateItemsOutsideProcessArea(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_CREATE_PRESSING_DENYLIST_BATCH, timeoutTicks = 60)
+    public static void heavenlyFistCreatePressingDenylistLeavesDepotItems(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.heavenlyFistCreatePressingDenylistLeavesDepotItems(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 60)
+    public static void heavenlyFistProcessesCreateBasinCompacting(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.heavenlyFistProcessesCreateBasinCompacting(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 60)
+    public static void heavenlyFistCreateBasinCompactingConsumesOneBudgetPerRecipe(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.heavenlyFistCreateBasinCompactingConsumesOneBudgetPerRecipe(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_CREATE_COMPACTING_DENYLIST_BATCH, timeoutTicks = 60)
+    public static void heavenlyFistCreateCompactingDenylistLeavesBasinItems(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.heavenlyFistCreateCompactingDenylistLeavesBasinItems(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 60)
+    public static void heavenlyFistSkipsCreateBasinCompressionCrafting(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.heavenlyFistSkipsCreateBasinCompressionCrafting(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 40)
