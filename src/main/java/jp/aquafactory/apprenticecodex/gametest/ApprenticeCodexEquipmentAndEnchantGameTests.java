@@ -475,8 +475,13 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void rightClickMagicWeaponTooltipsStartWithShieldHint(GameTestHelper helper) {
-        RightClickMagicWeaponGameTestScenarios.rightClickMagicWeaponTooltipsStartWithShieldHint(helper);
+    public static void rightClickMagicWeaponTooltipsStartWithOffhandPriorityHint(GameTestHelper helper) {
+        RightClickMagicWeaponGameTestScenarios.rightClickMagicWeaponTooltipsStartWithOffhandPriorityHint(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void rightClickMagicWeaponPrioritizesSupportedOffhandUseItems(GameTestHelper helper) {
+        RightClickMagicWeaponGameTestScenarios.rightClickMagicWeaponPrioritizesSupportedOffhandUseItems(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1022,6 +1027,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void scrollcasterGauntletOffhandUseCastsSelectedScrollWhenMainHandDoesNotConsumeUse(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.scrollcasterGauntletOffhandUseCastsSelectedScrollWhenMainHandDoesNotConsumeUse(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void scrollcasterGauntletMainhandPrioritizesSupportedOffhandUseItems(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.scrollcasterGauntletMainhandPrioritizesSupportedOffhandUseItems(helper);
     }
 
     @GameTest(template = TEMPLATE)

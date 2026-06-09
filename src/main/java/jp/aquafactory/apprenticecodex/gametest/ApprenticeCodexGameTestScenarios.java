@@ -2165,7 +2165,7 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(gauntlet.getItem() instanceof io.redspace.ironsspellbooks.item.UniqueItem,
                     "Scrollcaster Gauntlet should be a UniqueItem to block Arcane Anvil imbue tooltips and normal imbue");
             assertTooltipKeyAt(helper, gauntlet, 0, "item.apprenticecodex.scrollcaster_gauntlet.desc_1",
-                    "Scrollcaster Gauntlet should show shield priority tooltip first");
+            "Scrollcaster Gauntlet should show offhand priority tooltip first");
             assertTooltipKeyAt(helper, gauntlet, 1, "item.apprenticecodex.scrollcaster_gauntlet.desc_2",
                     "Scrollcaster Gauntlet should show selected spell cast tooltip second");
             ScrollcasterGauntlet.refreshSelectedSpellContainer(gauntlet);
