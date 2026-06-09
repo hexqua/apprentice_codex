@@ -605,7 +605,8 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
                     sampleNearbyCreateProcessTargets(),
                     maxProcessCount - processedCount,
                     skipProcessingTransportedItems,
-                    (inputStack, remainingBudget) -> tryBuildProcessingResult(level, inputStack, remainingBudget)
+                    (inputStack, remainingBudget) -> tryBuildProcessingResult(level, inputStack, remainingBudget),
+                    processedPos -> playCreateItemProcessedSound(level, processedPos)
             );
         }
 
@@ -996,6 +997,10 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
                 0.1,
                 0.01
         );
+    }
+
+    private void playCreateItemProcessedSound(ServerLevel level, BlockPos sourcePos) {
+        AudioTools.playSoundFromPosition(level, sourcePos.getCenter(), SoundRegistry.WHEEL_PROCESS.get(), SoundSource.NEUTRAL, 0.6f, 1.0f, 0.15f);
     }
 
     private void performLaunchDamage(LivingEntity owner, double horizontalSpeed) {

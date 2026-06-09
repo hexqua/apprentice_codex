@@ -87,7 +87,9 @@ final class HeavenlyFistPressingProcessor {
                     processTargets,
                     maxProcessOperations - processed,
                     skipTransportedItems,
-                    (inputStack, remainingBudget) -> tryBuildPressingResult(level, inputStack, remainingBudget)
+                    (inputStack, remainingBudget) -> tryBuildPressingResult(level, inputStack, remainingBudget),
+                    processedPos -> {
+                    }
             );
         }
     }
