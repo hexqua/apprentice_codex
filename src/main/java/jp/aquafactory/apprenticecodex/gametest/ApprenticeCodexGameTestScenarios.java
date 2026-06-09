@@ -7414,6 +7414,32 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void heavenlyFistLeavesDroppedCreateItemsOutsideProcessArea(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var level = helper.getLevel();
+        var targetPos = new BlockPos(2, 1, 0);
+        var farItemPos = targetPos.offset(3, 0, 0);
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "heavenly_fist_create_drop_area_owner_test");
+        spawnNoGravityItem(helper, farItemPos, new ItemStack(Items.SUGAR_CANE));
+
+        var center = helper.absolutePos(targetPos).getCenter();
+        var fist = new HeavenlyFistFistEntity(EntityRegistry.HEAVENLY_FIST_FIST.get(), level, owner, center, 0.0F, 4.0F, 1);
+        level.addFreshEntity(fist);
+
+        helper.runAtTickTime(28, () -> {
+            var farItemCenter = helper.absoluteVec(Vec3.atCenterOf(farItemPos));
+            helper.assertTrue(hasItemEntityWithin(level, Items.SUGAR_CANE, farItemCenter, 0.75D),
+                    "Heavenly Fist should leave dropped Create inputs outside its 3x2x3 process area");
+            helper.assertFalse(hasItemEntityWithin(level, Items.PAPER, farItemCenter, 0.75D),
+                    "Heavenly Fist should not process dropped Create items outside its 3x2x3 process area");
+            helper.succeed();
+        });
+    }
+
     static void heavenlyFistProcessesCreateBasinCompacting(GameTestHelper helper) {
         if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
             helper.succeed();

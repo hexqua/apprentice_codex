@@ -16,6 +16,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.Nullable;
@@ -41,14 +42,15 @@ final class HeavenlyFistPressingProcessor {
         return ModList.get().isLoaded(CREATE_MOD_ID);
     }
 
-    static void processItems(ServerLevel level, Vec3 center, double radius, int maxProcessOperations) {
+    static void processItems(ServerLevel level, Vec3 center, int maxProcessOperations) {
         if (maxProcessOperations <= 0 || !canProcessItems()) {
             return;
         }
 
+        var processTargets = sampleCreateProcessTargets(center);
         var processed = CreateExposedItemProcessingBridge.processBasins(
                 level,
-                sampleCreateProcessTargets(center),
+                processTargets,
                 maxProcessOperations
         );
         if (processed >= maxProcessOperations) {
@@ -57,7 +59,7 @@ final class HeavenlyFistPressingProcessor {
 
         var items = new ArrayList<>(level.getEntitiesOfClass(
                 ItemEntity.class,
-                new net.minecraft.world.phys.AABB(center, center).inflate(radius),
+                createProcessItemArea(center),
                 item -> item.isAlive() && !item.getItem().isEmpty()
         ));
         if (items.size() > 1) {
@@ -80,7 +82,7 @@ final class HeavenlyFistPressingProcessor {
         if (processed < maxProcessOperations) {
             CreateExposedItemProcessingBridge.processBlocks(
                     level,
-                    sampleCreateProcessTargets(center),
+                    processTargets,
                     maxProcessOperations - processed,
                     skipTransportedItems,
                     (inputStack, remainingBudget) -> tryBuildPressingResult(level, inputStack, remainingBudget)
@@ -99,6 +101,19 @@ final class HeavenlyFistPressingProcessor {
             }
         }
         return positions;
+    }
+
+    private static AABB createProcessItemArea(Vec3 center) {
+        var centerPos = BlockPos.containing(center);
+        // Create 加工は戦闘半径ではなく、拳の直下付近の 3x2x3 に限定する。
+        return new AABB(
+                centerPos.getX() - 1.0D,
+                centerPos.getY() - 1.0D,
+                centerPos.getZ() - 1.0D,
+                centerPos.getX() + 2.0D,
+                centerPos.getY() + 1.0D,
+                centerPos.getZ() + 2.0D
+        );
     }
 
     private static int tryProcessItem(ServerLevel level, ItemEntity itemEntity, int maxProcessCount, List<UUID> skipIds) {

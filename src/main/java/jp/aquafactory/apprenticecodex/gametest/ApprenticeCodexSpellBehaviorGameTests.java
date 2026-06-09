@@ -511,6 +511,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.heavenlyFistProcessesCreateDepotItems(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 60)
+    public static void heavenlyFistLeavesDroppedCreateItemsOutsideProcessArea(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.heavenlyFistLeavesDroppedCreateItemsOutsideProcessArea(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_CREATE_PRESSING_DENYLIST_BATCH, timeoutTicks = 60)
     public static void heavenlyFistCreatePressingDenylistLeavesDepotItems(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.heavenlyFistCreatePressingDenylistLeavesDepotItems(helper);

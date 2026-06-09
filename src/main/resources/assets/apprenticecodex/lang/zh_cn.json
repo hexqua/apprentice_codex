@@ -658,7 +658,7 @@
   "spell.apprenticecodex.mist_form.guide": "使自身化为迷雾般的状态，并短暂转移敌人的注意。处于迷雾状态时，移动能力略有提升，并能穿过部分方块。发动攻击会使迷雾变得不稳定，可能解除该状态，且会变得极其脆弱，尤其惧怕火焰和神圣系法术。",
   "spell.apprenticecodex.inscribe_ice.guide": "生成冰匕首并呈扇形投掷，向受到伤害的生物刻入冰之魔力。第三次成功刻印时，魔力会爆裂并造成大量伤害。该爆裂还会诱发附近已刻入的冰之魔力连锁爆裂。",
   "spell.apprenticecodex.divine_possession.guide": "元素少女法袍专属潜在法术。让司掌元素的存在降临于身，在一定时间内将最高的学派加成反映到其他所有学派。若要让该存在降临于身，必须穿戴全套元素少女服装。",
-  "spell.apprenticecodex.heavenly_fist.guide": "在瞄准位置召唤紫水晶魔导拳，连同空间一并砸下。范围内的目标会暂时被压回地面。当齿轮法则生效时（安装Create模组），会尝试对物品进行压制或压缩加工。",
+  "spell.apprenticecodex.heavenly_fist.guide": "在瞄准位置召唤紫水晶魔导拳，连同空间一并砸下。范围内的目标会暂时被压回地面。当齿轮法则生效时（安装Create模组），会尝试对砸下的拳附近的物品进行压制或压缩加工。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "爆头伤害倍率：%d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "潜行伤害倍率：%d%%",
