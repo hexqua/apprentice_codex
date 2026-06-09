@@ -144,8 +144,8 @@ import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarManager;
 import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
 import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity;
-import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.harvestmoon.HarvestMoon;
+import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
@@ -364,6 +364,7 @@ public class ApprenticeCodexGameTestScenarios {
             "jp.aquafactory.apprenticecodex.gametest.create.CreateGameTestHooks";
     static final String REQUIRED_OPTIONAL_MODS_PROPERTY = "apprenticecodex.requiredOptionalMods";
     static final String VANILLA_NAMESPACE = "minecraft";
+    static final String CREATE_MOD_ID = "create";
     static final String FARMERS_DELIGHT_MOD_ID = "farmersdelight";
     static final String LODESTONE_MOD_ID = "lodestone";
     static final String MALUM_MOD_ID = "malum";
@@ -1417,6 +1418,86 @@ public class ApprenticeCodexGameTestScenarios {
                         "Thermal Process fallback recipe mismatch: " + thermalProcessRecipe.get().id());
             }
         });
+    }
+
+    static void grindRunnerProcessesCreateCrushingWithoutCraftsmansDelight(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var harness = startSingleGrindRunnerItemProcess(helper, new ItemStack(Items.AMETHYST_CLUSTER));
+        helper.runAtTickTime(12, () -> assertProcessedGrindRunnerOutput(
+                helper,
+                harness,
+                output -> output.is(Items.AMETHYST_SHARD),
+                "Grind Runner should process Create crushing recipes without Craftsman's Delight"
+        ));
+    }
+
+    static void grindRunnerProcessesCreateMillingRecipes(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var wheatFlour = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "wheat_flour"));
+        var harness = startSingleGrindRunnerItemProcess(helper, new ItemStack(Items.WHEAT));
+        helper.runAtTickTime(12, () -> assertProcessedGrindRunnerOutput(
+                helper,
+                harness,
+                output -> output.is(wheatFlour),
+                "Grind Runner should process Create milling recipes after crushing misses"
+        ));
+    }
+
+    static void grindRunnerPrefersCreateCrushingBeforeMilling(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var harness = startSingleGrindRunnerItemProcess(helper, new ItemStack(Items.GRAVEL));
+        helper.runAtTickTime(12, () -> assertProcessedGrindRunnerOutput(
+                helper,
+                harness,
+                output -> output.is(Items.SAND),
+                "Grind Runner should prefer Create crushing over Create milling for overlapping inputs"
+        ));
+    }
+
+    private static GrindRunnerProcessHarness startSingleGrindRunnerItemProcess(GameTestHelper helper, ItemStack inputStack) {
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(2, 2, 0), "grind_runner_processing_test");
+        helper.getLevel().addFreshEntity(owner);
+        var wheel = new GrindRunnerWheelEntity(EntityRegistry.GRIND_RUNNER_WHEEL.get(), helper.getLevel(), owner);
+        wheel.setGrindItemPerSecond(20.0F);
+        helper.getLevel().addFreshEntity(wheel);
+
+        var itemEntity = spawnNoGravityItem(helper, new BlockPos(2, 2, 0), inputStack.copyWithCount(1));
+        return new GrindRunnerProcessHarness(owner, wheel, itemEntity);
+    }
+
+    private static void assertProcessedGrindRunnerOutput(
+            GameTestHelper helper,
+            GrindRunnerProcessHarness harness,
+            Predicate<ItemStack> outputPredicate,
+            String message
+    ) {
+        var result = harness.itemEntity().isAlive() ? harness.itemEntity().getItem().copy() : ItemStack.EMPTY;
+        try {
+            helper.assertTrue(outputPredicate.test(result), message + ": " + result);
+        } finally {
+            harness.discard();
+        }
+        helper.succeed();
+    }
+
+    private record GrindRunnerProcessHarness(FakePlayer owner, GrindRunnerWheelEntity wheel, ItemEntity itemEntity) {
+        private void discard() {
+            itemEntity.discard();
+            wheel.discard();
+            owner.discard();
+        }
     }
 
     static void spellcastersFlaskAcceptsAllVanillaPotionTypes(GameTestHelper helper) {

@@ -32,6 +32,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String COUNTERSPELL_COMPAT_ISOLATED_BATCH = "apprenticecodex.counterspell_compat_isolated";
     private static final String INSCRIBE_ICE_ISOLATED_BATCH = "apprenticecodex.inscribe_ice_isolated";
     private static final String HEAVENLY_FIST_ISOLATED_BATCH = "apprenticecodex.heavenly_fist_isolated";
+    private static final String GRIND_RUNNER_ISOLATED_BATCH = "apprenticecodex.grind_runner_isolated";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
     }
@@ -249,6 +250,26 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = HARVEST_MOON_ISOLATED_BATCH)
     public static void harvestMoonHarvestsKelpColumnBeyondInitialYSlice(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.harvestMoonHarvestsKelpColumnBeyondInitialYSlice(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)
+    public static void autoMagnetCollectsItemsWithoutSolegnoliaBlock(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autoMagnetCollectsItemsWithoutSolegnoliaBlock(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = GRIND_RUNNER_ISOLATED_BATCH)
+    public static void grindRunnerProcessesCreateCrushingWithoutCraftsmansDelight(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.grindRunnerProcessesCreateCrushingWithoutCraftsmansDelight(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = GRIND_RUNNER_ISOLATED_BATCH)
+    public static void grindRunnerProcessesCreateMillingRecipes(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.grindRunnerProcessesCreateMillingRecipes(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = GRIND_RUNNER_ISOLATED_BATCH)
+    public static void grindRunnerPrefersCreateCrushingBeforeMilling(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.grindRunnerPrefersCreateCrushingBeforeMilling(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = EARTH_FORGE_ISOLATED_BATCH, timeoutTicks = 60)
