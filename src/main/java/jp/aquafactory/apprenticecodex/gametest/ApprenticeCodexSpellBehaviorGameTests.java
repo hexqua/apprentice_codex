@@ -492,6 +492,21 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.heavenlyFistProcessesCreateDepotItems(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 60)
+    public static void heavenlyFistProcessesCreateBasinCompacting(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.heavenlyFistProcessesCreateBasinCompacting(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 60)
+    public static void heavenlyFistCreateBasinCompactingConsumesOneBudgetPerRecipe(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.heavenlyFistCreateBasinCompactingConsumesOneBudgetPerRecipe(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 60)
+    public static void heavenlyFistSkipsCreateBasinCompressionCrafting(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.heavenlyFistSkipsCreateBasinCompressionCrafting(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 40)
     public static void gravityBoundPullsAirborneTargetsDown(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.gravityBoundPullsAirborneTargetsDown(helper);

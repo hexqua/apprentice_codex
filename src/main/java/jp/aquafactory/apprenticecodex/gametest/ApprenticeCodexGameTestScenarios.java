@@ -1376,6 +1376,27 @@ public class ApprenticeCodexGameTestScenarios {
         }
     }
 
+    private static void placeCreateBasinWithItems(ServerLevel level, BlockPos pos, ItemStack... stacks) {
+        invokeCreateGameTestHookVoid(
+                "placeBasinWithItems",
+                new Class<?>[]{ServerLevel.class, BlockPos.class, ItemStack[].class},
+                level,
+                pos,
+                stacks
+        );
+    }
+
+    private static int getCreateBasinItemCount(ServerLevel level, BlockPos pos, ItemStack prototype) {
+        try {
+            var hookClass = Class.forName(CREATE_GAMETEST_HOOKS_CLASS);
+            var result = hookClass.getMethod("getBasinItemCount", ServerLevel.class, BlockPos.class, ItemStack.class)
+                    .invoke(null, level, pos, prototype);
+            return result instanceof Integer count ? count : 0;
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Create GameTest hook invocation failed: getBasinItemCount", exception);
+        }
+    }
+
     static void spellcastersFlaskAcceptsAllVanillaPotionTypes(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var normalPotion = createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
@@ -6923,6 +6944,98 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(result.is(Items.PAPER), "Heavenly Fist should process Create Depot items: " + result);
             helper.succeed();
         });
+    }
+
+    static void heavenlyFistProcessesCreateBasinCompacting(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var level = helper.getLevel();
+        var targetPos = new BlockPos(2, 1, 0);
+        var cinderFlour = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "cinder_flour"));
+        var blazeCakeBase = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "blaze_cake_base"));
+        placeCreateBasinWithItems(
+                level,
+                helper.absolutePos(targetPos),
+                new ItemStack(Items.EGG),
+                new ItemStack(Items.SUGAR),
+                new ItemStack(cinderFlour)
+        );
+
+        spawnHeavenlyFistForCreateProcess(helper, targetPos, 1);
+
+        helper.runAtTickTime(28, () -> {
+            var resultCount = getCreateBasinItemCount(level, helper.absolutePos(targetPos), new ItemStack(blazeCakeBase));
+            helper.assertTrue(resultCount == 1, "Heavenly Fist should process Create Basin compacting once: " + resultCount);
+            helper.succeed();
+        });
+    }
+
+    static void heavenlyFistCreateBasinCompactingConsumesOneBudgetPerRecipe(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var level = helper.getLevel();
+        var targetPos = new BlockPos(2, 1, 0);
+        var cinderFlour = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "cinder_flour"));
+        var blazeCakeBase = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "blaze_cake_base"));
+        placeCreateBasinWithItems(
+                level,
+                helper.absolutePos(targetPos),
+                new ItemStack(Items.EGG, 2),
+                new ItemStack(Items.SUGAR, 2),
+                new ItemStack(cinderFlour, 2)
+        );
+
+        spawnHeavenlyFistForCreateProcess(helper, targetPos, 1);
+
+        helper.runAtTickTime(28, () -> {
+            var resultCount = getCreateBasinItemCount(level, helper.absolutePos(targetPos), new ItemStack(blazeCakeBase));
+            var remainingCinderFlourCount = getCreateBasinItemCount(level, helper.absolutePos(targetPos), new ItemStack(cinderFlour));
+            helper.assertTrue(resultCount == 1, "Heavenly Fist should spend one budget per Basin recipe: " + resultCount);
+            helper.assertTrue(remainingCinderFlourCount == 1,
+                    "Heavenly Fist should leave the second compacting input set when budget is one: " + remainingCinderFlourCount);
+            helper.succeed();
+        });
+    }
+
+    static void heavenlyFistSkipsCreateBasinCompressionCrafting(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var level = helper.getLevel();
+        var targetPos = new BlockPos(2, 1, 0);
+        var zincIngot = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "zinc_ingot"));
+        var zincBlock = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "zinc_block"));
+        placeCreateBasinWithItems(
+                level,
+                helper.absolutePos(targetPos),
+                new ItemStack(zincIngot, 9)
+        );
+
+        spawnHeavenlyFistForCreateProcess(helper, targetPos, 1);
+
+        helper.runAtTickTime(28, () -> {
+            var zincBlockCount = getCreateBasinItemCount(level, helper.absolutePos(targetPos), new ItemStack(zincBlock));
+            var zincIngotCount = getCreateBasinItemCount(level, helper.absolutePos(targetPos), new ItemStack(zincIngot));
+            helper.assertTrue(zincBlockCount == 0, "Heavenly Fist should not run Create Basin compression crafting: " + zincBlockCount);
+            helper.assertTrue(zincIngotCount == 9, "Heavenly Fist should leave compression crafting inputs untouched: " + zincIngotCount);
+            helper.succeed();
+        });
+    }
+
+    private static void spawnHeavenlyFistForCreateProcess(GameTestHelper helper, BlockPos targetPos, int maxProcessCount) {
+        var level = helper.getLevel();
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "heavenly_fist_create_process_owner_test");
+        var center = helper.absolutePos(targetPos).getCenter();
+        var fist = new HeavenlyFistFistEntity(EntityRegistry.HEAVENLY_FIST_FIST.get(), level, owner, center, 0.0F, 2.0F, maxProcessCount);
+        level.addFreshEntity(fist);
     }
 
     static void gravityBoundPullsAirborneTargetsDown(GameTestHelper helper) {

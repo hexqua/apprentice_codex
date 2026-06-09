@@ -1,18 +1,23 @@
 package jp.aquafactory.apprenticecodex.compat.create;
 
+import com.simibubi.create.AllRecipeTypes;
 import com.simibubi.create.content.kinetics.belt.BeltBlockEntity;
 import com.simibubi.create.content.kinetics.belt.behaviour.TransportedItemStackHandlerBehaviour;
 import com.simibubi.create.content.kinetics.belt.transport.TransportedItemStack;
 import com.simibubi.create.content.logistics.depot.DepotBlockEntity;
 import com.simibubi.create.content.logistics.depot.EjectorBlockEntity;
+import com.simibubi.create.content.processing.basin.BasinBlockEntity;
+import com.simibubi.create.content.processing.basin.BasinRecipe;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import jp.aquafactory.apprenticecodex.utility.ItemStackProcessingResult;
 import jp.aquafactory.apprenticecodex.utility.ItemStackProcessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -46,6 +51,59 @@ final class CreateExposedItemProcessingBridgeImpl {
             );
         }
         return processedCount;
+    }
+
+    static int processBasins(ServerLevel level, Iterable<BlockPos> positions, int maxProcessCount) {
+        if (maxProcessCount <= 0) {
+            return 0;
+        }
+
+        var processedCount = 0;
+        for (var pos : positions) {
+            if (processedCount >= maxProcessCount) {
+                break;
+            }
+
+            processedCount += processBasin(level, pos, maxProcessCount - processedCount);
+        }
+        return processedCount;
+    }
+
+    private static int processBasin(ServerLevel level, BlockPos pos, int maxProcessCount) {
+        if (maxProcessCount <= 0 || !(level.getBlockEntity(pos) instanceof BasinBlockEntity basin)) {
+            return 0;
+        }
+
+        var processedCount = 0;
+        while (processedCount < maxProcessCount) {
+            var recipe = findCompactingRecipe(level, basin);
+            if (recipe == null || !BasinRecipe.apply(basin, recipe)) {
+                break;
+            }
+
+            notifyBasinContentsChanged(basin);
+            processedCount++;
+        }
+        return processedCount;
+    }
+
+    private static void notifyBasinContentsChanged(BasinBlockEntity basin) {
+        try {
+            // Create の追加依存型を javac に露出しないため、更新通知だけ反射で呼ぶ。
+            ((Object) basin).getClass().getMethod("notifyChangeOfContents").invoke(basin);
+        } catch (ReflectiveOperationException ignored) {
+            // リフレクション失敗しても握りつぶし.
+        }
+    }
+
+    private static Recipe<?> findCompactingRecipe(ServerLevel level, BasinBlockEntity basin) {
+        var compactingType = AllRecipeTypes.COMPACTING.getType();
+        return level.getRecipeManager().getRecipes().stream()
+                .filter(recipe -> recipe.getType() == compactingType)
+                .sorted(Comparator.comparingInt((Recipe<?> recipe) -> recipe.getIngredients().size()).reversed())
+                .filter(recipe -> BasinRecipe.match(basin, recipe))
+                .findFirst()
+                .orElse(null);
     }
 
     private static int processBlock(
