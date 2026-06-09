@@ -222,10 +222,14 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     @Override
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        lines.add(Component.translatable("item.apprenticecodex.scrollcaster_gauntlet.desc_1")
+        lines.add(Component.translatable(
+                "item.apprenticecodex.right_click_magic_weapon.desc",
+                ImbueTooltipHelper.getUseKeyName()
+        ).withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable("item.apprenticecodex.right_click_magic_weapon.item_type")
                 .withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable(
-                "item.apprenticecodex.scrollcaster_gauntlet.desc_2",
+                "item.apprenticecodex.scrollcaster_gauntlet.desc",
                 ImbueTooltipHelper.getUseKeyName()
         ).withStyle(ChatFormatting.GRAY));
         var resolvedSchool = getResolvedCalibrationSchool(stack);

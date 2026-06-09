@@ -322,7 +322,11 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
     @Override
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        lines.add(Component.translatable("item.apprenticecodex.right_click_magic_weapon.desc")
+        lines.add(Component.translatable(
+                "item.apprenticecodex.right_click_magic_weapon.desc",
+                ImbueTooltipHelper.getUseKeyName()
+        ).withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable("item.apprenticecodex.right_click_magic_weapon.item_type")
                 .withStyle(ChatFormatting.GRAY));
         super.appendHoverText(stack, level, lines, flag);
     }

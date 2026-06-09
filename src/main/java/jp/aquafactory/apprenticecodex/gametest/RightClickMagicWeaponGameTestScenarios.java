@@ -301,34 +301,42 @@ final class RightClickMagicWeaponGameTestScenarios extends ApprenticeCodexGameTe
                 item.appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
                 helper.assertTrue(!tooltipLines.isEmpty(),
                         item + " should expose right click magic weapon tooltip");
+                helper.assertTrue(tooltipLines.size() > 1,
+                        item + " should expose right click magic weapon item type tooltip");
                 assertTranslatableKey(
                         helper,
                         tooltipLines.get(0),
                         "item.apprenticecodex.right_click_magic_weapon.desc",
                         item + " should show offhand priority tooltip first"
                 );
+                assertTranslatableKey(
+                        helper,
+                        tooltipLines.get(1),
+                        "item.apprenticecodex.right_click_magic_weapon.item_type",
+                        item + " should show offhand priority item type tooltip second"
+                );
             }
 
             assertTooltipKeyAt(
                     helper,
                     new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get()),
-                    1,
+                    2,
                     "item.apprenticecodex.crystal_bladed_staff.desc",
-                    "Crystal Bladed Staff should show its ability tooltip after offhand priority tooltip"
+                    "Crystal Bladed Staff should show its ability tooltip after offhand priority tooltips"
             );
             assertTooltipKeyAt(
                     helper,
                     new ItemStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get()),
-                    1,
+                    2,
                     "item.apprenticecodex.swingcast.common.desc",
-                    "Swingcast Staff should show swingcast tooltip after offhand priority tooltip"
+                    "Swingcast Staff should show swingcast tooltip after offhand priority tooltips"
             );
             assertTooltipKeyAt(
                     helper,
                     new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get()),
-                    1,
+                    2,
                     "item.apprenticecodex.swingcast.common.desc",
-                    "Revolvercast Staff should show swingcast tooltip after offhand priority tooltip"
+                    "Revolvercast Staff should show swingcast tooltip after offhand priority tooltips"
             );
             assertTooltipKeyUsesColor(
                     helper,

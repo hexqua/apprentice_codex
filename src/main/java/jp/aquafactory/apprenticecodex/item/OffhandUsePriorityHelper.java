@@ -20,6 +20,8 @@ final class OffhandUsePriorityHelper {
             return false;
         }
 
+        // 使用可能状態ではなく装備種別で優先する。
+        // 弾切れ・盾無効化・クールダウンでメインハンド詠唱へ戻すと、戦闘中に右クリックの意味が突然変わるため。
         var item = stack.getItem();
         return item instanceof AbstractSpellGunItem
                 || item instanceof BowItem
