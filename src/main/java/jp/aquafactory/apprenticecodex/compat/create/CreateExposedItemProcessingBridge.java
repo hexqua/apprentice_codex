@@ -7,6 +7,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.fml.ModList;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
 public final class CreateExposedItemProcessingBridge {
     private static boolean hasLoggedInitializationFailure;
@@ -19,7 +20,8 @@ public final class CreateExposedItemProcessingBridge {
             Iterable<BlockPos> positions,
             int maxProcessCount,
             Set<Object> skipTransportedItems,
-            ItemStackProcessor processor
+            ItemStackProcessor processor,
+            Consumer<BlockPos> processedBlockCallback
     ) {
         if (maxProcessCount <= 0 || !ModList.get().isLoaded(CreateCompat.MOD_ID)) {
             return 0;
@@ -31,7 +33,8 @@ public final class CreateExposedItemProcessingBridge {
                     positions,
                     maxProcessCount,
                     skipTransportedItems,
-                    processor
+                    processor,
+                    processedBlockCallback
             );
         } catch (LinkageError error) {
             logInitializationFailureOnce(error);

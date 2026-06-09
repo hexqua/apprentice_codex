@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.*;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -281,7 +282,8 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
                     List.of(blockHit.getBlockPos()),
                     maxProcessCount - processedCount,
                     skipProcessingTransportedItems,
-                    (inputStack, remainingBudget) -> tryBuildProcessingResult(level, inputStack, remainingBudget)
+                    (inputStack, remainingBudget) -> tryBuildProcessingResult(level, inputStack, remainingBudget),
+                    processedPos -> playCreateItemProcessedSound(level, processedPos)
             );
         }
 
@@ -448,6 +450,10 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
                 0.1,
                 0.01
         );
+    }
+
+    private void playCreateItemProcessedSound(ServerLevel level, BlockPos sourcePos) {
+        AudioTools.playSoundFromPosition(level, sourcePos.getCenter(), SoundEvents.ITEM_PICKUP, SoundSource.NEUTRAL);
     }
 
     private void applyOrUpdateThermalProcessing(LivingEntity target) {
