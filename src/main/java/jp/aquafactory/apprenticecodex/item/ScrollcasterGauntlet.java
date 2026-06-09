@@ -222,10 +222,14 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     @Override
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        lines.add(Component.translatable("item.apprenticecodex.scrollcaster_gauntlet.desc_1")
+        lines.add(Component.translatable(
+                "item.apprenticecodex.right_click_magic_weapon.desc",
+                ImbueTooltipHelper.getUseKeyName()
+        ).withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable("item.apprenticecodex.right_click_magic_weapon.item_type")
                 .withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable(
-                "item.apprenticecodex.scrollcaster_gauntlet.desc_2",
+                "item.apprenticecodex.scrollcaster_gauntlet.desc",
                 ImbueTooltipHelper.getUseKeyName()
         ).withStyle(ChatFormatting.GRAY));
         var resolvedSchool = getResolvedCalibrationSchool(stack);
@@ -346,11 +350,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     private static boolean shouldPrioritizeOffhandUse(Player player) {
-        var offhandStack = player.getOffhandItem();
-        // AbstractRightClickMagicWeaponItem はエンチャント許可や近接武器挙動も持つため継承しない。
-        // 1.21.1 へ forward-port する時も、盾優先と右クリック詠唱だけを個別に移す意図を維持する。
-        return offhandStack.getItem() instanceof AbstractSpellGunItem
-                || AbstractRightClickMagicWeaponItem.isShieldLikeOffhandItem(offhandStack);
+        return OffhandUsePriorityHelper.isPriorityOffhandUseItem(player.getOffhandItem());
     }
 
     private static boolean shouldDeferToMainhandSpellUse(Player player) {

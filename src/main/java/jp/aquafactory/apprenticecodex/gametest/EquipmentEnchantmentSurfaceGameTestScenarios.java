@@ -97,6 +97,66 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                             + emptyResult.getResult());
         });
     }
+
+    static void scrollcasterGauntletMainhandPrioritizesSupportedOffhandUseItems(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertScrollcasterGauntletMainhandPrioritizesOffhandUse(
+                    helper,
+                    new ItemStack(Items.SHIELD),
+                    "scrollcaster_gauntlet_mainhand_offhand_shield_test"
+            );
+            assertScrollcasterGauntletMainhandPrioritizesOffhandUse(
+                    helper,
+                    new ItemStack(ItemRegistry.ELEMENTAL_BOW.get()),
+                    "scrollcaster_gauntlet_mainhand_offhand_elemental_bow_test"
+            );
+            assertScrollcasterGauntletMainhandPrioritizesOffhandUse(
+                    helper,
+                    createIronAutoloaderCrossbowStack(helper),
+                    "scrollcaster_gauntlet_mainhand_offhand_autoloader_crossbow_test"
+            );
+            assertScrollcasterGauntletMainhandPrioritizesOffhandUse(
+                    helper,
+                    new ItemStack(ItemRegistry.COPPER_SPELLCASTER_GUN.get()),
+                    "scrollcaster_gauntlet_mainhand_offhand_spellgun_test"
+            );
+        });
+    }
+
+    private static void assertScrollcasterGauntletMainhandPrioritizesOffhandUse(
+            GameTestHelper helper,
+            ItemStack offhandStack,
+            String profileName
+    ) {
+        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(spell));
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), profileName);
+        player.setItemInHand(InteractionHand.MAIN_HAND, gauntlet);
+        player.setItemInHand(InteractionHand.OFF_HAND, offhandStack.copy());
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null,
+                "Scrollcaster Gauntlet mainhand offhand priority test could not resolve player mana data");
+        magicData.setMana(100.0F);
+
+        var result = gauntlet.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.PASS,
+                "Scrollcaster Gauntlet mainhand use should pass to supported offhand use item "
+                        + offhandStack + " but got " + result.getResult());
+        helper.assertFalse(magicData.isCasting(),
+                "Scrollcaster Gauntlet mainhand use should not cast before supported offhand use item "
+                        + offhandStack);
+    }
+
+    private static ItemStack createIronAutoloaderCrossbowStack(GameTestHelper helper) {
+        var autoloaderCrossbow = ForgeRegistries.ITEMS.getValue(
+                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "autoloader_crossbow")
+        );
+        helper.assertTrue(autoloaderCrossbow != null,
+                "Missing irons_spellbooks:autoloader_crossbow for Scrollcaster Gauntlet offhand priority test");
+        return new ItemStack(autoloaderCrossbow);
+    }
+
     static void spellGunsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> assertCategoryEnchantments(
                 helper,
