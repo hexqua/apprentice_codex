@@ -35,7 +35,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
-import net.neoforged.neoforge.common.Tags;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -304,7 +303,11 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
     @Override
     public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        lines.add(Component.translatable("item.apprenticecodex.right_click_magic_weapon.desc")
+        lines.add(Component.translatable(
+                "item.apprenticecodex.right_click_magic_weapon.desc",
+                ImbueTooltipHelper.getUseKeyName()
+        ).withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable("item.apprenticecodex.right_click_magic_weapon.item_type")
                 .withStyle(ChatFormatting.GRAY));
         super.appendHoverText(stack, context, lines, flag);
     }
@@ -314,8 +317,7 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
     }
 
     public static boolean isShieldLikeOffhandItem(ItemStack stack) {
-        return stack.canPerformAction(ItemAbilities.SHIELD_BLOCK)
-                || stack.is(Tags.Items.TOOLS_SHIELD);
+        return OffhandUsePriorityHelper.isShieldLikeItem(stack);
     }
 
     protected final boolean isSameItem(ItemStack stack) {
@@ -323,8 +325,7 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
     }
 
     protected final boolean shouldPrioritizeOffhandUse(Player player) {
-        var offhandStack = player.getOffhandItem();
-        return offhandStack.getItem() instanceof AbstractSpellGunItem || isShieldLikeOffhandItem(offhandStack);
+        return OffhandUsePriorityHelper.isPriorityOffhandUseItem(player.getOffhandItem());
     }
 
     protected final @Nullable SpellData getPrimarySpellData(ItemStack stack) {
