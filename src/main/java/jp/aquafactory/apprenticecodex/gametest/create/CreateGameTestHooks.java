@@ -192,7 +192,7 @@ public final class CreateGameTestHooks {
         var slots = (int) getSlots.invoke(inventory);
         for (var slot = 0; slot < slots; slot++) {
             var rawStack = getStackInSlot.invoke(inventory, slot);
-            if (rawStack instanceof ItemStack stack && ItemStack.isSameItemSameTags(stack, prototype)) {
+            if (rawStack instanceof ItemStack stack && ItemStack.isSameItemSameComponents(stack, prototype)) {
                 count += stack.getCount();
             }
         }

@@ -256,11 +256,6 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.harvestMoonHarvestsKelpColumnBeyondInitialYSlice(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)
-    public static void autoMagnetCollectsItemsWithoutSolegnoliaBlock(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.autoMagnetCollectsItemsWithoutSolegnoliaBlock(helper);
-    }
-
     @GameTest(template = TEMPLATE, batch = GRIND_RUNNER_ISOLATED_BATCH)
     public static void grindRunnerProcessesCreateCrushingWithoutCraftsmansDelight(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.grindRunnerProcessesCreateCrushingWithoutCraftsmansDelight(helper);

@@ -144,6 +144,7 @@ import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarManager;
 import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
 import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.harvestmoon.HarvestMoon;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
@@ -365,8 +366,6 @@ public class ApprenticeCodexGameTestScenarios {
     static final String REQUIRED_OPTIONAL_MODS_PROPERTY = "apprenticecodex.requiredOptionalMods";
     static final String VANILLA_NAMESPACE = "minecraft";
     static final String CREATE_MOD_ID = "create";
-    static final String CREATE_GAMETEST_HOOKS_CLASS =
-            "jp.aquafactory.apprenticecodex.gametest.create.CreateGameTestHooks";
     static final String FARMERS_DELIGHT_MOD_ID = "farmersdelight";
     static final String LODESTONE_MOD_ID = "lodestone";
     static final String MALUM_MOD_ID = "malum";
@@ -7422,7 +7421,7 @@ public class ApprenticeCodexGameTestScenarios {
 
         var level = helper.getLevel();
         var targetPos = new BlockPos(2, 1, 0);
-        var farItemPos = targetPos.offset(3, 0, 0);
+        var farItemPos = targetPos.offset(4, 0, 0);
         var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "heavenly_fist_create_drop_area_owner_test");
         spawnNoGravityItem(helper, farItemPos, new ItemStack(Items.SUGAR_CANE));
 

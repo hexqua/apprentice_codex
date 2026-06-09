@@ -16,6 +16,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -100,10 +101,11 @@ final class CreateExposedItemProcessingBridgeImpl {
     private static Recipe<?> findCompactingRecipe(ServerLevel level, BasinBlockEntity basin) {
         var compactingType = AllRecipeTypes.COMPACTING.getType();
         return level.getRecipeManager().getRecipes().stream()
-                .filter(recipe -> recipe.getType() == compactingType)
-                .filter(recipe -> !ApprenticeCodexServerConfig.isHeavenlyFistCreateRecipeDenied(recipe.getId()))
-                .sorted(Comparator.comparingInt((Recipe<?> recipe) -> recipe.getIngredients().size()).reversed())
-                .filter(recipe -> BasinRecipe.match(basin, recipe))
+                .filter(recipe -> recipe.value().getType() == compactingType)
+                .filter(recipe -> !ApprenticeCodexServerConfig.isHeavenlyFistCreateRecipeDenied(recipe.id()))
+                .sorted(Comparator.comparingInt((RecipeHolder<?> recipe) -> recipe.value().getIngredients().size()).reversed())
+                .filter(recipe -> BasinRecipe.match(basin, recipe.value()))
+                .map(RecipeHolder::value)
                 .findFirst()
                 .orElse(null);
     }

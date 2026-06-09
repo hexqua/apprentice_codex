@@ -27,6 +27,7 @@ import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 final class HeavenlyFistPressingProcessor {
@@ -48,6 +49,7 @@ final class HeavenlyFistPressingProcessor {
         }
 
         var processTargets = sampleCreateProcessTargets(center);
+        var processTargetSet = Set.copyOf(processTargets);
         var processed = CreateExposedItemProcessingBridge.processBasins(
                 level,
                 processTargets,
@@ -60,7 +62,7 @@ final class HeavenlyFistPressingProcessor {
         var items = new ArrayList<>(level.getEntitiesOfClass(
                 ItemEntity.class,
                 createProcessItemArea(center),
-                item -> item.isAlive() && !item.getItem().isEmpty()
+                item -> item.isAlive() && !item.getItem().isEmpty() && processTargetSet.contains(item.blockPosition())
         ));
         if (items.size() > 1) {
             items.sort(Comparator.comparingDouble(item -> item.position().distanceToSqr(center)));
