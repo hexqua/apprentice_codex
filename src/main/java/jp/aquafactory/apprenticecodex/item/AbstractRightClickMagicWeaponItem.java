@@ -17,7 +17,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -53,9 +52,6 @@ import java.util.function.Supplier;
 public abstract class AbstractRightClickMagicWeaponItem extends Item implements IPresetSpellContainer, NonDamageableAnvilMergeItem {
     private static final String VANILLA_NAMESPACE = "minecraft";
     private static final String MALUM_NAMESPACE = "malum";
-    private static final ResourceLocation FORGE_SHIELDS_TAG_ID = ResourceLocation.fromNamespaceAndPath("forge", "shields");
-    private static final ResourceLocation FORGE_TOOLS_SHIELDS_TAG_ID =
-            ResourceLocation.fromNamespaceAndPath("forge", "tools/shields");
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
@@ -336,11 +332,7 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
     }
 
     public static boolean isShieldLikeOffhandItem(ItemStack stack) {
-        // 継承元ではなく Forge の盾契約で判定し、ShieldItem 非継承の MOD 盾や
-        // Shield Expansion のタグ拡張にも追従する。
-        return stack.canPerformAction(ToolActions.SHIELD_BLOCK)
-                || stack.is(ItemTags.create(FORGE_SHIELDS_TAG_ID))
-                || stack.is(ItemTags.create(FORGE_TOOLS_SHIELDS_TAG_ID));
+        return OffhandUsePriorityHelper.isShieldLikeItem(stack);
     }
 
     protected final boolean isSameItem(ItemStack stack) {
@@ -348,8 +340,7 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
     }
 
     protected final boolean shouldPrioritizeOffhandUse(Player player) {
-        var offhandStack = player.getOffhandItem();
-        return offhandStack.getItem() instanceof AbstractSpellGunItem || isShieldLikeOffhandItem(offhandStack);
+        return OffhandUsePriorityHelper.isPriorityOffhandUseItem(player.getOffhandItem());
     }
 
     protected final @Nullable SpellData getPrimarySpellData(ItemStack stack) {
