@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.spell.heavenlyfist;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.create.CreateExposedItemProcessingBridge;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.ItemStackProcessingResult;
@@ -151,6 +152,7 @@ final class HeavenlyFistPressingProcessor {
 
         return level.getRecipeManager().getRecipes().stream()
                 .filter(recipe -> recipe.getType() == type)
+                .filter(recipe -> !ApprenticeCodexServerConfig.isHeavenlyFistCreateRecipeDenied(recipe.getId()))
                 .filter(recipe -> matchesFirstIngredient(recipe, inputStack))
                 .findFirst();
     }

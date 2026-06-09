@@ -10,21 +10,25 @@ final class ProcessingServerConfig {
     private final ForgeConfigSpec.ConfigValue<List<? extends String>> spellcasterWorkbenchRecipeDenylist;
     private final ForgeConfigSpec.ConfigValue<List<? extends String>> essenceSmokerRecipeDenylist;
     private final ForgeConfigSpec.ConfigValue<List<? extends String>> grindRunnerRecipeDenylist;
+    private final ForgeConfigSpec.ConfigValue<List<? extends String>> heavenlyFistCreateRecipeDenylist;
     private final ForgeConfigSpec.ConfigValue<List<? extends String>> thermalProcessRecipeDenylist;
     private List<String> spellcasterWorkbenchRecipeDenylistOverride;
     private List<String> essenceSmokerRecipeDenylistOverride;
     private List<String> grindRunnerRecipeDenylistOverride;
+    private List<String> heavenlyFistCreateRecipeDenylistOverride;
     private List<String> thermalProcessRecipeDenylistOverride;
 
     private ProcessingServerConfig(
             ForgeConfigSpec.ConfigValue<List<? extends String>> spellcasterWorkbenchRecipeDenylist,
             ForgeConfigSpec.ConfigValue<List<? extends String>> essenceSmokerRecipeDenylist,
             ForgeConfigSpec.ConfigValue<List<? extends String>> grindRunnerRecipeDenylist,
+            ForgeConfigSpec.ConfigValue<List<? extends String>> heavenlyFistCreateRecipeDenylist,
             ForgeConfigSpec.ConfigValue<List<? extends String>> thermalProcessRecipeDenylist
     ) {
         this.spellcasterWorkbenchRecipeDenylist = spellcasterWorkbenchRecipeDenylist;
         this.essenceSmokerRecipeDenylist = essenceSmokerRecipeDenylist;
         this.grindRunnerRecipeDenylist = grindRunnerRecipeDenylist;
+        this.heavenlyFistCreateRecipeDenylist = heavenlyFistCreateRecipeDenylist;
         this.thermalProcessRecipeDenylist = thermalProcessRecipeDenylist;
     }
 
@@ -41,6 +45,9 @@ final class ProcessingServerConfig {
         var grindRunnerRecipeDenylist = builder
                 .comment("Disable matching Grind Runner recipes by recipe ID.")
                 .defineListAllowEmpty("grindRunnerRecipeDenylist", List.<String>of(), ProcessingServerConfig::isRecipeId);
+        var heavenlyFistCreateRecipeDenylist = builder
+                .comment("Disable matching Create pressing or compacting recipes used by Heavenly Fist by recipe ID.")
+                .defineListAllowEmpty("heavenlyFistCreateRecipeDenylist", List.<String>of(), ProcessingServerConfig::isRecipeId);
         var thermalProcessRecipeDenylist = builder
                 .comment("Disable matching Thermal Process cooking recipes by recipe ID.")
                 .defineListAllowEmpty("thermalProcessRecipeDenylist", List.<String>of(), ProcessingServerConfig::isRecipeId);
@@ -50,6 +57,7 @@ final class ProcessingServerConfig {
                 spellcasterWorkbenchRecipeDenylist,
                 essenceSmokerRecipeDenylist,
                 grindRunnerRecipeDenylist,
+                heavenlyFistCreateRecipeDenylist,
                 thermalProcessRecipeDenylist
         );
     }
@@ -66,6 +74,10 @@ final class ProcessingServerConfig {
         return containsRecipeId(grindRunnerRecipeDenylist(), recipeId);
     }
 
+    boolean isHeavenlyFistCreateRecipeDenied(ResourceLocation recipeId) {
+        return containsRecipeId(heavenlyFistCreateRecipeDenylist(), recipeId);
+    }
+
     boolean isThermalProcessRecipeDenied(ResourceLocation recipeId) {
         return containsRecipeId(thermalProcessRecipeDenylist(), recipeId);
     }
@@ -74,11 +86,13 @@ final class ProcessingServerConfig {
             List<String> spellcasterWorkbenchRecipeDenylist,
             List<String> essenceSmokerRecipeDenylist,
             List<String> grindRunnerRecipeDenylist,
+            List<String> heavenlyFistCreateRecipeDenylist,
             List<String> thermalProcessRecipeDenylist
     ) {
         spellcasterWorkbenchRecipeDenylistOverride = List.copyOf(spellcasterWorkbenchRecipeDenylist);
         essenceSmokerRecipeDenylistOverride = List.copyOf(essenceSmokerRecipeDenylist);
         grindRunnerRecipeDenylistOverride = List.copyOf(grindRunnerRecipeDenylist);
+        heavenlyFistCreateRecipeDenylistOverride = List.copyOf(heavenlyFistCreateRecipeDenylist);
         thermalProcessRecipeDenylistOverride = List.copyOf(thermalProcessRecipeDenylist);
     }
 
@@ -95,6 +109,11 @@ final class ProcessingServerConfig {
     List<String> grindRunnerRecipeDenylist() {
         return Objects.requireNonNullElseGet(grindRunnerRecipeDenylistOverride,
                 () -> stringList(grindRunnerRecipeDenylist));
+    }
+
+    List<String> heavenlyFistCreateRecipeDenylist() {
+        return Objects.requireNonNullElseGet(heavenlyFistCreateRecipeDenylistOverride,
+                () -> stringList(heavenlyFistCreateRecipeDenylist));
     }
 
     List<String> thermalProcessRecipeDenylist() {

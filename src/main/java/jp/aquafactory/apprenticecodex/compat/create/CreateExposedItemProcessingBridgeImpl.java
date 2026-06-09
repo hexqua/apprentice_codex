@@ -9,6 +9,7 @@ import com.simibubi.create.content.logistics.depot.EjectorBlockEntity;
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
 import com.simibubi.create.content.processing.basin.BasinRecipe;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.utility.ItemStackProcessingResult;
 import jp.aquafactory.apprenticecodex.utility.ItemStackProcessor;
 import net.minecraft.core.BlockPos;
@@ -100,6 +101,7 @@ final class CreateExposedItemProcessingBridgeImpl {
         var compactingType = AllRecipeTypes.COMPACTING.getType();
         return level.getRecipeManager().getRecipes().stream()
                 .filter(recipe -> recipe.getType() == compactingType)
+                .filter(recipe -> !ApprenticeCodexServerConfig.isHeavenlyFistCreateRecipeDenied(recipe.getId()))
                 .sorted(Comparator.comparingInt((Recipe<?> recipe) -> recipe.getIngredients().size()).reversed())
                 .filter(recipe -> BasinRecipe.match(basin, recipe))
                 .findFirst()

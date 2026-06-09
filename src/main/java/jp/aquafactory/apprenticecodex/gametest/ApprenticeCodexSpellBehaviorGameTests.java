@@ -32,6 +32,10 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String COUNTERSPELL_COMPAT_ISOLATED_BATCH = "apprenticecodex.counterspell_compat_isolated";
     private static final String INSCRIBE_ICE_ISOLATED_BATCH = "apprenticecodex.inscribe_ice_isolated";
     private static final String HEAVENLY_FIST_ISOLATED_BATCH = "apprenticecodex.heavenly_fist_isolated";
+    private static final String HEAVENLY_FIST_CREATE_PRESSING_DENYLIST_BATCH =
+            "apprenticecodex.heavenly_fist_create_pressing_denylist";
+    private static final String HEAVENLY_FIST_CREATE_COMPACTING_DENYLIST_BATCH =
+            "apprenticecodex.heavenly_fist_create_compacting_denylist";
     private static final String GRIND_RUNNER_ISOLATED_BATCH = "apprenticecodex.grind_runner_isolated";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
@@ -492,6 +496,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.heavenlyFistProcessesCreateDepotItems(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_CREATE_PRESSING_DENYLIST_BATCH, timeoutTicks = 60)
+    public static void heavenlyFistCreatePressingDenylistLeavesDepotItems(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.heavenlyFistCreatePressingDenylistLeavesDepotItems(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 60)
     public static void heavenlyFistProcessesCreateBasinCompacting(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.heavenlyFistProcessesCreateBasinCompacting(helper);
@@ -500,6 +509,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 60)
     public static void heavenlyFistCreateBasinCompactingConsumesOneBudgetPerRecipe(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.heavenlyFistCreateBasinCompactingConsumesOneBudgetPerRecipe(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_CREATE_COMPACTING_DENYLIST_BATCH, timeoutTicks = 60)
+    public static void heavenlyFistCreateCompactingDenylistLeavesBasinItems(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.heavenlyFistCreateCompactingDenylistLeavesBasinItems(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = HEAVENLY_FIST_ISOLATED_BATCH, timeoutTicks = 60)
