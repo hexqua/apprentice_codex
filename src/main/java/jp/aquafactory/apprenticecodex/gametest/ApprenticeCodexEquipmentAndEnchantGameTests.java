@@ -400,6 +400,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void manaForceBladeReleaseCooldownUsesServerConfig(GameTestHelper helper) {
+        ManaForceBladeGameTestScenarios.manaForceBladeReleaseCooldownUsesServerConfig(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaForceBladePerfectGuardReleaseCooldownGraceIsSingleUse(GameTestHelper helper) {
+        ManaForceBladeGameTestScenarios.manaForceBladePerfectGuardReleaseCooldownGraceIsSingleUse(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void betterCombatSpellbreakerIsTwoHandedAndAmplifierHasOffhandSpellPower(GameTestHelper helper) {
         OffhandAndBetterCombatGameTestScenarios.betterCombatSpellbreakerIsTwoHandedAndAmplifierHasOffhandSpellPower(helper);
     }

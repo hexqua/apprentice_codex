@@ -83,11 +83,13 @@ public final class ManaForceBladeGuardLogic {
             boolean perfectGuard,
             boolean playGuardEffects
     ) {
-        if (isRangedAttack(source, player)) {
-            return handleRangedGuard(player, stack, source, perfectGuard, playGuardEffects);
+        var guarded = isRangedAttack(source, player)
+                ? handleRangedGuard(player, stack, source, perfectGuard, playGuardEffects)
+                : handleMeleeGuard(player, stack, source, perfectGuard, playGuardEffects);
+        if (guarded && perfectGuard) {
+            ManaForceBlade.rememberPerfectGuardReleaseCooldownGrace(stack, player.level().getGameTime());
         }
-
-        return handleMeleeGuard(player, stack, source, perfectGuard, playGuardEffects);
+        return guarded;
     }
 
     private static boolean isRangedAttack(DamageSource source, ServerPlayer player) {

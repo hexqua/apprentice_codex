@@ -186,6 +186,8 @@ import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.CreativeTabRegistry;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeGuardLogic;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.LootConditionRegistry;
 import jp.aquafactory.apprenticecodex.registry.PoiTypeRegistry;
@@ -502,6 +504,76 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
                     "Mana Force Blade imbue damage scale 0 should also disable hit mana cost");
         });
     }
+
+    static void manaForceBladeReleaseCooldownUsesServerConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+            var stack = new ItemStack(item);
+            item.initializeSpellContainer(stack);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "mana_force_blade_release_cooldown_config_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            try (var ignored = ApprenticeCodexServerConfig.useManaForceBladeCooldownConfigOverrideForGameTest(
+                    7,
+                    0,
+                    0
+            )) {
+                item.releaseUsing(stack, helper.getLevel(), player, item.getUseDuration(stack, player));
+            }
+
+            helper.assertTrue(player.getCooldowns().isOnCooldown(item),
+                    "Mana Force Blade release should apply server-configured cooldown");
+
+            var disabledCooldownStack = new ItemStack(item);
+            item.initializeSpellContainer(disabledCooldownStack);
+            var disabledCooldownPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 1),
+                    "mana_force_blade_release_cooldown_disabled_test");
+            disabledCooldownPlayer.setItemInHand(InteractionHand.MAIN_HAND, disabledCooldownStack);
+            try (var ignored = ApprenticeCodexServerConfig.useManaForceBladeCooldownConfigOverrideForGameTest(
+                    0,
+                    0,
+                    0
+            )) {
+                item.releaseUsing(
+                        disabledCooldownStack,
+                        helper.getLevel(),
+                        disabledCooldownPlayer,
+                        item.getUseDuration(disabledCooldownStack, disabledCooldownPlayer)
+                );
+            }
+            helper.assertFalse(disabledCooldownPlayer.getCooldowns().isOnCooldown(item),
+                    "Mana Force Blade release cooldown config 0 should disable release cooldown");
+        });
+    }
+
+    static void manaForceBladePerfectGuardReleaseCooldownGraceIsSingleUse(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+            var stack = new ItemStack(item);
+            item.initializeSpellContainer(stack);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "mana_force_blade_release_cooldown_grace_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            try (var ignored = ApprenticeCodexServerConfig.useManaForceBladeCooldownConfigOverrideForGameTest(
+                    7,
+                    40,
+                    1
+            )) {
+                ManaForceBladeGuardLogic.tryHandleGuard(player, stack, player.damageSources().generic(), true, false);
+
+                item.releaseUsing(stack, helper.getLevel(), player, item.getUseDuration(stack, player));
+                helper.assertFalse(player.getCooldowns().isOnCooldown(item),
+                        "Mana Force Blade perfect guard grace should skip release cooldown once");
+
+                item.releaseUsing(stack, helper.getLevel(), player, item.getUseDuration(stack, player));
+                helper.assertTrue(player.getCooldowns().isOnCooldown(item),
+                        "Mana Force Blade perfect guard grace should not skip release cooldown more than once");
+            }
+        });
+    }
+
     static void manaForceBladeKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.MANA_FORCE_BLADE.get());
