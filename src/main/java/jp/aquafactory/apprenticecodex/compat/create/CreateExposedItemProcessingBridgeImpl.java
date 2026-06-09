@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 final class CreateExposedItemProcessingBridgeImpl {
     private CreateExposedItemProcessingBridgeImpl() {
@@ -32,7 +33,8 @@ final class CreateExposedItemProcessingBridgeImpl {
             Iterable<BlockPos> positions,
             int maxProcessCount,
             Set<Object> skipTransportedItems,
-            ItemStackProcessor processor
+            ItemStackProcessor processor,
+            Consumer<BlockPos> processedBlockCallback
     ) {
         if (maxProcessCount <= 0) {
             return 0;
@@ -44,13 +46,17 @@ final class CreateExposedItemProcessingBridgeImpl {
                 break;
             }
 
-            processedCount += processBlock(
+            var blockProcessedCount = processBlock(
                     level,
                     pos,
                     maxProcessCount - processedCount,
                     skipTransportedItems,
                     processor
             );
+            if (blockProcessedCount > 0) {
+                processedBlockCallback.accept(pos);
+            }
+            processedCount += blockProcessedCount;
         }
         return processedCount;
     }
