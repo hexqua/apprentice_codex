@@ -151,6 +151,54 @@ public final class CreateGameTestHooks {
         return invokeBlockEntityItemStackGetter(level, worldPos, "getItem");
     }
 
+    public static void placeBasinWithItems(ServerLevel level, BlockPos worldPos, ItemStack[] stacks) {
+        level.setBlock(worldPos, AllBlocks.BASIN.getDefaultState(), 3);
+        var blockEntity = level.getBlockEntity(worldPos);
+        if (blockEntity == null) {
+            return;
+        }
+
+        try {
+            var inputInventory = blockEntity.getClass().getMethod("getInputInventory").invoke(blockEntity);
+            var setStackInSlot = inputInventory.getClass().getMethod("setStackInSlot", int.class, ItemStack.class);
+            for (var slot = 0; slot < stacks.length; slot++) {
+                setStackInSlot.invoke(inputInventory, slot, stacks[slot].copy());
+            }
+            blockEntity.getClass().getMethod("notifyChangeOfContents").invoke(blockEntity);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Create GameTest basin setup failed", exception);
+        }
+    }
+
+    public static int getBasinItemCount(ServerLevel level, BlockPos worldPos, ItemStack prototype) {
+        var blockEntity = level.getBlockEntity(worldPos);
+        if (blockEntity == null || prototype.isEmpty()) {
+            return 0;
+        }
+
+        try {
+            var inputInventory = blockEntity.getClass().getMethod("getInputInventory").invoke(blockEntity);
+            var outputInventory = blockEntity.getClass().getMethod("getOutputInventory").invoke(blockEntity);
+            return countMatchingInventoryItems(inputInventory, prototype) + countMatchingInventoryItems(outputInventory, prototype);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Create GameTest basin count failed", exception);
+        }
+    }
+
+    private static int countMatchingInventoryItems(Object inventory, ItemStack prototype) throws ReflectiveOperationException {
+        var getSlots = inventory.getClass().getMethod("getSlots");
+        var getStackInSlot = inventory.getClass().getMethod("getStackInSlot", int.class);
+        var count = 0;
+        var slots = (int) getSlots.invoke(inventory);
+        for (var slot = 0; slot < slots; slot++) {
+            var rawStack = getStackInSlot.invoke(inventory, slot);
+            if (rawStack instanceof ItemStack stack && ItemStack.isSameItemSameTags(stack, prototype)) {
+                count += stack.getCount();
+            }
+        }
+        return count;
+    }
+
     private static void invokeBlockEntityMethod(
             ServerLevel level,
             BlockPos worldPos,

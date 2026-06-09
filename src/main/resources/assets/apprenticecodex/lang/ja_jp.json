@@ -672,7 +672,7 @@
   "spell.apprenticecodex.bound_bow.guide": "魔力の弓を一時的に手元に錬成する。矢を持っていない状況でもマナを消費して矢を錬成できる。錬成時に手に持っていた武器は一時的に弓の中に封じ込まれ、手放すなどで弓が自壊した際に手元に戻る。他の錬成武器と同時に存在できない。大魔術師のお守りを装備していると錬成解除時に条件を問わずクールダウンが発生しない。",
   "spell.apprenticecodex.inscribe_ice.guide": "命中したモブに対して氷の魔力を刻み込む氷のダガーを生成して扇状に投擲する。三回刻み込むと氷の魔力が炸裂し大ダメージを与える。この魔力の炸裂は近くの刻み込まれた氷の魔力の炸裂を誘発する。",
   "spell.apprenticecodex.divine_possession.guide": "元素の乙女のローブの固有の潜在魔法。属性を司る存在をその身に降ろし、一定時間最も強い系統のボーナスを他の全ての系統に反映させる。その身に存在を降ろすためには全部位の元素の乙女の衣装を着込む必要がある。",
-  "spell.apprenticecodex.heavenly_fist.guide": "狙った場所にアメジストの魔導拳を召喚し、空間ごと打ち付ける。効果範囲内の対象は暫く地面に叩き落とされる。歯車の理が世界に存在する場合、アイテムをプレス加工する。",
+  "spell.apprenticecodex.heavenly_fist.guide": "狙った場所にアメジストの魔導拳を召喚し、空間ごと打ち付ける。効果範囲内の対象は暫く地面に叩き落とされる。歯車の理が世界に存在する場合、アイテムのプレス加工や圧縮加工を試みる。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -695,6 +695,7 @@
   "ui.apprenticecodex.growth_speed_rank.normal": "やや早い",
   "ui.apprenticecodex.process_item_per_second": "1秒間に処理できるアイテム数: %d",
   "ui.apprenticecodex.process_item_per_operate": "1回に処理できるアイテム数: %d",
+  "ui.apprenticecodex.process_capacity": "最大加工量: %d",
   "ui.apprenticecodex.mana_recover_speed": "秒間マナ回復: %d",
   "ui.apprenticecodex.drain_per_hit": "打ち消し時消費マナ: %d",
   "ui.apprenticecodex.looting_level": "ドロップ増加レベル: %d",

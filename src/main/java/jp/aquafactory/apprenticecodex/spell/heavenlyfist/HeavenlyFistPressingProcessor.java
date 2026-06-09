@@ -40,8 +40,17 @@ final class HeavenlyFistPressingProcessor {
         return ModList.get().isLoaded(CREATE_MOD_ID);
     }
 
-    static void processItems(ServerLevel level, Vec3 center, double radius, int maxProcessCount) {
-        if (maxProcessCount <= 0 || !canProcessItems()) {
+    static void processItems(ServerLevel level, Vec3 center, double radius, int maxProcessOperations) {
+        if (maxProcessOperations <= 0 || !canProcessItems()) {
+            return;
+        }
+
+        var processed = CreateExposedItemProcessingBridge.processBasins(
+                level,
+                sampleCreateProcessTargets(center),
+                maxProcessOperations
+        );
+        if (processed >= maxProcessOperations) {
             return;
         }
 
@@ -56,23 +65,22 @@ final class HeavenlyFistPressingProcessor {
 
         var skipIds = new ArrayList<UUID>();
         var skipTransportedItems = Collections.newSetFromMap(new IdentityHashMap<>());
-        var processed = 0;
         for (var item : items) {
-            if (processed >= maxProcessCount) {
+            if (processed >= maxProcessOperations) {
                 break;
             }
             if (!item.isAlive() || skipIds.contains(item.getUUID())) {
                 continue;
             }
 
-            processed += tryProcessItem(level, item, maxProcessCount - processed, skipIds);
+            processed += tryProcessItem(level, item, maxProcessOperations - processed, skipIds);
         }
 
-        if (processed < maxProcessCount) {
+        if (processed < maxProcessOperations) {
             CreateExposedItemProcessingBridge.processBlocks(
                     level,
                     sampleCreateProcessTargets(center),
-                    maxProcessCount - processed,
+                    maxProcessOperations - processed,
                     skipTransportedItems,
                     (inputStack, remainingBudget) -> tryBuildPressingResult(level, inputStack, remainingBudget)
             );

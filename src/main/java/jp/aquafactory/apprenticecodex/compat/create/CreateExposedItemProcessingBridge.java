@@ -39,6 +39,19 @@ public final class CreateExposedItemProcessingBridge {
         }
     }
 
+    public static int processBasins(ServerLevel level, Iterable<BlockPos> positions, int maxProcessCount) {
+        if (maxProcessCount <= 0 || !ModList.get().isLoaded(CreateCompat.MOD_ID)) {
+            return 0;
+        }
+
+        try {
+            return CreateExposedItemProcessingBridgeImpl.processBasins(level, positions, maxProcessCount);
+        } catch (LinkageError error) {
+            logInitializationFailureOnce(error);
+            return 0;
+        }
+    }
+
     private static void logInitializationFailureOnce(LinkageError error) {
         if (hasLoggedInitializationFailure) {
             return;
