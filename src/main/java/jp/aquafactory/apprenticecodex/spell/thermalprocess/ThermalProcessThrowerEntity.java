@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.thermalprocess;
 
 import io.redspace.ironsspellbooks.util.ParticleHelper;
+import jp.aquafactory.apprenticecodex.compat.create.CreateExposedItemProcessingBridge;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.effect.ThermalProcessing;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
@@ -29,13 +30,16 @@ import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -60,6 +64,7 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
     private float pendingItemProcessBudget;
     private int startupTick;
     private final Set<UUID> skipProcessingItemIds = new HashSet<>();
+    private final Set<Object> skipProcessingTransportedItems = Collections.newSetFromMap(new IdentityHashMap<>());
 
     public ThermalProcessThrowerEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -192,9 +197,14 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
         return position().add(look.normalize().scale(FIRE_OFFSET));
     }
 
+    private BlockHitResult resolveBeamBlockHit(Level level, Vec3 beamStart, Vec3 direction) {
+        var maxBeamEnd = beamStart.add(direction.scale(getEffectiveRange()));
+        return level.clip(new ClipContext(beamStart, maxBeamEnd, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+    }
+
     private Vec3 resolveBeamEnd(Level level, Vec3 beamStart, Vec3 direction) {
         var maxBeamEnd = beamStart.add(direction.scale(getEffectiveRange()));
-        var blockHit = level.clip(new ClipContext(beamStart, maxBeamEnd, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+        var blockHit = resolveBeamBlockHit(level, beamStart, direction);
         return blockHit.getType() == HitResult.Type.BLOCK ? blockHit.getLocation() : maxBeamEnd;
     }
 
@@ -206,7 +216,10 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
             return;
         }
 
-        var beamEnd = resolveBeamEnd(level, beamStart, direction);
+        var blockHit = resolveBeamBlockHit(level, beamStart, direction);
+        var beamEnd = blockHit.getType() == HitResult.Type.BLOCK
+                ? blockHit.getLocation()
+                : beamStart.add(direction.scale(getEffectiveRange()));
         var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.THERMAL_PROCESS);
         var school = SpellRegistry.THERMAL_PROCESS.get().getSchoolType();
         var currentDamage = resolveCurrentDamage(owner);
@@ -228,10 +241,10 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
             applyOrUpdateThermalProcessing(livingTarget);
         }
 
-        processBeamItems(level, beamStart, beamEnd);
+        processBeamItems(level, beamStart, beamEnd, blockHit);
     }
 
-    private void processBeamItems(ServerLevel level, Vec3 beamStart, Vec3 beamEnd) {
+    private void processBeamItems(ServerLevel level, Vec3 beamStart, Vec3 beamEnd, BlockHitResult blockHit) {
         if (tickCount % ITEM_PROCESS_INTERVAL_TICKS != 0) {
             return;
         }
@@ -262,6 +275,16 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
             }
 
             processedCount += tryProcessItem(level, itemEntity, maxProcessCount - processedCount);
+        }
+
+        if (processedCount < maxProcessCount && blockHit.getType() == HitResult.Type.BLOCK) {
+            processedCount += CreateExposedItemProcessingBridge.processBlocks(
+                    level,
+                    List.of(blockHit.getBlockPos()),
+                    maxProcessCount - processedCount,
+                    skipProcessingTransportedItems,
+                    (inputStack, remainingBudget) -> tryBuildProcessingResult(level, inputStack, remainingBudget)
+            );
         }
 
         pendingItemProcessBudget = Math.max(0.0f, pendingItemProcessBudget - processedCount);
@@ -314,20 +337,47 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
             return 0;
         }
 
+        var processingResult = tryBuildProcessingResult(level, inputStack, maxProcessCount);
+        processingResult.ifPresent(result -> applyProcessingResult(
+                level,
+                itemEntity,
+                inputStack,
+                result.outputStacks(),
+                result.processedCount()
+        ));
+        return processingResult.map(jp.aquafactory.apprenticecodex.utility.ItemStackProcessingResult::processedCount).orElse(0);
+    }
+
+    private Optional<jp.aquafactory.apprenticecodex.utility.ItemStackProcessingResult> tryBuildProcessingResult(
+            ServerLevel level,
+            ItemStack inputStack,
+            int maxProcessCount
+    ) {
+        if (maxProcessCount <= 0 || inputStack.isEmpty()) {
+            return Optional.empty();
+        }
+
         var recipe = findProcessingRecipe(level, inputStack);
         if (recipe.isEmpty()) {
-            return 0;
+            return Optional.empty();
         }
 
         var singleInput = new SingleRecipeInput(inputStack.copyWithCount(1));
         var outputPerInput = recipe.get().value().assemble(singleInput, level.registryAccess());
         if (outputPerInput.isEmpty()) {
-            return 0;
+            return Optional.empty();
         }
 
         var processCount = Math.min(maxProcessCount, inputStack.getCount());
-        applyProcessingResult(level, itemEntity, inputStack, outputPerInput, processCount);
-        return processCount;
+        var outputCount = outputPerInput.getCount() * processCount;
+        if (outputCount <= 0) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new jp.aquafactory.apprenticecodex.utility.ItemStackProcessingResult(
+                processCount,
+                splitOutputStacks(outputPerInput, outputCount)
+        ));
     }
 
     private Optional<RecipeHolder<? extends AbstractCookingRecipe>> findProcessingRecipe(ServerLevel level, ItemStack inputStack) {
@@ -337,13 +387,8 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
         return ProcessingRecipeDenylist.findThermalProcessRecipe(level.getRecipeManager(), input, level);
     }
 
-    private void applyProcessingResult(ServerLevel level, ItemEntity sourceItem, ItemStack sourceStack, ItemStack outputPerInput, int processCount) {
-        var outputCount = outputPerInput.getCount() * processCount;
-        if (outputCount <= 0) {
-            return;
-        }
-
-        var outputStacks = splitOutputStacks(outputPerInput, outputCount);
+    private void applyProcessingResult(ServerLevel level, ItemEntity sourceItem, ItemStack sourceStack, List<ItemStack> outputStacks, int processCount) {
+        outputStacks = new ArrayList<>(outputStacks);
         var remainingInputCount = sourceStack.getCount() - processCount;
 
         if (remainingInputCount <= 0) {

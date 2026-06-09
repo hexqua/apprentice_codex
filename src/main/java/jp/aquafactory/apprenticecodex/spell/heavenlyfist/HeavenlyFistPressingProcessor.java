@@ -1,8 +1,12 @@
 package jp.aquafactory.apprenticecodex.spell.heavenlyfist;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.create.CreateExposedItemProcessingBridge;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.ItemStackProcessingResult;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -12,14 +16,18 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 final class HeavenlyFistPressingProcessor {
@@ -35,32 +43,79 @@ final class HeavenlyFistPressingProcessor {
         return ModList.get().isLoaded(CREATE_MOD_ID);
     }
 
-    static void processItems(ServerLevel level, Vec3 center, double radius, int maxProcessCount) {
-        if (maxProcessCount <= 0 || !canProcessItems()) {
+    static void processItems(ServerLevel level, Vec3 center, int maxProcessOperations) {
+        if (maxProcessOperations <= 0 || !canProcessItems()) {
+            return;
+        }
+
+        var processTargets = sampleCreateProcessTargets(center);
+        var processTargetSet = Set.copyOf(processTargets);
+        var processed = CreateExposedItemProcessingBridge.processBasins(
+                level,
+                processTargets,
+                maxProcessOperations
+        );
+        if (processed >= maxProcessOperations) {
             return;
         }
 
         var items = new ArrayList<>(level.getEntitiesOfClass(
                 ItemEntity.class,
-                new net.minecraft.world.phys.AABB(center, center).inflate(radius),
-                item -> item.isAlive() && !item.getItem().isEmpty()
+                createProcessItemArea(center),
+                item -> item.isAlive() && !item.getItem().isEmpty() && processTargetSet.contains(item.blockPosition())
         ));
         if (items.size() > 1) {
             items.sort(Comparator.comparingDouble(item -> item.position().distanceToSqr(center)));
         }
 
         var skipIds = new ArrayList<UUID>();
-        var processed = 0;
+        var skipTransportedItems = Collections.newSetFromMap(new IdentityHashMap<>());
         for (var item : items) {
-            if (processed >= maxProcessCount) {
+            if (processed >= maxProcessOperations) {
                 break;
             }
             if (!item.isAlive() || skipIds.contains(item.getUUID())) {
                 continue;
             }
 
-            processed += tryProcessItem(level, item, maxProcessCount - processed, skipIds);
+            processed += tryProcessItem(level, item, maxProcessOperations - processed, skipIds);
         }
+
+        if (processed < maxProcessOperations) {
+            CreateExposedItemProcessingBridge.processBlocks(
+                    level,
+                    processTargets,
+                    maxProcessOperations - processed,
+                    skipTransportedItems,
+                    (inputStack, remainingBudget) -> tryBuildPressingResult(level, inputStack, remainingBudget)
+            );
+        }
+    }
+
+    private static List<BlockPos> sampleCreateProcessTargets(Vec3 center) {
+        var centerPos = BlockPos.containing(center);
+        var positions = new ArrayList<BlockPos>(18);
+        for (var yOffset = 0; yOffset >= -1; yOffset--) {
+            for (var xOffset = -1; xOffset <= 1; xOffset++) {
+                for (var zOffset = -1; zOffset <= 1; zOffset++) {
+                    positions.add(centerPos.offset(xOffset, yOffset, zOffset));
+                }
+            }
+        }
+        return positions;
+    }
+
+    private static AABB createProcessItemArea(Vec3 center) {
+        var centerPos = BlockPos.containing(center);
+        // Create 加工は戦闘半径ではなく、拳の直下付近の 3x2x3 に限定する。
+        return new AABB(
+                centerPos.getX() - 1.0D,
+                centerPos.getY() - 1.0D,
+                centerPos.getZ() - 1.0D,
+                centerPos.getX() + 2.0D,
+                centerPos.getY() + 1.0D,
+                centerPos.getZ() + 2.0D
+        );
     }
 
     private static int tryProcessItem(ServerLevel level, ItemEntity itemEntity, int maxProcessCount, List<UUID> skipIds) {
@@ -74,17 +129,33 @@ final class HeavenlyFistPressingProcessor {
         }
 
         var processCount = Math.min(maxProcessCount, inputStack.getCount());
+        var processingResult = tryBuildPressingResult(level, inputStack, processCount);
+        processingResult.ifPresent(result -> applyProcessingResult(
+                level,
+                itemEntity,
+                result.outputStacks(),
+                result.processedCount(),
+                skipIds
+        ));
+        return processingResult.map(ItemStackProcessingResult::processedCount).orElse(0);
+    }
+
+    private static Optional<ItemStackProcessingResult> tryBuildPressingResult(ServerLevel level, ItemStack inputStack, int maxProcessCount) {
+        if (maxProcessCount <= 0 || inputStack.isEmpty() || inputStack.getCount() <= 0) {
+            return Optional.empty();
+        }
+
+        var processCount = Math.min(maxProcessCount, inputStack.getCount());
         var createRecipe = findCreatePressingRecipe(level, inputStack);
         if (createRecipe.isPresent()) {
             var outputs = rollCreatePressingOutputs(level, createRecipe.get().value(), processCount);
             if (outputs.isPresent()) {
-                applyProcessingResult(level, itemEntity, outputs.get(), processCount, skipIds);
-                return processCount;
+                return Optional.of(new ItemStackProcessingResult(processCount, normalizeOutputStacks(outputs.get())));
             }
             logCreateReflectionFailureOnce(createRecipe.get().id());
         }
 
-        return 0;
+        return Optional.empty();
     }
 
     private static Optional<RecipeHolder<?>> findCreatePressingRecipe(ServerLevel level, ItemStack inputStack) {
@@ -99,6 +170,7 @@ final class HeavenlyFistPressingProcessor {
 
         return level.getRecipeManager().getRecipes().stream()
                 .filter(recipe -> recipe.value().getType() == type.get())
+                .filter(recipe -> !ApprenticeCodexServerConfig.isHeavenlyFistCreateRecipeDenied(recipe.id()))
                 .filter(recipe -> matchesFirstIngredient(recipe.value(), inputStack))
                 .findFirst();
     }

@@ -64,7 +64,7 @@ public class HeavenlyFist extends AbstractSpell implements ICraftsmansDelightAff
         lines.add(Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)));
         lines.add(Component.translatable("ui.irons_spellbooks.radius", Utils.stringTruncation(getRadius(spellLevel, caster), 2)));
         if (HeavenlyFistPressingProcessor.canProcessItems()) {
-            lines.add(Component.translatable("ui.apprenticecodex.process_item_per_operate", getPressItemPerOperate(spellLevel, caster)));
+            lines.add(Component.translatable("ui.apprenticecodex.process_capacity", getPressProcessCapacity(spellLevel, caster)));
         }
         return lines;
     }
@@ -78,7 +78,7 @@ public class HeavenlyFist extends AbstractSpell implements ICraftsmansDelightAff
         return 2.5f + 2.0f * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
-    private int getPressItemPerOperate(int spellLevel, LivingEntity entity) {
+    private int getPressProcessCapacity(int spellLevel, LivingEntity entity) {
         var baseProcessSpeed = 8 * getSpellPower(spellLevel, entity) / 100.0f;
         if (!isCraftsmansDelightProcessSpeedBonusEnabled()) {
             return Mth.floor(baseProcessSpeed);
@@ -139,7 +139,7 @@ public class HeavenlyFist extends AbstractSpell implements ICraftsmansDelightAff
                         target.center(),
                         getDamage(spellLevel, entity),
                         getRadius(spellLevel, entity),
-                        getPressItemPerOperate(spellLevel, entity)
+                        getPressProcessCapacity(spellLevel, entity)
                 );
                 fist.setYRot(entity.getYRot());
                 fist.setXRot(entity.getXRot());

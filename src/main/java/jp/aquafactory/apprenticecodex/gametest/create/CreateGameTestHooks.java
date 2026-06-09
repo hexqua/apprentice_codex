@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.gametest.create;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.authlib.GameProfile;
 import com.simibubi.create.AllMountedStorageTypes;
+import com.simibubi.create.AllBlocks;
 import com.simibubi.create.api.contraption.storage.item.MountedItemStorage;
 import com.simibubi.create.api.contraption.storage.item.MountedItemStorageType;
 import com.simibubi.create.api.contraption.storage.item.MountedItemStorageWrapper;
@@ -18,6 +19,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
@@ -129,6 +131,105 @@ public final class CreateGameTestHooks {
 
     public static boolean isCoolingDown(Object harness) {
         return SpellDispenserMovementBehaviour.isCoolingDown(asHarness(harness).context);
+    }
+
+    public static void placeDepotWithItem(ServerLevel level, BlockPos worldPos, ItemStack stack) {
+        level.setBlock(worldPos, AllBlocks.DEPOT.getDefaultState(), 3);
+        invokeBlockEntityMethod(level, worldPos, "setHeldItem", new Class<?>[]{ItemStack.class}, stack.copy());
+    }
+
+    public static ItemStack getDepotItem(ServerLevel level, BlockPos worldPos) {
+        return invokeBlockEntityItemStackGetter(level, worldPos, "getHeldItem");
+    }
+
+    public static void placeChuteWithItem(ServerLevel level, BlockPos worldPos, ItemStack stack) {
+        level.setBlock(worldPos, AllBlocks.CHUTE.getDefaultState(), 3);
+        invokeBlockEntityMethod(level, worldPos, "setItem", new Class<?>[]{ItemStack.class}, stack.copy());
+    }
+
+    public static ItemStack getChuteItem(ServerLevel level, BlockPos worldPos) {
+        return invokeBlockEntityItemStackGetter(level, worldPos, "getItem");
+    }
+
+    public static void placeBasinWithItems(ServerLevel level, BlockPos worldPos, ItemStack[] stacks) {
+        level.setBlock(worldPos, AllBlocks.BASIN.getDefaultState(), 3);
+        var blockEntity = level.getBlockEntity(worldPos);
+        if (blockEntity == null) {
+            return;
+        }
+
+        try {
+            var inputInventory = blockEntity.getClass().getMethod("getInputInventory").invoke(blockEntity);
+            var setStackInSlot = inputInventory.getClass().getMethod("setStackInSlot", int.class, ItemStack.class);
+            for (var slot = 0; slot < stacks.length; slot++) {
+                setStackInSlot.invoke(inputInventory, slot, stacks[slot].copy());
+            }
+            blockEntity.getClass().getMethod("notifyChangeOfContents").invoke(blockEntity);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Create GameTest basin setup failed", exception);
+        }
+    }
+
+    public static int getBasinItemCount(ServerLevel level, BlockPos worldPos, ItemStack prototype) {
+        var blockEntity = level.getBlockEntity(worldPos);
+        if (blockEntity == null || prototype.isEmpty()) {
+            return 0;
+        }
+
+        try {
+            var inputInventory = blockEntity.getClass().getMethod("getInputInventory").invoke(blockEntity);
+            var outputInventory = blockEntity.getClass().getMethod("getOutputInventory").invoke(blockEntity);
+            return countMatchingInventoryItems(inputInventory, prototype) + countMatchingInventoryItems(outputInventory, prototype);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Create GameTest basin count failed", exception);
+        }
+    }
+
+    private static int countMatchingInventoryItems(Object inventory, ItemStack prototype) throws ReflectiveOperationException {
+        var getSlots = inventory.getClass().getMethod("getSlots");
+        var getStackInSlot = inventory.getClass().getMethod("getStackInSlot", int.class);
+        var count = 0;
+        var slots = (int) getSlots.invoke(inventory);
+        for (var slot = 0; slot < slots; slot++) {
+            var rawStack = getStackInSlot.invoke(inventory, slot);
+            if (rawStack instanceof ItemStack stack && ItemStack.isSameItemSameComponents(stack, prototype)) {
+                count += stack.getCount();
+            }
+        }
+        return count;
+    }
+
+    private static void invokeBlockEntityMethod(
+            ServerLevel level,
+            BlockPos worldPos,
+            String methodName,
+            Class<?>[] parameterTypes,
+            Object... args
+    ) {
+        var blockEntity = level.getBlockEntity(worldPos);
+        if (blockEntity == null) {
+            return;
+        }
+
+        try {
+            blockEntity.getClass().getMethod(methodName, parameterTypes).invoke(blockEntity, args);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Create GameTest block entity method failed: " + methodName, exception);
+        }
+    }
+
+    private static ItemStack invokeBlockEntityItemStackGetter(ServerLevel level, BlockPos worldPos, String methodName) {
+        var blockEntity = level.getBlockEntity(worldPos);
+        if (blockEntity == null) {
+            return ItemStack.EMPTY;
+        }
+
+        try {
+            var result = blockEntity.getClass().getMethod(methodName).invoke(blockEntity);
+            return result instanceof ItemStack stack ? stack.copy() : ItemStack.EMPTY;
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Create GameTest block entity getter failed: " + methodName, exception);
+        }
     }
 
     private static SpellDispenserMovementHarness asHarness(Object harness) {

@@ -1,9 +1,9 @@
 package jp.aquafactory.apprenticecodex.spell.grindrunner;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.create.CreateExposedItemProcessingBridge;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
-import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.recipe.grindrunner.GrindRunnerRecipe;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
+import jp.aquafactory.apprenticecodex.utility.ItemStackProcessingResult;
 import jp.aquafactory.apprenticecodex.utility.ProcessingRecipeDenylist;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
@@ -51,7 +52,9 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -87,6 +90,8 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
     private static final String CREATE_MOD_ID = "create";
     private static final ResourceLocation CREATE_CRUSHING_RECIPE_TYPE_ID =
             ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "crushing");
+    private static final ResourceLocation CREATE_MILLING_RECIPE_TYPE_ID =
+            ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "milling");
     private static boolean hasLoggedCreateReflectionFailure = false;
     private static final EntityDataAccessor<Float> ANIMATION_SPEED =
             SynchedEntityData.defineId(GrindRunnerWheelEntity.class, EntityDataSerializers.FLOAT);
@@ -111,6 +116,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
     private float grindItemPerSecond;
     private float pendingItemProcessBudget;
     private final Set<UUID> skipProcessingItemIds = new HashSet<>();
+    private final Set<Object> skipProcessingTransportedItems = Collections.newSetFromMap(new IdentityHashMap<>());
     private Vec3 lastLaunchDirection = new Vec3(0, 0, 1);
 
     public GrindRunnerWheelEntity(EntityType<?> pEntityType, Level pLevel) {
@@ -593,6 +599,16 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
             processedCount += tryProcessItem(level, itemEntity, maxProcessCount - processedCount);
         }
 
+        if (processedCount < maxProcessCount) {
+            processedCount += CreateExposedItemProcessingBridge.processBlocks(
+                    level,
+                    sampleNearbyCreateProcessTargets(),
+                    maxProcessCount - processedCount,
+                    skipProcessingTransportedItems,
+                    (inputStack, remainingBudget) -> tryBuildProcessingResult(level, inputStack, remainingBudget)
+            );
+        }
+
         pendingItemProcessBudget = Math.max(0.0f, pendingItemProcessBudget - processedCount);
     }
 
@@ -603,6 +619,11 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
                 area,
                 item -> item.isAlive() && !item.getItem().isEmpty()
         ));
+    }
+
+    private List<BlockPos> sampleNearbyCreateProcessTargets() {
+        var basePos = BlockPos.containing(position());
+        return List.of(basePos, basePos.below(), basePos.below(2));
     }
 
     private int tryProcessItem(ServerLevel level, ItemEntity itemEntity, int maxProcessCount) {
@@ -620,31 +641,60 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
             return 0;
         }
 
-        var createRecipe = findCreateCrushingRecipe(level, inputStack);
-        if (createRecipe.isPresent() && CraftsmansDelight.isEquippedBy(getOwner() instanceof LivingEntity owner ? owner : null)) {
+        var processingResult = tryBuildProcessingResult(level, inputStack, processCount);
+        processingResult.ifPresent(result -> applyProcessingResult(
+                level,
+                itemEntity,
+                result.outputStacks(),
+                result.processedCount()
+        ));
+        return processingResult.map(ItemStackProcessingResult::processedCount).orElse(0);
+    }
+
+    private Optional<ItemStackProcessingResult> tryBuildProcessingResult(ServerLevel level, ItemStack inputStack, int maxProcessCount) {
+        var recipe = findProcessingRecipe(level, inputStack);
+
+        var createProcessResult = tryBuildCreateProcessingResult(level, inputStack, maxProcessCount);
+        if (createProcessResult.isPresent()) {
+            return createProcessResult;
+        }
+
+        if (recipe.isEmpty() || maxProcessCount <= 0 || inputStack.isEmpty() || inputStack.getCount() <= 0) {
+            return Optional.empty();
+        }
+
+        var outputsPerInput = recipe.get().getResultTemplates();
+        if (outputsPerInput.isEmpty()) {
+            return Optional.empty();
+        }
+
+        var processCount = Math.min(maxProcessCount, inputStack.getCount());
+        var outputStacks = buildOutputStacks(outputsPerInput, processCount);
+        return Optional.of(new ItemStackProcessingResult(processCount, outputStacks));
+    }
+
+    private Optional<ItemStackProcessingResult> tryBuildCreateProcessingResult(ServerLevel level, ItemStack inputStack, int maxProcessCount) {
+        if (maxProcessCount <= 0 || inputStack.isEmpty() || inputStack.getCount() <= 0) {
+            return Optional.empty();
+        }
+
+        var processCount = Math.min(maxProcessCount, inputStack.getCount());
+        for (var recipeTypeId : List.of(CREATE_CRUSHING_RECIPE_TYPE_ID, CREATE_MILLING_RECIPE_TYPE_ID)) {
+            var createRecipe = findCreateProcessingRecipe(level, inputStack, recipeTypeId);
+            if (createRecipe.isEmpty()) {
+                continue;
+            }
+
             // Create 側もレシピ一致だけで加工可否を決め、出力抽選だけ借りる.
-            var createOutputs = rollCreateCrushingOutputs(level, createRecipe.get().value(), processCount);
+            var createOutputs = rollCreateProcessingOutputs(level, createRecipe.get().value(), processCount);
             if (createOutputs.isPresent()) {
-                applyProcessingResult(level, itemEntity, createOutputs.get(), processCount);
-                return processCount;
+                return Optional.of(new ItemStackProcessingResult(processCount, normalizeOutputStacks(createOutputs.get())));
             }
 
             logCreateReflectionFailureOnce(createRecipe.get().id());
         }
 
-        var recipe = findProcessingRecipe(level, inputStack);
-        if (recipe.isEmpty()) {
-            return 0;
-        }
-
-        var outputsPerInput = recipe.get().getResultTemplates();
-        if (outputsPerInput.isEmpty()) {
-            return 0;
-        }
-
-        var outputStacks = buildOutputStacks(outputsPerInput, processCount);
-        applyProcessingResult(level, itemEntity, outputStacks, processCount);
-        return processCount;
+        return Optional.empty();
     }
 
     private Optional<GrindRunnerRecipe> findProcessingRecipe(ServerLevel level, ItemStack inputStack) {
@@ -668,23 +718,23 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
                 .findFirst();
     }
 
-    private Optional<RecipeHolder<?>> findCreateCrushingRecipe(ServerLevel level, ItemStack inputStack) {
+    private Optional<RecipeHolder<?>> findCreateProcessingRecipe(ServerLevel level, ItemStack inputStack, ResourceLocation recipeTypeId) {
         if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
             return Optional.empty();
         }
 
-        RecipeType<?> createCrushingType = BuiltInRegistries.RECIPE_TYPE.getOptional(CREATE_CRUSHING_RECIPE_TYPE_ID).orElse(null);
-        if (createCrushingType == null) {
+        RecipeType<?> createRecipeType = BuiltInRegistries.RECIPE_TYPE.getOptional(recipeTypeId).orElse(null);
+        if (createRecipeType == null) {
             return Optional.empty();
         }
 
         return level.getRecipeManager().getRecipes().stream()
-                .filter(recipe -> recipe.value().getType() == createCrushingType)
-                .filter(recipe -> matchesCreateCrushingInput(recipe.value(), inputStack))
+                .filter(recipe -> recipe.value().getType() == createRecipeType)
+                .filter(recipe -> matchesCreateProcessingInput(recipe.value(), inputStack))
                 .findFirst();
     }
 
-    private static boolean matchesCreateCrushingInput(Recipe<?> recipe, ItemStack inputStack) {
+    private static boolean matchesCreateProcessingInput(Recipe<?> recipe, ItemStack inputStack) {
         if (inputStack.isEmpty()) {
             return false;
         }
@@ -697,10 +747,10 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         return ingredients.get(0).test(inputStack);
     }
 
-    private Optional<List<ItemStack>> rollCreateCrushingOutputs(ServerLevel level, Recipe<?> createRecipe, int processCount) {
+    private Optional<List<ItemStack>> rollCreateProcessingOutputs(ServerLevel level, Recipe<?> createRecipe, int processCount) {
         var outputs = new ArrayList<ItemStack>();
         for (var i = 0; i < processCount; i++) {
-            var rolledPerInput = rollCreateCrushingOutputsPerInput(level, createRecipe);
+            var rolledPerInput = rollCreateProcessingOutputsPerInput(level, createRecipe);
             if (rolledPerInput.isEmpty()) {
                 return Optional.empty();
             }
@@ -709,7 +759,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         return Optional.of(outputs);
     }
 
-    private Optional<List<ItemStack>> rollCreateCrushingOutputsPerInput(ServerLevel level, Recipe<?> createRecipe) {
+    private Optional<List<ItemStack>> rollCreateProcessingOutputsPerInput(ServerLevel level, Recipe<?> createRecipe) {
         var rolledByRecipe = invokeCreateRecipeRollResults(level, createRecipe);
         if (rolledByRecipe.isPresent()) {
             return rolledByRecipe;
@@ -829,7 +879,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
 
         hasLoggedCreateReflectionFailure = true;
         ApprenticeCodex.LOGGER.warn(
-                "Create crushing integration fallback enabled: reflection failed for recipe {}. " +
+                "Create processing integration fallback enabled: reflection failed for recipe {}. " +
                         "GrindRunner will use apprenticecodex recipes for compatibility.",
                 recipeId
         );
