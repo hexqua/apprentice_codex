@@ -306,6 +306,41 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         ManaThrusterGameTestScenarios.manaThrusterGroundHeldJumpDoesNotStartAfterTakeoff(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
+    public static void manaThrusterCreativeMayflyAndFlyingDisableThrust(GameTestHelper helper) {
+        ManaThrusterGameTestScenarios.manaThrusterCreativeMayflyAndFlyingDisableThrust(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
+    public static void manaThrusterCreativeFlyingClearsManaRecoverySuppression(GameTestHelper helper) {
+        ManaThrusterGameTestScenarios.manaThrusterCreativeFlyingClearsManaRecoverySuppression(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
+    public static void manaThrusterSwimmingAcceleratesForwardWithoutSuppressingRecovery(GameTestHelper helper) {
+        ManaThrusterGameTestScenarios.manaThrusterSwimmingAcceleratesForwardWithoutSuppressingRecovery(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
+    public static void manaThrusterWaterToAirResumesManaRecoverySuppression(GameTestHelper helper) {
+        ManaThrusterGameTestScenarios.manaThrusterWaterToAirResumesManaRecoverySuppression(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
+    public static void manaThrusterElytraFlightAcceleratesForwardAndSuppressesRecovery(GameTestHelper helper) {
+        ManaThrusterGameTestScenarios.manaThrusterElytraFlightAcceleratesForwardAndSuppressesRecovery(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
+    public static void manaThrusterVanillaJumpMovementContextsDoNotActivate(GameTestHelper helper) {
+        ManaThrusterGameTestScenarios.manaThrusterVanillaJumpMovementContextsDoNotActivate(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
+    public static void manaThrusterLavaAllowsUpwardEscapeWithoutSuppressingRecovery(GameTestHelper helper) {
+        ManaThrusterGameTestScenarios.manaThrusterLavaAllowsUpwardEscapeWithoutSuppressingRecovery(helper);
+    }
+
     @GameTest(template = TEMPLATE)
     public static void autocastAmuletNormalizationDropsBlockedSpellsAndClampsSlots(GameTestHelper helper) {
         AutocastAmuletGameTestScenarios.autocastAmuletNormalizationDropsBlockedSpellsAndClampsSlots(helper);

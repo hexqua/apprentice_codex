@@ -65,7 +65,7 @@ public final class ManaThrusterFlightManager {
     }
 
     public static void setJumpInput(ServerPlayer player, boolean active) {
-        if (player.isSpectator()) {
+        if (ManaThrusterContext.isDisabled(player)) {
             clear(player);
             return;
         }
@@ -83,7 +83,10 @@ public final class ManaThrusterFlightManager {
         if (state == null) {
             return;
         }
-        if (player.onGround() || player.isSpectator() || !player.isAlive()) {
+        if (ManaThrusterContext.isManaRecoveryFree(player)) {
+            state.regenSuppressedUntilLanding = false;
+        }
+        if (player.onGround() || ManaThrusterContext.isDisabled(player)) {
             clear(player);
             return;
         }
@@ -104,7 +107,7 @@ public final class ManaThrusterFlightManager {
 
         ManaThrusterMovement.applyThrust(player);
         player.fallDistance = 0.0F;
-        state.regenSuppressedUntilLanding = true;
+        state.regenSuppressedUntilLanding = !ManaThrusterContext.isManaRecoveryFree(player);
 
         if (manaCost > 0.0F) {
             magicData.setMana(Math.max(0.0F, magicData.getMana() - manaCost));

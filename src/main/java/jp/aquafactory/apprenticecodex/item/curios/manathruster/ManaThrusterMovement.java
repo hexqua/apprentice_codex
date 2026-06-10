@@ -11,15 +11,40 @@ public final class ManaThrusterMovement {
     private static final double MAX_VERTICAL_SPEED = 0.55D;
     private static final double HORIZONTAL_ACCELERATION_PER_TICK = 0.045D;
     private static final double MAX_HORIZONTAL_SPEED = 0.34D;
+    private static final double DIRECTIONAL_ACCELERATION_PER_TICK = 0.08D;
+    private static final double MAX_DIRECTIONAL_SPEED = 1.5D;
 
     private ManaThrusterMovement() {
     }
 
     public static void applyThrust(Entity entity) {
+        if (entity instanceof LivingEntity livingEntity && (livingEntity.isFallFlying() || livingEntity.isSwimming())) {
+            applyDirectionalAcceleration(entity);
+            return;
+        }
+
         var movement = entity.getDeltaMovement();
         var horizontal = applyHorizontalAcceleration(entity, movement);
         var nextY = Math.min(movement.y + VERTICAL_ACCELERATION_PER_TICK, MAX_VERTICAL_SPEED);
         entity.setDeltaMovement(horizontal.x, nextY, horizontal.z);
+        entity.hasImpulse = true;
+        entity.hurtMarked = true;
+    }
+
+    private static void applyDirectionalAcceleration(Entity entity) {
+        var direction = entity.getLookAngle();
+        if (direction.lengthSqr() < 1.0e-6D) {
+            return;
+        }
+
+        var nextMovement = entity.getDeltaMovement()
+                .add(direction.normalize().scale(DIRECTIONAL_ACCELERATION_PER_TICK));
+        var speedSqr = nextMovement.lengthSqr();
+        if (speedSqr > MAX_DIRECTIONAL_SPEED * MAX_DIRECTIONAL_SPEED) {
+            nextMovement = nextMovement.normalize().scale(MAX_DIRECTIONAL_SPEED);
+        }
+
+        entity.setDeltaMovement(nextMovement);
         entity.hasImpulse = true;
         entity.hurtMarked = true;
     }
