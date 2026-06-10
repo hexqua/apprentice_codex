@@ -114,6 +114,14 @@ public final class ImbueTooltipHelper {
         return keyName != null ? keyName : Component.translatable("key.use");
     }
 
+    public static Component getJumpKeyName() {
+        var keyName = DistExecutor.safeCallWhenOn(
+                Dist.CLIENT,
+                () -> ImbueTooltipClientHelper::getJumpKeyName
+        );
+        return keyName != null ? keyName : Component.translatable("key.jump");
+    }
+
     public static Component translatableGray(String translationKey, Object... args) {
         return Component.translatable(translationKey, args).withStyle(ChatFormatting.GRAY);
     }
