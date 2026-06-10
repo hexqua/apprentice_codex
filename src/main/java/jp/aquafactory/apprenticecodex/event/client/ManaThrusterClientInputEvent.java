@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.curios.manathruster.ManaThruster;
 import jp.aquafactory.apprenticecodex.item.curios.manathruster.ManaThrusterConfigState;
+import jp.aquafactory.apprenticecodex.item.curios.manathruster.ManaThrusterContext;
 import jp.aquafactory.apprenticecodex.item.curios.manathruster.ManaThrusterMovement;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
@@ -44,6 +45,10 @@ public final class ManaThrusterClientInputEvent {
             resetLocalStateWithPacket();
             return;
         }
+        if (ManaThrusterContext.isDisabled(player)) {
+            resetBlockedContext(minecraft.options.keyJump.isDown());
+            return;
+        }
 
         var jumpDown = minecraft.options.keyJump.isDown();
         if (!jumpDown) {
@@ -76,6 +81,10 @@ public final class ManaThrusterClientInputEvent {
         }
         if (minecraft.screen != null || !isManaThrusterEquipped(player)) {
             resetLocalStateWithPacket();
+            return;
+        }
+        if (ManaThrusterContext.isDisabled(player)) {
+            resetBlockedContext(minecraft.options.keyJump.isDown());
             return;
         }
 
@@ -117,6 +126,13 @@ public final class ManaThrusterClientInputEvent {
         return CuriosApi.getCuriosInventory(player)
                 .map(inventory -> inventory.isEquipped(stack -> stack.getItem() instanceof ManaThruster))
                 .orElse(false);
+    }
+
+    private static void resetBlockedContext(boolean jumpDown) {
+        sendInactiveIfNeeded();
+        previousJumpDown = jumpDown;
+        pendingAirbornePress = false;
+        blockedUntilJumpRelease = jumpDown;
     }
 
     private static void resetLocalStateWithPacket() {
