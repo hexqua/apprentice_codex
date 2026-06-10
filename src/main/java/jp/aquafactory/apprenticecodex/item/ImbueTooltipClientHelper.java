@@ -19,4 +19,8 @@ final class ImbueTooltipClientHelper {
     static Component getUseKeyName() {
         return Minecraft.getInstance().options.keyUse.getTranslatedKeyMessage();
     }
+
+    static Component getJumpKeyName() {
+        return Minecraft.getInstance().options.keyJump.getTranslatedKeyMessage();
+    }
 }

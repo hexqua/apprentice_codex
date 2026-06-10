@@ -1,6 +1,11 @@
 {
   "itemGroup.apprenticecodex.main": "学徒法典",
+
+  "curios.identifier.feet": "脚饰",
+  "curios.modifiers.feet": "佩戴脚饰时：",
+
   "attribute.name.apprenticecodex.max_enchantment_table_level": "附魔台最高等级",
+
   "block.apprenticecodex.mage_light_torch": "魔法师火把",
   "block.apprenticecodex.personal_shelf_chest": "个人交互界面",
   "block.apprenticecodex.rift_hole": "裂隙通道",

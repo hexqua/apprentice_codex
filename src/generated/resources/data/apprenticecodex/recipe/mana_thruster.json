@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "F": {
+      "item": "minecraft:feather"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    "P": {
+      "item": "minecraft:phantom_membrane"
+    }
+  },
+  "pattern": [
+    "F F",
+    "P P",
+    "M M"
+  ],
+  "result": {
+    "item": "apprenticecodex:mana_thruster"
+  },
+  "show_notification": true
+}

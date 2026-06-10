@@ -38,6 +38,7 @@ import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.circlets.AshenCirclet;
 import jp.aquafactory.apprenticecodex.item.curios.circlets.EnchantedCirclet;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
+import jp.aquafactory.apprenticecodex.item.curios.manathruster.ManaThruster;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.manashieldcharm.ManaShieldCharm;
@@ -264,6 +265,8 @@ public final class ItemRegistry {
             ITEMS.register("autocast_amulet", AutocastAmulet::new);
     public static final DeferredHolder<Item, Item> SATELLITE_FOLLOWCAST_AMULET =
             ITEMS.register("satellite_followcast_amulet", SatelliteFollowcastAmulet::new);
+    public static final DeferredHolder<Item, Item> MANA_THRUSTER =
+            ITEMS.register("mana_thruster", ManaThruster::new);
     public static final DeferredHolder<Item, Item> ASHEN_CIRCLET =
             ITEMS.register("ashen_circlet", AshenCirclet::new);
     public static final DeferredHolder<Item, Item> ENCHANTED_CIRCLET =
