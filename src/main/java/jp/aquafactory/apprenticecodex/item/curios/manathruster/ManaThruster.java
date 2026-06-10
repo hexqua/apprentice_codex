@@ -27,10 +27,12 @@ public class ManaThruster extends Item implements ICurioItem {
 
     @Override
     public void onUnequip(SlotContext slotContext, ItemStack newStack, ItemStack stack) {
+        ManaThrusterFlightManager.onUnequip(slotContext);
     }
 
     @Override
     public void curioTick(SlotContext slotContext, ItemStack stack) {
+        ManaThrusterFlightManager.onCurioTick(slotContext);
     }
 
     @Override

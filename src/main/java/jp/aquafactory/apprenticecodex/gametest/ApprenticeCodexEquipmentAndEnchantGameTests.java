@@ -65,6 +65,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
             "apprenticecodex.mana_shield_charm_shell_config";
     private static final String MANA_SHIELD_CHARM_IFRAME_CONFIG_BATCH =
             "apprenticecodex.mana_shield_charm_iframe_config";
+    private static final String MANA_THRUSTER_CONFIG_BATCH =
+            "apprenticecodex.mana_thruster_config";
 
     private ApprenticeCodexEquipmentAndEnchantGameTests() {
     }
@@ -277,6 +279,31 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE, batch = MANA_SHIELD_CHARM_IFRAME_CONFIG_BATCH)
     public static void manaShieldCharmInvulnerableTimeUsesServerConfig(GameTestHelper helper) {
         ManaShieldCharmGameTestScenarios.manaShieldCharmInvulnerableTimeUsesServerConfig(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaThrusterUsesFeetSlotAndDedicatedImplementation(GameTestHelper helper) {
+        ManaThrusterGameTestScenarios.manaThrusterUsesFeetSlotAndDedicatedImplementation(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
+    public static void manaThrusterAppliesFixedThrustAndUsesServerConfigManaCost(GameTestHelper helper) {
+        ManaThrusterGameTestScenarios.manaThrusterAppliesFixedThrustAndUsesServerConfigManaCost(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
+    public static void manaThrusterInsufficientManaDoesNotAccelerate(GameTestHelper helper) {
+        ManaThrusterGameTestScenarios.manaThrusterInsufficientManaDoesNotAccelerate(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
+    public static void manaThrusterSuppressesManaRecoveryUntilLanding(GameTestHelper helper) {
+        ManaThrusterGameTestScenarios.manaThrusterSuppressesManaRecoveryUntilLanding(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
+    public static void manaThrusterGroundHeldJumpDoesNotStartAfterTakeoff(GameTestHelper helper) {
+        ManaThrusterGameTestScenarios.manaThrusterGroundHeldJumpDoesNotStartAfterTakeoff(helper);
     }
 
     @GameTest(template = TEMPLATE)
