@@ -503,7 +503,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ENCHANTED_CIRCLET.get()
         );
         tag(CURIOS_CHARM).add(ItemRegistry.MANA_SHIELD_CHARM.get());
-        tag(CURIOS_FEET).add(ItemRegistry.MANA_THRUSTER.get());
+        tag(CURIOS_FEET).add(
+                ItemRegistry.MANA_THRUSTER.get(),
+                ItemRegistry.JUMPCAST_CHARM.get()
+        );
 
         tag(CREATE_CONTRAPTION_CONTROLLED).add(
                 ItemRegistry.SPELL_DISPENSER.get(),
