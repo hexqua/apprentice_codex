@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.curios.manathruster;
 
-import io.redspace.ironsspellbooks.api.events.ChangeManaEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -17,6 +17,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -40,6 +41,14 @@ public final class ManaThrusterFlightManager {
     private static final double PARTICLE_HORIZONTAL_SPREAD = 0.22D;
     private static final double PARTICLE_VERTICAL_SPREAD = 0.04D;
     private static final double PARTICLE_SPEED = 0.01D;
+    private static final UUID MANA_REGEN_SUPPRESSION_MODIFIER_ID =
+            UUID.fromString("f49a73e3-76f1-4c07-b8ea-37a61e3d3457");
+    private static final AttributeModifier MANA_REGEN_SUPPRESSION_MODIFIER = new AttributeModifier(
+            MANA_REGEN_SUPPRESSION_MODIFIER_ID,
+            "Mana Thruster natural mana regen suppression",
+            -1.0D,
+            AttributeModifier.Operation.MULTIPLY_TOTAL
+    );
 
     private static final Map<UUID, State> STATES = new HashMap<>();
 
@@ -84,7 +93,7 @@ public final class ManaThrusterFlightManager {
             return;
         }
         if (ManaThrusterContext.isManaRecoveryFree(player)) {
-            state.regenSuppressedUntilLanding = false;
+            setManaRecoverySuppressed(player, state, false);
         }
         if (player.onGround() || ManaThrusterContext.isDisabled(player)) {
             clear(player);
@@ -107,7 +116,7 @@ public final class ManaThrusterFlightManager {
 
         ManaThrusterMovement.applyThrust(player);
         player.fallDistance = 0.0F;
-        state.regenSuppressedUntilLanding = !ManaThrusterContext.isManaRecoveryFree(player);
+        setManaRecoverySuppressed(player, state, !ManaThrusterContext.isManaRecoveryFree(player));
 
         if (manaCost > 0.0F) {
             magicData.setMana(Math.max(0.0F, magicData.getMana() - manaCost));
@@ -123,6 +132,7 @@ public final class ManaThrusterFlightManager {
     }
 
     public static void clear(ServerPlayer player) {
+        removeManaRegenSuppressionModifier(player);
         STATES.remove(player.getUUID());
     }
 
@@ -217,6 +227,32 @@ public final class ManaThrusterFlightManager {
         }
     }
 
+    private static void setManaRecoverySuppressed(ServerPlayer player, State state, boolean suppressed) {
+        state.regenSuppressedUntilLanding = suppressed;
+        if (suppressed) {
+            applyManaRegenSuppressionModifier(player);
+        } else {
+            removeManaRegenSuppressionModifier(player);
+        }
+    }
+
+    private static void applyManaRegenSuppressionModifier(ServerPlayer player) {
+        var manaRegenAttribute = player.getAttribute(AttributeRegistry.MANA_REGEN.get());
+        if (manaRegenAttribute == null) {
+            return;
+        }
+        if (manaRegenAttribute.getModifier(MANA_REGEN_SUPPRESSION_MODIFIER_ID) == null) {
+            manaRegenAttribute.addTransientModifier(MANA_REGEN_SUPPRESSION_MODIFIER);
+        }
+    }
+
+    private static void removeManaRegenSuppressionModifier(ServerPlayer player) {
+        var manaRegenAttribute = player.getAttribute(AttributeRegistry.MANA_REGEN.get());
+        if (manaRegenAttribute != null) {
+            manaRegenAttribute.removeModifier(MANA_REGEN_SUPPRESSION_MODIFIER_ID);
+        }
+    }
+
     private static boolean isPrimaryEquippedCurio(SlotContext slotContext) {
         return CuriosApi.getCuriosInventory(slotContext.entity())
                 .resolve()
@@ -228,19 +264,6 @@ public final class ManaThrusterFlightManager {
 
     private static State state(ServerPlayer player) {
         return STATES.computeIfAbsent(player.getUUID(), ignored -> new State());
-    }
-
-    @SubscribeEvent
-    public static void onChangeMana(ChangeManaEvent event) {
-        if (!(event.getEntity() instanceof ServerPlayer player)) {
-            return;
-        }
-        if (event.getNewMana() <= event.getOldMana()) {
-            return;
-        }
-        if (isManaRecoverySuppressed(player)) {
-            event.setNewMana(event.getOldMana());
-        }
     }
 
     @SubscribeEvent
