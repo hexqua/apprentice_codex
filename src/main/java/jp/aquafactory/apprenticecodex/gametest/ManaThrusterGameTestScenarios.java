@@ -96,8 +96,8 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
             var magicData = magicData(helper, player, "regen suppression");
             magicData.setMana(50.0F);
             player.setOnGround(false);
-            player.addEffect(new MobEffectInstance(EffectRegistry.MANA_REGENERATION.get(), 200, 1));
-            var boostedManaRegen = player.getAttributeValue(AttributeRegistry.MANA_REGEN.get());
+            player.addEffect(new MobEffectInstance(EffectRegistry.MANA_REGENERATION, 200, 1));
+            var boostedManaRegen = player.getAttributeValue(AttributeRegistry.MANA_REGEN);
             helper.assertTrue(boostedManaRegen > 1.0D,
                     "Mana Thruster regen test expected an active mana regen boost: " + boostedManaRegen);
 
@@ -108,9 +108,9 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
 
             helper.assertTrue(ManaThrusterFlightManager.isManaRecoverySuppressed(player),
                     "Mana Thruster should suppress natural mana recovery after the first successful thrust");
-            helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.MANA_REGEN.get())) < 1.0e-4D,
+            helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.MANA_REGEN)) < 1.0e-4D,
                     "Mana Thruster should reduce final natural mana regen to zero even with regen boosts: "
-                            + player.getAttributeValue(AttributeRegistry.MANA_REGEN.get()));
+                            + player.getAttributeValue(AttributeRegistry.MANA_REGEN));
             magicData.setMana(magicData.getMana() + 10.0F);
             helper.assertTrue(Math.abs(magicData.getMana() - 55.0F) < 1.0e-4F,
                     "Mana Thruster should allow non-natural mana recovery before landing: " + magicData.getMana());
@@ -119,9 +119,9 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
             ManaThrusterFlightManager.tickEquippedPlayer(player);
             helper.assertFalse(ManaThrusterFlightManager.isManaRecoverySuppressed(player),
                     "Mana Thruster should clear mana recovery suppression on landing");
-            helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.MANA_REGEN.get()) - boostedManaRegen) < 1.0e-4D,
+            helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.MANA_REGEN) - boostedManaRegen) < 1.0e-4D,
                     "Mana Thruster should restore boosted natural mana regen after landing: "
-                            + player.getAttributeValue(AttributeRegistry.MANA_REGEN.get()));
+                            + player.getAttributeValue(AttributeRegistry.MANA_REGEN));
         });
     }
 
@@ -326,7 +326,7 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
     private static void assertDisabledPlayerContextDoesNotThrust(
             GameTestHelper helper,
             String profileName,
-            Consumer<net.minecraftforge.common.util.FakePlayer> configurePlayer
+            Consumer<net.neoforged.neoforge.common.util.FakePlayer> configurePlayer
     ) {
         var player = createManaThrusterTestPlayer(helper, profileName);
         var magicData = magicData(helper, player, profileName);
@@ -350,7 +350,7 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
                 "Mana Thruster should not suppress recovery in disabled movement context " + profileName);
     }
 
-    private static net.minecraftforge.common.util.FakePlayer createManaThrusterTestPlayer(
+    private static net.neoforged.neoforge.common.util.FakePlayer createManaThrusterTestPlayer(
             GameTestHelper helper,
             String profileName
     ) {
@@ -362,7 +362,7 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
 
     private static MagicData magicData(
             GameTestHelper helper,
-            net.minecraftforge.common.util.FakePlayer player,
+            net.neoforged.neoforge.common.util.FakePlayer player,
             String label
     ) {
         var magicData = MagicData.getPlayerMagicData(player);

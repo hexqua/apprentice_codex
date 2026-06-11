@@ -10,13 +10,13 @@ import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import top.theillusivec4.curios.api.CuriosApi;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ManaThrusterClientInputEvent {
     private static boolean previousJumpDown;
     private static boolean activeSent;
@@ -29,11 +29,12 @@ public final class ManaThrusterClientInputEvent {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.START) {
-            captureJumpPressStart(Minecraft.getInstance());
-            return;
-        }
+    public static void onClientTickPre(ClientTickEvent.Pre event) {
+        captureJumpPressStart(Minecraft.getInstance());
+    }
+
+    @SubscribeEvent
+    public static void onClientTickPost(ClientTickEvent.Post event) {
         handleClientTickEnd(Minecraft.getInstance());
     }
 

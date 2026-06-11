@@ -18,7 +18,7 @@
     "M M"
   ],
   "result": {
-    "item": "apprenticecodex:mana_thruster"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:mana_thruster"
+  }
 }

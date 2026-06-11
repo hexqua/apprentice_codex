@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.event.CircuitHeatStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.IsekaiTravelGuidebookConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ManaForceBladeConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ManaShieldCharmConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.ManaThrusterConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ModEntityAttributeEvent;
 import jp.aquafactory.apprenticecodex.event.ZenithStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.client.ClientModBusEvents;
@@ -84,6 +85,7 @@ public class ApprenticeCodex
         IsekaiTravelGuidebookConfigSyncEvents.register(modEventBus);
         ManaForceBladeConfigSyncEvents.register(modEventBus);
         ManaShieldCharmConfigSyncEvents.register(modEventBus);
+        ManaThrusterConfigSyncEvents.register(modEventBus);
         ZenithStaffConfigSyncEvents.register(modEventBus);
         ElementMaidenRobeSchoolPowerBonusEvents.register(modEventBus);
         CodexSpellStateTypeRegister.register();

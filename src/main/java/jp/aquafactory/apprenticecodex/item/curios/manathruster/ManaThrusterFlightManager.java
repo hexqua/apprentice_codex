@@ -3,7 +3,6 @@ package jp.aquafactory.apprenticecodex.item.curios.manathruster;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
-import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.network.Networks;
@@ -12,6 +11,7 @@ import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -19,11 +19,12 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Vector3f;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
@@ -32,7 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ManaThrusterFlightManager {
     private static final int SOUND_INTERVAL_TICKS = 10;
     private static final int SMOKE_PARTICLE_COUNT = 6;
@@ -41,13 +42,12 @@ public final class ManaThrusterFlightManager {
     private static final double PARTICLE_HORIZONTAL_SPREAD = 0.22D;
     private static final double PARTICLE_VERTICAL_SPREAD = 0.04D;
     private static final double PARTICLE_SPEED = 0.01D;
-    private static final UUID MANA_REGEN_SUPPRESSION_MODIFIER_ID =
-            UUID.fromString("f49a73e3-76f1-4c07-b8ea-37a61e3d3457");
+    private static final ResourceLocation MANA_REGEN_SUPPRESSION_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "mana_thruster_natural_mana_regen_suppression");
     private static final AttributeModifier MANA_REGEN_SUPPRESSION_MODIFIER = new AttributeModifier(
             MANA_REGEN_SUPPRESSION_MODIFIER_ID,
-            "Mana Thruster natural mana regen suppression",
             -1.0D,
-            AttributeModifier.Operation.MULTIPLY_TOTAL
+            AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
     );
 
     private static final Map<UUID, State> STATES = new HashMap<>();
@@ -263,7 +263,7 @@ public final class ManaThrusterFlightManager {
     }
 
     private static void applyManaRegenSuppressionModifier(ServerPlayer player) {
-        var manaRegenAttribute = player.getAttribute(AttributeRegistry.MANA_REGEN.get());
+        var manaRegenAttribute = player.getAttribute(AttributeRegistry.MANA_REGEN);
         if (manaRegenAttribute == null) {
             return;
         }
@@ -273,7 +273,7 @@ public final class ManaThrusterFlightManager {
     }
 
     private static void removeManaRegenSuppressionModifier(ServerPlayer player) {
-        var manaRegenAttribute = player.getAttribute(AttributeRegistry.MANA_REGEN.get());
+        var manaRegenAttribute = player.getAttribute(AttributeRegistry.MANA_REGEN);
         if (manaRegenAttribute != null) {
             manaRegenAttribute.removeModifier(MANA_REGEN_SUPPRESSION_MODIFIER_ID);
         }
@@ -281,7 +281,6 @@ public final class ManaThrusterFlightManager {
 
     private static boolean isPrimaryEquippedCurio(SlotContext slotContext) {
         return CuriosApi.getCuriosInventory(slotContext.entity())
-                .resolve()
                 .flatMap(inventory -> inventory.findFirstCurio(stack -> stack.getItem() instanceof ManaThruster))
                 .map(slotResult -> slotResult.slotContext().index() == slotContext.index()
                         && slotResult.slotContext().identifier().equals(slotContext.identifier()))

@@ -1,16 +1,16 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class ManaThrusterServerConfig {
-    private final ForgeConfigSpec.DoubleValue manaCostPerTick;
+    private final ModConfigSpec.DoubleValue manaCostPerTick;
     private Double manaCostPerTickOverride;
 
-    private ManaThrusterServerConfig(ForgeConfigSpec.DoubleValue manaCostPerTick) {
+    private ManaThrusterServerConfig(ModConfigSpec.DoubleValue manaCostPerTick) {
         this.manaCostPerTick = manaCostPerTick;
     }
 
-    public static ManaThrusterServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static ManaThrusterServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("ManaThruster");
 
         var manaCostPerTick = builder

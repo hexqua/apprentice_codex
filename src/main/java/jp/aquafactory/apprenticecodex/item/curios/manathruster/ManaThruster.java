@@ -36,7 +36,7 @@ public class ManaThruster extends Item implements ICurioItem {
     }
 
     @Override
-    public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
+    public List<Component> getSlotsTooltip(List<Component> tooltips, Item.TooltipContext context, ItemStack stack) {
         if (slotIdentifier != null) {
             // Curiosっぽい共通ヘッダ.
             tooltips.add(Component.empty());

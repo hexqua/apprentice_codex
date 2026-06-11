@@ -113,11 +113,10 @@ public final class ImbueTooltipHelper {
     }
 
     public static Component getJumpKeyName() {
-        var keyName = DistExecutor.safeCallWhenOn(
-                Dist.CLIENT,
-                () -> ImbueTooltipClientHelper::getJumpKeyName
-        );
-        return keyName != null ? keyName : Component.translatable("key.jump");
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            return ImbueTooltipClientHelper.getJumpKeyName();
+        }
+        return Component.translatable("key.jump");
     }
 
     public static Component translatableGray(String translationKey, Object... args) {

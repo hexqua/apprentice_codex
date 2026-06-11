@@ -6,18 +6,24 @@ import jp.aquafactory.apprenticecodex.item.curios.manathruster.ManaThrusterConfi
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterConfigPacket;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.config.ModConfigEvent;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ManaThrusterConfigSyncEvents {
     private ManaThrusterConfigSyncEvents() {
+    }
+
+    public static void register(IEventBus modEventBus) {
+        modEventBus.addListener(ManaThrusterConfigSyncEvents::onConfigLoading);
+        modEventBus.addListener(ManaThrusterConfigSyncEvents::onConfigReloading);
     }
 
     @SubscribeEvent
@@ -61,34 +67,26 @@ public final class ManaThrusterConfigSyncEvents {
         return new SyncManaThrusterConfigPacket(ApprenticeCodexServerConfig.manaThrusterManaCostPerTick());
     }
 
-    @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
-    public static final class ModBusEvents {
-        private ModBusEvents() {
-        }
-
-        @SubscribeEvent
-        public static void onConfigLoading(ModConfigEvent.Loading event) {
-            syncIfServerConfig(event);
-        }
-
-        @SubscribeEvent
-        public static void onConfigReloading(ModConfigEvent.Reloading event) {
-            syncIfServerConfig(event);
-        }
-
-        private static void syncIfServerConfig(ModConfigEvent event) {
-            if (event.getConfig().getType() != ModConfig.Type.SERVER) {
-                return;
-            }
-            if (!ApprenticeCodex.MODID.equals(event.getConfig().getModId())) {
-                return;
-            }
-
-            syncToAllPlayers();
-        }
+    private static void onConfigLoading(ModConfigEvent.Loading event) {
+        syncIfServerConfig(event);
     }
 
-    @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+    private static void onConfigReloading(ModConfigEvent.Reloading event) {
+        syncIfServerConfig(event);
+    }
+
+    private static void syncIfServerConfig(ModConfigEvent event) {
+        if (event.getConfig().getType() != ModConfig.Type.SERVER) {
+            return;
+        }
+        if (!ApprenticeCodex.MODID.equals(event.getConfig().getModId())) {
+            return;
+        }
+
+        syncToAllPlayers();
+    }
+
+    @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
     public static final class ClientEvents {
         private ClientEvents() {
         }
