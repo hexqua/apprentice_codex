@@ -22,6 +22,8 @@ public final class ManaThrusterClientInputEvent {
     private static boolean activeSent;
     private static boolean pendingAirbornePress;
     private static boolean blockedUntilJumpRelease;
+    private static float lastSentStrafeInput;
+    private static float lastSentForwardInput;
 
     private ManaThrusterClientInputEvent() {
     }
@@ -111,9 +113,11 @@ public final class ManaThrusterClientInputEvent {
         }
 
         if (pendingAirbornePress) {
-            Networks.sendToServer(new ClientManaThrusterInputPacket(true));
+            sendActiveInput(player);
             activeSent = true;
             pendingAirbornePress = false;
+        } else if (activeSent) {
+            syncActiveInputIfChanged(player);
         }
 
         if (activeSent && canPredictSuccessfulThrust(player)) {
@@ -137,7 +141,9 @@ public final class ManaThrusterClientInputEvent {
 
     private static void resetLocalStateWithPacket() {
         if (activeSent) {
-            Networks.sendToServer(new ClientManaThrusterInputPacket(false));
+            Networks.sendToServer(ClientManaThrusterInputPacket.inactive());
+            lastSentStrafeInput = 0.0F;
+            lastSentForwardInput = 0.0F;
         }
         resetLocalStateWithoutPacket();
     }
@@ -147,12 +153,16 @@ public final class ManaThrusterClientInputEvent {
         activeSent = false;
         pendingAirbornePress = false;
         blockedUntilJumpRelease = false;
+        lastSentStrafeInput = 0.0F;
+        lastSentForwardInput = 0.0F;
     }
 
     private static void sendInactiveIfNeeded() {
         if (activeSent) {
-            Networks.sendToServer(new ClientManaThrusterInputPacket(false));
+            Networks.sendToServer(ClientManaThrusterInputPacket.inactive());
             activeSent = false;
+            lastSentStrafeInput = 0.0F;
+            lastSentForwardInput = 0.0F;
         }
     }
 
@@ -160,6 +170,21 @@ public final class ManaThrusterClientInputEvent {
         activeSent = false;
         pendingAirbornePress = false;
         blockedUntilJumpRelease = true;
+        lastSentStrafeInput = 0.0F;
+        lastSentForwardInput = 0.0F;
+    }
+
+    private static void syncActiveInputIfChanged(Player player) {
+        if (Math.abs(player.xxa - lastSentStrafeInput) > 1.0e-4F
+                || Math.abs(player.zza - lastSentForwardInput) > 1.0e-4F) {
+            sendActiveInput(player);
+        }
+    }
+
+    private static void sendActiveInput(Player player) {
+        lastSentStrafeInput = player.xxa;
+        lastSentForwardInput = player.zza;
+        Networks.sendToServer(new ClientManaThrusterInputPacket(true, lastSentStrafeInput, lastSentForwardInput));
     }
 
     private static boolean canPredictSuccessfulThrust(Player player) {
