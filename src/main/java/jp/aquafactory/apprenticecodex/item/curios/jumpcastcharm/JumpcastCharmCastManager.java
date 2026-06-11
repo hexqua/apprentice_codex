@@ -146,7 +146,6 @@ public final class JumpcastCharmCastManager {
 
     private static Optional<SlotResult> getEquippedCharm(ServerPlayer player) {
         return CuriosApi.getCuriosInventory(player)
-                .resolve()
                 .flatMap(inventory -> inventory.findFirstCurio(stack -> stack.getItem() instanceof JumpcastCharm));
     }
 

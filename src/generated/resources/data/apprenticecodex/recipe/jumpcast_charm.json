@@ -18,7 +18,7 @@
     "M M"
   ],
   "result": {
-    "item": "apprenticecodex:jumpcast_charm"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:jumpcast_charm"
+  }
 }

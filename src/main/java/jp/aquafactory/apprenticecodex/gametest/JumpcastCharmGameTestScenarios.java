@@ -210,7 +210,6 @@ final class JumpcastCharmGameTestScenarios extends ApprenticeCodexGameTestScenar
 
     private static ItemStack getEquippedJumpcastCharm(FakePlayer player) {
         return top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
-                .resolve()
                 .flatMap(inventory -> inventory.findFirstCurio(stack -> stack.getItem() instanceof JumpcastCharm))
                 .map(top.theillusivec4.curios.api.SlotResult::stack)
                 .orElse(ItemStack.EMPTY);
