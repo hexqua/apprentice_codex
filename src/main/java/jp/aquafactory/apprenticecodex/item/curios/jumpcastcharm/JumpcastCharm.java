@@ -70,7 +70,7 @@ public class JumpcastCharm extends Item implements ICurioItem, RestrictedSpellIm
     }
 
     @Override
-    public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
+    public List<Component> getSlotsTooltip(List<Component> tooltips, Item.TooltipContext context, ItemStack stack) {
         if (slotIdentifier != null) {
             // Curiosっぽい共通ヘッダ.
             tooltips.add(Component.empty());
@@ -90,9 +90,9 @@ public class JumpcastCharm extends Item implements ICurioItem, RestrictedSpellIm
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+        super.appendHoverText(stack, context, lines, flag);
         appendJumpcastTooltip(lines);
     }
 
