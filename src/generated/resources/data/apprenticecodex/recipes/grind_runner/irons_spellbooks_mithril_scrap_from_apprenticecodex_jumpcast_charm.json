@@ -1,0 +1,12 @@
+{
+  "type": "apprenticecodex:grind_runner",
+  "ingredient": {
+    "item": "apprenticecodex:jumpcast_charm"
+  },
+  "results": [
+    {
+      "count": 2,
+      "item": "irons_spellbooks:mithril_scrap"
+    }
+  ]
+}
