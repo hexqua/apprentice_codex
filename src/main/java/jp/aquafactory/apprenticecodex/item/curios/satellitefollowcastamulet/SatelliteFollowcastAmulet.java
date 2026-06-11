@@ -188,6 +188,11 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
     }
 
     @Override
+    public List<Component> getImbueRestrictionTooltipLines() {
+        return collectFollowcastRestrictTooltipSection();
+    }
+
+    @Override
     public ItemStack createSpellSlotUpgradeResult(ItemStack baseStack, SpellSlotUpgradeItem upgradeItem) {
         if (!isSupportedSpellSlotUpgrade(upgradeItem)) {
             return ItemStack.EMPTY;

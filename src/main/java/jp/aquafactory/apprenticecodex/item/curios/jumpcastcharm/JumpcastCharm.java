@@ -153,6 +153,11 @@ public class JumpcastCharm extends Item implements ICurioItem, RestrictedSpellIm
         return spellData != SpellData.EMPTY;
     }
 
+    @Override
+    public List<Component> getImbueRestrictionTooltipLines() {
+        return collectJumpcastRestrictTooltipSection();
+    }
+
     private static void appendJumpcastTooltip(List<Component> lines) {
         ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
         if (ImbueTooltipHelper.appendHintIfDetailsHidden(lines)) {

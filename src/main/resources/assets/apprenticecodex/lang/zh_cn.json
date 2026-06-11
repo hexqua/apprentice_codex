@@ -142,6 +142,7 @@
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_no_recast": "- 无需二次施法",
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_accept_summon_recast": "- 除解除召唤外无需二次施法",
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_by_profile": "- 已由数据驱动施法配置适配",
+  "item.apprenticecodex.spellgun.tooltip.restrict_restrict_by_allowlist": "- 已由数据驱动允许列表许可",
   "item.apprenticecodex.spellgun.tooltip.ammo_title": "弹药：",
   "item.apprenticecodex.spellgun.tooltip.ammo_none": "- 无",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "稀有及以下品质",

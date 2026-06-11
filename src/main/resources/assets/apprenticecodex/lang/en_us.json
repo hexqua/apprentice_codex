@@ -143,6 +143,7 @@
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_no_recast": "- No recast needed",
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_accept_summon_recast": "- No recast needed except to dismiss summons",
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_by_profile": "- Configured by data-driven casting profiles",
+  "item.apprenticecodex.spellgun.tooltip.restrict_restrict_by_allowlist": "- Listed in the data-driven allowlist",
   "item.apprenticecodex.spellgun.tooltip.ammo_title": "Ammo:",
   "item.apprenticecodex.spellgun.tooltip.ammo_none": "- None",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "Rare and below",

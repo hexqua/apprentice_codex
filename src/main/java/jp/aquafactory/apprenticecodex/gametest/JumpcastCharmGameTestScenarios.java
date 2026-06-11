@@ -63,6 +63,12 @@ final class JumpcastCharmGameTestScenarios extends ApprenticeCodexGameTestScenar
 
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "jumpcast_charm_calibration_test");
             var menu = createSpellCalibrationBenchMenuWithTarget(player, stack);
+            helper.assertFalse(menu.getImbueRestrictionTooltipLines().isEmpty(),
+                    "Jumpcast Charm should expose Calibration Bench spell restriction tooltip lines");
+            helper.assertFalse(menu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).mayPlace(
+                            createSpellScroll(jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_CHARGE.get())
+                    ),
+                    "Jumpcast Charm should reject CONTINUOUS scrolls in the Spell Calibration Bench");
             menu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(
                     createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())
             );

@@ -21,6 +21,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.EnumSet;
 import java.util.Objects;
 import java.util.List;
 import java.util.function.Supplier;
@@ -124,6 +125,13 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
         }
 
         return spell.getCastType() == CastType.INSTANT || spell.getCastType() == CastType.LONG;
+    }
+
+    @Override
+    public List<Component> getImbueRestrictionTooltipLines() {
+        return ImbueTooltipHelper.collectCastTypeRestrictionLines(
+                EnumSet.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG)
+        );
     }
 
     @Override
