@@ -76,15 +76,26 @@ public final class ManaThrusterFlightManager {
     public static void setJumpInput(ServerPlayer player, boolean active) {
         if (ManaThrusterContext.isDisabled(player)) {
             clear(player);
+            if (active) {
+                syncInactive(player);
+            }
             return;
         }
         if (!active) {
-            state(player).jumpInputActive = false;
+            var state = STATES.get(player.getUUID());
+            if (state != null) {
+                state.jumpInputActive = false;
+            }
             return;
         }
-        if (!player.onGround()) {
-            state(player).jumpInputActive = true;
+        if (player.onGround()) {
+            // ラグ時にサーバーが地上判定で拒否した場合も、クライアントの予測推進を即座に止める。
+            clear(player);
+            syncInactive(player);
+            return;
         }
+
+        state(player).jumpInputActive = true;
     }
 
     public static void tickEquippedPlayer(ServerPlayer player) {
@@ -138,9 +149,7 @@ public final class ManaThrusterFlightManager {
 
     private static void deactivateThrust(ServerPlayer player, State state) {
         state.jumpInputActive = false;
-        if (!(player instanceof FakePlayer)) {
-            Networks.sendToPlayer(player, new SyncManaThrusterActivePacket(false));
-        }
+        syncInactive(player);
     }
 
     private static void playEffects(ServerPlayer player, State state) {
@@ -224,6 +233,12 @@ public final class ManaThrusterFlightManager {
     private static void syncMana(ServerPlayer player, MagicData magicData) {
         if (!(player instanceof FakePlayer)) {
             PacketDistributor.sendToPlayer(player, new SyncManaPacket(magicData));
+        }
+    }
+
+    private static void syncInactive(ServerPlayer player) {
+        if (!(player instanceof FakePlayer)) {
+            Networks.sendToPlayer(player, new SyncManaThrusterActivePacket(false));
         }
     }
 
