@@ -364,6 +364,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = JUMPCAST_CHARM_CONFIG_BATCH)
+    public static void jumpcastCharmPreservesExistingCast(GameTestHelper helper) {
+        JumpcastCharmGameTestScenarios.jumpcastCharmPreservesExistingCast(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = JUMPCAST_CHARM_CONFIG_BATCH)
     public static void jumpcastCharmBlockedMovementContextsDoNotCast(GameTestHelper helper) {
         JumpcastCharmGameTestScenarios.jumpcastCharmBlockedMovementContextsDoNotCast(helper);
     }

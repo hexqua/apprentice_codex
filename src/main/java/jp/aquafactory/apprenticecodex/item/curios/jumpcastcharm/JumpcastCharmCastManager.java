@@ -63,6 +63,9 @@ public final class JumpcastCharmCastManager {
         if (magicData == null) {
             return false;
         }
+        if (magicData.isCasting()) {
+            return false;
+        }
 
         var castResult = spell.canBeCastedBy(spellLevel, JUMPCAST_SOURCE, magicData, player);
         if (castResult.message != null) {

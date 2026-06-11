@@ -19,6 +19,7 @@ import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LadderBlock;
 import net.minecraft.world.phys.Vec3;
@@ -144,6 +145,40 @@ final class JumpcastCharmGameTestScenarios extends ApprenticeCodexGameTestScenar
                     "Jumpcast Charm should not spend mana on failed casts: " + magicData.getMana());
             helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
                     "Jumpcast Charm should not add cooldown on failed casts");
+        });
+    }
+
+    static void jumpcastCharmPreservesExistingCast(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var jumpcastSpell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.SHOCK.get();
+            var activeSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
+            var player = createJumpcastPlayer(helper, "jumpcast_charm_existing_cast_test", jumpcastSpell, 1);
+            var magicData = magicData(helper, player, "existing cast");
+            magicData.getSyncedData().learnSpell(jumpcastSpell, false);
+            magicData.getSyncedData().learnSpell(activeSpell, false);
+            magicData.setMana(500.0F);
+            var manaBefore = magicData.getMana();
+
+            magicData.initiateCast(
+                    activeSpell,
+                    1,
+                    activeSpell.getEffectiveCastTime(1, player),
+                    CastSource.SPELLBOOK,
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+            );
+            magicData.setPlayerCastingItem(new ItemStack(Items.STICK));
+
+            helper.assertTrue(magicData.isCasting(), "Existing cast should be active before Jumpcast");
+            helper.assertTrue(activeSpell.getSpellId().equals(magicData.getCastingSpellId()),
+                    "Existing cast should track greater_heal before Jumpcast");
+
+            helper.assertFalse(JumpcastCharmCastManager.tryCast(player),
+                    "Jumpcast Charm should not cast while another spell is already casting");
+            helper.assertTrue(magicData.isCasting(), "Jumpcast attempt should preserve the existing cast");
+            helper.assertTrue(activeSpell.getSpellId().equals(magicData.getCastingSpellId()),
+                    "Jumpcast attempt should preserve the existing casting spell id");
+            helper.assertTrue(Math.abs(magicData.getMana() - manaBefore) < 1.0e-4F,
+                    "Jumpcast attempt during existing cast should not spend mana: " + magicData.getMana());
         });
     }
 
