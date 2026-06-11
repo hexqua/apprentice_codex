@@ -8,4 +8,5 @@ public final class CuriosSlotConstants {
     public static final String BELT = "belt";
     public static final String CHARM = "charm";
     public static final String HEAD = "head";
+    public static final String FEET = "feet";
 }

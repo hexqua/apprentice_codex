@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerCon
 import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaForceBladeServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaShieldCharmServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ManaThrusterServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MulticastEchoStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MultipurposeStaffrifleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
@@ -41,6 +42,7 @@ final class ItemsServerConfig {
     private final IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig;
     private final ManaForceBladeServerConfig manaForceBladeConfig;
     private final ManaShieldCharmServerConfig manaShieldCharmConfig;
+    private final ManaThrusterServerConfig manaThrusterConfig;
     private final CircuitHeatStaffServerConfig circuitHeatStaffConfig;
     private final SpellgunServerConfig spellgunConfig;
     private final MulticastEchoStaffServerConfig multicastEchoStaffConfig;
@@ -66,6 +68,7 @@ final class ItemsServerConfig {
             IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig,
             ManaForceBladeServerConfig manaForceBladeConfig,
             ManaShieldCharmServerConfig manaShieldCharmConfig,
+            ManaThrusterServerConfig manaThrusterConfig,
             CircuitHeatStaffServerConfig circuitHeatStaffConfig,
             SpellgunServerConfig spellgunConfig,
             MulticastEchoStaffServerConfig multicastEchoStaffConfig,
@@ -90,6 +93,7 @@ final class ItemsServerConfig {
         this.isekaiTravelGuidebookConfig = isekaiTravelGuidebookConfig;
         this.manaForceBladeConfig = manaForceBladeConfig;
         this.manaShieldCharmConfig = manaShieldCharmConfig;
+        this.manaThrusterConfig = manaThrusterConfig;
         this.circuitHeatStaffConfig = circuitHeatStaffConfig;
         this.spellgunConfig = spellgunConfig;
         this.multicastEchoStaffConfig = multicastEchoStaffConfig;
@@ -117,6 +121,7 @@ final class ItemsServerConfig {
         var isekaiTravelGuidebookConfig = IsekaiTravelGuidebookServerConfig.define(builder);
         var manaForceBladeConfig = ManaForceBladeServerConfig.define(builder);
         var manaShieldCharmConfig = ManaShieldCharmServerConfig.define(builder);
+        var manaThrusterConfig = ManaThrusterServerConfig.define(builder);
         var circuitHeatStaffConfig = CircuitHeatStaffServerConfig.define(builder);
         var spellgunConfig = SpellgunServerConfig.define(builder);
         var multicastEchoStaffConfig = MulticastEchoStaffServerConfig.define(builder);
@@ -143,6 +148,7 @@ final class ItemsServerConfig {
                 isekaiTravelGuidebookConfig,
                 manaForceBladeConfig,
                 manaShieldCharmConfig,
+                manaThrusterConfig,
                 circuitHeatStaffConfig,
                 spellgunConfig,
                 multicastEchoStaffConfig,
@@ -304,6 +310,10 @@ final class ItemsServerConfig {
 
     int manaShieldCharmInvulnerableTimeTicks() {
         return manaShieldCharmConfig.invulnerableTimeTicks();
+    }
+
+    float manaThrusterManaCostPerTick() {
+        return manaThrusterConfig.manaCostPerTick();
     }
 
     int multipurposeStaffrifleCooldownBypassThresholdTicks() {
@@ -646,6 +656,10 @@ final class ItemsServerConfig {
                 shellArmorDurabilityDamage,
                 invulnerableTimeTicks
         );
+    }
+
+    void setManaThrusterConfigForGameTest(double manaCostPerTick) {
+        manaThrusterConfig.setForGameTest(manaCostPerTick);
     }
 
     void setFocusStaffbowConfigForGameTest(

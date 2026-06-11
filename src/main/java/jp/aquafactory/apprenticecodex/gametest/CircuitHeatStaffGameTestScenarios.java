@@ -78,6 +78,7 @@ import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffCastEvent;
 import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffRightClickItemEvent;
+import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffCoolingHandler;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
@@ -910,41 +911,36 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
     }
 
     static void circuitHeatStaffDropCoolingDisabledByServerConfig(GameTestHelper helper) {
-        var waterPos = new BlockPos(0, 2, 0);
-        placeWaterTestBasin(helper, waterPos);
-        helper.setBlock(waterPos, Blocks.WATER);
+        helper.succeedIf(() -> {
+            var waterPos = new BlockPos(0, 2, 0);
+            placeWaterTestBasin(helper, waterPos);
+            helper.setBlock(waterPos, Blocks.WATER);
 
-        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
-        var itemEntity = spawnItem(helper, waterPos, staffStack);
-        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
-        override[0] = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
-                20 * 10,
-                0.10D,
-                0.10D,
-                0,
-                List.of(),
-                1.0D,
-                20 * 10,
-                0,
-                false,
-                10,
-                20 * 10,
-                3,
-                true,
-                true
-        );
-
-        helper.runAtTickTime(40, () -> {
-            try {
+            var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+            CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+            var itemEntity = spawnItem(helper, waterPos, staffStack);
+            try (var ignored = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                    20 * 10,
+                    0.10D,
+                    0.10D,
+                    0,
+                    List.of(),
+                    1.0D,
+                    20 * 10,
+                    0,
+                    false,
+                    10,
+                    20 * 10,
+                    3,
+                    true,
+                    true
+            )) {
+                runDropCoolingProcesses(itemEntity, 3);
                 var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
                 helper.assertTrue(remainingTicks > 20 * 55,
                         "Circuit Heat Staff cooling should not reduce while disabled by server config: " + remainingTicks);
                 helper.assertTrue(helper.getBlockState(waterPos).is(Blocks.WATER),
                         "Circuit Heat Staff cooling should not consume water while disabled by server config");
-                helper.succeed();
-            } finally {
-                override[0].close();
             }
         });
     }
@@ -967,42 +963,37 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
     }
 
     static void circuitHeatStaffDropCoolingKeepsWaterSourceWhenConsumptionDisabled(GameTestHelper helper) {
-        var waterPos = new BlockPos(0, 2, 0);
-        placeWaterTestBasin(helper, waterPos);
-        helper.setBlock(waterPos, Blocks.WATER);
+        helper.succeedIf(() -> {
+            var waterPos = new BlockPos(0, 2, 0);
+            placeWaterTestBasin(helper, waterPos);
+            helper.setBlock(waterPos, Blocks.WATER);
 
-        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
-        var itemEntity = spawnItem(helper, waterPos, staffStack);
-        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
-        override[0] = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
-                20 * 10,
-                0.10D,
-                0.10D,
-                0,
-                List.of(),
-                1.0D,
-                20 * 10,
-                0,
-                true,
-                10,
-                20 * 10,
-                3,
-                false,
-                true
-        );
-
-        helper.runAtTickTime(40, () -> {
-            try {
+            var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+            CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+            var itemEntity = spawnItem(helper, waterPos, staffStack);
+            try (var ignored = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                    20 * 10,
+                    0.10D,
+                    0.10D,
+                    0,
+                    List.of(),
+                    1.0D,
+                    20 * 10,
+                    0,
+                    true,
+                    10,
+                    20 * 10,
+                    3,
+                    false,
+                    true
+            )) {
+                runDropCoolingProcesses(itemEntity, 3);
                 var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
                 helper.assertTrue(remainingTicks <= 20 * 30,
                         "Circuit Heat Staff water-source cooling should still reduce when consumption is disabled: "
                                 + remainingTicks);
                 helper.assertTrue(helper.getBlockState(waterPos).is(Blocks.WATER),
                         "Circuit Heat Staff water-source cooling should keep water when consumption is disabled");
-                helper.succeed();
-            } finally {
-                override[0].close();
             }
         });
     }
@@ -1031,35 +1022,33 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
     }
 
     static void circuitHeatStaffDropCoolingKeepsWaterCauldronWhenConsumptionDisabled(GameTestHelper helper) {
-        var cauldronPos = new BlockPos(0, 2, 0);
-        helper.setBlock(
-                cauldronPos,
-                Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3)
-        );
+        helper.succeedIf(() -> {
+            var cauldronPos = new BlockPos(0, 2, 0);
+            helper.setBlock(
+                    cauldronPos,
+                    Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3)
+            );
 
-        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
-        var itemEntity = spawnNoGravityItem(helper, cauldronPos, staffStack);
-        var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
-        override[0] = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
-                20 * 10,
-                0.10D,
-                0.10D,
-                0,
-                List.of(),
-                1.0D,
-                20 * 10,
-                0,
-                true,
-                10,
-                20 * 10,
-                3,
-                true,
-                false
-        );
-
-        helper.runAtTickTime(40, () -> {
-            try {
+            var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+            CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+            var itemEntity = spawnNoGravityItem(helper, cauldronPos, staffStack);
+            try (var ignored = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                    20 * 10,
+                    0.10D,
+                    0.10D,
+                    0,
+                    List.of(),
+                    1.0D,
+                    20 * 10,
+                    0,
+                    true,
+                    10,
+                    20 * 10,
+                    3,
+                    true,
+                    false
+            )) {
+                runDropCoolingProcesses(itemEntity, 3);
                 var state = helper.getBlockState(cauldronPos);
                 var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
                 helper.assertTrue(remainingTicks <= 20 * 30,
@@ -1068,9 +1057,6 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
                 helper.assertTrue(state.is(Blocks.WATER_CAULDRON) && state.getValue(LayeredCauldronBlock.LEVEL) == 3,
                         "Circuit Heat Staff cauldron cooling should keep water level when consumption is disabled: "
                                 + state);
-                helper.succeed();
-            } finally {
-                override[0].close();
             }
         });
     }
@@ -1148,5 +1134,12 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
                     "Circuit Heat Staff should not change powder snow when it is not overheated");
             helper.succeed();
         });
+    }
+
+    private static void runDropCoolingProcesses(ItemEntity itemEntity, int processCount) {
+        for (var i = 1; i <= processCount; ++i) {
+            itemEntity.tickCount = i * ApprenticeCodexServerConfig.circuitHeatStaffDropCoolingProcessIntervalTicks();
+            CircuitHeatStaffCoolingHandler.onEntityItemUpdate(itemEntity.getItem(), itemEntity);
+        }
     }
 }

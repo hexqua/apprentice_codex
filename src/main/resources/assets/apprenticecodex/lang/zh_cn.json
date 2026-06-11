@@ -1,6 +1,11 @@
 {
   "itemGroup.apprenticecodex.main": "学徒法典",
+
+  "curios.identifier.feet": "脚饰",
+  "curios.modifiers.feet": "佩戴脚饰时：",
+
   "attribute.name.apprenticecodex.max_enchantment_table_level": "附魔台最高等级",
+
   "block.apprenticecodex.mage_light_torch": "魔法师火把",
   "block.apprenticecodex.personal_shelf_chest": "个人交互界面",
   "block.apprenticecodex.rift_hole": "裂隙通道",
@@ -62,6 +67,7 @@
   "item.apprenticecodex.autocast_amulet": "法术自动释放护符",
   "item.apprenticecodex.mana_shield_charm": "法力护盾饰坠",
   "item.apprenticecodex.satellite_followcast_amulet": "卫星追随施法护符",
+  "item.apprenticecodex.mana_thruster": "法力推进器",
   "item.apprenticecodex.ender_grimoire": "末影魔导书",
   "item.apprenticecodex.explorers_codex": "探险者法典",
   "item.apprenticecodex.spellstained_runic_tablet": "染法符文石板",
@@ -222,6 +228,9 @@
   "item.apprenticecodex.mana_shield_charm.desc_1_free": "无需消耗法力值即可抵消所受伤害。",
   "item.apprenticecodex.mana_shield_charm.desc_2": "法力屏障无法获得护甲加成。",
   "item.apprenticecodex.mana_shield_charm.desc_3": "法力值耗尽后需恢复至%d点才能再次生效。",
+  "item.apprenticecodex.mana_thruster.desc_1": "在空中按住[%s]时，消耗法力值加速上升。",
+  "item.apprenticecodex.mana_thruster.desc_2": "一旦启动，法力值恢复会停止，直到落地。",
+  "item.apprenticecodex.mana_thruster.desc_3": "该推进器本身不会提供摔落伤害免疫。",
   "item.apprenticecodex.swingcast.common.desc": "该法杖每次完整挥击时释放注入的法术。",
   "item.apprenticecodex.freecast.common.desc": "该物品每次完整挥击时释放所选法术。",
   "item.apprenticecodex.right_click_magic_weapon.desc": "副手持有目标物品时，[%s]会使用副手。",
@@ -1031,6 +1040,7 @@
   "subtitle.apprenticecodex.sound.kami": "元素之力缠身",
   "subtitle.apprenticecodex.sound.revolve": "机关轮转",
   "subtitle.apprenticecodex.sound.amethyst_fist": "宝石重击落下",
+  "subtitle.apprenticecodex.sound.mana_jet": "推进器启动",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_air": "权杖猛击",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground": "权杖击打地面",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground_heavy": "权杖重击落下",

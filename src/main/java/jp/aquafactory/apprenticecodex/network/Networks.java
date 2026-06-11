@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimo
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmScrollcasterGauntletIndexPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
@@ -28,6 +29,8 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentati
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaShieldCharmConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterActivePacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
@@ -47,7 +50,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "37";
+    private static final String PROTOCOL_VERSION = "38";
 
     private Networks() {
     }
@@ -98,6 +101,11 @@ public final class Networks {
                 ClientMultipurposeStaffrifleCastPacket.STREAM_CODEC,
                 ClientMultipurposeStaffrifleCastPacket::handle
         );
+        registrar.playToServer(
+                ClientManaThrusterInputPacket.TYPE,
+                ClientManaThrusterInputPacket.STREAM_CODEC,
+                ClientManaThrusterInputPacket::handle
+        );
         registrar.playToClient(
                 SyncEnderGrimoireSpellbookPacket.TYPE,
                 SyncEnderGrimoireSpellbookPacket.STREAM_CODEC,
@@ -122,6 +130,16 @@ public final class Networks {
                 SyncManaShieldCharmConfigPacket.TYPE,
                 SyncManaShieldCharmConfigPacket.STREAM_CODEC,
                 SyncManaShieldCharmConfigPacket::handle
+        );
+        registrar.playToClient(
+                SyncManaThrusterConfigPacket.TYPE,
+                SyncManaThrusterConfigPacket.STREAM_CODEC,
+                SyncManaThrusterConfigPacket::handle
+        );
+        registrar.playToClient(
+                SyncManaThrusterActivePacket.TYPE,
+                SyncManaThrusterActivePacket.STREAM_CODEC,
+                SyncManaThrusterActivePacket::handle
         );
         registrar.playToClient(
                 SyncZenithStaffConfigPacket.TYPE,
