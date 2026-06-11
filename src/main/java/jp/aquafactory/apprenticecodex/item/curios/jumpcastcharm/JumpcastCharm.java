@@ -71,22 +71,23 @@ public class JumpcastCharm extends Item implements ICurioItem, RestrictedSpellIm
 
     @Override
     public List<Component> getSlotsTooltip(List<Component> tooltips, Item.TooltipContext context, ItemStack stack) {
+        var result = new ArrayList<>(tooltips);
         if (slotIdentifier != null) {
             // Curiosっぽい共通ヘッダ.
-            tooltips.add(Component.empty());
-            tooltips.add(Component.translatable("curios.modifiers." + this.slotIdentifier).withStyle(ChatFormatting.GOLD));
+            result.add(Component.empty());
+            result.add(Component.translatable("curios.modifiers." + this.slotIdentifier).withStyle(ChatFormatting.GOLD));
 
             // 本体.
-            tooltips.add(Component.literal(" ")
+            result.add(Component.literal(" ")
                     .append(Component.translatable(
                             getDescriptionId() + ".desc",
                             ImbueTooltipHelper.getJumpKeyName()
                     ))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            tooltips.add(Component.empty());
+            result.add(Component.empty());
         }
 
-        return tooltips;
+        return result;
     }
 
     @Override
