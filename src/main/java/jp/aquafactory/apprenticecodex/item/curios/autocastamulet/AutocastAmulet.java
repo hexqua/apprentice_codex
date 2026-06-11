@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownPolicyItem;
@@ -170,6 +171,13 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Re
     @Override
     public boolean canRemoveWorkbenchSpell(ItemStack stack, ISpellContainer spellContainer, int spellIndex, SpellData spellData) {
         return spellData != SpellData.EMPTY;
+    }
+
+    @Override
+    public List<Component> getImbueRestrictionTooltipLines() {
+        return List.of(ImbueTooltipHelper.translatableGray(
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_by_allowlist"
+        ));
     }
 
     @Override

@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimo
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmScrollcasterGauntletIndexPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
@@ -54,7 +55,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "41";
+    private static final String PROTOCOL_VERSION = "42";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -165,6 +166,14 @@ public final class Networks {
                 ClientManaThrusterInputPacket::encode,
                 ClientManaThrusterInputPacket::decode,
                 ClientManaThrusterInputPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER)
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                ClientJumpcastCharmCastPacket.class,
+                ClientJumpcastCharmCastPacket::encode,
+                ClientJumpcastCharmCastPacket::decode,
+                ClientJumpcastCharmCastPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER)
         );
         CHANNEL.registerMessage(

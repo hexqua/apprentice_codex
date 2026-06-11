@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    "S": {
+      "item": "apprenticecodex:spellstained_arcane_ingot"
+    }
+  },
+  "pattern": [
+    "S S",
+    "D D",
+    "M M"
+  ],
+  "result": {
+    "item": "apprenticecodex:jumpcast_charm"
+  },
+  "show_notification": true
+}

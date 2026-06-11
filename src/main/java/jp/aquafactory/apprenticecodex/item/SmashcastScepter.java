@@ -137,6 +137,11 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
+    public List<Component> getImbueRestrictionTooltipLines() {
+        return collectSmashcastRestrictTooltipSection();
+    }
+
+    @Override
     public void normalizeImbuedSpellContainer(ItemStack stack) {
         if (stack == null || stack.isEmpty()) {
             return;
@@ -430,12 +435,16 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
         );
         ImbueTooltipHelper.appendTooltipSection(
                 lines,
-                List.of(ImbueTooltipHelper.translatableGray(
-                        "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_not_continuous"
-                )),
+                collectSmashcastRestrictTooltipSection(),
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_title",
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_none"
         );
+    }
+
+    private static List<Component> collectSmashcastRestrictTooltipSection() {
+        return List.of(ImbueTooltipHelper.translatableGray(
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_not_continuous"
+        ));
     }
 
     private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
