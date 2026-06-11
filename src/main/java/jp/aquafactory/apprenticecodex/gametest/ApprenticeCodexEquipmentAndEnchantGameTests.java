@@ -67,6 +67,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
             "apprenticecodex.mana_shield_charm_iframe_config";
     private static final String MANA_THRUSTER_CONFIG_BATCH =
             "apprenticecodex.mana_thruster_config";
+    private static final String JUMPCAST_CHARM_CONFIG_BATCH =
+            "apprenticecodex.jumpcast_charm_config";
 
     private ApprenticeCodexEquipmentAndEnchantGameTests() {
     }
@@ -339,6 +341,36 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
     public static void manaThrusterLavaAllowsUpwardEscapeWithoutSuppressingRecovery(GameTestHelper helper) {
         ManaThrusterGameTestScenarios.manaThrusterLavaAllowsUpwardEscapeWithoutSuppressingRecovery(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void jumpcastCharmUsesFeetSlotAndSupportsCalibrationImbue(GameTestHelper helper) {
+        JumpcastCharmGameTestScenarios.jumpcastCharmUsesFeetSlotAndSupportsCalibrationImbue(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = JUMPCAST_CHARM_CONFIG_BATCH)
+    public static void jumpcastCharmInstantSpellCastsInAirAndConsumesMana(GameTestHelper helper) {
+        JumpcastCharmGameTestScenarios.jumpcastCharmInstantSpellCastsInAirAndConsumesMana(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = JUMPCAST_CHARM_CONFIG_BATCH)
+    public static void jumpcastCharmLongSpellCompletesImmediatelyAndExtendsCooldown(GameTestHelper helper) {
+        JumpcastCharmGameTestScenarios.jumpcastCharmLongSpellCompletesImmediatelyAndExtendsCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = JUMPCAST_CHARM_CONFIG_BATCH)
+    public static void jumpcastCharmInsufficientManaFailsWithoutSpending(GameTestHelper helper) {
+        JumpcastCharmGameTestScenarios.jumpcastCharmInsufficientManaFailsWithoutSpending(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = JUMPCAST_CHARM_CONFIG_BATCH)
+    public static void jumpcastCharmPreservesExistingCast(GameTestHelper helper) {
+        JumpcastCharmGameTestScenarios.jumpcastCharmPreservesExistingCast(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = JUMPCAST_CHARM_CONFIG_BATCH)
+    public static void jumpcastCharmBlockedMovementContextsDoNotCast(GameTestHelper helper) {
+        JumpcastCharmGameTestScenarios.jumpcastCharmBlockedMovementContextsDoNotCast(helper);
     }
 
     @GameTest(template = TEMPLATE)

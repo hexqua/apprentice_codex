@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimo
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmScrollcasterGauntletIndexPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
@@ -50,7 +51,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "38";
+    private static final String PROTOCOL_VERSION = "39";
 
     private Networks() {
     }
@@ -105,6 +106,11 @@ public final class Networks {
                 ClientManaThrusterInputPacket.TYPE,
                 ClientManaThrusterInputPacket.STREAM_CODEC,
                 ClientManaThrusterInputPacket::handle
+        );
+        registrar.playToServer(
+                ClientJumpcastCharmCastPacket.TYPE,
+                ClientJumpcastCharmCastPacket.STREAM_CODEC,
+                ClientJumpcastCharmCastPacket::handle
         );
         registrar.playToClient(
                 SyncEnderGrimoireSpellbookPacket.TYPE,

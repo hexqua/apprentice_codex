@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
+import jp.aquafactory.apprenticecodex.item.curios.jumpcastcharm.JumpcastCharm;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmulet;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
@@ -344,6 +345,8 @@ public final class SpellCalibrationImbueHelper {
             presetSpellContainer.initializeSpellContainer(stack);
         } else if (stack.getItem() instanceof AutocastAmulet autocastAmulet) {
             autocastAmulet.initializeSpellContainer(stack);
+        } else if (stack.getItem() instanceof JumpcastCharm jumpcastCharm) {
+            jumpcastCharm.initializeSpellContainer(stack);
         } else if (stack.getItem() instanceof SatelliteFollowcastAmulet satelliteFollowcastAmulet) {
             satelliteFollowcastAmulet.initializeSpellContainer(stack);
         }
