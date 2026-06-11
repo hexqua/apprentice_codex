@@ -378,6 +378,10 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.manaShieldCharmInvulnerableTimeTicks();
     }
 
+    public static float manaThrusterManaCostPerTick() {
+        return ITEMS_CONFIG.manaThrusterManaCostPerTick();
+    }
+
     public static int multicastEchoStaffDelayTicks() {
         return ITEMS_CONFIG.multicastEchoStaffDelayTicks();
     }
@@ -761,6 +765,13 @@ public final class ApprenticeCodexServerConfig {
                 previousShellArmorDurabilityDamage,
                 previousInvulnerableTimeTicks
         );
+    }
+
+    public static GameTestConfigOverride useManaThrusterConfigOverrideForGameTest(double manaCostPerTick) {
+        var previousManaCostPerTick = ITEMS_CONFIG.manaThrusterManaCostPerTick();
+
+        ITEMS_CONFIG.setManaThrusterConfigForGameTest(manaCostPerTick);
+        return () -> ITEMS_CONFIG.setManaThrusterConfigForGameTest(previousManaCostPerTick);
     }
 
     public static GameTestConfigOverride useManaForceBladeCooldownConfigOverrideForGameTest(

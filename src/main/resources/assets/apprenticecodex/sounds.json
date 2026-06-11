@@ -368,6 +368,13 @@
       "apprenticecodex:amethyst_fist"
     ]
   },
+  "mana_jet": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.mana_jet",
+    "sounds": [
+      "apprenticecodex:mana_jet"
+    ]
+  },
 
   "smashcast_scepter_smash_air": {
     "_apprentice_codex_note": "ベースはSoundEvents.PLAYER_ATTACK_CRIT",

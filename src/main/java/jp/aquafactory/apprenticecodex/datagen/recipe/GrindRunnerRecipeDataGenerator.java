@@ -58,6 +58,7 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
                 recipe(jp.aquafactory.apprenticecodex.registry.ItemRegistry.ENCHANTED_CIRCLET.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
                 recipe(jp.aquafactory.apprenticecodex.registry.ItemRegistry.AUTOCAST_AMULET.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
                 recipe(jp.aquafactory.apprenticecodex.registry.ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
+                recipe(jp.aquafactory.apprenticecodex.registry.ItemRegistry.MANA_THRUSTER.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 2)),
 
                 recipe(ItemRegistry.FIREWARD_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.CINDER_ESSENCE.get(), 1)),
                 recipe(ItemRegistry.FROSTWARD_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.ICE_CRYSTAL.get(), 1)),

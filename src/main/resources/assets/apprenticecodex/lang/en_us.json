@@ -1,6 +1,11 @@
 {
   "itemGroup.apprenticecodex.main": "Apprentice Codex",
+
+  "curios.identifier.feet": "Feet",
+  "curios.modifiers.feet": "When on feet:",
+
   "attribute.name.apprenticecodex.max_enchantment_table_level": "Max Enchantment Table Level",
+
   "block.apprenticecodex.mage_light_torch": "Magician's Torch",
   "block.apprenticecodex.personal_shelf_chest": "Personal Interface",
   "block.apprenticecodex.rift_hole": "Rift Hole",
@@ -63,6 +68,7 @@
   "item.apprenticecodex.autocast_amulet": "Amulet of Spell Autocast",
   "item.apprenticecodex.mana_shield_charm": "Talisman of Mana Shield",
   "item.apprenticecodex.satellite_followcast_amulet": "Amulet of Satellite Followcast",
+  "item.apprenticecodex.mana_thruster": "Mana Thruster",
   "item.apprenticecodex.ender_grimoire": "Ender Grimoire",
   "item.apprenticecodex.explorers_codex": "Explorer's Codex",
   "item.apprenticecodex.spellstained_runic_tablet": "Spell-stained Runic Tablet",
@@ -224,6 +230,9 @@
   "item.apprenticecodex.mana_shield_charm.desc_1_free": "Absorbs damage without consuming mana.",
   "item.apprenticecodex.mana_shield_charm.desc_2": "Mana barrier does not benefit from armor.",
   "item.apprenticecodex.mana_shield_charm.desc_3": "Stops functioning until mana recovers to %d after depletion.",
+  "item.apprenticecodex.mana_thruster.desc_1": "Hold [%s] while airborne to consume mana and accelerate upward.",
+  "item.apprenticecodex.mana_thruster.desc_2": "Once activated, mana regeneration stops until you land.",
+  "item.apprenticecodex.mana_thruster.desc_3": "This thruster itself does not grant fall damage immunity.",
   "item.apprenticecodex.swingcast.common.desc": "This staff casts its imbued spell with each full swing.",
   "item.apprenticecodex.freecast.common.desc": "This item casts the selected spell with each full swing.",
   "item.apprenticecodex.right_click_magic_weapon.desc": "With a target item in your offhand, [%s] uses the offhand.",
@@ -1046,6 +1055,7 @@
   "subtitle.apprenticecodex.sound.kami": "Elemental power envelops",
   "subtitle.apprenticecodex.sound.revolve": "Mechanism revolves",
   "subtitle.apprenticecodex.sound.amethyst_fist": "Gemstone slams down",
+  "subtitle.apprenticecodex.sound.mana_jet": "Thruster activates",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_air": "Scepter smashes",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground": "Scepter strikes the ground",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground_heavy": "Scepter crashes down",

@@ -1,6 +1,9 @@
 {
   "itemGroup.apprenticecodex.main" : "Apprentice Codex",
 
+  "curios.identifier.feet": "足",
+  "curios.modifiers.feet": "足に装備した時:",
+
   "attribute.name.apprenticecodex.max_enchantment_table_level": "最大エンチャントテーブルレベル",
 
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
@@ -65,6 +68,7 @@
   "item.apprenticecodex.autocast_amulet": "自動詠唱のアミュレット",
   "item.apprenticecodex.mana_shield_charm": "マナ障壁の護符",
   "item.apprenticecodex.satellite_followcast_amulet": "追従詠唱の衛星のアミュレット",
+  "item.apprenticecodex.mana_thruster": "マナ推進装置",
   "item.apprenticecodex.ender_grimoire": "エンダーグリモア",
   "item.apprenticecodex.explorers_codex": "探索者の写本",
   "item.apprenticecodex.spellstained_runic_tablet": "魔術染めのルーンタブレット",
@@ -227,6 +231,9 @@
   "item.apprenticecodex.mana_shield_charm.desc_1_free": "マナを消費せずにダメージを打ち消す。",
   "item.apprenticecodex.mana_shield_charm.desc_2": "ただし、マナの障壁は防御力の効果を受けることができない。",
   "item.apprenticecodex.mana_shield_charm.desc_3": "マナを使い果たすとマナが%dまで回復するまで機能を停止する。",
+  "item.apprenticecodex.mana_thruster.desc_1": "空中で[%s]を押している間、マナを消費して加速上昇する。",
+  "item.apprenticecodex.mana_thruster.desc_2": "一度起動すると着地するまでマナの回復が停止する。",
+  "item.apprenticecodex.mana_thruster.desc_3": "この推進装置自体は落下ダメージ耐性を持たない。",
   "item.apprenticecodex.swingcast.common.desc": "この杖は攻撃時に注入した魔法を放つ。",
   "item.apprenticecodex.freecast.common.desc": "このアイテムは攻撃時に選択した魔法を放つ。",
   "item.apprenticecodex.right_click_magic_weapon.desc": "対象をオフハンドに持つ時、[%s]はオフハンド使用になる。",
@@ -1055,6 +1062,7 @@
   "subtitle.apprenticecodex.sound.kami": "属性の力を纏う",
   "subtitle.apprenticecodex.sound.revolve": "機構が作動する",
   "subtitle.apprenticecodex.sound.amethyst_fist": "宝石が叩きつけられる",
+  "subtitle.apprenticecodex.sound.mana_jet": "推進装置が動く",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_air": "セプターを振り下ろす",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground": "セプターが地面を打つ",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground_heavy": "セプターが激しく叩きつけられる",

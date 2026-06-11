@@ -1,0 +1,12 @@
+{
+  "type": "apprenticecodex:grind_runner",
+  "ingredient": {
+    "item": "apprenticecodex:mana_thruster"
+  },
+  "results": [
+    {
+      "count": 2,
+      "item": "irons_spellbooks:mithril_scrap"
+    }
+  ]
+}

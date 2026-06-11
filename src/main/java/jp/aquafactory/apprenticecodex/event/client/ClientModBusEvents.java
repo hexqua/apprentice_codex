@@ -29,6 +29,7 @@ import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.renderer.ManaForceBladeSheathLayer;
 import jp.aquafactory.apprenticecodex.renderer.curio.AshenCircletCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.CircletCurioRenderer;
+import jp.aquafactory.apprenticecodex.renderer.curio.ManaThrusterCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterAmmoPouchCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterQuiverCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.extrudedsprite.ExtrudedSpriteManager;
@@ -139,6 +140,7 @@ public final class ClientModBusEvents {
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.SPELLCASTER_QUIVER.get(), SpellcasterQuiverCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ASHEN_CIRCLET.get(), AshenCircletCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ENCHANTED_CIRCLET.get(), CircletCurioRenderer::new));
+        event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.MANA_THRUSTER.get(), ManaThrusterCurioRenderer::new));
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.REFLECTCAST_SHIELD.get(),
                 ResourceLocation.withDefaultNamespace("blocking"),
