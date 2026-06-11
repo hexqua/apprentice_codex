@@ -74,6 +74,10 @@ public final class ManaThrusterFlightManager {
     }
 
     public static void setJumpInput(ServerPlayer player, boolean active) {
+        setJumpInput(player, active, 0.0F, 0.0F);
+    }
+
+    public static void setJumpInput(ServerPlayer player, boolean active, float strafeInput, float forwardInput) {
         if (ManaThrusterContext.isDisabled(player)) {
             clear(player);
             if (active) {
@@ -85,6 +89,8 @@ public final class ManaThrusterFlightManager {
             var state = STATES.get(player.getUUID());
             if (state != null) {
                 state.jumpInputActive = false;
+                state.strafeInput = 0.0F;
+                state.forwardInput = 0.0F;
             }
             return;
         }
@@ -95,7 +101,10 @@ public final class ManaThrusterFlightManager {
             return;
         }
 
-        state(player).jumpInputActive = true;
+        var state = state(player);
+        state.jumpInputActive = true;
+        state.strafeInput = strafeInput;
+        state.forwardInput = forwardInput;
     }
 
     public static void tickEquippedPlayer(ServerPlayer player) {
@@ -125,7 +134,7 @@ public final class ManaThrusterFlightManager {
             return;
         }
 
-        ManaThrusterMovement.applyThrust(player);
+        ManaThrusterMovement.applyThrust(player, state.strafeInput, state.forwardInput);
         player.fallDistance = 0.0F;
         setManaRecoverySuppressed(player, state, !ManaThrusterContext.isManaRecoveryFree(player));
 
@@ -149,6 +158,8 @@ public final class ManaThrusterFlightManager {
 
     private static void deactivateThrust(ServerPlayer player, State state) {
         state.jumpInputActive = false;
+        state.strafeInput = 0.0F;
+        state.forwardInput = 0.0F;
         syncInactive(player);
     }
 
@@ -298,6 +309,8 @@ public final class ManaThrusterFlightManager {
     private static final class State {
         private boolean jumpInputActive;
         private boolean regenSuppressedUntilLanding;
+        private float strafeInput;
+        private float forwardInput;
         private long lastSoundGameTime = Long.MIN_VALUE;
     }
 }

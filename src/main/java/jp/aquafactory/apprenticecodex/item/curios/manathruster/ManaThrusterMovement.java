@@ -18,13 +18,22 @@ public final class ManaThrusterMovement {
     }
 
     public static void applyThrust(Entity entity) {
+        if (entity instanceof LivingEntity livingEntity) {
+            applyThrust(entity, livingEntity.xxa, livingEntity.zza);
+            return;
+        }
+
+        applyThrust(entity, 0.0F, 0.0F);
+    }
+
+    public static void applyThrust(Entity entity, float strafeInput, float forwardInput) {
         if (entity instanceof LivingEntity livingEntity && (livingEntity.isFallFlying() || livingEntity.isSwimming())) {
             applyDirectionalAcceleration(entity);
             return;
         }
 
         var movement = entity.getDeltaMovement();
-        var horizontal = applyHorizontalAcceleration(entity, movement);
+        var horizontal = applyHorizontalAcceleration(entity, movement, strafeInput, forwardInput);
         var nextY = Math.min(movement.y + VERTICAL_ACCELERATION_PER_TICK, MAX_VERTICAL_SPEED);
         entity.setDeltaMovement(horizontal.x, nextY, horizontal.z);
         entity.hasImpulse = true;
@@ -49,12 +58,12 @@ public final class ManaThrusterMovement {
         entity.hurtMarked = true;
     }
 
-    private static Vec3 applyHorizontalAcceleration(Entity entity, Vec3 movement) {
+    private static Vec3 applyHorizontalAcceleration(Entity entity, Vec3 movement, float strafeInput, float forwardInput) {
         if (!(entity instanceof LivingEntity livingEntity)) {
             return movement;
         }
 
-        var input = resolveInputDirection(livingEntity);
+        var input = resolveInputDirection(livingEntity, strafeInput, forwardInput);
         if (input.lengthSqr() < 1.0e-6D) {
             return movement;
         }
@@ -67,9 +76,7 @@ public final class ManaThrusterMovement {
         return new Vec3(horizontal.x, movement.y, horizontal.z);
     }
 
-    private static Vec3 resolveInputDirection(LivingEntity entity) {
-        var forwardInput = entity.zza;
-        var strafeInput = entity.xxa;
+    private static Vec3 resolveInputDirection(LivingEntity entity, float strafeInput, float forwardInput) {
         if (Math.abs(forwardInput) < 1.0e-4F && Math.abs(strafeInput) < 1.0e-4F) {
             return Vec3.ZERO;
         }
