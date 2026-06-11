@@ -407,6 +407,8 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             var emptyAmuletMenu = createSpellCalibrationBenchMenuWithTarget(player, emptyAmulet);
             helper.assertTrue(emptyAmuletMenu.hasCalibrationTarget(),
                     "Empty Autocast Amulet should be accepted by Spell Calibration Bench");
+            helper.assertFalse(emptyAmuletMenu.getImbueRestrictionTooltipLines().isEmpty(),
+                    "Autocast Amulet should expose Calibration Bench spell restriction tooltip lines");
             helper.assertTrue(emptyAmuletMenu.getScrollItem(0).isEmpty(),
                     "Empty Autocast Amulet should not expose a scroll");
 
@@ -486,6 +488,23 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             var alchemistsFlaskMenu = createSpellCalibrationBenchMenuWithTarget(player, defaultAlchemistsFlask);
             helper.assertTrue(alchemistsFlaskMenu.getScrollItem(0).isEmpty(),
                     "Alchemist's Flask preset Extract should not expose a removable scroll");
+
+            var satelliteFollowcastMenu = createSpellCalibrationBenchMenuWithTarget(
+                    player,
+                    new ItemStack(ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get())
+            );
+            helper.assertFalse(satelliteFollowcastMenu.getImbueRestrictionTooltipLines().isEmpty(),
+                    "Satellite Followcast Amulet should expose Calibration Bench spell restriction tooltip lines");
+
+            var smashcastMenu = createSpellCalibrationBenchMenuWithTarget(
+                    player,
+                    new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get())
+            );
+            helper.assertFalse(smashcastMenu.getImbueRestrictionTooltipLines().isEmpty(),
+                    "Smashcast Scepter should expose Calibration Bench spell restriction tooltip lines");
+            helper.assertFalse(smashcastMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START)
+                            .mayPlace(createSpellScroll(SpellRegistry.MANA_CHARGE.get())),
+                    "Smashcast Scepter should reject CONTINUOUS scrolls in the Spell Calibration Bench");
         });
     }
 
