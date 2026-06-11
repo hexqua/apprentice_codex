@@ -1,10 +1,12 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.curios.manathruster.ManaThruster;
 import jp.aquafactory.apprenticecodex.item.curios.manathruster.ManaThrusterFlightManager;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.core.BlockPos;
@@ -12,6 +14,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Abilities;
 import net.minecraft.world.item.Item;
@@ -93,6 +96,10 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
             var magicData = magicData(helper, player, "regen suppression");
             magicData.setMana(50.0F);
             player.setOnGround(false);
+            player.addEffect(new MobEffectInstance(EffectRegistry.MANA_REGENERATION.get(), 200, 1));
+            var boostedManaRegen = player.getAttributeValue(AttributeRegistry.MANA_REGEN.get());
+            helper.assertTrue(boostedManaRegen > 1.0D,
+                    "Mana Thruster regen test expected an active mana regen boost: " + boostedManaRegen);
 
             try (var ignored = ApprenticeCodexServerConfig.useManaThrusterConfigOverrideForGameTest(5.0D)) {
                 ManaThrusterFlightManager.setJumpInput(player, true);
@@ -100,18 +107,21 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
             }
 
             helper.assertTrue(ManaThrusterFlightManager.isManaRecoverySuppressed(player),
-                    "Mana Thruster should suppress mana recovery after the first successful thrust");
+                    "Mana Thruster should suppress natural mana recovery after the first successful thrust");
+            helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.MANA_REGEN.get())) < 1.0e-4D,
+                    "Mana Thruster should reduce final natural mana regen to zero even with regen boosts: "
+                            + player.getAttributeValue(AttributeRegistry.MANA_REGEN.get()));
             magicData.setMana(magicData.getMana() + 10.0F);
-            helper.assertTrue(Math.abs(magicData.getMana() - 45.0F) < 1.0e-4F,
-                    "Mana Thruster should block mana increases before landing: " + magicData.getMana());
+            helper.assertTrue(Math.abs(magicData.getMana() - 55.0F) < 1.0e-4F,
+                    "Mana Thruster should allow non-natural mana recovery before landing: " + magicData.getMana());
 
             player.setOnGround(true);
             ManaThrusterFlightManager.tickEquippedPlayer(player);
             helper.assertFalse(ManaThrusterFlightManager.isManaRecoverySuppressed(player),
                     "Mana Thruster should clear mana recovery suppression on landing");
-            magicData.setMana(magicData.getMana() + 10.0F);
-            helper.assertTrue(Math.abs(magicData.getMana() - 55.0F) < 1.0e-4F,
-                    "Mana Thruster should allow mana recovery after landing: " + magicData.getMana());
+            helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.MANA_REGEN.get()) - boostedManaRegen) < 1.0e-4D,
+                    "Mana Thruster should restore boosted natural mana regen after landing: "
+                            + player.getAttributeValue(AttributeRegistry.MANA_REGEN.get()));
         });
     }
 
