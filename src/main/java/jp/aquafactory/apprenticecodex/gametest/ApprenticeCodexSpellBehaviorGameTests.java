@@ -18,6 +18,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String RIFT_HOLE_ISOLATED_BATCH = "apprenticecodex.rift_hole_isolated";
     private static final String DEMICREATOR_WINGS_ISOLATED_BATCH = "apprenticecodex.demicreator_wings_isolated";
     private static final String REMOTE_EYE_ISOLATED_BATCH = "apprenticecodex.remote_eye_isolated";
+    private static final String MIRAGE_AVOIDANCE_ISOLATED_BATCH = "apprenticecodex.mirage_avoidance_isolated";
     private static final String HARVEST_MOON_ISOLATED_BATCH = "apprenticecodex.harvest_moon_isolated";
     private static final String AUTO_MAGNET_ISOLATED_BATCH = "apprenticecodex.auto_magnet_isolated";
     private static final String EARTH_FORGE_ISOLATED_BATCH = "apprenticecodex.earth_forge_isolated";
@@ -224,6 +225,16 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = REMOTE_EYE_ISOLATED_BATCH)
     public static void remoteEyeDimensionDenylistOverridesAllowlist(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.remoteEyeDimensionDenylistOverridesAllowlist(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIRAGE_AVOIDANCE_ISOLATED_BATCH)
+    public static void mirageAvoidanceUsesFifteenTickInvulnerabilityAndActiveRecastLock(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mirageAvoidanceUsesFifteenTickInvulnerabilityAndActiveRecastLock(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MIRAGE_AVOIDANCE_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void mirageAvoidanceFreezesThenSlidesAndSuppressesFallDamage(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mirageAvoidanceFreezesThenSlidesAndSuppressesFallDamage(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = HARVEST_MOON_ISOLATED_BATCH)

@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowMo
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmScrollcasterGauntletIndexPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
@@ -32,6 +33,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPac
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaShieldCharmConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterActivePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncMirageAvoidanceStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
@@ -51,7 +53,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "39";
+    private static final String PROTOCOL_VERSION = "40";
 
     private Networks() {
     }
@@ -111,6 +113,11 @@ public final class Networks {
                 ClientJumpcastCharmCastPacket.TYPE,
                 ClientJumpcastCharmCastPacket.STREAM_CODEC,
                 ClientJumpcastCharmCastPacket::handle
+        );
+        registrar.playToServer(
+                ClientMirageAvoidanceCastPacket.TYPE,
+                ClientMirageAvoidanceCastPacket.STREAM_CODEC,
+                ClientMirageAvoidanceCastPacket::handle
         );
         registrar.playToClient(
                 SyncEnderGrimoireSpellbookPacket.TYPE,
@@ -186,6 +193,11 @@ public final class Networks {
                 SyncRemoteEyeStatePacket.TYPE,
                 SyncRemoteEyeStatePacket.STREAM_CODEC,
                 SyncRemoteEyeStatePacket::handle
+        );
+        registrar.playToClient(
+                SyncMirageAvoidanceStatePacket.TYPE,
+                SyncMirageAvoidanceStatePacket.STREAM_CODEC,
+                SyncMirageAvoidanceStatePacket::handle
         );
         registrar.playToClient(
                 SyncElementalBowOverheatPacket.TYPE,
