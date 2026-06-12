@@ -7,8 +7,11 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.MirageAvoidanceState;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -146,6 +149,17 @@ public final class MirageAvoidanceEvents {
     public static boolean isInputLocked(Player player) {
         var spellData = Capabilities.getSpellDataOrNull(player);
         return spellData != null && isActive(player.level(), spellData.get(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE));
+    }
+
+    public static boolean rejectServerInputCastIfLocked(ServerPlayer player) {
+        if (!isInputLocked(player)) {
+            return false;
+        }
+
+        player.connection.send(new ClientboundSetActionBarTextPacket(
+                Component.translatable("ui.apprenticecodex.during_effect").withStyle(ChatFormatting.RED)
+        ));
+        return true;
     }
 
     private static boolean isInvulnerable(Level level, MirageAvoidanceState state) {
