@@ -375,6 +375,13 @@
       "apprenticecodex:mana_jet"
     ]
   },
+  "mirage": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.mirage",
+    "sounds": [
+      "apprenticecodex:mirage"
+    ]
+  },
 
   "smashcast_scepter_smash_air": {
     "_apprentice_codex_note": "ベースはSoundEvents.PLAYER_ATTACK_CRIT",

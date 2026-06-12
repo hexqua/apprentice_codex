@@ -43,7 +43,8 @@
     "SpectralHammerMixin",
     "StructureTemplatePoolAccessor",
     "SchoolTypeAccessor",
-    "TouchDigSpellMixin"
+    "TouchDigSpellMixin",
+    "UtilsMixin"
   ],
   "client": [
     "ArcaneAnvilJeiRecipeMixin",

@@ -10,8 +10,11 @@ import jp.aquafactory.apprenticecodex.event.client.ClientPlacementPreviewManager
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientCastState;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetCaptureSpell;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
+import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidance;
+import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidanceClientController;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.ClientBlockTargetingHelper;
 import net.minecraft.client.Minecraft;
@@ -32,8 +35,16 @@ public abstract class ClientInputEventsMixin {
             )
     )
     private static void redirectCastPacket(Object message) {
-        if (message instanceof CastPacket && (apprentice_codex$shouldBlockFocusStaffbowShortcut() || apprentice_codex$trySendSelectedSpellCast())) {
-            return;
+        if (message instanceof CastPacket) {
+            if (apprentice_codex$shouldBlockFocusStaffbowShortcut()
+                    || apprentice_codex$shouldBlockMirageAvoidanceEffectInput()) {
+                return;
+            }
+            apprentice_codex$rememberMirageAvoidanceDirection();
+            if (apprentice_codex$trySendSelectedMirageAvoidanceCast()
+                    || apprentice_codex$trySendSelectedSpellCast()) {
+                return;
+            }
         }
 
         PacketDistributor.sendToServer(message);
@@ -48,10 +59,16 @@ public abstract class ClientInputEventsMixin {
             )
     )
     private static void redirectQuickCastPacket(Object message) {
-        if (message instanceof QuickCastPacket quickCastPacket
-                && (apprentice_codex$shouldBlockFocusStaffbowShortcut()
-                || apprentice_codex$trySendTargetedQuickCast(quickCastPacket))) {
-            return;
+        if (message instanceof QuickCastPacket quickCastPacket) {
+            if (apprentice_codex$shouldBlockFocusStaffbowShortcut()
+                    || apprentice_codex$shouldBlockMirageAvoidanceEffectInput()) {
+                return;
+            }
+            apprentice_codex$rememberMirageAvoidanceDirection();
+            if (apprentice_codex$trySendMirageAvoidanceQuickCast(quickCastPacket)
+                    || apprentice_codex$trySendTargetedQuickCast(quickCastPacket)) {
+                return;
+            }
         }
 
         PacketDistributor.sendToServer(message);
@@ -84,6 +101,56 @@ public abstract class ClientInputEventsMixin {
     private static boolean apprentice_codex$shouldBlockFocusStaffbowShortcut() {
         var player = Minecraft.getInstance().player;
         return player != null && FocusStaffbowClientCastState.hasPendingCast(player);
+    }
+
+    @Unique
+    private static boolean apprentice_codex$shouldBlockMirageAvoidanceEffectInput() {
+        if (!MirageAvoidanceClientController.isActive()) {
+            return false;
+        }
+
+        MirageAvoidanceClientController.showDuringEffectMessage();
+        return true;
+    }
+
+    @Unique
+    private static boolean apprentice_codex$trySendSelectedMirageAvoidanceCast() {
+        var selectionManager = ClientMagicData.getSpellSelectionManager();
+        if (selectionManager == null) {
+            return false;
+        }
+
+        var spellData = selectionManager.getSelectedSpellData();
+        return apprentice_codex$trySendMirageAvoidanceCastPacket(spellData, -1);
+    }
+
+    @Unique
+    private static boolean apprentice_codex$trySendMirageAvoidanceQuickCast(QuickCastPacket quickCastPacket) {
+        var selectionManager = ClientMagicData.getSpellSelectionManager();
+        if (selectionManager == null) {
+            return false;
+        }
+
+        var quickCastSlot = ((QuickCastPacketAccessor) quickCastPacket).apprenticecodex$getSlot();
+        var spellData = selectionManager.getSpellData(quickCastSlot);
+        return apprentice_codex$trySendMirageAvoidanceCastPacket(spellData, quickCastSlot);
+    }
+
+    @Unique
+    private static boolean apprentice_codex$trySendMirageAvoidanceCastPacket(SpellData spellData, int quickCastSlot) {
+        if (spellData == SpellData.EMPTY || !(spellData.getSpell() instanceof MirageAvoidance)) {
+            return false;
+        }
+
+        var input = MirageAvoidanceClientController.captureCurrentInput();
+        Networks.sendToServer(new ClientMirageAvoidanceCastPacket(quickCastSlot, input.forward(), input.strafe()));
+        return true;
+    }
+
+    @Unique
+    private static void apprentice_codex$rememberMirageAvoidanceDirection() {
+        var input = MirageAvoidanceClientController.captureCurrentInput();
+        Networks.sendToServer(ClientMirageAvoidanceCastPacket.rememberInput(input.forward(), input.strafe()));
     }
 
     @Unique

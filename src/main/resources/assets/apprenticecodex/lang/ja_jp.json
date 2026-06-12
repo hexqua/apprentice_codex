@@ -624,6 +624,7 @@
   "spell.apprenticecodex.inscribe_ice": "インスクライブアイス",
   "spell.apprenticecodex.divine_possession": "神降ろし",
   "spell.apprenticecodex.heavenly_fist": "天からの鉄拳",
+  "spell.apprenticecodex.mirage_avoidance": "ミラージュアヴォイド",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -687,6 +688,7 @@
   "spell.apprenticecodex.inscribe_ice.guide": "命中したモブに対して氷の魔力を刻み込む氷のダガーを生成して扇状に投擲する。三回刻み込むと氷の魔力が炸裂し大ダメージを与える。この魔力の炸裂は近くの刻み込まれた氷の魔力の炸裂を誘発する。",
   "spell.apprenticecodex.divine_possession.guide": "元素の乙女のローブの固有の潜在魔法。属性を司る存在をその身に降ろし、一定時間最も強い系統のボーナスを他の全ての系統に反映させる。その身に存在を降ろすためには全部位の元素の乙女の衣装を着込む必要がある。",
   "spell.apprenticecodex.heavenly_fist.guide": "狙った場所にアメジストの魔導拳を召喚し、空間ごと打ち付ける。効果範囲内の対象は暫く地面に叩き落とされる。歯車の理が世界に存在する場合、打ち付けられた拳付近に限定されるがアイテムのプレス加工や圧縮加工を試みる。",
+  "spell.apprenticecodex.mirage_avoidance.guide": "発動直後の短時間、あらゆるダメージを回避しつつ移動方向へ滑るように移動する。体の向きを変えることで滑る方向を微調整できる。魔法のレベルや魔法威力によって移動距離は変化しない。かつてこの空よりはるか広い空を守った守護者の扱う技術の模造品。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -732,6 +734,7 @@
   "ui.apprenticecodex.recast_summon_spell.no_weapon": "武器が見つからない！",
   "ui.apprenticecodex.commence_fire.during_recoil": "反動が鎮まっていない",
   "ui.apprenticecodex.during_standby": "準備中",
+  "ui.apprenticecodex.during_effect": "まだ効果が終了していない！",
   "ui.apprenticecodex.fly_swatter.lockon_entity": "%s をロックオン...(%d/%d)",
   "ui.apprenticecodex.cant_jump_more": "それ以上空中ジャンプできない！",
   "ui.apprenticecodex.not_hold_pastel_staff": "力を引き出すべき杖が手元にない...",
@@ -1066,6 +1069,7 @@
   "subtitle.apprenticecodex.sound.revolve": "機構が作動する",
   "subtitle.apprenticecodex.sound.amethyst_fist": "宝石が叩きつけられる",
   "subtitle.apprenticecodex.sound.mana_jet": "推進装置が動く",
+  "subtitle.apprenticecodex.sound.mirage": "魔力を纏う",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_air": "セプターを振り下ろす",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground": "セプターが地面を打つ",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground_heavy": "セプターが激しく叩きつけられる",

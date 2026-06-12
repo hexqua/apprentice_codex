@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowMo
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmScrollcasterGauntletIndexPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
@@ -33,6 +34,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPac
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaShieldCharmConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterActivePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncMirageAvoidanceStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
@@ -55,7 +57,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "42";
+    private static final String PROTOCOL_VERSION = "43";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -178,6 +180,14 @@ public final class Networks {
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
+                ClientMirageAvoidanceCastPacket.class,
+                ClientMirageAvoidanceCastPacket::encode,
+                ClientMirageAvoidanceCastPacket::decode,
+                ClientMirageAvoidanceCastPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER)
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
                 SyncEnderGrimoireSpellbookPacket.class,
                 SyncEnderGrimoireSpellbookPacket::encode,
                 SyncEnderGrimoireSpellbookPacket::decode,
@@ -284,6 +294,14 @@ public final class Networks {
                 SyncRemoteEyeStatePacket::encode,
                 SyncRemoteEyeStatePacket::decode,
                 SyncRemoteEyeStatePacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncMirageAvoidanceStatePacket.class,
+                SyncMirageAvoidanceStatePacket::encode,
+                SyncMirageAvoidanceStatePacket::decode,
+                SyncMirageAvoidanceStatePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

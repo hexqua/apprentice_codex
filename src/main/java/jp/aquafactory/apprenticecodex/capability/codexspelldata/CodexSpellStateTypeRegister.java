@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Forc
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.HealingBloomState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.MantisLeapState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.MirageAvoidanceState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.RemoteEyeState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SpectralWingState;
@@ -36,6 +37,7 @@ public final class CodexSpellStateTypeRegister {
     public static CodexSpellStateType<HealingBloomState> HEALING_BLOOM_STATE;
     public static CodexSpellStateType<ManaShieldCharmState> MANA_SHIELD_CHARM_STATE;
     public static CodexSpellStateType<MantisLeapState> MANTIS_LEAP_STATE;
+    public static CodexSpellStateType<MirageAvoidanceState> MIRAGE_AVOIDANCE_STATE;
     public static CodexSpellStateType<RemoteEyeState> REMOTE_EYE_STATE;
     public static CodexSpellStateType<SearchBeaconState> SEARCH_BEACON_STATE;
     public static CodexSpellStateType<SpectralWingState> SPECTRAL_WING_STATE;
@@ -56,6 +58,7 @@ public final class CodexSpellStateTypeRegister {
         HEALING_BLOOM_STATE = CodexSpellStates.register("healing_bloom", HealingBloomState::new);
         MANA_SHIELD_CHARM_STATE = CodexSpellStates.register("mana_shield_charm", ManaShieldCharmState::new);
         MANTIS_LEAP_STATE = CodexSpellStates.register("mantis_leap", MantisLeapState::new);
+        MIRAGE_AVOIDANCE_STATE = CodexSpellStates.register("mirage_avoidance", MirageAvoidanceState::new);
         REMOTE_EYE_STATE = CodexSpellStates.register("remote_eye", RemoteEyeState::new);
         SEARCH_BEACON_STATE = CodexSpellStates.register("search_beacon", SearchBeaconState::new);
         SPECTRAL_WING_STATE = CodexSpellStates.register("spectral_wing", SpectralWingState::new);

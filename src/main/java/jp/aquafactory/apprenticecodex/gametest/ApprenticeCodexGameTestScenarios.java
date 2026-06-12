@@ -50,6 +50,7 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellPr
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.MirageAvoidanceState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -181,6 +182,8 @@ import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceBurst;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerEntity;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileEntity;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidanceEvents;
+import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidanceInput;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShield;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldDefenseEvent;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldProjectileEntity;
@@ -5940,6 +5943,82 @@ public class ApprenticeCodexGameTestScenarios {
         helper.succeed();
     }
 
+    static void mirageAvoidanceUsesFifteenTickInvulnerabilityAndActiveRecastLock(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mirage_avoidance_window_test");
+        var spell = SpellRegistry.MIRAGE_AVOIDANCE.get();
+        var magicData = MagicData.getPlayerMagicData(player);
+
+        MirageAvoidanceInput.setPending(player, 0.0F, -1.0F);
+        spell.onCast(level, 1, player, CastSource.SPELLBOOK, magicData);
+
+        var state = getMirageAvoidanceState(player);
+        helper.assertTrue(state.activeUntilGameTime == level.getGameTime() + MirageAvoidanceEvents.EFFECT_DURATION_TICKS,
+                "MirageAvoidance should keep a 25 tick active window");
+        helper.assertTrue(state.invulnerableUntilGameTime == level.getGameTime() + MirageAvoidanceEvents.INVULNERABLE_TICKS,
+                "MirageAvoidance should keep only 15 ticks of invulnerability");
+        helper.assertTrue(Math.abs(state.movementForward) < 1.0E-4F && state.movementStrafe < -0.99F,
+                "MirageAvoidance should store the activation input direction");
+        helper.assertFalse(
+                spell.checkPreCastConditions(level, 1, player, magicData),
+                "MirageAvoidance should reject recast while the effect is active"
+        );
+
+        var blockedAttack = postLivingAttackEventForGameTest(player, level.damageSources().lava(), 4.0F);
+        helper.assertTrue(blockedAttack.isCanceled(), "MirageAvoidance should cancel all damage during the invulnerability window");
+
+        Capabilities.withSpellData(player, data -> data.edit(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE, s -> {
+            s.startGameTime = level.getGameTime() - MirageAvoidanceEvents.INVULNERABLE_TICKS;
+            s.invulnerableUntilGameTime = level.getGameTime();
+            s.activeUntilGameTime = level.getGameTime() + 30;
+            s.suppressFallDamageUntilGround = true;
+        }));
+
+        var vulnerableAttack = postLivingAttackEventForGameTest(player, level.damageSources().lava(), 4.0F);
+        helper.assertFalse(vulnerableAttack.isCanceled(), "MirageAvoidance should allow normal damage after tick 20");
+        var fallAttack = postLivingAttackEventForGameTest(player, level.damageSources().fall(), 4.0F);
+        helper.assertTrue(fallAttack.isCanceled(), "MirageAvoidance should still cancel fall damage after invulnerability ends");
+        helper.succeed();
+    }
+
+    static void mirageAvoidanceFreezesThenSlidesAndSuppressesFallDamage(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 5, 0), "mirage_avoidance_motion_test");
+        var spell = SpellRegistry.MIRAGE_AVOIDANCE.get();
+        var magicData = MagicData.getPlayerMagicData(player);
+
+        MirageAvoidanceInput.setPending(player, 1.0F, 0.0F);
+        spell.onCast(level, 1, player, CastSource.SPELLBOOK, magicData);
+        player.setDeltaMovement(0.3D, -0.5D, 0.2D);
+        player.fallDistance = 8.0F;
+
+        MirageAvoidanceEvents.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.START, player));
+        MirageAvoidanceEvents.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+        var startupMovement = player.getDeltaMovement();
+        helper.assertTrue(startupMovement.lengthSqr() < 1.0E-6D,
+                "MirageAvoidance freeze startup should remove movement");
+        helper.assertTrue(player.fallDistance == 0.0F,
+                "MirageAvoidance should reset fall distance during startup");
+
+        Capabilities.withSpellData(player, data -> data.edit(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE, s -> {
+            s.startGameTime = level.getGameTime() - MirageAvoidanceEvents.FREEZE_TICKS - 2;
+            s.activeUntilGameTime = level.getGameTime() + 30;
+        }));
+        player.setDeltaMovement(0.0D, -0.5D, 0.0D);
+        player.fallDistance = 8.0F;
+        MirageAvoidanceEvents.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.START, player));
+        MirageAvoidanceEvents.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+        var slideMovement = player.getDeltaMovement();
+        var horizontalSpeedSqr = slideMovement.x * slideMovement.x + slideMovement.z * slideMovement.z;
+        helper.assertTrue(horizontalSpeedSqr > 0.01D,
+                "MirageAvoidance should slide after startup");
+        helper.assertTrue(slideMovement.y >= -0.081D,
+                "MirageAvoidance slide should clamp falling speed");
+        helper.assertTrue(player.fallDistance == 0.0F,
+                "MirageAvoidance should keep fall distance reset while sliding");
+        helper.succeed();
+    }
+
     static void harvestMoonResetsMatureNetherWartAndPullsDrops(GameTestHelper helper) {
         var casterPos = new BlockPos(0, 3, 0);
         var matureCropPos = new BlockPos(3, 2, 0);
@@ -7720,6 +7799,12 @@ public class ApprenticeCodexGameTestScenarios {
         return player.getCapability(Capabilities.SPELL_DATA)
                 .map(data -> data.get(CodexSpellStateTypeRegister.MANA_SHIELD_CHARM_STATE))
                 .orElseThrow(() -> new IllegalStateException("Missing spell data for Mana Shield Charm GameTest"));
+    }
+
+    static MirageAvoidanceState getMirageAvoidanceState(Player player) {
+        return player.getCapability(Capabilities.SPELL_DATA)
+                .map(data -> data.get(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE))
+                .orElseThrow(() -> new IllegalStateException("Missing spell data for MirageAvoidance GameTest"));
     }
 
     static void invokeTouchDigDestroyBlock(TouchDigSpell spell, Level level, BlockPos pos, Player player) {

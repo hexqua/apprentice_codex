@@ -40,6 +40,7 @@ import jp.aquafactory.apprenticecodex.spell.manacharge.ManaCharge;
 import jp.aquafactory.apprenticecodex.spell.manifestationgrimoire.ManifestationGrimoire;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeap;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlash;
+import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidance;
 import jp.aquafactory.apprenticecodex.spell.mistform.MistForm;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLight;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShield;
@@ -101,6 +102,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> LONG_STRIDE = reg("long_stride", LongStride::new);
     public static final RegistryObject<AbstractSpell> RIFT_HOLE = reg("rift_hole", RiftHole::new);
     public static final RegistryObject<AbstractSpell> DEMICREATOR_WINGS = reg("demicreator_wings", DemicreatorWings::new);
+    public static final RegistryObject<AbstractSpell> MIRAGE_AVOIDANCE = reg("mirage_avoidance", MirageAvoidance::new);
 
     // 召喚.
     public static final RegistryObject<AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
