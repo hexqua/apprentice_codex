@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.HeavenlyFistPulsePacket;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -18,7 +19,6 @@ import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -93,8 +93,7 @@ public class MirageAvoidance extends AbstractSpell {
 
     @Override
     public Optional<SoundEvent> getCastFinishSound() {
-        // todo:字幕用に自前のsounds.jsonに切り出すか音を作る.
-        return Optional.of(SoundEvents.PORTAL_TRAVEL);
+        return Optional.of(SoundRegistry.MIRAGE.get());
     }
 
     @Override
