@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.item;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffManaRecoveryManager;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffManaRecoveryManager.PendingManaRecovery;
@@ -8,10 +10,13 @@ import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.CrystalBladedStaffRenderer;
+import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
+import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
@@ -33,7 +38,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import net.minecraft.world.phys.Vec3;
 
-public class CrystalBladedStaff extends AbstractRightClickMagicWeaponItem implements GeoItem, UniqueItem {
+public class CrystalBladedStaff extends AbstractSwingMagicItem implements GeoItem, UniqueItem {
     private static final String MAIN_CONTROLLER = "main";
     private static final String ACTIVATE_ANIMATION = "activate";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
@@ -62,7 +67,6 @@ public class CrystalBladedStaff extends AbstractRightClickMagicWeaponItem implem
                 new Item.Properties().stacksTo(1).rarity(Rarity.RARE),
                 SpellRegistry.MANA_SLASH,
                 1,
-                true,
                 ENCHANTMENT_VALUE,
                 "CrystalBladedStaff",
                 ATTACK_DAMAGE,
@@ -71,6 +75,61 @@ public class CrystalBladedStaff extends AbstractRightClickMagicWeaponItem implem
                 bonus(AttributeRegistry.SPELL_POWER, SPELL_POWER_BONUS, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.MULTIPLY_BASE, "spell_power")
         );
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public @NotNull ItemStack getDefaultInstance() {
+        var stack = super.getDefaultInstance();
+        initializeSpellContainer(stack);
+        return stack;
+    }
+
+    @Override
+    public void onCraftedBy(@NotNull ItemStack stack, @NotNull Level level, @NotNull net.minecraft.world.entity.player.Player player) {
+        super.onCraftedBy(stack, level, player);
+        initializeSpellContainer(stack);
+    }
+
+    @Override
+    public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity, int slotId, boolean isSelected) {
+        super.inventoryTick(stack, level, entity, slotId, isSelected);
+        initializeSpellContainer(stack);
+    }
+
+    @Override
+    protected boolean normalizeLegacyOverriddenSpellContainerIfNeeded(ItemStack stack) {
+        var spellContainer = ISpellContainer.get(stack);
+        if (spellContainer == null) {
+            return false;
+        }
+
+        if (!spellContainer.isSpellWheel()) {
+            return super.normalizeLegacyOverriddenSpellContainerIfNeeded(stack);
+        }
+
+        // 旧版の刃の結晶杖は Mana Slash/差し替え Imbue を spell wheel に出していた。
+        // 左クリック発動へ移行した後も既存ワールドの杖が同じ魔法を保持しつつ、wheel には出ないよう正規化する。
+        var spellData = spellContainer.getSpellAtIndex(0);
+        var normalized = ISpellContainer.create(1, false, false).mutableCopy();
+        if (spellData != SpellData.EMPTY && canImbueSpell(spellData)) {
+            var locked = matchesConfiguredPresetSpell(spellData) && !spellData.canRemove();
+            if (!normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, locked)) {
+                return false;
+            }
+
+            ISpellContainer.set(stack, normalized.toImmutable());
+            if (locked) {
+                PresetSpellContainerStateHelper.clearRememberedState(stack);
+            } else {
+                PresetSpellContainerStateHelper.rememberOverridden(stack, spellData);
+            }
+            return true;
+        }
+
+        InitialSpellContainerHelper.addInitialSpellIfEnabled(normalized, SpellRegistry.MANA_SLASH, 1, 0, true);
+        ISpellContainer.set(stack, normalized.toImmutable());
+        PresetSpellContainerStateHelper.clearRememberedState(stack);
+        return true;
     }
 
     @Override

@@ -45,6 +45,12 @@ public final class ApprenticeCodexServerConfig {
         return DAMAGE_MULTIPLIER_CONFIG.value(key);
     }
 
+    public static GameTestConfigOverride useDamageMultiplierOverrideForGameTest(DamageMultiplierKey key, double value) {
+        var previousValue = DAMAGE_MULTIPLIER_CONFIG.value(key);
+        DAMAGE_MULTIPLIER_CONFIG.setValueForGameTest(key, value);
+        return () -> DAMAGE_MULTIPLIER_CONFIG.setValueForGameTest(key, previousValue);
+    }
+
     public static boolean isSpellcasterWorkbenchRecipeDenied(ResourceLocation recipeId) {
         return PROCESSING_CONFIG.isSpellcasterWorkbenchRecipeDenied(recipeId);
     }

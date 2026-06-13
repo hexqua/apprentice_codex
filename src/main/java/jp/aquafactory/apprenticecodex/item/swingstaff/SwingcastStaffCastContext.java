@@ -5,6 +5,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Optional;
 import java.util.UUID;
 
 public final class SwingcastStaffCastContext implements AutoCloseable {
@@ -18,9 +19,18 @@ public final class SwingcastStaffCastContext implements AutoCloseable {
     }
 
     public static SwingcastStaffCastContext open(UUID playerId, ItemStack stack, AbstractSpell spell) {
-        var entry = new Entry(playerId, stack.getItem(), spell.getSpellId());
+        var entry = new Entry(playerId, stack.copy(), spell.getSpellId());
         ACTIVE_CONTEXTS.get().push(entry);
         return new SwingcastStaffCastContext(entry);
+    }
+
+    public static Optional<ItemStack> getCastingStack(UUID playerId, AbstractSpell spell) {
+        if (!matches(playerId, spell.getSpellId())) {
+            return Optional.empty();
+        }
+
+        var current = ACTIVE_CONTEXTS.get().peek();
+        return current == null ? Optional.empty() : Optional.of(current.stack());
     }
 
     static boolean matches(UUID playerId, ItemStack stack, AbstractSpell spell) {
@@ -29,7 +39,7 @@ public final class SwingcastStaffCastContext implements AutoCloseable {
         }
 
         var current = ACTIVE_CONTEXTS.get().peek();
-        return current != null && current.item() == stack.getItem();
+        return current != null && current.stack().getItem() == stack.getItem();
     }
 
     public static boolean matches(UUID playerId, String spellId) {
@@ -59,6 +69,6 @@ public final class SwingcastStaffCastContext implements AutoCloseable {
         }
     }
 
-    private record Entry(UUID playerId, net.minecraft.world.item.Item item, String spellId) {
+    private record Entry(UUID playerId, ItemStack stack, String spellId) {
     }
 }

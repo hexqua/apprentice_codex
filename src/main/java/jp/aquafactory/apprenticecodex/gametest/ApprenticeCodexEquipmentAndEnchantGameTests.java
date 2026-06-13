@@ -844,6 +844,56 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffStartsWithHiddenManaSlash(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffStartsWithHiddenManaSlash(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeld(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeld(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeldInOffhand(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeldInOffhand(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffLegacyWheelReplacementStaysRemovableWhenHeld(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffLegacyWheelReplacementStaysRemovableWhenHeld(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaSlashOffhandSwingUsesOffhandCatalystAttackDamage(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.manaSlashOffhandSwingUsesOffhandCatalystAttackDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaSlashCatalystDamageUsesStackAttributeModifiers(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.manaSlashCatalystDamageUsesStackAttributeModifiers(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaSlashCatalystDamageAppliesAttributeEventOnce(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.manaSlashCatalystDamageAppliesAttributeEventOnce(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaSlashDamageMultiplierAppliesAfterMinimumDamage(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.manaSlashDamageMultiplierAppliesAfterMinimumDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaSlashAllowsNonSwingcastPrecondition(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.manaSlashAllowsNonSwingcastPrecondition(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaSlashRequiresSwingcastCatalystWhenContextIsActive(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.manaSlashRequiresSwingcastCatalystWhenContextIsActive(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellGunsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.spellGunsKeepExpectedEnchantmentSurfaces(helper);
     }
