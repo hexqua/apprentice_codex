@@ -7,6 +7,8 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
@@ -33,6 +35,8 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.ItemAttributeModifierEvent;
 
 final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private SwingcastStaffGameTestScenarios() {
@@ -191,6 +195,51 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
                     "Mana Slash catalyst damage should include stack AttributeModifiers NBT: " + resolvedDamage);
         });
     }
+
+    static void manaSlashCatalystDamageAppliesAttributeEventOnce(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_slash_attribute_event");
+            var catalystStack = new ItemStack(Items.STICK);
+            catalystStack.addAttributeModifier(
+                    Attributes.ATTACK_DAMAGE,
+                    new AttributeModifier(
+                            UUID.fromString("9ecb8ab9-6cf7-46e1-befa-851e53146876"),
+                            "Mana Slash GameTest NBT attack damage",
+                            20.0D,
+                            AttributeModifier.Operation.ADDITION
+                    ),
+                    EquipmentSlot.MAINHAND
+            );
+
+            var eventCalls = new AtomicInteger();
+            Consumer<ItemAttributeModifierEvent> listener = event -> {
+                if (event.getItemStack() == catalystStack && event.getSlotType() == EquipmentSlot.MAINHAND) {
+                    eventCalls.incrementAndGet();
+                    event.addModifier(
+                            Attributes.ATTACK_DAMAGE,
+                            new AttributeModifier(
+                                    UUID.fromString("98624507-b4c7-4188-9b1c-b058c8168a6a"),
+                                    "Mana Slash GameTest event attack damage",
+                                    5.0D,
+                                    AttributeModifier.Operation.ADDITION
+                            )
+                    );
+                }
+            };
+
+            MinecraftForge.EVENT_BUS.addListener(listener);
+            try {
+                var resolvedDamage = ManaSlash.resolveCatalystWeaponDamage(player, catalystStack, MobType.UNDEFINED);
+                helper.assertTrue(eventCalls.get() == 1,
+                        "Mana Slash catalyst damage should fire ItemAttributeModifierEvent once but got " + eventCalls.get());
+                helper.assertTrue(Math.abs(resolvedDamage - 26.0F) < 1.0e-4F,
+                        "Mana Slash catalyst damage should include NBT and one event modifier: " + resolvedDamage);
+            } finally {
+                MinecraftForge.EVENT_BUS.unregister(listener);
+            }
+        });
+    }
+
     static void manaSlashDamageMultiplierAppliesAfterMinimumDamage(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_slash_low_multiplier");
         var catalystStack = new ItemStack(Items.STICK);

@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.manaslash;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
@@ -15,6 +17,7 @@ import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -29,6 +32,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
 import java.util.Optional;
@@ -114,7 +118,7 @@ public class ManaSlash extends AbstractSpell {
             Attribute attribute,
             double baseValue
     ) {
-        var event = new ItemAttributeModifierEvent(stack, slot, stack.getAttributeModifiers(slot));
+        var event = new ItemAttributeModifierEvent(stack, slot, resolveBaseAttributeModifiers(stack, slot));
         MinecraftForge.EVENT_BUS.post(event);
 
         var valueWithAdditions = baseValue;
@@ -139,6 +143,35 @@ public class ManaSlash extends AbstractSpell {
         }
 
         return valueWithTotalMultipliers;
+    }
+
+    private static Multimap<Attribute, AttributeModifier> resolveBaseAttributeModifiers(ItemStack stack, EquipmentSlot slot) {
+        if (!stack.hasTag() || !stack.getOrCreateTag().contains("AttributeModifiers", 9)) {
+            return stack.getItem().getAttributeModifiers(slot, stack);
+        }
+
+        var modifiers = HashMultimap.<Attribute, AttributeModifier>create();
+        var nbtModifiers = stack.getOrCreateTag().getList("AttributeModifiers", 10);
+        for (var i = 0; i < nbtModifiers.size(); ++i) {
+            var modifierTag = nbtModifiers.getCompound(i);
+            if (isAttributeModifierForSlot(modifierTag, slot)) {
+                var attribute = ForgeRegistries.ATTRIBUTES.getValue(
+                        ResourceLocation.tryParse(modifierTag.getString("AttributeName"))
+                );
+                var modifier = AttributeModifier.load(modifierTag);
+                if (attribute != null
+                        && modifier != null
+                        && modifier.getId().getLeastSignificantBits() != 0L
+                        && modifier.getId().getMostSignificantBits() != 0L) {
+                    modifiers.put(attribute, modifier);
+                }
+            }
+        }
+        return modifiers;
+    }
+
+    private static boolean isAttributeModifierForSlot(CompoundTag modifierTag, EquipmentSlot slot) {
+        return !modifierTag.contains("Slot", 8) || modifierTag.getString("Slot").equals(slot.getName());
     }
 
     private Optional<ItemStack> resolveCatalystStack(LivingEntity entity) {
