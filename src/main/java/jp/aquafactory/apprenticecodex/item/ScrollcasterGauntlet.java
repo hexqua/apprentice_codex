@@ -119,7 +119,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public ScrollcasterGauntlet() {
-        super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE));
+        super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
     }
 

@@ -51,7 +51,7 @@ public class EnderGrimoire extends Item implements ICurioItem, ISpellbook, IPres
     };
 
     public EnderGrimoire() {
-        super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
+        super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON).fireResistant());
     }
 
     @Override

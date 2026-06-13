@@ -95,7 +95,7 @@ public final class MultipurposeStaffrifle extends Item
     private final ItemAttributeModifiers baseMainhandModifiers = buildBaseMainhandModifiers();
 
     public MultipurposeStaffrifle() {
-        super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE));
+        super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
     }
 

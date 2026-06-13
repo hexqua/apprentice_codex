@@ -63,6 +63,7 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
         super(new Item.Properties()
                         .stacksTo(1)
                         .rarity(Rarity.EPIC)
+                        .fireResistant()
                         .attributes(ExtendedSwordItem.createAttributes(PASTEL_STAFF_WEAPON_TIER)));
         GeoItem.registerSyncedAnimatable(this);
     }

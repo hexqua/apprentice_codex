@@ -58,6 +58,7 @@ public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpe
         super(new Item.Properties()
                 .stacksTo(1)
                 .rarity(Rarity.EPIC)
+                .fireResistant()
                 .attributes(ExtendedSwordItem.createAttributes(MULTICAST_ECHO_STAFF_TIER)));
         GeoItem.registerSyncedAnimatable(this);
     }

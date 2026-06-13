@@ -89,6 +89,7 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
         super(new Item.Properties()
                 .stacksTo(1)
                 .rarity(Rarity.RARE)
+                .fireResistant()
                 .attributes(ExtendedSwordItem.createAttributes(CIRCUIT_HEAT_STAFF_TIER)));
         GeoItem.registerSyncedAnimatable(this);
     }

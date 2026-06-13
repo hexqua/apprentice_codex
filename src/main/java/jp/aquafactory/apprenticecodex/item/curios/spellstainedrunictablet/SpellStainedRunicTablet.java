@@ -41,6 +41,11 @@ public class SpellStainedRunicTablet extends SpellBook implements IJeiInfoItem {
     }
 
     @Override
+    public boolean isFireResistant() {
+        return true;
+    }
+
+    @Override
     public @NotNull Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(
             SlotContext slotContext,
             ResourceLocation id,
