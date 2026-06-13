@@ -6419,8 +6419,8 @@ public class ApprenticeCodexGameTestScenarios {
         player.setDeltaMovement(0.3D, -0.5D, 0.2D);
         player.fallDistance = 8.0F;
 
-        MirageAvoidanceEvents.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.START, player));
-        MirageAvoidanceEvents.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+        MirageAvoidanceEvents.onPlayerTick(new PlayerTickEvent.Pre(player));
+        MirageAvoidanceEvents.onPlayerTick(new PlayerTickEvent.Post(player));
         var startupMovement = player.getDeltaMovement();
         helper.assertTrue(startupMovement.lengthSqr() < 1.0E-6D,
                 "MirageAvoidance freeze startup should remove movement");
@@ -6433,8 +6433,8 @@ public class ApprenticeCodexGameTestScenarios {
         }));
         player.setDeltaMovement(0.0D, -0.5D, 0.0D);
         player.fallDistance = 8.0F;
-        MirageAvoidanceEvents.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.START, player));
-        MirageAvoidanceEvents.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+        MirageAvoidanceEvents.onPlayerTick(new PlayerTickEvent.Pre(player));
+        MirageAvoidanceEvents.onPlayerTick(new PlayerTickEvent.Post(player));
         var slideMovement = player.getDeltaMovement();
         var horizontalSpeedSqr = slideMovement.x * slideMovement.x + slideMovement.z * slideMovement.z;
         helper.assertTrue(horizontalSpeedSqr > 0.01D,
@@ -8266,9 +8266,11 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static MirageAvoidanceState getMirageAvoidanceState(Player player) {
-        return player.getCapability(Capabilities.SPELL_DATA)
-                .map(data -> data.get(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE))
-                .orElseThrow(() -> new IllegalStateException("Missing spell data for MirageAvoidance GameTest"));
+        var spellData = Capabilities.getSpellDataOrNull(player);
+        if (spellData == null) {
+            throw new IllegalStateException("Missing spell data for MirageAvoidance GameTest");
+        }
+        return spellData.get(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE);
     }
 
     static void invokeTouchDigDestroyBlock(TouchDigSpell spell, Level level, BlockPos pos, Player player) {

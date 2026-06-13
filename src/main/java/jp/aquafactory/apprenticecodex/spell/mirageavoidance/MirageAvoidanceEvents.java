@@ -19,15 +19,15 @@ import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.joml.Vector3f;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class MirageAvoidanceEvents {
     public static final int EFFECT_DURATION_TICKS = 25;
     public static final int INVULNERABLE_TICKS = 15;
@@ -46,12 +46,16 @@ public final class MirageAvoidanceEvents {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.START && event.phase != TickEvent.Phase.END) {
-            return;
-        }
+    public static void onPlayerTick(PlayerTickEvent.Pre event) {
+        onPlayerTick(event.getEntity(), true);
+    }
 
-        var player = event.player;
+    @SubscribeEvent
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        onPlayerTick(event.getEntity(), false);
+    }
+
+    private static void onPlayerTick(Player player, boolean isPre) {
         var spellData = Capabilities.getSpellDataOrNull(player);
         if (spellData == null) {
             return;
@@ -70,20 +74,20 @@ public final class MirageAvoidanceEvents {
         }
 
         var elapsedTicks = getElapsedTicks(level, state);
-        if (event.phase == TickEvent.Phase.START) {
+        if (isPre) {
             applyMovement(player, state, elapsedTicks);
         } else {
             stabilizePostPhysicsMovement(player, elapsedTicks);
         }
         player.fallDistance = 0.0F;
 
-        if (event.phase == TickEvent.Phase.START && !level.isClientSide) {
+        if (isPre && !level.isClientSide) {
             spawnTrailParticles(player, elapsedTicks);
         }
     }
 
     @SubscribeEvent
-    public static void onLivingAttack(LivingAttackEvent event) {
+    public static void onLivingAttack(LivingIncomingDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) {
             return;
         }
