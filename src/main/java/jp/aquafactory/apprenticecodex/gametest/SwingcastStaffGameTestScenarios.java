@@ -5,11 +5,14 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import java.util.Set;
 
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
+import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastCooldownMode;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 
@@ -35,6 +38,57 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
                     "Copper Swingcast Staff preset spell mismatch: " + spellData.getSpell().getSpellResource());
             helper.assertTrue(spellData.getLevel() == 1,
                     "Copper Swingcast Staff preset spell level mismatch: " + spellData.getLevel());
+        });
+    }
+    static void crystalBladedStaffStartsWithHiddenManaSlash(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (CrystalBladedStaff) ItemRegistry.CRYSTAL_BLADED_STAFF.get();
+            var stack = new ItemStack(item);
+            item.initializeSpellContainer(stack);
+
+            helper.assertTrue(item instanceof SwingTriggeredMagicItem,
+                    "Crystal Bladed Staff should trigger imbued spells on swing");
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Crystal Bladed Staff spell container is null");
+            helper.assertTrue(!spellContainer.isSpellWheel(),
+                    "Crystal Bladed Staff preset spell should stay hidden from the spell wheel");
+            assertSpellData(helper, spellContainer, 0, SpellRegistry.MANA_SLASH.get(), 1, true,
+                    "Crystal Bladed Staff should start with locked Mana Slash");
+        });
+    }
+    static void crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeld(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (CrystalBladedStaff) ItemRegistry.CRYSTAL_BLADED_STAFF.get();
+            var stack = createLegacyCrystalBladedStaffContainer(SpellRegistry.MANA_SLASH.get(), 1, true);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "crystal_bladed_staff_legacy_preset");
+
+            item.inventoryTick(stack, helper.getLevel(), player, 0, true);
+
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Crystal Bladed Staff rescued preset container is null");
+            helper.assertTrue(!spellContainer.isSpellWheel(),
+                    "Crystal Bladed Staff legacy preset should be removed from the spell wheel");
+            assertSpellData(helper, spellContainer, 0, SpellRegistry.MANA_SLASH.get(), 1, true,
+                    "Crystal Bladed Staff legacy preset should stay locked after rescue");
+        });
+    }
+    static void crystalBladedStaffLegacyWheelReplacementStaysRemovableWhenHeld(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (CrystalBladedStaff) ItemRegistry.CRYSTAL_BLADED_STAFF.get();
+            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var stack = createLegacyCrystalBladedStaffContainer(replacementSpell, 1, false);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "crystal_bladed_staff_legacy_replacement");
+
+            item.inventoryTick(stack, helper.getLevel(), player, 0, true);
+
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Crystal Bladed Staff rescued replacement container is null");
+            helper.assertTrue(!spellContainer.isSpellWheel(),
+                    "Crystal Bladed Staff legacy replacement should be removed from the spell wheel");
+            assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
+                    "Crystal Bladed Staff legacy replacement should stay removable after rescue");
+            helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
+                    "Crystal Bladed Staff legacy replacement should remain extractable after rescue");
         });
     }
     static void copperSwingcastStaffReplacementSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
@@ -189,5 +243,17 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
                     "Netherite Swingcast Staff"
             );
         });
+    }
+
+    private static ItemStack createLegacyCrystalBladedStaffContainer(
+            io.redspace.ironsspellbooks.api.spells.AbstractSpell spell,
+            int spellLevel,
+            boolean locked
+    ) {
+        var stack = new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
+        var mutable = ISpellContainer.create(1, true, false).mutableCopy();
+        mutable.addSpellAtIndex(spell, spellLevel, 0, locked);
+        ISpellContainer.set(stack, mutable.toImmutable());
+        return stack;
     }
 }

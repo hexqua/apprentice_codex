@@ -649,7 +649,7 @@
   "spell.apprenticecodex.earth_forge.guide": "Creates a flat patch of dirt blocks at your line of sight. While sneaking, the area is reduced to a single block.",
   "spell.apprenticecodex.moon_light.guide": "Summons a katana from beyond the laws of this world and delivers a single flash-cut. The blade's moonlit power then rends space—sharp and deep. The cast cannot be interrupted.",
   "spell.apprenticecodex.mana_charge.guide": "Recover mana quickly during casting.",
-  "spell.apprenticecodex.mana_slash.guide": "Launches a blade of condensed mana. Its damage depends heavily on your weapon. On hit, it creates orbs that restore mana.",
+  "spell.apprenticecodex.mana_slash.guide": "A latent spell unique to the Crystal Bladed Staff. Launches a blade of condensed mana. Its damage scales with the staff's attack damage. On hit, it creates orbs that restore mana.",
   "spell.apprenticecodex.force_field.guide": "Deploys an invisible field that repels enemy attacks from any direction. It consumes a large amount of mana when it knocks something away, but it can also repel certain spells. An imitation of the magic used by a long-lived race from another realm.",
   "spell.apprenticecodex.precision_jack.guide": "Summon a magical knife to cleave your target. Expect a lot more drops than usual, but you need to rotate a significant number of times before it can be activated.",
   "spell.apprenticecodex.auto_magnet.guide": "Summon a magical magnet to follow you. The magnet collects nearby items and experience orbs and transfers them to you. Item collection stops while your inventory is full.",

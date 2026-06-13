@@ -653,7 +653,7 @@
   "spell.apprenticecodex.earth_forge.guide": "在你视线位置生成一片平整的土块。潜行时，区域会缩小为单个方块。",
   "spell.apprenticecodex.moon_light.guide": "召唤一把超脱世界法则的武士刀，释放一闪斩击。刀刃的月光之力会撕裂空间，锋利且深邃。该施法过程无法被打断。",
   "spell.apprenticecodex.mana_charge.guide": "施法期间快速恢复魔力。",
-  "spell.apprenticecodex.mana_slash.guide": "发射一道凝聚魔力的刃气。伤害高度依赖你的武器。命中目标时会生成恢复魔力的宝珠。",
+  "spell.apprenticecodex.mana_slash.guide": "晶刃法杖专属的潜在法术。发射一道凝聚魔力的刃气。伤害会随法杖攻击力提升。命中目标时会生成恢复魔力的宝珠。",
   "spell.apprenticecodex.force_field.guide": "部署一个无形力场，抵挡来自任意方向的敌人攻击。击退目标时会消耗大量魔力，但也可反弹特定法术。这是对异界长寿种族所用魔法的模仿。",
   "spell.apprenticecodex.precision_jack.guide": "召唤一把魔法匕首，劈砍你的目标。可获得远超平常的掉落物，但需要旋转足够次数才能激活。",
   "spell.apprenticecodex.auto_magnet.guide": "召唤一个魔法磁石跟随你。磁石会收集附近的物品和经验球，并转移给你。背包满时停止收集物品。",

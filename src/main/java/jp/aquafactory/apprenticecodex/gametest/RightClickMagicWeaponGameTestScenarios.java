@@ -321,8 +321,15 @@ final class RightClickMagicWeaponGameTestScenarios extends ApprenticeCodexGameTe
                     helper,
                     new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get()),
                     2,
+                    "item.apprenticecodex.swingcast.common.desc",
+                    "Crystal Bladed Staff should show swingcast tooltip after offhand priority tooltips"
+            );
+            assertTooltipKeyAt(
+                    helper,
+                    new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get()),
+                    3,
                     "item.apprenticecodex.crystal_bladed_staff.desc",
-                    "Crystal Bladed Staff should show its ability tooltip after offhand priority tooltips"
+                    "Crystal Bladed Staff should keep its mana orb tooltip after swingcast tooltip"
             );
             assertTooltipKeyAt(
                     helper,
@@ -393,7 +400,7 @@ final class RightClickMagicWeaponGameTestScenarios extends ApprenticeCodexGameTe
             String profileName
     ) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), profileName);
-        var mainhandStack = new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
+        var mainhandStack = new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, mainhandStack);
         player.setItemInHand(InteractionHand.OFF_HAND, offhandStack.copy());
         var magicData = MagicData.getPlayerMagicData(player);
