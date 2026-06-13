@@ -5971,17 +5971,16 @@ public class ApprenticeCodexGameTestScenarios {
             s.startGameTime = level.getGameTime() - MirageAvoidanceEvents.INVULNERABLE_TICKS;
             s.invulnerableUntilGameTime = level.getGameTime();
             s.activeUntilGameTime = level.getGameTime() + 30;
-            s.suppressFallDamageUntilGround = true;
         }));
 
         var vulnerableAttack = postLivingAttackEventForGameTest(player, level.damageSources().lava(), 4.0F);
         helper.assertFalse(vulnerableAttack.isCanceled(), "MirageAvoidance should allow normal damage after tick 20");
         var fallAttack = postLivingAttackEventForGameTest(player, level.damageSources().fall(), 4.0F);
-        helper.assertTrue(fallAttack.isCanceled(), "MirageAvoidance should still cancel fall damage after invulnerability ends");
+        helper.assertFalse(fallAttack.isCanceled(), "MirageAvoidance should allow fall damage after invulnerability ends");
         helper.succeed();
     }
 
-    static void mirageAvoidanceFreezesThenSlidesAndSuppressesFallDamage(GameTestHelper helper) {
+    static void mirageAvoidanceFreezesThenSlidesAndResetsFallDistance(GameTestHelper helper) {
         var level = helper.getLevel();
         var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 5, 0), "mirage_avoidance_motion_test");
         var spell = SpellRegistry.MIRAGE_AVOIDANCE.get();
@@ -5997,8 +5996,8 @@ public class ApprenticeCodexGameTestScenarios {
         var startupMovement = player.getDeltaMovement();
         helper.assertTrue(startupMovement.lengthSqr() < 1.0E-6D,
                 "MirageAvoidance freeze startup should remove movement");
-        helper.assertTrue(player.fallDistance == 0.0F,
-                "MirageAvoidance should reset fall distance during startup");
+        helper.assertTrue(player.fallDistance == 8.0F,
+                "MirageAvoidance should not reset fall distance before sliding starts");
 
         Capabilities.withSpellData(player, data -> data.edit(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE, s -> {
             s.startGameTime = level.getGameTime() - MirageAvoidanceEvents.FREEZE_TICKS - 2;
@@ -6016,6 +6015,25 @@ public class ApprenticeCodexGameTestScenarios {
                 "MirageAvoidance slide should clamp falling speed");
         helper.assertTrue(player.fallDistance == 0.0F,
                 "MirageAvoidance should keep fall distance reset while sliding");
+
+        Capabilities.withSpellData(player, data -> data.edit(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE, s -> {
+            s.startGameTime = level.getGameTime() - MirageAvoidanceEvents.VULNERABLE_RECOVERY_START_TICK;
+            s.activeUntilGameTime = level.getGameTime() + 5;
+        }));
+        player.fallDistance = 6.0F;
+        MirageAvoidanceEvents.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.START, player));
+        MirageAvoidanceEvents.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+        helper.assertTrue(player.fallDistance == 6.0F,
+                "MirageAvoidance should stop resetting fall distance during recovery");
+
+        Capabilities.withSpellData(player, data -> data.edit(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE, s -> {
+            s.startGameTime = level.getGameTime() - MirageAvoidanceEvents.EFFECT_DURATION_TICKS;
+            s.activeUntilGameTime = level.getGameTime();
+        }));
+        player.fallDistance = 7.0F;
+        MirageAvoidanceEvents.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.START, player));
+        helper.assertTrue(player.fallDistance == 7.0F,
+                "MirageAvoidance should not reset fall distance after the effect ends");
         helper.succeed();
     }
 

@@ -9,7 +9,6 @@ public class MirageAvoidanceState implements ICodexSpellState {
     public long invulnerableUntilGameTime;
     public float movementForward;
     public float movementStrafe;
-    public boolean suppressFallDamageUntilGround;
 
     public void reset() {
         startGameTime = 0L;
@@ -17,7 +16,6 @@ public class MirageAvoidanceState implements ICodexSpellState {
         invulnerableUntilGameTime = 0L;
         movementForward = 0.0F;
         movementStrafe = 0.0F;
-        suppressFallDamageUntilGround = false;
     }
 
     @Override
@@ -28,7 +26,6 @@ public class MirageAvoidanceState implements ICodexSpellState {
         tag.putLong("invulnerableUntilGameTime", invulnerableUntilGameTime);
         tag.putFloat("movementForward", movementForward);
         tag.putFloat("movementStrafe", movementStrafe);
-        tag.putBoolean("suppressFallDamageUntilGround", suppressFallDamageUntilGround);
         return tag;
     }
 
@@ -39,6 +36,5 @@ public class MirageAvoidanceState implements ICodexSpellState {
         invulnerableUntilGameTime = tag.getLong("invulnerableUntilGameTime");
         movementForward = tag.getFloat("movementForward");
         movementStrafe = tag.getFloat("movementStrafe");
-        suppressFallDamageUntilGround = tag.getBoolean("suppressFallDamageUntilGround");
     }
 }

@@ -228,8 +228,8 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = MIRAGE_AVOIDANCE_ISOLATED_BATCH, timeoutTicks = 80)
-    public static void mirageAvoidanceFreezesThenSlidesAndSuppressesFallDamage(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.mirageAvoidanceFreezesThenSlidesAndSuppressesFallDamage(helper);
+    public static void mirageAvoidanceFreezesThenSlidesAndResetsFallDistance(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mirageAvoidanceFreezesThenSlidesAndResetsFallDistance(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = HARVEST_MOON_ISOLATED_BATCH)
