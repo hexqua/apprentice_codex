@@ -689,6 +689,7 @@
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
   "ui.apprenticecodex.reflect_damage_multiplier": "反射ダメージ倍率: %d%%",
+  "ui.apprenticecodex.referenced_weapon_damage_multiplier": "参照攻撃力倍率: %s%%",
   "ui.apprenticecodex.start_up_time": "起動時間: %s ",
   "ui.apprenticecodex.warm_up_time": "最高速度までの時間: %s ",
   "ui.apprenticecodex.tree_cut_time": "伐採にかかる最短時間: %s ",
@@ -784,6 +785,7 @@
   "ui.apprenticecodex.echo_cast.current_count": "%d回分の魔力が辺りに残響している...",
   "ui.apprenticecodex.echo_cast.max_reached": "残響している魔力が飽和しきった！",
   "ui.apprenticecodex.echo_cast.cannot_echo_more": "これ以上は魔力を残響させられない！",
+  "ui.apprenticecodex.mana_slash.missing_catalyst": "刃を生成する触媒が見つからない！",
   "ui.apprenticecodex.bound_sword.force_try_dual_wield": "強制的に二刀流錬成を実行...",
   "ui.apprenticecodex.divine_possession.required_all_pieces": "神降ろしには元素の乙女の装束を全て揃える必要がある！",
 

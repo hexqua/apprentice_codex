@@ -98,9 +98,7 @@ public class CrystalBladedStaff extends AbstractSwingMagicItem implements GeoIte
     @Override
     public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity, int slotId, boolean isSelected) {
         super.inventoryTick(stack, level, entity, slotId, isSelected);
-        if (isSelected) {
-            initializeSpellContainer(stack);
-        }
+        initializeSpellContainer(stack);
     }
 
     @Override

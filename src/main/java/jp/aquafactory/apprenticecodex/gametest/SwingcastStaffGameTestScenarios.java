@@ -11,6 +11,7 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastResult;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
@@ -47,6 +48,7 @@ import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
@@ -155,6 +157,7 @@ import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceBurst;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerEntity;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileEntity;
+import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlash;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShield;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldDefenseEvent;
@@ -181,6 +184,7 @@ import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeSchoolPowerBon
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeStats;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastCooldownMode;
+import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
@@ -248,6 +252,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -411,6 +416,23 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
                     "Crystal Bladed Staff legacy preset should stay locked after rescue");
         });
     }
+    static void crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeldInOffhand(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (CrystalBladedStaff) ItemRegistry.CRYSTAL_BLADED_STAFF.get();
+            var stack = createLegacyCrystalBladedStaffContainer(SpellRegistry.MANA_SLASH.get(), 1, true);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "crystal_bladed_staff_legacy_offhand");
+
+            player.setItemInHand(InteractionHand.OFF_HAND, stack);
+            item.inventoryTick(stack, helper.getLevel(), player, 40, false);
+
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Offhand Crystal Bladed Staff rescued preset container is null");
+            helper.assertTrue(!spellContainer.isSpellWheel(),
+                    "Offhand Crystal Bladed Staff legacy preset should be removed from the spell wheel");
+            assertSpellData(helper, spellContainer, 0, SpellRegistry.MANA_SLASH.get(), 1, true,
+                    "Offhand Crystal Bladed Staff legacy preset should stay locked after rescue");
+        });
+    }
     static void crystalBladedStaffLegacyWheelReplacementStaysRemovableWhenHeld(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (CrystalBladedStaff) ItemRegistry.CRYSTAL_BLADED_STAFF.get();
@@ -428,6 +450,91 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
                     "Crystal Bladed Staff legacy replacement should stay removable after rescue");
             helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
                     "Crystal Bladed Staff legacy replacement should remain extractable after rescue");
+        });
+    }
+    static void manaSlashOffhandSwingUsesOffhandCatalystAttackDamage(GameTestHelper helper) {
+        var item = (CrystalBladedStaff) ItemRegistry.CRYSTAL_BLADED_STAFF.get();
+        var stack = new ItemStack(item);
+        item.initializeSpellContainer(stack);
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_slash_offhand_damage");
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIAMOND_SWORD));
+        player.setItemInHand(InteractionHand.OFF_HAND, stack);
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Mana Slash offhand damage test could not resolve player mana data");
+        magicData.setMana(100.0F);
+
+        try (var ignored = SwingcastStaffCastContext.open(player.getUUID(), stack, SpellRegistry.MANA_SLASH.get())) {
+            SpellRegistry.MANA_SLASH.get().onCast(
+                    helper.getLevel(),
+                    1,
+                    player,
+                    CastSource.SWORD,
+                    magicData
+            );
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to close Mana Slash swingcast context.", e);
+        }
+
+        helper.succeedWhen(() -> {
+            var projectiles = helper.getLevel().getEntitiesOfClass(
+                    ManaSlashProjectileEntity.class,
+                    new AABB(player.blockPosition()).inflate(8.0D)
+            );
+            helper.assertTrue(projectiles.size() == 1,
+                    "Mana Slash offhand damage test should spawn exactly one projectile but got " + projectiles.size());
+
+            var damageTag = new CompoundTag();
+            projectiles.get(0).saveWithoutId(damageTag);
+            var actualDamage = damageTag.getFloat("Damage");
+            var expectedDamage = Math.max(
+                    1.0F,
+                    ManaSlash.resolveCatalystWeaponDamage(player, stack, MobType.UNDEFINED)
+                            * SpellRegistry.MANA_SLASH.get().getSpellPower(1, player) / 100.0F
+                            * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.MANA_SLASH)
+            );
+            helper.assertTrue(Math.abs(actualDamage - expectedDamage) < 1.0e-4F,
+                    "Mana Slash offhand damage should use offhand catalyst attack damage: expected "
+                            + expectedDamage + " but got " + actualDamage);
+        });
+    }
+    static void manaSlashAllowsNonSwingcastPrecondition(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_slash_non_swingcast");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIAMOND_SWORD));
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Mana Slash non-swingcast test could not resolve player mana data");
+            magicData.setMana(100.0F);
+
+            var castResult = SpellRegistry.MANA_SLASH.get().canBeCastedBy(1, CastSource.SWORD, magicData, player);
+            helper.assertTrue(castResult.isSuccess(),
+                    "Mana Slash should keep non-swingcast cast paths available");
+        });
+    }
+    static void manaSlashRequiresSwingcastCatalystWhenContextIsActive(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_slash_missing_catalyst");
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Mana Slash missing catalyst test could not resolve player mana data");
+            magicData.setMana(100.0F);
+
+            CastResult castResult;
+            try (var ignored = SwingcastStaffCastContext.open(player.getUUID(), ItemStack.EMPTY, SpellRegistry.MANA_SLASH.get())) {
+                castResult = SpellRegistry.MANA_SLASH.get().canBeCastedBy(1, CastSource.SWORD, magicData, player);
+            } catch (Exception e) {
+                throw new IllegalStateException("Failed to close Mana Slash swingcast context.", e);
+            }
+
+            helper.assertTrue(castResult.type == CastResult.Type.FAILURE,
+                    "Mana Slash should fail before swingcast when swingcast catalyst is missing");
+            helper.assertTrue(castResult.message != null,
+                    "Mana Slash missing catalyst failure should provide a message");
+            var contents = castResult.message.getContents();
+            helper.assertTrue(contents instanceof TranslatableContents,
+                    "Mana Slash missing catalyst message should be translatable");
+            var translatableContents = (TranslatableContents) contents;
+            helper.assertTrue("ui.apprenticecodex.mana_slash.missing_catalyst".equals(translatableContents.getKey()),
+                    "Mana Slash missing catalyst message should use the dedicated translation key");
         });
     }
     static void copperSwingcastStaffReplacementSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
