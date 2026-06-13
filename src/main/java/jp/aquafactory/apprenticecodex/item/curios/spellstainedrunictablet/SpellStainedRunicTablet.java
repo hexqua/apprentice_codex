@@ -20,6 +20,7 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -37,12 +38,7 @@ public class SpellStainedRunicTablet extends SpellBook implements IJeiInfoItem {
     private static final String TOOLTIP_KEY_PREFIX = "item.apprenticecodex.spellstained_runic_tablet.desc";
 
     public SpellStainedRunicTablet() {
-        super(8);
-    }
-
-    @Override
-    public boolean isFireResistant() {
-        return true;
+        super(8, new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON).fireResistant());
     }
 
     @Override

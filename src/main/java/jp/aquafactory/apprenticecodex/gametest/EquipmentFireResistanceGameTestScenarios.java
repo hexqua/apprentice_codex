@@ -2,20 +2,25 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
 
 final class EquipmentFireResistanceGameTestScenarios extends ApprenticeCodexGameTestScenarios {
+    private static final TagKey<Item> IRONS_STAFF = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "staff")
+    );
     private static final TagKey<Item> CURIOS_SPELLBOOK = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("curios", "spellbook")
@@ -59,7 +64,7 @@ final class EquipmentFireResistanceGameTestScenarios extends ApprenticeCodexGame
         });
     }
 
-    private static List<RegistryObject<Item>> explicitFireResistantItems() {
+    private static List<Supplier<? extends Item>> explicitFireResistantItems() {
         return List.of(
                 ItemRegistry.SMASHCAST_SCEPTER,
                 ItemRegistry.SCROLLCASTER_GAUNTLET,
@@ -85,7 +90,7 @@ final class EquipmentFireResistanceGameTestScenarios extends ApprenticeCodexGame
             String categoryName
     ) {
         var stacks = ItemRegistry.ITEMS.getEntries().stream()
-                .map(RegistryObject::get)
+                .map(Supplier::get)
                 .map(ItemStack::new)
                 .filter(predicate)
                 .toList();
@@ -98,7 +103,7 @@ final class EquipmentFireResistanceGameTestScenarios extends ApprenticeCodexGame
     }
 
     private static boolean isNonStackRegisteredStaffPathItem(ItemStack stack) {
-        var itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
+        var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
         return itemId != null
                 && ApprenticeCodex.MODID.equals(itemId.getNamespace())
                 && itemId.getPath().contains("staff")
@@ -107,15 +112,15 @@ final class EquipmentFireResistanceGameTestScenarios extends ApprenticeCodexGame
 
     private static void assertFireResistant(GameTestHelper helper, Item item, String categoryName) {
         helper.assertTrue(
-                item.isFireResistant(),
-                categoryName + " should be fire resistant: " + ForgeRegistries.ITEMS.getKey(item)
+                new ItemStack(item).has(DataComponents.FIRE_RESISTANT),
+                categoryName + " should be fire resistant: " + BuiltInRegistries.ITEM.getKey(item)
         );
     }
 
     private static void assertNotFireResistant(GameTestHelper helper, Item item, String message) {
         helper.assertFalse(
-                item.isFireResistant(),
-                message + ": " + ForgeRegistries.ITEMS.getKey(item)
+                new ItemStack(item).has(DataComponents.FIRE_RESISTANT),
+                message + ": " + BuiltInRegistries.ITEM.getKey(item)
         );
     }
 }

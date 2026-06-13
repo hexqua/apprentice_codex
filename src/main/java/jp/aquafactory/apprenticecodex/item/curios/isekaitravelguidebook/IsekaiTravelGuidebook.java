@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.curios.isekaitravelguidebook;
 
 import io.redspace.ironsspellbooks.api.registry.SpellDataRegistryHolder;
-import io.redspace.ironsspellbooks.item.UniqueSpellBook;
+import jp.aquafactory.apprenticecodex.item.curios.FireResistantUniqueSpellBook;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -12,17 +12,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public final class IsekaiTravelGuidebook extends UniqueSpellBook {
+public final class IsekaiTravelGuidebook extends FireResistantUniqueSpellBook {
     public IsekaiTravelGuidebook() {
         super(new SpellDataRegistryHolder[] {
                 new SpellDataRegistryHolder(SpellRegistry.HEALING_BLOOM, 1),
                 new SpellDataRegistryHolder(SpellRegistry.COMPANION_TRUNK, 1)
         });
-    }
-
-    @Override
-    public boolean isFireResistant() {
-        return true;
     }
 
     @Override

@@ -3642,7 +3642,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void isekaiTravelGuidebookStartsWithTwoFixedSpellsAndNoAttributes(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get());
-            var item = (io.redspace.ironsspellbooks.item.UniqueSpellBook) stack.getItem();
+            var item = (jp.aquafactory.apprenticecodex.item.curios.FireResistantUniqueSpellBook) stack.getItem();
             item.initializeSpellContainer(stack);
 
             helper.assertTrue(ISpellContainer.isSpellContainer(stack),

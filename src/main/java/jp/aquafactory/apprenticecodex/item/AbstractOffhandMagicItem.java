@@ -55,7 +55,7 @@ public abstract class AbstractOffhandMagicItem extends Item
             String itemKey,
             List<AttributeBonus> offhandBonuses
     ) {
-        this(configuredSpell, configuredSpellLevel, rarity, itemKey, attributeBonuses, false);
+        this(configuredSpell, configuredSpellLevel, rarity, itemKey, offhandBonuses, false);
     }
 
     protected AbstractOffhandMagicItem(
@@ -71,7 +71,7 @@ public abstract class AbstractOffhandMagicItem extends Item
         this.configuredSpellLevel = configuredSpellLevel;
         this.startsWithPresetSpell = true;
         this.itemKey = normalizeKeyToken(itemKey);
-        this.offhandBonuses = List.copyOf(offhandBonuses);
+        this.offhandBonuses = List.copyOf(attributeBonuses);
         this.baseOffhandModifiers = buildBaseOffhandModifiers();
     }
 
@@ -119,7 +119,7 @@ public abstract class AbstractOffhandMagicItem extends Item
             String itemKey,
             List<AttributeBonus> offhandBonuses
     ) {
-        this(rarity, itemKey, attributeBonuses, false);
+        this(rarity, itemKey, offhandBonuses, false);
     }
 
     protected AbstractOffhandMagicItem(
@@ -133,7 +133,7 @@ public abstract class AbstractOffhandMagicItem extends Item
         this.configuredSpellLevel = 0;
         this.startsWithPresetSpell = false;
         this.itemKey = normalizeKeyToken(itemKey);
-        this.offhandBonuses = List.copyOf(offhandBonuses);
+        this.offhandBonuses = List.copyOf(attributeBonuses);
         this.baseOffhandModifiers = buildBaseOffhandModifiers();
     }
 
