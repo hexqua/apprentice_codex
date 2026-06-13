@@ -124,6 +124,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.GRIMOIRE_MANIFEST.get());
         output.accept(ItemRegistry.SCARLET_THIRST.get());
         output.accept(ItemRegistry.CRAFTSMANS_DELIGHT.get());
+        output.accept(ItemRegistry.SPELL_CAST_PARRYING_RING.get());
         output.accept(ItemRegistry.PROTECTION_SPELL_SUPPORTER.get());
         output.accept(ItemRegistry.SPELLCASTER_AMMO_POUCH.get());
         output.accept(ItemRegistry.SPELLCASTER_QUIVER.get());

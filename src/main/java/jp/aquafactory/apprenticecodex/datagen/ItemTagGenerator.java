@@ -147,7 +147,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
 
         tag(CURIOS_RING).add(
                 ItemRegistry.SCARLET_THIRST.get(),
-                ItemRegistry.CRAFTSMANS_DELIGHT.get()
+                ItemRegistry.CRAFTSMANS_DELIGHT.get(),
+                ItemRegistry.SPELL_CAST_PARRYING_RING.get()
         );
         tag(CURIOS_BELT).add(
                 ItemRegistry.PROTECTION_SPELL_SUPPORTER.get(),

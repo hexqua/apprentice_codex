@@ -26,6 +26,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
             "apprenticecodex.focus_staffbow_denylist_config";
     private static final String FOCUS_STAFFBOW_ALLOWLIST_CONFIG_BATCH =
             "apprenticecodex.focus_staffbow_allowlist_config";
+    private static final String SPELL_CAST_PARRYING_RING_CONFIG_BATCH =
+            "apprenticecodex.spell_cast_parrying_ring_config";
     private static final String SPELLGUN_CONFIG_BATCH = "apprenticecodex.spellgun_config";
     private static final String ELEMENTAL_BOW_OVERHEAT_BATCH = "apprenticecodex.elemental_bow_overheat";
     private static final String ELEMENTAL_BOW_DRAW_CONFIG_BATCH =
@@ -711,6 +713,56 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowExposesExpectedMainhandAttributes(GameTestHelper helper) {
         FocusStaffbowGameTestScenarios.focusStaffbowExposesExpectedMainhandAttributes(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellCastParryingRingBlocksFrontLongCastWithinWindow(GameTestHelper helper) {
+        SpellCastParryingRingGameTestScenarios.spellCastParryingRingBlocksFrontLongCastWithinWindow(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellCastParryingRingWithoutRingDoesNotBlock(GameTestHelper helper) {
+        SpellCastParryingRingGameTestScenarios.spellCastParryingRingWithoutRingDoesNotBlock(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = SPELL_CAST_PARRYING_RING_CONFIG_BATCH)
+    public static void spellCastParryingRingAfterWindowDoesNotBlock(GameTestHelper helper) {
+        SpellCastParryingRingGameTestScenarios.spellCastParryingRingAfterWindowDoesNotBlock(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellCastParryingRingBackAttackDoesNotBlock(GameTestHelper helper) {
+        SpellCastParryingRingGameTestScenarios.spellCastParryingRingBackAttackDoesNotBlock(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellCastParryingRingNormalInstantAndContinuousDoNotBlock(GameTestHelper helper) {
+        SpellCastParryingRingGameTestScenarios.spellCastParryingRingNormalInstantAndContinuousDoNotBlock(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellCastParryingRingStoppedLongCastDoesNotBlock(GameTestHelper helper) {
+        SpellCastParryingRingGameTestScenarios.spellCastParryingRingStoppedLongCastDoesNotBlock(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellCastParryingRingFocusStaffbowInstantPendingBlocks(GameTestHelper helper) {
+        SpellCastParryingRingGameTestScenarios.spellCastParryingRingFocusStaffbowInstantPendingBlocks(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellCastParryingRingFocusStaffbowContinuousPendingDoesNotBlock(GameTestHelper helper) {
+        SpellCastParryingRingGameTestScenarios.spellCastParryingRingFocusStaffbowContinuousPendingDoesNotBlock(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellCastParryingRingBypassShieldDoesNotBlock(GameTestHelper helper) {
+        SpellCastParryingRingGameTestScenarios.spellCastParryingRingBypassShieldDoesNotBlock(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellCastParryingRingDiscardsBlockedProjectile(GameTestHelper helper) {
+        SpellCastParryingRingGameTestScenarios.spellCastParryingRingDiscardsBlockedProjectile(helper);
     }
 
     @GameTest(template = TEMPLATE)
