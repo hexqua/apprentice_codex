@@ -44,7 +44,18 @@ public abstract class AbstractOffhandMagicItem extends Item
             String itemKey,
             List<AttributeBonus> attributeBonuses
     ) {
-        super(createProperties(rarity));
+        this(configuredSpell, configuredSpellLevel, rarity, itemKey, attributeBonuses, false);
+    }
+
+    protected AbstractOffhandMagicItem(
+            Supplier<? extends AbstractSpell> configuredSpell,
+            int configuredSpellLevel,
+            Rarity rarity,
+            String itemKey,
+            List<AttributeBonus> attributeBonuses,
+            boolean fireResistant
+    ) {
+        super(createProperties(rarity, fireResistant));
         this.configuredSpell = Objects.requireNonNull(configuredSpell);
         this.configuredSpellLevel = configuredSpellLevel;
         this.startsWithPresetSpell = true;
@@ -75,6 +86,17 @@ public abstract class AbstractOffhandMagicItem extends Item
     protected AbstractOffhandMagicItem(
             Supplier<? extends AbstractSpell> configuredSpell,
             int configuredSpellLevel,
+            Rarity rarity,
+            String itemKey,
+            boolean fireResistant,
+            AttributeBonus... attributeBonuses
+    ) {
+        this(configuredSpell, configuredSpellLevel, rarity, itemKey, List.of(attributeBonuses), fireResistant);
+    }
+
+    protected AbstractOffhandMagicItem(
+            Supplier<? extends AbstractSpell> configuredSpell,
+            int configuredSpellLevel,
             String itemKey,
             AttributeBonus... attributeBonuses
     ) {
@@ -87,7 +109,16 @@ public abstract class AbstractOffhandMagicItem extends Item
             String itemKey,
             List<AttributeBonus> attributeBonuses
     ) {
-        super(createProperties(rarity));
+        this(rarity, itemKey, attributeBonuses, false);
+    }
+
+    protected AbstractOffhandMagicItem(
+            Rarity rarity,
+            String itemKey,
+            List<AttributeBonus> attributeBonuses,
+            boolean fireResistant
+    ) {
+        super(createProperties(rarity, fireResistant));
         this.configuredSpell = null;
         this.configuredSpellLevel = 0;
         this.startsWithPresetSpell = false;
@@ -109,6 +140,15 @@ public abstract class AbstractOffhandMagicItem extends Item
             AttributeBonus... attributeBonuses
     ) {
         this(rarity, itemKey, List.of(attributeBonuses));
+    }
+
+    protected AbstractOffhandMagicItem(
+            Rarity rarity,
+            String itemKey,
+            boolean fireResistant,
+            AttributeBonus... attributeBonuses
+    ) {
+        this(rarity, itemKey, List.of(attributeBonuses), fireResistant);
     }
 
     protected AbstractOffhandMagicItem(
@@ -248,7 +288,12 @@ public abstract class AbstractOffhandMagicItem extends Item
     }
 
     private static Item.Properties createProperties(Rarity rarity) {
-        return new Item.Properties().stacksTo(1).rarity(Objects.requireNonNull(rarity));
+        return createProperties(rarity, false);
+    }
+
+    private static Item.Properties createProperties(Rarity rarity, boolean fireResistant) {
+        var properties = new Item.Properties().stacksTo(1).rarity(Objects.requireNonNull(rarity));
+        return fireResistant ? properties.fireResistant() : properties;
     }
 
     // `bonus` ヘルパーは属性参照の受け取り方ごとにオーバーロードしている.

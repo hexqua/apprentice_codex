@@ -36,6 +36,7 @@ public class PhotonSiphon extends AbstractOffhandMagicItem implements GeoItem {
                 1,
                 Rarity.RARE,
                 "photon_siphon",
+                true,
                 bonus(AttributeRegistry.MANA_REGEN, 1.0, AttributeModifier.Operation.MULTIPLY_BASE)
         );
         this.textureLocation = ResourceLocation.fromNamespaceAndPath(

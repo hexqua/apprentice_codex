@@ -59,7 +59,7 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public PastelStaff() {
-        super(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC), PASTEL_STAFF_TIER);
+        super(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC).fireResistant(), PASTEL_STAFF_TIER);
         GeoItem.registerSyncedAnimatable(this);
     }
 

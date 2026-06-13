@@ -90,7 +90,7 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
 
     public ManaForceBlade() {
         super(Tiers.DIAMOND, 0, (float) ATTACK_SPEED_MODIFIER_AMOUNT,
-                new Item.Properties().stacksTo(1).durability(DURABILITY).rarity(Rarity.RARE));
+                new Item.Properties().stacksTo(1).durability(DURABILITY).rarity(Rarity.RARE).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
     }
 

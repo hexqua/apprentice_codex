@@ -60,7 +60,7 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
     };
 
     public ArchivistsGrimoire() {
-        super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
+        super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON).fireResistant());
     }
 
     @Override

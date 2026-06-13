@@ -50,7 +50,7 @@ public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpe
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public MulticastEchoStaff() {
-        super(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC), MULTICAST_ECHO_STAFF_TIER);
+        super(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC).fireResistant(), MULTICAST_ECHO_STAFF_TIER);
         GeoItem.registerSyncedAnimatable(this);
     }
 

@@ -93,7 +93,7 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     private final Multimap<Attribute, AttributeModifier> mainhandModifiers = buildMainhandModifiers();
 
     public ChargedTwinBladeStaff() {
-        super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE));
+        super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
     }
 
