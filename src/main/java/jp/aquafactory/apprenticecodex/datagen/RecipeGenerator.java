@@ -149,6 +149,17 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.NATURE_RUNE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.NATURE_RUNE.get()))
                 .save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SPELL_CAST_PARRYING_RING.get())
+                .pattern("SIR")
+                .pattern("IMI")
+                .pattern(" I ")
+                .define('R', io.redspace.ironsspellbooks.registries.ItemRegistry.PROTECTION_RUNE.get())
+                .define('S', ItemRegistry.REFLECTCAST_SHIELD.get())
+                .define('I', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
+                .unlockedBy(getHasName(ItemRegistry.REFLECTCAST_SHIELD.get()), has(ItemRegistry.REFLECTCAST_SHIELD.get()))
+                .save(recipeWriter);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.PROTECTION_SPELL_SUPPORTER.get())
                 .pattern(" L ")
                 .pattern("LML")
