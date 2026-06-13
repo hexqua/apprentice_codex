@@ -41,4 +41,8 @@ final class DamageMultiplierServerConfig {
     float value(DamageMultiplierKey key) {
         return values.get(key).get().floatValue();
     }
+
+    void setValueForGameTest(DamageMultiplierKey key, double value) {
+        values.get(key).set(value);
+    }
 }

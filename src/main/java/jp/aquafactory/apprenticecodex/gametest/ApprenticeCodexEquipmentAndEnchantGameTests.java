@@ -869,6 +869,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void manaSlashDamageMultiplierAppliesAfterMinimumDamage(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.manaSlashDamageMultiplierAppliesAfterMinimumDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void manaSlashAllowsNonSwingcastPrecondition(GameTestHelper helper) {
         SwingcastStaffGameTestScenarios.manaSlashAllowsNonSwingcastPrecondition(helper);
     }

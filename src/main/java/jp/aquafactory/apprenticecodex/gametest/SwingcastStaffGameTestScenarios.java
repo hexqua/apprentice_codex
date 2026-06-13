@@ -161,11 +161,49 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
                     1.0F,
                     ManaSlash.resolveCatalystWeaponDamage(player, stack, MobType.UNDEFINED)
                             * SpellRegistry.MANA_SLASH.get().getSpellPower(1, player) / 100.0F
-                            * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.MANA_SLASH)
-            );
+            ) * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.MANA_SLASH);
             helper.assertTrue(Math.abs(actualDamage - expectedDamage) < 1.0e-4F,
                     "Mana Slash offhand damage should use offhand catalyst attack damage: expected "
                             + expectedDamage + " but got " + actualDamage);
+        });
+    }
+    static void manaSlashDamageMultiplierAppliesAfterMinimumDamage(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_slash_low_multiplier");
+        var catalystStack = new ItemStack(Items.STICK);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Mana Slash low multiplier test could not resolve player mana data");
+        magicData.setMana(100.0F);
+
+        try (var configOverride = ApprenticeCodexServerConfig.useDamageMultiplierOverrideForGameTest(
+                DamageMultiplierKey.MANA_SLASH,
+                0.5D
+        );
+             var ignored = SwingcastStaffCastContext.open(player.getUUID(), catalystStack, SpellRegistry.MANA_SLASH.get())) {
+            SpellRegistry.MANA_SLASH.get().onCast(
+                    helper.getLevel(),
+                    1,
+                    player,
+                    CastSource.SWORD,
+                    magicData
+            );
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to close Mana Slash low multiplier test context.", e);
+        }
+
+        helper.succeedWhen(() -> {
+            var projectiles = helper.getLevel().getEntitiesOfClass(
+                    ManaSlashProjectileEntity.class,
+                    new AABB(player.blockPosition()).inflate(8.0D)
+            );
+            helper.assertTrue(projectiles.size() == 1,
+                    "Mana Slash low multiplier test should spawn exactly one projectile but got " + projectiles.size());
+
+            var damageTag = new CompoundTag();
+            projectiles.get(0).saveWithoutId(damageTag);
+            var actualDamage = damageTag.getFloat("Damage");
+            helper.assertTrue(Math.abs(actualDamage - 0.5F) < 1.0e-4F,
+                    "Mana Slash low damage multiplier should apply after minimum damage: expected 0.5 but got "
+                            + actualDamage);
         });
     }
     static void manaSlashAllowsNonSwingcastPrecondition(GameTestHelper helper) {
