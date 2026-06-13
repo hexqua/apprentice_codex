@@ -15,7 +15,6 @@ import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
-import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -60,7 +59,7 @@ public final class MirageAvoidanceEvents {
         var level = player.level();
         var state = spellData.get(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE);
         if (!isActive(level, state)) {
-            tickFallDamageSuppression(spellData, player, state);
+            resetInactiveState(spellData, player, state);
             return;
         }
 
@@ -75,7 +74,9 @@ public final class MirageAvoidanceEvents {
         } else {
             stabilizePostPhysicsMovement(player, elapsedTicks);
         }
-        player.fallDistance = 0.0F;
+        if (shouldResetFallDistance(elapsedTicks)) {
+            player.fallDistance = 0.0F;
+        }
 
         if (event.phase == TickEvent.Phase.START && !level.isClientSide) {
             spawnTrailParticles(player, elapsedTicks);
@@ -94,9 +95,8 @@ public final class MirageAvoidanceEvents {
         }
 
         var state = spellData.get(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE);
-        if (isInvulnerable(player.level(), state) || shouldSuppressFallDamage(player, state, event.getSource())) {
+        if (isInvulnerable(player.level(), state)) {
             event.setCanceled(true);
-            player.fallDistance = 0.0F;
         }
     }
 
@@ -166,13 +166,12 @@ public final class MirageAvoidanceEvents {
         return state.invulnerableUntilGameTime > level.getGameTime();
     }
 
-    private static boolean shouldSuppressFallDamage(Player player, MirageAvoidanceState state, net.minecraft.world.damagesource.DamageSource source) {
-        return source.is(DamageTypes.FALL)
-                && (isActive(player.level(), state) || state.suppressFallDamageUntilGround);
-    }
-
     private static int getElapsedTicks(Level level, MirageAvoidanceState state) {
         return Math.max(0, (int) (level.getGameTime() - state.startGameTime));
+    }
+
+    private static boolean shouldResetFallDistance(int elapsedTicks) {
+        return elapsedTicks >= FREEZE_TICKS && elapsedTicks < VULNERABLE_RECOVERY_START_TICK;
     }
 
     private static void applyMovement(Player player, MirageAvoidanceState state, int elapsedTicks) {
@@ -234,15 +233,8 @@ public final class MirageAvoidanceEvents {
         }
     }
 
-    private static void tickFallDamageSuppression(CodexSpellData spellData, Player player, MirageAvoidanceState state) {
-        if (state.activeUntilGameTime == 0L && !state.suppressFallDamageUntilGround) {
-            return;
-        }
-
-        if (state.suppressFallDamageUntilGround) {
-            player.fallDistance = 0.0F;
-        }
-        if (state.suppressFallDamageUntilGround && !player.onGround()) {
+    private static void resetInactiveState(CodexSpellData spellData, Player player, MirageAvoidanceState state) {
+        if (state.activeUntilGameTime == 0L) {
             return;
         }
 
@@ -253,15 +245,11 @@ public final class MirageAvoidanceEvents {
     }
 
     private static void deactivate(CodexSpellData spellData, Player player, MirageAvoidanceState state, boolean stopMovement) {
-        if (state.activeUntilGameTime == 0L && !state.suppressFallDamageUntilGround) {
+        if (state.activeUntilGameTime == 0L) {
             return;
         }
 
-        spellData.edit(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE, s -> {
-            s.reset();
-            s.suppressFallDamageUntilGround = true;
-        });
-        player.fallDistance = 0.0F;
+        spellData.edit(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE, MirageAvoidanceState::reset);
         if (stopMovement) {
             player.setDeltaMovement(Vec3.ZERO);
             markMovementChanged(player);
