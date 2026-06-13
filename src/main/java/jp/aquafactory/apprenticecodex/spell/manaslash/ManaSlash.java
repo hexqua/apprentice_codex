@@ -22,14 +22,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.NeoForge;
@@ -81,7 +81,7 @@ public class ManaSlash extends AbstractSpell {
         // ベースのマナパワーが低いので武器ダメージより下がるのは意図的.
         var rawDamage = Math.max(
                 1,
-                resolveCatalystWeaponDamage(entity, catalystStack, MobType.UNDEFINED)
+                resolveCatalystWeaponDamage(entity, catalystStack)
                         * getSpellPowerPercent(spellLevel, entity) / 100.0f
         );
         return rawDamage * getDamageMultiplier();
@@ -99,7 +99,7 @@ public class ManaSlash extends AbstractSpell {
         return ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.MANA_SLASH);
     }
 
-    public static float resolveCatalystWeaponDamage(LivingEntity entity, ItemStack catalystStack, MobType mobType) {
+    public static float resolveCatalystWeaponDamage(LivingEntity entity, ItemStack catalystStack) {
         if (entity == null || catalystStack == null || catalystStack.isEmpty()) {
             return 0.0f;
         }
@@ -107,7 +107,7 @@ public class ManaSlash extends AbstractSpell {
         var baseDamage = entity.getAttributeBaseValue(Attributes.ATTACK_DAMAGE);
         var displayDamage = resolveDisplayedAttributeValue(
                 catalystStack,
-                EquipmentSlotGroup.MAINHAND,
+                EquipmentSlot.MAINHAND,
                 Attributes.ATTACK_DAMAGE,
                 baseDamage
         );
@@ -120,24 +120,28 @@ public class ManaSlash extends AbstractSpell {
 
     private static double resolveDisplayedAttributeValue(
             ItemStack stack,
-            EquipmentSlotGroup slotGroup,
+            EquipmentSlot slot,
             Holder<Attribute> attribute,
             double baseValue
     ) {
-        var event = new ItemAttributeModifierEvent(stack, stack.getAttributeModifiers());
+        var baseModifiers = stack.getOrDefault(
+                DataComponents.ATTRIBUTE_MODIFIERS,
+                stack.getItem().getDefaultAttributeModifiers(stack)
+        );
+        var event = new ItemAttributeModifierEvent(stack, baseModifiers);
         NeoForge.EVENT_BUS.post(event);
-        return resolveAttributeValue(event.build(), slotGroup, attribute, baseValue);
+        return resolveAttributeValue(event.build(), slot, attribute, baseValue);
     }
 
     private static double resolveAttributeValue(
             ItemAttributeModifiers modifiers,
-            EquipmentSlotGroup slotGroup,
+            EquipmentSlot slot,
             Holder<Attribute> attribute,
             double baseValue
     ) {
         var valueWithAdditions = baseValue;
         for (var entry : modifiers.modifiers()) {
-            if (matches(entry, slotGroup, attribute)
+            if (matches(entry, slot, attribute)
                     && entry.modifier().operation() == AttributeModifier.Operation.ADD_VALUE) {
                 valueWithAdditions += entry.modifier().amount();
             }
@@ -145,7 +149,7 @@ public class ManaSlash extends AbstractSpell {
 
         var valueWithBaseMultipliers = valueWithAdditions;
         for (var entry : modifiers.modifiers()) {
-            if (matches(entry, slotGroup, attribute)
+            if (matches(entry, slot, attribute)
                     && entry.modifier().operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE) {
                 valueWithBaseMultipliers += valueWithAdditions * entry.modifier().amount();
             }
@@ -153,7 +157,7 @@ public class ManaSlash extends AbstractSpell {
 
         var valueWithTotalMultipliers = valueWithBaseMultipliers;
         for (var entry : modifiers.modifiers()) {
-            if (matches(entry, slotGroup, attribute)
+            if (matches(entry, slot, attribute)
                     && entry.modifier().operation() == AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL) {
                 valueWithTotalMultipliers *= 1.0d + entry.modifier().amount();
             }
@@ -164,10 +168,10 @@ public class ManaSlash extends AbstractSpell {
 
     private static boolean matches(
             ItemAttributeModifiers.Entry entry,
-            EquipmentSlotGroup slotGroup,
+            EquipmentSlot slot,
             Holder<Attribute> attribute
     ) {
-        return entry.slot().equals(slotGroup) && entry.attribute().equals(attribute);
+        return entry.slot().test(slot) && entry.attribute().equals(attribute);
     }
 
     private Optional<ItemStack> resolveCatalystStack(LivingEntity entity) {
@@ -231,7 +235,7 @@ public class ManaSlash extends AbstractSpell {
                 .orElseGet(() -> {
                     var rawDamage = Math.max(
                             1,
-                            Utils.getWeaponDamage(entity, MobType.UNDEFINED)
+                            Utils.getWeaponDamage(entity)
                                     * getSpellPowerPercent(spellLevel, entity) / 100.0f
                     );
                     return rawDamage * getDamageMultiplier();

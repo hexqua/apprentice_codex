@@ -252,7 +252,6 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -358,6 +357,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -489,7 +489,7 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
             var actualDamage = damageTag.getFloat("Damage");
             var expectedDamage = Math.max(
                     1.0F,
-                    ManaSlash.resolveCatalystWeaponDamage(player, stack, MobType.UNDEFINED)
+                    ManaSlash.resolveCatalystWeaponDamage(player, stack)
                             * SpellRegistry.MANA_SLASH.get().getSpellPower(1, player) / 100.0F
             ) * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.MANA_SLASH);
             helper.assertTrue(Math.abs(actualDamage - expectedDamage) < 1.0e-4F,
@@ -501,22 +501,115 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_slash_stack_attribute");
             var catalystStack = new ItemStack(Items.STICK);
-            catalystStack.addAttributeModifier(
-                    Attributes.ATTACK_DAMAGE,
-                    new AttributeModifier(
-                            UUID.fromString("1af17cb4-75be-44b8-bd30-9be5760c66d9"),
-                            "Mana Slash GameTest attack damage",
-                            20.0D,
-                            AttributeModifier.Operation.ADDITION
-                    ),
-                    EquipmentSlot.MAINHAND
-            );
+            catalystStack.set(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.builder()
+                    .add(
+                            Attributes.ATTACK_DAMAGE,
+                            new AttributeModifier(
+                                    ResourceLocation.fromNamespaceAndPath(
+                                            ApprenticeCodex.MODID,
+                                            "mana_slash_gametest_stack_attack_damage"
+                                    ),
+                                    20.0D,
+                                    AttributeModifier.Operation.ADD_VALUE
+                            ),
+                            EquipmentSlotGroup.MAINHAND
+                    )
+                    .build());
 
-            var resolvedDamage = ManaSlash.resolveCatalystWeaponDamage(player, catalystStack, MobType.UNDEFINED);
+            var resolvedDamage = ManaSlash.resolveCatalystWeaponDamage(player, catalystStack);
             helper.assertTrue(Math.abs(resolvedDamage - 21.0F) < 1.0e-4F,
                     "Mana Slash catalyst damage should include stack AttributeModifiers NBT: " + resolvedDamage);
         });
     }
+
+    static void manaSlashCatalystDamageUsesApplicableSlotGroups(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_slash_slot_group_attribute");
+            var catalystStack = new ItemStack(Items.STICK);
+            catalystStack.set(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.builder()
+                    .add(
+                            Attributes.ATTACK_DAMAGE,
+                            new AttributeModifier(
+                                    ResourceLocation.fromNamespaceAndPath(
+                                            ApprenticeCodex.MODID,
+                                            "mana_slash_gametest_hand_attack_damage"
+                                    ),
+                                    20.0D,
+                                    AttributeModifier.Operation.ADD_VALUE
+                            ),
+                            EquipmentSlotGroup.HAND
+                    )
+                    .add(
+                            Attributes.ATTACK_DAMAGE,
+                            new AttributeModifier(
+                                    ResourceLocation.fromNamespaceAndPath(
+                                            ApprenticeCodex.MODID,
+                                            "mana_slash_gametest_any_attack_damage"
+                                    ),
+                                    5.0D,
+                                    AttributeModifier.Operation.ADD_VALUE
+                            ),
+                            EquipmentSlotGroup.ANY
+                    )
+                    .build());
+
+            var resolvedDamage = ManaSlash.resolveCatalystWeaponDamage(player, catalystStack);
+            helper.assertTrue(Math.abs(resolvedDamage - 26.0F) < 1.0e-4F,
+                    "Mana Slash catalyst damage should include HAND and ANY slot group modifiers: " + resolvedDamage);
+        });
+    }
+
+    static void manaSlashCatalystDamageAppliesAttributeEventOnce(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_slash_attribute_event");
+            var catalystStack = new ItemStack(Items.STICK);
+            catalystStack.set(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.builder()
+                    .add(
+                            Attributes.ATTACK_DAMAGE,
+                            new AttributeModifier(
+                                    ResourceLocation.fromNamespaceAndPath(
+                                            ApprenticeCodex.MODID,
+                                            "mana_slash_gametest_event_base_attack_damage"
+                                    ),
+                                    20.0D,
+                                    AttributeModifier.Operation.ADD_VALUE
+                            ),
+                            EquipmentSlotGroup.MAINHAND
+                    )
+                    .build());
+
+            var eventCalls = new AtomicInteger();
+            Consumer<ItemAttributeModifierEvent> listener = event -> {
+                if (event.getItemStack() == catalystStack) {
+                    eventCalls.incrementAndGet();
+                    event.addModifier(
+                            Attributes.ATTACK_DAMAGE,
+                            new AttributeModifier(
+                                    ResourceLocation.fromNamespaceAndPath(
+                                            ApprenticeCodex.MODID,
+                                            "mana_slash_gametest_event_attack_damage"
+                                    ),
+                                    5.0D,
+                                    AttributeModifier.Operation.ADD_VALUE
+                            ),
+                            EquipmentSlotGroup.MAINHAND
+                    );
+                }
+            };
+
+            NeoForge.EVENT_BUS.addListener(listener);
+            try {
+                var resolvedDamage = ManaSlash.resolveCatalystWeaponDamage(player, catalystStack);
+                helper.assertTrue(eventCalls.get() == 1,
+                        "Mana Slash catalyst damage should fire ItemAttributeModifierEvent once but got " + eventCalls.get());
+                helper.assertTrue(Math.abs(resolvedDamage - 26.0F) < 1.0e-4F,
+                        "Mana Slash catalyst damage should include NBT and one event modifier: " + resolvedDamage);
+            } finally {
+                NeoForge.EVENT_BUS.unregister(listener);
+            }
+        });
+    }
+
     static void manaSlashDamageMultiplierAppliesAfterMinimumDamage(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_slash_low_multiplier");
         var catalystStack = new ItemStack(Items.STICK);
