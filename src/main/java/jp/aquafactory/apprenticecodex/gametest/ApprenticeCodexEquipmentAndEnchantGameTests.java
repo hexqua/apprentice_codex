@@ -79,6 +79,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void fireResistantEquipmentContractsStayInSync(GameTestHelper helper) {
+        EquipmentFireResistanceGameTestScenarios.fireResistantEquipmentContractsStayInSync(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void copperSwingcastStaffStartsWithBallLightningLevelOne(GameTestHelper helper) {
         SwingcastStaffGameTestScenarios.copperSwingcastStaffStartsWithBallLightningLevelOne(helper);
     }
