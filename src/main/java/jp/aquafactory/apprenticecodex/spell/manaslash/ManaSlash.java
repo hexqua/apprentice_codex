@@ -114,7 +114,7 @@ public class ManaSlash extends AbstractSpell {
             Attribute attribute,
             double baseValue
     ) {
-        var event = new ItemAttributeModifierEvent(stack, slot, stack.getItem().getAttributeModifiers(slot, stack));
+        var event = new ItemAttributeModifierEvent(stack, slot, stack.getAttributeModifiers(slot));
         MinecraftForge.EVENT_BUS.post(event);
 
         var valueWithAdditions = baseValue;

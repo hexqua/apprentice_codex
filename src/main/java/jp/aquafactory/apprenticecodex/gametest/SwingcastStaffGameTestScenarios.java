@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 
 import java.util.Set;
+import java.util.UUID;
 
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
@@ -25,7 +26,10 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.MobType;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
@@ -165,6 +169,26 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
             helper.assertTrue(Math.abs(actualDamage - expectedDamage) < 1.0e-4F,
                     "Mana Slash offhand damage should use offhand catalyst attack damage: expected "
                             + expectedDamage + " but got " + actualDamage);
+        });
+    }
+    static void manaSlashCatalystDamageUsesStackAttributeModifiers(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_slash_stack_attribute");
+            var catalystStack = new ItemStack(Items.STICK);
+            catalystStack.addAttributeModifier(
+                    Attributes.ATTACK_DAMAGE,
+                    new AttributeModifier(
+                            UUID.fromString("1af17cb4-75be-44b8-bd30-9be5760c66d9"),
+                            "Mana Slash GameTest attack damage",
+                            20.0D,
+                            AttributeModifier.Operation.ADDITION
+                    ),
+                    EquipmentSlot.MAINHAND
+            );
+
+            var resolvedDamage = ManaSlash.resolveCatalystWeaponDamage(player, catalystStack, MobType.UNDEFINED);
+            helper.assertTrue(Math.abs(resolvedDamage - 21.0F) < 1.0e-4F,
+                    "Mana Slash catalyst damage should include stack AttributeModifiers NBT: " + resolvedDamage);
         });
     }
     static void manaSlashDamageMultiplierAppliesAfterMinimumDamage(GameTestHelper helper) {
