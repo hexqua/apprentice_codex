@@ -112,14 +112,12 @@ public class MirageAvoidance extends AbstractSpell {
                     state.invulnerableUntilGameTime = level.getGameTime() + getDuration();
                     state.movementForward = input.forward();
                     state.movementStrafe = input.strafe();
-                    state.suppressFallDamageUntilGround = true;
                 });
                 if (player instanceof ServerPlayer serverPlayer) {
                     MirageAvoidanceSync.syncToClient(serverPlayer, data.get(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE));
                 }
             });
             spawnStartupPulse(player);
-            player.fallDistance = 0.0F;
         }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }

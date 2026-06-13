@@ -27,17 +27,15 @@ public class SyncMirageAvoidanceStatePacket implements CustomPacketPayload {
     private final long invulnerableUntilGameTime;
     private final float movementForward;
     private final float movementStrafe;
-    private final boolean suppressFallDamageUntilGround;
 
     public SyncMirageAvoidanceStatePacket(int entityId, long startGameTime, long activeUntilGameTime, long invulnerableUntilGameTime,
-                                          float movementForward, float movementStrafe, boolean suppressFallDamageUntilGround) {
+                                          float movementForward, float movementStrafe) {
         this.entityId = entityId;
         this.startGameTime = startGameTime;
         this.activeUntilGameTime = activeUntilGameTime;
         this.invulnerableUntilGameTime = invulnerableUntilGameTime;
         this.movementForward = movementForward;
         this.movementStrafe = movementStrafe;
-        this.suppressFallDamageUntilGround = suppressFallDamageUntilGround;
     }
 
     @Override
@@ -52,7 +50,6 @@ public class SyncMirageAvoidanceStatePacket implements CustomPacketPayload {
         buffer.writeLong(packet.invulnerableUntilGameTime);
         buffer.writeFloat(packet.movementForward);
         buffer.writeFloat(packet.movementStrafe);
-        buffer.writeBoolean(packet.suppressFallDamageUntilGround);
     }
 
     public static SyncMirageAvoidanceStatePacket decode(FriendlyByteBuf buffer) {
@@ -62,8 +59,7 @@ public class SyncMirageAvoidanceStatePacket implements CustomPacketPayload {
                 buffer.readLong(),
                 buffer.readLong(),
                 buffer.readFloat(),
-                buffer.readFloat(),
-                buffer.readBoolean()
+                buffer.readFloat()
         );
     }
 
@@ -93,7 +89,6 @@ public class SyncMirageAvoidanceStatePacket implements CustomPacketPayload {
                         state.invulnerableUntilGameTime = packet.invulnerableUntilGameTime;
                         state.movementForward = packet.movementForward;
                         state.movementStrafe = packet.movementStrafe;
-                        state.suppressFallDamageUntilGround = packet.suppressFallDamageUntilGround;
                     })
             );
         }

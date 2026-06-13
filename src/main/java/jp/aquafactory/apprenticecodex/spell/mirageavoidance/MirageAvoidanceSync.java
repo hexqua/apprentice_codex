@@ -16,8 +16,7 @@ public final class MirageAvoidanceSync {
                 state.activeUntilGameTime,
                 state.invulnerableUntilGameTime,
                 state.movementForward,
-                state.movementStrafe,
-                state.suppressFallDamageUntilGround
+                state.movementStrafe
         ));
     }
 }
