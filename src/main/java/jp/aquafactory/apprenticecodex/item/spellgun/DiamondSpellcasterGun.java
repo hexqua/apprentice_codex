@@ -36,7 +36,7 @@ public class DiamondSpellcasterGun extends AbstractSpellGunItem implements GeoIt
 
     public DiamondSpellcasterGun() {
         super(
-                new Properties().stacksTo(1).rarity(Rarity.COMMON),
+                new Properties().stacksTo(1).rarity(Rarity.COMMON).fireResistant(),
                 SPELL_GUN_CONFIG,
                 "DiamondSpellcasterGun",
                 bonus(AttributeRegistry.SPELL_POWER, 0.10, AttributeModifier.Operation.MULTIPLY_BASE)

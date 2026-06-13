@@ -42,6 +42,11 @@ public class SpellStainedRunicTablet extends SpellBook implements IJeiInfoItem {
     }
 
     @Override
+    public boolean isFireResistant() {
+        return true;
+    }
+
+    @Override
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
         var baseModifiers = super.getAttributeModifiers(slotContext, uuid, stack);
         if (!Curios.SPELLBOOK_SLOT.equals(slotContext.identifier())) {

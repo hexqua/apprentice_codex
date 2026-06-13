@@ -101,7 +101,7 @@ public final class FocusStaffbow extends CastingItem
     private final Multimap<Attribute, AttributeModifier> mainhandModifiers = buildMainhandModifiers();
 
     public FocusStaffbow() {
-        super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE));
+        super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
     }
 

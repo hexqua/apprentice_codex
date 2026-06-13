@@ -21,4 +21,9 @@ public class ExplorersCodex extends UniqueSpellBook {
                 AttributeModifier.Operation.ADDITION
         ));
     }
+
+    @Override
+    public boolean isFireResistant() {
+        return true;
+    }
 }

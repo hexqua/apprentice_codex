@@ -22,6 +22,11 @@ public final class IsekaiTravelGuidebook extends UniqueSpellBook {
     }
 
     @Override
+    public boolean isFireResistant() {
+        return true;
+    }
+
+    @Override
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, level, lines, flag);
         if (!IsekaiTravelGuidebookTooltipState.shouldShowTooltip()) {

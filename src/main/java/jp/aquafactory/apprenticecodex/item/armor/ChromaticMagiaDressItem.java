@@ -48,7 +48,7 @@ public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPres
     private final Multimap<Attribute, AttributeModifier> armorAttributeModifiers;
 
     public ChromaticMagiaDressItem(Type type) {
-        super(ChromaticMagiaDressStats.MATERIAL, type, new Properties());
+        super(ChromaticMagiaDressStats.MATERIAL, type, new Properties().fireResistant());
         this.armorType = type;
         this.armorAttributeModifiers = ChromaticMagiaDressStats.createAttributeModifiers(type);
         GeoItem.registerSyncedAnimatable(this);

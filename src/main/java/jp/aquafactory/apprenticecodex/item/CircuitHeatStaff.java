@@ -94,7 +94,7 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public CircuitHeatStaff() {
-        super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE), CIRCUIT_HEAT_STAFF_TIER);
+        super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE).fireResistant(), CIRCUIT_HEAT_STAFF_TIER);
         GeoItem.registerSyncedAnimatable(this);
     }
 

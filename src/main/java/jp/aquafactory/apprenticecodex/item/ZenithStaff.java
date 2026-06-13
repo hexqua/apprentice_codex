@@ -51,7 +51,7 @@ public class ZenithStaff extends StaffItem implements GeoItem, UniqueItem {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public ZenithStaff() {
-        super(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC), ZENITH_STAFF_TIER);
+        super(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC).fireResistant(), ZENITH_STAFF_TIER);
         GeoItem.registerSyncedAnimatable(this);
     }
 

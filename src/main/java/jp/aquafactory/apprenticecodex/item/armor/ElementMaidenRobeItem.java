@@ -64,7 +64,7 @@ public class ElementMaidenRobeItem extends ArmorItem implements GeoItem, IPreset
     private final Multimap<Attribute, AttributeModifier> armorAttributeModifiers;
 
     public ElementMaidenRobeItem(Type type) {
-        super(ElementMaidenRobeStats.MATERIAL, type, new Properties().rarity(Rarity.EPIC));
+        super(ElementMaidenRobeStats.MATERIAL, type, new Properties().rarity(Rarity.EPIC).fireResistant());
         this.armorType = type;
         this.armorAttributeModifiers = ElementMaidenRobeStats.createAttributeModifiers(type);
         GeoItem.registerSyncedAnimatable(this);
