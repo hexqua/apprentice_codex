@@ -79,16 +79,24 @@ public class ManaSlash extends AbstractSpell {
 
     private float getDamage(int spellLevel, LivingEntity entity, ItemStack catalystStack) {
         // ベースのマナパワーが低いので武器ダメージより下がるのは意図的.
-        return Math.max(
+        var rawDamage = Math.max(
                 1,
                 resolveCatalystWeaponDamage(entity, catalystStack, MobType.UNDEFINED)
-                        * getReferencedWeaponDamagePercent(spellLevel, entity) / 100.0f
+                        * getSpellPowerPercent(spellLevel, entity) / 100.0f
         );
+        return rawDamage * getDamageMultiplier();
     }
 
     private float getReferencedWeaponDamagePercent(int spellLevel, LivingEntity entity) {
-        return getSpellPower(spellLevel, entity)
-                * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.MANA_SLASH);
+        return getSpellPowerPercent(spellLevel, entity) * getDamageMultiplier();
+    }
+
+    private float getSpellPowerPercent(int spellLevel, LivingEntity entity) {
+        return getSpellPower(spellLevel, entity);
+    }
+
+    private float getDamageMultiplier() {
+        return ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.MANA_SLASH);
     }
 
     public static float resolveCatalystWeaponDamage(LivingEntity entity, ItemStack catalystStack, MobType mobType) {
@@ -220,11 +228,14 @@ public class ManaSlash extends AbstractSpell {
         projectile.shoot(entity.getLookAngle());
         projectile.setDamage(catalystStack
                 .map(stack -> getDamage(spellLevel, entity, stack))
-                .orElseGet(() -> Math.max(
-                        1,
-                        Utils.getWeaponDamage(entity, MobType.UNDEFINED)
-                                * getReferencedWeaponDamagePercent(spellLevel, entity) / 100.0f
-                )));
+                .orElseGet(() -> {
+                    var rawDamage = Math.max(
+                            1,
+                            Utils.getWeaponDamage(entity, MobType.UNDEFINED)
+                                    * getSpellPowerPercent(spellLevel, entity) / 100.0f
+                    );
+                    return rawDamage * getDamageMultiplier();
+                }));
         level.addFreshEntity(projectile);
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
