@@ -497,6 +497,26 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
                             + expectedDamage + " but got " + actualDamage);
         });
     }
+    static void manaSlashCatalystDamageUsesStackAttributeModifiers(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_slash_stack_attribute");
+            var catalystStack = new ItemStack(Items.STICK);
+            catalystStack.addAttributeModifier(
+                    Attributes.ATTACK_DAMAGE,
+                    new AttributeModifier(
+                            UUID.fromString("1af17cb4-75be-44b8-bd30-9be5760c66d9"),
+                            "Mana Slash GameTest attack damage",
+                            20.0D,
+                            AttributeModifier.Operation.ADDITION
+                    ),
+                    EquipmentSlot.MAINHAND
+            );
+
+            var resolvedDamage = ManaSlash.resolveCatalystWeaponDamage(player, catalystStack, MobType.UNDEFINED);
+            helper.assertTrue(Math.abs(resolvedDamage - 21.0F) < 1.0e-4F,
+                    "Mana Slash catalyst damage should include stack AttributeModifiers NBT: " + resolvedDamage);
+        });
+    }
     static void manaSlashDamageMultiplierAppliesAfterMinimumDamage(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_slash_low_multiplier");
         var catalystStack = new ItemStack(Items.STICK);

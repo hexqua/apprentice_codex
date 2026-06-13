@@ -124,7 +124,7 @@ public class ManaSlash extends AbstractSpell {
             Holder<Attribute> attribute,
             double baseValue
     ) {
-        var event = new ItemAttributeModifierEvent(stack, stack.getItem().getDefaultAttributeModifiers(stack));
+        var event = new ItemAttributeModifierEvent(stack, stack.getAttributeModifiers());
         NeoForge.EVENT_BUS.post(event);
         return resolveAttributeValue(event.build(), slotGroup, attribute, baseValue);
     }
