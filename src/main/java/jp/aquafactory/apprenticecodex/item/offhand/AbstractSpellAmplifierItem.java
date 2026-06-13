@@ -46,6 +46,20 @@ public abstract class AbstractSpellAmplifierItem extends AbstractOffhandMagicIte
         GeoItem.registerSyncedAnimatable(this);
     }
 
+    protected AbstractSpellAmplifierItem(
+            Rarity rarity,
+            String itemKey,
+            boolean fireResistant,
+            AttributeBonus... attributeBonuses
+    ) {
+        super(rarity, itemKey, fireResistant, attributeBonuses);
+        this.textureLocation = ResourceLocation.fromNamespaceAndPath(
+                ApprenticeCodex.MODID,
+                "textures/geo/" + itemKey + ".png"
+        );
+        GeoItem.registerSyncedAnimatable(this);
+    }
+
     public ResourceLocation getTextureLocation() {
         return textureLocation;
     }

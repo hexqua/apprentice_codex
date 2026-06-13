@@ -60,6 +60,7 @@ public class ZenithStaff extends StaffItem implements GeoItem, UniqueItem {
         super(new Item.Properties()
                 .stacksTo(1)
                 .rarity(Rarity.EPIC)
+                .fireResistant()
                 .attributes(ExtendedSwordItem.createAttributes(ZENITH_STAFF_TIER)));
         GeoItem.registerSyncedAnimatable(this);
     }

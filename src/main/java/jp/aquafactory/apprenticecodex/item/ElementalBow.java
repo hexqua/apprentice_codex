@@ -92,7 +92,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public ElementalBow() {
-        super(new Properties().durability(1561));
+        super(new Properties().durability(1561).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
     }
 

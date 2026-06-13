@@ -73,7 +73,7 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
             double attackSpeed,
             List<AttributeBonus> handBonuses
     ) {
-        super(withBaseMainhandAttributes(properties, itemKey, attackDamage, attackSpeed, handBonuses));
+        super(withBaseMainhandAttributes(properties.fireResistant(), itemKey, attackDamage, attackSpeed, handBonuses));
         this.configuredSpell = Objects.requireNonNull(configuredSpell);
         this.configuredSpellLevel = configuredSpellLevel;
         this.startsWithPresetSpell = true;
@@ -95,7 +95,7 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
             double attackSpeed,
             List<AttributeBonus> handBonuses
     ) {
-        super(withBaseMainhandAttributes(properties, itemKey, attackDamage, attackSpeed, handBonuses));
+        super(withBaseMainhandAttributes(properties.fireResistant(), itemKey, attackDamage, attackSpeed, handBonuses));
         this.configuredSpell = null;
         this.configuredSpellLevel = 0;
         this.startsWithPresetSpell = false;
