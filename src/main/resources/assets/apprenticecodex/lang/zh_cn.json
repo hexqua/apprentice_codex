@@ -608,6 +608,7 @@
   "spell.apprenticecodex.inscribe_ice": "冰霜铭刻",
   "spell.apprenticecodex.divine_possession": "神降临",
   "spell.apprenticecodex.heavenly_fist": "天堂铁拳",
+  "spell.apprenticecodex.mirage_avoidance": "幻影回避",
 
   "spell.apprenticecodex.sky_edge.guide": "召唤一把武器朝你的视线方向发射。该法术有蓄力时间，且不造成击退，但可以无视目标的无敌帧。",
   "spell.apprenticecodex.archer_multiple.guide": "召唤一把跟随你的魔法弓，持续射击直至弹药耗尽，优先攻击你锁定的目标或附近的敌人。",
@@ -671,6 +672,7 @@
   "spell.apprenticecodex.inscribe_ice.guide": "生成冰匕首并呈扇形投掷，向受到伤害的生物刻入冰之魔力。第三次成功刻印时，魔力会爆裂并造成大量伤害。该爆裂还会诱发附近已刻入的冰之魔力连锁爆裂。",
   "spell.apprenticecodex.divine_possession.guide": "元素少女法袍专属潜在法术。让司掌元素的存在降临于身，在一定时间内将最高的学派加成反映到其他所有学派。若要让该存在降临于身，必须穿戴全套元素少女服装。",
   "spell.apprenticecodex.heavenly_fist.guide": "在瞄准位置召唤紫水晶魔导拳，连同空间一并砸下。范围内的目标会暂时被压回地面。当齿轮法则生效时（安装Create模组），会尝试对砸下的拳附近的物品进行压制或压缩加工。",
+  "spell.apprenticecodex.mirage_avoidance.guide": "发动后的短时间内，回避所有伤害并朝移动方向滑行。可通过转动身体来微调滑行方向。法术等级和法术威力不会改变移动距离。这是对曾守护远比这片天空更加辽阔之空的守护者所用技术的复刻。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "爆头伤害倍率：%d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "潜行伤害倍率：%d%%",
@@ -715,6 +717,7 @@
   "ui.apprenticecodex.recast_summon_spell.no_weapon": "未找到武器！",
   "ui.apprenticecodex.commence_fire.during_recoil": "后坐力尚未消退。",
   "ui.apprenticecodex.during_standby": "准备中。",
+  "ui.apprenticecodex.during_effect": "效果尚未结束！",
   "ui.apprenticecodex.fly_swatter.lockon_entity": "锁定 %s...(%d/%d)",
   "ui.apprenticecodex.cant_jump_more": "无法再次空中跳跃！",
   "ui.apprenticecodex.not_hold_pastel_staff": "你手中没有能激发力量的法杖...",
@@ -1044,6 +1047,7 @@
   "subtitle.apprenticecodex.sound.revolve": "机关轮转",
   "subtitle.apprenticecodex.sound.amethyst_fist": "宝石重击落下",
   "subtitle.apprenticecodex.sound.mana_jet": "推进器启动",
+  "subtitle.apprenticecodex.sound.mirage": "魔力缠身",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_air": "权杖猛击",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground": "权杖击打地面",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground_heavy": "权杖重击落下",
