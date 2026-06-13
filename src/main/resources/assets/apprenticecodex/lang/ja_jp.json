@@ -650,7 +650,7 @@
   "spell.apprenticecodex.earth_forge.guide": "視線先に土ブロックを平面に生成する。スニークをしていると範囲を1ブロックのみに変化させる。",
   "spell.apprenticecodex.moon_light.guide": "世界の理の外から刀を召喚して一閃する。一閃した刀の魔力は空間を鋭く深く裂く。発動が阻止されることはない。",
   "spell.apprenticecodex.mana_charge.guide": "使用中、マナを急速に回復する。",
-  "spell.apprenticecodex.mana_slash.guide": "魔力を凝縮した刃を放つ。威力は武器に強く依存する。命中時にマナを回復するオーブを生成する。",
+  "spell.apprenticecodex.mana_slash.guide": "刃の結晶杖固有の潜在魔法。魔力を凝縮した刃を放つ。威力は結晶杖の攻撃力に比例する。命中時にマナを回復するオーブを生成する。",
   "spell.apprenticecodex.force_field.guide": "敵の攻撃を方向問わず弾く不可視のフィールドを展開する。弾き飛ばした際に大きくマナを消費するが特定の魔法も弾くことができる。異界の長命種の魔法の模造品。",
   "spell.apprenticecodex.precision_jack.guide": "魔法のナイフを召喚して目の前の対象を裂く。普段よりかなり多くのドロップを期待できるが、発動までに相当数回転させる必要がある。",
   "spell.apprenticecodex.auto_magnet.guide": "魔導仕掛けの磁石を召喚し追従させる。磁石は近くのアイテムと経験値オーブを回収して術者へ転送するが、インベントリがいっぱいの間はアイテムを回収しない。",

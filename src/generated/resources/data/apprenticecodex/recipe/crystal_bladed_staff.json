@@ -30,7 +30,7 @@
         ],
         "maxSpells": 1,
         "mustEquip": false,
-        "spellWheel": true
+        "spellWheel": false
       }
     },
     "count": 1,

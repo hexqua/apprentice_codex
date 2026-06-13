@@ -1418,6 +1418,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         SwingcastStaffGameTestScenarios.swingcastStaffTiersExposeRequestedImbueRules(helper);
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffStartsWithHiddenManaSlash(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffStartsWithHiddenManaSlash(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeld(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeld(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffLegacyWheelReplacementStaysRemovableWhenHeld(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffLegacyWheelReplacementStaysRemovableWhenHeld(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
     public static void craftsmansDelightAppliesToExternalSpellManaAndCooldown(GameTestHelper helper) {
         EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightAppliesToExternalSpellManaAndCooldown(helper);
