@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "I": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    "R": {
+      "item": "irons_spellbooks:protection_rune"
+    },
+    "S": {
+      "item": "apprenticecodex:reflectcast_shield"
+    }
+  },
+  "pattern": [
+    "SIR",
+    "IMI",
+    " I "
+  ],
+  "result": {
+    "item": "apprenticecodex:spell_cast_parrying_ring"
+  },
+  "show_notification": true
+}
