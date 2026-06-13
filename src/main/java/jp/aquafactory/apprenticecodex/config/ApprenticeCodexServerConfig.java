@@ -971,6 +971,16 @@ public final class ApprenticeCodexServerConfig {
         );
     }
 
+    public static int spellCastParryingRingParryWindowTicks() {
+        return ITEMS_CONFIG.spellCastParryingRingParryWindowTicks();
+    }
+
+    public static GameTestConfigOverride useSpellCastParryingRingParryWindowTicksOverrideForGameTest(int value) {
+        var previousValue = ITEMS_CONFIG.spellCastParryingRingParryWindowTicks();
+        ITEMS_CONFIG.setSpellCastParryingRingParryWindowTicksForGameTest(value);
+        return () -> ITEMS_CONFIG.setSpellCastParryingRingParryWindowTicksForGameTest(previousValue);
+    }
+
     public static GameTestConfigOverride useSpellStainedRunicTabletConfigOverrideForGameTest(
             SpellStainedRunicTabletServerConfig.Values values
     ) {
