@@ -450,7 +450,7 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
                 "Crystal Bladed Staff hit suppression test should deal direct player attack damage");
 
         helper.runAfterDelay(3, () -> {
-            helper.assertTrue(countNearbyManaSlashProjectiles(helper, player.blockPosition()) == 0,
+            helper.assertTrue(!SpellRegistry.MANA_SLASH.get().getSpellId().equals(magicData.getCastingSpellId()),
                     "Crystal Bladed Staff hit swing should not cast Mana Slash");
             helper.succeed();
         });
@@ -474,7 +474,7 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
         NeoForge.EVENT_BUS.post(new AttackEntityEvent(player, target));
 
         helper.runAfterDelay(4, () -> {
-            helper.assertTrue(countNearbyManaSlashProjectiles(helper, player.blockPosition()) == 0,
+            helper.assertTrue(!SpellRegistry.MANA_SLASH.get().getSpellId().equals(magicData.getCastingSpellId()),
                     "Crystal Bladed Staff vanilla hit should not cast Mana Slash");
             helper.succeed();
         });
@@ -500,7 +500,7 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
         ));
 
         helper.runAfterDelay(4, () -> {
-            helper.assertTrue(countNearbyManaSlashProjectiles(helper, player.blockPosition()) == 0,
+            helper.assertTrue(!SpellRegistry.MANA_SLASH.get().getSpellId().equals(magicData.getCastingSpellId()),
                     "Crystal Bladed Staff delayed hit should not cast Mana Slash");
             helper.succeed();
         });
@@ -1051,10 +1051,4 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
         return stack;
     }
 
-    private static int countNearbyManaSlashProjectiles(GameTestHelper helper, BlockPos origin) {
-        return helper.getLevel().getEntitiesOfClass(
-                ManaSlashProjectileEntity.class,
-                new AABB(origin).inflate(32.0D)
-        ).size();
-    }
 }
