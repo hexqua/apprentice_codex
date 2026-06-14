@@ -24,8 +24,8 @@ import top.theillusivec4.curios.api.client.ICurioRenderer;
 @OnlyIn(Dist.CLIENT)
 public class MagiCompressorGadgetCurioRenderer implements ICurioRenderer {
     public static final ModelResourceLocation EQUIPPED_MODEL = new ModelResourceLocation(
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "magi_compressor_gadget_3d"),
-            "inventory"
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "item/magi_compressor_gadget_3d"),
+            "standalone"
     );
 
     private static final float PIXEL = 1.0F / 16.0F;

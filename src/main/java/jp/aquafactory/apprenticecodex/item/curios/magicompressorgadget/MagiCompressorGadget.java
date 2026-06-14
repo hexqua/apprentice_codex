@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MagiCompressorGadget extends Item implements ICurioItem {
@@ -28,16 +29,17 @@ public class MagiCompressorGadget extends Item implements ICurioItem {
 
     @Override
     public List<Component> getSlotsTooltip(List<Component> tooltips, Item.TooltipContext context, ItemStack stack) {
-        tooltips.add(Component.empty());
-        tooltips.add(Component.translatable("curios.modifiers." + CuriosSlotConstants.BELT)
+        var result = new ArrayList<>(tooltips);
+        result.add(Component.empty());
+        result.add(Component.translatable("curios.modifiers." + CuriosSlotConstants.BELT)
                 .withStyle(ChatFormatting.GOLD));
-        tooltips.add(Component.literal(" ")
+        result.add(Component.literal(" ")
                 .append(Component.translatable(getDescriptionId() + ".desc_1"))
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-        tooltips.add(Component.literal(" ")
+        result.add(Component.literal(" ")
                 .append(Component.translatable(getDescriptionId() + ".desc_2"))
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-        return tooltips;
+        return result;
     }
 
     @Override
