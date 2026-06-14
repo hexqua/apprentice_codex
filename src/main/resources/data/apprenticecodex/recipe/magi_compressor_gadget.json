@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "create"
+    }
+  ],
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "B": {
+      "tag": "forge:ingots/brass"
+    },
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "T": {
+      "item": "create:copper_backtank"
+    }
+  },
+  "pattern": [
+    "TLT",
+    "L L",
+    "ABA"
+  ],
+  "result": {
+    "item": "apprenticecodex:magi_compressor_gadget"
+  },
+  "show_notification": true
+}
