@@ -1496,6 +1496,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffMissTriggerDoesNotUseSwappedStack(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffMissTriggerDoesNotUseSwappedStack(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void crystalBladedStaffPendingMissTriggerKeepsEarlierHand(GameTestHelper helper) {
         SwingcastStaffGameTestScenarios.crystalBladedStaffPendingMissTriggerKeepsEarlierHand(helper);
     }
