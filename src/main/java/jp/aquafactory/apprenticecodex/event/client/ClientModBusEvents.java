@@ -36,6 +36,7 @@ import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import jp.aquafactory.apprenticecodex.renderer.ManaForceBladeSheathLayer;
 import jp.aquafactory.apprenticecodex.renderer.curio.AshenCircletCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.CircletCurioRenderer;
+import jp.aquafactory.apprenticecodex.renderer.curio.MagiCompressorGadgetCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.ManaThrusterCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterAmmoPouchCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterQuiverCurioRenderer;
@@ -133,6 +134,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
@@ -158,6 +160,7 @@ public final class ClientModBusEvents {
         modEventBus.addListener(ClientModBusEvents::registerClientExtensions);
         modEventBus.addListener(ClientModBusEvents::registerRenderers);
         modEventBus.addListener(ClientModBusEvents::addLayers);
+        modEventBus.addListener(ClientModBusEvents::registerAdditionalModels);
         modEventBus.addListener(ClientModBusEvents::registerTooltipComponentFactories);
         modEventBus.addListener(ClientModBusEvents::registerItemColors);
         modEventBus.addListener(ClientModBusEvents::registerRenderBuffers);
@@ -177,6 +180,7 @@ public final class ClientModBusEvents {
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ASHEN_CIRCLET.get(), AshenCircletCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ENCHANTED_CIRCLET.get(), CircletCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.MANA_THRUSTER.get(), ManaThrusterCurioRenderer::new));
+        event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.MAGI_COMPRESSOR_GADGET.get(), MagiCompressorGadgetCurioRenderer::new));
         event.enqueueWork(() -> ItemBlockRenderTypes.setRenderLayer(BlockRegistry.ESSENCE_SMOKER.get(), RenderType.cutout()));
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.REFLECTCAST_SHIELD.get(),
@@ -242,6 +246,10 @@ public final class ClientModBusEvents {
         event.register(MenuRegistry.ATELIER_STATION.get(), AtelierStationScreen::new);
         event.register(MenuRegistry.ENDER_GRIMOIRE_INSCRIPTION.get(), EnderGrimoireInscriptionScreen::new);
         event.register(MenuRegistry.ARCHIVISTS_GRIMOIRE.get(), ArchivistsGrimoireScreen::new);
+    }
+
+    private static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
+        event.register(MagiCompressorGadgetCurioRenderer.EQUIPPED_MODEL);
     }
 
     private static void onReloadListeners(RegisterClientReloadListenersEvent event) {
