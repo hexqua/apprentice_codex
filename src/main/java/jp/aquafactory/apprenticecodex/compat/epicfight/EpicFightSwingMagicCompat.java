@@ -226,7 +226,7 @@ public final class EpicFightSwingMagicCompat {
             return;
         }
 
-        var hitEntities = event.getPlayerPatch().getCurrentlyActuallyHitEntities();
+        var hitEntities = event.getEntityPatch().getCurrentlyActuallyHitEntities();
         if (hitEntities == null || hitEntities.isEmpty()) {
             return;
         }
@@ -269,8 +269,8 @@ public final class EpicFightSwingMagicCompat {
             return InteractionHand.OFF_HAND;
         }
 
-        var mainHandMatches = ItemStack.isSameItemSameTags(usedItem, player.getMainHandItem());
-        var offHandMatches = ItemStack.isSameItemSameTags(usedItem, player.getOffhandItem());
+        var mainHandMatches = ItemStack.isSameItemSameComponents(usedItem, player.getMainHandItem());
+        var offHandMatches = ItemStack.isSameItemSameComponents(usedItem, player.getOffhandItem());
         if (mainHandMatches && !offHandMatches) {
             return InteractionHand.MAIN_HAND;
         }

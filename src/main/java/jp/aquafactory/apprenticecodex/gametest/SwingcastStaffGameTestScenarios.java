@@ -423,7 +423,7 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
         helper.succeedWhen(() -> {
             helper.assertTrue(SpellRegistry.MANA_SLASH.get().getSpellId().equals(magicData.getCastingSpellId()),
                     "Crystal Bladed Staff miss swing should cast Mana Slash but got " + magicData.getCastingSpellId());
-            helper.assertTrue(ItemStack.isSameItemSameTags(magicData.getPlayerCastingItem(), stack),
+            helper.assertTrue(ItemStack.isSameItemSameComponents(magicData.getPlayerCastingItem(), stack),
                     "Crystal Bladed Staff miss swing should cast with the staff stack");
             helper.assertTrue(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND.equals(magicData.getCastingEquipmentSlot()),
                     "Crystal Bladed Staff miss swing should mark the mainhand casting slot");
