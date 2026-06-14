@@ -23,6 +23,7 @@
     "EfisCompatPlayerAnimationEventsMixin",
     "EpicFightLivingEntityPatchMixin",
     "EpicFightPlayerPatchMixin",
+    "IronsSpellbooksSchoolSpellCacheHotfixMixin",
     "ItemNameMixin",
     "ItemEntityAccessor",
     "ItemCombinerMenuAccessor",

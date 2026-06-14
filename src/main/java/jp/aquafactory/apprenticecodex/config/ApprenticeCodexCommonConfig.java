@@ -12,6 +12,7 @@ public final class ApprenticeCodexCommonConfig {
 
     private static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> SCHOOL_AFFINITY_PRIORITY;
     private static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> SCHOOL_AFFINITY_DENY;
+    private static final ModConfigSpec.BooleanValue ENABLE_IRONS_SPELLBOOKS_SCHOOL_SPELL_CACHE_HOTFIX;
 
     static {
         var builder = new ModConfigSpec.Builder();
@@ -24,6 +25,11 @@ public final class ApprenticeCodexCommonConfig {
                 value -> value instanceof String text && !text.isBlank());
         SCHOOL_AFFINITY_DENY = builder.defineListAllowEmpty("schoolAffinityDeny", java.util.List.<String>of(),
                 value -> value instanceof String text && !text.isBlank());
+        builder.pop();
+        builder.comment("For those who know.")
+                .push("Compatibility");
+        ENABLE_IRONS_SPELLBOOKS_SCHOOL_SPELL_CACHE_HOTFIX =
+                builder.define("enableIronsSpellbooksSchoolSpellCacheHotfix", false);
         builder.pop();
         SPEC = builder.build();
     }
@@ -46,6 +52,10 @@ public final class ApprenticeCodexCommonConfig {
         return SCHOOL_AFFINITY_DENY.get().stream()
                 .map(String::valueOf)
                 .toList();
+    }
+
+    public static boolean enableIronsSpellbooksSchoolSpellCacheHotfix() {
+        return ENABLE_IRONS_SPELLBOOKS_SCHOOL_SPELL_CACHE_HOTFIX.get();
     }
 
     public static void onConfigLoading(ModConfigEvent.Loading event) {
