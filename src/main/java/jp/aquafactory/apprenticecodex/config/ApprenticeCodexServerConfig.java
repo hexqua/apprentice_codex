@@ -363,6 +363,18 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.manaShieldCharmManaPerDamage();
     }
 
+    public static float magiCompressorGadgetManaCostPerSecond() {
+        return ITEMS_CONFIG.magiCompressorGadgetManaCostPerSecond();
+    }
+
+    public static float magiCompressorGadgetAirFillPerSecond() {
+        return ITEMS_CONFIG.magiCompressorGadgetAirFillPerSecond();
+    }
+
+    public static float magiCompressorGadgetMaxAir() {
+        return ITEMS_CONFIG.magiCompressorGadgetMaxAir();
+    }
+
     public static int manaShieldCharmRecoveryThresholdMana() {
         return ITEMS_CONFIG.manaShieldCharmRecoveryThresholdMana();
     }
@@ -777,6 +789,23 @@ public final class ApprenticeCodexServerConfig {
 
         ITEMS_CONFIG.setManaThrusterConfigForGameTest(manaCostPerTick);
         return () -> ITEMS_CONFIG.setManaThrusterConfigForGameTest(previousManaCostPerTick);
+    }
+
+    public static GameTestConfigOverride useMagiCompressorGadgetConfigOverrideForGameTest(
+            double manaCostPerSecond,
+            double airFillPerSecond,
+            double maxAir
+    ) {
+        var previousManaCostPerSecond = ITEMS_CONFIG.magiCompressorGadgetManaCostPerSecond();
+        var previousAirFillPerSecond = ITEMS_CONFIG.magiCompressorGadgetAirFillPerSecond();
+        var previousMaxAir = ITEMS_CONFIG.magiCompressorGadgetMaxAir();
+
+        ITEMS_CONFIG.setMagiCompressorGadgetConfigForGameTest(manaCostPerSecond, airFillPerSecond, maxAir);
+        return () -> ITEMS_CONFIG.setMagiCompressorGadgetConfigForGameTest(
+                previousManaCostPerSecond,
+                previousAirFillPerSecond,
+                previousMaxAir
+        );
     }
 
     public static GameTestConfigOverride useManaForceBladeCooldownConfigOverrideForGameTest(

@@ -12,16 +12,22 @@ public final class PatchouliBuiltinTemplateSupport {
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "essence_smoker_recipe");
     private static final String ESSENCE_SMOKER_TEMPLATE_RESOURCE =
             "/assets/apprenticecodex/patchouli_builtin_templates/essence_smoker_recipe.json";
+    private static boolean builtinTemplatesRegistered;
 
     private PatchouliBuiltinTemplateSupport() {
     }
 
-    public static void registerBuiltinTemplates() {
+    public static synchronized void registerBuiltinTemplates() {
+        if (builtinTemplatesRegistered) {
+            return;
+        }
+
         // manual 側のJSONから直接参照できるよう、template本体はmod側でbuiltin登録する。
         PatchouliAPI.get().registerTemplateAsBuiltin(
                 ESSENCE_SMOKER_RECIPE_TEMPLATE_ID,
                 PatchouliBuiltinTemplateSupport::openEssenceSmokerTemplate
         );
+        builtinTemplatesRegistered = true;
     }
 
     private static InputStream openEssenceSmokerTemplate() {
