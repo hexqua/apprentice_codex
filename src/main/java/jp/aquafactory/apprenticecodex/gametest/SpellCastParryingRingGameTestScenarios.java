@@ -16,12 +16,13 @@ import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.Arrow;
-import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.damagesource.DamageContainer;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
 final class SpellCastParryingRingGameTestScenarios {
     private SpellCastParryingRingGameTestScenarios() {
@@ -159,7 +160,8 @@ final class SpellCastParryingRingGameTestScenarios {
             var player = createRingTestPlayer(helper, "spell_cast_parry_projectile");
             equipRing(player);
             startNormalCast(player, CastType.LONG, 20, 15);
-            var arrow = new Arrow(helper.getLevel(), player);
+            var arrow = new Arrow(EntityType.ARROW, helper.getLevel());
+            arrow.setOwner(player);
             arrow.setPos(player.getX(), player.getY() + 1.0D, player.getZ() + 3.0D);
             helper.getLevel().addFreshEntity(arrow);
 
@@ -231,9 +233,9 @@ final class SpellCastParryingRingGameTestScenarios {
         ));
     }
 
-    private static LivingAttackEvent postAttack(LivingEntity target, DamageSource source) {
-        var event = new LivingAttackEvent(target, source, 4.0F);
-        MinecraftForge.EVENT_BUS.post(event);
+    private static LivingIncomingDamageEvent postAttack(LivingEntity target, DamageSource source) {
+        var event = new LivingIncomingDamageEvent(target, new DamageContainer(source, 4.0F));
+        NeoForge.EVENT_BUS.post(event);
         return event;
     }
 }

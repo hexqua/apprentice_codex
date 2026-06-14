@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "apprenticecodex:reflectcast_shield"
-            ]
+            "items": "apprenticecodex:reflectcast_shield"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_reflectcast_shield",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_reflectcast_shield"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:spell_cast_parrying_ring"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

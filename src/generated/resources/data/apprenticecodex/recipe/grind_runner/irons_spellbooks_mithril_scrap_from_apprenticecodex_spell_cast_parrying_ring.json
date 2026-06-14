@@ -6,11 +6,11 @@
   "results": [
     {
       "count": 1,
-      "item": "irons_spellbooks:mithril_scrap"
+      "id": "irons_spellbooks:mithril_scrap"
     },
     {
       "count": 1,
-      "item": "irons_spellbooks:protection_rune"
+      "id": "irons_spellbooks:protection_rune"
     }
   ]
 }

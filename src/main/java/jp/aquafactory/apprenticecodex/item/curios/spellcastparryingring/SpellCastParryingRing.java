@@ -10,6 +10,7 @@ import net.minecraft.world.item.Rarity;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SpellCastParryingRing extends Item implements ICurioItem {
@@ -33,18 +34,19 @@ public class SpellCastParryingRing extends Item implements ICurioItem {
     }
 
     @Override
-    public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
+    public List<Component> getSlotsTooltip(List<Component> tooltips, Item.TooltipContext context, ItemStack stack) {
+        var result = new ArrayList<>(tooltips);
         if (slotIdentifier != null) {
             // Curiosっぽい共通ヘッダ.
-            tooltips.add(Component.empty());
-            tooltips.add(Component.translatable("curios.modifiers." + this.slotIdentifier).withStyle(ChatFormatting.GOLD));
+            result.add(Component.empty());
+            result.add(Component.translatable("curios.modifiers." + this.slotIdentifier).withStyle(ChatFormatting.GOLD));
 
             // 本体.
-            tooltips.add(Component.literal(" ").append(Component.translatable(getDescriptionId() + ".desc_1")).withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            tooltips.add(Component.literal(" ").append(Component.translatable(getDescriptionId() + ".desc_2")).withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+            result.add(Component.literal(" ").append(Component.translatable(getDescriptionId() + ".desc_1")).withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+            result.add(Component.literal(" ").append(Component.translatable(getDescriptionId() + ".desc_2")).withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
         }
 
-        return tooltips;
+        return result;
     }
 
     @Override

@@ -21,7 +21,7 @@
     " I "
   ],
   "result": {
-    "item": "apprenticecodex:spell_cast_parrying_ring"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:spell_cast_parrying_ring"
+  }
 }
