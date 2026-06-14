@@ -162,6 +162,7 @@
   "item.apprenticecodex.focus_staffbow.loan_mana": "法力值借贷尚未偿还，无法使用聚焦施法。",
   "item.apprenticecodex.focus_staffbow.loan_mana.rest": "剩余待还法力值：%s",
   "item.apprenticecodex.crystal_bladed_staff.desc": "攻击命中时生成法力宝珠。",
+  "item.apprenticecodex.crystal_bladed_staff.swing_miss.desc": "法杖挥空时释放注入的法术。",
   "item.apprenticecodex.zenith_staff.desc_1": "这把法杖无论派系都能以%s%%的加成施法。",
   "item.apprenticecodex.zenith_staff.desc_2": "但是，除[%1$s]以外派系的法力值消耗会变为%2$s%%。",
   "item.apprenticecodex.zenith_staff.no_bonus": "这把法杖在受到派系加成时才会发挥效果。",

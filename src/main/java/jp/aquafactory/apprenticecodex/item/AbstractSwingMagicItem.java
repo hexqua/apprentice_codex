@@ -327,7 +327,10 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
     public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
-        lines.add(Component.translatable("item.apprenticecodex.swingcast.common.desc").withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable(getSwingCastTooltipTranslationKey()).withStyle(ChatFormatting.GRAY));
     }
 
+    protected String getSwingCastTooltipTranslationKey() {
+        return "item.apprenticecodex.swingcast.common.desc";
+    }
 }

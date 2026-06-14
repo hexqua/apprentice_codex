@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.compat.epicfight;
 
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
+import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
+import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffAttackContextManager;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -10,6 +12,7 @@ import yesman.epicfight.api.event.IdentifierProvider;
 import yesman.epicfight.api.event.types.animation.AnimationBeginEvent;
 import yesman.epicfight.api.event.types.animation.AnimationEndEvent;
 import yesman.epicfight.api.event.types.animation.AttackPhaseEndEvent;
+import yesman.epicfight.api.event.types.entity.DealDamageEvent;
 import yesman.epicfight.api.event.types.player.ComboAttackEvent;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.AttackAnimation;
@@ -37,6 +40,7 @@ public final class EpicFightSwingMagicCompat {
     private static final ConcurrentMap<TriggerKey, Long> LAST_TRIGGERED_TICKS = new ConcurrentHashMap<>();
     private static final ConcurrentMap<UUID, List<TimedTrigger>> TIMED_TRIGGERS = new ConcurrentHashMap<>();
     private static final ConcurrentMap<UUID, Integer> ACTIVE_SCHEDULED_ANIMATION_IDS = new ConcurrentHashMap<>();
+    private static final int CRYSTAL_BLADED_STAFF_MISS_EVALUATION_DELAY_TICKS = 2;
 
     private EpicFightSwingMagicCompat() {
     }
@@ -66,6 +70,11 @@ public final class EpicFightSwingMagicCompat {
             playerpatch.getEventListener().registerEvent(
                     EpicFightEventHooks.Animation.END,
                     EpicFightSwingMagicCompat::onAnimationEnd,
+                    IdentifierProvider.constant(SWING_MAGIC_EVENT_ID)
+            );
+            playerpatch.getEventListener().registerEvent(
+                    EpicFightEventHooks.Entity.DELIVER_DAMAGE_PRE,
+                    EpicFightSwingMagicCompat::onDealDamagePre,
                     IdentifierProvider.constant(SWING_MAGIC_EVENT_ID)
             );
             INSTALLED_PLAYERS.add(player.getUUID());
@@ -185,6 +194,21 @@ public final class EpicFightSwingMagicCompat {
         }
     }
 
+    private static void onDealDamagePre(DealDamageEvent.Pre event) {
+        if (!(event.getEntityPatch() instanceof ServerPlayerPatch playerpatch)) {
+            return;
+        }
+
+        var player = playerpatch.getOriginal();
+        if (event.getTarget() == null
+                || (!CrystalBladedStaff.isCrystalBladedStaff(player.getMainHandItem())
+                        && !CrystalBladedStaff.isCrystalBladedStaff(player.getOffhandItem()))) {
+            return;
+        }
+
+        CrystalBladedStaffAttackContextManager.recordRecentCrystalBladedStaffHit(player);
+    }
+
     private static void processTimedTriggers(ServerPlayer player) {
         var playerId = player.getUUID();
         var triggers = TIMED_TRIGGERS.get(playerId);
@@ -241,7 +265,14 @@ public final class EpicFightSwingMagicCompat {
             return false;
         }
 
-        if (stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem) {
+        if (CrystalBladedStaff.isCrystalBladedStaff(stack) && player instanceof ServerPlayer serverPlayer) {
+            return CrystalBladedStaffAttackContextManager.requestMissTrigger(
+                    serverPlayer,
+                    triggerHand,
+                    true,
+                    CRYSTAL_BLADED_STAFF_MISS_EVALUATION_DELAY_TICKS
+            );
+        } else if (stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem) {
             return swingTriggeredMagicItem.tryTriggerSpellOnSwing(player, triggerHand, true);
         } else if (triggerHand == InteractionHand.MAIN_HAND
                 && player instanceof ServerPlayer serverPlayer
