@@ -59,6 +59,7 @@ public final class CrystalBladedStaffAttackContextManager {
                 player,
                 level.getGameTime(),
                 hand,
+                stack,
                 bypassChargeCheck,
                 Math.max(1, evaluationDelayTicks)
         ));
@@ -203,6 +204,12 @@ public final class CrystalBladedStaffAttackContextManager {
 
     private static void triggerMissSpell(ServerPlayer player, PendingMissTrigger trigger) {
         var stack = player.getItemInHand(trigger.hand());
+        // 遅延中に持ち替えた場合は不発にする。SpellDataを固定して別経路で詠唱すると契約が広がるため、
+        // 1-2tickのエッジケースには、振った同一スタックが手に残っている場合だけ通常経路へ渡す。
+        if (stack != trigger.stack()) {
+            return;
+        }
+
         if (!CrystalBladedStaff.isCrystalBladedStaff(stack)) {
             return;
         }
@@ -300,6 +307,7 @@ public final class CrystalBladedStaffAttackContextManager {
             ServerPlayer player,
             long requestGameTime,
             InteractionHand hand,
+            ItemStack stack,
             boolean bypassChargeCheck,
             int evaluationDelayTicks
     ) {

@@ -181,6 +181,33 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
         });
     }
 
+    static void crystalBladedStaffMissTriggerDoesNotUseSwappedStack(GameTestHelper helper) {
+        var item = (CrystalBladedStaff) ItemRegistry.CRYSTAL_BLADED_STAFF.get();
+        var originalStack = new ItemStack(item);
+        item.initializeSpellContainer(originalStack);
+        var swappedSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        var swappedStack = createLegacyCrystalBladedStaffContainer(swappedSpell, 1, false);
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 4, 0), "crystal_bladed_staff_swap_no_cast");
+        player.setItemInHand(InteractionHand.MAIN_HAND, originalStack);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Crystal Bladed Staff swapped stack test could not resolve player mana data");
+        magicData.setMana(1000.0F);
+
+        helper.assertTrue(
+                CrystalBladedStaffAttackContextManager.requestMissTrigger(player, InteractionHand.MAIN_HAND, true, 2),
+                "Crystal Bladed Staff swapped stack miss trigger should be accepted"
+        );
+        player.setItemInHand(InteractionHand.MAIN_HAND, swappedStack);
+
+        helper.runAfterDelay(4, () -> {
+            helper.assertTrue(!SpellRegistry.MANA_SLASH.get().getSpellId().equals(magicData.getCastingSpellId()),
+                    "Crystal Bladed Staff swapped stack should not cast the original Mana Slash");
+            helper.assertTrue(!swappedSpell.getSpellId().equals(magicData.getCastingSpellId()),
+                    "Crystal Bladed Staff swapped stack should not cast the replacement staff spell");
+            helper.succeed();
+        });
+    }
+
     static void crystalBladedStaffPendingMissTriggerKeepsEarlierHand(GameTestHelper helper) {
         var item = (CrystalBladedStaff) ItemRegistry.CRYSTAL_BLADED_STAFF.get();
         var mainSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
