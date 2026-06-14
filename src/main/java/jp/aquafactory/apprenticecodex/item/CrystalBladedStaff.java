@@ -173,6 +173,11 @@ public class CrystalBladedStaff extends AbstractSwingMagicItem implements GeoIte
     }
 
     @Override
+    protected String getSwingCastTooltipTranslationKey() {
+        return getDescriptionId() + ".swing_miss.desc";
+    }
+
+    @Override
     public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull List<Component> tooltipComponents, @NotNull TooltipFlag tooltipFlag) {
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
         tooltipComponents.add(Component.translatable(getDescriptionId() + ".desc").withStyle(ChatFormatting.GRAY));

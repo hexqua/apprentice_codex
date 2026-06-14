@@ -2,15 +2,20 @@ package jp.aquafactory.apprenticecodex.item.crystalbladedstaff;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
+import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 import java.util.LinkedHashMap;
@@ -21,8 +26,57 @@ import java.util.WeakHashMap;
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class CrystalBladedStaffAttackContextManager {
     private static final Map<ServerLevel, Map<UUID, PendingAttackContext>> PENDING_ATTACKS = new WeakHashMap<>();
+    private static final Map<ServerLevel, Map<HitKey, PendingMissTrigger>> PENDING_MISS_TRIGGERS = new WeakHashMap<>();
+    private static final Map<ServerLevel, Map<HitKey, Long>> RECENT_HIT_TICKS = new WeakHashMap<>();
+    private static final long HIT_MEMORY_TICKS = 1L;
 
     private CrystalBladedStaffAttackContextManager() {
+    }
+
+    public static boolean requestMissTrigger(ServerPlayer player, InteractionHand hand, boolean bypassChargeCheck) {
+        return requestMissTrigger(player, hand, bypassChargeCheck, 1);
+    }
+
+    public static boolean requestMissTrigger(
+            ServerPlayer player,
+            InteractionHand hand,
+            boolean bypassChargeCheck,
+            int evaluationDelayTicks
+    ) {
+        if (player == null || player.isSpectator()) {
+            return false;
+        }
+
+        var stack = player.getItemInHand(hand);
+        if (!CrystalBladedStaff.isCrystalBladedStaff(stack)
+                || (!bypassChargeCheck && !CrystalBladedStaff.isFullyChargedAttack(player))) {
+            return false;
+        }
+
+        var level = player.serverLevel();
+        var triggersByPlayerAndHand = PENDING_MISS_TRIGGERS.computeIfAbsent(level, ignored -> new LinkedHashMap<>());
+        triggersByPlayerAndHand.put(new HitKey(player.getUUID(), hand), new PendingMissTrigger(
+                player,
+                level.getGameTime(),
+                hand,
+                stack,
+                bypassChargeCheck,
+                Math.max(1, evaluationDelayTicks)
+        ));
+        return true;
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onAttackEntity(AttackEntityEvent event) {
+        var player = event.getEntity();
+        if (player.level().isClientSide
+                || event.isCanceled()
+                || !(player instanceof ServerPlayer attacker)
+                || !(event.getTarget() instanceof LivingEntity)) {
+            return;
+        }
+
+        recordRecentCrystalBladedStaffHit(attacker, InteractionHand.MAIN_HAND);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -35,12 +89,19 @@ public final class CrystalBladedStaffAttackContextManager {
             return;
         }
 
+        var attacker = resolveDirectPlayerAttack(event);
+        if (attacker == null) {
+            return;
+        }
+
+        recordRecentCrystalBladedStaffHit(attacker, InteractionHand.MAIN_HAND);
+
         if (!(event.getEntity() instanceof Mob mob)) {
             return;
         }
 
-        var attacker = resolveStaffAttacker(event);
-        if (attacker == null || !CrystalBladedStaff.isFullyChargedAttack(attacker)) {
+        if (!CrystalBladedStaff.isCrystalBladedStaff(attacker.getMainHandItem())
+                || !CrystalBladedStaff.isFullyChargedAttack(attacker)) {
             return;
         }
 
@@ -62,28 +123,29 @@ public final class CrystalBladedStaffAttackContextManager {
             return;
         }
 
-        var attacksByPlayer = PENDING_ATTACKS.get(serverLevel);
-        if (attacksByPlayer == null || attacksByPlayer.isEmpty()) {
-            return;
-        }
-
         var gameTime = serverLevel.getGameTime();
-        var iterator = attacksByPlayer.entrySet().iterator();
-        while (iterator.hasNext()) {
-            var entry = iterator.next();
-            var attackContext = entry.getValue();
+        var attacksByPlayer = PENDING_ATTACKS.get(serverLevel);
+        if (attacksByPlayer != null && !attacksByPlayer.isEmpty()) {
+            var iterator = attacksByPlayer.entrySet().iterator();
+            while (iterator.hasNext()) {
+                var entry = iterator.next();
+                var attackContext = entry.getValue();
 
-            if (attackContext.gameTime > gameTime) {
-                continue;
+                if (attackContext.gameTime > gameTime) {
+                    continue;
+                }
+
+                processAttack(serverLevel, entry.getKey(), attackContext);
+                iterator.remove();
             }
 
-            processAttack(serverLevel, entry.getKey(), attackContext);
-            iterator.remove();
+            if (attacksByPlayer.isEmpty()) {
+                PENDING_ATTACKS.remove(serverLevel);
+            }
         }
 
-        if (attacksByPlayer.isEmpty()) {
-            PENDING_ATTACKS.remove(serverLevel);
-        }
+        processMissTriggers(serverLevel, gameTime);
+        cleanupRecentHits(serverLevel, gameTime);
     }
 
     private static void processAttack(ServerLevel serverLevel, UUID playerUuid, PendingAttackContext attackContext) {
@@ -103,7 +165,105 @@ public final class CrystalBladedStaffAttackContextManager {
         }
     }
 
-    private static ServerPlayer resolveStaffAttacker(LivingDamageEvent.Post event) {
+    private static void processMissTriggers(ServerLevel serverLevel, long gameTime) {
+        var triggersByPlayerAndHand = PENDING_MISS_TRIGGERS.get(serverLevel);
+        if (triggersByPlayerAndHand == null || triggersByPlayerAndHand.isEmpty()) {
+            return;
+        }
+
+        var iterator = triggersByPlayerAndHand.entrySet().iterator();
+        while (iterator.hasNext()) {
+            var entry = iterator.next();
+            var trigger = entry.getValue();
+
+            if (gameTime < trigger.evaluationGameTime()) {
+                continue;
+            }
+
+            var triggerKey = entry.getKey();
+            var player = serverLevel.getServer().getPlayerList().getPlayer(triggerKey.playerUuid());
+            if (player == null) {
+                player = trigger.player();
+            }
+            if (player != null
+                    && player.serverLevel() == serverLevel
+                    && !hasRecentHit(serverLevel, triggerKey.playerUuid(), trigger.hand(), trigger.requestGameTime())) {
+                triggerMissSpell(player, trigger);
+            }
+            iterator.remove();
+        }
+
+        if (triggersByPlayerAndHand.isEmpty()) {
+            PENDING_MISS_TRIGGERS.remove(serverLevel);
+        }
+    }
+
+    private static void triggerMissSpell(ServerPlayer player, PendingMissTrigger trigger) {
+        var stack = player.getItemInHand(trigger.hand());
+        // 遅延中に持ち替えた場合は不発にする。SpellDataを固定して別経路で詠唱すると契約が広がるため、
+        // 1-2tickのエッジケースには、振った同一スタックが手に残っている場合だけ通常経路へ渡す。
+        if (stack != trigger.stack()) {
+            return;
+        }
+
+        if (!CrystalBladedStaff.isCrystalBladedStaff(stack)) {
+            return;
+        }
+
+        if (stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem
+                && swingTriggeredMagicItem.canTriggerSpellOnSwing(player, trigger.hand())) {
+            swingTriggeredMagicItem.tryTriggerSpellOnSwing(player, trigger.hand(), trigger.bypassChargeCheck());
+        }
+    }
+
+    public static void recordRecentCrystalBladedStaffHit(ServerPlayer attacker, InteractionHand hand) {
+        var level = attacker.serverLevel();
+        var gameTime = level.getGameTime();
+        var hitsByPlayerAndHand = RECENT_HIT_TICKS.computeIfAbsent(level, ignored -> new LinkedHashMap<>());
+        recordRecentHitIfCrystalBladedStaff(
+                hitsByPlayerAndHand,
+                attacker.getUUID(),
+                hand,
+                attacker.getItemInHand(hand),
+                gameTime
+        );
+    }
+
+    private static void recordRecentHitIfCrystalBladedStaff(
+            Map<HitKey, Long> hitsByPlayerAndHand,
+            UUID playerUuid,
+            InteractionHand hand,
+            ItemStack stack,
+            long gameTime
+    ) {
+        if (CrystalBladedStaff.isCrystalBladedStaff(stack)) {
+            hitsByPlayerAndHand.put(new HitKey(playerUuid, hand), gameTime);
+        }
+    }
+
+    private static boolean hasRecentHit(ServerLevel serverLevel, UUID playerUuid, InteractionHand hand, long requestGameTime) {
+        var hitsByPlayerAndHand = RECENT_HIT_TICKS.get(serverLevel);
+        if (hitsByPlayerAndHand == null) {
+            return false;
+        }
+
+        var hitGameTime = hitsByPlayerAndHand.get(new HitKey(playerUuid, hand));
+        return hitGameTime != null && hitGameTime >= requestGameTime - HIT_MEMORY_TICKS;
+    }
+
+    private static void cleanupRecentHits(ServerLevel serverLevel, long gameTime) {
+        var hitsByPlayerAndHand = RECENT_HIT_TICKS.get(serverLevel);
+        if (hitsByPlayerAndHand == null || hitsByPlayerAndHand.isEmpty()) {
+            return;
+        }
+
+        hitsByPlayerAndHand.values().removeIf(hitGameTime -> gameTime - hitGameTime > HIT_MEMORY_TICKS + 2L);
+        if (hitsByPlayerAndHand.isEmpty()) {
+            RECENT_HIT_TICKS.remove(serverLevel);
+        }
+    }
+
+    private static ServerPlayer resolveDirectPlayerAttack(LivingDamageEvent.Post event) {
         ServerPlayer player = null;
         if (event.getSource().getDirectEntity() instanceof ServerPlayer directPlayer) {
             player = directPlayer;
@@ -123,11 +283,7 @@ public final class CrystalBladedStaffAttackContextManager {
             return null;
         }
 
-        if (CrystalBladedStaff.isCrystalBladedStaff(player.getMainHandItem())) {
-            return player;
-        }
-
-        return null;
+        return player;
     }
 
     private static final class PendingAttackContext {
@@ -141,5 +297,21 @@ public final class CrystalBladedStaffAttackContextManager {
         private void recordHit(UUID targetUuid, Vec3 impactPosition) {
             targetsByUuid.putIfAbsent(targetUuid, impactPosition);
         }
+    }
+
+    private record PendingMissTrigger(
+            ServerPlayer player,
+            long requestGameTime,
+            InteractionHand hand,
+            ItemStack stack,
+            boolean bypassChargeCheck,
+            int evaluationDelayTicks
+    ) {
+        private long evaluationGameTime() {
+            return requestGameTime + evaluationDelayTicks;
+        }
+    }
+
+    private record HitKey(UUID playerUuid, InteractionHand hand) {
     }
 }

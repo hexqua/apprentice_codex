@@ -182,6 +182,7 @@ import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressStats;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeSchoolPowerBonusEvents;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeStats;
+import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffAttackContextManager;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastCooldownMode;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
@@ -400,6 +401,201 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
                     "Crystal Bladed Staff should start with locked Mana Slash");
         });
     }
+
+    static void crystalBladedStaffMissSwingCastsManaSlash(GameTestHelper helper) {
+        var item = (CrystalBladedStaff) ItemRegistry.CRYSTAL_BLADED_STAFF.get();
+        var stack = new ItemStack(item);
+        item.initializeSpellContainer(stack);
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 4, 0), "crystal_bladed_staff_miss_cast");
+        player.setYRot(0.0F);
+        player.setXRot(0.0F);
+        player.setYHeadRot(0.0F);
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Crystal Bladed Staff miss cast test could not resolve player mana data");
+        magicData.setMana(100.0F);
+
+        helper.assertTrue(
+                CrystalBladedStaffAttackContextManager.requestMissTrigger(player, InteractionHand.MAIN_HAND, true),
+                "Crystal Bladed Staff miss trigger should be accepted"
+        );
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(SpellRegistry.MANA_SLASH.get().getSpellId().equals(magicData.getCastingSpellId()),
+                    "Crystal Bladed Staff miss swing should cast Mana Slash but got " + magicData.getCastingSpellId());
+            helper.assertTrue(ItemStack.isSameItemSameComponents(magicData.getPlayerCastingItem(), stack),
+                    "Crystal Bladed Staff miss swing should cast with the staff stack");
+            helper.assertTrue(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND.equals(magicData.getCastingEquipmentSlot()),
+                    "Crystal Bladed Staff miss swing should mark the mainhand casting slot");
+            helper.succeed();
+        });
+    }
+
+    static void crystalBladedStaffHitSwingDoesNotCastManaSlash(GameTestHelper helper) {
+        var item = (CrystalBladedStaff) ItemRegistry.CRYSTAL_BLADED_STAFF.get();
+        var stack = new ItemStack(item);
+        item.initializeSpellContainer(stack);
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "crystal_bladed_staff_hit_no_cast");
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Crystal Bladed Staff hit suppression test could not resolve player mana data");
+        magicData.setMana(100.0F);
+
+        helper.assertTrue(
+                CrystalBladedStaffAttackContextManager.requestMissTrigger(player, InteractionHand.MAIN_HAND, true),
+                "Crystal Bladed Staff hit suppression trigger should be accepted"
+        );
+        var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0));
+        helper.assertTrue(target.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F),
+                "Crystal Bladed Staff hit suppression test should deal direct player attack damage");
+
+        helper.runAfterDelay(3, () -> {
+            helper.assertTrue(!SpellRegistry.MANA_SLASH.get().getSpellId().equals(magicData.getCastingSpellId()),
+                    "Crystal Bladed Staff hit swing should not cast Mana Slash");
+            helper.succeed();
+        });
+    }
+
+    static void crystalBladedStaffVanillaAttackEntityHitDoesNotCastManaSlash(GameTestHelper helper) {
+        var item = (CrystalBladedStaff) ItemRegistry.CRYSTAL_BLADED_STAFF.get();
+        var stack = new ItemStack(item);
+        item.initializeSpellContainer(stack);
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "crystal_bladed_staff_vanilla_hit_no_cast");
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Crystal Bladed Staff vanilla hit test could not resolve player mana data");
+        magicData.setMana(100.0F);
+
+        helper.assertTrue(
+                CrystalBladedStaffAttackContextManager.requestMissTrigger(player, InteractionHand.MAIN_HAND, true, 2),
+                "Crystal Bladed Staff vanilla hit trigger should be accepted"
+        );
+        var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0));
+        NeoForge.EVENT_BUS.post(new AttackEntityEvent(player, target));
+
+        helper.runAfterDelay(4, () -> {
+            helper.assertTrue(!SpellRegistry.MANA_SLASH.get().getSpellId().equals(magicData.getCastingSpellId()),
+                    "Crystal Bladed Staff vanilla hit should not cast Mana Slash");
+            helper.succeed();
+        });
+    }
+
+    static void crystalBladedStaffDelayedHitDoesNotCastManaSlash(GameTestHelper helper) {
+        var item = (CrystalBladedStaff) ItemRegistry.CRYSTAL_BLADED_STAFF.get();
+        var stack = new ItemStack(item);
+        item.initializeSpellContainer(stack);
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "crystal_bladed_staff_delayed_hit_no_cast");
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Crystal Bladed Staff delayed hit test could not resolve player mana data");
+        magicData.setMana(100.0F);
+
+        helper.assertTrue(
+                CrystalBladedStaffAttackContextManager.requestMissTrigger(player, InteractionHand.MAIN_HAND, true, 2),
+                "Crystal Bladed Staff delayed hit trigger should be accepted"
+        );
+        helper.runAfterDelay(1, () -> CrystalBladedStaffAttackContextManager.recordRecentCrystalBladedStaffHit(
+                player,
+                InteractionHand.MAIN_HAND
+        ));
+
+        helper.runAfterDelay(4, () -> {
+            helper.assertTrue(!SpellRegistry.MANA_SLASH.get().getSpellId().equals(magicData.getCastingSpellId()),
+                    "Crystal Bladed Staff delayed hit should not cast Mana Slash");
+            helper.succeed();
+        });
+    }
+
+    static void crystalBladedStaffMissTriggerDoesNotUseSwappedStack(GameTestHelper helper) {
+        var item = (CrystalBladedStaff) ItemRegistry.CRYSTAL_BLADED_STAFF.get();
+        var originalStack = new ItemStack(item);
+        item.initializeSpellContainer(originalStack);
+        var swappedSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        var swappedStack = createLegacyCrystalBladedStaffContainer(swappedSpell, 1, false);
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 4, 0), "crystal_bladed_staff_swap_no_cast");
+        player.setItemInHand(InteractionHand.MAIN_HAND, originalStack);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Crystal Bladed Staff swapped stack test could not resolve player mana data");
+        magicData.setMana(1000.0F);
+
+        helper.assertTrue(
+                CrystalBladedStaffAttackContextManager.requestMissTrigger(player, InteractionHand.MAIN_HAND, true, 2),
+                "Crystal Bladed Staff swapped stack miss trigger should be accepted"
+        );
+        player.setItemInHand(InteractionHand.MAIN_HAND, swappedStack);
+
+        helper.runAfterDelay(4, () -> {
+            helper.assertTrue(!SpellRegistry.MANA_SLASH.get().getSpellId().equals(magicData.getCastingSpellId()),
+                    "Crystal Bladed Staff swapped stack should not cast the original Mana Slash");
+            helper.assertTrue(!swappedSpell.getSpellId().equals(magicData.getCastingSpellId()),
+                    "Crystal Bladed Staff swapped stack should not cast the replacement staff spell");
+            helper.succeed();
+        });
+    }
+
+    static void crystalBladedStaffPendingMissTriggerKeepsEarlierHand(GameTestHelper helper) {
+        var item = (CrystalBladedStaff) ItemRegistry.CRYSTAL_BLADED_STAFF.get();
+        var mainSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        var mainStack = createLegacyCrystalBladedStaffContainer(mainSpell, 1, false);
+        var offhandStack = new ItemStack(item);
+        item.initializeSpellContainer(offhandStack);
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 4, 0), "crystal_bladed_staff_dual_pending");
+        player.setItemInHand(InteractionHand.MAIN_HAND, mainStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, offhandStack);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Crystal Bladed Staff dual pending test could not resolve player mana data");
+        magicData.setMana(1000.0F);
+
+        helper.assertTrue(
+                CrystalBladedStaffAttackContextManager.requestMissTrigger(player, InteractionHand.MAIN_HAND, true, 1),
+                "Crystal Bladed Staff mainhand miss trigger should be accepted"
+        );
+        helper.assertTrue(
+                CrystalBladedStaffAttackContextManager.requestMissTrigger(player, InteractionHand.OFF_HAND, true, 10),
+                "Crystal Bladed Staff offhand miss trigger should be accepted without overwriting mainhand"
+        );
+
+        helper.runAfterDelay(2, () -> {
+            helper.assertTrue(mainSpell.getSpellId().equals(magicData.getCastingSpellId()),
+                    "Crystal Bladed Staff mainhand pending trigger should cast first but got "
+                            + magicData.getCastingSpellId());
+            helper.assertTrue(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND.equals(
+                            magicData.getCastingEquipmentSlot()),
+                    "Crystal Bladed Staff mainhand pending trigger should mark the mainhand casting slot");
+            helper.succeed();
+        });
+    }
+
+    static void crystalBladedStaffMainHandHitDoesNotSuppressOffhandMiss(GameTestHelper helper) {
+        var item = (CrystalBladedStaff) ItemRegistry.CRYSTAL_BLADED_STAFF.get();
+        var offhandStack = new ItemStack(item);
+        item.initializeSpellContainer(offhandStack);
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "crystal_bladed_staff_offhand_miss");
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIAMOND_SWORD));
+        player.setItemInHand(InteractionHand.OFF_HAND, offhandStack);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Crystal Bladed Staff offhand miss test could not resolve player mana data");
+        magicData.setMana(100.0F);
+
+        helper.assertTrue(
+                CrystalBladedStaffAttackContextManager.requestMissTrigger(player, InteractionHand.OFF_HAND, true, 2),
+                "Crystal Bladed Staff offhand miss trigger should be accepted"
+        );
+        var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0));
+        helper.assertTrue(target.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F),
+                "Crystal Bladed Staff offhand miss test should deal mainhand player attack damage");
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(SpellRegistry.MANA_SLASH.get().getSpellId().equals(magicData.getCastingSpellId()),
+                    "Mainhand hit should not suppress offhand Crystal Bladed Staff miss cast but got "
+                            + magicData.getCastingSpellId());
+            helper.assertTrue(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND.equals(
+                            magicData.getCastingEquipmentSlot()),
+                    "Offhand Crystal Bladed Staff miss cast should mark the offhand casting slot");
+            helper.succeed();
+        });
+    }
+
     static void crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeld(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (CrystalBladedStaff) ItemRegistry.CRYSTAL_BLADED_STAFF.get();
@@ -854,4 +1050,5 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
         ISpellContainer.set(stack, mutable.toImmutable());
         return stack;
     }
+
 }
