@@ -69,6 +69,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
             "apprenticecodex.mana_shield_charm_iframe_config";
     private static final String MANA_THRUSTER_CONFIG_BATCH =
             "apprenticecodex.mana_thruster_config";
+    private static final String MAGI_COMPRESSOR_GADGET_CONFIG_BATCH =
+            "apprenticecodex.magi_compressor_gadget_config";
     private static final String JUMPCAST_CHARM_CONFIG_BATCH =
             "apprenticecodex.jumpcast_charm_config";
 
@@ -348,6 +350,36 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
     public static void manaThrusterLavaAllowsUpwardEscapeWithoutSuppressingRecovery(GameTestHelper helper) {
         ManaThrusterGameTestScenarios.manaThrusterLavaAllowsUpwardEscapeWithoutSuppressingRecovery(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magiCompressorGadgetUsesBeltSlotAndDedicatedImplementation(GameTestHelper helper) {
+        MagiCompressorGadgetGameTestScenarios.magiCompressorGadgetUsesBeltSlotAndDedicatedImplementation(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MAGI_COMPRESSOR_GADGET_CONFIG_BATCH)
+    public static void magiCompressorGadgetCreateUnavailableDoesNotSpendManaOrStoreAir(GameTestHelper helper) {
+        MagiCompressorGadgetGameTestScenarios.magiCompressorGadgetCreateUnavailableDoesNotSpendManaOrStoreAir(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MAGI_COMPRESSOR_GADGET_CONFIG_BATCH)
+    public static void magiCompressorGadgetConvertsConfiguredManaIntoAir(GameTestHelper helper) {
+        MagiCompressorGadgetGameTestScenarios.magiCompressorGadgetConvertsConfiguredManaIntoAir(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MAGI_COMPRESSOR_GADGET_CONFIG_BATCH)
+    public static void magiCompressorGadgetConvertsProportionallyUpToMaxAir(GameTestHelper helper) {
+        MagiCompressorGadgetGameTestScenarios.magiCompressorGadgetConvertsProportionallyUpToMaxAir(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MAGI_COMPRESSOR_GADGET_CONFIG_BATCH)
+    public static void magiCompressorGadgetInsufficientManaDoesNotStoreAir(GameTestHelper helper) {
+        MagiCompressorGadgetGameTestScenarios.magiCompressorGadgetInsufficientManaDoesNotStoreAir(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magiCompressorGadgetRejectsEnchantments(GameTestHelper helper) {
+        MagiCompressorGadgetGameTestScenarios.magiCompressorGadgetRejectsEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE)

@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.config.item.ElementalBowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FocusStaffbowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.MagiCompressorGadgetServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaForceBladeServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaShieldCharmServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaThrusterServerConfig;
@@ -42,6 +43,7 @@ final class ItemsServerConfig {
     private final ZenithStaffServerConfig zenithStaffConfig;
     private final IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig;
     private final ManaForceBladeServerConfig manaForceBladeConfig;
+    private final MagiCompressorGadgetServerConfig magiCompressorGadgetConfig;
     private final ManaShieldCharmServerConfig manaShieldCharmConfig;
     private final ManaThrusterServerConfig manaThrusterConfig;
     private final CircuitHeatStaffServerConfig circuitHeatStaffConfig;
@@ -69,6 +71,7 @@ final class ItemsServerConfig {
             ZenithStaffServerConfig zenithStaffConfig,
             IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig,
             ManaForceBladeServerConfig manaForceBladeConfig,
+            MagiCompressorGadgetServerConfig magiCompressorGadgetConfig,
             ManaShieldCharmServerConfig manaShieldCharmConfig,
             ManaThrusterServerConfig manaThrusterConfig,
             CircuitHeatStaffServerConfig circuitHeatStaffConfig,
@@ -95,6 +98,7 @@ final class ItemsServerConfig {
         this.zenithStaffConfig = zenithStaffConfig;
         this.isekaiTravelGuidebookConfig = isekaiTravelGuidebookConfig;
         this.manaForceBladeConfig = manaForceBladeConfig;
+        this.magiCompressorGadgetConfig = magiCompressorGadgetConfig;
         this.manaShieldCharmConfig = manaShieldCharmConfig;
         this.manaThrusterConfig = manaThrusterConfig;
         this.circuitHeatStaffConfig = circuitHeatStaffConfig;
@@ -124,6 +128,7 @@ final class ItemsServerConfig {
         var zenithStaffConfig = ZenithStaffServerConfig.define(builder);
         var isekaiTravelGuidebookConfig = IsekaiTravelGuidebookServerConfig.define(builder);
         var manaForceBladeConfig = ManaForceBladeServerConfig.define(builder);
+        var magiCompressorGadgetConfig = MagiCompressorGadgetServerConfig.define(builder);
         var manaShieldCharmConfig = ManaShieldCharmServerConfig.define(builder);
         var manaThrusterConfig = ManaThrusterServerConfig.define(builder);
         var circuitHeatStaffConfig = CircuitHeatStaffServerConfig.define(builder);
@@ -152,6 +157,7 @@ final class ItemsServerConfig {
                 zenithStaffConfig,
                 isekaiTravelGuidebookConfig,
                 manaForceBladeConfig,
+                magiCompressorGadgetConfig,
                 manaShieldCharmConfig,
                 manaThrusterConfig,
                 circuitHeatStaffConfig,
@@ -296,6 +302,18 @@ final class ItemsServerConfig {
 
     float manaShieldCharmManaPerDamage() {
         return manaShieldCharmConfig.manaPerDamage();
+    }
+
+    float magiCompressorGadgetManaCostPerSecond() {
+        return magiCompressorGadgetConfig.manaCostPerSecond();
+    }
+
+    float magiCompressorGadgetAirFillPerSecond() {
+        return magiCompressorGadgetConfig.airFillPerSecond();
+    }
+
+    float magiCompressorGadgetMaxAir() {
+        return magiCompressorGadgetConfig.maxAir();
     }
 
     int manaShieldCharmRecoveryThresholdMana() {
@@ -666,6 +684,14 @@ final class ItemsServerConfig {
 
     void setManaThrusterConfigForGameTest(double manaCostPerTick) {
         manaThrusterConfig.setForGameTest(manaCostPerTick);
+    }
+
+    void setMagiCompressorGadgetConfigForGameTest(
+            double manaCostPerSecond,
+            double airFillPerSecond,
+            double maxAir
+    ) {
+        magiCompressorGadgetConfig.setForGameTest(manaCostPerSecond, airFillPerSecond, maxAir);
     }
 
     void setFocusStaffbowConfigForGameTest(
