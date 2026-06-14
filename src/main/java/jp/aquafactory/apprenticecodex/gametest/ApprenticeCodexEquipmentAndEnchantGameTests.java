@@ -377,6 +377,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         MagiCompressorGadgetGameTestScenarios.magiCompressorGadgetInsufficientManaDoesNotStoreAir(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = MAGI_COMPRESSOR_GADGET_CONFIG_BATCH)
+    public static void magiCompressorGadgetBacktankSupplierClampsLegacyAirTag(GameTestHelper helper) {
+        MagiCompressorGadgetGameTestScenarios.magiCompressorGadgetBacktankSupplierClampsLegacyAirTag(helper);
+    }
+
     @GameTest(template = TEMPLATE)
     public static void magiCompressorGadgetRejectsEnchantments(GameTestHelper helper) {
         MagiCompressorGadgetGameTestScenarios.magiCompressorGadgetRejectsEnchantments(helper);

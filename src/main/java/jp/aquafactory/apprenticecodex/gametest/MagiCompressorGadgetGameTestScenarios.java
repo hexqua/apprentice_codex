@@ -20,9 +20,13 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.List;
 import java.util.Map;
 
 final class MagiCompressorGadgetGameTestScenarios extends ApprenticeCodexGameTestScenarios {
+    private static final String AIR_TAG = "Air";
+    private static final String CREATE_BACKTANK_UTIL_CLASS =
+            "com.simibubi.create.content.equipment.armor.BacktankUtil";
     private static final TagKey<Item> CURIOS_BELT = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("curios", CuriosSlotConstants.BELT)
@@ -162,6 +166,36 @@ final class MagiCompressorGadgetGameTestScenarios extends ApprenticeCodexGameTes
         });
     }
 
+    static void magiCompressorGadgetBacktankSupplierClampsLegacyAirTag(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "magi_compressor_legacy_air_test");
+            var stack = new ItemStack(ItemRegistry.MAGI_COMPRESSOR_GADGET.get());
+            stack.getOrCreateTag().putFloat(AIR_TAG, 90.0F);
+            equipCurio(player, CuriosSlotConstants.BELT, stack);
+
+            try (var ignored = ApprenticeCodexServerConfig.useMagiCompressorGadgetConfigOverrideForGameTest(
+                    20.0D,
+                    5.0D,
+                    30.0D
+            )) {
+                var expectedAir = MagiCompressorGadgetAirBridge.getMaxAir(stack);
+                var backtanks = getCreateBacktanksWithAir(player);
+                helper.assertTrue(backtanks.stream().anyMatch(backtankStack ->
+                                backtankStack.getItem() instanceof MagiCompressorGadget),
+                        "Magi-Compressor Gadget should be exposed as a Create backtank source");
+                helper.assertTrue(Math.abs(stack.getOrCreateTag().getFloat(AIR_TAG) - expectedAir) < 1.0e-3F,
+                        "Magi-Compressor Gadget should clamp legacy Air tag before Create consumes it: "
+                                + stack.getOrCreateTag().getFloat(AIR_TAG) + " expected " + expectedAir);
+            }
+        });
+    }
+
     static void magiCompressorGadgetRejectsEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.MAGI_COMPRESSOR_GADGET.get());
@@ -192,6 +226,25 @@ final class MagiCompressorGadgetGameTestScenarios extends ApprenticeCodexGameTes
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), profileName);
         equipCurio(player, CuriosSlotConstants.BELT, new ItemStack(ItemRegistry.MAGI_COMPRESSOR_GADGET.get()));
         return player;
+    }
+
+    private static List<ItemStack> getCreateBacktanksWithAir(net.minecraft.world.entity.LivingEntity entity) {
+        try {
+            var backtankUtilClass = Class.forName(CREATE_BACKTANK_UTIL_CLASS);
+            var result = backtankUtilClass
+                    .getMethod("getAllWithAir", net.minecraft.world.entity.LivingEntity.class)
+                    .invoke(null, entity);
+            if (!(result instanceof List<?> rawStacks)) {
+                return List.of();
+            }
+
+            return rawStacks.stream()
+                    .filter(ItemStack.class::isInstance)
+                    .map(ItemStack.class::cast)
+                    .toList();
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Create BacktankUtil getAllWithAir call failed", exception);
+        }
     }
 
     private static MagicData magicData(

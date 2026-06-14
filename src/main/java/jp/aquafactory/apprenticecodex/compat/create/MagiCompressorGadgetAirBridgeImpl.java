@@ -51,7 +51,13 @@ final class MagiCompressorGadgetAirBridgeImpl {
                 .resolve()
                 .flatMap(inventory -> inventory.findFirstCurio(stack ->
                         stack.getItem() instanceof MagiCompressorGadget && getStoredAir(stack) > 0.0F))
-                .map(slotResult -> List.of(slotResult.stack()))
+                .map(slotResult -> List.of(normalizeStoredAirForCreate(slotResult.stack())))
                 .orElseGet(List::of);
+    }
+
+    private static ItemStack normalizeStoredAirForCreate(ItemStack stack) {
+        // Create は Air タグを直接読むため、設定変更後の旧上限分を渡す前に実データへ反映する。
+        setStoredAir(stack, getStoredAir(stack));
+        return stack;
     }
 }
