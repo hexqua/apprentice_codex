@@ -167,6 +167,7 @@ public final class EpicFightSwingMagicCompat {
         }
 
         var hand = resolveAttackHand(event);
+        recordAttackPhaseHitIfCrystalBladedStaff(event, player, hand);
         triggerSwingMagicFromAttackPhase(player, hand, getAnimationId(event.getAnimation()), event.getPhaseOrder());
     }
 
@@ -196,6 +197,26 @@ public final class EpicFightSwingMagicCompat {
         }
 
         CrystalBladedStaffAttackContextManager.recordRecentCrystalBladedStaffHit(player, hand);
+    }
+
+    private static void recordAttackPhaseHitIfCrystalBladedStaff(
+            AttackPhaseEndEvent event,
+            ServerPlayer player,
+            InteractionHand hand
+    ) {
+        var triggerHand = resolveSwingMagicTriggerHand(player, hand);
+        if (!CrystalBladedStaff.isCrystalBladedStaff(player.getItemInHand(triggerHand))) {
+            return;
+        }
+
+        var hitEntities = event.getPlayerPatch().getCurrentlyActuallyHitEntities();
+        if (hitEntities == null || hitEntities.isEmpty()) {
+            return;
+        }
+
+        // Epic Fight は命中後にフェーズ終了イベントを出すため、この時点の実命中リストをmiss抑制へ反映する。
+        // 1.21.1 側ではフェーズ終了時まで ACTUALLY_HIT_ENTITIES が残るかを再確認する。
+        CrystalBladedStaffAttackContextManager.recordRecentCrystalBladedStaffHit(player, triggerHand);
     }
 
     private static InteractionHand resolveDamageHand(DealDamageEvent.Damage event) {
