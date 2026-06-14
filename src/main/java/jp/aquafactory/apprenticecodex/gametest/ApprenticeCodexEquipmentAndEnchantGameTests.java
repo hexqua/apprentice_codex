@@ -901,6 +901,26 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffMissSwingCastsManaSlash(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffMissSwingCastsManaSlash(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffHitSwingDoesNotCastManaSlash(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffHitSwingDoesNotCastManaSlash(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffVanillaAttackEntityHitDoesNotCastManaSlash(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffVanillaAttackEntityHitDoesNotCastManaSlash(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffDelayedHitDoesNotCastManaSlash(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffDelayedHitDoesNotCastManaSlash(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeld(GameTestHelper helper) {
         SwingcastStaffGameTestScenarios.crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeld(helper);
     }

@@ -164,6 +164,7 @@
   "item.apprenticecodex.focus_staffbow.loan_mana": "Mana loan is being repaid, so focused casting is unavailable.",
   "item.apprenticecodex.focus_staffbow.loan_mana.rest": "Remaining loan mana: %s",
   "item.apprenticecodex.crystal_bladed_staff.desc": "When hitting attacks, generates mana orbs.",
+  "item.apprenticecodex.crystal_bladed_staff.swing_miss.desc": "Casts its imbued spell when you miss a staff swing.",
   "item.apprenticecodex.spellstained_runic_tablet.desc": "Inscribed scrolls improve its performance.",
   "item.apprenticecodex.spellstained_runic_tablet.desc.hint": "Hold Shift to show details for conditional bonuses",
   "item.apprenticecodex.spellstained_runic_tablet.desc.cooldown": "Cooldown reduction: %1$s%% (schools: %2$s)",

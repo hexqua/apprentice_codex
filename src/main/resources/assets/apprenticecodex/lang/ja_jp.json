@@ -165,6 +165,7 @@
   "item.apprenticecodex.focus_staffbow.loan_mana": "不足分のマナを補ったことにより、現在集中詠唱は動作しない。",
   "item.apprenticecodex.focus_staffbow.loan_mana.rest": "残り前借りマナ: %s",
   "item.apprenticecodex.crystal_bladed_staff.desc": "攻撃が命中するとマナオーブを生成する。",
+  "item.apprenticecodex.crystal_bladed_staff.swing_miss.desc": "杖を空振りした時に注入されている魔法を放つ。",
   "item.apprenticecodex.zenith_staff.desc_1": "この杖は系統を問わず%s%%の補正を受けて詠唱できる。",
   "item.apprenticecodex.zenith_staff.desc_2": "ただし、[%1$s]以外の系統の消費マナが%2$s%%になる。",
   "item.apprenticecodex.zenith_staff.no_bonus": "この杖は系統の補正を受けている時に効果を発揮する。",
