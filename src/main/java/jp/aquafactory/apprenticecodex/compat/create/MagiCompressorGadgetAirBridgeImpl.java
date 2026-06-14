@@ -1,9 +1,12 @@
 package jp.aquafactory.apprenticecodex.compat.create;
 
+import com.simibubi.create.AllDataComponents;
 import com.simibubi.create.content.equipment.armor.BacktankUtil;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.curios.magicompressorgadget.MagiCompressorGadget;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.ItemStack;
 import top.theillusivec4.curios.api.CuriosApi;
 
@@ -26,18 +29,23 @@ final class MagiCompressorGadgetAirBridgeImpl {
     }
 
     static float getStoredAir(ItemStack stack) {
-        return Math.min(stack.getOrCreateTag().getFloat(AIR_TAG), getMaxAir(stack));
+        var storedAir = Math.min(readStoredAir(stack), getMaxAir(stack));
+        var exposedAir = stack.getOrDefault(AllDataComponents.BACKTANK_AIR, 0);
+        if (exposedAir < Math.floor(storedAir)) {
+            setStoredAir(stack, exposedAir);
+            return exposedAir;
+        }
+        return storedAir;
     }
 
     static void setStoredAir(ItemStack stack, float air) {
         var maxAir = getMaxAir(stack);
         if (maxAir <= 0) {
+            writeStoredAir(stack, 0.0F);
             return;
         }
 
-        var tag = stack.getOrCreateTag();
-        tag.putFloat(AIR_TAG, Math.min(Math.max(0.0F, air), maxAir));
-        stack.setTag(tag);
+        writeStoredAir(stack, Math.min(Math.max(0.0F, air), maxAir));
     }
 
     static void registerBacktankSupplier() {
@@ -48,7 +56,6 @@ final class MagiCompressorGadgetAirBridgeImpl {
 
     private static List<ItemStack> findEquippedGadgetsWithAir(LivingEntity entity) {
         return CuriosApi.getCuriosInventory(entity)
-                .resolve()
                 .flatMap(inventory -> inventory.findFirstCurio(stack ->
                         stack.getItem() instanceof MagiCompressorGadget && getStoredAir(stack) > 0.0F))
                 .map(slotResult -> List.of(normalizeStoredAirForCreate(slotResult.stack())))
@@ -56,8 +63,21 @@ final class MagiCompressorGadgetAirBridgeImpl {
     }
 
     private static ItemStack normalizeStoredAirForCreate(ItemStack stack) {
-        // Create は Air タグを直接読むため、設定変更後の旧上限分を渡す前に実データへ反映する。
+        // Create は BACKTANK_AIR を直接読むため、設定変更後の旧上限分を渡す前に実データへ反映する。
         setStoredAir(stack, getStoredAir(stack));
         return stack;
+    }
+
+    private static float readStoredAir(ItemStack stack) {
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return 0.0F;
+        }
+        return Math.max(0.0F, customData.copyTag().getFloat(AIR_TAG));
+    }
+
+    private static void writeStoredAir(ItemStack stack, float air) {
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putFloat(AIR_TAG, air));
+        stack.set(AllDataComponents.BACKTANK_AIR, Math.max(0, (int) Math.floor(air)));
     }
 }

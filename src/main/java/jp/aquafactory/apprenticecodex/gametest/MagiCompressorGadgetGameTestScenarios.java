@@ -8,20 +8,19 @@ import jp.aquafactory.apprenticecodex.item.curios.magicompressorgadget.MagiCompr
 import jp.aquafactory.apprenticecodex.item.curios.magicompressorgadget.MagiCompressorGadgetChargeManager;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.world.item.component.CustomData;
+import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.common.util.FakePlayer;
 
 import java.util.List;
-import java.util.Map;
 
 final class MagiCompressorGadgetGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private static final String AIR_TAG = "Air";
@@ -176,8 +175,6 @@ final class MagiCompressorGadgetGameTestScenarios extends ApprenticeCodexGameTes
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
                     "magi_compressor_legacy_air_test");
             var stack = new ItemStack(ItemRegistry.MAGI_COMPRESSOR_GADGET.get());
-            stack.getOrCreateTag().putFloat(AIR_TAG, 90.0F);
-            equipCurio(player, CuriosSlotConstants.BELT, stack);
 
             try (var ignored = ApprenticeCodexServerConfig.useMagiCompressorGadgetConfigOverrideForGameTest(
                     20.0D,
@@ -185,13 +182,17 @@ final class MagiCompressorGadgetGameTestScenarios extends ApprenticeCodexGameTes
                     30.0D
             )) {
                 var expectedAir = MagiCompressorGadgetAirBridge.getMaxAir(stack);
+                MagiCompressorGadgetAirBridge.setStoredAir(stack, expectedAir);
+                CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putFloat(AIR_TAG, 90.0F));
+                equipCurio(player, CuriosSlotConstants.BELT, stack);
+
                 var backtanks = getCreateBacktanksWithAir(player);
                 helper.assertTrue(backtanks.stream().anyMatch(backtankStack ->
                                 backtankStack.getItem() instanceof MagiCompressorGadget),
                         "Magi-Compressor Gadget should be exposed as a Create backtank source");
-                helper.assertTrue(Math.abs(stack.getOrCreateTag().getFloat(AIR_TAG) - expectedAir) < 1.0e-3F,
+                helper.assertTrue(Math.abs(readStoredAir(stack) - expectedAir) < 1.0e-3F,
                         "Magi-Compressor Gadget should clamp legacy Air tag before Create consumes it: "
-                                + stack.getOrCreateTag().getFloat(AIR_TAG) + " expected " + expectedAir);
+                                + readStoredAir(stack) + " expected " + expectedAir);
             }
         });
     }
@@ -201,25 +202,31 @@ final class MagiCompressorGadgetGameTestScenarios extends ApprenticeCodexGameTes
             var stack = new ItemStack(ItemRegistry.MAGI_COMPRESSOR_GADGET.get());
             helper.assertFalse(stack.isEnchantable(),
                     "Magi-Compressor Gadget should not be enchantable");
-            helper.assertFalse(stack.getItem().canApplyAtEnchantingTable(stack, Enchantments.UNBREAKING),
-                    "Magi-Compressor Gadget should reject vanilla enchanting table enchantments");
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var unbreaking = enchantmentLookup.getOrThrow(Enchantments.UNBREAKING);
+            helper.assertFalse(stack.getItem().supportsEnchantment(stack, unbreaking),
+                    "Magi-Compressor Gadget should reject vanilla enchantments");
+            helper.assertFalse(unbreaking.value().canEnchant(stack),
+                    "Magi-Compressor Gadget should not be supported by vanilla enchantment definitions");
 
-            var book = new ItemStack(Items.ENCHANTED_BOOK);
-            EnchantmentHelper.setEnchantments(Map.of(Enchantments.UNBREAKING, 1), book);
+            var book = createEnchantedBook(unbreaking);
             helper.assertFalse(stack.getItem().isBookEnchantable(stack, book),
                     "Magi-Compressor Gadget should reject enchanted books");
 
-            var capacity = ForgeRegistries.ENCHANTMENTS.getValue(
+            var capacity = enchantmentLookup.get(net.minecraft.resources.ResourceKey.create(
+                    Registries.ENCHANTMENT,
                     ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "capacity")
-            );
+            )).orElse(null);
             if (capacity != null) {
-                helper.assertFalse(stack.getItem().canApplyAtEnchantingTable(stack, capacity),
+                helper.assertFalse(stack.getItem().supportsEnchantment(stack, capacity),
                         "Magi-Compressor Gadget should reject Create Capacity");
+                helper.assertFalse(capacity.value().canEnchant(stack),
+                        "Magi-Compressor Gadget should not be supported by Create Capacity definitions");
             }
         });
     }
 
-    private static net.minecraftforge.common.util.FakePlayer createGadgetTestPlayer(
+    private static FakePlayer createGadgetTestPlayer(
             GameTestHelper helper,
             String profileName
     ) {
@@ -249,12 +256,17 @@ final class MagiCompressorGadgetGameTestScenarios extends ApprenticeCodexGameTes
 
     private static MagicData magicData(
             GameTestHelper helper,
-            net.minecraftforge.common.util.FakePlayer player,
+            FakePlayer player,
             String label
     ) {
         var magicData = MagicData.getPlayerMagicData(player);
         helper.assertTrue(magicData != null,
                 "Magi-Compressor Gadget " + label + " test could not resolve player mana data");
         return magicData;
+    }
+
+    private static float readStoredAir(ItemStack stack) {
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        return customData == null ? 0.0F : customData.copyTag().getFloat(AIR_TAG);
     }
 }

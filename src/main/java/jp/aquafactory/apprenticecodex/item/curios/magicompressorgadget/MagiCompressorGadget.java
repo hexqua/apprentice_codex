@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.curios.magicompressorgadget;
 import jp.aquafactory.apprenticecodex.compat.create.MagiCompressorGadgetAirBridge;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.item.Item;
@@ -26,7 +27,7 @@ public class MagiCompressorGadget extends Item implements ICurioItem {
     }
 
     @Override
-    public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
+    public List<Component> getSlotsTooltip(List<Component> tooltips, Item.TooltipContext context, ItemStack stack) {
         tooltips.add(Component.empty());
         tooltips.add(Component.translatable("curios.modifiers." + CuriosSlotConstants.BELT)
                 .withStyle(ChatFormatting.GOLD));
@@ -74,7 +75,7 @@ public class MagiCompressorGadget extends Item implements ICurioItem {
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         return false;
     }
 

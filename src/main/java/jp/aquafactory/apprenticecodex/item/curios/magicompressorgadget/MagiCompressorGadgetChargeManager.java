@@ -2,12 +2,12 @@ package jp.aquafactory.apprenticecodex.item.curios.magicompressorgadget;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
-import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.compat.create.MagiCompressorGadgetAirBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
 
@@ -72,7 +72,6 @@ public final class MagiCompressorGadgetChargeManager {
 
     private static boolean isPrimaryEquippedCurio(SlotContext slotContext) {
         return CuriosApi.getCuriosInventory(slotContext.entity())
-                .resolve()
                 .flatMap(inventory -> inventory.findFirstCurio(stack -> stack.getItem() instanceof MagiCompressorGadget))
                 .map(slotResult -> slotResult.slotContext().index() == slotContext.index()
                         && slotResult.slotContext().identifier().equals(slotContext.identifier()))

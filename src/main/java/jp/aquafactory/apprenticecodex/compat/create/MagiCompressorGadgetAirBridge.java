@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.compat.create;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 
 public final class MagiCompressorGadgetAirBridge {
     private static boolean forceUnavailableForGameTest;
