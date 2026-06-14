@@ -321,8 +321,8 @@ final class RightClickMagicWeaponGameTestScenarios extends ApprenticeCodexGameTe
                     helper,
                     new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get()),
                     2,
-                    "item.apprenticecodex.swingcast.common.desc",
-                    "Crystal Bladed Staff should show swingcast tooltip after offhand priority tooltips"
+                    "item.apprenticecodex.crystal_bladed_staff.swing_miss.desc",
+                    "Crystal Bladed Staff should show miss-swing tooltip after offhand priority tooltips"
             );
             assertTooltipKeyAt(
                     helper,

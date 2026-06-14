@@ -901,6 +901,41 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffMissSwingCastsManaSlash(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffMissSwingCastsManaSlash(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffHitSwingDoesNotCastManaSlash(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffHitSwingDoesNotCastManaSlash(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffVanillaAttackEntityHitDoesNotCastManaSlash(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffVanillaAttackEntityHitDoesNotCastManaSlash(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffDelayedHitDoesNotCastManaSlash(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffDelayedHitDoesNotCastManaSlash(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffMissTriggerDoesNotUseSwappedStack(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffMissTriggerDoesNotUseSwappedStack(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffPendingMissTriggerKeepsEarlierHand(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffPendingMissTriggerKeepsEarlierHand(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffMainHandHitDoesNotSuppressOffhandMiss(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffMainHandHitDoesNotSuppressOffhandMiss(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeld(GameTestHelper helper) {
         SwingcastStaffGameTestScenarios.crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeld(helper);
     }

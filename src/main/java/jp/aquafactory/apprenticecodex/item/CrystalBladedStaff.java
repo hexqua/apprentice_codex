@@ -166,6 +166,11 @@ public class CrystalBladedStaff extends AbstractSwingMagicItem implements GeoIte
     }
 
     @Override
+    protected String getSwingCastTooltipTranslationKey() {
+        return getDescriptionId() + ".swing_miss.desc";
+    }
+
+    @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
     }

@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.compat.bettercombat;
 import jp.aquafactory.apprenticecodex.event.client.ClientSwingMagicAttackTrigger;
 import jp.aquafactory.apprenticecodex.event.client.ClientMultipurposeStaffrifleInputEvent;
 import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientAdsState;
+import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import net.bettercombat.api.AttackHand;
 import net.bettercombat.api.WeaponAttributes;
@@ -68,12 +69,20 @@ public final class BetterCombatClientCompat {
             return;
         }
 
+        var hand = resolveHand(attackHand);
         if (!attackHand.isOffHand()
                 && player.getMainHandItem().getItem() instanceof MultipurposeStaffrifle
                 && !MultipurposeStaffrifleClientAdsState.isLocalAdsKeyHeld(player)) {
             ClientMultipurposeStaffrifleInputEvent.trySendNonAdsSpecialCast(minecraft);
         }
-        ClientSwingMagicAttackTrigger.trySendForBetterCombat(minecraft, resolveHand(attackHand));
+        if (CrystalBladedStaff.isCrystalBladedStaff(player.getItemInHand(hand))) {
+            if (targets.isEmpty()) {
+                ClientSwingMagicAttackTrigger.trySendForBetterCombat(minecraft, hand);
+            }
+            return;
+        }
+
+        ClientSwingMagicAttackTrigger.trySendForBetterCombat(minecraft, hand);
     }
 
     private static InteractionHand resolveHand(AttackHand attackHand) {

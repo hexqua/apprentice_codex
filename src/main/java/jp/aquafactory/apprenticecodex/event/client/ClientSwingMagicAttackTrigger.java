@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.event.client;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
@@ -14,23 +15,39 @@ import java.util.EnumMap;
 
 public final class ClientSwingMagicAttackTrigger {
     private static final EnumMap<InteractionHand, Long> LAST_SENT_TICKS = new EnumMap<>(InteractionHand.class);
+    private static final int DEFAULT_MISS_EVALUATION_DELAY_TICKS = 1;
+    private static final int VANILLA_PRE_ATTACK_MISS_EVALUATION_DELAY_TICKS = 2;
 
     private ClientSwingMagicAttackTrigger() {
     }
 
     public static void trySend(Minecraft minecraft) {
-        trySend(minecraft, InteractionHand.MAIN_HAND, false, false);
+        trySend(minecraft, InteractionHand.MAIN_HAND, false, false, DEFAULT_MISS_EVALUATION_DELAY_TICKS);
+    }
+
+    public static void trySendForVanillaPreAttack(Minecraft minecraft) {
+        var player = minecraft.player;
+        if (player == null
+                || !CrystalBladedStaff.isCrystalBladedStaff(player.getMainHandItem())
+                || !AbstractRightClickMagicWeaponItem.isFullyChargedAttack(player)) {
+            return;
+        }
+
+        // バニラ空振りはクライアント側で攻撃クールダウンを即リセットするため、
+        // press 直後に確認したフルチャージ判定を採用してサーバー側の遅延判定へ渡す。
+        trySend(minecraft, InteractionHand.MAIN_HAND, true, false, VANILLA_PRE_ATTACK_MISS_EVALUATION_DELAY_TICKS);
     }
 
     public static void trySendForBetterCombat(Minecraft minecraft, InteractionHand hand) {
-        trySend(minecraft, hand, true, true);
+        trySend(minecraft, hand, true, true, DEFAULT_MISS_EVALUATION_DELAY_TICKS);
     }
 
     private static void trySend(
             Minecraft minecraft,
             InteractionHand hand,
             boolean bypassChargeCheck,
-            boolean logEmptyHandFailure
+            boolean logEmptyHandFailure,
+            int missEvaluationDelayTicks
     ) {
         var player = minecraft.player;
         if (!canSend(minecraft, player, hand, bypassChargeCheck, logEmptyHandFailure) || player == null) {
@@ -39,7 +56,7 @@ public final class ClientSwingMagicAttackTrigger {
 
         LAST_SENT_TICKS.put(hand, player.level().getGameTime());
         ClientSwingcastStaffCastContext.beginPending(player.getUUID(), player.getItemInHand(hand));
-        Networks.sendToServer(new ClientSwingMagicAttackPacket(bypassChargeCheck, hand));
+        Networks.sendToServer(new ClientSwingMagicAttackPacket(bypassChargeCheck, hand, missEvaluationDelayTicks));
     }
 
     private static boolean canSend(
