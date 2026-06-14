@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import yesman.epicfight.api.event.EpicFightEventHooks;
 import yesman.epicfight.api.event.IdentifierProvider;
 import yesman.epicfight.api.event.types.animation.AnimationBeginEvent;
@@ -200,13 +201,59 @@ public final class EpicFightSwingMagicCompat {
         }
 
         var player = playerpatch.getOriginal();
+        var hand = resolveDamageHand(event, playerpatch);
         if (event.getTarget() == null
-                || (!CrystalBladedStaff.isCrystalBladedStaff(player.getMainHandItem())
-                        && !CrystalBladedStaff.isCrystalBladedStaff(player.getOffhandItem()))) {
+                || hand == null
+                || !CrystalBladedStaff.isCrystalBladedStaff(player.getItemInHand(hand))) {
             return;
         }
 
-        CrystalBladedStaffAttackContextManager.recordRecentCrystalBladedStaffHit(player);
+        CrystalBladedStaffAttackContextManager.recordRecentCrystalBladedStaffHit(player, hand);
+    }
+
+    private static InteractionHand resolveDamageHand(DealDamageEvent.Pre event, ServerPlayerPatch playerpatch) {
+        var player = playerpatch.getOriginal();
+        var usedItemHand = resolveHeldHandFromUsedItem(player, event.getDamageSource().getUsedItem());
+        if (usedItemHand != null) {
+            return usedItemHand;
+        }
+
+        var animationAccessor = event.getDamageSource().getAnimation();
+        if (animationAccessor != null && animationAccessor.get() instanceof AttackAnimation attackAnimation) {
+            var animationPlayer = playerpatch.getAnimator().getPlayer(animationAccessor);
+            if (animationPlayer != null && animationPlayer.isPresent()) {
+                var phase = attackAnimation.getPhaseByTime(animationPlayer.get().getElapsedTime());
+                if (phase != null && phase.getHand() != null) {
+                    return phase.getHand();
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static InteractionHand resolveHeldHandFromUsedItem(Player player, ItemStack usedItem) {
+        if (usedItem == null || usedItem.isEmpty()) {
+            return null;
+        }
+
+        if (usedItem == player.getMainHandItem()) {
+            return InteractionHand.MAIN_HAND;
+        }
+        if (usedItem == player.getOffhandItem()) {
+            return InteractionHand.OFF_HAND;
+        }
+
+        var mainHandMatches = ItemStack.isSameItemSameTags(usedItem, player.getMainHandItem());
+        var offHandMatches = ItemStack.isSameItemSameTags(usedItem, player.getOffhandItem());
+        if (mainHandMatches && !offHandMatches) {
+            return InteractionHand.MAIN_HAND;
+        }
+        if (offHandMatches && !mainHandMatches) {
+            return InteractionHand.OFF_HAND;
+        }
+
+        return null;
     }
 
     private static void processTimedTriggers(ServerPlayer player) {

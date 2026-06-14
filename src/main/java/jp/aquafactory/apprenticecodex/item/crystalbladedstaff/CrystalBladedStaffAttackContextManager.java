@@ -26,7 +26,7 @@ import java.util.WeakHashMap;
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class CrystalBladedStaffAttackContextManager {
     private static final Map<ServerLevel, Map<UUID, PendingAttackContext>> PENDING_ATTACKS = new WeakHashMap<>();
-    private static final Map<ServerLevel, Map<UUID, PendingMissTrigger>> PENDING_MISS_TRIGGERS = new WeakHashMap<>();
+    private static final Map<ServerLevel, Map<HitKey, PendingMissTrigger>> PENDING_MISS_TRIGGERS = new WeakHashMap<>();
     private static final Map<ServerLevel, Map<HitKey, Long>> RECENT_HIT_TICKS = new WeakHashMap<>();
     private static final long HIT_MEMORY_TICKS = 1L;
 
@@ -54,8 +54,8 @@ public final class CrystalBladedStaffAttackContextManager {
         }
 
         var level = player.serverLevel();
-        var triggersByPlayer = PENDING_MISS_TRIGGERS.computeIfAbsent(level, ignored -> new LinkedHashMap<>());
-        triggersByPlayer.put(player.getUUID(), new PendingMissTrigger(
+        var triggersByPlayerAndHand = PENDING_MISS_TRIGGERS.computeIfAbsent(level, ignored -> new LinkedHashMap<>());
+        triggersByPlayerAndHand.put(new HitKey(player.getUUID(), hand), new PendingMissTrigger(
                 player,
                 level.getGameTime(),
                 hand,
@@ -75,7 +75,7 @@ public final class CrystalBladedStaffAttackContextManager {
             return;
         }
 
-        recordRecentCrystalBladedStaffHit(attacker);
+        recordRecentCrystalBladedStaffHit(attacker, InteractionHand.MAIN_HAND);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -93,7 +93,7 @@ public final class CrystalBladedStaffAttackContextManager {
             return;
         }
 
-        recordRecentCrystalBladedStaffHit(attacker);
+        recordRecentCrystalBladedStaffHit(attacker, InteractionHand.MAIN_HAND);
 
         if (!(event.getEntity() instanceof Mob mob)) {
             return;
@@ -165,12 +165,12 @@ public final class CrystalBladedStaffAttackContextManager {
     }
 
     private static void processMissTriggers(ServerLevel serverLevel, long gameTime) {
-        var triggersByPlayer = PENDING_MISS_TRIGGERS.get(serverLevel);
-        if (triggersByPlayer == null || triggersByPlayer.isEmpty()) {
+        var triggersByPlayerAndHand = PENDING_MISS_TRIGGERS.get(serverLevel);
+        if (triggersByPlayerAndHand == null || triggersByPlayerAndHand.isEmpty()) {
             return;
         }
 
-        var iterator = triggersByPlayer.entrySet().iterator();
+        var iterator = triggersByPlayerAndHand.entrySet().iterator();
         while (iterator.hasNext()) {
             var entry = iterator.next();
             var trigger = entry.getValue();
@@ -179,19 +179,20 @@ public final class CrystalBladedStaffAttackContextManager {
                 continue;
             }
 
-            var player = serverLevel.getServer().getPlayerList().getPlayer(entry.getKey());
+            var triggerKey = entry.getKey();
+            var player = serverLevel.getServer().getPlayerList().getPlayer(triggerKey.playerUuid());
             if (player == null) {
                 player = trigger.player();
             }
             if (player != null
                     && player.serverLevel() == serverLevel
-                    && !hasRecentHit(serverLevel, entry.getKey(), trigger.hand(), trigger.requestGameTime())) {
+                    && !hasRecentHit(serverLevel, triggerKey.playerUuid(), trigger.hand(), trigger.requestGameTime())) {
                 triggerMissSpell(player, trigger);
             }
             iterator.remove();
         }
 
-        if (triggersByPlayer.isEmpty()) {
+        if (triggersByPlayerAndHand.isEmpty()) {
             PENDING_MISS_TRIGGERS.remove(serverLevel);
         }
     }
@@ -208,22 +209,15 @@ public final class CrystalBladedStaffAttackContextManager {
         }
     }
 
-    public static void recordRecentCrystalBladedStaffHit(ServerPlayer attacker) {
+    public static void recordRecentCrystalBladedStaffHit(ServerPlayer attacker, InteractionHand hand) {
         var level = attacker.serverLevel();
         var gameTime = level.getGameTime();
         var hitsByPlayerAndHand = RECENT_HIT_TICKS.computeIfAbsent(level, ignored -> new LinkedHashMap<>());
         recordRecentHitIfCrystalBladedStaff(
                 hitsByPlayerAndHand,
                 attacker.getUUID(),
-                InteractionHand.MAIN_HAND,
-                attacker.getMainHandItem(),
-                gameTime
-        );
-        recordRecentHitIfCrystalBladedStaff(
-                hitsByPlayerAndHand,
-                attacker.getUUID(),
-                InteractionHand.OFF_HAND,
-                attacker.getOffhandItem(),
+                hand,
+                attacker.getItemInHand(hand),
                 gameTime
         );
     }
