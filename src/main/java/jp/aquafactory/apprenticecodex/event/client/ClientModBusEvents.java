@@ -29,6 +29,7 @@ import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.renderer.ManaForceBladeSheathLayer;
 import jp.aquafactory.apprenticecodex.renderer.curio.AshenCircletCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.CircletCurioRenderer;
+import jp.aquafactory.apprenticecodex.renderer.curio.MagiCompressorGadgetCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.ManaThrusterCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterAmmoPouchCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterQuiverCurioRenderer;
@@ -95,6 +96,7 @@ import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
@@ -116,6 +118,7 @@ public final class ClientModBusEvents {
         modEventBus.addListener(ClientModBusEvents::registerParticleProviders);
         modEventBus.addListener(ClientModBusEvents::registerRenderers);
         modEventBus.addListener(ClientModBusEvents::addLayers);
+        modEventBus.addListener(ClientModBusEvents::registerAdditionalModels);
         modEventBus.addListener(ClientModBusEvents::registerTooltipComponentFactories);
         modEventBus.addListener(ClientModBusEvents::registerItemColors);
     }
@@ -141,6 +144,7 @@ public final class ClientModBusEvents {
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ASHEN_CIRCLET.get(), AshenCircletCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ENCHANTED_CIRCLET.get(), CircletCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.MANA_THRUSTER.get(), ManaThrusterCurioRenderer::new));
+        event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.MAGI_COMPRESSOR_GADGET.get(), MagiCompressorGadgetCurioRenderer::new));
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.REFLECTCAST_SHIELD.get(),
                 ResourceLocation.withDefaultNamespace("blocking"),
@@ -195,6 +199,10 @@ public final class ClientModBusEvents {
                     return (float) (stack.getUseDuration() - living.getUseItemRemainingTicks()) / 20.0F;
                 }
         );
+    }
+
+    private static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
+        event.register(MagiCompressorGadgetCurioRenderer.EQUIPPED_MODEL);
     }
 
     private static void onReloadListeners(RegisterClientReloadListenersEvent event) {

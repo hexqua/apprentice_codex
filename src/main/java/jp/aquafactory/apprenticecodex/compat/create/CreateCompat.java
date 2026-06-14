@@ -22,7 +22,10 @@ public final class CreateCompat {
             return;
         }
 
-        event.enqueueWork(CreateCompat::registerSpellDispenserCompat);
+        event.enqueueWork(() -> {
+            registerSpellDispenserCompat();
+            MagiCompressorGadgetAirBridge.registerBacktankSupplier();
+        });
     }
 
     private static void registerSpellDispenserCompat() {
