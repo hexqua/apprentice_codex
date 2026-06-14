@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_reflectcast_shield": {
+      "conditions": {
+        "items": [
+          {
+            "items": "apprenticecodex:reflectcast_shield"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "apprenticecodex:spell_cast_parrying_ring"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_reflectcast_shield"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "apprenticecodex:spell_cast_parrying_ring"
+    ]
+  }
+}
