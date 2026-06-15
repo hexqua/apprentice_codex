@@ -889,15 +889,34 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
     }
 
     static void circuitHeatStaffDropCoolingConsumesWaterSource(GameTestHelper helper) {
-        var waterPos = new BlockPos(0, 2, 0);
-        placeWaterTestBasin(helper, waterPos);
-        helper.setBlock(waterPos, Blocks.WATER);
+        helper.succeedIf(() -> {
+            var waterPos = new BlockPos(0, 2, 0);
+            placeWaterTestBasin(helper, waterPos);
+            helper.setBlock(waterPos, Blocks.WATER);
 
-        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
-        var itemEntity = spawnItem(helper, waterPos, staffStack);
+            var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+            CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+            var itemEntity = spawnItem(helper, waterPos, staffStack);
 
-        helper.runAtTickTime(40, () -> {
+            try (var ignored = ApprenticeCodexServerConfig.useCircuitHeatStaffConfigOverrideForGameTest(
+                    20 * 10,
+                    0.10D,
+                    0.10D,
+                    0,
+                    List.of(),
+                    1.0D,
+                    20 * 10,
+                    0,
+                    true,
+                    10,
+                    20 * 10,
+                    3,
+                    true,
+                    true
+            )) {
+                runDropCoolingProcesses(itemEntity, 3);
+            }
+
             var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
             helper.assertTrue(itemEntity.getAge() == Short.MIN_VALUE,
                     "Circuit Heat Staff drop should use unlimited lifetime while dropped: " + itemEntity.getAge());
@@ -906,7 +925,6 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
                             + remainingTicks);
             helper.assertTrue(helper.getBlockState(waterPos).isAir(),
                     "Circuit Heat Staff water-source cooling should consume the source after three cycles");
-            helper.succeed();
         });
     }
 

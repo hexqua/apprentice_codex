@@ -512,6 +512,33 @@ public class ApprenticeCodexGameTestScenarios {
             }
         });
     }
+
+    static void ownSpellsUniqueInfoAcceptsNullCaster(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var failures = new ArrayList<String>();
+            for (var spellEntry : SpellRegistry.SPELLS.getEntries()) {
+                var spell = spellEntry.get();
+                var spellId = String.valueOf(spell.getSpellResource());
+                for (var spellLevel = spell.getMinLevel(); spellLevel <= spell.getMaxLevel(); spellLevel++) {
+                    try {
+                        var uniqueInfo = spell.getUniqueInfo(spellLevel, null);
+                        if (uniqueInfo == null) {
+                            failures.add(spellId + " level " + spellLevel + " returned null");
+                        } else if (uniqueInfo.stream().anyMatch(Objects::isNull)) {
+                            failures.add(spellId + " level " + spellLevel + " returned a null component");
+                        }
+                    } catch (RuntimeException exception) {
+                        failures.add(spellId + " level " + spellLevel + " threw "
+                                + exception.getClass().getSimpleName() + ": " + exception.getMessage());
+                    }
+                }
+            }
+
+            helper.assertTrue(failures.isEmpty(),
+                    "Apprentice spell getUniqueInfo must accept null caster: " + String.join("; ", failures));
+        });
+    }
+
     static void tinyLumberjackRecognizesMalumRunewoodAndSoulwoodLogs(GameTestHelper helper) {
         helper.succeedIf(() -> {
             if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
