@@ -42,6 +42,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private ApprenticeCodexSpellBehaviorGameTests() {
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void ownSpellsUniqueInfoAcceptsNullCaster(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.ownSpellsUniqueInfoAcceptsNullCaster(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = SENSE_EVIL_ISOLATED_BATCH)
     public static void senseEvilUsesSameCubeForSpawnersAndEntities(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.senseEvilUsesSameCubeForSpawnersAndEntities(helper);
