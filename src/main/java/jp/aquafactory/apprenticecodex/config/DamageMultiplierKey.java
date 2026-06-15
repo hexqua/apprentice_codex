@@ -37,6 +37,9 @@ public enum DamageMultiplierKey {
     BOUND_SWORD("boundSword"),
     INSCRIBE_ICE("inscribeIce"),
     HEAVENLY_FIST("heavenlyFist"),
+    LETHAL_ASSAULT("lethalAssault"),
+    DUAL_ACROBAT("dualAcrobat"),
+    ARTISAN_SMASH("artisanSmash"),
     ;
 
     private final String configKey;
