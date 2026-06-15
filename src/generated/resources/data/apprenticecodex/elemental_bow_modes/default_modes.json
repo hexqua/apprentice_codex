@@ -7,17 +7,14 @@
           "flat_bonus": 2
         }
       ],
-      "required_draw_ticks": 20,
       "school": "irons_spellbooks:fire",
       "spell": "irons_spellbooks:fire_arrow"
     },
     {
-      "required_draw_ticks": 20,
       "school": "irons_spellbooks:ender",
       "spell": "irons_spellbooks:magic_arrow"
     },
     {
-      "required_draw_ticks": 20,
       "school": "irons_spellbooks:nature",
       "spell": "irons_spellbooks:poison_arrow"
     }
