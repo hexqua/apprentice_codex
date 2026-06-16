@@ -315,7 +315,7 @@ public class DualAcrobatSmgEntity extends SummonWeaponEntity {
             }
         }
 
-        AudioTools.playSoundFromPosition(level, firePosition, SoundRegistry.HANDGUN.get(), SoundSource.PLAYERS, 1.0f);
+        AudioTools.playSoundFromPosition(level, firePosition, SoundRegistry.SMG.get(), SoundSource.PLAYERS, 1.0f);
     }
 
     private void updateFormation(LivingEntity owner) {
