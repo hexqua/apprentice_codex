@@ -212,7 +212,7 @@ public class LethalAssaultRifleEntity extends SummonWeaponEntity implements Anti
 
         recoilTick = MAX_RECOIL_TICK;
         entityData.set(RECOIL_TICK, recoilTick);
-        AudioTools.playSoundFromEntity(level, this, SoundRegistry.RIFLE.get(), SoundSource.PLAYERS, 1.0f);
+        AudioTools.playSoundFromEntity(level, this, SoundRegistry.FULLAUTO_RIFLE.get(), SoundSource.PLAYERS, 1.0f);
     }
 
     private Vec3 resolveAimPosition(LivingEntity owner) {

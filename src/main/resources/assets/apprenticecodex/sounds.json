@@ -382,6 +382,20 @@
       "apprenticecodex:mirage"
     ]
   },
+  "fullauto_rifle": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.fullauto_rifle",
+    "sounds": [
+      "apprenticecodex:fullauto_rifle"
+    ]
+  },
+  "smg": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.smg",
+    "sounds": [
+      "apprenticecodex:smg"
+    ]
+  },
 
   "smashcast_scepter_smash_air": {
     "_apprentice_codex_note": "ベースはSoundEvents.MACE_SMASH_AIR",
