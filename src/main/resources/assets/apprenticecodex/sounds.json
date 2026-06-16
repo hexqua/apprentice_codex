@@ -692,5 +692,16 @@
     "sounds": [
       "minecraft:random/bow"
     ]
+  },
+  "vanilla_feed_ammo": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ARMOR_EQUIP_NETHERITE、かなり調整を加えてる",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_feed_ammo",
+    "sounds": [
+      {
+        "name": "minecraft:item/armor/equip_netherite1",
+        "pitch": 2.0,
+        "volume": 0.6
+      }
+    ]
   }
 }

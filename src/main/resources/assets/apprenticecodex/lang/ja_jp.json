@@ -713,6 +713,8 @@
   "ui.apprenticecodex.referenced_weapon_damage_multiplier": "参照攻撃力倍率: %s%%",
   "ui.apprenticecodex.start_up_time": "起動時間: %s ",
   "ui.apprenticecodex.warm_up_time": "最高速度までの時間: %s ",
+  "ui.apprenticecodex.charge_up_ammo_per_second": "弾薬装填速度: %d%%/秒",
+  "ui.apprenticecodex.charge_up_ammo_maximum": "最大連射数: %d",
   "ui.apprenticecodex.tree_cut_time": "伐採にかかる最短時間: %s ",
   "ui.apprenticecodex.arcane_charge_damage_multiplier": "チャージレベルにつきダメージ増幅: %d%%",
   "ui.apprenticecodex.lock_on_count": "最大ロックオン数: %d",
@@ -1122,5 +1124,6 @@
   "subtitle.apprenticecodex.sound.vanilla_jar_open": "瓶の蓋を開ける",
   "subtitle.apprenticecodex.sound.vanilla_jar_close": "瓶の蓋を閉じる",
   "subtitle.apprenticecodex.sound.vanilla_chest_jump": "チェストが跳ねる",
-  "subtitle.apprenticecodex.sound.vanilla_card_throw": "札を投擲する"
+  "subtitle.apprenticecodex.sound.vanilla_card_throw": "札を投擲する",
+  "subtitle.apprenticecodex.sound.vanilla_feed_ammo": "弾薬を装填する"
 }
