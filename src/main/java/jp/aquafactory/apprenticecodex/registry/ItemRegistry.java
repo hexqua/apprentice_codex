@@ -135,6 +135,7 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> DUAL_ACROBAT_SMG = simple("dual_acrobat_smg");
     public static final DeferredHolder<Item, Item> THERMAL_PROCESS_THROWER = simple("thermal_process_thrower");
     public static final DeferredHolder<Item, Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
+    public static final DeferredHolder<Item, Item> ARTISAN_SMASH_LAUNCHER = simple("artisan_smash_launcher");
     public static final DeferredHolder<Item, Item> ARCANE_CINDER = ITEMS.register("arcane_cinder", ArcaneCinderItem::new);
     public static final DeferredHolder<Item, Item> COMFORT_BERRIES =
             ITEMS.register("comfort_berries", () -> new ItemNameBlockItem(

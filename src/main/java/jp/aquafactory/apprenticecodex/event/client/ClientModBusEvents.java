@@ -64,6 +64,8 @@ import jp.aquafactory.apprenticecodex.renderer.item.UniteLunaStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.tooltip.SpellcasterAmmoPouchClientTooltipComponent;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamRenderer;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowRenderer;
+import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashLauncherRenderer;
+import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashShellRenderer;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingRenderer;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarRenderer;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretRenderer;
@@ -647,6 +649,8 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.MANA_SLASH_PROJECTILE.get(), ManaSlashProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FLY_SWATTER_LAUNCHER.get(), FlySwatterLauncherRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FLY_SWATTER_PROJECTILE.get(), FlySwatterProjectileRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.ARTISAN_SMASH_LAUNCHER.get(), ArtisanSmashLauncherRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.ARTISAN_SMASH_SHELL.get(), ArtisanSmashShellRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ASSIST_WINGS_WING.get(), AssistWingsWingRenderer::new);
         event.registerEntityRenderer(EntityRegistry.DEMICREATOR_WINGS_CORE.get(), DemicreatorWingsCoreRenderer::new);
         event.registerEntityRenderer(EntityRegistry.DEMICREATOR_WINGS_WING.get(), DemicreatorWingsWingRenderer::new);
