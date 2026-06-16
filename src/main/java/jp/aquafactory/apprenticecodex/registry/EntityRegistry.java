@@ -29,6 +29,7 @@ import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarStarEntity;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerEntity;
+import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssaultRifleEntity;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileEntity;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
@@ -144,6 +145,9 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<SilentAssassinRifleEntity>> SILENT_ASSASSIN_RIFLE =
             regWeapon("silent_assassin_rifle", SilentAssassinRifleEntity::new, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<LethalAssaultRifleEntity>> LETHAL_ASSAULT_RIFLE =
+            regWeapon("lethal_assault_rifle", LethalAssaultRifleEntity::new, 1);
 
     public static final DeferredHolder<EntityType<?>, EntityType<BulletStreamMinigunEntity>> BULLET_STREAM_MINIGUN =
             regWeapon("bullet_stream_minigun", BulletStreamMinigunEntity::new, 1);

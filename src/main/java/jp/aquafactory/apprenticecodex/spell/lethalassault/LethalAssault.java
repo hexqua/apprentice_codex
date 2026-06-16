@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -79,6 +80,12 @@ public class LethalAssault extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        if (!level.isClientSide) {
+            var summonWeapon = new LethalAssaultRifleEntity(EntityRegistry.LETHAL_ASSAULT_RIFLE.get(), level, entity);
+            summonWeapon.setDamage(getDamage(spellLevel, entity));
+            level.addFreshEntity(summonWeapon);
+        }
+
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 }

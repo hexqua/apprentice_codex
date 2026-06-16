@@ -131,6 +131,7 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> QUICK_ARMS_HANDGUN = simple("quick_arms_handgun");
     public static final DeferredHolder<Item, Item> BREACHING_ENEMY_SHOTGUN = simple("breaching_enemy_shotgun");
     public static final DeferredHolder<Item, Item> SILENT_ASSASSIN_RIFLE = simple("silent_assassin_rifle");
+    public static final DeferredHolder<Item, Item> LETHAL_ASSAULT_RIFLE = simple("lethal_assault_rifle");
     public static final DeferredHolder<Item, Item> THERMAL_PROCESS_THROWER = simple("thermal_process_thrower");
     public static final DeferredHolder<Item, Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
     public static final DeferredHolder<Item, Item> ARCANE_CINDER = ITEMS.register("arcane_cinder", ArcaneCinderItem::new);
