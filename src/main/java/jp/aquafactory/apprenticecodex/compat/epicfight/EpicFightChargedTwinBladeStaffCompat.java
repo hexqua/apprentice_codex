@@ -8,6 +8,7 @@ import yesman.epicfight.api.event.EpicFightEventHooks;
 import yesman.epicfight.api.event.types.registry.WeaponCapabilityPresetRegistryEvent;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.capabilities.item.WeaponCapability;
+import yesman.epicfight.world.capabilities.item.WeaponTypeReloadListener;
 
 // リフレクションで参照するため、IDE側の未使用検知を無効化.
 @SuppressWarnings("unused")
@@ -28,13 +29,14 @@ public final class EpicFightChargedTwinBladeStaffCompat {
     }
 
     private static void onWeaponCapabilityPresetRegistry(WeaponCapabilityPresetRegistryEvent event) {
-        event.getTypeEntry().put(WEAPON_TYPE_ID, item -> buildCapability(event, item));
+        event.getTypeEntry().put(WEAPON_TYPE_ID, EpicFightChargedTwinBladeStaffCompat::buildCapability);
     }
 
-    private static CapabilityItem.Builder<?> buildCapability(WeaponCapabilityPresetRegistryEvent event, Item item) {
-        var spearFactory = event.getTypeEntry().get(SPEAR_TYPE_ID);
-        var builder = spearFactory != null
-                ? (WeaponCapability.Builder) spearFactory.apply(item)
+    private static CapabilityItem.Builder<?> buildCapability(Item item) {
+        var spearFactory = WeaponTypeReloadListener.get(SPEAR_TYPE_ID);
+        var baseBuilder = spearFactory != null ? spearFactory.apply(item) : null;
+        var builder = baseBuilder instanceof WeaponCapability.Builder weaponBuilder
+                ? weaponBuilder
                 : WeaponCapability.builder();
 
         builder.zoomInType(CapabilityItem.ZoomInType.USE_TICK);

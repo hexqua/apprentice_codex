@@ -25,7 +25,8 @@ import yesman.epicfight.api.event.types.entity.DealDamageEvent;
 import yesman.epicfight.api.event.types.player.ComboAttackEvent;
 import yesman.epicfight.api.event.types.player.SkillCastEvent;
 import yesman.epicfight.api.event.types.registry.WeaponCapabilityPresetRegistryEvent;
-import yesman.epicfight.api.ex_cap.modules.core.data.MoveSet;
+import yesman.epicfight.api.ex_cap.data.Moveset;
+import yesman.epicfight.api.ex_cap.managers.MovesetManager;
 import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.registry.EpicFightRegistries;
@@ -36,6 +37,7 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.capabilities.item.WeaponCapability;
+import yesman.epicfight.world.capabilities.item.WeaponTypeReloadListener;
 import yesman.epicfight.world.damagesource.EpicFightDamageTypeTags;
 import yesman.epicfight.world.damagesource.StunType;
 
@@ -64,6 +66,12 @@ public final class EpicFightSmashcastScepterCompat {
             ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MOD_ID, "sword");
     private static final ResourceLocation SWORD_ONE_HAND_MOVESET_ID =
             ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MOD_ID, "sword_1h");
+    private static final ResourceLocation DEFAULT_ONE_HAND_CONDITIONAL_ID =
+            ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MOD_ID, "default_1h_wield_style");
+    private static final ResourceLocation DUAL_SWORDS_CONDITIONAL_ID =
+            ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MOD_ID, "dual_swords");
+    private static final ResourceLocation SMASHCAST_SCEPTER_ONE_HAND_MOVESET_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "smashcast_scepter_1h");
     private static final IdentifierProvider SMASHCAST_SCEPTER_EVENT_ID = IdentifierProvider.constant(
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "smashcast_scepter")
     );
@@ -82,6 +90,12 @@ public final class EpicFightSmashcastScepterCompat {
 
     public static void register(IEventBus modEventBus) {
         SKILLS.register(modEventBus);
+        MovesetManager.addMoveset(
+                SMASHCAST_SCEPTER_ONE_HAND_MOVESET_ID,
+                Moveset.builder()
+                        .parent(SWORD_ONE_HAND_MOVESET_ID)
+                        .addInnateSkill((stack, playerPatch) -> WIND_LEAP.get())
+        );
         EpicFightEventHooks.Registry.WEAPON_CAPABILITY_PRESET.registerEvent(
                 EpicFightSmashcastScepterCompat::onWeaponCapabilityPresetRegistry,
                 "apprenticecodex:smashcast_scepter"
@@ -89,24 +103,23 @@ public final class EpicFightSmashcastScepterCompat {
     }
 
     private static void onWeaponCapabilityPresetRegistry(WeaponCapabilityPresetRegistryEvent event) {
-        event.getTypeEntry().put(WEAPON_TYPE_ID, item -> buildCapability(event, item));
+        event.getTypeEntry().put(WEAPON_TYPE_ID, EpicFightSmashcastScepterCompat::buildCapability);
     }
 
-    private static CapabilityItem.Builder<?> buildCapability(WeaponCapabilityPresetRegistryEvent event, Item item) {
-        var swordFactory = event.getTypeEntry().get(SWORD_TYPE_ID);
-        var builder = swordFactory != null
-                ? (WeaponCapability.Builder) swordFactory.apply(item)
+    private static CapabilityItem.Builder<?> buildCapability(Item item) {
+        var swordFactory = WeaponTypeReloadListener.get(SWORD_TYPE_ID);
+        var baseBuilder = swordFactory != null ? swordFactory.apply(item) : null;
+        var builder = baseBuilder instanceof WeaponCapability.Builder weaponBuilder
+                ? weaponBuilder
                 : WeaponCapability.builder();
 
         builder.constructor(EpicFightSmashcastScepterCapability::new);
-        builder.styleProvider(entityPatch -> CapabilityItem.Styles.ONE_HAND);
         builder.canBePlacedOffhand(false);
-        builder.weaponCombinationPredicator(entityPatch -> false);
-        builder.addMoveSet(
+        builder.removeConditional(DUAL_SWORDS_CONDITIONAL_ID);
+        builder.addConditionals(DEFAULT_ONE_HAND_CONDITIONAL_ID);
+        builder.addMoveset(
                 CapabilityItem.Styles.ONE_HAND,
-                MoveSet.builder()
-                        .parent(SWORD_ONE_HAND_MOVESET_ID)
-                        .addInnateSkill((stack, playerPatch) -> WIND_LEAP.get())
+                SMASHCAST_SCEPTER_ONE_HAND_MOVESET_ID
         );
         builder.addStyleAttibutes(
                 CapabilityItem.Styles.ONE_HAND,
