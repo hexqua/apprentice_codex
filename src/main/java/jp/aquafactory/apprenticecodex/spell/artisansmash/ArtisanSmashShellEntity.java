@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.spell.artisansmash;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.core.BlockPos;
@@ -32,6 +33,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashSet;
 
 public class ArtisanSmashShellEntity extends ThrowableProjectile implements AntiMagicSusceptible {
+    public static final double FLIGHT_AIR_DRAG = 0.99d;
+
     private static final int PHASE_FLYING = 0;
     private static final int PHASE_BURST = 1;
     private static final int MAX_LIFE_TICKS = 20 * 10;
@@ -143,6 +146,15 @@ public class ArtisanSmashShellEntity extends ThrowableProjectile implements Anti
     @Override
     protected float getGravity() {
         return isBursting() ? 0.0f : super.getGravity();
+    }
+
+    public float getFlightGravityForPrediction(Vec3 position) {
+        setPos(position);
+        return getGravity();
+    }
+
+    public static ArtisanSmashShellEntity createPredictionProbe(Level level) {
+        return new ArtisanSmashShellEntity(EntityRegistry.ARTISAN_SMASH_SHELL.get(), level);
     }
 
     @Override
