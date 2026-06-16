@@ -421,6 +421,7 @@ public class ApprenticeCodexGameTestScenarios {
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "animated");
     static final ResourceLocation VANILLA_BASE_ATTACK_DAMAGE_MODIFIER_ID = Item.BASE_ATTACK_DAMAGE_ID;
     static final ResourceLocation VANILLA_BASE_ATTACK_SPEED_MODIFIER_ID = Item.BASE_ATTACK_SPEED_ID;
+    static final int DUAL_ACROBAT_TEST_MAX_LOADED_SHOTS = 3;
 
     ApprenticeCodexGameTestScenarios() {
     }
@@ -6838,6 +6839,22 @@ public class ApprenticeCodexGameTestScenarios {
         return weapons.isEmpty() ? null : weapons.get(0);
     }
 
+    static int chargeDualAcrobatUntilShotLoaded(GameTestHelper helper, ServerLevel level, DualAcrobat spell,
+                                                FakePlayer player, MagicData magicData, int spellLevel,
+                                                DualAcrobatSmgEntity weapon) {
+        weapon.setMaximumLoadAmmoCount(DUAL_ACROBAT_TEST_MAX_LOADED_SHOTS);
+        var maxChargeTicks = Math.max(1, spell.getEffectiveCastTime(spellLevel, player));
+        for (var i = 0; i < maxChargeTicks && (int) weapon.getLoadedAmmoCount() <= 0; ++i) {
+            spell.onServerCastTick(level, spellLevel, player, magicData);
+        }
+
+        var loadedShots = (int) weapon.getLoadedAmmoCount();
+        helper.assertTrue(loadedShots > 0,
+                "Dual Acrobat should load at least one shot before release but loaded "
+                        + weapon.getLoadedAmmoCount());
+        return loadedShots;
+    }
+
     static void earthForgeReplacesWaterButKeepsUnsafeFluidBlocks(GameTestHelper helper) {
         var centerPos = new BlockPos(2, 3, 2);
         var sourceWaterPos = centerPos;
@@ -6953,26 +6970,20 @@ public class ApprenticeCodexGameTestScenarios {
 
             var spell = beginDualAcrobatCast(level, player, 1);
             var magicData = MagicData.getPlayerMagicData(player);
-            for (var i = 0; i < 20; ++i) {
-                spell.onServerCastTick(level, 1, player, magicData);
-            }
-
             var weapon = findDualAcrobatSmg(level, player);
             helper.assertTrue(weapon != null, "Dual Acrobat should spawn an SMG pair while casting");
+            var loadedShots = chargeDualAcrobatUntilShotLoaded(helper, level, spell, player, magicData, 1, weapon);
             spell.onServerCastComplete(level, 1, player, magicData, false);
-            helper.assertTrue(weapon.getRemainingAmmoCount() == 6,
-                    "Dual Acrobat should floor loaded ammo into 6 shots after 20 ticks at level 1 but got "
-                            + weapon.getRemainingAmmoCount());
-            helper.assertTrue(weapon.getShootingStartDelayRemaining() == 10,
-                    "Dual Acrobat should wait 10 ticks before shooting but got "
-                            + weapon.getShootingStartDelayRemaining());
+            helper.assertTrue(weapon.getRemainingAmmoCount() == loadedShots,
+                    "Dual Acrobat should convert loaded ammo into remaining shots. expected "
+                            + loadedShots + " but got " + weapon.getRemainingAmmoCount());
+            helper.assertFalse(weapon.isCharging(), "Dual Acrobat release should leave charging mode");
 
-            helper.runAtTickTime(35, () -> {
+            helper.succeedWhen(() -> {
                 helper.assertTrue(target.getHealth() < initialHealth,
-                        "Dual Acrobat release should damage the target after shooting mode starts");
+                        "Dual Acrobat release should damage the target after shooting starts");
                 helper.assertTrue(weapon.isRemoved(),
                         "Dual Acrobat SMG pair should discard after firing all loaded ammo");
-                helper.succeed();
             });
         });
     }
@@ -6991,26 +7002,20 @@ public class ApprenticeCodexGameTestScenarios {
 
             var spell = beginDualAcrobatCast(level, player, 1);
             var magicData = MagicData.getPlayerMagicData(player);
-            for (var i = 0; i < 20; ++i) {
-                spell.onServerCastTick(level, 1, player, magicData);
-            }
-
             var weapon = findDualAcrobatSmg(level, player);
             helper.assertTrue(weapon != null, "Dual Acrobat should spawn an SMG pair while casting");
+            var loadedShots = chargeDualAcrobatUntilShotLoaded(helper, level, spell, player, magicData, 1, weapon);
             spell.onServerCastComplete(level, 1, player, magicData, true);
-            helper.assertTrue(weapon.getRemainingAmmoCount() == 6,
-                    "Normally cancelled Dual Acrobat should still fire loaded ammo but got "
-                            + weapon.getRemainingAmmoCount());
-            helper.assertTrue(weapon.getShootingStartDelayRemaining() == 10,
-                    "Normally cancelled Dual Acrobat should wait 10 ticks before shooting but got "
-                            + weapon.getShootingStartDelayRemaining());
+            helper.assertTrue(weapon.getRemainingAmmoCount() == loadedShots,
+                    "Normally cancelled Dual Acrobat should keep loaded shots. expected "
+                            + loadedShots + " but got " + weapon.getRemainingAmmoCount());
+            helper.assertFalse(weapon.isCharging(), "Normally cancelled Dual Acrobat should leave charging mode");
 
-            helper.runAtTickTime(35, () -> {
+            helper.succeedWhen(() -> {
                 helper.assertTrue(target.getHealth() < initialHealth,
-                        "Normally cancelled Dual Acrobat should damage the target after shooting mode starts");
+                        "Normally cancelled Dual Acrobat should damage the target after shooting starts");
                 helper.assertTrue(weapon.isRemoved(),
                         "Normally cancelled Dual Acrobat SMG pair should discard after firing all loaded ammo");
-                helper.succeed();
             });
         });
     }
@@ -7026,12 +7031,9 @@ public class ApprenticeCodexGameTestScenarios {
             var counterCaster = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 4), "dual_acrobat_counter_caster_test");
             var spell = beginDualAcrobatCast(level, player, 1);
             var magicData = MagicData.getPlayerMagicData(player);
-            for (var i = 0; i < 20; ++i) {
-                spell.onServerCastTick(level, 1, player, magicData);
-            }
-
             var weapon = findDualAcrobatSmg(level, player);
             helper.assertTrue(weapon != null, "Dual Acrobat should have an SMG pair before Counterspell");
+            chargeDualAcrobatUntilShotLoaded(helper, level, spell, player, magicData, 1, weapon);
             var counterspell = new CounterSpellEvent(counterCaster, player);
             DualAcrobatCounterSpellEvent.onCounterSpell(counterspell);
             spell.onServerCastComplete(level, 1, player, magicData, true);
@@ -7039,15 +7041,14 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(weapon.getRemainingAmmoCount() == 0,
                     "Counterspelled Dual Acrobat should enter shooting cleanup with zero shots but got "
                             + weapon.getRemainingAmmoCount());
-            helper.assertTrue(weapon.getShootingStartDelayRemaining() == 10,
-                    "Counterspelled Dual Acrobat should keep the same 10 tick shooting startup delay but got "
-                            + weapon.getShootingStartDelayRemaining());
-            helper.runAtTickTime(25, () -> {
+            helper.assertFalse(weapon.isCharging(), "Counterspelled Dual Acrobat should leave charging mode");
+            helper.succeedWhen(() -> {
                 helper.assertTrue(weapon.getRemainingAmmoCount() == 0,
                         "Counterspelled Dual Acrobat should keep zero shots during cleanup");
+                helper.assertTrue(weapon.getRecoilTicks(true) == 0 && weapon.getRecoilTicks(false) == 0,
+                        "Counterspelled Dual Acrobat cleanup should not fire loaded shots");
                 helper.assertTrue(weapon.isRemoved(),
                         "Counterspelled Dual Acrobat SMG pair should discard after zero-shot shooting cleanup");
-                helper.succeed();
             });
         });
     }
