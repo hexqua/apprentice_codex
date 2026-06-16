@@ -28,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 public class LethalAssaultRifleEntity extends SummonWeaponEntity implements AntiMagicSusceptible {
     public static final int MAX_RECOIL_TICK = 2;
 
-    private static final int RANGE = 48;
     private static final int FIRST_FIRE_TICK = 5;
     private static final int SECOND_FIRE_TICK = 8;
     private static final int LAST_FIRE_TICK = 11;
@@ -182,7 +181,7 @@ public class LethalAssaultRifleEntity extends SummonWeaponEntity implements Anti
     }
 
     private void fire(Level level, LivingEntity owner) {
-        var aimResult = RaycastTools.raycastFromEye(owner, RANGE, 0.5, e -> CombatTools.isValidCombatTarget(e, this));
+        var aimResult = RaycastTools.raycastFromEye(owner, LethalAssault.getRange(), 0.5, e -> CombatTools.isValidCombatTarget(e, this));
         faceTarget(aimResult.hitPosition());
         setFireRotationByVector(aimResult.hitPosition());
 
@@ -216,7 +215,7 @@ public class LethalAssaultRifleEntity extends SummonWeaponEntity implements Anti
     }
 
     private Vec3 resolveAimPosition(LivingEntity owner) {
-        return RaycastTools.raycastFromEye(owner, RANGE, 1, e -> CombatTools.isValidCombatTarget(e, this)).hitPosition();
+        return RaycastTools.raycastFromEye(owner, LethalAssault.getRange(), 1, e -> CombatTools.isValidCombatTarget(e, this)).hitPosition();
     }
 
     private void faceTarget(Vec3 target) {

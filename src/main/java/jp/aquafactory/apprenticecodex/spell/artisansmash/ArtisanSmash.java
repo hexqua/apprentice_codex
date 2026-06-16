@@ -36,8 +36,8 @@ public class ArtisanSmash extends AbstractSummonWeaponSpell<ArtisanSmashLauncher
 
     public ArtisanSmash() {
         super(ArtisanSmashLauncherEntity.class);
-        baseSpellPower = 400;
-        spellPowerPerLevel = 100;
+        baseSpellPower = 900;
+        spellPowerPerLevel = 400;
         baseManaCost = 40;
         manaCostPerLevel = 20;
         castTime = 30;
@@ -47,19 +47,17 @@ public class ArtisanSmash extends AbstractSummonWeaponSpell<ArtisanSmashLauncher
     public List<MutableComponent> getUniqueInfo(int spellLevel, @Nullable LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.irons_spellbooks.radius", Utils.stringTruncation(getSplashRadius(spellLevel), 2))
+                Component.translatable("ui.irons_spellbooks.radius", Utils.stringTruncation(getSplashRadius(spellLevel, caster), 2))
         );
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        // todo:範囲ダメージになるので実際の使い勝手を見てから.
-        var rawDamage = 1 + 2 * getSpellPower(spellLevel, entity) / 100.0f;
+        var rawDamage = getSpellPower(spellLevel, entity) / 100.0f;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.ARTISAN_SMASH);
     }
 
-    private float getSplashRadius(int spellLevel) {
-        // todo:実際の使い勝手を見てから.
-        return 1.75f + Math.max(0, spellLevel - 1) / 9.0f;
+    private float getSplashRadius(int spellLevel, LivingEntity entity) {
+        return Math.min(2.0f + getSpellPower(spellLevel, entity) / 600.0f, 8.0f);
     }
 
     private float getSpeed() {
@@ -106,7 +104,7 @@ public class ArtisanSmash extends AbstractSummonWeaponSpell<ArtisanSmashLauncher
     public ArtisanSmashLauncherEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var summonWeapon = new ArtisanSmashLauncherEntity(EntityRegistry.ARTISAN_SMASH_LAUNCHER.get(), level, entity);
         summonWeapon.setDamage(getDamage(spellLevel, entity));
-        summonWeapon.setSplashRadius(getSplashRadius(spellLevel));
+        summonWeapon.setSplashRadius(getSplashRadius(spellLevel, entity));
         summonWeapon.setSpeed(getSpeed());
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
