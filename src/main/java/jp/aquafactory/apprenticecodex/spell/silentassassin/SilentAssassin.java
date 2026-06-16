@@ -55,7 +55,8 @@ public class SilentAssassin extends AbstractSummonWeaponSpell<SilentAssassinRifl
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellPower), 2)),
                 Component.translatable("ui.apprenticecodex.headshot_damage_multiplier", getHeadshotPercent(spellPower)),
-                Component.translatable("ui.apprenticecodex.sneak_damage_multiplier", getSneakPercent(spellPower))
+                Component.translatable("ui.apprenticecodex.sneak_damage_multiplier", getSneakPercent(spellPower)),
+                Component.translatable("ui.irons_spellbooks.distance", getRange())
         );
     }
 
