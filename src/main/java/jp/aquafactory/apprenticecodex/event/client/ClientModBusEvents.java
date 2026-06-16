@@ -76,6 +76,7 @@ import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownRenderer
 import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.SpellThrowableCardRenderer;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsCoreRenderer;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsWingRenderer;
+import jp.aquafactory.apprenticecodex.spell.dualacrobat.DualAcrobatSmgRenderer;
 import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingRenderer;
@@ -633,6 +634,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.SILENT_ASSASSIN_RIFLE.get(), SilentAssassinRifleRenderer::new);
         event.registerEntityRenderer(EntityRegistry.LETHAL_ASSAULT_RIFLE.get(), LethalAssaultRifleRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BULLET_STREAM_MINIGUN.get(), BulletStreamMinigunRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.DUAL_ACROBAT_SMG.get(), DualAcrobatSmgRenderer::new);
         event.registerEntityRenderer(EntityRegistry.TIRO_VOLLEY_MUSKET.get(), TiroVolleyMusketRenderer::new);
         event.registerEntityRenderer(EntityRegistry.THERMAL_PROCESS_THROWER.get(), ThermalProcessThrowerRenderer::new);
         event.registerEntityRenderer(EntityRegistry.CHARGED_TWIN_BLADE_STAFF_THROWN.get(), ChargedTwinBladeStaffThrownRenderer::new);

@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsCoreEntity;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsWingEntity;
+import jp.aquafactory.apprenticecodex.spell.dualacrobat.DualAcrobatSmgEntity;
 import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingEntity;
@@ -151,6 +152,9 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<BulletStreamMinigunEntity>> BULLET_STREAM_MINIGUN =
             regWeapon("bullet_stream_minigun", BulletStreamMinigunEntity::new, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<DualAcrobatSmgEntity>> DUAL_ACROBAT_SMG =
+            regWeapon("dual_acrobat_smg", DualAcrobatSmgEntity::new, 1);
 
     public static final DeferredHolder<EntityType<?>, EntityType<TiroVolleyMusketEntity>> TIRO_VOLLEY_MUSKET =
             regWeapon("tiro_volley_musket", TiroVolleyMusketEntity::new, 1);
