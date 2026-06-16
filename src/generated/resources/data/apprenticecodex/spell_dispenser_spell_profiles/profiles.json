@@ -596,6 +596,24 @@
         "owner_required": false
       },
       "spell": "apprenticecodex:inscribe_ice"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
+      "spell": "apprenticecodex:lethal_assault"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
+      "spell": "apprenticecodex:dual_acrobat"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
+      "spell": "apprenticecodex:artisan_smash"
     }
   ]
 }
