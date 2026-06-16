@@ -22,13 +22,15 @@ import org.jetbrains.annotations.NotNull;
 
 public class ArtisanSmashLauncherEntity extends SummonWeaponEntity {
     public static final int MAX_RECOIL_TICK = 10;
+    public static final double FIRE_OFFSET = 0.75;
 
     private static final float AIM_PITCH_UP_DEGREES = 15.0f;
-    private static final double FIRE_OFFSET = 0.75;
     private static final EntityDataAccessor<Integer> RECOIL_TICK =
             SynchedEntityData.defineId(ArtisanSmashLauncherEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_RELEASED =
             SynchedEntityData.defineId(ArtisanSmashLauncherEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Float> PROJECTILE_SPEED =
+            SynchedEntityData.defineId(ArtisanSmashLauncherEntity.class, EntityDataSerializers.FLOAT);
 
     private float damage;
     private float splashRadius;
@@ -48,6 +50,7 @@ public class ArtisanSmashLauncherEntity extends SummonWeaponEntity {
     protected void defineSynchedData() {
         entityData.define(RECOIL_TICK, 0);
         entityData.define(IS_RELEASED, false);
+        entityData.define(PROJECTILE_SPEED, 0.0f);
     }
 
     @Override
@@ -60,6 +63,7 @@ public class ArtisanSmashLauncherEntity extends SummonWeaponEntity {
         isReleased = tag.getBoolean("IsReleased");
         entityData.set(RECOIL_TICK, recoilTick);
         entityData.set(IS_RELEASED, isReleased);
+        entityData.set(PROJECTILE_SPEED, speed);
     }
 
     @Override
@@ -157,10 +161,14 @@ public class ArtisanSmashLauncherEntity extends SummonWeaponEntity {
     @Override
     public Vec3 getStandbyPosition() {
         if (getOwner() instanceof LivingEntity owner) {
-            return RotationTools.calculateBehindPosition(owner, -0.5, -0.7, -0.25);
+            return calculateStandbyPosition(owner);
         }
 
         return Vec3.ZERO;
+    }
+
+    public static Vec3 calculateStandbyPosition(LivingEntity owner) {
+        return RotationTools.calculateBehindPosition(owner, -0.5, -0.7, -0.25);
     }
 
     public void setDamage(float damage) {
@@ -173,6 +181,7 @@ public class ArtisanSmashLauncherEntity extends SummonWeaponEntity {
 
     public void setSpeed(float speed) {
         this.speed = speed;
+        entityData.set(PROJECTILE_SPEED, speed);
     }
 
     public int getRecoilTick() {
@@ -181,5 +190,9 @@ public class ArtisanSmashLauncherEntity extends SummonWeaponEntity {
 
     public boolean getIsReleased() {
         return entityData.get(IS_RELEASED);
+    }
+
+    public float getProjectileSpeed() {
+        return entityData.get(PROJECTILE_SPEED);
     }
 }
