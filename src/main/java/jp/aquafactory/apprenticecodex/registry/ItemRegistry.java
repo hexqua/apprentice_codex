@@ -107,6 +107,7 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> DUAL_ACROBAT_SMG = simple("dual_acrobat_smg");
     public static final RegistryObject<Item> THERMAL_PROCESS_THROWER = simple("thermal_process_thrower");
     public static final RegistryObject<Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
+    public static final RegistryObject<Item> ARTISAN_SMASH_LAUNCHER = simple("artisan_smash_launcher");
     public static final RegistryObject<Item> ARCANE_CINDER = ITEMS.register("arcane_cinder", ArcaneCinderItem::new);
 
     public static final RegistryObject<Item> COMFORT_BERRIES =

@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.registry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
+import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashLauncherEntity;
+import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashShellEntity;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretEntity;
@@ -191,6 +193,12 @@ public final class EntityRegistry {
 
     public static final RegistryObject<EntityType<FlySwatterProjectileEntity>> FLY_SWATTER_PROJECTILE =
             regProjectile("fly_swatter_projectile", FlySwatterProjectileEntity::new, 128, 1);
+
+    public static final RegistryObject<EntityType<ArtisanSmashLauncherEntity>> ARTISAN_SMASH_LAUNCHER =
+            regWeapon("artisan_smash_launcher", ArtisanSmashLauncherEntity::new, 1);
+
+    public static final RegistryObject<EntityType<ArtisanSmashShellEntity>> ARTISAN_SMASH_SHELL =
+            regProjectile("artisan_smash_shell", ArtisanSmashShellEntity::new, 128, 1);
 
     public static final RegistryObject<EntityType<AssistWingsWingEntity>> ASSIST_WINGS_WING =
             regWeapon("assist_wings_wing", AssistWingsWingEntity::new, 1);
