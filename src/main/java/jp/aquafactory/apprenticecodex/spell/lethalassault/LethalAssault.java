@@ -29,22 +29,32 @@ public class LethalAssault extends AbstractSpell {
             .setMinRarity(SpellRarity.UNCOMMON)
             .setSchoolResource(SchoolRegistry.EVOCATION_RESOURCE)
             .setMaxLevel(5)
-            .setCooldownSeconds(2)
+            .setCooldownSeconds(1.5)
             .build();
 
     public LethalAssault() {
         baseSpellPower = 500;
-        spellPowerPerLevel = 100;
+        spellPowerPerLevel = 200;
         baseManaCost = 20;
-        manaCostPerLevel = 30;
+        manaCostPerLevel = 5;
         castTime = 0;
     }
 
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, @Nullable LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2))
+                Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
+                Component.translatable("ui.irons_spellbooks.projectile_count", getBurstCount()),
+                Component.translatable("ui.irons_spellbooks.distance", getRange())
         );
+    }
+
+    private int getBurstCount(){
+        return 3;
+    }
+
+    public static int getRange(){
+        return 48;
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {

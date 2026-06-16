@@ -27,8 +27,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class DualAcrobat extends AbstractSummonWeaponSpell<DualAcrobatSmgEntity> {
-    private static final float RANGE = 24.0f;
-
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "dual_acrobat");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -40,7 +38,7 @@ public class DualAcrobat extends AbstractSummonWeaponSpell<DualAcrobatSmgEntity>
 
     public DualAcrobat() {
         super(DualAcrobatSmgEntity.class);
-        baseSpellPower = 400;
+        baseSpellPower = 500;
         spellPowerPerLevel = 100;
         baseManaCost = 5;
         manaCostPerLevel = 5;
@@ -50,27 +48,30 @@ public class DualAcrobat extends AbstractSummonWeaponSpell<DualAcrobatSmgEntity>
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, @Nullable LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
+                Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(), 2)),
                 Component.translatable("ui.apprenticecodex.charge_up_ammo_per_second", Utils.stringTruncation(getLoadAmmoCountSpeed(spellLevel, caster), 2)),
-                Component.translatable("ui.apprenticecodex.charge_up_ammo_maximum", getMaximumLoadAmmoCount(spellLevel))
+                Component.translatable("ui.apprenticecodex.charge_up_ammo_maximum", getMaximumLoadAmmoCount(spellLevel, caster)),
+                Component.translatable("ui.irons_spellbooks.distance", getRange())
         );
     }
 
-    private float getDamage(int spellLevel, LivingEntity entity) {
-        // todo:使い勝手を見てから細かいダメージ調整.
-        var rawDamage = 1 + getSpellPower(spellLevel, entity) / 400.0f;
+    private float getDamage() {
+        var rawDamage = 2;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.DUAL_ACROBAT);
     }
 
     private float getLoadAmmoCountSpeed(int spellLevel, @Nullable LivingEntity entity) {
-        // todo:使い勝手を見てから調整.
-        return 5 + 3 * spellLevel / 2.0f;
+        return getSpellPower(spellLevel, entity) / 100.0f;
     }
 
-    private int getMaximumLoadAmmoCount(int spellLevel) {
-        // todo:使い勝手を見てから調整.
-        return 15 * spellLevel;
+    private int getMaximumLoadAmmoCount(int spellLevel, @Nullable LivingEntity entity) {
+        return Math.round(getLoadAmmoCountSpeed(spellLevel, entity) * 5);
     }
+
+    public int getRange(){
+        return 24;
+    }
+
 
     @Override
     public ResourceLocation getSpellResource() {
@@ -110,10 +111,10 @@ public class DualAcrobat extends AbstractSummonWeaponSpell<DualAcrobatSmgEntity>
     @Override
     public DualAcrobatSmgEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var summonWeapon = new DualAcrobatSmgEntity(EntityRegistry.DUAL_ACROBAT_SMG.get(), level, entity);
-        summonWeapon.setDamage(getDamage(spellLevel, entity));
-        summonWeapon.setRange(RANGE);
+        summonWeapon.setDamage(getDamage());
+        summonWeapon.setRange(getRange());
         summonWeapon.setLoadAmmoCountSpeed(getLoadAmmoCountSpeed(spellLevel, entity));
-        summonWeapon.setMaximumLoadAmmoCount(getMaximumLoadAmmoCount(spellLevel));
+        summonWeapon.setMaximumLoadAmmoCount(getMaximumLoadAmmoCount(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }
