@@ -16,6 +16,13 @@ public final class EpicFightSmashcastScepterCapability extends WeaponCapability 
     }
 
     @Override
+    public boolean checkOffhandValid(LivingEntityPatch<?> entityPatch) {
+        // Epic Fight 21.17 の default_1h_wield_style は offhand 表示を許可するため、
+        // Smashcast Scepter では旧実装どおりメインハンド時の併用も明示的に拒否する。
+        return false;
+    }
+
+    @Override
     public boolean canHoldInOffhandAlone() {
         return false;
     }
