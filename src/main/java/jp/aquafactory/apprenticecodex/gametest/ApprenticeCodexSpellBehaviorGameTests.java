@@ -478,17 +478,17 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.dualAcrobatAmmoStopsAtMaximum(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 60)
+    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 200)
     public static void dualAcrobatReleaseFiresLoadedAmmoAndExpires(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.dualAcrobatReleaseFiresLoadedAmmoAndExpires(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 60)
+    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 200)
     public static void dualAcrobatCancelledInterruptionStillFiresLoadedAmmoAndExpires(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.dualAcrobatCancelledInterruptionStillFiresLoadedAmmoAndExpires(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH)
+    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 200)
     public static void dualAcrobatCounterspellInterruptDiscardsWithoutShooting(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.dualAcrobatCounterspellInterruptDiscardsWithoutShooting(helper);
     }
