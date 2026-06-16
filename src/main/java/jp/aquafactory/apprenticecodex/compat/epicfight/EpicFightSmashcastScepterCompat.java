@@ -37,6 +37,7 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.capabilities.item.WeaponCapability;
+import yesman.epicfight.world.capabilities.item.WeaponTypeReloadListener;
 import yesman.epicfight.world.damagesource.EpicFightDamageTypeTags;
 import yesman.epicfight.world.damagesource.StunType;
 
@@ -102,13 +103,14 @@ public final class EpicFightSmashcastScepterCompat {
     }
 
     private static void onWeaponCapabilityPresetRegistry(WeaponCapabilityPresetRegistryEvent event) {
-        event.getTypeEntry().put(WEAPON_TYPE_ID, item -> buildCapability(event, item));
+        event.getTypeEntry().put(WEAPON_TYPE_ID, EpicFightSmashcastScepterCompat::buildCapability);
     }
 
-    private static CapabilityItem.Builder<?> buildCapability(WeaponCapabilityPresetRegistryEvent event, Item item) {
-        var swordFactory = event.getTypeEntry().get(SWORD_TYPE_ID);
-        var builder = swordFactory != null
-                ? (WeaponCapability.Builder) swordFactory.apply(item)
+    private static CapabilityItem.Builder<?> buildCapability(Item item) {
+        var swordFactory = WeaponTypeReloadListener.get(SWORD_TYPE_ID);
+        var baseBuilder = swordFactory != null ? swordFactory.apply(item) : null;
+        var builder = baseBuilder instanceof WeaponCapability.Builder weaponBuilder
+                ? weaponBuilder
                 : WeaponCapability.builder();
 
         builder.constructor(EpicFightSmashcastScepterCapability::new);

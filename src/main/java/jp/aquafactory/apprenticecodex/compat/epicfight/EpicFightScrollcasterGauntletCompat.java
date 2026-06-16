@@ -8,6 +8,7 @@ import yesman.epicfight.api.event.EpicFightEventHooks;
 import yesman.epicfight.api.event.types.registry.WeaponCapabilityPresetRegistryEvent;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.capabilities.item.WeaponCapability;
+import yesman.epicfight.world.capabilities.item.WeaponTypeReloadListener;
 
 // リフレクションで参照するため、IDE側の未使用検知を無効化.
 @SuppressWarnings("unused")
@@ -28,13 +29,14 @@ public final class EpicFightScrollcasterGauntletCompat {
     }
 
     private static void onWeaponCapabilityPresetRegistry(WeaponCapabilityPresetRegistryEvent event) {
-        event.getTypeEntry().put(WEAPON_TYPE_ID, item -> buildCapability(event, item));
+        event.getTypeEntry().put(WEAPON_TYPE_ID, EpicFightScrollcasterGauntletCompat::buildCapability);
     }
 
-    private static CapabilityItem.Builder<?> buildCapability(WeaponCapabilityPresetRegistryEvent event, Item item) {
-        var fistFactory = event.getTypeEntry().get(FIST_PRESET_ID);
-        var builder = fistFactory != null
-                ? (WeaponCapability.Builder) fistFactory.apply(item)
+    private static CapabilityItem.Builder<?> buildCapability(Item item) {
+        var fistFactory = WeaponTypeReloadListener.get(FIST_PRESET_ID);
+        var baseBuilder = fistFactory != null ? fistFactory.apply(item) : null;
+        var builder = baseBuilder instanceof WeaponCapability.Builder weaponBuilder
+                ? weaponBuilder
                 : WeaponCapability.builder();
 
         builder.constructor(EpicFightScrollcasterGauntletCapability::new);
