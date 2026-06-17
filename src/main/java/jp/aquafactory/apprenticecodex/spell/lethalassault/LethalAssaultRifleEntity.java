@@ -62,7 +62,7 @@ public class LethalAssaultRifleEntity extends SummonWeaponEntity implements Anti
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag tag) {
+    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         damage = tag.getFloat("Damage");
         recoilTick = tag.getInt("RecoilTick");
@@ -187,7 +187,7 @@ public class LethalAssaultRifleEntity extends SummonWeaponEntity implements Anti
 
         if (aimResult.hitEntity() != null) {
             var target = CombatTools.resolutePartEntity(aimResult.hitEntity());
-            var source = CombatTools.getDamageSource(level(), this, getOwner(), DamageTypes.LETHAL_ASSAULT);
+            var source = createCombatDamageSource(DamageTypes.LETHAL_ASSAULT);
             CombatTools.applyDamage(target, damage, source, SpellRegistry.LETHAL_ASSAULT.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
         }
 

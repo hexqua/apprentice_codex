@@ -257,7 +257,7 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
         refreshLockedCombatTarget();
 
         if (tickCount % 3 == 0) {
-            var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.TINY_LUMBERJACK);
+            var source = createCombatDamageSource(DamageTypes.TINY_LUMBERJACK);
             var hitResult = RaycastTools.sampleBeamHits(level,
                     position(),
                     position().add(getLookAngle().normalize().scale(1.0)),

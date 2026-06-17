@@ -309,7 +309,7 @@ public class ArcherMultipleBowEntity extends PersistentSummonWeaponEntity {
         var soundEvent = isLastBullet ? SoundRegistry.VANILLA_PROJECTILE_SHOOT.get() : SoundEvents.ARROW_SHOOT;
         var sourceType = isLastBullet ? DamageTypes.ARCHER_MULTIPLE_LAST : DamageTypes.ARCHER_MULTIPLE;
 
-        var source = CombatTools.getDamageSource(level, this, getOwner(), sourceType);
+        var source = createCombatDamageSource(sourceType);
         CombatTools.applyDamage(target, damage, source, SpellRegistry.ARCHER_MULTIPLE.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
         AudioTools.playSoundFromEntity(level, this, soundEvent, SoundSource.PLAYERS, 0.5f);
 

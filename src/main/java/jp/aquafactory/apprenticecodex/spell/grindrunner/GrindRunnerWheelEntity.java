@@ -1011,7 +1011,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         }
 
         var level = level();
-        var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.GRIND_RUNNER);
+        var source = createCombatDamageSource(DamageTypes.GRIND_RUNNER);
         var includeOwner = state == WheelState.LAUNCHED;
         for (var target : resolveDamageTargets(owner, includeOwner)) {
             CombatTools.applyDamage(target, damageAmount, source, SpellRegistry.GRIND_RUNNER.get().getSchoolType(), knockbackType);

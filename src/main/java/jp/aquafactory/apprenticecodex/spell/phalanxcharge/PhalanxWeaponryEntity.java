@@ -16,7 +16,6 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -277,7 +276,7 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag pCompound) {
+    protected void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         damage = pCompound.getFloat("Damage");
         thrustBeamLength = pCompound.getFloat("ThrustBeamLength");
@@ -315,7 +314,6 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
     @Override
     public void onSyncedDataUpdated(@NotNull EntityDataAccessor<?> key) {
         super.onSyncedDataUpdated(key);
-        //noinspection resource
         if (!level().isClientSide || !GUARD_FLASH_SERIAL.equals(key)) {
             return;
         }
@@ -336,7 +334,6 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
     }
 
     public float getGuardFlashStrength(float partialTick) {
-        //noinspection resource
         if (!level().isClientSide || clientFlashStartTick < 0.0f) {
             return 0.0f;
         }

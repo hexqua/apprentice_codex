@@ -188,7 +188,7 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
         var hitResult = RaycastTools.raycastFromEye(owner, range, 0.5, e -> CombatTools.isValidCombatTarget(e, this) && e != owner);
         if (hitResult.hitEntity() != null) {
             var target = hitResult.hitEntity();
-            var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.BULLET_STREAM);
+            var source = createCombatDamageSource(DamageTypes.BULLET_STREAM);
             CombatTools.applyDamage(target, resolveCurrentDamage(owner), source, SpellRegistry.BULLET_STREAM.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
         }
 

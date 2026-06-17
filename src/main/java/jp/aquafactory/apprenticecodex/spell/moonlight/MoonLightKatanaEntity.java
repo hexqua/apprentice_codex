@@ -140,7 +140,7 @@ public class MoonLightKatanaEntity extends SummonWeaponEntity implements GeoEnti
 
         if (getOwner() instanceof LivingEntity owner) {
             var point = getLookAngle().normalize().scale(0.75);
-            var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.MOON_LIGHT);
+            var source = createCombatDamageSource(DamageTypes.MOON_LIGHT);
             var hitResult = RaycastTools.hitsSphere(
                     level,
                     position().add(point),
@@ -186,7 +186,7 @@ public class MoonLightKatanaEntity extends SummonWeaponEntity implements GeoEnti
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag pCompound) {
+    protected void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         damage = pCompound.getFloat("Damage");
     }
