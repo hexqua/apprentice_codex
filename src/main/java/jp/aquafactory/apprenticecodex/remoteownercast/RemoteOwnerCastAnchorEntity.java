@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.remoteownercast;
 
+import jp.aquafactory.apprenticecodex.utility.CombatOwnerUuidSource;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -16,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public final class RemoteOwnerCastAnchorEntity extends ArmorStand {
+public final class RemoteOwnerCastAnchorEntity extends ArmorStand implements CombatOwnerUuidSource {
     @Nullable
     private UUID boundOwnerId;
     @Nullable
@@ -71,6 +72,11 @@ public final class RemoteOwnerCastAnchorEntity extends ArmorStand {
 
     public boolean isBoundOwner(Entity entity) {
         return boundOwnerId != null && boundOwnerId.equals(entity.getUUID());
+    }
+
+    @Override
+    public @Nullable UUID getCombatOwnerUuid() {
+        return boundOwnerId;
     }
 
     public void retainWhileOwnerOf(Entity entity) {

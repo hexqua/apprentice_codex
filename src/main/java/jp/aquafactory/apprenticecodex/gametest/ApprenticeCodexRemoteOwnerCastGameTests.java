@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.datagen.spell.RemoteOwnerCastSpellProfileDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SpellDispenserSpellProfileDataGenerator;
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmulet;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -22,11 +23,15 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileMana
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashShellEntity;
+import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerEntity;
+import jp.aquafactory.apprenticecodex.utility.CombatOwnerResolver;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.phys.Vec3;
@@ -192,6 +197,61 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
             assertAttributeValue(helper, anchor, entry.getKey(), entry.getValue(),
                     "Remote Owner Cast anchor should copy dynamic school attribute");
         }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void remoteOwnerCombatOwnerUuidKeepsProjectileAttributionAfterAnchorDiscard(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "remote_owner_combat_uuid_test"));
+        level.addFreshEntity(owner);
+
+        var anchor = new RemoteOwnerCastAnchorEntity(EntityRegistry.REMOTE_OWNER_CAST_ANCHOR.get(), level);
+        anchor.bindOwnerName(owner);
+        level.addFreshEntity(anchor);
+
+        var shell = new ArtisanSmashShellEntity(EntityRegistry.ARTISAN_SMASH_SHELL.get(), level, anchor);
+        helper.assertTrue(owner.getUUID().equals(shell.getCombatOwnerUuid()),
+                "Artisan Smash shell should capture the Remote Owner anchor bound owner UUID.");
+
+        var shellTag = new CompoundTag();
+        shell.saveCombatOwnerUuid(shellTag);
+        var restoredShell = new ArtisanSmashShellEntity(EntityRegistry.ARTISAN_SMASH_SHELL.get(), level);
+        restoredShell.loadCombatOwnerUuid(shellTag);
+        helper.assertTrue(owner.getUUID().equals(restoredShell.getCombatOwnerUuid()),
+                "Artisan Smash shell should persist combat owner UUID.");
+
+        var flySwatter = new FlySwatterProjectileEntity(EntityRegistry.FLY_SWATTER_PROJECTILE.get(), level, anchor);
+        helper.assertTrue(owner.getUUID().equals(flySwatter.getCombatOwnerUuid()),
+                "Fly Swatter projectile should capture the Remote Owner anchor bound owner UUID.");
+
+        anchor.discard();
+        var source = CombatOwnerResolver.createDamageSource(
+                level,
+                shell,
+                shell.getOwner(),
+                shell.getCombatOwnerUuid(),
+                DamageTypes.ARTISAN_SMASH
+        );
+        helper.assertTrue(source.getEntity() == owner,
+                "Combat owner UUID should resolve the original player after Remote Owner anchor discard.");
+
+        var ownerlessShell = new ArtisanSmashShellEntity(EntityRegistry.ARTISAN_SMASH_SHELL.get(), level);
+        var ownerlessSource = CombatOwnerResolver.createDamageSource(
+                level,
+                ownerlessShell,
+                null,
+                UUID.randomUUID(),
+                DamageTypes.ARTISAN_SMASH
+        );
+        helper.assertTrue(ownerlessSource.getEntity() == ownerlessShell,
+                "Unresolved combat owner UUID should fall back to ownerless projectile damage.");
+
+        owner.discard();
+        shell.discard();
+        restoredShell.discard();
+        flySwatter.discard();
+        ownerlessShell.discard();
         helper.succeed();
     }
 

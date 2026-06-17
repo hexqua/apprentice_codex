@@ -5,6 +5,8 @@ import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.utility.CombatOwnerResolver;
+import jp.aquafactory.apprenticecodex.utility.CombatOwnerUuidHolder;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -29,10 +31,12 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
+import java.util.UUID;
 
-public class ArtisanSmashShellEntity extends ThrowableProjectile implements AntiMagicSusceptible {
+public class ArtisanSmashShellEntity extends ThrowableProjectile implements AntiMagicSusceptible, CombatOwnerUuidHolder {
     public static final double FLIGHT_AIR_DRAG = 0.99d;
 
     private static final int PHASE_FLYING = 0;
@@ -57,6 +61,8 @@ public class ArtisanSmashShellEntity extends ThrowableProjectile implements Anti
     private float clientSpinDegrees;
     private float clientPrevSpinDegrees;
     private Vec3 burstCenter;
+    @Nullable
+    private UUID combatOwnerUuid;
 
     public ArtisanSmashShellEntity(EntityType<? extends ArtisanSmashShellEntity> entityType, Level level) {
         super(entityType, level);
@@ -66,6 +72,7 @@ public class ArtisanSmashShellEntity extends ThrowableProjectile implements Anti
     public ArtisanSmashShellEntity(EntityType<? extends ArtisanSmashShellEntity> entityType, Level level, LivingEntity owner) {
         super(entityType, owner, level);
         setViewScale(8.0f);
+        setCombatOwnerUuid(CombatOwnerResolver.captureCombatOwnerUuid(owner));
     }
 
     @Override
@@ -106,10 +113,13 @@ public class ArtisanSmashShellEntity extends ThrowableProjectile implements Anti
 
     @Override
     protected boolean canHitEntity(@NotNull Entity entity) {
+        var owner = getOwner();
+        var combatOwner = CombatOwnerResolver.resolveCombatOwner(level(), owner, combatOwnerUuid);
         var target = CombatTools.resolutePartEntity(entity);
         return getPhase() == PHASE_FLYING
-                && entity != getOwner()
-                && CombatTools.isValidCombatTarget(target, getOwner())
+                && entity != owner
+                && entity != combatOwner
+                && CombatTools.isValidCombatTarget(target, combatOwner)
                 && super.canHitEntity(entity);
     }
 
@@ -121,7 +131,8 @@ public class ArtisanSmashShellEntity extends ThrowableProjectile implements Anti
         }
 
         var target = CombatTools.resolutePartEntity(hit.getEntity());
-        if (CombatTools.isValidCombatTarget(target, getOwner())) {
+        var combatOwner = CombatOwnerResolver.resolveCombatOwner(level(), getOwner(), combatOwnerUuid);
+        if (CombatTools.isValidCombatTarget(target, combatOwner)) {
             explode(hit.getLocation());
         }
     }
@@ -165,6 +176,7 @@ public class ArtisanSmashShellEntity extends ThrowableProjectile implements Anti
         tag.putInt("Phase", getPhase());
         tag.putInt("PhaseTicks", phaseTicks);
         tag.putInt("SpinDirection", getSpinDirection());
+        saveCombatOwnerUuid(tag);
     }
 
     @Override
@@ -175,6 +187,7 @@ public class ArtisanSmashShellEntity extends ThrowableProjectile implements Anti
         setPhase(tag.getInt("Phase"));
         phaseTicks = tag.getInt("PhaseTicks");
         setSpinDirection(tag.getInt("SpinDirection") >= 0 ? 1 : -1);
+        loadCombatOwnerUuid(tag);
         entityData.set(DATA_SPLASH_RADIUS, splashRadius);
         if (isBursting()) {
             setNoGravity(true);
@@ -255,8 +268,7 @@ public class ArtisanSmashShellEntity extends ThrowableProjectile implements Anti
     }
 
     private void applyBlastDamage(Vec3 center) {
-        var owner = getOwner();
-        var source = CombatTools.getDamageSource(level(), this, owner, DamageTypes.ARTISAN_SMASH);
+        var source = CombatOwnerResolver.createDamageSource(level(), this, getOwner(), combatOwnerUuid, DamageTypes.ARTISAN_SMASH);
         var school = SpellRegistry.ARTISAN_SMASH.get().getSchoolType();
         var area = new AABB(center, center).inflate(splashRadius);
         var damagedIds = new HashSet<Integer>();
@@ -332,5 +344,15 @@ public class ArtisanSmashShellEntity extends ThrowableProjectile implements Anti
     private static float easeInCubic(float value) {
         var clamped = Mth.clamp(value, 0.0f, 1.0f);
         return clamped * clamped * clamped;
+    }
+
+    @Override
+    public @Nullable UUID getCombatOwnerUuid() {
+        return combatOwnerUuid;
+    }
+
+    @Override
+    public void setCombatOwnerUuid(@Nullable UUID combatOwnerUuid) {
+        this.combatOwnerUuid = combatOwnerUuid;
     }
 }
