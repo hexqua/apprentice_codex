@@ -892,7 +892,7 @@
   "death.attack.apprenticecodex.arcane_beam": "%1$s 被 %2$s 的奥术能量分解。",
   "death.attack.apprenticecodex.tiny_lumberjack": "%1$s 被碎尸万段。",
   "death.attack.apprenticecodex.graced_rain": "恩泽之力对 %1$s 造成了致命伤害。",
-  "death.attack.apprenticecodex.fly_swatter": "%1$s 被 %2$s 击晕致死。",
+  "death.attack.apprenticecodex.fly_swatter": "%1$s 像虫子一样被拍落了。",
   "death.attack.apprenticecodex.feather_rush": "%1$s 被 %2$s 的羽刃穿刺身亡。",
   "death.attack.apprenticecodex.world_flatter": "%2$s 把 %1$s 轰进了地底深渊。",
   "death.attack.apprenticecodex.slash_blade": "%1$s 被一刀两断。",
@@ -919,7 +919,7 @@
   "death.attack.apprenticecodex.heavenly_fist": "%1$s 被 %2$s 压成了薄片。",
   "death.attack.apprenticecodex.lethal_assault": "%1$s 没能叫来医疗兵。",
   "death.attack.apprenticecodex.dual_acrobat": "%1$s 抽中了头奖。",
-  "death.attack.apprenticecodex.artisan_smash": "%1$s 被 %2$s 大改造了。",
+  "death.attack.apprenticecodex.artisan_smash": "%1$s 被匠人彻底大改造了。",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "学徒法典",
   "advancements.apprenticecodex.apprentice_codex.root.description": "踏上学徒法师的修行之路。",

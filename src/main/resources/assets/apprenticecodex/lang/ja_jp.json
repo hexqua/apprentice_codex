@@ -909,7 +909,7 @@
   "death.attack.apprenticecodex.arcane_beam": "%1$sは%2$sの魔力によって崩壊させられた",
   "death.attack.apprenticecodex.tiny_lumberjack": "%1$sはバラバラになった",
   "death.attack.apprenticecodex.graced_rain": "%1$sに恵みの力は有害すぎた",
-  "death.attack.apprenticecodex.fly_swatter": "%1$sは%2$sに叩き落された",
+  "death.attack.apprenticecodex.fly_swatter": "%1$sは虫のように叩き落された",
   "death.attack.apprenticecodex.feather_rush": "%1$sは%2$sの羽根の雨に貫かれた",
   "death.attack.apprenticecodex.world_flatter": "%1$sは%2$sに風穴を開けられた",
   "death.attack.apprenticecodex.slash_blade": "%1$sは真っ二つにされた",
@@ -936,7 +936,7 @@
   "death.attack.apprenticecodex.heavenly_fist": "%1$sは%2$sによってペラペラにされた",
   "death.attack.apprenticecodex.lethal_assault": "%1$sは衛生兵を呼ぶことができなかった",
   "death.attack.apprenticecodex.dual_acrobat": "%1$sはジャックポットを引き当ててしまった",
-  "death.attack.apprenticecodex.artisan_smash": "%1$sは%2$sによって大改造された",
+  "death.attack.apprenticecodex.artisan_smash": "%1$sは匠によって大改造された",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",
