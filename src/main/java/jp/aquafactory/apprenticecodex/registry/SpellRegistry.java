@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeam;
 import jp.aquafactory.apprenticecodex.spell.arcaneblast.ArcaneBlast;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultiple;
+import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmash;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWings;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnet;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurret;
@@ -18,6 +19,7 @@ import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhial;
 import jp.aquafactory.apprenticecodex.spell.deepsensor.DeepSensor;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWings;
 import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossession;
+import jp.aquafactory.apprenticecodex.spell.dualacrobat.DualAcrobat;
 import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
 import jp.aquafactory.apprenticecodex.spell.echocast.EchoCast;
 import jp.aquafactory.apprenticecodex.spell.extract.Extract;
@@ -33,6 +35,7 @@ import jp.aquafactory.apprenticecodex.spell.heavenlyfist.HeavenlyFist;
 import jp.aquafactory.apprenticecodex.spell.higanbana.Higanbana;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellar;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
+import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssault;
 import jp.aquafactory.apprenticecodex.spell.longstride.LongStride;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpear;
@@ -117,10 +120,12 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> TIRO_VOLLEY = reg("tiro_volley", TiroVolley::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> BOUND_SWORD = reg("bound_sword", BoundSword::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> BOUND_BOW = reg("bound_bow", BoundBow::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> LETHAL_ASSAULT = reg("lethal_assault", LethalAssault::new);
 
     // 炎.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MAGIC_SPEAR = reg("magic_spear", MagicSpear::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> ARTISAN_SMASH = reg("artisan_smash", ArtisanSmash::new);
 
     // 聖.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MAGE_LIGHT = reg("mage_light", MageLight::new);
@@ -145,6 +150,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> BULLET_STREAM = reg("bullet_stream", BulletStream::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> FLY_SWATTER = reg("fly_swatter", FlySwatter::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> SHOCK = reg("shock", Shock::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> DUAL_ACROBAT = reg("dual_acrobat", DualAcrobat::new);
 
     // 自然.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> COMPOUND_PHIAL = reg("compound_phial", CompoundPhial::new);

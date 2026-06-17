@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.item.UpgradeData;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
@@ -211,6 +212,8 @@ import jp.aquafactory.apprenticecodex.utility.RightClickSpellResolver;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
+import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmash;
+import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashShellEntity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -453,6 +456,54 @@ final class FocusStaffbowGameTestScenarios {
                     "Focus Staffbow should consume exactly one catalyst arrow after the LONG cast completes");
         });
     }
+
+    static void focusStaffbowUpdatesArtisanSmashSplashRadiusOnChargedRelease(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_artisan_radius_test");
+        var spell = (ArtisanSmash) jp.aquafactory.apprenticecodex.registry.SpellRegistry.ARTISAN_SMASH.get();
+        var spellLevel = 1;
+        var magicData = MagicData.getPlayerMagicData(player);
+        var baseSpellPower = spell.getSpellPower(spellLevel, player);
+        var baseSplashRadius = Math.min(2.0F + baseSpellPower / 600.0F, 8.0F);
+
+        helper.succeedIf(() -> {
+            var launcher = spell.onCastNoWeapon(helper.getLevel(), spellLevel, player, magicData);
+            var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER);
+            helper.assertTrue(spellPowerAttribute != null,
+                    "Focus Staffbow Artisan Smash test could not resolve spell power attribute");
+            var modifier = new AttributeModifier(
+                    FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID,
+                    2.0D,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
+            );
+            var expectedSplashRadius = -1.0F;
+            try {
+                if (spellPowerAttribute != null) {
+                    spellPowerAttribute.removeModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
+                    spellPowerAttribute.addTransientModifier(modifier);
+                }
+                expectedSplashRadius = Math.min(2.0F + spell.getSpellPower(spellLevel, player) / 600.0F, 8.0F);
+                spell.onCastCompleteWithWeapon(helper.getLevel(), spellLevel, player, magicData, false, launcher);
+            } finally {
+                if (spellPowerAttribute != null) {
+                    spellPowerAttribute.removeModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
+                }
+            }
+
+            var shells = helper.getLevel().getEntitiesOfClass(
+                    ArtisanSmashShellEntity.class,
+                    new AABB(player.position(), player.position()).inflate(32.0D)
+            );
+            helper.assertTrue(shells.size() == 1,
+                    "Focus Staffbow Artisan Smash test should spawn exactly one shell but got " + shells.size());
+            var actualSplashRadius = shells.get(0).getSplashRadius();
+            helper.assertTrue(actualSplashRadius > baseSplashRadius + 0.01F,
+                    "Artisan Smash splash radius should not stay at the pre-charge value: " + actualSplashRadius);
+            helper.assertTrue(Math.abs(actualSplashRadius - expectedSplashRadius) < 0.01F,
+                    "Artisan Smash splash radius should use charged spell power. expected="
+                            + expectedSplashRadius + ", actual=" + actualSplashRadius);
+        });
+    }
+
     static void focusStaffbowCancelsPendingSummonWeaponBeforeRequiredCharge(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_pending_cancel_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());

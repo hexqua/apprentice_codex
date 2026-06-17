@@ -6,6 +6,8 @@ import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.SpellAutonomyCar
 import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.SpellInvokeCardEntity;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
+import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashLauncherEntity;
+import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashShellEntity;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretEntity;
@@ -16,6 +18,7 @@ import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsCoreEntity;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsWingEntity;
+import jp.aquafactory.apprenticecodex.spell.dualacrobat.DualAcrobatSmgEntity;
 import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingEntity;
@@ -29,6 +32,7 @@ import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarStarEntity;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerEntity;
+import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssaultRifleEntity;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileEntity;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
@@ -145,8 +149,14 @@ public final class EntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<SilentAssassinRifleEntity>> SILENT_ASSASSIN_RIFLE =
             regWeapon("silent_assassin_rifle", SilentAssassinRifleEntity::new, 1);
 
+    public static final DeferredHolder<EntityType<?>, EntityType<LethalAssaultRifleEntity>> LETHAL_ASSAULT_RIFLE =
+            regWeapon("lethal_assault_rifle", LethalAssaultRifleEntity::new, 1);
+
     public static final DeferredHolder<EntityType<?>, EntityType<BulletStreamMinigunEntity>> BULLET_STREAM_MINIGUN =
             regWeapon("bullet_stream_minigun", BulletStreamMinigunEntity::new, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<DualAcrobatSmgEntity>> DUAL_ACROBAT_SMG =
+            regWeapon("dual_acrobat_smg", DualAcrobatSmgEntity::new, 1);
 
     public static final DeferredHolder<EntityType<?>, EntityType<TiroVolleyMusketEntity>> TIRO_VOLLEY_MUSKET =
             regWeapon("tiro_volley_musket", TiroVolleyMusketEntity::new, 1);
@@ -183,6 +193,12 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<FlySwatterProjectileEntity>> FLY_SWATTER_PROJECTILE =
             regProjectile("fly_swatter_projectile", FlySwatterProjectileEntity::new, 128, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<ArtisanSmashLauncherEntity>> ARTISAN_SMASH_LAUNCHER =
+            regWeapon("artisan_smash_launcher", ArtisanSmashLauncherEntity::new, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<ArtisanSmashShellEntity>> ARTISAN_SMASH_SHELL =
+            regProjectile("artisan_smash_shell", ArtisanSmashShellEntity::new, 128, 1);
 
     public static final DeferredHolder<EntityType<?>, EntityType<AssistWingsWingEntity>> ASSIST_WINGS_WING =
             regWeapon("assist_wings_wing", AssistWingsWingEntity::new, 1);

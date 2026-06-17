@@ -43,8 +43,8 @@ public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunE
         super(QuickArmsHandgunEntity.class);
         baseSpellPower = 100;
         spellPowerPerLevel = 20;
-        baseManaCost = 70;
-        manaCostPerLevel = 15;
+        baseManaCost = 75;
+        manaCostPerLevel = 20;
         castTime = 0;
     }
 
@@ -52,18 +52,19 @@ public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunE
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.irons_spellbooks.recast_count", getActivateCount(spellLevel, caster))
+                Component.translatable("ui.irons_spellbooks.recast_count", getActivateCount(spellLevel, caster)),
+                Component.translatable("ui.irons_spellbooks.distance", getRange())
         );
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        var rawDamage = 4 * getSpellPower(spellLevel, entity) / 100.0f;
+        var rawDamage = 4f * getSpellPower(spellLevel, entity) / 100.0f;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.QUICK_ARMS);
     }
 
     @Override
     public int getActivateCount(int spellLevel, LivingEntity entity) {
-        return 2 + Math.round(2 * getSpellPower(spellLevel, entity) / 100.0f);
+        return Math.min(16, 2 + Math.round(4 * getSpellPower(spellLevel, entity) / 100.0f));
     }
 
     @Override
@@ -92,8 +93,8 @@ public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunE
     }
 
     private int getRange() {
-        // ハンドガンイメージなので近距離(2チャンク程度)
-        return 16 * 2;
+        // ハンドガンイメージなので近距離(1.5チャンク程度)
+        return 24;
     }
 
     private int getFirstDelay(){

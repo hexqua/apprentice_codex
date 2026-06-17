@@ -18,11 +18,13 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCANE_BEAM;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCANE_BLAST;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCHER_MULTIPLE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCHER_MULTIPLE_LAST;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARTISAN_SMASH;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.AUTO_TURRET;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.BREACHING_ENEMY;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.BULLET_STREAM;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.COMMENCE_FIRE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.COMPOUND_PHIAL;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.DUAL_ACROBAT;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FEATHER_RUSH;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FLY_SWATTER;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FROST_RUNE;
@@ -35,6 +37,7 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HIGANBANA;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ILLUMINATE_STELLAR;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.INSCRIBE_ICE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.INSCRIBE_ICE_BURST;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.LETHAL_ASSAULT;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MAGIC_SPEAR;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANTIS_LEAP;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANA_FORCE_BLADE;
@@ -129,7 +132,10 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 MYSTIC_SHIELD,
                 INSCRIBE_ICE,
                 INSCRIBE_ICE_BURST,
-                HEAVENLY_FIST
+                HEAVENLY_FIST,
+                LETHAL_ASSAULT,
+                DUAL_ACROBAT,
+                ARTISAN_SMASH
         );
 
         // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
@@ -165,7 +171,9 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 HAUNTED_BONUS,
                 TIRO_VOLLEY,
                 MAGIC_SPEAR,
-                INSCRIBE_ICE_BURST
+                INSCRIBE_ICE_BURST,
+                LETHAL_ASSAULT,
+                DUAL_ACROBAT
         );
 
         // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
@@ -207,13 +215,17 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 MYSTIC_SHIELD,
                 INSCRIBE_ICE,
                 INSCRIBE_ICE_BURST,
-                HEAVENLY_FIST
+                HEAVENLY_FIST,
+                LETHAL_ASSAULT,
+                DUAL_ACROBAT,
+                ARTISAN_SMASH
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.
         tag(EXPLOSIONS).add(
                 FLY_SWATTER,
-                MAGIC_SPEAR
+                MAGIC_SPEAR,
+                ARTISAN_SMASH
         );
 
         // SUMMON_DAMAGE: 召喚のネックレス系のダメージブーストが乗る.

@@ -64,6 +64,8 @@ import jp.aquafactory.apprenticecodex.renderer.item.UniteLunaStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.tooltip.SpellcasterAmmoPouchClientTooltipComponent;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamRenderer;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowRenderer;
+import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashLauncherRenderer;
+import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashShellRenderer;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingRenderer;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarRenderer;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretRenderer;
@@ -76,6 +78,7 @@ import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownRenderer
 import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.SpellThrowableCardRenderer;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsCoreRenderer;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsWingRenderer;
+import jp.aquafactory.apprenticecodex.spell.dualacrobat.DualAcrobatSmgRenderer;
 import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingRenderer;
@@ -89,6 +92,7 @@ import jp.aquafactory.apprenticecodex.spell.heavenlyfist.HeavenlyFistFistRendere
 import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaRenderer;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarStarRenderer;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerRenderer;
+import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssaultRifleRenderer;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileRenderer;
@@ -630,7 +634,9 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.QUICK_ARMS_HANDGUN.get(), QuickArmsHandgunRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BREACHING_ENEMY_SHOTGUN.get(), BreachingEnemyShotgunRenderer::new);
         event.registerEntityRenderer(EntityRegistry.SILENT_ASSASSIN_RIFLE.get(), SilentAssassinRifleRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.LETHAL_ASSAULT_RIFLE.get(), LethalAssaultRifleRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BULLET_STREAM_MINIGUN.get(), BulletStreamMinigunRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.DUAL_ACROBAT_SMG.get(), DualAcrobatSmgRenderer::new);
         event.registerEntityRenderer(EntityRegistry.TIRO_VOLLEY_MUSKET.get(), TiroVolleyMusketRenderer::new);
         event.registerEntityRenderer(EntityRegistry.THERMAL_PROCESS_THROWER.get(), ThermalProcessThrowerRenderer::new);
         event.registerEntityRenderer(EntityRegistry.CHARGED_TWIN_BLADE_STAFF_THROWN.get(), ChargedTwinBladeStaffThrownRenderer::new);
@@ -643,6 +649,8 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.MANA_SLASH_PROJECTILE.get(), ManaSlashProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FLY_SWATTER_LAUNCHER.get(), FlySwatterLauncherRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FLY_SWATTER_PROJECTILE.get(), FlySwatterProjectileRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.ARTISAN_SMASH_LAUNCHER.get(), ArtisanSmashLauncherRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.ARTISAN_SMASH_SHELL.get(), ArtisanSmashShellRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ASSIST_WINGS_WING.get(), AssistWingsWingRenderer::new);
         event.registerEntityRenderer(EntityRegistry.DEMICREATOR_WINGS_CORE.get(), DemicreatorWingsCoreRenderer::new);
         event.registerEntityRenderer(EntityRegistry.DEMICREATOR_WINGS_WING.get(), DemicreatorWingsWingRenderer::new);

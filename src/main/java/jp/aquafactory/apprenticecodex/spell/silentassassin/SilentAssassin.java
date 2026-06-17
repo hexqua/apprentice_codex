@@ -20,7 +20,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -55,7 +54,8 @@ public class SilentAssassin extends AbstractSummonWeaponSpell<SilentAssassinRifl
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellPower), 2)),
                 Component.translatable("ui.apprenticecodex.headshot_damage_multiplier", getHeadshotPercent(spellPower)),
-                Component.translatable("ui.apprenticecodex.sneak_damage_multiplier", getSneakPercent(spellPower))
+                Component.translatable("ui.apprenticecodex.sneak_damage_multiplier", getSneakPercent(spellPower)),
+                Component.translatable("ui.irons_spellbooks.distance", getRange())
         );
     }
 

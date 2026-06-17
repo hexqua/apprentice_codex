@@ -72,6 +72,8 @@ public final class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> AMETHYST_FIST = reg("amethyst_fist");
     public static final DeferredHolder<SoundEvent, SoundEvent> MANA_JET = reg("mana_jet");
     public static final DeferredHolder<SoundEvent, SoundEvent> MIRAGE = reg("mirage");
+    public static final DeferredHolder<SoundEvent, SoundEvent> FULLAUTO_RIFLE = reg("fullauto_rifle");
+    public static final DeferredHolder<SoundEvent, SoundEvent> SMG = reg("smg");
     public static final DeferredHolder<SoundEvent, SoundEvent> SMASHCAST_SCEPTER_SMASH_AIR = reg("smashcast_scepter_smash_air");
     public static final DeferredHolder<SoundEvent, SoundEvent> SMASHCAST_SCEPTER_SMASH_GROUND = reg("smashcast_scepter_smash_ground");
     public static final DeferredHolder<SoundEvent, SoundEvent> SMASHCAST_SCEPTER_SMASH_GROUND_HEAVY = reg("smashcast_scepter_smash_ground_heavy");
@@ -103,6 +105,7 @@ public final class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_JAR_OPEN = reg("vanilla_jar_open");
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_CHEST_JUMP = reg("vanilla_chest_jump");
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_CARD_THROW = reg("vanilla_card_throw");
+    public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_FEED_AMMO = reg("vanilla_feed_ammo");
 
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);

@@ -21,7 +21,6 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -50,7 +49,8 @@ public class BreachingEnemy extends AbstractSummonWeaponSpell<BreachingEnemyShot
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.irons_spellbooks.projectile_count", getPellets(spellLevel, caster))
+                Component.translatable("ui.irons_spellbooks.projectile_count", getPellets(spellLevel, caster)),
+                Component.translatable("ui.irons_spellbooks.distance", getRange())
         );
     }
 
@@ -65,7 +65,7 @@ public class BreachingEnemy extends AbstractSummonWeaponSpell<BreachingEnemyShot
 
     private int getRange(){
         // ショットガンイメージなので近距離(1チャンク未満)
-        return 10;
+        return 8;
     }
 
     @Override
@@ -81,12 +81,6 @@ public class BreachingEnemy extends AbstractSummonWeaponSpell<BreachingEnemyShot
     @Override
     public CastType getCastType() {
         return CastType.LONG;
-    }
-
-    @Override
-    public int getEffectiveCastTime(int spellLevel, @Nullable LivingEntity entity) {
-        // 詠唱時間短縮をガン積みしてもかならず10tickは残す.
-        return Math.max(super.getEffectiveCastTime(spellLevel, entity), 10);
     }
 
     @Override

@@ -40,7 +40,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
             .setMinRarity(SpellRarity.UNCOMMON)
             .setSchoolResource(SchoolRegistry.LIGHTNING_RESOURCE)
             .setMaxLevel(5)
-            .setCooldownSeconds(20)
+            .setCooldownSeconds(16)
             .build();
 
     public CommenceFire() {
@@ -57,22 +57,19 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
                 Component.translatable("ui.irons_spellbooks.recast_count", getActivateCount(spellLevel, caster)),
-                Component.translatable("ui.apprenticecodex.headshot_damage_multiplier", getHeadshotPercent(spellLevel, caster))
+                Component.translatable("ui.apprenticecodex.headshot_damage_multiplier", getHeadshotPercent(spellLevel, caster)),
+                Component.translatable("ui.irons_spellbooks.distance", getRange())
         );
     }
 
-    private float getOverSpellPower(int spellLevel, LivingEntity entity){
-        return getSpellPower(spellLevel, entity) - baseSpellPower;
-    }
-
     private float getDamage(int spellLevel, LivingEntity entity) {
-        var rawDamage = 3 * (getSpellPower(spellLevel, entity) / 100.0f);
+        var rawDamage = 3.5f * (getSpellPower(spellLevel, entity) / 100.0f);
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.COMMENCE_FIRE);
     }
 
     @Override
     public int getActivateCount(int spellLevel, LivingEntity entity) {
-        return Math.min(10, 4 + Math.round(2 * (getOverSpellPower(spellLevel, entity) / 100.0f)));
+        return Math.min(10, 3 + Math.round(2 * (getSpellPower(spellLevel, entity) / 100.0f)));
     }
 
     @Override
@@ -103,7 +100,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     }
 
     private int getHeadshotPercent(int spellLevel, LivingEntity entity) {
-        return Math.min(400, 150 + Math.round(30 * (getOverSpellPower(spellLevel, entity) / 100.0f)));
+        return Math.min(500, 200 + Math.round(30 * (getSpellPower(spellLevel, entity) / 100.0f)));
     }
 
     @Override
