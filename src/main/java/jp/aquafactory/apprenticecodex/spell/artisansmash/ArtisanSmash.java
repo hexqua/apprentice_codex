@@ -119,6 +119,7 @@ public class ArtisanSmash extends AbstractSummonWeaponSpell<ArtisanSmashLauncher
     public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull ArtisanSmashLauncherEntity weapon) {
         if (!cancelled) {
             weapon.setDamage(getDamage(spellLevel, entity));
+            weapon.setSplashRadius(getSplashRadius(spellLevel, entity));
             weapon.fire(level);
             return CompleteCastTypes.KEEP_WEAPON;
         }
