@@ -71,12 +71,19 @@ public final class DualAcrobatCounterSpellEvent {
             return;
         }
 
+        DualAcrobatSmgEntity castingWeapon = null;
         if (magicData.getAdditionalCastData() instanceof AbstractSummonWeaponSpell.SummonWeaponSpellCastData castData
                 && castData.getEntity(serverLevel) instanceof DualAcrobatSmgEntity weapon) {
-            weapon.startCounterspellInterruptedShooting();
+            if (shouldCounterspellInterruptWeapon(target, weapon)) {
+                weapon.startCounterspellInterruptedShooting();
+                castingWeapon = weapon;
+            }
         }
 
         for (var weapon : nearbyWeapons) {
+            if (weapon == castingWeapon) {
+                continue;
+            }
             weapon.startCounterspellInterruptedShooting();
         }
     }
@@ -89,7 +96,15 @@ public final class DualAcrobatCounterSpellEvent {
         return serverLevel.getEntitiesOfClass(
                 DualAcrobatSmgEntity.class,
                 new AABB(target.position(), target.position()).inflate(FALLBACK_WEAPON_SEARCH_RADIUS),
-                weapon -> !weapon.isRemoved()
+                weapon -> shouldCounterspellInterruptWeapon(target, weapon)
         );
+    }
+
+    private static boolean shouldCounterspellInterruptWeapon(LivingEntity target, DualAcrobatSmgEntity weapon) {
+        var owner = weapon.getOwner();
+        return !weapon.isRemoved()
+                && weapon.isCharging()
+                && owner != null
+                && owner.getUUID().equals(target.getUUID());
     }
 }

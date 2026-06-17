@@ -6379,7 +6379,10 @@ public class ApprenticeCodexGameTestScenarios {
         var weapons = level.getEntitiesOfClass(
                 DualAcrobatSmgEntity.class,
                 new AABB(player.position(), player.position()).inflate(16.0D),
-                weapon -> !weapon.isRemoved()
+                weapon -> {
+                    var owner = weapon.getOwner();
+                    return !weapon.isRemoved() && owner != null && owner.getUUID().equals(player.getUUID());
+                }
         );
         return weapons.isEmpty() ? null : weapons.get(0);
     }
@@ -6595,6 +6598,31 @@ public class ApprenticeCodexGameTestScenarios {
                 helper.assertTrue(weapon.isRemoved(),
                         "Counterspelled Dual Acrobat SMG pair should discard after zero-shot shooting cleanup");
             });
+        });
+    }
+
+    static void dualAcrobatCounterspellDoesNotInterruptNearbyOtherOwnerWeapon(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var level = helper.getLevel();
+            var weaponOwner = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "dual_acrobat_other_owner_test");
+            var counterTarget = createTrackedEquipmentTestPlayer(helper, new BlockPos(1, 2, 0), "dual_acrobat_unrelated_target_test");
+            var counterCaster = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 4), "dual_acrobat_unrelated_counter_caster_test");
+            var spell = beginDualAcrobatCast(level, weaponOwner, 1);
+            var magicData = MagicData.getPlayerMagicData(weaponOwner);
+            var weapon = findDualAcrobatSmg(level, weaponOwner);
+            helper.assertTrue(weapon != null, "Dual Acrobat should have an SMG pair before unrelated Counterspell");
+            chargeDualAcrobatUntilShotLoaded(helper, level, spell, weaponOwner, magicData, 1, weapon);
+            var loadedAmmo = weapon.getLoadedAmmoCount();
+
+            var counterspell = new CounterSpellEvent(counterCaster, counterTarget);
+            DualAcrobatCounterSpellEvent.onCounterSpell(counterspell);
+
+            helper.assertTrue(weapon.isCharging(),
+                    "Unrelated Counterspell should not force a nearby other owner's Dual Acrobat out of charge mode");
+            helper.assertTrue(Math.abs(weapon.getLoadedAmmoCount() - loadedAmmo) < 1.0e-6f,
+                    "Unrelated Counterspell should not clear nearby other owner's loaded ammo");
+            weapon.discard();
+            helper.succeed();
         });
     }
 

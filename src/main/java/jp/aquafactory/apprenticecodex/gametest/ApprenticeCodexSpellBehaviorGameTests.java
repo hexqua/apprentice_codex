@@ -493,6 +493,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.dualAcrobatCounterspellInterruptDiscardsWithoutShooting(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void dualAcrobatCounterspellDoesNotInterruptNearbyOtherOwnerWeapon(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.dualAcrobatCounterspellDoesNotInterruptNearbyOtherOwnerWeapon(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = INSCRIBE_ICE_ISOLATED_BATCH)
     public static void inscribeIceCastUsesShortThrowJob(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.inscribeIceCastUsesShortThrowJob(helper);
