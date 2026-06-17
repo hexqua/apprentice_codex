@@ -17,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 public class ArtisanSmashShellRenderer extends EntityRenderer<ArtisanSmashShellEntity> {
     private static final ResourceLocation SHELL_TEXTURE =
@@ -146,12 +147,12 @@ public class ArtisanSmashShellRenderer extends EntityRenderer<ArtisanSmashShellE
                                   float x, float y, float z, float u, float v,
                                   float normalX, float normalY, float normalZ,
                                   float red, float green, float blue, float alpha) {
-        buffer.vertex(poseMatrix, x, y, z)
-                .color(red, green, blue, alpha)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(LightTexture.FULL_BRIGHT)
-                .normal(normalMatrix, normalX, normalY, normalZ)
-                .endVertex();
+        var transformedNormal = normalMatrix.transform(new Vector3f(normalX, normalY, normalZ));
+        buffer.addVertex(poseMatrix, x, y, z)
+                .setColor(red, green, blue, alpha)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(LightTexture.FULL_BRIGHT)
+                .setNormal(transformedNormal.x(), transformedNormal.y(), transformedNormal.z());
     }
 }

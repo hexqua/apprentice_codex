@@ -467,14 +467,13 @@ final class FocusStaffbowGameTestScenarios {
 
         helper.succeedIf(() -> {
             var launcher = spell.onCastNoWeapon(helper.getLevel(), spellLevel, player, magicData);
-            var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER.get());
+            var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER);
             helper.assertTrue(spellPowerAttribute != null,
                     "Focus Staffbow Artisan Smash test could not resolve spell power attribute");
             var modifier = new AttributeModifier(
                     FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID,
-                    "apprenticecodex.focus_staffbow.artisan_smash_radius_test",
                     2.0D,
-                    AttributeModifier.Operation.MULTIPLY_TOTAL
+                    AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
             );
             var expectedSplashRadius = -1.0F;
             try {

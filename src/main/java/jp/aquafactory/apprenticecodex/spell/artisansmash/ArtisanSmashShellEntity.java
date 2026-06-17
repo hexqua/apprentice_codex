@@ -76,10 +76,10 @@ public class ArtisanSmashShellEntity extends ThrowableProjectile implements Anti
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(DATA_PHASE, PHASE_FLYING);
-        entityData.define(DATA_SPIN_DIRECTION, 1);
-        entityData.define(DATA_SPLASH_RADIUS, 1.0f);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_PHASE, PHASE_FLYING);
+        builder.define(DATA_SPIN_DIRECTION, 1);
+        builder.define(DATA_SPLASH_RADIUS, 1.0f);
     }
 
     @Override
@@ -155,13 +155,13 @@ public class ArtisanSmashShellEntity extends ThrowableProjectile implements Anti
     }
 
     @Override
-    protected float getGravity() {
-        return isBursting() ? 0.0f : super.getGravity();
+    protected double getDefaultGravity() {
+        return isBursting() ? 0.0d : super.getDefaultGravity();
     }
 
-    public float getFlightGravityForPrediction(Vec3 position) {
+    public double getFlightGravityForPrediction(Vec3 position) {
         setPos(position);
-        return getGravity();
+        return getDefaultGravity();
     }
 
     public static ArtisanSmashShellEntity createPredictionProbe(Level level) {
@@ -262,7 +262,7 @@ public class ArtisanSmashShellEntity extends ThrowableProjectile implements Anti
         applyBlastDamage(center);
         if (level() instanceof ServerLevel server) {
             server.sendParticles(ParticleTypes.EXPLOSION, center.x, center.y, center.z, 1, 0.0, 0.0, 0.0, 0.0);
-            server.playSound(null, BlockPos.containing(center), SoundEvents.GENERIC_EXPLODE,
+            server.playSound(null, BlockPos.containing(center), SoundEvents.GENERIC_EXPLODE.value(),
                     SoundSource.PLAYERS, 0.95f, 1.0f + level().random.nextFloat() * 0.12f);
         }
     }

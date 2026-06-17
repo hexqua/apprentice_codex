@@ -7,6 +7,7 @@ import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
@@ -54,6 +55,6 @@ public final class CombatOwnerResolver {
     }
 
     private static boolean isDirectPlayerOwner(@Nullable Entity owner) {
-        return owner instanceof Player && !(owner instanceof net.minecraftforge.common.util.FakePlayer);
+        return owner instanceof Player && !(owner instanceof FakePlayer);
     }
 }

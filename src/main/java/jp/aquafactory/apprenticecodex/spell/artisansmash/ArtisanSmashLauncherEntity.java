@@ -47,10 +47,10 @@ public class ArtisanSmashLauncherEntity extends SummonWeaponEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(RECOIL_TICK, 0);
-        entityData.define(IS_RELEASED, false);
-        entityData.define(PROJECTILE_SPEED, 0.0f);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(RECOIL_TICK, 0);
+        builder.define(IS_RELEASED, false);
+        builder.define(PROJECTILE_SPEED, 0.0f);
     }
 
     @Override

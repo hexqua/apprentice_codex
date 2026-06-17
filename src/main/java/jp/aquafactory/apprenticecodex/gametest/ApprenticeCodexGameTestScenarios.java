@@ -18,6 +18,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
 import io.redspace.ironsspellbooks.effect.MagicMobEffect;
 import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectile;
@@ -6816,6 +6817,7 @@ public class ApprenticeCodexGameTestScenarios {
     static DualAcrobat beginDualAcrobatCast(ServerLevel level, FakePlayer player, int spellLevel) {
         var spell = (DualAcrobat) SpellRegistry.DUAL_ACROBAT.get();
         var magicData = MagicData.getPlayerMagicData(player);
+        magicData.setSyncedData(new SyncedSpellData(player));
         magicData.setMana(1000.0f);
         magicData.getPlayerCooldowns().removeCooldown(spell.getSpellId());
         magicData.initiateCast(

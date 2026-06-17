@@ -55,10 +55,10 @@ public class LethalAssaultRifleEntity extends SummonWeaponEntity implements Anti
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(RECOIL_TICK, 0);
-        entityData.define(FIRE_YAW, 0.0f);
-        entityData.define(FIRE_PITCH, 0.0f);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(RECOIL_TICK, 0);
+        builder.define(FIRE_YAW, 0.0f);
+        builder.define(FIRE_PITCH, 0.0f);
     }
 
     @Override

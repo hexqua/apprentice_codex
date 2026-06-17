@@ -72,13 +72,13 @@ public class DualAcrobatSmgEntity extends SummonWeaponEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(IS_CHARGING, true);
-        entityData.define(FORMATION_YAW, 0.0f);
-        entityData.define(RIGHT_RECOIL_TICKS, 0);
-        entityData.define(LEFT_RECOIL_TICKS, 0);
-        entityData.define(SHOOTING_START_DELAY_REMAINING, 0);
-        entityData.define(SHOOTING_START_SPIN_DEGREES, 0.0f);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(IS_CHARGING, true);
+        builder.define(FORMATION_YAW, 0.0f);
+        builder.define(RIGHT_RECOIL_TICKS, 0);
+        builder.define(LEFT_RECOIL_TICKS, 0);
+        builder.define(SHOOTING_START_DELAY_REMAINING, 0);
+        builder.define(SHOOTING_START_SPIN_DEGREES, 0.0f);
     }
 
     @Override
