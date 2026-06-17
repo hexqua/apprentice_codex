@@ -55,7 +55,7 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag pCompound) {
+    protected void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         damage = pCompound.getFloat("Damage");
         range = pCompound.getFloat("Range");
@@ -189,7 +189,7 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
             }
 
             var finalDamage = damage * entry.getValue();
-            var source = CombatTools.getDamageSource(level(), this, getOwner(), DamageTypes.BREACHING_ENEMY);
+            var source = createCombatDamageSource(DamageTypes.BREACHING_ENEMY);
             CombatTools.applyDamage(entity, finalDamage, source, SpellRegistry.BREACHING_ENEMY.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
 
             if (entity instanceof LivingEntity livingEntity){

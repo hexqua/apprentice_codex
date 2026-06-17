@@ -320,7 +320,7 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
                 center.x - halfExtent, center.y - HEIGHT_OFFSET, center.z - halfExtent,
                 center.x + halfExtent, center.y, center.z + halfExtent
         );
-        var source = CombatTools.getDamageSource(level, this, getOwner(), DamageTypes.GRACED_RAIN);
+        var source = createCombatDamageSource(DamageTypes.GRACED_RAIN);
         var school = SpellRegistry.GRACED_RAIN.get().getSchoolType();
         var targets = level.getEntitiesOfClass(LivingEntity.class, box, LivingEntity::isAlive);
 

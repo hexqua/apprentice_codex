@@ -54,7 +54,28 @@ public final class CombatOwnerResolver {
         return CombatTools.getDamageSource(level, directEntity, damageType);
     }
 
+    public static DamageSource createDamageSourcePreservingCurrentOwner(
+            Level level,
+            Entity directEntity,
+            @Nullable Entity currentOwner,
+            @Nullable UUID combatOwnerUuid,
+            ResourceKey<DamageType> damageType
+    ) {
+        var combatOwner = resolveCombatOwner(level, currentOwner, combatOwnerUuid);
+        if (combatOwner != null) {
+            return CombatTools.getDamageSource(level, directEntity, combatOwner, damageType);
+        }
+        if (currentOwner != null && !isUnresolvedProxyOwner(currentOwner, combatOwnerUuid)) {
+            return CombatTools.getDamageSource(level, directEntity, currentOwner, damageType);
+        }
+        return CombatTools.getDamageSource(level, directEntity, damageType);
+    }
+
     private static boolean isDirectPlayerOwner(@Nullable Entity owner) {
         return owner instanceof Player && !(owner instanceof FakePlayer);
+    }
+
+    private static boolean isUnresolvedProxyOwner(Entity owner, @Nullable UUID combatOwnerUuid) {
+        return combatOwnerUuid != null && owner instanceof CombatOwnerUuidSource;
     }
 }

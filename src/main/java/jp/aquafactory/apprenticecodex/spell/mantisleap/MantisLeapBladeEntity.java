@@ -124,7 +124,7 @@ public class MantisLeapBladeEntity extends SummonWeaponEntity implements GeoEnti
 
         if (getOwner() instanceof LivingEntity owner) {
             var point = getLookAngle().normalize().scale(1.5);
-            var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.MANTIS_LEAP);
+            var source = createCombatDamageSource(DamageTypes.MANTIS_LEAP);
             var hitResult = RaycastTools.hitsSphere(
                     level,
                     position().add(point),
@@ -166,7 +166,7 @@ public class MantisLeapBladeEntity extends SummonWeaponEntity implements GeoEnti
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag pCompound) {
+    protected void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         damage = pCompound.getFloat("Damage");
     }

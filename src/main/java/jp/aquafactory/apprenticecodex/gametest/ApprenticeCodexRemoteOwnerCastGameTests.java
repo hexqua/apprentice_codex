@@ -25,6 +25,7 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashShellEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerEntity;
 import jp.aquafactory.apprenticecodex.utility.CombatOwnerResolver;
@@ -34,6 +35,8 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -253,6 +256,49 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void remoteOwnerSummonWeaponDamageSourceUsesBoundOwner(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "remote_owner_summon_source_test"));
+        level.addFreshEntity(owner);
+
+        var anchor = new RemoteOwnerCastAnchorEntity(EntityRegistry.REMOTE_OWNER_CAST_ANCHOR.get(), level);
+        anchor.bindOwnerName(owner);
+        var anchorPos = helper.absoluteVec(new Vec3(2.5D, 2.0D, 2.5D));
+        anchor.moveTo(anchorPos.x, anchorPos.y, anchorPos.z, 0.0F, 0.0F);
+        level.addFreshEntity(anchor);
+
+        var weapon = new TestHiganbanaKatanaEntity(level, anchor);
+        weapon.setPos(anchorPos.x, anchorPos.y, anchorPos.z);
+        level.addFreshEntity(weapon);
+
+        var directOwnerWeapon = new TestHiganbanaKatanaEntity(level, owner);
+        level.addFreshEntity(directOwnerWeapon);
+
+        try {
+            helper.assertTrue(owner.getUUID().equals(weapon.getCombatOwnerUuid()),
+                    "Remote Owner summon weapon should capture the bound owner UUID.");
+            var source = weapon.createTestDamageSource();
+            helper.assertTrue(source.getEntity() == owner,
+                    "Remote Owner summon weapon DamageSource should use the bound owner.");
+            helper.assertTrue(source.getDirectEntity() == weapon,
+                    "Remote Owner summon weapon DamageSource should keep the weapon as direct entity.");
+
+            var directOwnerSource = directOwnerWeapon.createTestDamageSource();
+            helper.assertTrue(directOwnerSource.getEntity() == owner,
+                    "Summon weapon DamageSource should preserve a current FakePlayer owner when it is not a proxy.");
+            helper.assertTrue(directOwnerSource.getDirectEntity() == directOwnerWeapon,
+                    "Summon weapon DamageSource should keep the normal weapon as direct entity.");
+        } finally {
+            weapon.discard();
+            directOwnerWeapon.discard();
+            anchor.discard();
+            owner.discard();
+        }
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void remoteOwnerCastDatagenIncludesRaiseDeadImpactProfile(GameTestHelper helper) {
         var raiseDeadId = requireId(SpellRegistry.RAISE_DEAD_SPELL.get().getSpellResource());
         var profile = RemoteOwnerCastSpellProfileDataGenerator.createProfileDefinitions().stream()
@@ -423,5 +469,15 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
             throw new IllegalStateException("Missing spell id");
         }
         return id;
+    }
+
+    private static final class TestHiganbanaKatanaEntity extends HiganbanaKatanaEntity {
+        private TestHiganbanaKatanaEntity(net.minecraft.world.level.Level level, LivingEntity owner) {
+            super(EntityRegistry.HIGANBANA_KATANA.get(), level, owner);
+        }
+
+        private DamageSource createTestDamageSource() {
+            return createCombatDamageSource(DamageTypes.HIGANBANA);
+        }
     }
 }
