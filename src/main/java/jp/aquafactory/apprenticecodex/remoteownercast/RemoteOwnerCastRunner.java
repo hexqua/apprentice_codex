@@ -378,12 +378,14 @@ public final class RemoteOwnerCastRunner {
 
         session.markFinished(session.hasReachedOnCast() ? 1 : 0);
         var spellData = session.spellData();
+        var retainAnchor = false;
         try {
             syncOwnerManaForCast(session.manaAccess(), session.magicData());
             syncAnchorCasterFromOwner(owner, session);
             var spellCaster = resolveContinuousSpellCaster(owner, session);
             runWithContinuousContext(owner, session,
                     () -> spellData.getSpell().onServerCastComplete(level, spellData.getLevel(), spellCaster, session.magicData(), cancelled));
+            retainAnchor = retainAnchorForSummonWeapon(level, session.magicData().getAdditionalCastData(), session.anchor());
         } catch (RuntimeException exception) {
             ApprenticeCodex.LOGGER.warn(
                     "Remote Owner Continuous Cast exception during complete: spell={}, origin={}",
@@ -392,7 +394,7 @@ public final class RemoteOwnerCastRunner {
                     exception
             );
         } finally {
-            cleanupContinuousSession(session.anchor(), session.magicData());
+            cleanupContinuousSession(session.anchor(), session.magicData(), retainAnchor);
         }
     }
 
@@ -501,10 +503,18 @@ public final class RemoteOwnerCastRunner {
             @Nullable RemoteOwnerCastAnchorEntity anchor,
             @Nullable MagicData magicData
     ) {
+        cleanupContinuousSession(anchor, magicData, false);
+    }
+
+    private static void cleanupContinuousSession(
+            @Nullable RemoteOwnerCastAnchorEntity anchor,
+            @Nullable MagicData magicData,
+            boolean retainAnchor
+    ) {
         if (magicData != null) {
             magicData.resetCastingState();
         }
-        if (anchor != null && !anchor.isRemoved()) {
+        if (!retainAnchor && anchor != null && !anchor.isRemoved()) {
             anchor.discard();
         }
     }

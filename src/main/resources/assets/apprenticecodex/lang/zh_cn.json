@@ -486,6 +486,10 @@
   "entity.apprenticecodex.spell_invoke_card": "术式触发符卡",
   "entity.apprenticecodex.spell_autonomy_card": "术式自主发动符卡",
   "entity.apprenticecodex.heavenly_fist_fist": "紫水晶之拳",
+  "entity.apprenticecodex.lethal_assault_rifle": "魔法步枪",
+  "entity.apprenticecodex.dual_acrobat_smg": "魔法冲锋枪",
+  "entity.apprenticecodex.artisan_smash_launcher": "魔法发射器",
+  "entity.apprenticecodex.artisan_smash_shell": "爆裂弹",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "跑腿法师",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "跑腿法师",
@@ -631,6 +635,9 @@
   "spell.apprenticecodex.divine_possession": "神降临",
   "spell.apprenticecodex.heavenly_fist": "天堂铁拳",
   "spell.apprenticecodex.mirage_avoidance": "幻影回避",
+  "spell.apprenticecodex.lethal_assault": "致命突袭",
+  "spell.apprenticecodex.dual_acrobat": "双枪杂技",
+  "spell.apprenticecodex.artisan_smash": "匠艺轰击",
 
   "spell.apprenticecodex.sky_edge.guide": "召唤一把武器朝你的视线方向发射。该法术有蓄力时间，且不造成击退，但可以无视目标的无敌帧。",
   "spell.apprenticecodex.archer_multiple.guide": "召唤一把跟随你的魔法弓，持续射击直至弹药耗尽，优先攻击你锁定的目标或附近的敌人。",
@@ -695,6 +702,9 @@
   "spell.apprenticecodex.divine_possession.guide": "元素少女法袍专属潜在法术。让司掌元素的存在降临于身，在一定时间内将最高的学派加成反映到其他所有学派。若要让该存在降临于身，必须穿戴全套元素少女服装。",
   "spell.apprenticecodex.heavenly_fist.guide": "在瞄准位置召唤紫水晶魔导拳，连同空间一并砸下。范围内的目标会暂时被压回地面。当齿轮法则生效时（安装Create模组），会尝试对砸下的拳附近的物品进行压制或压缩加工。",
   "spell.apprenticecodex.mirage_avoidance.guide": "发动后的短时间内，回避所有伤害并朝移动方向滑行。可通过转动身体来微调滑行方向。法术等级和法术威力不会改变移动距离。这是对曾守护远比这片天空更加辽阔之空的守护者所用技术的复刻。",
+  "spell.apprenticecodex.lethal_assault.guide": "召唤一把魔法步枪进行短点射。一轮射击后会自毁，但其设计正是专门适应这种使用方式。",
+  "spell.apprenticecodex.dual_acrobat.guide": "召唤两把魔法冲锋枪，使其在周围旋转来装填弹药。释放后会根据装填量向前方乱射。",
+  "spell.apprenticecodex.artisan_smash.guide": "召唤一把魔法榴弹发射器，射出爆裂弹，在命中地点大范围爆炸。爆风不会破坏物品或地形，但也会击中自己。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "爆头伤害倍率：%d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "潜行伤害倍率：%d%%",
@@ -702,6 +712,8 @@
   "ui.apprenticecodex.referenced_weapon_damage_multiplier": "参照攻击力倍率：%s%%",
   "ui.apprenticecodex.start_up_time": "启动时间：%s ",
   "ui.apprenticecodex.warm_up_time": "最大蓄力时间：%s ",
+  "ui.apprenticecodex.charge_up_ammo_per_second": "弹药装填速度：%s 发/秒",
+  "ui.apprenticecodex.charge_up_ammo_maximum": "最大连射数：%d 发",
   "ui.apprenticecodex.tree_cut_time": "最小伐木时间：%s ",
   "ui.apprenticecodex.arcane_charge_damage_multiplier": "每级伤害增幅：%d%%",
   "ui.apprenticecodex.lock_on_count": "最大锁定数量：%d",
@@ -900,7 +912,7 @@
   "death.attack.apprenticecodex.arcane_beam": "%1$s 被 %2$s 的奥术能量分解。",
   "death.attack.apprenticecodex.tiny_lumberjack": "%1$s 被碎尸万段。",
   "death.attack.apprenticecodex.graced_rain": "恩泽之力对 %1$s 造成了致命伤害。",
-  "death.attack.apprenticecodex.fly_swatter": "%1$s 被 %2$s 击晕致死。",
+  "death.attack.apprenticecodex.fly_swatter": "%1$s 像虫子一样被拍落了。",
   "death.attack.apprenticecodex.feather_rush": "%1$s 被 %2$s 的羽刃穿刺身亡。",
   "death.attack.apprenticecodex.world_flatter": "%2$s 把 %1$s 轰进了地底深渊。",
   "death.attack.apprenticecodex.slash_blade": "%1$s 被一刀两断。",
@@ -925,6 +937,9 @@
   "death.attack.apprenticecodex.frost_rune": "%1$s 因疏于警戒，悔恨而亡。",
   "death.attack.apprenticecodex.mystic_shield": "%1$s 被 %2$s 的秘术反击击败。",
   "death.attack.apprenticecodex.heavenly_fist": "%1$s 被 %2$s 压成了薄片。",
+  "death.attack.apprenticecodex.lethal_assault": "%1$s 没能叫来医疗兵。",
+  "death.attack.apprenticecodex.dual_acrobat": "%1$s 抽中了头奖。",
+  "death.attack.apprenticecodex.artisan_smash": "%1$s 被匠人彻底大改造了。",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "学徒法典",
   "advancements.apprenticecodex.apprentice_codex.root.description": "踏上学徒法师的修行之路。",
@@ -1078,6 +1093,8 @@
   "subtitle.apprenticecodex.sound.amethyst_fist": "宝石重击落下",
   "subtitle.apprenticecodex.sound.mana_jet": "推进器启动",
   "subtitle.apprenticecodex.sound.mirage": "魔力缠身",
+  "subtitle.apprenticecodex.sound.fullauto_rifle": "步枪开火",
+  "subtitle.apprenticecodex.sound.smg": "冲锋枪开火",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_air": "权杖猛击",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground": "权杖击打地面",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground_heavy": "权杖重击落下",
@@ -1108,5 +1125,6 @@
   "subtitle.apprenticecodex.sound.vanilla_jar_open": "瓶子打开",
   "subtitle.apprenticecodex.sound.vanilla_jar_close": "瓶子关闭",
   "subtitle.apprenticecodex.sound.vanilla_chest_jump": "宝箱跳动",
-  "subtitle.apprenticecodex.sound.vanilla_card_throw": "符卡被投掷"
+  "subtitle.apprenticecodex.sound.vanilla_card_throw": "符卡被投掷",
+  "subtitle.apprenticecodex.sound.vanilla_feed_ammo": "弹药装填"
 }

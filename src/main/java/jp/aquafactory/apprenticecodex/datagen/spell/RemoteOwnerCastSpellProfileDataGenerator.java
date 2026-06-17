@@ -138,7 +138,10 @@ public final class RemoteOwnerCastSpellProfileDataGenerator extends JsonCodecPro
                 jp.aquafactory.apprenticecodex.registry.SpellRegistry.WORLD_FLATTER,
                 jp.aquafactory.apprenticecodex.registry.SpellRegistry.GRIND_RUNNER,
                 jp.aquafactory.apprenticecodex.registry.SpellRegistry.MOON_LIGHT,
-                jp.aquafactory.apprenticecodex.registry.SpellRegistry.SILENT_ASSASSIN);
+                jp.aquafactory.apprenticecodex.registry.SpellRegistry.SILENT_ASSASSIN,
+                jp.aquafactory.apprenticecodex.registry.SpellRegistry.LETHAL_ASSAULT,
+                jp.aquafactory.apprenticecodex.registry.SpellRegistry.DUAL_ACROBAT,
+                jp.aquafactory.apprenticecodex.registry.SpellRegistry.ARTISAN_SMASH);
 
         putProfile(profiles, SpellRegistry.BLOOD_STEP_SPELL, playerSelfProfile(false));
         putProfile(profiles, SpellRegistry.HEARTSTOP_SPELL, playerSelfProfile(false));

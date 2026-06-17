@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import java.util.List;
 import java.util.UUID;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
@@ -11,6 +12,8 @@ import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmash;
+import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashShellEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -20,6 +23,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 import static jp.aquafactory.apprenticecodex.gametest.BowGameTestSupport.*;
@@ -121,6 +125,54 @@ final class FocusStaffbowGameTestScenarios {
                     "Focus Staffbow charged cast should clear simulated additional cast data after completion");
             helper.assertTrue(getFocusStaffbowArrowCount(player) == 0,
                     "Focus Staffbow should consume exactly one catalyst arrow after the LONG cast completes");
+        });
+    }
+
+    static void focusStaffbowUpdatesArtisanSmashSplashRadiusOnChargedRelease(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_artisan_radius_test");
+        var spell = (ArtisanSmash) jp.aquafactory.apprenticecodex.registry.SpellRegistry.ARTISAN_SMASH.get();
+        var spellLevel = 1;
+        var magicData = MagicData.getPlayerMagicData(player);
+        var baseSpellPower = spell.getSpellPower(spellLevel, player);
+        var baseSplashRadius = Math.min(2.0F + baseSpellPower / 600.0F, 8.0F);
+
+        helper.succeedIf(() -> {
+            var launcher = spell.onCastNoWeapon(helper.getLevel(), spellLevel, player, magicData);
+            var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER.get());
+            helper.assertTrue(spellPowerAttribute != null,
+                    "Focus Staffbow Artisan Smash test could not resolve spell power attribute");
+            var modifier = new AttributeModifier(
+                    FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID,
+                    "apprenticecodex.focus_staffbow.artisan_smash_radius_test",
+                    2.0D,
+                    AttributeModifier.Operation.MULTIPLY_TOTAL
+            );
+            var expectedSplashRadius = -1.0F;
+            try {
+                if (spellPowerAttribute != null) {
+                    spellPowerAttribute.removeModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
+                    spellPowerAttribute.addTransientModifier(modifier);
+                }
+                expectedSplashRadius = Math.min(2.0F + spell.getSpellPower(spellLevel, player) / 600.0F, 8.0F);
+                spell.onCastCompleteWithWeapon(helper.getLevel(), spellLevel, player, magicData, false, launcher);
+            } finally {
+                if (spellPowerAttribute != null) {
+                    spellPowerAttribute.removeModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
+                }
+            }
+
+            var shells = helper.getLevel().getEntitiesOfClass(
+                    ArtisanSmashShellEntity.class,
+                    new AABB(player.position(), player.position()).inflate(32.0D)
+            );
+            helper.assertTrue(shells.size() == 1,
+                    "Focus Staffbow Artisan Smash test should spawn exactly one shell but got " + shells.size());
+            var actualSplashRadius = shells.get(0).getSplashRadius();
+            helper.assertTrue(actualSplashRadius > baseSplashRadius + 0.01F,
+                    "Artisan Smash splash radius should not stay at the pre-charge value: " + actualSplashRadius);
+            helper.assertTrue(Math.abs(actualSplashRadius - expectedSplashRadius) < 0.01F,
+                    "Artisan Smash splash radius should use charged spell power. expected="
+                            + expectedSplashRadius + ", actual=" + actualSplashRadius);
         });
     }
 

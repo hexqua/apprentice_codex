@@ -524,6 +524,24 @@
     },
     {
       "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "apprenticecodex:lethal_assault"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "apprenticecodex:dual_acrobat"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
+      "spell": "apprenticecodex:artisan_smash"
+    },
+    {
+      "profile": {
         "allowed_cast_origins": [
           "charged_twin_blade_staff_impact"
         ],
