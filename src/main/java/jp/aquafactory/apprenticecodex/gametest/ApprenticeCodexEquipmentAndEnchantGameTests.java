@@ -1072,6 +1072,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightAppliesToHarvestMoonAndEarthForgeManaAndCooldown(helper);
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void craftsmansDelightScrollcasterGauntletCooldownKeepsItemPolicy(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightScrollcasterGauntletCooldownKeepsItemPolicy(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void strongestLimitedBaseCooldownSelectionIgnoresStacking(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.strongestLimitedBaseCooldownSelectionIgnoresStacking(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
     public static void craftsmansDelightExtendsTouchDigRange(GameTestHelper helper) {
         EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightExtendsTouchDigRange(helper);
