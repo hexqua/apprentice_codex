@@ -1,12 +1,14 @@
 package jp.aquafactory.apprenticecodex.item;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.util.Utils;
-import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import io.redspace.ironsspellbooks.compat.Curios;
-import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.config.ServerConfigs;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightSpellSupport;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -23,12 +25,39 @@ public final class WeaponImbueCooldownHelper {
             CastSource castSource,
             @Nullable ItemStack castingStack
     ) {
-        if (!shouldIgnoreWeaponImbueCooldownMultiplier(castingStack, spell, castSource)) {
-            return MagicManager.getEffectiveSpellCooldown(spell, player, castSource);
+        var baseCooldown = resolveLimitedBaseCooldown(spell, player);
+        var playerCooldownModifier = player.getAttributeValue(AttributeRegistry.COOLDOWN_REDUCTION);
+        var itemCooldownModifier = castSource == CastSource.SWORD
+                && !shouldIgnoreWeaponImbueCooldownMultiplier(castingStack, spell, castSource)
+                ? ServerConfigs.SWORDS_CD_MULTIPLIER.get().floatValue()
+                : 1.0f;
+        return (int) (baseCooldown * (2 - Utils.softCapFormula(playerCooldownModifier)) * itemCooldownModifier);
+    }
+
+    private static int resolveLimitedBaseCooldown(AbstractSpell spell, Player player) {
+        var baseCooldown = Math.max(0, spell.getSpellCooldown());
+        if (baseCooldown == 0) {
+            return 0;
         }
 
-        var playerCooldownModifier = player.getAttributeValue(AttributeRegistry.COOLDOWN_REDUCTION);
-        return (int) (spell.getSpellCooldown() * (2 - Utils.softCapFormula(playerCooldownModifier)));
+        var craftsmansDelightCooldown = CraftsmansDelightSpellSupport.isCooldownReductionTarget(spell)
+                ? CraftsmansDelight.applyCooldownDiscount(baseCooldown, player)
+                : baseCooldown;
+        return selectStrongestLimitedBaseCooldown(baseCooldown, craftsmansDelightCooldown);
+    }
+
+    public static int selectStrongestLimitedBaseCooldown(int baseCooldown, int... candidateCooldowns) {
+        var selectedCooldown = Math.max(0, baseCooldown);
+        if (selectedCooldown == 0) {
+            return 0;
+        }
+
+        for (var candidateCooldown : candidateCooldowns) {
+            if (candidateCooldown > 0 && candidateCooldown < selectedCooldown) {
+                selectedCooldown = candidateCooldown;
+            }
+        }
+        return selectedCooldown;
     }
 
     public static int getEffectiveSpellCooldown(
