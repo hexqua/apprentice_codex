@@ -221,7 +221,7 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
         var beamEnd = blockHit.getType() == HitResult.Type.BLOCK
                 ? blockHit.getLocation()
                 : beamStart.add(direction.scale(getEffectiveRange()));
-        var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.THERMAL_PROCESS);
+        var source = createCombatDamageSource(DamageTypes.THERMAL_PROCESS);
         var school = SpellRegistry.THERMAL_PROCESS.get().getSchoolType();
         var currentDamage = resolveCurrentDamage(owner);
         var hits = RaycastTools.sampleBeamHits(

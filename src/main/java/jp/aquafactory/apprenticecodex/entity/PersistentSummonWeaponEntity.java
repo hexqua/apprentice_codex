@@ -1,7 +1,12 @@
 package jp.aquafactory.apprenticecodex.entity;
 
+import jp.aquafactory.apprenticecodex.utility.CombatOwnerResolver;
+import jp.aquafactory.apprenticecodex.utility.CombatOwnerUuidHolder;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -13,12 +18,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public abstract class PersistentSummonWeaponEntity extends Entity implements TraceableEntity {
+public abstract class PersistentSummonWeaponEntity extends Entity implements TraceableEntity, CombatOwnerUuidHolder {
 
     private static final double FOLLOW_MAX_DISTANCE = 0.5;
 
     private UUID ownerUUID;
     private Entity cachedOwner;
+    private UUID combatOwnerUuid;
 
     public PersistentSummonWeaponEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -37,6 +43,7 @@ public abstract class PersistentSummonWeaponEntity extends Entity implements Tra
             ownerUUID = pCompound.getUUID("OwnerUUID");
             cachedOwner = null;
         }
+        loadCombatOwnerUuid(pCompound);
     }
 
     @Override
@@ -44,11 +51,12 @@ public abstract class PersistentSummonWeaponEntity extends Entity implements Tra
         if (ownerUUID != null) {
             pCompound.putUUID("OwnerUUID", ownerUUID);
         }
+        saveCombatOwnerUuid(pCompound);
     }
 
     @Override
     public void tick(){
-        @SuppressWarnings("resource") var level = level();
+        var level = level();
         super.tick();
 
         if (level.isClientSide) {
@@ -64,7 +72,7 @@ public abstract class PersistentSummonWeaponEntity extends Entity implements Tra
 
     @Override
     public final @Nullable Entity getOwner() {
-        @SuppressWarnings("resource") var level = level();
+        var level = level();
         if (cachedOwner != null && !cachedOwner.isRemoved()) {
             return cachedOwner;
         }
@@ -81,7 +89,27 @@ public abstract class PersistentSummonWeaponEntity extends Entity implements Tra
         if (pOwner != null) {
             ownerUUID = pOwner.getUUID();
             cachedOwner = pOwner;
+            combatOwnerUuid = CombatOwnerResolver.captureCombatOwnerUuid(pOwner);
         }
+    }
+
+    protected final DamageSource createCombatDamageSource(ResourceKey<DamageType> damageType) {
+        return createCombatDamageSource(this, damageType);
+    }
+
+    protected final DamageSource createCombatDamageSource(Entity directEntity, ResourceKey<DamageType> damageType) {
+        return CombatOwnerResolver.createDamageSourcePreservingCurrentOwner(
+                level(),
+                directEntity,
+                getOwner(),
+                combatOwnerUuid,
+                damageType
+        );
+    }
+
+    protected final DamageSource createOwnerDirectCombatDamageSource(ResourceKey<DamageType> damageType) {
+        var owner = getOwner();
+        return createCombatDamageSource(owner != null ? owner : this, damageType);
     }
 
     public final void followTargetPosition(Vec3 targetPos){
@@ -111,5 +139,15 @@ public abstract class PersistentSummonWeaponEntity extends Entity implements Tra
 
     public void releaseWeapon(){
         discard();
+    }
+
+    @Override
+    public @Nullable UUID getCombatOwnerUuid() {
+        return combatOwnerUuid;
+    }
+
+    @Override
+    public void setCombatOwnerUuid(@Nullable UUID combatOwnerUuid) {
+        this.combatOwnerUuid = combatOwnerUuid;
     }
 }

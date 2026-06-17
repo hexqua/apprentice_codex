@@ -82,7 +82,7 @@ public class DualAcrobatSmgEntity extends SummonWeaponEntity {
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag tag) {
+    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         damage = tag.getFloat("Damage");
         range = tag.getFloat("Range");
@@ -294,7 +294,7 @@ public class DualAcrobatSmgEntity extends SummonWeaponEntity {
 
         if (aimResult.hitEntity() != null) {
             var target = CombatTools.resolutePartEntity(aimResult.hitEntity());
-            var source = CombatTools.getDamageSource(level(), this, getOwner(), DamageTypes.DUAL_ACROBAT);
+            var source = createCombatDamageSource(DamageTypes.DUAL_ACROBAT);
             CombatTools.applyDamage(target, damage, source, SpellRegistry.DUAL_ACROBAT.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
         }
 

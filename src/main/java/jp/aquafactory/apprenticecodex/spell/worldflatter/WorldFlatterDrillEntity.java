@@ -139,7 +139,7 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag pCompound) {
+    protected void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
     }
 
@@ -207,13 +207,12 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
         var attachPosition = targetCenter.subtract(ownerLook.scale(MOB_ATTACH_DISTANCE));
         moveToEntityTarget(target, attachPosition, owner.getYRot(), owner.getXRot(), ENTITY_REACH_TICKS);
         if (moveTick >= ENTITY_REACH_TICKS) {
-            performMobAttack(owner, target);
+            performMobAttack(target);
         }
     }
 
-    private void performMobAttack(LivingEntity owner, LivingEntity target) {
-        var level = level();
-        var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.WORLD_FLATTER);
+    private void performMobAttack(LivingEntity target) {
+        var source = createCombatDamageSource(DamageTypes.WORLD_FLATTER);
         var damaged = CombatTools.applyDamage(
                 target,
                 damage,
