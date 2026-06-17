@@ -4,6 +4,8 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.utility.CombatOwnerResolver;
+import jp.aquafactory.apprenticecodex.utility.CombatOwnerUuidHolder;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
@@ -32,8 +34,11 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class FlySwatterProjectileEntity extends Projectile implements AntiMagicSusceptible {
+import java.util.UUID;
+
+public class FlySwatterProjectileEntity extends Projectile implements AntiMagicSusceptible, CombatOwnerUuidHolder {
     private static final EntityDataAccessor<Integer> STANDBY_TICK =
             SynchedEntityData.defineId(FlySwatterProjectileEntity.class, EntityDataSerializers.INT);
 
@@ -52,6 +57,8 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
     private double speed;
     private int standbyTick;
     private Entity target;
+    @Nullable
+    private UUID combatOwnerUuid;
 
     public FlySwatterProjectileEntity(EntityType<? extends Projectile> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -63,6 +70,7 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
         super(pEntityType, pLevel);
         setViewScale(8);
         setOwner(owner);
+        setCombatOwnerUuid(CombatOwnerResolver.captureCombatOwnerUuid(owner));
         setNoGravity(true);
     }
 
@@ -150,10 +158,10 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
             return;
         }
 
-        var owner = getOwner();
+        var owner = CombatOwnerResolver.resolveCombatOwner(level(), getOwner(), combatOwnerUuid);
         if (CombatTools.isValidCombatTarget(hit.getEntity(), owner)) {
             var target = CombatTools.resolutePartEntity(hit.getEntity());
-            var source = CombatTools.getDamageSource(level(), this, owner, DamageTypes.FLY_SWATTER);
+            var source = CombatOwnerResolver.createDamageSource(level(), this, getOwner(), combatOwnerUuid, DamageTypes.FLY_SWATTER);
             CombatTools.applyDamage(target, damage, source, SpellRegistry.FLY_SWATTER.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
             onImpact(level, target);
             discard();
@@ -219,8 +227,8 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
             return CombatTools.isValidCombatTarget(e, null);
         });
 
-        var owner = getOwner();
-        var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.FLY_SWATTER);
+        var owner = CombatOwnerResolver.resolveCombatOwner(level, getOwner(), combatOwnerUuid);
+        var source = CombatOwnerResolver.createDamageSource(level, this, getOwner(), combatOwnerUuid, DamageTypes.FLY_SWATTER);
         for (var e : targets) {
             var dist2 = e.distanceToSqr(position);
             if (dist2 > r2) {
@@ -271,6 +279,7 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
         tag.putFloat("damage", damage);
         tag.putFloat("radius", radius);
         tag.putInt("standbyTick", standbyTick);
+        saveCombatOwnerUuid(tag);
     }
 
     @Override
@@ -279,6 +288,7 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
         damage = tag.getFloat("damage");
         radius = tag.getFloat("radius");
         standbyTick = tag.getInt("standbyTick");
+        loadCombatOwnerUuid(tag);
     }
 
     @Override
@@ -307,6 +317,16 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
 
     public void setTarget(Entity target) {
         this.target = target;
+    }
+
+    @Override
+    public @Nullable UUID getCombatOwnerUuid() {
+        return combatOwnerUuid;
+    }
+
+    @Override
+    public void setCombatOwnerUuid(@Nullable UUID combatOwnerUuid) {
+        this.combatOwnerUuid = combatOwnerUuid;
     }
 }
 
