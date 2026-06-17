@@ -11,18 +11,20 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
 
-public class LethalAssault extends AbstractSpell {
+public class LethalAssault extends AbstractSummonWeaponSpell<LethalAssaultRifleEntity> {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "lethal_assault");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -33,6 +35,7 @@ public class LethalAssault extends AbstractSpell {
             .build();
 
     public LethalAssault() {
+        super(LethalAssaultRifleEntity.class);
         baseSpellPower = 500;
         spellPowerPerLevel = 200;
         baseManaCost = 20;
@@ -89,13 +92,22 @@ public class LethalAssault extends AbstractSpell {
     }
 
     @Override
-    public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        if (!level.isClientSide) {
-            var summonWeapon = new LethalAssaultRifleEntity(EntityRegistry.LETHAL_ASSAULT_RIFLE.get(), level, entity);
-            summonWeapon.setDamage(getDamage(spellLevel, entity));
-            level.addFreshEntity(summonWeapon);
-        }
+    public LethalAssaultRifleEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        var summonWeapon = new LethalAssaultRifleEntity(EntityRegistry.LETHAL_ASSAULT_RIFLE.get(), level, entity);
+        summonWeapon.setDamage(getDamage(spellLevel, entity));
+        level.addFreshEntity(summonWeapon);
+        return summonWeapon;
+    }
 
-        super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    @Override
+    public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData,
+                                     @NotNull LethalAssaultRifleEntity weapon) {
+    }
+
+    @Override
+    public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity,
+                                                      MagicData playerMagicData, boolean cancelled,
+                                                      @NotNull LethalAssaultRifleEntity weapon) {
+        return CompleteCastTypes.KEEP_WEAPON;
     }
 }
