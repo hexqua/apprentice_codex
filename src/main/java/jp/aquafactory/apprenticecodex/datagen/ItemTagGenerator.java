@@ -242,6 +242,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.BREACHING_ENEMY_SHOTGUN.get(),
                 ItemRegistry.SILENT_ASSASSIN_RIFLE.get(),
                 ItemRegistry.DUAL_ACROBAT_SMG.get(),
+                ItemRegistry.LETHAL_ASSAULT_RIFLE.get(),
+                ItemRegistry.ARTISAN_SMASH_LAUNCHER.get(),
                 ItemRegistry.FLY_SWATTER_LAUNCHER.get(),
                 ItemRegistry.THERMAL_PROCESS_THROWER.get()
         );
