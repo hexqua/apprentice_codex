@@ -220,6 +220,10 @@ public class ArtisanSmashShellEntity extends ThrowableProjectile implements Anti
         return Mth.lerp(easeOutCubic(Mth.clamp(age / 4.0f, 0.0f, 1.0f)), 0.45f, getBurstCubeMaxSize());
     }
 
+    public float getSplashRadius() {
+        return splashRadius;
+    }
+
     public float getBurstCubeAlpha(float partialTicks) {
         if (!isBursting()) {
             return 0.0f;
