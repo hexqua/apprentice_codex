@@ -906,7 +906,7 @@
   "death.attack.apprenticecodex.arcane_beam": "%1$s was disintegrated by %2$s's arcane power.",
   "death.attack.apprenticecodex.tiny_lumberjack": "%1$s went to pieces.",
   "death.attack.apprenticecodex.graced_rain": "The power of grace was too harmful to %1$s.",
-  "death.attack.apprenticecodex.fly_swatter": "%1$s was knocked out by %2$s.",
+  "death.attack.apprenticecodex.fly_swatter": "%1$s was swatted down like a bug.",
   "death.attack.apprenticecodex.feather_rush": "%1$s was pierced by %2$s's feather barrage.",
   "death.attack.apprenticecodex.world_flatter": "%2$s punched %1$s in the hole.",
   "death.attack.apprenticecodex.slash_blade": "%1$s was decapitated by %2$s'.",
@@ -933,7 +933,7 @@
   "death.attack.apprenticecodex.heavenly_fist": "%1$s was flattened by %2$s",
   "death.attack.apprenticecodex.lethal_assault": "%1$s couldn't call for a medic",
   "death.attack.apprenticecodex.dual_acrobat": "%1$s hit the jackpot",
-  "death.attack.apprenticecodex.artisan_smash": "%1$s was heavily remodeled by %2$s",
+  "death.attack.apprenticecodex.artisan_smash": "%1$s was dramatically remodeled by a master artisan",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "Apprentice's Codex",
   "advancements.apprenticecodex.apprentice_codex.root.description": "Decide to walk the path of an apprentice mage.",
