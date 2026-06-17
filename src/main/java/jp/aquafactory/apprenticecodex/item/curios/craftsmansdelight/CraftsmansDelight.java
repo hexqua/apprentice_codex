@@ -4,11 +4,10 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
-import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.compat.Curios;
-import io.redspace.ironsspellbooks.config.ServerConfigs;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -234,7 +233,7 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
             return spell.getSpellCooldown();
         }
 
-        return applyCooldownModifiers(applyCooldownDiscount(spell.getSpellCooldown(), player), player, castSource);
+        return WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, castSource, ItemStack.EMPTY);
     }
 
     public static void applyCastingMobility(@Nullable LivingEntity entity) {
@@ -387,14 +386,6 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
                                 .map(slotResult -> slotResult.stack().copy())
                                 .orElse(ItemStack.EMPTY)))
                 .orElse(ItemStack.EMPTY);
-    }
-
-    private static int applyCooldownModifiers(int baseCooldown, Player player, CastSource castSource) {
-        var playerCooldownModifier = player.getAttributeValue(AttributeRegistry.COOLDOWN_REDUCTION);
-        var itemCooldownModifier = castSource == CastSource.SWORD
-                ? ServerConfigs.SWORDS_CD_MULTIPLIER.get().floatValue()
-                : 1.0f;
-        return (int) (baseCooldown * (2 - Utils.softCapFormula(playerCooldownModifier)) * itemCooldownModifier);
     }
 
     private static boolean consumeManaForSneakUse(Player player, ItemStack stack) {
