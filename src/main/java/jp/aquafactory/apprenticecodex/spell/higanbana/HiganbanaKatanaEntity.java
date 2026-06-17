@@ -154,7 +154,7 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
 
         if (getOwner() instanceof LivingEntity owner) {
             var point = getLookAngle().normalize().scale(0.75);
-            var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.HIGANBANA);
+            var source = createCombatDamageSource(DamageTypes.HIGANBANA);
             var hitResult = RaycastTools.hitsSphere(
                     level,
                     position().add(point),
@@ -247,7 +247,7 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag pCompound) {
+    protected void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         damage = pCompound.getFloat("Damage");
         slashStandbyTick = pCompound.getInt("SlashStandbyTick");

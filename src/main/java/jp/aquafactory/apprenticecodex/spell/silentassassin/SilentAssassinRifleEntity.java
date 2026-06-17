@@ -187,7 +187,7 @@ public class SilentAssassinRifleEntity extends SummonWeaponEntity {
     }
 
     public void damageTarget(Entity target, float finalDamage, Level level) {
-        var source = CombatTools.getDamageSource(level, this, getOwner(), DamageTypes.SILENT_ASSASSIN);
+        var source = createCombatDamageSource(DamageTypes.SILENT_ASSASSIN);
         CombatTools.applyDamage(target, finalDamage, source, SpellRegistry.SILENT_ASSASSIN.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
     }
 

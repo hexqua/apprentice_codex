@@ -38,7 +38,7 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag pCompound) {
+    protected void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         range = pCompound.getFloat("Range");
         standbyDamage = pCompound.getFloat("StandbyDamage");
@@ -122,7 +122,7 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
         faceTarget(aimResult.hitPosition());
         if (aimResult.hitEntity() != null) {
             var target = CombatTools.resolutePartEntity(aimResult.hitEntity());
-            var source = CombatTools.getDamageSource(level(), this, getOwner(), DamageTypes.QUICK_ARMS);
+            var source = createCombatDamageSource(DamageTypes.QUICK_ARMS);
             CombatTools.applyDamage(target, damage, source, SpellRegistry.QUICK_ARMS.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
         }
 

@@ -4,6 +4,8 @@ import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.CombatOwnerResolver;
+import jp.aquafactory.apprenticecodex.utility.CombatOwnerUuidHolder;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -20,12 +22,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public class MoonLightChargeCutEntity extends Entity implements TraceableEntity {
+public class MoonLightChargeCutEntity extends Entity implements TraceableEntity, CombatOwnerUuidHolder {
     public static final int PROCESS_START_DELAY_TICKS = 2;
     public static final int PROCESS_DURATION_TICKS = 15;
     public static final float START_OFFSET_BLOCKS = 2.0f;
@@ -50,6 +53,7 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity 
             SynchedEntityData.defineId(MoonLightChargeCutEntity.class, EntityDataSerializers.FLOAT);
 
     private Entity owner;
+    private UUID combatOwnerUuid;
     private float damage;
     private float previousProcessedDistance;
     private final Set<UUID> damagedEntityIds = new HashSet<>();
@@ -62,6 +66,7 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity 
     public MoonLightChargeCutEntity(EntityType<? extends MoonLightChargeCutEntity> entityType, Level level, Entity owner) {
         this(entityType, level);
         this.owner = owner;
+        combatOwnerUuid = CombatOwnerResolver.captureCombatOwnerUuid(owner);
     }
 
     @Override
@@ -142,7 +147,13 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity 
         var right = calculateRightDirection(forward);
         var up = calculateUpDirection(forward, right);
 
-        var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.MOON_LIGHT);
+        var source = CombatOwnerResolver.createDamageSourcePreservingCurrentOwner(
+                level,
+                this,
+                owner,
+                combatOwnerUuid,
+                DamageTypes.MOON_LIGHT
+        );
         var school = SpellRegistry.MOON_LIGHT.get().getSchoolType();
         var candidates = level.getEntitiesOfClass(
                 LivingEntity.class,
@@ -281,6 +292,7 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity 
     @Override
     protected void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
         damage = pCompound.getFloat("Damage");
+        loadCombatOwnerUuid(pCompound);
         entityData.set(DISTANCE_BLOCKS, pCompound.getFloat("DistanceBlocks"));
         var processedDistance = pCompound.getFloat("ProcessedDistance");
         entityData.set(PROCESSED_DISTANCE, processedDistance);
@@ -290,6 +302,7 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity 
     @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
         pCompound.putFloat("Damage", damage);
+        saveCombatOwnerUuid(pCompound);
         pCompound.putFloat("DistanceBlocks", getDistanceBlocks());
         pCompound.putFloat("ProcessedDistance", getProcessedDistance());
     }
@@ -375,6 +388,16 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity 
 
     private void setProcessedDistance(float processedDistance) {
         entityData.set(PROCESSED_DISTANCE, Mth.clamp(processedDistance, 0.0f, getDistanceBlocks()));
+    }
+
+    @Override
+    public @Nullable UUID getCombatOwnerUuid() {
+        return combatOwnerUuid;
+    }
+
+    @Override
+    public void setCombatOwnerUuid(@Nullable UUID combatOwnerUuid) {
+        this.combatOwnerUuid = combatOwnerUuid;
     }
 
     private record ProjectionRange(double min, double max) {}
