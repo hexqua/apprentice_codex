@@ -12,6 +12,9 @@ import java.util.List;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
+import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntletCastEvent;
+import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightCooldownReductionEvent;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightManaCostDiscountEvent;
@@ -271,6 +274,73 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             assertCraftsmansDelightBasicDiscountOnly(helper, player, SpellRegistry.EARTH_FORGE.get(), 20, "Earth Forge");
         });
     }
+
+    static void craftsmansDelightScrollcasterGauntletCooldownKeepsItemPolicy(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "craftsmans_scrollcaster_cooldown_policy_test");
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            var spell = SpellRegistry.HARVEST_MOON.get();
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(spell));
+            ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null,
+                    "CraftsmansDelight Scrollcaster Gauntlet cooldown test could not resolve player magic data");
+            magicData.setPlayerCastingItem(gauntlet.copy());
+
+            var expectedCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    spell,
+                    player,
+                    CastSource.SWORD,
+                    gauntlet
+            );
+            helper.assertTrue(expectedCooldown < io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
+                            spell,
+                            player,
+                            CastSource.SWORD
+                    ),
+                    "CraftsmansDelight Scrollcaster Gauntlet cooldown should be reduced from the normal sword cooldown");
+
+            var craftsmansFirstEvent = new SpellCooldownAddedEvent.Pre(
+                    io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(spell, player, CastSource.SWORD),
+                    spell,
+                    player,
+                    CastSource.SWORD
+            );
+            CraftsmansDelightCooldownReductionEvent.onSpellCooldownAdded(craftsmansFirstEvent);
+            ScrollcasterGauntletCastEvent.onSpellCooldownAdded(craftsmansFirstEvent);
+            helper.assertTrue(craftsmansFirstEvent.getEffectiveCooldown() == expectedCooldown,
+                    "CraftsmansDelight -> Scrollcaster Gauntlet cooldown order should keep the reduced gauntlet cooldown but got "
+                            + craftsmansFirstEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+
+            var scrollcasterFirstEvent = new SpellCooldownAddedEvent.Pre(
+                    io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(spell, player, CastSource.SWORD),
+                    spell,
+                    player,
+                    CastSource.SWORD
+            );
+            ScrollcasterGauntletCastEvent.onSpellCooldownAdded(scrollcasterFirstEvent);
+            CraftsmansDelightCooldownReductionEvent.onSpellCooldownAdded(scrollcasterFirstEvent);
+            helper.assertTrue(scrollcasterFirstEvent.getEffectiveCooldown() == expectedCooldown,
+                    "Scrollcaster Gauntlet -> CraftsmansDelight cooldown order should keep the reduced gauntlet cooldown but got "
+                            + scrollcasterFirstEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+        });
+    }
+
+    static void strongestLimitedBaseCooldownSelectionIgnoresStacking(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            helper.assertTrue(WeaponImbueCooldownHelper.selectStrongestLimitedBaseCooldown(90) == 90,
+                    "No limited cooldown candidate should keep the base cooldown");
+            helper.assertTrue(WeaponImbueCooldownHelper.selectStrongestLimitedBaseCooldown(90, 45, 30) == 30,
+                    "Limited cooldown candidates should choose only the strongest reduction");
+            helper.assertTrue(WeaponImbueCooldownHelper.selectStrongestLimitedBaseCooldown(90, 0, -1, 60) == 60,
+                    "Invalid limited cooldown candidates should be ignored");
+            helper.assertTrue(WeaponImbueCooldownHelper.selectStrongestLimitedBaseCooldown(0, 1) == 0,
+                    "Zero base cooldown should stay zero");
+        });
+    }
+
     static void craftsmansDelightExtendsTouchDigRange(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spell = new TouchDigSpell();
