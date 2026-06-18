@@ -143,6 +143,26 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellSideEdgeMirrorPairBypassesVanillaTargetIframe(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.spellSideEdgeMirrorPairBypassesVanillaTargetIframe(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellSideEdgeRequiresMirrorForVanillaTargetIframeBypass(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.spellSideEdgeRequiresMirrorForVanillaTargetIframeBypass(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellSideEdgeVanillaIframeBypassOnlyAppliesToRecordedTarget(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.spellSideEdgeVanillaIframeBypassOnlyAppliesToRecordedTarget(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellSideEdgeVanillaIframeBypassDisabledWithCombatOverhauls(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.spellSideEdgeVanillaIframeBypassDisabledWithCombatOverhauls(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void fireResistantEquipmentContractsStayInSync(GameTestHelper helper) {
         EquipmentFireResistanceGameTestScenarios.fireResistantEquipmentContractsStayInSync(helper);
     }
