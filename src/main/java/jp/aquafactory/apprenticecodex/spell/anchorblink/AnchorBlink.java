@@ -16,7 +16,6 @@ import jp.aquafactory.apprenticecodex.spell.edgedancer.EdgeDancerManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -123,13 +122,16 @@ public class AnchorBlink extends AbstractSpell {
 
     @Override
     public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        if (!(entity instanceof Player player) || !hasRequiredMirror(player)) {
-            if (!level.isClientSide && entity instanceof ServerPlayer serverPlayer) {
-                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
-                        Component.translatable("ui.apprenticecodex.anchor_blink.requires_mirror")
-                                .withStyle(ChatFormatting.RED)
-                ));
-            }
+        if (!(entity instanceof Player player)) {
+            return false;
+        }
+
+        if (!hasRequiredMirror(player)) {
+            player.displayClientMessage(
+                    Component.translatable("ui.apprenticecodex.anchor_blink.requires_mirror")
+                            .withStyle(ChatFormatting.RED),
+                    true
+            );
             return false;
         }
 

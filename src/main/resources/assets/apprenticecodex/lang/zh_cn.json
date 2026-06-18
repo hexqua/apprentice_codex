@@ -759,7 +759,7 @@
   "ui.apprenticecodex.tamers_pocket.current_count": "当前存储宠物数量：%d",
   "ui.apprenticecodex.extract.amplify_level": "药水效果增幅：+%d",
   "ui.apprenticecodex.inscribe_ice.notched_frozen_damage": "魔力爆裂伤害：%s",
-  "ui.apprenticecodex.edge_dancer.requires_mirror": "主手需要持有法术侧刃！",
+  "ui.apprenticecodex.edge_dancer.requires_edge": "主手需要持有法术侧刃！",
   "ui.apprenticecodex.anchor_blink.requires_mirror": "副手需要持有法术侧逆刃！",
   "ui.apprenticecodex.anchor_blink.ready_for_blink": "匕首已刺入目标，按下跳跃即可闪现！",
   "ui.apprenticecodex.anchor_blink.too_far": "匕首刺入的位置太远，无法维持锚定并自行崩解...",

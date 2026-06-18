@@ -11,6 +11,7 @@ import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdge;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -137,10 +138,21 @@ public class EdgeDancer extends AbstractSpell {
 
     @Override
     public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        return entity instanceof Player player
-                && (playerMagicData.getPlayerRecasts().hasRecastForSpell(this)
-                || SpellSideEdge.isSpellSideEdge(player.getMainHandItem()))
-                && super.checkPreCastConditions(level, spellLevel, entity, playerMagicData);
+        if (!(entity instanceof Player player)) {
+            return false;
+        }
+
+        if (!playerMagicData.getPlayerRecasts().hasRecastForSpell(this)
+                && !SpellSideEdge.isSpellSideEdge(player.getMainHandItem())) {
+            player.displayClientMessage(
+                    Component.translatable("ui.apprenticecodex.edge_dancer.requires_edge")
+                            .withStyle(ChatFormatting.RED),
+                    true
+            );
+            return false;
+        }
+
+        return super.checkPreCastConditions(level, spellLevel, entity, playerMagicData);
     }
 
     @Override
