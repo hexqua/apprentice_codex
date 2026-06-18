@@ -51,7 +51,7 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> LETHAL_ASSAULT = register("lethal_assault");
     public static final ResourceKey<DamageType> DUAL_ACROBAT = register("dual_acrobat");
     public static final ResourceKey<DamageType> ARTISAN_SMASH = register("artisan_smash");
-
+    public static final ResourceKey<DamageType> ANCHOR_BLINK = register("anchor_blink");
 
     public static final ResourceKey<DamageType> HAUNTED_BONUS = register("haunted_bonus");
     public static final ResourceKey<DamageType> MANA_FORCE_BLADE = register("mana_force_blade");
@@ -110,6 +110,7 @@ public final class DamageTypes {
         context.register(LETHAL_ASSAULT, createTemplate(LETHAL_ASSAULT));
         context.register(DUAL_ACROBAT, createTemplate(DUAL_ACROBAT));
         context.register(ARTISAN_SMASH, createTemplate(ARTISAN_SMASH));
+        context.register(ANCHOR_BLINK, createTemplate(ANCHOR_BLINK));
 
         context.register(HAUNTED_BONUS, createTemplate(HAUNTED_BONUS));
         context.register(MANA_FORCE_BLADE, createTemplate(MANA_FORCE_BLADE));

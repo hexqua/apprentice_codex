@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.spell.anchorblink.AnchorBlink;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeam;
 import jp.aquafactory.apprenticecodex.spell.arcaneblast.ArcaneBlast;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultiple;
@@ -107,6 +108,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> RIFT_HOLE = reg("rift_hole", RiftHole::new);
     public static final RegistryObject<AbstractSpell> DEMICREATOR_WINGS = reg("demicreator_wings", DemicreatorWings::new);
     public static final RegistryObject<AbstractSpell> MIRAGE_AVOIDANCE = reg("mirage_avoidance", MirageAvoidance::new);
+    public static final RegistryObject<AbstractSpell> ANCHOR_BLINK = reg("anchor_blink", AnchorBlink::new);
 
     // 召喚.
     public static final RegistryObject<AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
