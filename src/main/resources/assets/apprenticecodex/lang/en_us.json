@@ -751,6 +751,7 @@
   "ui.apprenticecodex.tamers_pocket.current_count": "Current contained pet count: %d",
   "ui.apprenticecodex.extract.amplify_level": "Amplify Potion Effect: +%d",
   "ui.apprenticecodex.inscribe_ice.notched_frozen_damage": "Magic Burst Damage: %s",
+  "ui.apprenticecodex.anchor_blink.anchor_distance": "Anchoring range: %s blocks",
   "ui.apprenticecodex.cant_place": "Can't place here",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
   "ui.apprenticecodex.recast_summon_spell.no_weapon": "Couldn't find weapon!",
