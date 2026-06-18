@@ -41,7 +41,7 @@ public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity>
             .setMinRarity(SpellRarity.EPIC)
             .setSchoolResource(SchoolRegistry.NATURE_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(30)
+            .setCooldownSeconds(20)
             .build();
 
     public GracedRain() {

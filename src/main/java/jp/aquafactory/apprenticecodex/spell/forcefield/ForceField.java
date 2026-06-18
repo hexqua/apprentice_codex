@@ -31,7 +31,7 @@ public class ForceField extends AbstractSpell {
             .setMinRarity(SpellRarity.EPIC)
             .setSchoolResource(SchoolRegistry.HOLY_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(8)
+            .setCooldownSeconds(15)
             .build();
 
     public ForceField() {

@@ -33,7 +33,7 @@ public class DualAcrobat extends AbstractSummonWeaponSpell<DualAcrobatSmgEntity>
             .setMinRarity(SpellRarity.UNCOMMON)
             .setSchoolResource(SchoolRegistry.LIGHTNING_RESOURCE)
             .setMaxLevel(5)
-            .setCooldownSeconds(8)
+            .setCooldownSeconds(12)
             .build();
 
     public DualAcrobat() {

@@ -27,7 +27,7 @@ public class MysticShield extends AbstractSpell {
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.HOLY_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(30)
+            .setCooldownSeconds(15)
             .build();
 
     public MysticShield() {

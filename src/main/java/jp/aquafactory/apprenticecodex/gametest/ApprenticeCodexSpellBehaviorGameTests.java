@@ -148,6 +148,31 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.autoMagnetCollectsItemsWithoutSolegnoliaBlock(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)
+    public static void autoMagnetNormalModeCollectsWhileStanding(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autoMagnetNormalModeCollectsWhileStanding(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)
+    public static void autoMagnetNormalModeStopsWhileCrouching(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autoMagnetNormalModeStopsWhileCrouching(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)
+    public static void autoMagnetReverseModeStopsWhileStanding(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autoMagnetReverseModeStopsWhileStanding(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)
+    public static void autoMagnetReverseModeCollectsWhileCrouching(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autoMagnetReverseModeCollectsWhileCrouching(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)
+    public static void autoMagnetRecastSwitchesModeAndStopsSameMode(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autoMagnetRecastSwitchesModeAndStopsSameMode(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = COMPANION_TRUNK_ISOLATED_BATCH)
     public static void companionTrunkRecastRecallsLoadedTrunkWhenFar(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.companionTrunkRecastRecallsLoadedTrunkWhenFar(helper);

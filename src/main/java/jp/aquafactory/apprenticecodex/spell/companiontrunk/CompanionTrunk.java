@@ -24,7 +24,7 @@ public class CompanionTrunk extends AbstractSpell {
     private final DefaultConfig config = new DefaultConfig()
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.EVOCATION_RESOURCE)
-            .setMaxLevel(3)
+            .setMaxLevel(1)
             .setCooldownSeconds(0)
             .build();
 

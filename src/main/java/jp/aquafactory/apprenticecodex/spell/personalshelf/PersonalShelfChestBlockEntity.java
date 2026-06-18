@@ -41,7 +41,6 @@ import java.util.UUID;
 
 public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuProvider {
     private static final int EXPORT_COOLDOWN_TICK = 5;
-    private static final int FALLBACK_LIFE_TIME_TICKS = 20 * 60;
     private static final double FALLBACK_KEEP_OWNER_RANGE = 10.0;
     private static final DustParticleOptions EXPORT_SUCCESS_DUST =
             new DustParticleOptions(new Vector3f(0.78f, 0.28f, 0.98f), 1.0f);
@@ -54,7 +53,6 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
     private boolean isExportMode;
     private Direction exportFacing;
     private int exportCooldownTick = EXPORT_COOLDOWN_TICK;
-    private int lifeTimeTicks = FALLBACK_LIFE_TIME_TICKS;
     private double keepOwnerRange = FALLBACK_KEEP_OWNER_RANGE;
     private final Set<UUID> openers = new HashSet<>();
 
@@ -92,8 +90,7 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
         syncToClient();
     }
 
-    public void setLifeData(int lifeTimeTicks, double keepOwnerRange) {
-        this.lifeTimeTicks = lifeTimeTicks;
+    public void setLifeRange(double keepOwnerRange) {
         this.keepOwnerRange = keepOwnerRange;
     }
 
@@ -116,7 +113,6 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
             tag.putInt("ExportFacing", exportFacing.get3DDataValue());
         }
 
-        tag.putInt("LifeTimeTicks", lifeTimeTicks);
         tag.putDouble("KeepOwnerRange", keepOwnerRange);
     }
 
@@ -126,7 +122,6 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
         owner = tag.hasUUID("Owner") ? tag.getUUID("Owner") : null;
         isExportMode = tag.getBoolean("IsExportMode");
         exportFacing = tag.contains("ExportFacing", Tag.TAG_INT) ? Direction.from3DDataValue(tag.getInt("ExportFacing")) : null;
-        lifeTimeTicks = tag.getInt("LifeTimeTicks");
         keepOwnerRange = tag.getDouble("KeepOwnerRange");
     }
 
@@ -177,12 +172,7 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
             blockEntity.setChanged();
         }
 
-        --blockEntity.lifeTimeTicks;
-        if (blockEntity.lifeTimeTicks <= 0) {
-            blockEntity.expireAndCloseOpenMenus(level, pos);
-            return;
-        }
-
+        // 単純な距離ではなく、XYZそれぞれnブロック以内で判定する.
         var xDistance = Math.abs(blockEntity.worldPosition.getX() - blockEntity.cachedOwner.position().x);
         var yDistance = Math.abs(blockEntity.worldPosition.getY() - blockEntity.cachedOwner.position().y);
         var zDistance = Math.abs(blockEntity.worldPosition.getZ() - blockEntity.cachedOwner.position().z);

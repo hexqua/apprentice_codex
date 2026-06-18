@@ -28,7 +28,7 @@ public class DeepSensor extends AbstractSpell {
             .setMinRarity(SpellRarity.LEGENDARY)
             .setSchoolResource(SchoolRegistry.ELDRITCH_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(60)
+            .setCooldownSeconds(30)
             .build();
 
     public DeepSensor() {

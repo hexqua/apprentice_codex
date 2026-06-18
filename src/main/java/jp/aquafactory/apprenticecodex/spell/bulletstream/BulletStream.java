@@ -33,7 +33,7 @@ public class BulletStream extends AbstractSummonWeaponSpell<BulletStreamMinigunE
             .setMinRarity(SpellRarity.EPIC)
             .setSchoolResource(SchoolRegistry.LIGHTNING_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(20)
+            .setCooldownSeconds(12)
             .build();
 
     public BulletStream() {

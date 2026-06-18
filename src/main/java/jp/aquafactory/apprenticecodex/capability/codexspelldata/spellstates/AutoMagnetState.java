@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates;
 
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.ICodexSpellState;
+import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetCollectionMode;
 import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,7 +11,16 @@ public class AutoMagnetState implements ICodexSpellState {
     public boolean active;
     public double range;
     public double collectMana;
+    private AutoMagnetCollectionMode collectionMode = AutoMagnetCollectionMode.NORMAL;
     private @Nullable UUID familiarUuid;
+
+    public AutoMagnetCollectionMode getCollectionMode() {
+        return collectionMode;
+    }
+
+    public void setCollectionMode(AutoMagnetCollectionMode collectionMode) {
+        this.collectionMode = collectionMode;
+    }
 
     public @Nullable UUID getFamiliarUuid() {
         return familiarUuid;
@@ -26,6 +36,7 @@ public class AutoMagnetState implements ICodexSpellState {
         tag.putBoolean("active", active);
         tag.putDouble("range", range);
         tag.putDouble("collectMana", collectMana);
+        tag.putString("collectionMode", collectionMode.name());
         if (familiarUuid != null) {
             tag.putUUID("familiarUuid", familiarUuid);
         }
@@ -37,6 +48,9 @@ public class AutoMagnetState implements ICodexSpellState {
         active = tag.getBoolean("active");
         range = tag.contains("range") ? tag.getDouble("range") : 0.0;
         collectMana = tag.contains("collectMana") ? tag.getDouble("collectMana") : 0.0;
+        collectionMode = tag.contains("collectionMode")
+                ? AutoMagnetCollectionMode.byName(tag.getString("collectionMode"))
+                : AutoMagnetCollectionMode.NORMAL;
         familiarUuid = tag.hasUUID("familiarUuid") ? tag.getUUID("familiarUuid") : null;
     }
 }

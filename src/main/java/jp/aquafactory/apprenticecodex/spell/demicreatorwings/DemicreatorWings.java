@@ -35,7 +35,7 @@ public class DemicreatorWings extends AbstractSpell {
             .setMinRarity(SpellRarity.EPIC)
             .setSchoolResource(SchoolRegistry.ENDER_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(120)
+            .setCooldownSeconds(90)
             .build();
 
     public DemicreatorWings() {
