@@ -108,6 +108,41 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void edgeDancerRequiresMainhandSpellSideEdge(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.edgeDancerRequiresMainhandSpellSideEdge(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void edgeDancerGeneratesMirrorAndRestoresEmptyOffhand(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.edgeDancerGeneratesMirrorAndRestoresEmptyOffhand(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void edgeDancerMirrorCopiesEnchantmentsAndReplacesSpell(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.edgeDancerMirrorCopiesEnchantmentsAndReplacesSpell(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void edgeDancerRestoresOccupiedOffhand(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.edgeDancerRestoresOccupiedOffhand(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void edgeDancerDeactivatesWhenSpellSideEdgeLeavesInventory(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.edgeDancerDeactivatesWhenSpellSideEdgeLeavesInventory(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void edgeDancerMainhandDropCancelsAndOnlyDeactivates(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.edgeDancerMainhandDropCancelsAndOnlyDeactivates(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellSideEdgeMirrorOffhandDoesNotApplyVanillaAttackModifiers(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.spellSideEdgeMirrorOffhandDoesNotApplyVanillaAttackModifiers(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void fireResistantEquipmentContractsStayInSync(GameTestHelper helper) {
         EquipmentFireResistanceGameTestScenarios.fireResistantEquipmentContractsStayInSync(helper);
     }
