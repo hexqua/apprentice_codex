@@ -511,6 +511,8 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     "Charged Twin Blade Staff should be upgradeable via explicit whitelist entry");
             assertUpgradeable(helper, new ItemStack(ItemRegistry.MANA_FORCE_BLADE.get()),
                     "Mana Force Blade should be upgradeable via explicit whitelist entry");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.SPELL_SIDE_EDGE.get()),
+                    "Spell Side Edge should be upgradeable via explicit whitelist entry");
 
             var shieldStack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
             helper.assertFalse(shieldStack.is(io.redspace.ironsspellbooks.util.ModTags.CAN_BE_UPGRADED),

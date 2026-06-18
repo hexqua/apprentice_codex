@@ -9513,6 +9513,23 @@ public class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
+    static Set<ResourceLocation> expectedSpellSideEdgeEnchantments(RegistryAccess registryAccess, ItemStack stack) {
+        var expectedEnchantments = collectAllowedEnchantments(
+                registryAccess,
+                enchantment -> enchantment.value().canEnchant(new ItemStack(Items.DIAMOND_SWORD))
+                        && !isDurabilityTargetEnchantment(enchantment)
+        );
+        expectedEnchantments.addAll(registryIdSet(
+                Enchantments.SURGE,
+                Enchantments.ATTUNEMENT,
+                Enchantments.WISDOM,
+                Enchantments.TRANSCENDENCE
+        ));
+        addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedEnchantments);
+        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
+        return expectedEnchantments;
+    }
+
     static Set<ResourceLocation> expectedMultipurposeStaffrifleEnchantments(ItemStack stack) {
         var expectedEnchantments = registryIdSet(
                 Enchantments.ALACRITY,

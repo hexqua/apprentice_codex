@@ -130,6 +130,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SMASHCAST_SCEPTER.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get(),
+                ItemRegistry.SPELL_SIDE_EDGE.get(),
                 ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
                 ItemRegistry.SCROLLCASTER_GAUNTLET.get()
         );
@@ -235,6 +236,20 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         vanillaWeaponEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         vanillaDurabilityEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
+
+        // Spell Side Edge は耐久値を持つ剣型の詠唱武器として扱い、1.21.1 の tag 駆動 enchant と互換 MOD 判定に揃える。
+        malumMagicCapableWeaponTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
+        malumSoulShatterCapableWeaponTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
+        tomagicReversalWeaponTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
+        surgeEnchantableTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
+        attunementEnchantableTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
+        transcendenceEnchantableTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
+        wisdomEnchantableTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
+        vanillaSwordEnchantableTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
+        vanillaFireAspectEnchantableTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
+        vanillaSharpWeaponEnchantableTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
+        vanillaWeaponEnchantableTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
+        vanillaDurabilityEnchantableTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
 
         // Bound Sword は一時生成アイテムだが、1.21.1 の enchantment JSON/tag 判定にも剣相当として参加させる。
         vanillaSwordEnchantableTag.add(ItemRegistry.BOUND_SWORD.get());

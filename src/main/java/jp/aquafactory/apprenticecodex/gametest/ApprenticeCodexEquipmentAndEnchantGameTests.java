@@ -83,6 +83,31 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellSideEdgeStartsWithEdgeDancerAndExpectedStats(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.spellSideEdgeStartsWithEdgeDancerAndExpectedStats(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellSideEdgeKeepsExpectedTagsAndEnchantments(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.spellSideEdgeKeepsExpectedTagsAndEnchantments(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellSideEdgeBridgeUsesHigherComparableMainhandAttribute(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.spellSideEdgeBridgeUsesHigherComparableMainhandAttribute(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellSideEdgeBridgeSkipsMultiplyTotalWhenOffhandAlreadyHasAttribute(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.spellSideEdgeBridgeSkipsMultiplyTotalWhenOffhandAlreadyHasAttribute(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellSideEdgeBridgeSyncsOnlyWhileHeldInMainhand(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.spellSideEdgeBridgeSyncsOnlyWhileHeldInMainhand(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void fireResistantEquipmentContractsStayInSync(GameTestHelper helper) {
         EquipmentFireResistanceGameTestScenarios.fireResistantEquipmentContractsStayInSync(helper);
     }

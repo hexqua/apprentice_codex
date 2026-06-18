@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
+import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdge;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
@@ -61,6 +62,7 @@ public final class TranscendenceSpellLevelEvent {
                         || item instanceof AbstractSpellGunItem
                         || item instanceof AlchemistsFlask
                         || (!isOffhandSlot && (item instanceof AbstractRightClickMagicWeaponItem
+                                || item instanceof SpellSideEdge
                                 || item instanceof ScrollcasterGauntlet));
         if (!isSupportedSlot) {
             return 0;
