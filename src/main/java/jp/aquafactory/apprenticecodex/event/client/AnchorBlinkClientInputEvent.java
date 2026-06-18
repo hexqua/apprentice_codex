@@ -25,6 +25,8 @@ public final class AnchorBlinkClientInputEvent {
 
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
+
+        // 先行入力を受け付けるため、アンカー未着弾時はキー入力を常にfalseとして保持し直すようにする.
         if (player == null || minecraft.level == null || minecraft.screen != null || !hasReadyAnchor(minecraft)) {
             previousJumpDown = false;
             return;
