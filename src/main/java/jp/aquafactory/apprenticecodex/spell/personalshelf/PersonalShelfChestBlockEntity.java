@@ -55,7 +55,6 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
     private boolean isExportMode;
     private Direction exportFacing;
     private int exportCooldownTick = EXPORT_COOLDOWN_TICK;
-    private int lifeTimeTicks = FALLBACK_LIFE_TIME_TICKS;
     private double keepOwnerRange = FALLBACK_KEEP_OWNER_RANGE;
     private final Set<UUID> openers = new HashSet<>();
 
@@ -94,8 +93,7 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
         syncToClient();
     }
 
-    public void setLifeData(int lifeTimeTicks, double keepOwnerRange) {
-        this.lifeTimeTicks = lifeTimeTicks;
+    public void setLifeData(double keepOwnerRange) {
         this.keepOwnerRange = keepOwnerRange;
     }
 
@@ -118,7 +116,6 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
             tag.putInt("ExportFacing", exportFacing.get3DDataValue());
         }
 
-        tag.putInt("LifeTimeTicks", lifeTimeTicks);
         tag.putDouble("KeepOwnerRange", keepOwnerRange);
     }
 
@@ -128,7 +125,6 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
         owner = tag.hasUUID("Owner") ? tag.getUUID("Owner") : null;
         isExportMode = tag.getBoolean("IsExportMode");
         exportFacing = tag.contains("ExportFacing", Tag.TAG_INT) ? Direction.from3DDataValue(tag.getInt("ExportFacing")) : null;
-        lifeTimeTicks = tag.getInt("LifeTimeTicks");
         keepOwnerRange = tag.getDouble("KeepOwnerRange");
     }
 
@@ -177,12 +173,6 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
                 blockEntity.cachedOwner = owner;
                 blockEntity.setChanged();
             }
-        }
-
-        --blockEntity.lifeTimeTicks;
-        if (blockEntity.lifeTimeTicks <= 0) {
-            blockEntity.expireAndCloseOpenMenus(level, pos);
-            return;
         }
 
         // 単純な距離ではなく、XYZそれぞれnブロック以内で判定する.

@@ -5535,7 +5535,7 @@ public class ApprenticeCodexGameTestScenarios {
         var absoluteShelfPos = helper.absolutePos(shelfPos);
         var shelf = getPersonalShelfBlockEntity(helper, absoluteShelfPos);
         shelf.setShelfData(player, false, Direction.NORTH);
-        shelf.setLifeData(20 * 60, 10.0);
+        shelf.setLifeData(10.0);
 
         helper.runAtTickTime(1, () -> {
             var personalInventory = player.getCapability(Capabilities.PERSONAL_INVENTORY)
@@ -5571,7 +5571,7 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(player.openMenu(shelf).isPresent(), "Personal Shelf should open before the expiration check");
             helper.assertTrue(player.containerMenu instanceof ChestMenu,
                     "Personal Shelf should still be using ChestMenu during the expiration check");
-            shelf.setLifeData(1, 8.0);
+            shelf.setLifeData(8.0);
         });
 
         helper.succeedWhen(() -> {
