@@ -147,7 +147,7 @@ public final class SpellSideEdgeOffhandAttributeBridge {
         var event = new ItemAttributeModifierEvent(
                 stack,
                 slot,
-                stack.getItem().getAttributeModifiers(slot, stack)
+                stack.getAttributeModifiers(slot)
         );
         MinecraftForge.EVENT_BUS.post(event);
         return ImmutableMultimap.copyOf(event.getModifiers());
