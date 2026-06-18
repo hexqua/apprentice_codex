@@ -113,6 +113,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.CIRCUIT_HEAT_STAFF.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get(),
+                ItemRegistry.SPELL_SIDE_EDGE.get(),
                 ItemRegistry.SCROLLCASTER_GAUNTLET.get(),
                 ItemRegistry.ZENITH_STAFF.get()
         );
