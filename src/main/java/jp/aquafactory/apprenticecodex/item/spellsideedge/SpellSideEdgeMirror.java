@@ -36,7 +36,7 @@ public final class SpellSideEdgeMirror extends AbstractSpellSideEdgeItem {
             stack.setTag(sourceStack.getTag().copy());
         }
         stack.getOrCreateTag().putUUID(INSTANCE_ID_TAG, instanceId);
-        setInitialSpellContainer(stack, SpellRegistry.INSCRIBE_ICE);
+        setInitialSpellContainer(stack, SpellRegistry.ANCHOR_BLINK);
         return stack;
     }
 
@@ -68,7 +68,7 @@ public final class SpellSideEdgeMirror extends AbstractSpellSideEdgeItem {
 
     @Override
     protected Supplier<? extends AbstractSpell> initialSpellSupplier() {
-        return SpellRegistry.INSCRIBE_ICE;
+        return SpellRegistry.ANCHOR_BLINK;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientAnchorBlinkPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
@@ -114,6 +115,11 @@ public final class Networks {
                 ClientJumpcastCharmCastPacket.TYPE,
                 ClientJumpcastCharmCastPacket.STREAM_CODEC,
                 ClientJumpcastCharmCastPacket::handle
+        );
+        registrar.playToServer(
+                ClientAnchorBlinkPacket.TYPE,
+                ClientAnchorBlinkPacket.STREAM_CODEC,
+                ClientAnchorBlinkPacket::handle
         );
         registrar.playToServer(
                 ClientMirageAvoidanceCastPacket.TYPE,

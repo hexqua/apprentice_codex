@@ -11,8 +11,11 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdge;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeMirror;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeOffhandAttributeBridge;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.spell.anchorblink.AnchorBlink;
+import jp.aquafactory.apprenticecodex.spell.anchorblink.AnchorBlinkDaggerEntity;
 import jp.aquafactory.apprenticecodex.spell.edgedancer.EdgeDancer;
 import jp.aquafactory.apprenticecodex.spell.edgedancer.EdgeDancerManager;
 import net.minecraft.core.BlockPos;
@@ -256,8 +259,8 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             helper.assertTrue("copied".equals(mirror.getOrCreateTag().getString("apprenticecodex:test_copy_tag")),
                     "Spell Side Edge Mirror should copy non-spell NBT from the mainhand item");
 
-            assertSpellData(helper, ISpellContainer.get(mirror), 0, SpellRegistry.INSCRIBE_ICE.get(), 1, true,
-                    "Spell Side Edge Mirror should replace its imbued spell with Inscribe Ice");
+            assertSpellData(helper, ISpellContainer.get(mirror), 0, SpellRegistry.ANCHOR_BLINK.get(), 1, true,
+                    "Spell Side Edge Mirror should replace its imbued spell with Anchor Blink");
             assertSpellData(helper, ISpellContainer.get(mainhand), 0, SpellRegistry.EDGE_DANCER.get(), 1, true,
                     "Mainhand Spell Side Edge should keep Edge Dancer");
 
@@ -431,6 +434,104 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
         });
     }
 
+    static void anchorBlinkRequiresGeneratedMirrorAndRestoresOffhandOnCast(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "anchor_blink_cast_condition_test");
+            var magicData = resolveMagicData(helper, player);
+            var spell = anchorBlink();
+
+            helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Anchor Blink should not cast without a generated Spell Side Edge Mirror");
+
+            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(ItemRegistry.SPELL_SIDE_EDGE_MIRROR.get()));
+            helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Anchor Blink should require the managed Edge Dancer Mirror, not a loose Mirror item");
+
+            var mainhand = ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance();
+            player.setItemInHand(InteractionHand.MAIN_HAND, mainhand);
+            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SHIELD));
+            EdgeDancerManager.activate(player, 1, CastSource.SPELLBOOK, magicData, edgeDancer());
+
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Anchor Blink should cast while the managed Mirror is in the offhand");
+
+            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+
+            helper.assertTrue(player.getOffhandItem().is(Items.SHIELD),
+                    "Anchor Blink should restore the original offhand through Edge Dancer deactivation");
+            helper.assertTrue(!Capabilities.getSpellDataOrNull(player)
+                            .get(CodexSpellStateTypeRegister.EDGE_DANCER_STATE).active,
+                    "Anchor Blink should end Edge Dancer when the dagger is thrown");
+            var daggers = helper.getLevel().getEntitiesOfClass(
+                    AnchorBlinkDaggerEntity.class,
+                    player.getBoundingBox().inflate(8.0D)
+            );
+            helper.assertTrue(daggers.size() == 1,
+                    "Anchor Blink should spawn exactly one anchor dagger but got " + daggers.size());
+            helper.assertTrue(daggers.get(0).getDamageForTesting() > 0.0F,
+                    "Anchor Blink dagger should carry spell damage");
+        });
+    }
+
+    static void anchorBlinkPostTeleportProtectionOnlyBlocksEnemyDamage(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "anchor_blink_protection_test");
+            var zombie = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0));
+
+            AnchorBlinkDaggerEntity.grantDamageProtectionForTesting(player, 40);
+
+            var enemyAttack = postLivingAttackEventForGameTest(
+                    player,
+                    helper.getLevel().damageSources().mobAttack(zombie),
+                    4.0F
+            );
+            helper.assertTrue(enemyAttack.isCanceled(),
+                    "Anchor Blink post-teleport protection should block enemy damage");
+
+            var lavaAttack = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 4.0F);
+            helper.assertFalse(lavaAttack.isCanceled(),
+                    "Anchor Blink post-teleport protection should not block non-enemy environmental damage");
+        });
+    }
+
+    static void anchorBlinkImpactBeyondMaximumRangeDiscardsDagger(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "anchor_blink_far_impact_test");
+            var dagger = new AnchorBlinkDaggerEntity(EntityRegistry.ANCHOR_BLINK_DAGGER.get(), helper.getLevel(), player);
+            dagger.setMaximumRange(2.0F);
+            helper.getLevel().addFreshEntity(dagger);
+
+            dagger.impactForTesting(player.position().add(3.0D, 0.0D, 0.0D));
+
+            helper.assertTrue(dagger.isRemoved(),
+                    "Anchor Blink dagger should be discarded when it impacts beyond maximum range");
+            helper.assertFalse(AnchorBlinkDaggerEntity.tryBlink(player),
+                    "Anchor Blink should not register a blink anchor after a too-far impact");
+        });
+    }
+
+    static void anchorBlinkMaximumRangeOnlyChecksAtImpact(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "anchor_blink_impact_range_window_test");
+            var dagger = new AnchorBlinkDaggerEntity(EntityRegistry.ANCHOR_BLINK_DAGGER.get(), helper.getLevel(), player);
+            dagger.setMaximumRange(3.0F);
+            helper.getLevel().addFreshEntity(dagger);
+
+            var impactPosition = player.position().add(2.0D, 0.0D, 0.0D);
+            dagger.impactForTesting(impactPosition);
+            helper.assertTrue(dagger.isImpacted(),
+                    "Anchor Blink dagger should stay anchored when impact occurs within maximum range");
+
+            player.teleportTo(player.getX() + 8.0D, player.getY(), player.getZ());
+            helper.assertTrue(AnchorBlinkDaggerEntity.tryBlink(player),
+                    "Anchor Blink should allow teleporting after the player moves beyond range during the blink window");
+        });
+    }
+
     private static void equipSpellSideEdgePair(net.minecraft.world.entity.player.Player player) {
         var mainhand = ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance();
         player.setItemInHand(InteractionHand.MAIN_HAND, mainhand);
@@ -458,5 +559,9 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
 
     private static EdgeDancer edgeDancer() {
         return (EdgeDancer) SpellRegistry.EDGE_DANCER.get();
+    }
+
+    private static AnchorBlink anchorBlink() {
+        return (AnchorBlink) SpellRegistry.ANCHOR_BLINK.get();
     }
 }

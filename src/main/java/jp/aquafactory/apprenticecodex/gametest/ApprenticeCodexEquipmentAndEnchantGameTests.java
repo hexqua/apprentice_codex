@@ -163,6 +163,26 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void anchorBlinkRequiresGeneratedMirrorAndRestoresOffhandOnCast(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.anchorBlinkRequiresGeneratedMirrorAndRestoresOffhandOnCast(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void anchorBlinkPostTeleportProtectionOnlyBlocksEnemyDamage(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.anchorBlinkPostTeleportProtectionOnlyBlocksEnemyDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void anchorBlinkImpactBeyondMaximumRangeDiscardsDagger(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.anchorBlinkImpactBeyondMaximumRangeDiscardsDagger(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void anchorBlinkMaximumRangeOnlyChecksAtImpact(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.anchorBlinkMaximumRangeOnlyChecksAtImpact(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void fireResistantEquipmentContractsStayInSync(GameTestHelper helper) {
         EquipmentFireResistanceGameTestScenarios.fireResistantEquipmentContractsStayInSync(helper);
     }
