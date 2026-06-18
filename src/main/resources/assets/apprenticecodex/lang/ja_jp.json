@@ -819,7 +819,7 @@
   "ui.apprenticecodex.divine_possession.required_all_pieces": "神降ろしには元素の乙女の装束を全て揃える必要がある！",
   "ui.apprenticecodex.auto_magnet.set_normal_mode": "スニークしていない時に回収するように設定",
   "ui.apprenticecodex.auto_magnet.set_reverse_mode": "スニーク中に回収するように設定",
-  "ui.apprenticecodex.edge_dancer.requires_mirror": "利き手に詠唱補助の刃が必要だ！",
+  "ui.apprenticecodex.edge_dancer.requires_edge": "利き手に詠唱補助の刃が必要だ！",
   "ui.apprenticecodex.anchor_blink.requires_mirror": "オフハンドに詠唱補助の逆刃が必要だ！",
   "ui.apprenticecodex.anchor_blink.ready_for_blink": "ダガーが何かに刺さったため、ジャンプすることで跳躍できる！",
   "ui.apprenticecodex.anchor_blink.too_far": "刺さった場所が遠すぎるため、刺さったダガーが維持できず自壊する...",

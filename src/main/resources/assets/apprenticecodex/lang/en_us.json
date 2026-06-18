@@ -812,7 +812,7 @@
   "ui.apprenticecodex.echo_cast.cannot_echo_more": "You can't echo any more mana!",
   "ui.apprenticecodex.mana_slash.missing_catalyst": "No catalyst to form the blade!",
   "ui.apprenticecodex.divine_possession.required_all_pieces": "Divine Possession requires the full Element Maiden Robe set!",
-  "ui.apprenticecodex.edge_dancer.requires_mirror": "Edge Dancer requires a Spell-Sided Edge in the main hand!",
+  "ui.apprenticecodex.edge_dancer.requires_edge": "Edge Dancer requires a Spell-Sided Edge in the main hand!",
   "ui.apprenticecodex.anchor_blink.requires_mirror": "Anchor Blink requires a Spell-Sided Reverse Edge in the offhand!",
   "ui.apprenticecodex.anchor_blink.ready_for_blink": "The dagger is anchored. Jump to blink to it!",
   "ui.apprenticecodex.anchor_blink.too_far": "The dagger struck too far away, so it can't stay anchored and breaks apart...",
