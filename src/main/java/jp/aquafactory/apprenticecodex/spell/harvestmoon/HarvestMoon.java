@@ -31,7 +31,7 @@ public class HarvestMoon extends AbstractSpell implements ICraftsmansDelightAffe
             .setMinRarity(SpellRarity.UNCOMMON)
             .setSchoolResource(SchoolRegistry.NATURE_RESOURCE)
             .setMaxLevel(4)
-            .setCooldownSeconds(30)
+            .setCooldownSeconds(20)
             .build();
 
     public HarvestMoon() {
