@@ -166,6 +166,27 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
         });
     }
 
+    static void spellSideEdgeBridgeIncludesStackAttributeModifiers(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spellPower = AttributeRegistry.SPELL_POWER.get();
+            var stack = new ItemStack(Items.STICK);
+            stack.addAttributeModifier(
+                    spellPower,
+                    modifier("stack_spell_power", 0.12D, AttributeModifier.Operation.MULTIPLY_BASE),
+                    EquipmentSlot.MAINHAND
+            );
+
+            var bridgedModifiers = SpellSideEdgeOffhandAttributeBridge.buildBridgeModifiers(stack);
+            assertSingleModifierAmount(
+                    helper,
+                    bridgedModifiers.get(spellPower),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.12D,
+                    "Spell Side Edge bridge should include stack AttributeModifiers NBT"
+            );
+        });
+    }
+
     static void spellSideEdgeBridgeSyncsOnlyWhileHeldInMainhand(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_side_edge_bridge_sync_test");
