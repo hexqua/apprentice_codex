@@ -671,7 +671,7 @@
   "spell.apprenticecodex.mana_slash.guide": "刃の結晶杖固有の潜在魔法。魔力を凝縮した刃を放つ。威力は結晶杖の攻撃力に比例する。命中時にマナを回復するオーブを生成する。",
   "spell.apprenticecodex.force_field.guide": "敵の攻撃を方向問わず弾く不可視のフィールドを展開する。弾き飛ばした際に大きくマナを消費するが特定の魔法も弾くことができる。異界の長命種の魔法の模造品。",
   "spell.apprenticecodex.precision_jack.guide": "魔法のナイフを召喚して目の前の対象を裂く。普段よりかなり多くのドロップを期待できるが、発動までに相当数回転させる必要がある。",
-  "spell.apprenticecodex.auto_magnet.guide": "魔導仕掛けの磁石を召喚し追従させる。磁石は近くのアイテムと経験値オーブを回収して術者へ転送するが、インベントリがいっぱいの間はアイテムを回収しない。",
+  "spell.apprenticecodex.auto_magnet.guide": "魔導仕掛けの磁石を召喚し追従させる。磁石は近くのアイテムと経験値オーブを回収して術者へ転送するが、インベントリがいっぱいの間はアイテムを回収しない。スニーク中は回収機能を一時的に停止させることができ、この設定は発動時にスニークしているとスニーク中に回収が機能するように変化させられる。",
   "spell.apprenticecodex.grind_runner.guide": "魔導ホイールを召喚して目の前の対象を削り下ろす。モブだけでなく一部アイテムも削ることができる。魔力を解放するとホイールを射出する。歯車の理が世界に存在する場合、アイテムを削る際に破砕ホイールや石臼で処理したかのように扱う。",
   "spell.apprenticecodex.remote_eye.guide": "視覚を切り離し、一定時間自由に視線を移動させられる。壁を抜けることはできず、効果時間中は無防備。",
   "spell.apprenticecodex.sense_evil.guide": "周囲の不浄な存在を感知して術者の視界に表示する。視線が通っていなくても感知することができ、その不浄な存在を生み出す装置も感知する。",
@@ -811,6 +811,8 @@
   "ui.apprenticecodex.mana_slash.missing_catalyst": "刃を生成する触媒が見つからない！",
   "ui.apprenticecodex.bound_sword.force_try_dual_wield": "強制的に二刀流錬成を実行...",
   "ui.apprenticecodex.divine_possession.required_all_pieces": "神降ろしには元素の乙女の装束を全て揃える必要がある！",
+  "ui.apprenticecodex.auto_magnet.set_normal_mode": "スニークしていない時に回収するように設定",
+  "ui.apprenticecodex.auto_magnet.set_reverse_mode": "スニーク中に回収するように設定",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "射撃モードを%sに設定",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "オーバーヒートで消費マナが%sに増加している！",
