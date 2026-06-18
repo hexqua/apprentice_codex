@@ -7,6 +7,8 @@ import jp.aquafactory.apprenticecodex.entity.PersistentSummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.mixin.ItemEntityAccessor;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -35,6 +37,10 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.UUID;
 
 public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity implements GeoEntity, AntiMagicSusceptible {
+    private static final EntityDataAccessor<Integer> DATA_COLLECTION_MODE =
+            SynchedEntityData.defineId(AutoMagnetFamiliarEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> DATA_COLLECTION_BLOCKED =
+            SynchedEntityData.defineId(AutoMagnetFamiliarEntity.class, EntityDataSerializers.BOOLEAN);
     private static final double ORBIT_RADIUS = 1.4;
     private static final double ORBIT_HEIGHT = 1.2;
     private static final double ORBIT_SPEED = Math.PI / 45.0;
@@ -59,18 +65,25 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
     }
 
     public AutoMagnetFamiliarEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner, double pickupRange, double collectMana) {
+        this(pEntityType, pLevel, owner, pickupRange, collectMana, AutoMagnetCollectionMode.NORMAL);
+    }
+
+    public AutoMagnetFamiliarEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner,
+                                    double pickupRange, double collectMana, AutoMagnetCollectionMode collectionMode) {
         super(pEntityType, pLevel, owner);
         setNoGravity(true);
         noPhysics = true;
         orbitOffset = pLevel.random.nextDouble() * (Math.PI * 2.0);
         this.pickupRange = Math.max(MIN_PICKUP_RANGE, pickupRange);
         this.collectMana = Math.max(0.0, collectMana);
+        setCollectionMode(collectionMode);
         setStandbyPosition(owner);
     }
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        // 同期が必要なデータは持たない.
+        builder.define(DATA_COLLECTION_MODE, AutoMagnetCollectionMode.NORMAL.id());
+        builder.define(DATA_COLLECTION_BLOCKED, false);
     }
 
     @Override
@@ -79,6 +92,9 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
         orbitOffset = pCompound.contains("OrbitOffset") ? pCompound.getDouble("OrbitOffset") : 0.0;
         pickupRange = pCompound.contains("PickupRange") ? pCompound.getDouble("PickupRange") : MIN_PICKUP_RANGE;
         collectMana = pCompound.contains("CollectMana") ? pCompound.getDouble("CollectMana") : 0.0;
+        setCollectionMode(pCompound.contains("CollectionMode")
+                ? AutoMagnetCollectionMode.byName(pCompound.getString("CollectionMode"))
+                : AutoMagnetCollectionMode.NORMAL);
     }
 
     @Override
@@ -87,6 +103,7 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
         pCompound.putDouble("OrbitOffset", orbitOffset);
         pCompound.putDouble("PickupRange", pickupRange);
         pCompound.putDouble("CollectMana", collectMana);
+        pCompound.putString("CollectionMode", getCollectionMode().name());
     }
 
     @Override
@@ -110,7 +127,9 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
         setRot(getYRot(), getXRot());
         hasImpulse = true;
 
-        if (tickCount % COLLECT_INTERVAL_TICK == 0) {
+        var canCollect = getCollectionMode().canCollect(owner.isCrouching());
+        setCollectionBlocked(!canCollect);
+        if (canCollect && tickCount % COLLECT_INTERVAL_TICK == 0) {
             collectNearbyDrops(level, owner);
         }
     }
@@ -201,6 +220,30 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
 
     public double getPickupRange() {
         return pickupRange;
+    }
+
+    public void configureCollection(double pickupRange, double collectMana, AutoMagnetCollectionMode collectionMode) {
+        this.pickupRange = Math.max(MIN_PICKUP_RANGE, pickupRange);
+        this.collectMana = Math.max(0.0, collectMana);
+        setCollectionMode(collectionMode);
+    }
+
+    public AutoMagnetCollectionMode getCollectionMode() {
+        return AutoMagnetCollectionMode.byId(entityData.get(DATA_COLLECTION_MODE));
+    }
+
+    private void setCollectionMode(AutoMagnetCollectionMode collectionMode) {
+        entityData.set(DATA_COLLECTION_MODE, collectionMode.id());
+    }
+
+    public boolean isCollectionBlocked() {
+        return entityData.get(DATA_COLLECTION_BLOCKED);
+    }
+
+    private void setCollectionBlocked(boolean blocked) {
+        if (entityData.get(DATA_COLLECTION_BLOCKED) != blocked) {
+            entityData.set(DATA_COLLECTION_BLOCKED, blocked);
+        }
     }
 
     private Vec3 calculateOrbitPosition(LivingEntity owner) {

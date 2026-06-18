@@ -9,8 +9,10 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -85,9 +87,23 @@ public class AutoMagnet extends AbstractSpell {
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (!level.isClientSide && entity instanceof ServerPlayer serverPlayer) {
-            AutoMagnetFamiliarManager.toggle(serverPlayer, getRange(spellLevel, entity), getCollectMana(spellLevel, entity));
+            var collectionMode = AutoMagnetCollectionMode.fromCrouching(serverPlayer.isCrouching());
+            if (AutoMagnetFamiliarManager.toggle(serverPlayer, getRange(spellLevel, entity), getCollectMana(spellLevel, entity),
+                    collectionMode)) {
+                sendModeMessage(serverPlayer, collectionMode);
+            }
         }
 
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    }
+
+    private static void sendModeMessage(ServerPlayer player, AutoMagnetCollectionMode collectionMode) {
+        var message = switch (collectionMode) {
+            case NORMAL -> Component.translatable("ui.apprenticecodex.auto_magnet.set_normal_mode")
+                    .withStyle(ChatFormatting.GREEN);
+            case REVERSE -> Component.translatable("ui.apprenticecodex.auto_magnet.set_reverse_mode")
+                    .withStyle(ChatFormatting.YELLOW);
+        };
+        player.connection.send(new ClientboundSetActionBarTextPacket(message));
     }
 }
