@@ -1,15 +1,24 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.google.common.collect.ImmutableMultimap;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import jp.aquafactory.apprenticecodex.capability.Capabilities;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdge;
+import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeMirror;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeOffhandAttributeBridge;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.spell.edgedancer.EdgeDancer;
+import jp.aquafactory.apprenticecodex.spell.edgedancer.EdgeDancerManager;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -17,6 +26,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantments;
 
 import java.util.UUID;
 
@@ -177,6 +187,167 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
         });
     }
 
+    static void edgeDancerRequiresMainhandSpellSideEdge(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "edge_dancer_condition_test");
+            var magicData = resolveMagicData(helper, player);
+            var spell = edgeDancer();
+
+            helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Edge Dancer should not cast with empty hands");
+
+            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(ItemRegistry.SPELL_SIDE_EDGE.get()));
+            helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Edge Dancer should not cast from an offhand Spell Side Edge");
+
+            player.setItemInHand(InteractionHand.MAIN_HAND,
+                    ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance());
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Edge Dancer should cast only while Spell Side Edge is in the main hand");
+        });
+    }
+
+    static void edgeDancerGeneratesMirrorAndRestoresEmptyOffhand(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "edge_dancer_empty_offhand_test");
+            var mainhand = ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance();
+            player.setItemInHand(InteractionHand.MAIN_HAND, mainhand);
+
+            EdgeDancerManager.activate(player, 1, CastSource.SPELLBOOK, resolveMagicData(helper, player), edgeDancer());
+
+            var mirror = player.getOffhandItem();
+            helper.assertTrue(SpellSideEdgeMirror.isGeneratedMirror(mirror),
+                    "Edge Dancer should generate a Spell Side Edge Mirror in an empty offhand");
+            helper.assertTrue(player.getMainHandItem() == mainhand,
+                    "Edge Dancer should keep the original mainhand Spell Side Edge stack in place");
+
+            var state = Capabilities.getSpellDataOrNull(player).get(CodexSpellStateTypeRegister.EDGE_DANCER_STATE);
+            helper.assertTrue(state.active && !state.hadStoredOffhand(),
+                    "Edge Dancer state should be active without a stored offhand item");
+
+            EdgeDancerManager.deactivate(player, true);
+            helper.assertTrue(player.getOffhandItem().isEmpty(),
+                    "Edge Dancer should restore an originally empty offhand to empty");
+            helper.assertTrue(!Capabilities.getSpellDataOrNull(player)
+                            .get(CodexSpellStateTypeRegister.EDGE_DANCER_STATE).active,
+                    "Edge Dancer state should be inactive after deactivation");
+        });
+    }
+
+    static void edgeDancerMirrorCopiesEnchantmentsAndReplacesSpell(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "edge_dancer_copy_test");
+            var mainhand = ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance();
+            mainhand.enchant(Enchantments.SHARPNESS, 3);
+            mainhand.getOrCreateTag().putString("apprenticecodex:test_copy_tag", "copied");
+            player.setItemInHand(InteractionHand.MAIN_HAND, mainhand);
+
+            EdgeDancerManager.activate(player, 1, CastSource.SPELLBOOK, resolveMagicData(helper, player), edgeDancer());
+
+            var mirror = player.getOffhandItem();
+            helper.assertTrue(SpellSideEdgeMirror.isGeneratedMirror(mirror),
+                    "Edge Dancer should generate a managed Mirror");
+            helper.assertTrue(mirror.getEnchantmentLevel(Enchantments.SHARPNESS) == 3,
+                    "Spell Side Edge Mirror should copy enchantments from the mainhand item");
+            helper.assertTrue("copied".equals(mirror.getOrCreateTag().getString("apprenticecodex:test_copy_tag")),
+                    "Spell Side Edge Mirror should copy non-spell NBT from the mainhand item");
+
+            assertSpellData(helper, ISpellContainer.get(mirror), 0, SpellRegistry.INSCRIBE_ICE.get(), 1, true,
+                    "Spell Side Edge Mirror should replace its imbued spell with Inscribe Ice");
+            assertSpellData(helper, ISpellContainer.get(mainhand), 0, SpellRegistry.EDGE_DANCER.get(), 1, true,
+                    "Mainhand Spell Side Edge should keep Edge Dancer");
+
+            EdgeDancerManager.deactivate(player, true);
+        });
+    }
+
+    static void edgeDancerRestoresOccupiedOffhand(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "edge_dancer_restore_offhand_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND,
+                    ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance());
+            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SHIELD));
+
+            EdgeDancerManager.activate(player, 1, CastSource.SPELLBOOK, resolveMagicData(helper, player), edgeDancer());
+
+            helper.assertTrue(SpellSideEdgeMirror.isGeneratedMirror(player.getOffhandItem()),
+                    "Edge Dancer should replace an occupied offhand with the Mirror");
+            var state = Capabilities.getSpellDataOrNull(player).get(CodexSpellStateTypeRegister.EDGE_DANCER_STATE);
+            helper.assertTrue(state.hadStoredOffhand() && state.getStoredOffhandStack().is(Items.SHIELD),
+                    "Edge Dancer state should store the replaced offhand item");
+
+            EdgeDancerManager.deactivate(player, true);
+            helper.assertTrue(player.getOffhandItem().is(Items.SHIELD),
+                    "Edge Dancer should restore the replaced offhand item");
+        });
+    }
+
+    static void edgeDancerDeactivatesWhenSpellSideEdgeLeavesInventory(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "edge_dancer_main_loss_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND,
+                    ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance());
+            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SHIELD));
+
+            EdgeDancerManager.activate(player, 1, CastSource.SPELLBOOK, resolveMagicData(helper, player), edgeDancer());
+            var droppedMainhand = player.getMainHandItem().copy();
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+
+            EdgeDancerManager.validateActiveMirrorLocation(player);
+
+            helper.assertTrue(!Capabilities.getSpellDataOrNull(player)
+                            .get(CodexSpellStateTypeRegister.EDGE_DANCER_STATE).active,
+                    "Edge Dancer should deactivate when Spell Side Edge leaves the player inventory");
+            helper.assertTrue(player.getOffhandItem().is(Items.SHIELD),
+                    "Edge Dancer should restore the offhand when the main Spell Side Edge is lost");
+            helper.assertTrue(SpellSideEdge.isSpellSideEdge(droppedMainhand),
+                    "The dropped Spell Side Edge should remain a normal item stack");
+        });
+    }
+
+    static void edgeDancerMainhandDropCancelsAndOnlyDeactivates(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "edge_dancer_main_drop_test");
+            var mainhand = ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance();
+            player.setItemInHand(InteractionHand.MAIN_HAND, mainhand);
+            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SHIELD));
+
+            EdgeDancerManager.activate(player, 1, CastSource.SPELLBOOK, resolveMagicData(helper, player), edgeDancer());
+            var handled = EdgeDancerManager.handlePlayerAction(
+                    player,
+                    new ServerboundPlayerActionPacket(
+                            ServerboundPlayerActionPacket.Action.DROP_ITEM,
+                            BlockPos.ZERO,
+                            Direction.DOWN,
+                            0
+                    )
+            );
+
+            helper.assertTrue(handled,
+                    "Dropping the mainhand Spell Side Edge during Edge Dancer should be cancelled");
+            helper.assertTrue(SpellSideEdge.isSpellSideEdge(player.getMainHandItem()),
+                    "Cancelled Edge Dancer drop should keep Spell Side Edge in the main hand");
+            helper.assertTrue(player.getOffhandItem().is(Items.SHIELD),
+                    "Cancelled Edge Dancer drop should restore the original offhand item");
+            helper.assertTrue(!Capabilities.getSpellDataOrNull(player)
+                            .get(CodexSpellStateTypeRegister.EDGE_DANCER_STATE).active,
+                    "Cancelled Edge Dancer drop should deactivate the effect");
+        });
+    }
+
+    static void spellSideEdgeMirrorOffhandDoesNotApplyVanillaAttackModifiers(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = SpellSideEdgeMirror.create(UUID.randomUUID(),
+                    ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance());
+
+            var modifiers = stack.getAttributeModifiers(EquipmentSlot.OFFHAND);
+            helper.assertTrue(modifiers.get(Attributes.ATTACK_DAMAGE).isEmpty(),
+                    "Spell Side Edge Mirror offhand should not stack vanilla attack damage on the player");
+            helper.assertTrue(modifiers.get(Attributes.ATTACK_SPEED).isEmpty(),
+                    "Spell Side Edge Mirror offhand should not stack vanilla attack speed on the player");
+        });
+    }
+
     private static AttributeModifier modifier(
             String name,
             double amount,
@@ -184,5 +355,15 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
     ) {
         return new AttributeModifier(UUID.nameUUIDFromBytes(name.getBytes(java.nio.charset.StandardCharsets.UTF_8)),
                 name, amount, operation);
+    }
+
+    private static MagicData resolveMagicData(GameTestHelper helper, net.minecraft.world.entity.player.Player player) {
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Edge Dancer test could not resolve player magic data");
+        return magicData;
+    }
+
+    private static EdgeDancer edgeDancer() {
+        return (EdgeDancer) SpellRegistry.EDGE_DANCER.get();
     }
 }

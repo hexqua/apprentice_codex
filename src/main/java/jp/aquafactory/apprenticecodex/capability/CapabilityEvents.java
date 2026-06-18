@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.AbsorptionAmplifyAmuletState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.BoundBowState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.BoundSwordState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.EdgeDancerState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowCastState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowLoanState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
@@ -62,6 +63,7 @@ public class CapabilityEvents {
                                 newSpellData.edit(CodexSpellStateTypeRegister.ABSORPTION_AMPLIFY_AMULET_STATE, AbsorptionAmplifyAmuletState::reset);
                                 newSpellData.edit(CodexSpellStateTypeRegister.BOUND_BOW_STATE, BoundBowState::reset);
                                 newSpellData.edit(CodexSpellStateTypeRegister.BOUND_SWORD_STATE, BoundSwordState::reset);
+                                newSpellData.edit(CodexSpellStateTypeRegister.EDGE_DANCER_STATE, EdgeDancerState::reset);
                                 newSpellData.edit(CodexSpellStateTypeRegister.COMPANION_TRUNK_STATE, state -> {
                                     state.active = false;
                                     state.maxHealth = 0.0;

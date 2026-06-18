@@ -40,6 +40,7 @@ import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeSheathItem;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdge;
+import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeMirror;
 import jp.aquafactory.apprenticecodex.item.spellthrowablecard.SpellAutonomyCard;
 import jp.aquafactory.apprenticecodex.item.spellthrowablecard.SpellInvokeCard;
 import jp.aquafactory.apprenticecodex.item.spellgun.CopperSpellcasterGun;
@@ -321,6 +322,8 @@ public final class ItemRegistry {
             ITEMS.register("mana_force_blade_sheath", ManaForceBladeSheathItem::new);
     public static final RegistryObject<Item> SPELL_SIDE_EDGE =
             ITEMS.register("spell_side_edge", SpellSideEdge::new);
+    public static final RegistryObject<Item> SPELL_SIDE_EDGE_MIRROR =
+            ITEMS.register("spell_side_edge_mirror", SpellSideEdgeMirror::new);
     public static final RegistryObject<Item> COPPER_SWINGCAST_STAFF =
             ITEMS.register("copper_swingcast_staff", CopperSwingcastStaff::new);
     public static final RegistryObject<Item> IRON_SWINGCAST_STAFF =

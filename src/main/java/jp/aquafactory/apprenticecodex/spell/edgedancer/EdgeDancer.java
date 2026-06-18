@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdge;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -112,6 +113,13 @@ public class EdgeDancer extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        if (!level.isClientSide && entity instanceof ServerPlayer serverPlayer) {
+            if (playerMagicData.getPlayerRecasts().hasRecastForSpell(this)) {
+                EdgeDancerManager.deactivate(serverPlayer, true);
+            } else {
+                EdgeDancerManager.activate(serverPlayer, spellLevel, castSource, playerMagicData, this);
+            }
+        }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 
@@ -129,12 +137,16 @@ public class EdgeDancer extends AbstractSpell {
 
     @Override
     public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        return entity instanceof Player && super.checkPreCastConditions(level, spellLevel, entity, playerMagicData);
+        return entity instanceof Player player
+                && (playerMagicData.getPlayerRecasts().hasRecastForSpell(this)
+                || SpellSideEdge.isSpellSideEdge(player.getMainHandItem()))
+                && super.checkPreCastConditions(level, spellLevel, entity, playerMagicData);
     }
 
     @Override
     public void onRecastFinished(ServerPlayer serverPlayer, RecastInstance recastInstance, RecastResult recastResult,
                                  ICastDataSerializable castDataSerializable) {
+        EdgeDancerManager.deactivate(serverPlayer, false);
         if (hasGreaterConjurersTalisman(serverPlayer)) {
             return;
         }
