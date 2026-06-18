@@ -822,7 +822,7 @@
   "ui.apprenticecodex.edge_dancer.requires_mirror": "利き手に詠唱補助の刃が必要だ！",
   "ui.apprenticecodex.anchor_blink.requires_mirror": "オフハンドに詠唱補助の逆刃が必要だ！",
   "ui.apprenticecodex.anchor_blink.ready_for_blink": "ダガーが何かに刺さったため、ジャンプすることで跳躍できる！",
-  "ui.apprenticecodex.anchor_blink.too_far": "刺さった場所が遠すぎる！",
+  "ui.apprenticecodex.anchor_blink.too_far": "刺さった場所が遠すぎるため、刺さったダガーが維持できず自壊する...",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "射撃モードを%sに設定",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "オーバーヒートで消費マナが%sに増加している！",
