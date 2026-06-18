@@ -173,6 +173,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void anchorBlinkPostTeleportProtectionSurvivesOtherDimensionCleanup(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.anchorBlinkPostTeleportProtectionSurvivesOtherDimensionCleanup(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void anchorBlinkImpactBeyondMaximumRangeDiscardsDagger(GameTestHelper helper) {
         SpellSideEdgeGameTestScenarios.anchorBlinkImpactBeyondMaximumRangeDiscardsDagger(helper);
     }

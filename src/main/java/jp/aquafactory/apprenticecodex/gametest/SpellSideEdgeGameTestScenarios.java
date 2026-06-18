@@ -31,6 +31,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.fml.ModList;
@@ -493,6 +494,27 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             var lavaAttack = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 4.0F);
             helper.assertFalse(lavaAttack.isCanceled(),
                     "Anchor Blink post-teleport protection should not block non-enemy environmental damage");
+        });
+    }
+
+    static void anchorBlinkPostTeleportProtectionSurvivesOtherDimensionCleanup(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "anchor_blink_cross_dimension_cleanup_test");
+            var zombie = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0));
+            var nether = helper.getLevel().getServer().getLevel(Level.NETHER);
+            helper.assertTrue(nether != null, "Anchor Blink cleanup test could not resolve the Nether level");
+
+            AnchorBlinkDaggerEntity.grantDamageProtectionForTesting(player, 40);
+            AnchorBlinkDaggerEntity.cleanupExpiredProtection(nether);
+
+            var enemyAttack = postLivingAttackEventForGameTest(
+                    player,
+                    helper.getLevel().damageSources().mobAttack(zombie),
+                    4.0F
+            );
+            helper.assertTrue(enemyAttack.isCanceled(),
+                    "Anchor Blink protection should survive cleanup ticks from another dimension");
         });
     }
 

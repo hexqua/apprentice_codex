@@ -225,7 +225,7 @@ public class AnchorBlinkDaggerEntity extends ThrowableProjectile implements Anti
     }
 
     public static void cleanupExpiredProtection(ServerLevel level) {
-        DAMAGE_PROTECTIONS.entrySet().removeIf(entry -> entry.getValue().isExpired(level));
+        DAMAGE_PROTECTIONS.entrySet().removeIf(entry -> entry.getValue().isExpiredForCleanup(level));
     }
 
     public static void grantDamageProtectionForTesting(ServerPlayer player, int ticks) {
@@ -452,6 +452,10 @@ public class AnchorBlinkDaggerEntity extends ThrowableProjectile implements Anti
 
         private boolean isExpired(ServerLevel level) {
             return !dimension.equals(level.dimension()) || level.getGameTime() >= untilGameTime;
+        }
+
+        private boolean isExpiredForCleanup(ServerLevel level) {
+            return dimension.equals(level.dimension()) && level.getGameTime() >= untilGameTime;
         }
     }
 }
