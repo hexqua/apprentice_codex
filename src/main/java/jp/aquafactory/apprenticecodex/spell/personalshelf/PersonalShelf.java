@@ -177,7 +177,7 @@ public class PersonalShelf extends AbstractSpell implements jp.aquafactory.appre
                                 castData.exportMode,
                                 castData.exportFacing
                         );
-                        chestEntity.setLifeData(getRange());
+                        chestEntity.setLifeRange(getRange());
 
                         var effectCenter = castData.position.getCenter();
                         if (level instanceof ServerLevel server) {

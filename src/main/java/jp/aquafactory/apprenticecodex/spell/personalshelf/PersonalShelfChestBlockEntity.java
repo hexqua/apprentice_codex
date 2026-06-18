@@ -93,7 +93,7 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
         syncToClient();
     }
 
-    public void setLifeData(double keepOwnerRange) {
+    public void setLifeRange(double keepOwnerRange) {
         this.keepOwnerRange = keepOwnerRange;
     }
 
