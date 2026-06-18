@@ -11,9 +11,17 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public final class SpellSideEdge extends AbstractSpellSideEdgeItem {
+    private static final String BETTER_COMBAT_DESCRIPTION_TRANSLATION_KEY =
+            "item.apprenticecodex.spell_side_edge.desc.better_combat";
+
     @Override
     protected Supplier<? extends AbstractSpell> initialSpellSupplier() {
         return SpellRegistry.EDGE_DANCER;
+    }
+
+    @Override
+    protected String betterCombatDescriptionTranslationKey() {
+        return BETTER_COMBAT_DESCRIPTION_TRANSLATION_KEY;
     }
 
     @Override

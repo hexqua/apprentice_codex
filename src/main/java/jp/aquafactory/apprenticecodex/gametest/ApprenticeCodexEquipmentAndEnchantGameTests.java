@@ -618,6 +618,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellSideEdgeBetterCombatTooltipFollowsLoadedMod(GameTestHelper helper) {
+        OffhandAndBetterCombatGameTestScenarios.spellSideEdgeBetterCombatTooltipFollowsLoadedMod(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void betterCombatSpellSideEdgeSuppressesNonMirrorOffhand(GameTestHelper helper) {
+        OffhandAndBetterCombatGameTestScenarios.betterCombatSpellSideEdgeSuppressesNonMirrorOffhand(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void betterCombatOffhandRescueIncludesEnchantAndImbueDerivedModifiers(GameTestHelper helper) {
         OffhandAndBetterCombatGameTestScenarios.betterCombatOffhandRescueIncludesEnchantAndImbueDerivedModifiers(helper);
     }
