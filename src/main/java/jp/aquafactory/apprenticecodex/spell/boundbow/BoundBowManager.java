@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncBoundBowStatePacket;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.boundsword.BoundSwordManager;
+import jp.aquafactory.apprenticecodex.spell.edgedancer.EdgeDancerManager;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -37,6 +38,7 @@ public final class BoundBowManager {
                                 BoundBow spell, int powerLevel, float summonDamageMultiplier) {
         deactivate(player, true);
         BoundSwordManager.deactivate(player, true);
+        EdgeDancerManager.deactivate(player, true);
 
         var spellData = Capabilities.getSpellDataOrNull(player);
         if (spellData == null) {

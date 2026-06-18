@@ -9,10 +9,13 @@ import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.BoundBowItem;
+import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeMirror;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.boundbow.BoundBow;
 import jp.aquafactory.apprenticecodex.spell.boundbow.BoundBowManager;
+import jp.aquafactory.apprenticecodex.spell.edgedancer.EdgeDancer;
+import jp.aquafactory.apprenticecodex.spell.edgedancer.EdgeDancerManager;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.core.BlockPos;
@@ -61,6 +64,35 @@ public final class ApprenticeCodexBoundBowGameTests {
         helper.assertFalse(Capabilities.getSpellDataOrNull(player)
                         .get(CodexSpellStateTypeRegister.BOUND_BOW_STATE).active,
                 "Bound Bow state should be inactive after deactivation");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void boundBowActivationDeactivatesEdgeDancerFirst(GameTestHelper helper) {
+        var player = createBoundBowTestPlayer(helper, "bound_bow_deactivates_edge_dancer_test");
+        var magicData = resolveMagicData(helper, player);
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance());
+        player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SHIELD));
+
+        EdgeDancerManager.activate(player, 1, CastSource.SPELLBOOK, magicData, edgeDancer());
+        helper.assertTrue(SpellSideEdgeMirror.isGeneratedMirror(player.getOffhandItem()),
+                "Edge Dancer should generate a Mirror before Bound Bow activation");
+
+        BoundBowManager.activate(player, 1, CastSource.SPELLBOOK, magicData, boundBow(), 1);
+
+        helper.assertFalse(Capabilities.getSpellDataOrNull(player)
+                        .get(CodexSpellStateTypeRegister.EDGE_DANCER_STATE).active,
+                "Bound Bow activation should deactivate Edge Dancer first");
+        helper.assertTrue(player.getMainHandItem().is(ItemRegistry.BOUND_BOW.get()),
+                "Bound Bow should replace the mainhand item after Edge Dancer is deactivated");
+        helper.assertTrue(player.getOffhandItem().is(Items.SHIELD),
+                "Bound Bow activation should restore the Edge Dancer offhand item");
+
+        BoundBowManager.deactivate(player, true);
+        helper.assertTrue(player.getMainHandItem().is(ItemRegistry.SPELL_SIDE_EDGE.get()),
+                "Bound Bow should restore the pre-cast Spell Side Edge to the main hand");
+        helper.assertTrue(player.getOffhandItem().is(Items.SHIELD),
+                "Bound Bow should keep the restored offhand item after deactivation");
         helper.succeed();
     }
 
@@ -275,5 +307,9 @@ public final class ApprenticeCodexBoundBowGameTests {
 
     private static BoundBow boundBow() {
         return (BoundBow) SpellRegistry.BOUND_BOW.get();
+    }
+
+    private static EdgeDancer edgeDancer() {
+        return (EdgeDancer) SpellRegistry.EDGE_DANCER.get();
     }
 }
