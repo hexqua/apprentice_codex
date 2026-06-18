@@ -29,6 +29,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.ToolAction;
 import net.minecraftforge.common.ToolActions;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,6 +52,7 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem implements Geo
     public static final double ATTACK_DAMAGE_MODIFIER_AMOUNT = DISPLAY_ATTACK_DAMAGE - 1.0D;
     public static final double ATTACK_SPEED_MODIFIER_AMOUNT = -1.6D;
     private static final String DESCRIPTION_TRANSLATION_KEY = "item." + ApprenticeCodex.MODID + ".spell_side_edge.desc";
+    private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_SWORD);
     private static final String MALUM_NAMESPACE = "malum";
@@ -159,6 +161,10 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem implements Geo
                                 @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, level, lines, flag);
         lines.add(Component.translatable(DESCRIPTION_TRANSLATION_KEY).withStyle(ChatFormatting.GRAY));
+        var betterCombatDescriptionTranslationKey = betterCombatDescriptionTranslationKey();
+        if (betterCombatDescriptionTranslationKey != null && ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)) {
+            lines.add(Component.translatable(betterCombatDescriptionTranslationKey).withStyle(ChatFormatting.GRAY));
+        }
     }
 
     @Override
@@ -175,6 +181,11 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem implements Geo
     }
 
     protected abstract Supplier<? extends AbstractSpell> initialSpellSupplier();
+
+    @Nullable
+    protected String betterCombatDescriptionTranslationKey() {
+        return null;
+    }
 
     protected static void setInitialSpellContainer(
             ItemStack stack,

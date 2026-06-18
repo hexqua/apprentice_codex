@@ -27,6 +27,8 @@ import java.util.function.Supplier;
 
 public final class SpellSideEdgeMirror extends AbstractSpellSideEdgeItem {
     private static final String INSTANCE_ID_TAG = "apprenticecodex:edge_dancer_instance_id";
+    private static final String BETTER_COMBAT_DESCRIPTION_TRANSLATION_KEY =
+            "item.apprenticecodex.spell_side_edge_mirror.desc.better_combat";
 
     public static ItemStack create(UUID instanceId, ItemStack sourceStack) {
         var stack = new ItemStack(ItemRegistry.SPELL_SIDE_EDGE_MIRROR.get());
@@ -67,6 +69,11 @@ public final class SpellSideEdgeMirror extends AbstractSpellSideEdgeItem {
     @Override
     protected Supplier<? extends AbstractSpell> initialSpellSupplier() {
         return SpellRegistry.INSCRIBE_ICE;
+    }
+
+    @Override
+    protected String betterCombatDescriptionTranslationKey() {
+        return BETTER_COMBAT_DESCRIPTION_TRANSLATION_KEY;
     }
 
     @Override
