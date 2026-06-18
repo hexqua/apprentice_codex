@@ -33,7 +33,7 @@ public class BreachingEnemy extends AbstractSummonWeaponSpell<BreachingEnemyShot
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.LIGHTNING_RESOURCE)
             .setMaxLevel(5)
-            .setCooldownSeconds(8)
+            .setCooldownSeconds(12)
             .build();
 
     public BreachingEnemy() {
