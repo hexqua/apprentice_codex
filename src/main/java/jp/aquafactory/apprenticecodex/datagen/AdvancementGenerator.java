@@ -427,6 +427,19 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .save(saver, advancementId("craft_photon_siphon"), existingFileHelper);
 
         Advancement.Builder.advancement()
+                .parent(ironAmp)
+                .display(ItemRegistry.SPELL_SIDE_EDGE.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spell_side_edge.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spell_side_edge.description"),
+                        null,
+                        FrameType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_spell_side_edge", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SPELL_SIDE_EDGE.getId()))
+                .save(saver, advancementId("craft_spell_side_edge"), existingFileHelper);
+
+        Advancement.Builder.advancement()
                 .parent(root)
                 .display(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_absorption_amplify_amulet.title"),
