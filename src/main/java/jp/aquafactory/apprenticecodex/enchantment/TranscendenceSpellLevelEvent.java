@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.AbstractSpellSideEdgeItem;
+import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeMirror;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
@@ -58,7 +59,7 @@ public final class TranscendenceSpellLevelEvent {
         // 魔法補助具は従来通りオフハンド限定、spell gun は両手、
         // 右クリック武器系はメイン限定にする。
         var isSupportedSlot =
-                (isOffhandSlot && item instanceof AbstractOffhandMagicItem)
+                (isOffhandSlot && (item instanceof AbstractOffhandMagicItem || item instanceof SpellSideEdgeMirror))
                         || item instanceof AbstractSpellGunItem
                         || item instanceof AlchemistsFlask
                         || (!isOffhandSlot && (item instanceof AbstractRightClickMagicWeaponItem

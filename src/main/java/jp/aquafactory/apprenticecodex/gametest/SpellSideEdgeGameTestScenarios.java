@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.google.common.collect.ImmutableMultimap;
+import io.redspace.ironsspellbooks.api.events.ModifySpellLevelEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
@@ -8,9 +9,11 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceSpellLevelEvent;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdge;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeMirror;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeOffhandAttributeBridge;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -247,6 +250,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "edge_dancer_copy_test");
             var mainhand = ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance();
             mainhand.enchant(Enchantments.SHARPNESS, 3);
+            mainhand.enchant(EnchantmentRegistry.TRANSCENDENCE.get(), 1);
             mainhand.getOrCreateTag().putString("apprenticecodex:test_copy_tag", "copied");
             player.setItemInHand(InteractionHand.MAIN_HAND, mainhand);
 
@@ -257,6 +261,8 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
                     "Edge Dancer should generate a managed Mirror");
             helper.assertTrue(mirror.getEnchantmentLevel(Enchantments.SHARPNESS) == 3,
                     "Spell Side Edge Mirror should copy enchantments from the mainhand item");
+            helper.assertTrue(mirror.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get()) == 1,
+                    "Spell Side Edge Mirror should copy Transcendence from the mainhand item");
             helper.assertTrue("copied".equals(mirror.getOrCreateTag().getString("apprenticecodex:test_copy_tag")),
                     "Spell Side Edge Mirror should copy non-spell NBT from the mainhand item");
 
@@ -264,6 +270,10 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
                     "Spell Side Edge Mirror should replace its imbued spell with Anchor Blink");
             assertSpellData(helper, ISpellContainer.get(mainhand), 0, SpellRegistry.EDGE_DANCER.get(), 1, true,
                     "Mainhand Spell Side Edge should keep Edge Dancer");
+            var levelEvent = new ModifySpellLevelEvent(SpellRegistry.ANCHOR_BLINK.get(), player, 1, 1);
+            TranscendenceSpellLevelEvent.onModifySpellLevel(levelEvent);
+            helper.assertTrue(levelEvent.getLevel() == 2,
+                    "Offhand Spell Side Edge Mirror should apply Transcendence to Anchor Blink");
 
             EdgeDancerManager.deactivate(player, true);
         });
