@@ -758,6 +758,7 @@
   "ui.apprenticecodex.bound_bow.enchantment_power_level": "錬成弓に付呪される射撃ダメージ増加レベル : %s",
   "ui.apprenticecodex.bound_bow.forge_arrow_mana_cost": "矢の錬成に必要なマナ: %s",
   "ui.apprenticecodex.inscribe_ice.notched_frozen_damage": "魔力炸裂時のダメージ: %s",
+  "ui.apprenticecodex.anchor_blink.anchor_distance": "アンカー成立距離: %sブロック",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",

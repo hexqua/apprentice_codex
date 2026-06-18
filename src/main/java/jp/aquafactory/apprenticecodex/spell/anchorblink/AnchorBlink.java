@@ -58,7 +58,7 @@ public class AnchorBlink extends AbstractSpell {
     public List<MutableComponent> getUniqueInfo(int spellLevel, @Nullable LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getMaximumRange(spellLevel, caster), 0))
+                Component.translatable("ui.apprenticecodex.anchor_blink.anchor_distance", Utils.stringTruncation(getAnchorEstablishmentRange(spellLevel, caster), 0))
         );
     }
 
@@ -77,7 +77,7 @@ public class AnchorBlink extends AbstractSpell {
         return 1.8f;
     }
 
-    private float getMaximumRange(int spellLevel, @Nullable LivingEntity caster) {
+    private float getAnchorEstablishmentRange(int spellLevel, @Nullable LivingEntity caster) {
         return Math.min(128, 16 * getSpellPower(spellLevel, caster) / 100.0f);
     }
 
@@ -149,7 +149,7 @@ public class AnchorBlink extends AbstractSpell {
 
             var dagger = new AnchorBlinkDaggerEntity(EntityRegistry.ANCHOR_BLINK_DAGGER.get(), serverLevel, serverPlayer);
             dagger.setDamage(getDamage(spellLevel, entity));
-            dagger.setMaximumRange(getMaximumRange(spellLevel, entity));
+            dagger.setMaximumRange(getAnchorEstablishmentRange(spellLevel, entity));
             dagger.setPos(entity.getEyePosition().add(forward.scale(0.4D)).add(0.0D, -0.18D, 0.0D));
             dagger.shoot(forward.x, forward.y, forward.z, getSpeed(), 0.0F);
             serverLevel.addFreshEntity(dagger);
