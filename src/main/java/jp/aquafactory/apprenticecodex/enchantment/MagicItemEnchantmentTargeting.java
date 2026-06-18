@@ -18,6 +18,7 @@ import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
+import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdge;
 import net.minecraft.world.item.Item;
 
 final class MagicItemEnchantmentTargeting {
@@ -57,6 +58,7 @@ final class MagicItemEnchantmentTargeting {
                 || isSupportedSpellGunItem(item)
                 || item instanceof ElementalBow
                 || item instanceof ManaForceBlade
+                || item instanceof SpellSideEdge
                 || item instanceof ScrollcasterGauntlet
                 || (item instanceof AbstractRightClickMagicWeaponItem && !(item instanceof MithrilFreecastStaff))
                 || item instanceof AlchemistsFlask
@@ -72,6 +74,7 @@ final class MagicItemEnchantmentTargeting {
         return item instanceof AbstractSpellGunItem
                 || item instanceof ElementalBow
                 || item instanceof ManaForceBlade
+                || item instanceof SpellSideEdge
                 || item instanceof PastelStaff
                 || item instanceof MulticastEchoStaff
                 || item instanceof MultipurposeStaffrifle
@@ -89,6 +92,7 @@ final class MagicItemEnchantmentTargeting {
         return item instanceof AbstractSpellGunItem
                 || item instanceof ElementalBow
                 || item instanceof ManaForceBlade
+                || item instanceof SpellSideEdge
                 || item instanceof PastelStaff
                 || item instanceof MulticastEchoStaff
                 || item instanceof MultipurposeStaffrifle

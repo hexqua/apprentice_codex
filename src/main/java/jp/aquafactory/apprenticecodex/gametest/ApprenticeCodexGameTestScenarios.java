@@ -8812,6 +8812,19 @@ public class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
+    static Set<ResourceLocation> expectedSpellSideEdgeEnchantments(ItemStack stack) {
+        var expectedEnchantments = collectAllowedEnchantments(
+                new ItemStack(Items.DIAMOND_SWORD),
+                enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD))
+        );
+        expectedEnchantments.addAll(registryIdSet(
+                EnchantmentRegistry.WISDOM,
+                EnchantmentRegistry.TRANSCENDENCE
+        ));
+        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
+        return expectedEnchantments;
+    }
+
     static Set<ResourceLocation> expectedCircuitHeatStaffEnchantments(ItemStack stack) {
         var expectedEnchantments = collectAllowedEnchantments(
                 new ItemStack(Items.DIAMOND_SWORD),
