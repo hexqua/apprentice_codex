@@ -20,6 +20,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -27,6 +28,9 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.fml.ModList;
 
 import java.util.UUID;
 
@@ -346,6 +350,95 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             helper.assertTrue(modifiers.get(Attributes.ATTACK_SPEED).isEmpty(),
                     "Spell Side Edge Mirror offhand should not stack vanilla attack speed on the player");
         });
+    }
+
+    static void spellSideEdgeMirrorPairBypassesVanillaTargetIframe(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (isCombatOverhaulLoaded()) {
+                return;
+            }
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "spell_side_edge_iframe_pair_test");
+            equipSpellSideEdgePair(player);
+            var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0));
+
+            helper.assertTrue(target.hurt(helper.getLevel().damageSources().playerAttack(player), 2.0F),
+                    "Initial player attack should apply vanilla i-frame setup");
+            MinecraftForge.EVENT_BUS.post(new AttackEntityEvent(player, target));
+            helper.assertTrue(target.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F),
+                    "Spell Side Edge pair should let the recorded vanilla target ignore i-frames");
+        });
+    }
+
+    static void spellSideEdgeRequiresMirrorForVanillaTargetIframeBypass(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "spell_side_edge_iframe_no_mirror_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance());
+            player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
+            var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0));
+
+            helper.assertTrue(target.hurt(helper.getLevel().damageSources().playerAttack(player), 2.0F),
+                    "Initial no-mirror player attack should apply vanilla i-frame setup");
+            MinecraftForge.EVENT_BUS.post(new AttackEntityEvent(player, target));
+            helper.assertFalse(target.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F),
+                    "Spell Side Edge without Mirror should not bypass vanilla i-frames");
+        });
+    }
+
+    static void spellSideEdgeVanillaIframeBypassOnlyAppliesToRecordedTarget(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (isCombatOverhaulLoaded()) {
+                return;
+            }
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "spell_side_edge_iframe_target_only_test");
+            equipSpellSideEdgePair(player);
+            var primaryTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0));
+            var otherTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0));
+
+            helper.assertTrue(primaryTarget.hurt(helper.getLevel().damageSources().playerAttack(player), 2.0F),
+                    "Initial primary target hit should apply vanilla i-frame setup");
+            helper.assertTrue(otherTarget.hurt(helper.getLevel().damageSources().playerAttack(player), 2.0F),
+                    "Initial other target hit should apply vanilla i-frame setup");
+
+            MinecraftForge.EVENT_BUS.post(new AttackEntityEvent(player, primaryTarget));
+            helper.assertFalse(otherTarget.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F),
+                    "Non-recorded sweep-like target should keep vanilla i-frames");
+            helper.assertTrue(primaryTarget.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F),
+                    "Recorded primary target should still consume the pending i-frame bypass");
+        });
+    }
+
+    static void spellSideEdgeVanillaIframeBypassDisabledWithCombatOverhauls(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!isCombatOverhaulLoaded()) {
+                return;
+            }
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "spell_side_edge_iframe_combat_overhaul_test");
+            equipSpellSideEdgePair(player);
+            var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0));
+
+            helper.assertTrue(target.hurt(helper.getLevel().damageSources().playerAttack(player), 2.0F),
+                    "Initial combat-overhaul player attack should apply vanilla i-frame setup");
+            MinecraftForge.EVENT_BUS.post(new AttackEntityEvent(player, target));
+            helper.assertFalse(target.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F),
+                    "Spell Side Edge i-frame bypass should be disabled with BetterCombat or EpicFight loaded");
+        });
+    }
+
+    private static void equipSpellSideEdgePair(net.minecraft.world.entity.player.Player player) {
+        var mainhand = ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance();
+        player.setItemInHand(InteractionHand.MAIN_HAND, mainhand);
+        player.setItemInHand(InteractionHand.OFF_HAND, SpellSideEdgeMirror.create(UUID.randomUUID(), mainhand));
+    }
+
+    private static boolean isCombatOverhaulLoaded() {
+        return ModList.get().isLoaded("bettercombat") || ModList.get().isLoaded("epicfight");
     }
 
     private static AttributeModifier modifier(
