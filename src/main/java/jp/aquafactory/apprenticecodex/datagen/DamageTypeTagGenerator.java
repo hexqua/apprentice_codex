@@ -135,7 +135,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 HEAVENLY_FIST,
                 LETHAL_ASSAULT,
                 DUAL_ACROBAT,
-                ARTISAN_SMASH
+                ARTISAN_SMASH,
+                ANCHOR_BLINK
         );
 
         // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
@@ -218,7 +219,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 HEAVENLY_FIST,
                 LETHAL_ASSAULT,
                 DUAL_ACROBAT,
-                ARTISAN_SMASH
+                ARTISAN_SMASH,
+                ANCHOR_BLINK
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.
@@ -245,7 +247,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 MOON_LIGHT,
                 UNITE_LUNA,
                 HAUNTED_BONUS,
-                MYSTIC_SHIELD
+                MYSTIC_SHIELD,
+                ANCHOR_BLINK
         );
 
         // Malum連携: 魔法ダメージ全体をSoul Shatter判定対象にする.
