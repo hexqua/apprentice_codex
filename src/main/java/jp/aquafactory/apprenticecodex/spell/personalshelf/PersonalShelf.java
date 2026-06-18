@@ -44,26 +44,21 @@ public class PersonalShelf extends AbstractSpell implements jp.aquafactory.appre
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.ENDER_RESOURCE)
             .setMaxLevel(1)
-            .setCooldownSeconds(30)
+            .setCooldownSeconds(5)
             .build();
 
     public PersonalShelf() {
-        baseSpellPower = 100;
+        baseSpellPower = 0;
         spellPowerPerLevel = 0;
-        baseManaCost = 100;
+        baseManaCost = 50;
         manaCostPerLevel = 0;
         castTime = 20;
     }
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.irons_spellbooks.duration", Utils.timeFromTicks(getDurationTicks(), 1)),
                 Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1))
         );
-    }
-
-    private int getDurationTicks(){
-        return 20 * 60;
     }
 
     private double getRange(){
@@ -184,10 +179,7 @@ public class PersonalShelf extends AbstractSpell implements jp.aquafactory.appre
                                 castData.exportMode,
                                 castData.exportFacing
                         );
-                        chestEntity.setLifeData(
-                                getDurationTicks(),
-                                getRange()
-                        );
+                        chestEntity.setLifeRange(getRange());
 
                         var effectCenter = castData.position.getCenter();
                         if (level instanceof ServerLevel server) {

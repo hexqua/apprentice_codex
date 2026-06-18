@@ -5988,7 +5988,7 @@ public class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var shelf = getPersonalShelfBlockEntity(helper, absoluteShelfPos);
             shelf.setShelfData(player, false, Direction.NORTH);
-            shelf.setLifeData(20 * 60, 10.0);
+            shelf.setLifeRange(10.0);
             var personalInventory = jp.aquafactory.apprenticecodex.capability.Capabilities.getPersonalInventory(player)
                     .orElseThrow(() -> new IllegalStateException("Missing personal inventory for Personal Shelf GameTest"));
 
@@ -6022,7 +6022,9 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(player.openMenu(shelf).isPresent(), "Personal Shelf should open before the expiration check");
             helper.assertTrue(player.containerMenu instanceof ChestMenu,
                     "Personal Shelf should still be using ChestMenu during the expiration check");
-            shelf.setLifeData(1, 8.0);
+            // 現在の Personal Shelf は tick 寿命ではなく、所有者が維持範囲外に出た時に失効する。
+            var awayPos = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(10, 2, 0)));
+            player.setPos(awayPos.x, awayPos.y, awayPos.z);
         });
 
         helper.succeedWhen(() -> {
