@@ -22,6 +22,7 @@ import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossession;
 import jp.aquafactory.apprenticecodex.spell.dualacrobat.DualAcrobat;
 import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
 import jp.aquafactory.apprenticecodex.spell.echocast.EchoCast;
+import jp.aquafactory.apprenticecodex.spell.edgedancer.EdgeDancer;
 import jp.aquafactory.apprenticecodex.spell.extract.Extract;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRush;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatter;
@@ -121,6 +122,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> BOUND_SWORD = reg("bound_sword", BoundSword::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> BOUND_BOW = reg("bound_bow", BoundBow::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> LETHAL_ASSAULT = reg("lethal_assault", LethalAssault::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> EDGE_DANCER = reg("edge_dancer", EdgeDancer::new);
 
     // 炎.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);
