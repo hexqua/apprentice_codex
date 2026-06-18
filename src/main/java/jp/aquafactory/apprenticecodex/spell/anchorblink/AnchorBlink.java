@@ -9,13 +9,23 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
+import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeMirror;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.spell.edgedancer.EdgeDancerManager;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -48,7 +58,8 @@ public class AnchorBlink extends AbstractSpell {
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, @Nullable LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2))
+                Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getMaximumRange(spellLevel, caster), 0))
         );
     }
 
@@ -64,7 +75,15 @@ public class AnchorBlink extends AbstractSpell {
     }
 
     private float getSpeed() {
-        return 1.5f;
+        return 1.8f;
+    }
+
+    private float getMaximumRange(int spellLevel, @Nullable LivingEntity caster) {
+        return Math.min(128, 16 * getSpellPower(spellLevel, caster) / 100.0f);
+    }
+
+    public static boolean hasRequiredMirror(Player player) {
+        return SpellSideEdgeMirror.isGeneratedMirror(player.getItemInHand(InteractionHand.OFF_HAND));
     }
 
     @Override
@@ -103,7 +122,38 @@ public class AnchorBlink extends AbstractSpell {
     }
 
     @Override
+    public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        if (!(entity instanceof Player player) || !hasRequiredMirror(player)) {
+            if (!level.isClientSide && entity instanceof ServerPlayer serverPlayer) {
+                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                        Component.translatable("ui.apprenticecodex.anchor_blink.requires_mirror")
+                                .withStyle(ChatFormatting.RED)
+                ));
+            }
+            return false;
+        }
+
+        return super.checkPreCastConditions(level, spellLevel, entity, playerMagicData);
+    }
+
+    @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        if (level instanceof ServerLevel serverLevel && entity instanceof ServerPlayer serverPlayer) {
+            var forward = entity.getLookAngle();
+            if (forward.lengthSqr() <= 1.0E-8D) {
+                forward = new Vec3(0.0D, 0.0D, 1.0D);
+            }
+            forward = forward.normalize();
+
+            var dagger = new AnchorBlinkDaggerEntity(EntityRegistry.ANCHOR_BLINK_DAGGER.get(), serverLevel, serverPlayer);
+            dagger.setDamage(getDamage(spellLevel, entity));
+            dagger.setMaximumRange(getMaximumRange(spellLevel, entity));
+            dagger.setPos(entity.getEyePosition().add(forward.scale(0.4D)).add(0.0D, -0.18D, 0.0D));
+            dagger.shoot(forward.x, forward.y, forward.z, getSpeed(), 0.0F);
+            serverLevel.addFreshEntity(dagger);
+
+            EdgeDancerManager.deactivate(serverPlayer, true);
+        }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 }

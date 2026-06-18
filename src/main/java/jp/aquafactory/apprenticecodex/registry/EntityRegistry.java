@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamEntity;
+import jp.aquafactory.apprenticecodex.spell.anchorblink.AnchorBlinkDaggerEntity;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashLauncherEntity;
 import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashShellEntity;
@@ -124,6 +125,9 @@ public final class EntityRegistry {
 
     public static final RegistryObject<EntityType<InscribeIceDaggerEntity>> INSCRIBE_ICE_DAGGER =
             regProjectile("inscribe_ice_dagger", InscribeIceDaggerEntity::new, 128, 1);
+
+    public static final RegistryObject<EntityType<AnchorBlinkDaggerEntity>> ANCHOR_BLINK_DAGGER =
+            regProjectile("anchor_blink_dagger", AnchorBlinkDaggerEntity::new, 128, 1);
 
     public static final RegistryObject<EntityType<ManaForceBladeProjectileEntity>> MANA_FORCE_BLADE_PROJECTILE =
             regProjectile("mana_force_blade_projectile", ManaForceBladeProjectileEntity::new, 128, 1);

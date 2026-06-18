@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientAnchorBlinkPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
@@ -58,7 +59,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "46";
+    private static final String PROTOCOL_VERSION = "47";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -184,6 +185,14 @@ public final class Networks {
                 ClientJumpcastCharmCastPacket::encode,
                 ClientJumpcastCharmCastPacket::decode,
                 ClientJumpcastCharmCastPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER)
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                ClientAnchorBlinkPacket.class,
+                ClientAnchorBlinkPacket::encode,
+                ClientAnchorBlinkPacket::decode,
+                ClientAnchorBlinkPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER)
         );
         CHANNEL.registerMessage(
