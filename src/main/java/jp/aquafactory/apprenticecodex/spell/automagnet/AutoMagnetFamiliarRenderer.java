@@ -15,7 +15,7 @@ import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 public class AutoMagnetFamiliarRenderer extends GeoEntityRenderer<AutoMagnetFamiliarEntity> {
     private static final String GEM_BONE = "gem";
@@ -33,18 +33,18 @@ public class AutoMagnetFamiliarRenderer extends GeoEntityRenderer<AutoMagnetFami
     @Override
     public void postRender(PoseStack poseStack, AutoMagnetFamiliarEntity animatable, BakedGeoModel model,
                            MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                           int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                           int packedLight, int packedOverlay, int colour) {
         super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight,
-                packedOverlay, red, green, blue, alpha);
+                packedOverlay, colour);
 
         if (isReRender) {
             return;
         }
 
         if (animatable.isCollectionBlocked()) {
-            renderGemPass(model, poseStack, bufferSource, animatable, partialTick, 1.0F, 0.08F, 0.04F, alpha);
+            renderGemPass(model, poseStack, bufferSource, animatable, partialTick, withRgb(colour, 0xFF140A));
         } else {
-            renderGemPass(model, poseStack, bufferSource, animatable, partialTick, red, green, blue, alpha);
+            renderGemPass(model, poseStack, bufferSource, animatable, partialTick, colour);
         }
     }
 
@@ -52,12 +52,12 @@ public class AutoMagnetFamiliarRenderer extends GeoEntityRenderer<AutoMagnetFami
     public void renderRecursively(PoseStack poseStack, AutoMagnetFamiliarEntity animatable, GeoBone bone,
                                   RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                   boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                  float red, float green, float blue, float alpha) {
+                                  int colour) {
         var gemBone = isBoneOrChildOf(bone, GEM_BONE);
         if (!renderingGem && gemBone) {
             renderChildBonesOnly(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
@@ -66,21 +66,21 @@ public class AutoMagnetFamiliarRenderer extends GeoEntityRenderer<AutoMagnetFami
             if (gemBone) {
                 super.renderRecursively(
                         poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                        packedLight, packedOverlay, red, green, blue, alpha
+                        packedLight, packedOverlay, colour
                 );
                 return;
             }
 
             renderChildBonesOnly(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
@@ -92,7 +92,7 @@ public class AutoMagnetFamiliarRenderer extends GeoEntityRenderer<AutoMagnetFami
 
     private void renderGemPass(BakedGeoModel model, PoseStack poseStack, MultiBufferSource bufferSource,
                                AutoMagnetFamiliarEntity animatable, float partialTick,
-                               float red, float green, float blue, float alpha) {
+                               int colour) {
         renderingGem = true;
         try {
             this.reRender(
@@ -105,10 +105,7 @@ public class AutoMagnetFamiliarRenderer extends GeoEntityRenderer<AutoMagnetFami
                     partialTick,
                     LightTexture.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    colour
             );
         } finally {
             renderingGem = false;
@@ -118,16 +115,16 @@ public class AutoMagnetFamiliarRenderer extends GeoEntityRenderer<AutoMagnetFami
     private void renderChildBonesOnly(PoseStack poseStack, AutoMagnetFamiliarEntity animatable, GeoBone bone,
                                       RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                       boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                      float red, float green, float blue, float alpha) {
+                                      int colour) {
         poseStack.pushPose();
 
         if (bone.isTrackingMatrices()) {
             Matrix4f poseState = new Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.entityRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.entityRenderTranslations));
         }
 
-        RenderUtils.prepMatrixForBone(poseStack, bone);
+        RenderUtil.prepMatrixForBone(poseStack, bone);
         renderChildBones(
                 poseStack,
                 animatable,
@@ -139,10 +136,7 @@ public class AutoMagnetFamiliarRenderer extends GeoEntityRenderer<AutoMagnetFami
                 partialTick,
                 packedLight,
                 packedOverlay,
-                red,
-                green,
-                blue,
-                alpha
+                colour
         );
         poseStack.popPose();
     }
@@ -154,5 +148,9 @@ public class AutoMagnetFamiliarRenderer extends GeoEntityRenderer<AutoMagnetFami
             }
         }
         return false;
+    }
+
+    private static int withRgb(int colour, int rgb) {
+        return (colour & 0xFF000000) | rgb;
     }
 }
