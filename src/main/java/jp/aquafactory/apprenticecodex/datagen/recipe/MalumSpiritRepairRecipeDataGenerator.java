@@ -33,22 +33,24 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
     @Override
     public @NotNull CompletableFuture<?> run(@NotNull CachedOutput cachedOutput) {
         // Malum は通常の修理素材定義から魂のるつぼ対象を自動解決しないため、対象装備と spirit コストを明示する。
+        // 素材ごとにアイテムリストをまとめることで JEI の表示を整理する。
         var recipes = List.of(
                 recipe(
-                        "apprentice_mage_robe",
+                        "arcane_essence_armaments_repair",
                         0.5F,
                         List.of(
                                 jp.aquafactory.apprenticecodex.registry.ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
                                 jp.aquafactory.apprenticecodex.registry.ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
                                 jp.aquafactory.apprenticecodex.registry.ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
-                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.APPRENTICE_MAGE_BOOTS.get()
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.APPRENTICE_MAGE_BOOTS.get(),
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.REFLECTCAST_SHIELD.get()
                         ),
                         io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get(),
                         1,
                         List.of(spirit(ARCANE_SPIRIT, 8))
                 ),
                 recipe(
-                        "enchantress_robe",
+                        "hogskin_armaments_repair",
                         0.5F,
                         List.of(
                                 jp.aquafactory.apprenticecodex.registry.ItemRegistry.ENCHANTRESS_HAT.get(),
@@ -64,27 +66,13 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
                         )
                 ),
                 recipe(
-                        "chromatic_magia_dress",
+                        "mithril_scrap_armaments_repair",
                         1.0F,
                         List.of(
                                 jp.aquafactory.apprenticecodex.registry.ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
                                 jp.aquafactory.apprenticecodex.registry.ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
                                 jp.aquafactory.apprenticecodex.registry.ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
-                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()
-                        ),
-                        io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get(),
-                        1,
-                        List.of(
-                                spirit(ARCANE_SPIRIT, 16),
-                                spirit(EARTH_SPIRIT, 16),
-                                spirit(SACRED_SPIRIT, 16),
-                                spirit(ELDRITCH_SPIRIT, 4)
-                        )
-                ),
-                recipe(
-                        "element_maiden_robe",
-                        1.0F,
-                        List.of(
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get(),
                                 jp.aquafactory.apprenticecodex.registry.ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
                                 jp.aquafactory.apprenticecodex.registry.ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
                                 jp.aquafactory.apprenticecodex.registry.ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
@@ -98,14 +86,6 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
                                 spirit(SACRED_SPIRIT, 16),
                                 spirit(ELDRITCH_SPIRIT, 4)
                         )
-                ),
-                recipe(
-                        "reflectcast_shield",
-                        0.5F,
-                        List.of(jp.aquafactory.apprenticecodex.registry.ItemRegistry.REFLECTCAST_SHIELD.get()),
-                        io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get(),
-                        1,
-                        List.of(spirit(ARCANE_SPIRIT, 8))
                 ),
                 recipe(
                         "arcane_ingot_armaments_repair",
