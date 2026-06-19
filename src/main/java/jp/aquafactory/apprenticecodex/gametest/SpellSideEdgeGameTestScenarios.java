@@ -166,6 +166,37 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
         });
     }
 
+    static void spellSideEdgeBridgeIgnoresVanillaAttackAttributes(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spellPower = AttributeRegistry.SPELL_POWER.get();
+            var mainhandModifiers = ImmutableMultimap.<Attribute, AttributeModifier>builder()
+                    .put(Attributes.ATTACK_DAMAGE,
+                            modifier("main_attack_damage", 3.0D, AttributeModifier.Operation.ADDITION))
+                    .put(Attributes.ATTACK_SPEED,
+                            modifier("main_attack_speed", -1.6D, AttributeModifier.Operation.ADDITION))
+                    .put(spellPower, modifier("main_spell_power", 0.10D, AttributeModifier.Operation.MULTIPLY_BASE))
+                    .build();
+
+            var bridgedModifiers = SpellSideEdgeOffhandAttributeBridge.buildBridgeModifiers(
+                    mainhandModifiers,
+                    ImmutableMultimap.of()
+            );
+            helper.assertTrue(bridgedModifiers.get(Attributes.ATTACK_DAMAGE).isEmpty(),
+                    "Spell Side Edge bridge should not copy vanilla attack damage: "
+                            + describeModifiers(bridgedModifiers));
+            helper.assertTrue(bridgedModifiers.get(Attributes.ATTACK_SPEED).isEmpty(),
+                    "Spell Side Edge bridge should not copy vanilla attack speed: "
+                            + describeModifiers(bridgedModifiers));
+            assertSingleModifierAmount(
+                    helper,
+                    bridgedModifiers.get(spellPower),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.10D,
+                    "Spell Side Edge bridge should still copy spellcasting attributes"
+            );
+        });
+    }
+
     static void spellSideEdgeBridgeIncludesStackAttributeModifiers(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spellPower = AttributeRegistry.SPELL_POWER.get();
@@ -417,6 +448,14 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
                     "Spell Side Edge Mirror offhand should not stack vanilla attack damage on the player");
             helper.assertTrue(modifiers.get(Attributes.ATTACK_SPEED).isEmpty(),
                     "Spell Side Edge Mirror offhand should not stack vanilla attack speed on the player");
+
+            var bridgedModifiers = SpellSideEdgeOffhandAttributeBridge.buildBridgeModifiers(stack);
+            helper.assertTrue(bridgedModifiers.get(Attributes.ATTACK_DAMAGE).isEmpty(),
+                    "Spell Side Edge bridge should not copy Mirror mainhand attack damage: "
+                            + describeModifiers(bridgedModifiers));
+            helper.assertTrue(bridgedModifiers.get(Attributes.ATTACK_SPEED).isEmpty(),
+                    "Spell Side Edge bridge should not copy Mirror mainhand attack speed: "
+                            + describeModifiers(bridgedModifiers));
         });
     }
 

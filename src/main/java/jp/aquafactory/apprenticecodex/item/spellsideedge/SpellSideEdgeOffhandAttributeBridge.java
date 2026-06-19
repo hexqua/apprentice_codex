@@ -7,6 +7,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
@@ -83,6 +84,10 @@ public final class SpellSideEdgeOffhandAttributeBridge {
         var offhandMultiplyTotalKeys = new HashSet<ModifierKey>();
 
         for (var entry : mainhandModifiers.entries()) {
+            if (!isBridgeableAttribute(entry.getKey())) {
+                continue;
+            }
+
             var modifier = entry.getValue();
             var key = new ModifierKey(entry.getKey(), modifier.getOperation());
             switch (modifier.getOperation()) {
@@ -93,6 +98,10 @@ public final class SpellSideEdgeOffhandAttributeBridge {
 
         if (offhandModifiers != null && !offhandModifiers.isEmpty()) {
             for (var entry : offhandModifiers.entries()) {
+                if (!isBridgeableAttribute(entry.getKey())) {
+                    continue;
+                }
+
                 var modifier = entry.getValue();
                 var key = new ModifierKey(entry.getKey(), modifier.getOperation());
                 switch (modifier.getOperation()) {
@@ -153,6 +162,11 @@ public final class SpellSideEdgeOffhandAttributeBridge {
         );
         MinecraftForge.EVENT_BUS.post(event);
         return ImmutableMultimap.copyOf(event.getModifiers());
+    }
+
+    private static boolean isBridgeableAttribute(Attribute attribute) {
+        // 近接攻撃力と攻撃速度は利き手武器側の戦闘性能として扱い、魔法行使用のブリッジには乗せない。
+        return attribute != Attributes.ATTACK_DAMAGE && attribute != Attributes.ATTACK_SPEED;
     }
 
     private static Set<ModifierSnapshot> snapshotModifiers(Multimap<Attribute, AttributeModifier> modifiers) {
