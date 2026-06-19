@@ -20,32 +20,33 @@ import java.util.LinkedHashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 public final class SpellSideEdgeOffhandAttributeBridge {
     private static final String MODIFIER_NAME_PREFIX = "apprenticecodex.spell_side_edge.offhand_mainhand_attribute";
-    private static final Map<UUID, Multimap<Attribute, AttributeModifier>> APPLIED_MODIFIERS = new HashMap<>();
+    private static final Map<UUID, AppliedBridgeModifiers> APPLIED_MODIFIERS = new HashMap<>();
 
     private SpellSideEdgeOffhandAttributeBridge() {
     }
 
     public static void sync(ServerPlayer player) {
         var desiredModifiers = resolveDesiredModifiers(player);
+        var desiredSnapshot = snapshotModifiers(desiredModifiers);
         var playerId = player.getUUID();
         var appliedModifiers = APPLIED_MODIFIERS.get(playerId);
-        if (Objects.equals(appliedModifiers, desiredModifiers)) {
+        if (appliedModifiers != null && appliedModifiers.snapshot().equals(desiredSnapshot)) {
             return;
         }
 
-        removeModifiers(player, appliedModifiers);
+        removeModifiers(player, appliedModifiers == null ? null : appliedModifiers.modifiers());
         if (desiredModifiers.isEmpty()) {
             APPLIED_MODIFIERS.remove(playerId);
             return;
         }
 
         applyModifiers(player, desiredModifiers);
-        APPLIED_MODIFIERS.put(playerId, desiredModifiers);
+        APPLIED_MODIFIERS.put(playerId, new AppliedBridgeModifiers(desiredModifiers, desiredSnapshot));
     }
 
     public static void clear(Player player) {
@@ -53,7 +54,8 @@ public final class SpellSideEdgeOffhandAttributeBridge {
             return;
         }
 
-        removeModifiers(player, APPLIED_MODIFIERS.remove(player.getUUID()));
+        var appliedModifiers = APPLIED_MODIFIERS.remove(player.getUUID());
+        removeModifiers(player, appliedModifiers == null ? null : appliedModifiers.modifiers());
     }
 
     public static Multimap<Attribute, AttributeModifier> buildBridgeModifiers(ItemStack offhandStack) {
@@ -153,6 +155,40 @@ public final class SpellSideEdgeOffhandAttributeBridge {
         return ImmutableMultimap.copyOf(event.getModifiers());
     }
 
+    private static Set<ModifierSnapshot> snapshotModifiers(Multimap<Attribute, AttributeModifier> modifiers) {
+        if (modifiers == null || modifiers.isEmpty()) {
+            return Set.of();
+        }
+
+        var amounts = new LinkedHashMap<ModifierKey, Double>();
+        for (var entry : modifiers.entries()) {
+            var modifier = entry.getValue();
+            var key = new ModifierKey(entry.getKey(), modifier.getOperation());
+            switch (modifier.getOperation()) {
+                case ADDITION, MULTIPLY_BASE -> amounts.merge(key, modifier.getAmount(), Double::sum);
+                case MULTIPLY_TOTAL -> amounts.merge(key, 1.0D + modifier.getAmount(), (left, right) -> left * right);
+            }
+        }
+
+        var snapshots = new HashSet<ModifierSnapshot>();
+        for (var entry : amounts.entrySet()) {
+            var key = entry.getKey();
+            var amount = key.operation() == AttributeModifier.Operation.MULTIPLY_TOTAL
+                    ? entry.getValue() - 1.0D
+                    : entry.getValue();
+            snapshots.add(new ModifierSnapshot(
+                    key.attribute(),
+                    key.operation(),
+                    Double.doubleToLongBits(normalizeAmount(amount))
+            ));
+        }
+        return Set.copyOf(snapshots);
+    }
+
+    private static double normalizeAmount(double amount) {
+        return amount == 0.0D ? 0.0D : amount;
+    }
+
     private static AttributeModifier remapModifier(Attribute attribute, AttributeModifier modifier) {
         var modifierIdSeed = MODIFIER_NAME_PREFIX
                 + ".copy."
@@ -222,6 +258,19 @@ public final class SpellSideEdgeOffhandAttributeBridge {
     private record ModifierKey(
             Attribute attribute,
             AttributeModifier.Operation operation
+    ) {
+    }
+
+    private record ModifierSnapshot(
+            Attribute attribute,
+            AttributeModifier.Operation operation,
+            long amountBits
+    ) {
+    }
+
+    private record AppliedBridgeModifiers(
+            Multimap<Attribute, AttributeModifier> modifiers,
+            Set<ModifierSnapshot> snapshot
     ) {
     }
 }
