@@ -187,6 +187,39 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
         });
     }
 
+    static void spellSideEdgeBridgeResyncsChangedStackAttributeAmounts(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "spell_side_edge_bridge_amount_resync_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SPELL_SIDE_EDGE.get()));
+
+            var spellPowerAttribute = AttributeRegistry.SPELL_POWER.get();
+            var spellPowerInstance = player.getAttribute(spellPowerAttribute);
+            helper.assertTrue(spellPowerInstance != null,
+                    "Spell Side Edge bridge amount resync test could not resolve player spell power attribute");
+
+            player.setItemInHand(InteractionHand.OFF_HAND, stackWithSpellPowerModifier(0.05D));
+            SpellSideEdgeOffhandAttributeBridge.sync(player);
+            var initialAmount = sumModifierAmount(
+                    spellPowerInstance.getModifiers(),
+                    AttributeModifier.Operation.MULTIPLY_BASE
+            );
+            helper.assertTrue(Math.abs(initialAmount - 0.05D) < TOLERANCE,
+                    "Spell Side Edge bridge should apply initial stack AttributeModifiers amount, got "
+                            + initialAmount + " modifiers=" + spellPowerInstance.getModifiers());
+
+            player.setItemInHand(InteractionHand.OFF_HAND, stackWithSpellPowerModifier(0.12D));
+            SpellSideEdgeOffhandAttributeBridge.sync(player);
+            var resyncedAmount = sumModifierAmount(
+                    spellPowerInstance.getModifiers(),
+                    AttributeModifier.Operation.MULTIPLY_BASE
+            );
+            helper.assertTrue(Math.abs(resyncedAmount - 0.12D) < TOLERANCE,
+                    "Spell Side Edge bridge should replace stale stack AttributeModifiers amount, got "
+                            + resyncedAmount + " modifiers=" + spellPowerInstance.getModifiers());
+        });
+    }
+
     static void spellSideEdgeBridgeSyncsOnlyWhileHeldInMainhand(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_side_edge_bridge_sync_test");
@@ -602,6 +635,16 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
     ) {
         return new AttributeModifier(UUID.nameUUIDFromBytes(name.getBytes(java.nio.charset.StandardCharsets.UTF_8)),
                 name, amount, operation);
+    }
+
+    private static ItemStack stackWithSpellPowerModifier(double amount) {
+        var stack = new ItemStack(Items.STICK);
+        stack.addAttributeModifier(
+                AttributeRegistry.SPELL_POWER.get(),
+                modifier("stack_spell_power", amount, AttributeModifier.Operation.MULTIPLY_BASE),
+                EquipmentSlot.MAINHAND
+        );
+        return stack;
     }
 
     private static MagicData resolveMagicData(GameTestHelper helper, net.minecraft.world.entity.player.Player player) {

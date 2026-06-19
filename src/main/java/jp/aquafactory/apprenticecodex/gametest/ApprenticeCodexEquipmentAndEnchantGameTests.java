@@ -108,6 +108,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellSideEdgeBridgeResyncsChangedStackAttributeAmounts(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.spellSideEdgeBridgeResyncsChangedStackAttributeAmounts(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellSideEdgeBridgeSyncsOnlyWhileHeldInMainhand(GameTestHelper helper) {
         SpellSideEdgeGameTestScenarios.spellSideEdgeBridgeSyncsOnlyWhileHeldInMainhand(helper);
     }
