@@ -67,7 +67,10 @@ public final class EnchantmentTagGenerator extends EnchantmentTagsProvider {
                         Enchantments.LARGE_MUG,
                         Enchantments.RED_ENERGY,
                         Enchantments.GLOW_ENERGY,
-                        Enchantments.SYNTHESIS
+                        Enchantments.SYNTHESIS,
+                        Enchantments.SHELL,
+                        Enchantments.SYNCHRONIZATION,
+                        Enchantments.NEUTRALIZATION
                 );
 
         tag(EnchantmentTags.TRADEABLE)

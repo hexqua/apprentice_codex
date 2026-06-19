@@ -525,9 +525,9 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             assertApprenticeEnchantmentFlags(helper, Enchantments.RED_ENERGY, false, true, false, false);
             assertApprenticeEnchantmentFlags(helper, Enchantments.GLOW_ENERGY, false, true, false, false);
             assertApprenticeEnchantmentFlags(helper, Enchantments.SYNTHESIS, false, true, false, false);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.SHELL, false, false, false, false);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.SYNCHRONIZATION, false, false, false, false);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.NEUTRALIZATION, false, false, false, false);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.SHELL, false, true, false, false);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.SYNCHRONIZATION, false, true, false, false);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.NEUTRALIZATION, false, true, false, false);
         });
     }
     static void randomApplicableBookEnchantmentsExcludeFlaskEnchantments(GameTestHelper helper) {
