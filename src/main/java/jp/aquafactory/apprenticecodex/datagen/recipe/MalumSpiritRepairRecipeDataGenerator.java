@@ -108,23 +108,19 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
                         List.of(spirit(ARCANE_SPIRIT, 8))
                 ),
                 recipe(
-                        "elemental_bow",
+                        "arcane_ingot_armaments_repair",
                         0.5F,
-                        List.of(jp.aquafactory.apprenticecodex.registry.ItemRegistry.ELEMENTAL_BOW.get()),
+                        List.of(
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.ELEMENTAL_BOW.get(),
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.MANA_FORCE_BLADE.get(),
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.SPELL_SIDE_EDGE.get()
+                        ),
                         io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get(),
                         1,
                         List.of(
                                 spirit(ARCANE_SPIRIT, 8),
                                 spirit(EARTH_SPIRIT, 8)
                         )
-                ),
-                recipe(
-                        "mana_force_blade",
-                        0.5F,
-                        List.of(jp.aquafactory.apprenticecodex.registry.ItemRegistry.MANA_FORCE_BLADE.get()),
-                        io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get(),
-                        1,
-                        List.of(spirit(ARCANE_SPIRIT, 8))
                 )
         );
 
