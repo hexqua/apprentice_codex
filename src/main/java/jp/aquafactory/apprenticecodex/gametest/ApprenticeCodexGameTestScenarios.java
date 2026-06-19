@@ -7052,6 +7052,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void dualAcrobatReleaseFiresLoadedAmmoAndExpires(GameTestHelper helper) {
         helper.runAtTickTime(1, () -> {
             var level = helper.getLevel();
+            prepareDualAcrobatShootingLane(helper);
             var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "dual_acrobat_release_test");
             player.setYRot(0.0f);
             player.setYBodyRot(0.0f);
@@ -7084,6 +7085,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void dualAcrobatCancelledInterruptionStillFiresLoadedAmmoAndExpires(GameTestHelper helper) {
         helper.runAtTickTime(1, () -> {
             var level = helper.getLevel();
+            prepareDualAcrobatShootingLane(helper);
             var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "dual_acrobat_cancelled_release_test");
             player.setYRot(0.0f);
             player.setYBodyRot(0.0f);
@@ -7111,6 +7113,17 @@ public class ApprenticeCodexGameTestScenarios {
                         "Normally cancelled Dual Acrobat SMG pair should discard after firing all loaded ammo");
             });
         });
+    }
+
+    static void prepareDualAcrobatShootingLane(GameTestHelper helper) {
+        for (var x = -1; x <= 1; ++x) {
+            for (var z = 0; z <= 8; ++z) {
+                helper.setBlock(new BlockPos(x, 1, z), Blocks.STONE);
+                helper.setBlock(new BlockPos(x, 2, z), Blocks.AIR);
+                helper.setBlock(new BlockPos(x, 3, z), Blocks.AIR);
+                helper.setBlock(new BlockPos(x, 4, z), Blocks.AIR);
+            }
+        }
     }
 
     static void dualAcrobatCounterspellInterruptDiscardsWithoutShooting(GameTestHelper helper) {
