@@ -42,6 +42,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AnchorBlinkDaggerEntity extends ThrowableProjectile implements AntiMagicSusceptible {
+    private static final EntityDataAccessor<Optional<UUID>> DATA_OWNER_UUID =
+            SynchedEntityData.defineId(AnchorBlinkDaggerEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Boolean> DATA_IMPACTED =
             SynchedEntityData.defineId(AnchorBlinkDaggerEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Float> DATA_IMPACT_YAW =
@@ -81,7 +83,7 @@ public class AnchorBlinkDaggerEntity extends ThrowableProjectile implements Anti
 
     public AnchorBlinkDaggerEntity(EntityType<? extends AnchorBlinkDaggerEntity> entityType, Level level, LivingEntity owner) {
         super(entityType, owner, level);
-        ownerUuid = owner.getUUID();
+        setOwnerUuid(owner.getUUID());
     }
 
     @Override
@@ -315,6 +317,13 @@ public class AnchorBlinkDaggerEntity extends ThrowableProjectile implements Anti
         return impacted || entityData.get(DATA_IMPACTED);
     }
 
+    public boolean isReadyAnchorFor(Entity entity) {
+        return entity != null && isImpacted()
+                && entityData.get(DATA_OWNER_UUID)
+                .map(entity.getUUID()::equals)
+                .orElseGet(() -> entity.equals(getOwner()));
+    }
+
     public RotationTools.YawPitch resolveRenderYawPitch(float partialTicks) {
         if (isImpacted()) {
             return getSyncedImpactRotation();
@@ -359,6 +368,7 @@ public class AnchorBlinkDaggerEntity extends ThrowableProjectile implements Anti
 
     @Override
     protected void defineSynchedData() {
+        entityData.define(DATA_OWNER_UUID, Optional.empty());
         entityData.define(DATA_IMPACTED, false);
         entityData.define(DATA_IMPACT_YAW, 0.0F);
         entityData.define(DATA_IMPACT_PITCH, 0.0F);
@@ -383,7 +393,7 @@ public class AnchorBlinkDaggerEntity extends ThrowableProjectile implements Anti
         damage = tag.getFloat(DAMAGE_TAG);
         maximumRange = tag.contains(MAXIMUM_RANGE_TAG) ? tag.getFloat(MAXIMUM_RANGE_TAG) : Float.MAX_VALUE;
         if (tag.hasUUID(OWNER_UUID_TAG)) {
-            ownerUuid = tag.getUUID(OWNER_UUID_TAG);
+            setOwnerUuid(tag.getUUID(OWNER_UUID_TAG));
         }
         impacted = tag.getBoolean(IMPACTED_TAG);
         impactGameTime = tag.getLong(IMPACT_GAME_TIME_TAG);
@@ -425,6 +435,11 @@ public class AnchorBlinkDaggerEntity extends ThrowableProjectile implements Anti
 
     public void setMaximumRange(float maximumRange) {
         this.maximumRange = maximumRange;
+    }
+
+    private void setOwnerUuid(UUID ownerUuid) {
+        this.ownerUuid = ownerUuid;
+        entityData.set(DATA_OWNER_UUID, Optional.of(ownerUuid));
     }
 
     private static CompoundTag saveVec3(Vec3 vector) {

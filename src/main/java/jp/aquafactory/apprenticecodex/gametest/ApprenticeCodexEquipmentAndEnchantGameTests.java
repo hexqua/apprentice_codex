@@ -153,6 +153,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void edgeDancerOffhandSwapCancelsAndOnlyDeactivates(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.edgeDancerOffhandSwapCancelsAndOnlyDeactivates(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellSideEdgeMirrorOffhandDoesNotApplyVanillaAttackModifiers(GameTestHelper helper) {
         SpellSideEdgeGameTestScenarios.spellSideEdgeMirrorOffhandDoesNotApplyVanillaAttackModifiers(helper);
     }
@@ -180,6 +185,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void anchorBlinkRequiresGeneratedMirrorAndRestoresOffhandOnCast(GameTestHelper helper) {
         SpellSideEdgeGameTestScenarios.anchorBlinkRequiresGeneratedMirrorAndRestoresOffhandOnCast(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void anchorBlinkReadyAnchorOnlyMatchesOwner(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.anchorBlinkReadyAnchorOnlyMatchesOwner(helper);
     }
 
     @GameTest(template = TEMPLATE)
