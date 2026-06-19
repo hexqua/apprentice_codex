@@ -19,7 +19,7 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
     private static final String RECIPE_TYPE = MALUM_MOD_ID + ":spirit_repair";
     private static final String RECIPE_DIRECTORY = "recipe/malum/spirit_crucible/repair";
     private static final String ARCANE_SPIRIT = MALUM_MOD_ID + ":arcane";
-    private static final String EARTH_SPIRIT = MALUM_MOD_ID + ":earth";
+    private static final String EARTH_SPIRIT = MALUM_MOD_ID + ":earthen";
     private static final String ELDRITCH_SPIRIT = MALUM_MOD_ID + ":eldritch";
     private static final String INFERNAL_SPIRIT = MALUM_MOD_ID + ":infernal";
     private static final String SACRED_SPIRIT = MALUM_MOD_ID + ":sacred";

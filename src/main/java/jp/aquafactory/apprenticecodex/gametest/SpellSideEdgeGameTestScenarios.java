@@ -273,8 +273,8 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             var bridgedModifiers = SpellSideEdgeOffhandAttributeBridge.buildBridgeModifiers(stack);
             assertSingleModifierAmount(
                     helper,
-                    bridgedModifiers.get(AttributeRegistry.MAX_MANA.get()),
-                    AttributeModifier.Operation.ADDITION,
+                    bridgedModifiers.get(AttributeRegistry.MAX_MANA),
+                    AttributeModifier.Operation.ADD_VALUE,
                     150.0D,
                     "Spell Side Edge bridge should apply Artificer's Cane mana upgrades once"
             );
