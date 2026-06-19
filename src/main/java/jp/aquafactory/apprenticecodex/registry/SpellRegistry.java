@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.spell.anchorblink.AnchorBlink;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeam;
 import jp.aquafactory.apprenticecodex.spell.arcaneblast.ArcaneBlast;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultiple;
@@ -22,6 +23,7 @@ import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossession;
 import jp.aquafactory.apprenticecodex.spell.dualacrobat.DualAcrobat;
 import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
 import jp.aquafactory.apprenticecodex.spell.echocast.EchoCast;
+import jp.aquafactory.apprenticecodex.spell.edgedancer.EdgeDancer;
 import jp.aquafactory.apprenticecodex.spell.extract.Extract;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRush;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatter;
@@ -106,6 +108,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> RIFT_HOLE = reg("rift_hole", RiftHole::new);
     public static final RegistryObject<AbstractSpell> DEMICREATOR_WINGS = reg("demicreator_wings", DemicreatorWings::new);
     public static final RegistryObject<AbstractSpell> MIRAGE_AVOIDANCE = reg("mirage_avoidance", MirageAvoidance::new);
+    public static final RegistryObject<AbstractSpell> ANCHOR_BLINK = reg("anchor_blink", AnchorBlink::new);
 
     // 召喚.
     public static final RegistryObject<AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
@@ -121,6 +124,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> BOUND_SWORD = reg("bound_sword", BoundSword::new);
     public static final RegistryObject<AbstractSpell> BOUND_BOW = reg("bound_bow", BoundBow::new);
     public static final RegistryObject<AbstractSpell> LETHAL_ASSAULT = reg("lethal_assault", LethalAssault::new);
+    public static final RegistryObject<AbstractSpell> EDGE_DANCER = reg("edge_dancer", EdgeDancer::new);
 
     // 炎.
     public static final RegistryObject<AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);

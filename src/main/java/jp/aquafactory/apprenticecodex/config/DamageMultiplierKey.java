@@ -40,6 +40,7 @@ public enum DamageMultiplierKey {
     LETHAL_ASSAULT("lethalAssault"),
     DUAL_ACROBAT("dualAcrobat"),
     ARTISAN_SMASH("artisanSmash"),
+    ANCHOR_BLINK("anchorBlink"),
     ;
 
     private final String configKey;

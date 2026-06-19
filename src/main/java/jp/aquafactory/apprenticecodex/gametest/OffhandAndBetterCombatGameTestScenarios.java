@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -188,6 +189,8 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     "Charged Twin Blade Staff should be upgradeable via explicit whitelist entry");
             assertUpgradeable(helper, new ItemStack(ItemRegistry.MANA_FORCE_BLADE.get()),
                     "Mana Force Blade should be upgradeable via explicit whitelist entry");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.SPELL_SIDE_EDGE.get()),
+                    "Spell Side Edge should be upgradeable via explicit whitelist entry");
 
             var shieldStack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
             helper.assertFalse(shieldStack.is(io.redspace.ironsspellbooks.util.ModTags.CAN_BE_UPGRADED),
@@ -321,6 +324,83 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             helper.assertTrue(secondGauntletAttack != null && secondGauntletAttack.isOffHand(),
                     "Dual Scrollcaster Gauntlets should still select offhand on the second attack but got "
                             + secondGauntletAttack);
+        });
+    }
+    static void spellSideEdgeBetterCombatTooltipFollowsLoadedMod(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var edgeStack = new ItemStack(ItemRegistry.SPELL_SIDE_EDGE.get());
+            var mirrorStack = new ItemStack(ItemRegistry.SPELL_SIDE_EDGE_MIRROR.get());
+            if (!ModList.get().isLoaded("bettercombat")) {
+                assertTooltipKeyAbsent(
+                        helper,
+                        edgeStack,
+                        "item.apprenticecodex.spell_side_edge.desc.better_combat",
+                        "Spell Side Edge should hide Better Combat tooltip without Better Combat"
+                );
+                assertTooltipKeyAbsent(
+                        helper,
+                        mirrorStack,
+                        "item.apprenticecodex.spell_side_edge_mirror.desc.better_combat",
+                        "Spell Side Edge Mirror should hide Better Combat tooltip without Better Combat"
+                );
+                return;
+            }
+
+            assertTooltipKeyUsesColor(
+                    helper,
+                    edgeStack,
+                    "item.apprenticecodex.spell_side_edge.desc.better_combat",
+                    ChatFormatting.GRAY,
+                    "Spell Side Edge should show Better Combat tooltip when Better Combat is loaded"
+            );
+            assertTooltipKeyUsesColor(
+                    helper,
+                    mirrorStack,
+                    "item.apprenticecodex.spell_side_edge_mirror.desc.better_combat",
+                    ChatFormatting.GRAY,
+                    "Spell Side Edge Mirror should show Better Combat tooltip when Better Combat is loaded"
+            );
+        });
+    }
+    static void betterCombatSpellSideEdgeSuppressesNonMirrorOffhand(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded("bettercombat")) {
+                return;
+            }
+
+            var edgeStack = new ItemStack(ItemRegistry.SPELL_SIDE_EDGE.get());
+            var mirrorStack = new ItemStack(ItemRegistry.SPELL_SIDE_EDGE_MIRROR.get());
+            var swordStack = new ItemStack(Items.DIAMOND_SWORD);
+            helper.assertTrue(net.bettercombat.logic.WeaponRegistry.getAttributes(edgeStack) != null,
+                    "Better Combat Spell Side Edge attributes should be present for dual wield policy test");
+            helper.assertTrue(net.bettercombat.logic.WeaponRegistry.getAttributes(mirrorStack) != null,
+                    "Better Combat Spell Side Edge Mirror attributes should be present for dual wield policy test");
+            helper.assertTrue(net.bettercombat.logic.WeaponRegistry.getAttributes(swordStack) != null,
+                    "Better Combat diamond sword attributes should be present for Spell Side Edge dual wield policy test");
+
+            var swordOffhandPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "better_combat_spell_side_edge_sword_offhand_test");
+            swordOffhandPlayer.setItemInHand(InteractionHand.MAIN_HAND, edgeStack.copy());
+            swordOffhandPlayer.setItemInHand(InteractionHand.OFF_HAND, swordStack.copy());
+
+            helper.assertFalse(net.bettercombat.logic.PlayerAttackHelper.isDualWielding(swordOffhandPlayer),
+                    "Spell Side Edge should suppress non-Mirror offhand Better Combat dual wielding");
+            var secondSwordOffhandAttack = net.bettercombat.logic.PlayerAttackHelper.getCurrentAttack(swordOffhandPlayer, 1);
+            helper.assertTrue(secondSwordOffhandAttack != null && !secondSwordOffhandAttack.isOffHand(),
+                    "Spell Side Edge with a non-Mirror offhand should keep attacks on mainhand but got "
+                            + secondSwordOffhandAttack);
+
+            var mirrorOffhandPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "better_combat_spell_side_edge_mirror_offhand_test");
+            mirrorOffhandPlayer.setItemInHand(InteractionHand.MAIN_HAND, edgeStack.copy());
+            mirrorOffhandPlayer.setItemInHand(InteractionHand.OFF_HAND, mirrorStack.copy());
+
+            helper.assertTrue(net.bettercombat.logic.PlayerAttackHelper.isDualWielding(mirrorOffhandPlayer),
+                    "Spell Side Edge Mirror should remain allowed for Better Combat dual wielding");
+            var secondMirrorOffhandAttack = net.bettercombat.logic.PlayerAttackHelper.getCurrentAttack(mirrorOffhandPlayer, 1);
+            helper.assertTrue(secondMirrorOffhandAttack != null && secondMirrorOffhandAttack.isOffHand(),
+                    "Spell Side Edge Mirror should stay in the Better Combat combo but got "
+                            + secondMirrorOffhandAttack);
         });
     }
     static void betterCombatOffhandRescueIncludesEnchantAndImbueDerivedModifiers(GameTestHelper helper) {

@@ -35,6 +35,7 @@ import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterAmmoPouchCurioRe
 import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterQuiverCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.extrudedsprite.ExtrudedSpriteManager;
 import jp.aquafactory.apprenticecodex.renderer.tooltip.SpellcasterAmmoPouchClientTooltipComponent;
+import jp.aquafactory.apprenticecodex.spell.anchorblink.AnchorBlinkDaggerRenderer;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamRenderer;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowRenderer;
 import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashLauncherRenderer;
@@ -267,6 +268,7 @@ public final class ClientModBusEvents {
 
         event.registerEntityRenderer(EntityRegistry.SKY_EDGE_PROJECTILE.get(), SkyEdgeProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.INSCRIBE_ICE_DAGGER.get(), InscribeIceDaggerRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.ANCHOR_BLINK_DAGGER.get(), AnchorBlinkDaggerRenderer::new);
         event.registerEntityRenderer(EntityRegistry.MANA_FORCE_BLADE_PROJECTILE.get(), ManaForceBladeProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ARCHER_MULTIPLE_BOW.get(), ArcherMultipleBowRenderer::new);
         event.registerEntityRenderer(EntityRegistry.COMMENCE_FIRE_RIFLE.get(), CommenceFireRifleRenderer::new);
