@@ -190,7 +190,7 @@
   "item.apprenticecodex.mana_force_blade.desc.epicfight": "Supports Epic Fight guard skills like an uchigatana, and can spend mana to deflect arrows even with a normal guard.",
   "item.apprenticecodex.mana_force_blade.desc.no_imbue": "Imbue a spell to attune this blade to its school and increase attack damage.",
   "item.apprenticecodex.mana_force_blade.desc.imbue_help": "Hits consume %d mana.",
-  "item.apprenticecodex.spell_side_edge.desc": "Can borrow main-hand bonuses from the item held in your offhand.",
+  "item.apprenticecodex.spell_side_edge.desc": "Can borrow spellcasting-related main-hand bonuses from the item held in your offhand.",
   "item.apprenticecodex.spell_side_edge.desc.better_combat": "While held in the main hand, this dagger prevents offhand attacks.",
   "item.apprenticecodex.spell_side_edge_mirror.desc.better_combat": "Pairs with a main-hand Spell-Sided Edge to attack as dual blades.",
   "item.apprenticecodex.rapid_spellcaster_round.desc": "Ammo for simple casting spells",
