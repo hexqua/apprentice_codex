@@ -1013,8 +1013,12 @@ public final class RecipeGenerator extends RecipeProvider {
 
         saveMalumSpiritRepairRecipe(
                 recipeWriter,
-                "elemental_bow",
-                List.of(ItemRegistry.ELEMENTAL_BOW.get()),
+                "arcane_ingot_armaments_repair",
+                List.of(
+                        ItemRegistry.ELEMENTAL_BOW.get(),
+                        ItemRegistry.MANA_FORCE_BLADE.get(),
+                        ItemRegistry.SPELL_SIDE_EDGE.get()
+                ),
                 io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get(),
                 1,
                 0.5f,
@@ -1022,16 +1026,6 @@ public final class RecipeGenerator extends RecipeProvider {
                         new MalumSpiritCost("arcane", 8),
                         new MalumSpiritCost("earth", 8)
                 )
-        );
-
-        saveMalumSpiritRepairRecipe(
-                recipeWriter,
-                "mana_force_blade",
-                List.of(ItemRegistry.MANA_FORCE_BLADE.get()),
-                io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get(),
-                1,
-                0.5f,
-                List.of(new MalumSpiritCost("arcane", 8))
         );
     }
 

@@ -8,7 +8,9 @@
   ],
   "durabilityPercentage": 0.5,
   "inputs": [
-    "apprenticecodex:mana_force_blade"
+    "apprenticecodex:elemental_bow",
+    "apprenticecodex:mana_force_blade",
+    "apprenticecodex:spell_side_edge"
   ],
   "itemIdRegex": "",
   "modIdRegex": "",
@@ -19,6 +21,10 @@
   "spirits": [
     {
       "type": "arcane",
+      "count": 8
+    },
+    {
+      "type": "earth",
       "count": 8
     }
   ]

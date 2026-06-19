@@ -112,6 +112,27 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
         });
     }
 
+    static void spellSideEdgeUsesArcaneIngotRepairAndMirrorIsNotRepairable(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spellSideEdge = ItemRegistry.SPELL_SIDE_EDGE.get();
+            var spellSideEdgeStack = new ItemStack(spellSideEdge);
+            var arcaneIngotStack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get());
+            var diamondStack = new ItemStack(Items.DIAMOND);
+
+            helper.assertTrue(spellSideEdge.isValidRepairItem(spellSideEdgeStack, arcaneIngotStack),
+                    "Spell Side Edge should repair with arcane ingot");
+            helper.assertTrue(!spellSideEdge.isValidRepairItem(spellSideEdgeStack, diamondStack),
+                    "Spell Side Edge should not repair with diamond");
+
+            var mirror = ItemRegistry.SPELL_SIDE_EDGE_MIRROR.get();
+            var mirrorStack = new ItemStack(mirror);
+            helper.assertTrue(!mirror.isValidRepairItem(mirrorStack, arcaneIngotStack),
+                    "Spell Side Edge Mirror should not repair with arcane ingot");
+            helper.assertTrue(!mirror.isValidRepairItem(mirrorStack, diamondStack),
+                    "Spell Side Edge Mirror should not repair with diamond");
+        });
+    }
+
     static void spellSideEdgeBridgeUsesHigherComparableMainhandAttribute(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spellPower = AttributeRegistry.SPELL_POWER.get();
