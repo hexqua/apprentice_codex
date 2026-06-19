@@ -10,8 +10,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.nio.charset.StandardCharsets;
@@ -155,13 +153,7 @@ public final class SpellSideEdgeOffhandAttributeBridge {
     }
 
     private static Multimap<Attribute, AttributeModifier> resolveRuntimeModifiers(ItemStack stack, EquipmentSlot slot) {
-        var event = new ItemAttributeModifierEvent(
-                stack,
-                slot,
-                stack.getAttributeModifiers(slot)
-        );
-        MinecraftForge.EVENT_BUS.post(event);
-        return ImmutableMultimap.copyOf(event.getModifiers());
+        return ImmutableMultimap.copyOf(stack.getAttributeModifiers(slot));
     }
 
     private static boolean isBridgeableAttribute(Attribute attribute) {

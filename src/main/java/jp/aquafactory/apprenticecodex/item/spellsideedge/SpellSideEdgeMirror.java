@@ -77,6 +77,11 @@ public final class SpellSideEdgeMirror extends AbstractSpellSideEdgeItem {
     }
 
     @Override
+    public boolean isValidRepairItem(@NotNull ItemStack toRepair, @NotNull ItemStack repair) {
+        return false;
+    }
+
+    @Override
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {
         consumer.accept(new IClientItemExtensions() {
             private SpellSideEdgeMirrorRenderer renderer;

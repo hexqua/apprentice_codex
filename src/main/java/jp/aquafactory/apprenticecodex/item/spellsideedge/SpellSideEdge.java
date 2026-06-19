@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.renderer.item.SpellSideEdgeRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -22,6 +23,11 @@ public final class SpellSideEdge extends AbstractSpellSideEdgeItem {
     @Override
     protected String betterCombatDescriptionTranslationKey() {
         return BETTER_COMBAT_DESCRIPTION_TRANSLATION_KEY;
+    }
+
+    @Override
+    public boolean isValidRepairItem(@NotNull ItemStack toRepair, @NotNull ItemStack repair) {
+        return repair.is(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get());
     }
 
     @Override

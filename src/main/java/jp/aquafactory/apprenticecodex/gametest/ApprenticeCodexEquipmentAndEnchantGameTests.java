@@ -93,6 +93,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellSideEdgeUsesArcaneIngotRepairAndMirrorIsNotRepairable(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.spellSideEdgeUsesArcaneIngotRepairAndMirrorIsNotRepairable(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellSideEdgeBridgeUsesHigherComparableMainhandAttribute(GameTestHelper helper) {
         SpellSideEdgeGameTestScenarios.spellSideEdgeBridgeUsesHigherComparableMainhandAttribute(helper);
     }
@@ -110,6 +115,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void spellSideEdgeBridgeIncludesStackAttributeModifiers(GameTestHelper helper) {
         SpellSideEdgeGameTestScenarios.spellSideEdgeBridgeIncludesStackAttributeModifiers(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellSideEdgeBridgeDoesNotDoubleApplyUpgradeOrbModifiers(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.spellSideEdgeBridgeDoesNotDoubleApplyUpgradeOrbModifiers(helper);
     }
 
     @GameTest(template = TEMPLATE)

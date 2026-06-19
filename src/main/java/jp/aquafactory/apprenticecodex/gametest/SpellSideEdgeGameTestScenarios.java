@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.google.common.collect.ImmutableMultimap;
 import io.redspace.ironsspellbooks.api.events.ModifySpellLevelEvent;
+import io.redspace.ironsspellbooks.api.item.UpgradeData;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
@@ -112,6 +113,27 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
         });
     }
 
+    static void spellSideEdgeUsesArcaneIngotRepairAndMirrorIsNotRepairable(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spellSideEdge = ItemRegistry.SPELL_SIDE_EDGE.get();
+            var spellSideEdgeStack = new ItemStack(spellSideEdge);
+            var arcaneIngotStack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get());
+            var diamondStack = new ItemStack(Items.DIAMOND);
+
+            helper.assertTrue(spellSideEdge.isValidRepairItem(spellSideEdgeStack, arcaneIngotStack),
+                    "Spell Side Edge should repair with arcane ingot");
+            helper.assertTrue(!spellSideEdge.isValidRepairItem(spellSideEdgeStack, diamondStack),
+                    "Spell Side Edge should not repair with diamond");
+
+            var mirror = ItemRegistry.SPELL_SIDE_EDGE_MIRROR.get();
+            var mirrorStack = new ItemStack(mirror);
+            helper.assertTrue(!mirror.isValidRepairItem(mirrorStack, arcaneIngotStack),
+                    "Spell Side Edge Mirror should not repair with arcane ingot");
+            helper.assertTrue(!mirror.isValidRepairItem(mirrorStack, diamondStack),
+                    "Spell Side Edge Mirror should not repair with diamond");
+        });
+    }
+
     static void spellSideEdgeBridgeUsesHigherComparableMainhandAttribute(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spellPower = AttributeRegistry.SPELL_POWER.get();
@@ -217,6 +239,32 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
                     AttributeModifier.Operation.MULTIPLY_BASE,
                     0.12D,
                     "Spell Side Edge bridge should include stack AttributeModifiers NBT"
+            );
+        });
+    }
+
+    static void spellSideEdgeBridgeDoesNotDoubleApplyUpgradeOrbModifiers(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.ARTIFICER_STAFF.get());
+            var upgradeRegistry = helper.getLevel().registryAccess().registryOrThrow(
+                    io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.UPGRADE_ORB_REGISTRY_KEY
+            );
+            var upgradeHolder = upgradeRegistry.getHolderOrThrow(
+                    io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.MANA
+            );
+            var upgradeData = new UpgradeData(
+                    java.util.Map.of(upgradeHolder, 3),
+                    EquipmentSlot.MAINHAND.getName()
+            );
+            UpgradeData.set(stack, upgradeData);
+
+            var bridgedModifiers = SpellSideEdgeOffhandAttributeBridge.buildBridgeModifiers(stack);
+            assertSingleModifierAmount(
+                    helper,
+                    bridgedModifiers.get(AttributeRegistry.MAX_MANA.get()),
+                    AttributeModifier.Operation.ADDITION,
+                    150.0D,
+                    "Spell Side Edge bridge should apply Artificer's Cane mana upgrades once"
             );
         });
     }

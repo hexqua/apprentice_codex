@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
 import com.google.gson.JsonObject;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.RequirementsStrategy;
@@ -946,14 +947,16 @@ public final class RecipeGenerator extends RecipeProvider {
 
     private void saveMalumSpiritRepairRecipes(@NotNull Consumer<FinishedRecipe> recipeWriter) {
         // Malum は通常の修理判定から自動連携しないため、対象と spirit コストを明示する.
+        // 素材ごとにアイテムリストをまとめることでJEIのUX改善を図る.
         saveMalumSpiritRepairRecipe(
                 recipeWriter,
-                "apprentice_mage_robe",
+                "arcane_essence_armaments_repair",
                 List.of(
                         ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
                         ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
                         ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
-                        ItemRegistry.APPRENTICE_MAGE_BOOTS.get()
+                        ItemRegistry.APPRENTICE_MAGE_BOOTS.get(),
+                        ItemRegistry.REFLECTCAST_SHIELD.get()
                 ),
                 io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get(),
                 1,
@@ -963,7 +966,24 @@ public final class RecipeGenerator extends RecipeProvider {
 
         saveMalumSpiritRepairRecipe(
                 recipeWriter,
-                "enchantress_robe",
+                "arcane_ingot_armaments_repair",
+                List.of(
+                        ItemRegistry.ELEMENTAL_BOW.get(),
+                        ItemRegistry.MANA_FORCE_BLADE.get(),
+                        ItemRegistry.SPELL_SIDE_EDGE.get()
+                ),
+                io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get(),
+                1,
+                0.5f,
+                List.of(
+                        new MalumSpiritCost("arcane", 8),
+                        new MalumSpiritCost("earth", 8)
+                )
+        );
+
+        saveMalumSpiritRepairRecipe(
+                recipeWriter,
+                "hogskin_armaments_repair",
                 List.of(
                         ItemRegistry.ENCHANTRESS_HAT.get(),
                         ItemRegistry.ENCHANTRESS_ROBE.get(),
@@ -979,71 +999,20 @@ public final class RecipeGenerator extends RecipeProvider {
                 )
         );
 
-        saveMithrilSpiritRepairRecipe(
+        // ミスリルだけは算出数が少ないので修理割合高め.
+        saveMalumSpiritRepairRecipe(
                 recipeWriter,
-                "chromatic_magia_dress",
+                "mithril_scrap_armaments_repair",
                 List.of(
                         ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
                         ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
                         ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
-                        ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()
-                )
-        );
-
-        saveMithrilSpiritRepairRecipe(
-                recipeWriter,
-                "element_maiden_robe",
-                List.of(
+                        ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get(),
                         ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
                         ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
                         ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
                         ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get()
-                )
-        );
-
-        saveMalumSpiritRepairRecipe(
-                recipeWriter,
-                "reflectcast_shield",
-                List.of(ItemRegistry.REFLECTCAST_SHIELD.get()),
-                io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get(),
-                1,
-                0.5f,
-                List.of(new MalumSpiritCost("arcane", 8))
-        );
-
-        saveMalumSpiritRepairRecipe(
-                recipeWriter,
-                "elemental_bow",
-                List.of(ItemRegistry.ELEMENTAL_BOW.get()),
-                io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get(),
-                1,
-                0.5f,
-                List.of(
-                        new MalumSpiritCost("arcane", 8),
-                        new MalumSpiritCost("earth", 8)
-                )
-        );
-
-        saveMalumSpiritRepairRecipe(
-                recipeWriter,
-                "mana_force_blade",
-                List.of(ItemRegistry.MANA_FORCE_BLADE.get()),
-                io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get(),
-                1,
-                0.5f,
-                List.of(new MalumSpiritCost("arcane", 8))
-        );
-    }
-
-    private void saveMithrilSpiritRepairRecipe(
-            @NotNull Consumer<FinishedRecipe> recipeWriter,
-            @NotNull String name,
-            @NotNull List<Item> inputs
-    ) {
-        saveMalumSpiritRepairRecipe(
-                recipeWriter,
-                name,
-                inputs,
+                ),
                 io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get(),
                 1,
                 1.0f,
@@ -1066,7 +1035,7 @@ public final class RecipeGenerator extends RecipeProvider {
             @NotNull List<MalumSpiritCost> spirits
     ) {
         var recipeId = ResourceLocation.fromNamespaceAndPath(
-                ItemRegistry.APPRENTICE_MAGE_SCARF.getId().getNamespace(),
+                ApprenticeCodex.MODID,
                 "malum/spirit_crucible/repair/" + name
         );
         recipeWriter.accept(new MalumSpiritRepairFinishedRecipe(
