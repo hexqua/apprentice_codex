@@ -19,6 +19,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
@@ -32,7 +33,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -266,8 +266,7 @@ public class AnchorBlinkDaggerEntity extends ThrowableProjectile implements Anti
     }
 
     private Optional<Vec3> resolveTeleportDestination(ServerPlayer player) {
-        var backward = impactForward.normalize().scale(-TELEPORT_BACK_OFFSET);
-        var center = position().add(backward);
+        var forward = impactForward.normalize();
         var right = new Vec3(-impactForward.z, 0.0D, impactForward.x);
         if (right.lengthSqr() <= MIN_VECTOR_LENGTH_SQR) {
             right = new Vec3(1.0D, 0.0D, 0.0D);
@@ -276,13 +275,17 @@ public class AnchorBlinkDaggerEntity extends ThrowableProjectile implements Anti
         }
 
         var up = new Vec3(0.0D, 1.0D, 0.0D);
+        double[] forwardOffsets = {-TELEPORT_BACK_OFFSET, -0.5D, 0.0D, 0.5D};
         double[] verticalOffsets = {0.0D, -0.5D, 0.5D, -1.0D, 1.0D};
         double[] sideOffsets = {0.0D, 0.35D, -0.35D, 0.7D, -0.7D};
-        for (var vertical : verticalOffsets) {
-            for (var side : sideOffsets) {
-                var candidate = center.add(up.scale(vertical)).add(right.scale(side));
-                if (canStandAt(player, candidate)) {
-                    return Optional.of(candidate);
+        for (var forwardOffset : forwardOffsets) {
+            var center = position().add(forward.scale(forwardOffset));
+            for (var vertical : verticalOffsets) {
+                for (var side : sideOffsets) {
+                    var candidate = center.add(up.scale(vertical)).add(right.scale(side));
+                    if (canStandAt(player, candidate)) {
+                        return Optional.of(candidate);
+                    }
                 }
             }
         }
@@ -375,11 +378,11 @@ public class AnchorBlinkDaggerEntity extends ThrowableProjectile implements Anti
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(DATA_OWNER_UUID, Optional.empty());
-        entityData.define(DATA_IMPACTED, false);
-        entityData.define(DATA_IMPACT_YAW, 0.0F);
-        entityData.define(DATA_IMPACT_PITCH, 0.0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_OWNER_UUID, Optional.empty());
+        builder.define(DATA_IMPACTED, false);
+        builder.define(DATA_IMPACT_YAW, 0.0F);
+        builder.define(DATA_IMPACT_PITCH, 0.0F);
     }
 
     @Override
@@ -423,8 +426,8 @@ public class AnchorBlinkDaggerEntity extends ThrowableProjectile implements Anti
     }
 
     @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
+    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket(@NotNull ServerEntity serverEntity) {
+        return super.getAddEntityPacket(serverEntity);
     }
 
     @Override

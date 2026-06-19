@@ -5,12 +5,12 @@ import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientAnchorBlinkPacket;
 import jp.aquafactory.apprenticecodex.spell.anchorblink.AnchorBlinkDaggerEntity;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class AnchorBlinkClientInputEvent {
     private static boolean previousJumpDown;
 
@@ -18,11 +18,7 @@ public final class AnchorBlinkClientInputEvent {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) {
-            return;
-        }
-
+    public static void onClientTick(ClientTickEvent.Pre event) {
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
 

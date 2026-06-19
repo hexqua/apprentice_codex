@@ -10,19 +10,19 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class SpellSideEdgeVanillaCombatEvents {
     private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
     private static final String EPIC_FIGHT_MOD_ID = "epicfight";
@@ -48,7 +48,7 @@ public final class SpellSideEdgeVanillaCombatEvents {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onLivingAttack(LivingAttackEvent event) {
+    public static void onLivingAttack(LivingIncomingDamageEvent event) {
         if (event.isCanceled() || event.getEntity().level().isClientSide()) {
             return;
         }
@@ -75,11 +75,8 @@ public final class SpellSideEdgeVanillaCombatEvents {
     }
 
     @SubscribeEvent
-    public static void onLevelTick(TickEvent.LevelTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || !(event.level instanceof ServerLevel serverLevel)) {
-            return;
-        }
-
+    public static void onLevelTick(LevelTickEvent.Post event) {
+        var serverLevel = event.getLevel();
         var dimension = serverLevel.dimension();
         var expireBefore = serverLevel.getGameTime() - PENDING_ATTACK_LIFETIME_TICKS;
         PENDING_ATTACKS.entrySet().removeIf(entry ->

@@ -9517,11 +9517,8 @@ public class ApprenticeCodexGameTestScenarios {
         var expectedEnchantments = collectAllowedEnchantments(
                 registryAccess,
                 enchantment -> enchantment.value().canEnchant(new ItemStack(Items.DIAMOND_SWORD))
-                        && !isDurabilityTargetEnchantment(enchantment)
         );
         expectedEnchantments.addAll(registryIdSet(
-                Enchantments.SURGE,
-                Enchantments.ATTUNEMENT,
                 Enchantments.WISDOM,
                 Enchantments.TRANSCENDENCE
         ));

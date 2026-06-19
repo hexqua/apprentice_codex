@@ -1,6 +1,9 @@
 package jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates;
 
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.ICodexSpellState;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -8,6 +11,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 public class EdgeDancerState implements ICodexSpellState {
+    private static final HolderLookup.Provider SERIALIZATION_LOOKUP =
+            RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     private static final String ACTIVE_TAG = "Active";
     private static final String INSTANCE_ID_TAG = "InstanceId";
     private static final String STORED_OFFHAND_STACK_TAG = "StoredOffhandStack";
@@ -61,7 +66,7 @@ public class EdgeDancerState implements ICodexSpellState {
             tag.putUUID(INSTANCE_ID_TAG, instanceId);
         }
         if (!storedOffhandStack.isEmpty()) {
-            tag.put(STORED_OFFHAND_STACK_TAG, storedOffhandStack.save(new CompoundTag()));
+            tag.put(STORED_OFFHAND_STACK_TAG, storedOffhandStack.saveOptional(SERIALIZATION_LOOKUP));
         }
         tag.putBoolean(HAD_STORED_OFFHAND_TAG, hadStoredOffhand);
         return tag;
@@ -72,7 +77,7 @@ public class EdgeDancerState implements ICodexSpellState {
         active = tag.getBoolean(ACTIVE_TAG);
         instanceId = tag.hasUUID(INSTANCE_ID_TAG) ? tag.getUUID(INSTANCE_ID_TAG) : null;
         storedOffhandStack = tag.contains(STORED_OFFHAND_STACK_TAG)
-                ? ItemStack.of(tag.getCompound(STORED_OFFHAND_STACK_TAG))
+                ? ItemStack.parseOptional(SERIALIZATION_LOOKUP, tag.getCompound(STORED_OFFHAND_STACK_TAG))
                 : ItemStack.EMPTY;
         hadStoredOffhand = tag.getBoolean(HAD_STORED_OFFHAND_TAG);
     }

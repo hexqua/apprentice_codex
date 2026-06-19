@@ -13,7 +13,6 @@ import jp.aquafactory.apprenticecodex.enchantment.TranscendenceSpellLevelEvent;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdge;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeMirror;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeOffhandAttributeBridge;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -23,29 +22,42 @@ import jp.aquafactory.apprenticecodex.spell.edgedancer.EdgeDancer;
 import jp.aquafactory.apprenticecodex.spell.edgedancer.EdgeDancerManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 
 import java.util.UUID;
 
 final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private static final double TOLERANCE = 1.0e-9D;
+    private static final TagKey<Item> MALUM_MAGIC_CAPABLE_WEAPON = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath("malum", "magic_capable_weapon")
+    );
 
     private SpellSideEdgeGameTestScenarios() {
     }
@@ -72,18 +84,18 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
                             && spellData.isLocked(),
                     "Spell Side Edge should start with locked Edge Dancer Lv1 but got " + spellData);
 
-            var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
+            var modifiers = modifiersForSlot(item.getDefaultAttributeModifiers(stack), EquipmentSlot.MAINHAND);
             assertSingleModifierAmount(
                     helper,
                     modifiers.get(Attributes.ATTACK_DAMAGE),
-                    AttributeModifier.Operation.ADDITION,
+                    AttributeModifier.Operation.ADD_VALUE,
                     3.0D,
                     "Spell Side Edge attack damage modifier should display as 4 damage"
             );
             assertSingleModifierAmount(
                     helper,
                     modifiers.get(Attributes.ATTACK_SPEED),
-                    AttributeModifier.Operation.ADDITION,
+                    AttributeModifier.Operation.ADD_VALUE,
                     -1.6D,
                     "Spell Side Edge attack speed modifier should display as 2.4 speed"
             );
@@ -100,8 +112,8 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
     static void spellSideEdgeKeepsExpectedTagsAndEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.SPELL_SIDE_EDGE.get());
-            helper.assertTrue(stack.is(MALUM_SOUL_HUNTER_WEAPON),
-                    "Spell Side Edge is missing malum:soul_hunter_weapon");
+            helper.assertTrue(stack.is(MALUM_MAGIC_CAPABLE_WEAPON),
+                    "Spell Side Edge is missing malum:magic_capable_weapon");
             assertUpgradeable(helper, stack, "Spell Side Edge should accept Iron's upgrade orbs");
             assertExactEnchantmentSurfaces(
                     helper,
@@ -114,22 +126,22 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
 
     static void spellSideEdgeBridgeUsesHigherComparableMainhandAttribute(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var spellPower = AttributeRegistry.SPELL_POWER.get();
-            var maxMana = AttributeRegistry.MAX_MANA.get();
-            var mainhandModifiers = ImmutableMultimap.<Attribute, AttributeModifier>builder()
-                    .put(spellPower, modifier("main_spell_power", 0.10D, AttributeModifier.Operation.MULTIPLY_BASE))
-                    .put(maxMana, modifier("main_max_mana", 100.0D, AttributeModifier.Operation.ADDITION))
+            var spellPower = AttributeRegistry.SPELL_POWER;
+            var maxMana = AttributeRegistry.MAX_MANA;
+            var mainhandModifiers = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder()
+                    .put(spellPower, modifier("main_spell_power", 0.10D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE))
+                    .put(maxMana, modifier("main_max_mana", 100.0D, AttributeModifier.Operation.ADD_VALUE))
                     .build();
-            var offhandModifiers = ImmutableMultimap.<Attribute, AttributeModifier>builder()
-                    .put(spellPower, modifier("offhand_spell_power", 0.05D, AttributeModifier.Operation.MULTIPLY_BASE))
-                    .put(maxMana, modifier("offhand_max_mana", 150.0D, AttributeModifier.Operation.ADDITION))
+            var offhandModifiers = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder()
+                    .put(spellPower, modifier("offhand_spell_power", 0.05D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE))
+                    .put(maxMana, modifier("offhand_max_mana", 150.0D, AttributeModifier.Operation.ADD_VALUE))
                     .build();
 
             var bridgedModifiers = SpellSideEdgeOffhandAttributeBridge.buildBridgeModifiers(mainhandModifiers, offhandModifiers);
             assertSingleModifierAmount(
                     helper,
                     bridgedModifiers.get(spellPower),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     0.05D,
                     "Spell Side Edge bridge should add only the missing higher spell power amount"
             );
@@ -141,13 +153,13 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
 
     static void spellSideEdgeBridgeSkipsMultiplyTotalWhenOffhandAlreadyHasAttribute(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var mainhandModifiers = ImmutableMultimap.<Attribute, AttributeModifier>builder()
+            var mainhandModifiers = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder()
                     .put(Attributes.MOVEMENT_SPEED,
-                            modifier("main_speed_total", 0.10D, AttributeModifier.Operation.MULTIPLY_TOTAL))
+                            modifier("main_speed_total", 0.10D, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL))
                     .build();
-            var offhandModifiers = ImmutableMultimap.<Attribute, AttributeModifier>builder()
+            var offhandModifiers = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder()
                     .put(Attributes.MOVEMENT_SPEED,
-                            modifier("offhand_speed_total", 0.05D, AttributeModifier.Operation.MULTIPLY_TOTAL))
+                            modifier("offhand_speed_total", 0.05D, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL))
                     .build();
 
             var skippedModifiers = SpellSideEdgeOffhandAttributeBridge.buildBridgeModifiers(mainhandModifiers, offhandModifiers);
@@ -162,7 +174,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             assertSingleModifierAmount(
                     helper,
                     copiedModifiers.get(Attributes.MOVEMENT_SPEED),
-                    AttributeModifier.Operation.MULTIPLY_TOTAL,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL,
                     0.10D,
                     "Spell Side Edge bridge should copy MULTIPLY_TOTAL when offhand has no matching attribute"
             );
@@ -171,13 +183,13 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
 
     static void spellSideEdgeBridgeIgnoresVanillaAttackAttributes(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var spellPower = AttributeRegistry.SPELL_POWER.get();
-            var mainhandModifiers = ImmutableMultimap.<Attribute, AttributeModifier>builder()
+            var spellPower = AttributeRegistry.SPELL_POWER;
+            var mainhandModifiers = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder()
                     .put(Attributes.ATTACK_DAMAGE,
-                            modifier("main_attack_damage", 3.0D, AttributeModifier.Operation.ADDITION))
+                            modifier("main_attack_damage", 3.0D, AttributeModifier.Operation.ADD_VALUE))
                     .put(Attributes.ATTACK_SPEED,
-                            modifier("main_attack_speed", -1.6D, AttributeModifier.Operation.ADDITION))
-                    .put(spellPower, modifier("main_spell_power", 0.10D, AttributeModifier.Operation.MULTIPLY_BASE))
+                            modifier("main_attack_speed", -1.6D, AttributeModifier.Operation.ADD_VALUE))
+                    .put(spellPower, modifier("main_spell_power", 0.10D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE))
                     .build();
 
             var bridgedModifiers = SpellSideEdgeOffhandAttributeBridge.buildBridgeModifiers(
@@ -193,7 +205,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             assertSingleModifierAmount(
                     helper,
                     bridgedModifiers.get(spellPower),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     0.10D,
                     "Spell Side Edge bridge should still copy spellcasting attributes"
             );
@@ -202,19 +214,19 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
 
     static void spellSideEdgeBridgeIncludesStackAttributeModifiers(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var spellPower = AttributeRegistry.SPELL_POWER.get();
+            var spellPower = AttributeRegistry.SPELL_POWER;
             var stack = new ItemStack(Items.STICK);
-            stack.addAttributeModifier(
+            addStackAttributeModifier(
+                    stack,
                     spellPower,
-                    modifier("stack_spell_power", 0.12D, AttributeModifier.Operation.MULTIPLY_BASE),
-                    EquipmentSlot.MAINHAND
+                    modifier("stack_spell_power", 0.12D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
             );
 
             var bridgedModifiers = SpellSideEdgeOffhandAttributeBridge.buildBridgeModifiers(stack);
             assertSingleModifierAmount(
                     helper,
                     bridgedModifiers.get(spellPower),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     0.12D,
                     "Spell Side Edge bridge should include stack AttributeModifiers NBT"
             );
@@ -227,7 +239,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
                     "spell_side_edge_bridge_amount_resync_test");
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SPELL_SIDE_EDGE.get()));
 
-            var spellPowerAttribute = AttributeRegistry.SPELL_POWER.get();
+            var spellPowerAttribute = AttributeRegistry.SPELL_POWER;
             var spellPowerInstance = player.getAttribute(spellPowerAttribute);
             helper.assertTrue(spellPowerInstance != null,
                     "Spell Side Edge bridge amount resync test could not resolve player spell power attribute");
@@ -236,7 +248,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             SpellSideEdgeOffhandAttributeBridge.sync(player);
             var initialAmount = sumModifierAmount(
                     spellPowerInstance.getModifiers(),
-                    AttributeModifier.Operation.MULTIPLY_BASE
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             );
             helper.assertTrue(Math.abs(initialAmount - 0.05D) < TOLERANCE,
                     "Spell Side Edge bridge should apply initial stack AttributeModifiers amount, got "
@@ -246,7 +258,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             SpellSideEdgeOffhandAttributeBridge.sync(player);
             var resyncedAmount = sumModifierAmount(
                     spellPowerInstance.getModifiers(),
-                    AttributeModifier.Operation.MULTIPLY_BASE
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             );
             helper.assertTrue(Math.abs(resyncedAmount - 0.12D) < TOLERANCE,
                     "Spell Side Edge bridge should replace stale stack AttributeModifiers amount, got "
@@ -260,7 +272,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SPELL_SIDE_EDGE.get()));
             player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(ItemRegistry.UNITE_LUNA_STAFF.get()));
 
-            var spellPowerAttribute = AttributeRegistry.SPELL_POWER.get();
+            var spellPowerAttribute = AttributeRegistry.SPELL_POWER;
             var spellPowerInstance = player.getAttribute(spellPowerAttribute);
             helper.assertTrue(spellPowerInstance != null,
                     "Spell Side Edge bridge test could not resolve player spell power attribute");
@@ -268,7 +280,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             SpellSideEdgeOffhandAttributeBridge.sync(player);
             var bridgedAmount = sumModifierAmount(
                     spellPowerInstance.getModifiers(),
-                    AttributeModifier.Operation.MULTIPLY_BASE
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             );
             helper.assertTrue(Math.abs(bridgedAmount - 0.05D) < TOLERANCE,
                     "Spell Side Edge bridge should copy Unite Luna Staff mainhand spell power while held, got "
@@ -278,7 +290,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             SpellSideEdgeOffhandAttributeBridge.sync(player);
             var clearedAmount = sumModifierAmount(
                     spellPowerInstance.getModifiers(),
-                    AttributeModifier.Operation.MULTIPLY_BASE
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             );
             helper.assertTrue(Math.abs(clearedAmount) < TOLERANCE,
                     "Spell Side Edge bridge should clear copied modifiers when unequipped, got "
@@ -337,9 +349,15 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "edge_dancer_copy_test");
             var mainhand = ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance();
-            mainhand.enchant(Enchantments.SHARPNESS, 3);
-            mainhand.enchant(EnchantmentRegistry.TRANSCENDENCE.get(), 1);
-            mainhand.getOrCreateTag().putString("apprenticecodex:test_copy_tag", "copied");
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var sharpness = enchantmentLookup.getOrThrow(Enchantments.SHARPNESS);
+            var transcendence = enchantmentLookup.getOrThrow(
+                    jp.aquafactory.apprenticecodex.enchantment.Enchantments.TRANSCENDENCE
+            );
+            mainhand.enchant(sharpness, 3);
+            mainhand.enchant(transcendence, 1);
+            CustomData.update(DataComponents.CUSTOM_DATA, mainhand,
+                    tag -> tag.putString("apprenticecodex:test_copy_tag", "copied"));
             player.setItemInHand(InteractionHand.MAIN_HAND, mainhand);
 
             EdgeDancerManager.activate(player, 1, CastSource.SPELLBOOK, resolveMagicData(helper, player), edgeDancer());
@@ -347,11 +365,12 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             var mirror = player.getOffhandItem();
             helper.assertTrue(SpellSideEdgeMirror.isGeneratedMirror(mirror),
                     "Edge Dancer should generate a managed Mirror");
-            helper.assertTrue(mirror.getEnchantmentLevel(Enchantments.SHARPNESS) == 3,
+            helper.assertTrue(mirror.getEnchantmentLevel(sharpness) == 3,
                     "Spell Side Edge Mirror should copy enchantments from the mainhand item");
-            helper.assertTrue(mirror.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get()) == 1,
+            helper.assertTrue(mirror.getEnchantmentLevel(transcendence) == 1,
                     "Spell Side Edge Mirror should copy Transcendence from the mainhand item");
-            helper.assertTrue("copied".equals(mirror.getOrCreateTag().getString("apprenticecodex:test_copy_tag")),
+            var copiedTag = mirror.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+            helper.assertTrue("copied".equals(copiedTag.getString("apprenticecodex:test_copy_tag")),
                     "Spell Side Edge Mirror should copy non-spell NBT from the mainhand item");
 
             assertSpellData(helper, ISpellContainer.get(mirror), 0, SpellRegistry.ANCHOR_BLINK.get(), 1, true,
@@ -476,7 +495,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             var stack = SpellSideEdgeMirror.create(UUID.randomUUID(),
                     ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance());
 
-            var modifiers = stack.getAttributeModifiers(EquipmentSlot.OFFHAND);
+            var modifiers = modifiersForSlot(stack.getItem().getDefaultAttributeModifiers(stack), EquipmentSlot.OFFHAND);
             helper.assertTrue(modifiers.get(Attributes.ATTACK_DAMAGE).isEmpty(),
                     "Spell Side Edge Mirror offhand should not stack vanilla attack damage on the player");
             helper.assertTrue(modifiers.get(Attributes.ATTACK_SPEED).isEmpty(),
@@ -505,7 +524,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
 
             helper.assertTrue(target.hurt(helper.getLevel().damageSources().playerAttack(player), 2.0F),
                     "Initial player attack should apply vanilla i-frame setup");
-            MinecraftForge.EVENT_BUS.post(new AttackEntityEvent(player, target));
+            NeoForge.EVENT_BUS.post(new AttackEntityEvent(player, target));
             helper.assertTrue(target.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F),
                     "Spell Side Edge pair should let the recorded vanilla target ignore i-frames");
         });
@@ -521,7 +540,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
 
             helper.assertTrue(target.hurt(helper.getLevel().damageSources().playerAttack(player), 2.0F),
                     "Initial no-mirror player attack should apply vanilla i-frame setup");
-            MinecraftForge.EVENT_BUS.post(new AttackEntityEvent(player, target));
+            NeoForge.EVENT_BUS.post(new AttackEntityEvent(player, target));
             helper.assertFalse(target.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F),
                     "Spell Side Edge without Mirror should not bypass vanilla i-frames");
         });
@@ -544,7 +563,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             helper.assertTrue(otherTarget.hurt(helper.getLevel().damageSources().playerAttack(player), 2.0F),
                     "Initial other target hit should apply vanilla i-frame setup");
 
-            MinecraftForge.EVENT_BUS.post(new AttackEntityEvent(player, primaryTarget));
+            NeoForge.EVENT_BUS.post(new AttackEntityEvent(player, primaryTarget));
             helper.assertFalse(otherTarget.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F),
                     "Non-recorded sweep-like target should keep vanilla i-frames");
             helper.assertTrue(primaryTarget.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F),
@@ -565,7 +584,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
 
             helper.assertTrue(target.hurt(helper.getLevel().damageSources().playerAttack(player), 2.0F),
                     "Initial combat-overhaul player attack should apply vanilla i-frame setup");
-            MinecraftForge.EVENT_BUS.post(new AttackEntityEvent(player, target));
+            NeoForge.EVENT_BUS.post(new AttackEntityEvent(player, target));
             helper.assertFalse(target.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F),
                     "Spell Side Edge i-frame bypass should be disabled with BetterCombat or EpicFight loaded");
         });
@@ -744,18 +763,50 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             double amount,
             AttributeModifier.Operation operation
     ) {
-        return new AttributeModifier(UUID.nameUUIDFromBytes(name.getBytes(java.nio.charset.StandardCharsets.UTF_8)),
-                name, amount, operation);
+        return new AttributeModifier(
+                net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(
+                        "apprenticecodex",
+                        name.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9/._-]", "_")
+                ),
+                amount,
+                operation
+        );
     }
 
     private static ItemStack stackWithSpellPowerModifier(double amount) {
         var stack = new ItemStack(Items.STICK);
-        stack.addAttributeModifier(
-                AttributeRegistry.SPELL_POWER.get(),
-                modifier("stack_spell_power", amount, AttributeModifier.Operation.MULTIPLY_BASE),
-                EquipmentSlot.MAINHAND
+        addStackAttributeModifier(
+                stack,
+                AttributeRegistry.SPELL_POWER,
+                modifier("stack_spell_power", amount, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
         );
         return stack;
+    }
+
+    private static void addStackAttributeModifier(
+            ItemStack stack,
+            Holder<Attribute> attribute,
+            AttributeModifier modifier
+    ) {
+        stack.set(
+                DataComponents.ATTRIBUTE_MODIFIERS,
+                ItemAttributeModifiers.builder()
+                        .add(attribute, modifier, EquipmentSlotGroup.MAINHAND)
+                        .build()
+        );
+    }
+
+    private static com.google.common.collect.Multimap<Holder<Attribute>, AttributeModifier> modifiersForSlot(
+            net.minecraft.world.item.component.ItemAttributeModifiers modifiers,
+            EquipmentSlot slot
+    ) {
+        var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
+        for (var entry : modifiers.modifiers()) {
+            if (entry.slot().test(slot)) {
+                builder.put(entry.attribute(), entry.modifier());
+            }
+        }
+        return builder.build();
     }
 
     private static MagicData resolveMagicData(GameTestHelper helper, net.minecraft.world.entity.player.Player player) {

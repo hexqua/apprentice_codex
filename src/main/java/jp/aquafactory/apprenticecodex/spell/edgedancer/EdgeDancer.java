@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdge;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -184,12 +185,12 @@ public class EdgeDancer extends AbstractSpell {
         }
 
         @Override
-        public CompoundTag serializeNBT() {
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
             return new CompoundTag();
         }
 
         @Override
-        public void deserializeNBT(CompoundTag nbt) {
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
         }
     }
 }

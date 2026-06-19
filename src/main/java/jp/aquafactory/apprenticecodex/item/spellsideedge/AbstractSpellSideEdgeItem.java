@@ -1,20 +1,19 @@
 package jp.aquafactory.apprenticecodex.item.spellsideedge;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
@@ -24,21 +23,21 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tiers;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.ToolAction;
-import net.minecraftforge.common.ToolActions;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.common.ItemAbilities;
+import net.neoforged.neoforge.common.ItemAbility;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
@@ -55,24 +54,19 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem implements Geo
     private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_SWORD);
-    private static final String MALUM_NAMESPACE = "malum";
-    private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
-            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
-    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
-            net.minecraft.core.registries.Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
-    );
     private static final Set<ResourceLocation> EXTRA_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom"),
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "transcendence")
     );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private final Multimap<Attribute, AttributeModifier> mainhandModifiers = buildMainhandModifiers();
+    private final ItemAttributeModifiers mainhandModifiers = buildMainhandModifiers();
 
     protected AbstractSpellSideEdgeItem() {
-        super(Tiers.DIAMOND, 0, (float) ATTACK_SPEED_MODIFIER_AMOUNT,
-                new Item.Properties().stacksTo(1).durability(DURABILITY));
+        super(Tiers.DIAMOND, new Item.Properties()
+                .stacksTo(1)
+                .durability(DURABILITY)
+                .attributes(SwordItem.createAttributes(Tiers.DIAMOND, 0, (float) ATTACK_SPEED_MODIFIER_AMOUNT)));
         GeoItem.registerSyncedAnimatable(this);
     }
 
@@ -107,11 +101,7 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem implements Geo
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        if (slot != EquipmentSlot.MAINHAND) {
-            return super.getAttributeModifiers(slot, stack);
-        }
-
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
         return mainhandModifiers;
     }
 
@@ -126,18 +116,24 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem implements Geo
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-        if (enchantmentId == null) {
-            return false;
-        }
-
-        if (MALUM_SPIRIT_PLUNDER.equals(enchantmentId) && stack.is(MALUM_SOUL_HUNTER_WEAPON)) {
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        if (super.supportsEnchantment(stack, enchantment)) {
             return true;
         }
 
-        return EXTRA_ENCHANTMENTS.contains(enchantmentId)
-                || enchantment.canApplyAtEnchantingTable(SWORD_ENCHANTMENT_PROBE_STACK);
+        var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
+        if (MalumCompatibility.isSpiritPlunderSupported(stack, enchantmentId)
+                || MalumCompatibility.isMagicCapableWeaponEnchantment(stack, enchantmentId)) {
+            return true;
+        }
+
+        return enchantmentId != null && EXTRA_ENCHANTMENTS.contains(enchantmentId)
+                || SWORD_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment);
+    }
+
+    @Override
+    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -146,20 +142,20 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem implements Geo
             return false;
         }
 
-        var enchantments = EnchantmentHelper.getEnchantments(book);
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
         return enchantments.isEmpty() || enchantments.keySet().stream()
-                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
+                .allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     @Override
-    public boolean canPerformAction(@NotNull ItemStack stack, @NotNull ToolAction toolAction) {
-        return ToolActions.SWORD_SWEEP == toolAction || super.canPerformAction(stack, toolAction);
+    public boolean canPerformAction(@NotNull ItemStack stack, @NotNull ItemAbility itemAbility) {
+        return itemAbility == ItemAbilities.SWORD_SWEEP || super.canPerformAction(stack, itemAbility);
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+        super.appendHoverText(stack, context, lines, flag);
         lines.add(Component.translatable(DESCRIPTION_TRANSLATION_KEY).withStyle(ChatFormatting.GRAY));
         var betterCombatDescriptionTranslationKey = betterCombatDescriptionTranslationKey();
         if (betterCombatDescriptionTranslationKey != null && ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)) {
@@ -201,25 +197,25 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem implements Geo
         );
     }
 
-    private static Multimap<Attribute, AttributeModifier> buildMainhandModifiers() {
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        builder.put(
+    private static ItemAttributeModifiers buildMainhandModifiers() {
+        var builder = ItemAttributeModifiers.builder();
+        builder.add(
                 Attributes.ATTACK_DAMAGE,
                 new AttributeModifier(
-                        Item.BASE_ATTACK_DAMAGE_UUID,
-                        "Weapon modifier",
+                        Item.BASE_ATTACK_DAMAGE_ID,
                         ATTACK_DAMAGE_MODIFIER_AMOUNT,
-                        AttributeModifier.Operation.ADDITION
-                )
+                        AttributeModifier.Operation.ADD_VALUE
+                ),
+                EquipmentSlotGroup.MAINHAND
         );
-        builder.put(
+        builder.add(
                 Attributes.ATTACK_SPEED,
                 new AttributeModifier(
-                        Item.BASE_ATTACK_SPEED_UUID,
-                        "Weapon modifier",
+                        Item.BASE_ATTACK_SPEED_ID,
                         ATTACK_SPEED_MODIFIER_AMOUNT,
-                        AttributeModifier.Operation.ADDITION
-                )
+                        AttributeModifier.Operation.ADD_VALUE
+                ),
+                EquipmentSlotGroup.MAINHAND
         );
         return builder.build();
     }

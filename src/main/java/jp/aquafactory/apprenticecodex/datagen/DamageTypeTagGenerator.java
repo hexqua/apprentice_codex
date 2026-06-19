@@ -18,6 +18,7 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCANE_BEAM;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCANE_BLAST;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCHER_MULTIPLE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCHER_MULTIPLE_LAST;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ANCHOR_BLINK;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARTISAN_SMASH;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.AUTO_TURRET;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.BREACHING_ENEMY;

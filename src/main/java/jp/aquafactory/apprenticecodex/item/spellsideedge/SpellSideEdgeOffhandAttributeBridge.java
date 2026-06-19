@@ -2,19 +2,19 @@ package jp.aquafactory.apprenticecodex.item.spellsideedge;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.ItemAttributeModifierEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -59,20 +59,20 @@ public final class SpellSideEdgeOffhandAttributeBridge {
         removeModifiers(player, appliedModifiers == null ? null : appliedModifiers.modifiers());
     }
 
-    public static Multimap<Attribute, AttributeModifier> buildBridgeModifiers(ItemStack offhandStack) {
+    public static Multimap<Holder<Attribute>, AttributeModifier> buildBridgeModifiers(ItemStack offhandStack) {
         if (offhandStack == null || offhandStack.isEmpty()) {
             return ImmutableMultimap.of();
         }
 
         return buildBridgeModifiers(
-                resolveRuntimeModifiers(offhandStack, EquipmentSlot.MAINHAND),
-                resolveRuntimeModifiers(offhandStack, EquipmentSlot.OFFHAND)
+                filterBySlot(resolveRuntimeModifiers(offhandStack), net.minecraft.world.entity.EquipmentSlot.MAINHAND),
+                filterBySlot(resolveRuntimeModifiers(offhandStack), net.minecraft.world.entity.EquipmentSlot.OFFHAND)
         );
     }
 
-    public static Multimap<Attribute, AttributeModifier> buildBridgeModifiers(
-            Multimap<Attribute, AttributeModifier> mainhandModifiers,
-            Multimap<Attribute, AttributeModifier> offhandModifiers
+    public static Multimap<Holder<Attribute>, AttributeModifier> buildBridgeModifiers(
+            Multimap<Holder<Attribute>, AttributeModifier> mainhandModifiers,
+            Multimap<Holder<Attribute>, AttributeModifier> offhandModifiers
     ) {
         if (mainhandModifiers == null || mainhandModifiers.isEmpty()) {
             return ImmutableMultimap.of();
@@ -80,7 +80,7 @@ public final class SpellSideEdgeOffhandAttributeBridge {
 
         var mainComparableAmounts = new LinkedHashMap<ModifierKey, Double>();
         var offhandComparableAmounts = new LinkedHashMap<ModifierKey, Double>();
-        var mainMultiplyTotalModifiers = new ArrayList<Map.Entry<Attribute, AttributeModifier>>();
+        var mainMultiplyTotalModifiers = new ArrayList<Map.Entry<Holder<Attribute>, AttributeModifier>>();
         var offhandMultiplyTotalKeys = new HashSet<ModifierKey>();
 
         for (var entry : mainhandModifiers.entries()) {
@@ -89,10 +89,10 @@ public final class SpellSideEdgeOffhandAttributeBridge {
             }
 
             var modifier = entry.getValue();
-            var key = new ModifierKey(entry.getKey(), modifier.getOperation());
-            switch (modifier.getOperation()) {
-                case ADDITION, MULTIPLY_BASE -> mainComparableAmounts.merge(key, modifier.getAmount(), Double::sum);
-                case MULTIPLY_TOTAL -> mainMultiplyTotalModifiers.add(entry);
+            var key = new ModifierKey(entry.getKey(), modifier.operation());
+            switch (modifier.operation()) {
+                case ADD_VALUE, ADD_MULTIPLIED_BASE -> mainComparableAmounts.merge(key, modifier.amount(), Double::sum);
+                case ADD_MULTIPLIED_TOTAL -> mainMultiplyTotalModifiers.add(entry);
             }
         }
 
@@ -103,15 +103,15 @@ public final class SpellSideEdgeOffhandAttributeBridge {
                 }
 
                 var modifier = entry.getValue();
-                var key = new ModifierKey(entry.getKey(), modifier.getOperation());
-                switch (modifier.getOperation()) {
-                    case ADDITION, MULTIPLY_BASE -> offhandComparableAmounts.merge(key, modifier.getAmount(), Double::sum);
-                    case MULTIPLY_TOTAL -> offhandMultiplyTotalKeys.add(key);
+                var key = new ModifierKey(entry.getKey(), modifier.operation());
+                switch (modifier.operation()) {
+                    case ADD_VALUE, ADD_MULTIPLIED_BASE -> offhandComparableAmounts.merge(key, modifier.amount(), Double::sum);
+                    case ADD_MULTIPLIED_TOTAL -> offhandMultiplyTotalKeys.add(key);
                 }
             }
         }
 
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+        var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
         for (var entry : mainComparableAmounts.entrySet()) {
             var key = entry.getKey();
             var delta = entry.getValue() - offhandComparableAmounts.getOrDefault(key, 0.0D);
@@ -127,8 +127,7 @@ public final class SpellSideEdgeOffhandAttributeBridge {
             builder.put(
                     key.attribute(),
                     new AttributeModifier(
-                            UUID.nameUUIDFromBytes(modifierIdSeed.getBytes(StandardCharsets.UTF_8)),
-                            modifierIdSeed,
+                            ResourceLocationHelper.fromStableId(modifierIdSeed),
                             delta,
                             key.operation()
                     )
@@ -136,7 +135,7 @@ public final class SpellSideEdgeOffhandAttributeBridge {
         }
 
         for (var entry : mainMultiplyTotalModifiers) {
-            var key = new ModifierKey(entry.getKey(), entry.getValue().getOperation());
+            var key = new ModifierKey(entry.getKey(), entry.getValue().operation());
             if (offhandMultiplyTotalKeys.contains(key)) {
                 continue;
             }
@@ -146,7 +145,7 @@ public final class SpellSideEdgeOffhandAttributeBridge {
         return builder.build();
     }
 
-    private static Multimap<Attribute, AttributeModifier> resolveDesiredModifiers(ServerPlayer player) {
+    private static Multimap<Holder<Attribute>, AttributeModifier> resolveDesiredModifiers(ServerPlayer player) {
         if (!player.isAlive() || !SpellSideEdge.isSpellSideEdge(player.getMainHandItem())) {
             return ImmutableMultimap.of();
         }
@@ -154,22 +153,38 @@ public final class SpellSideEdgeOffhandAttributeBridge {
         return buildBridgeModifiers(player.getOffhandItem());
     }
 
-    private static Multimap<Attribute, AttributeModifier> resolveRuntimeModifiers(ItemStack stack, EquipmentSlot slot) {
+    private static java.util.List<ItemAttributeModifiers.Entry> resolveRuntimeModifiers(ItemStack stack) {
         var event = new ItemAttributeModifierEvent(
                 stack,
-                slot,
-                stack.getAttributeModifiers(slot)
+                stack.getAttributeModifiers()
         );
-        MinecraftForge.EVENT_BUS.post(event);
-        return ImmutableMultimap.copyOf(event.getModifiers());
+        NeoForge.EVENT_BUS.post(event);
+        return event.getModifiers();
     }
 
-    private static boolean isBridgeableAttribute(Attribute attribute) {
+    private static Multimap<Holder<Attribute>, AttributeModifier> filterBySlot(
+            java.util.List<ItemAttributeModifiers.Entry> modifiers,
+            net.minecraft.world.entity.EquipmentSlot slot
+    ) {
+        if (modifiers == null || modifiers.isEmpty()) {
+            return ImmutableMultimap.of();
+        }
+
+        var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
+        for (var entry : modifiers) {
+            if (entry.slot().test(slot)) {
+                builder.put(entry.attribute(), entry.modifier());
+            }
+        }
+        return builder.build();
+    }
+
+    private static boolean isBridgeableAttribute(Holder<Attribute> attribute) {
         // 近接攻撃力と攻撃速度は利き手武器側の戦闘性能として扱い、魔法行使用のブリッジには乗せない。
-        return attribute != Attributes.ATTACK_DAMAGE && attribute != Attributes.ATTACK_SPEED;
+        return !attribute.equals(Attributes.ATTACK_DAMAGE) && !attribute.equals(Attributes.ATTACK_SPEED);
     }
 
-    private static Set<ModifierSnapshot> snapshotModifiers(Multimap<Attribute, AttributeModifier> modifiers) {
+    private static Set<ModifierSnapshot> snapshotModifiers(Multimap<Holder<Attribute>, AttributeModifier> modifiers) {
         if (modifiers == null || modifiers.isEmpty()) {
             return Set.of();
         }
@@ -177,17 +192,17 @@ public final class SpellSideEdgeOffhandAttributeBridge {
         var amounts = new LinkedHashMap<ModifierKey, Double>();
         for (var entry : modifiers.entries()) {
             var modifier = entry.getValue();
-            var key = new ModifierKey(entry.getKey(), modifier.getOperation());
-            switch (modifier.getOperation()) {
-                case ADDITION, MULTIPLY_BASE -> amounts.merge(key, modifier.getAmount(), Double::sum);
-                case MULTIPLY_TOTAL -> amounts.merge(key, 1.0D + modifier.getAmount(), (left, right) -> left * right);
+            var key = new ModifierKey(entry.getKey(), modifier.operation());
+            switch (modifier.operation()) {
+                case ADD_VALUE, ADD_MULTIPLIED_BASE -> amounts.merge(key, modifier.amount(), Double::sum);
+                case ADD_MULTIPLIED_TOTAL -> amounts.merge(key, 1.0D + modifier.amount(), (left, right) -> left * right);
             }
         }
 
         var snapshots = new HashSet<ModifierSnapshot>();
         for (var entry : amounts.entrySet()) {
             var key = entry.getKey();
-            var amount = key.operation() == AttributeModifier.Operation.MULTIPLY_TOTAL
+            var amount = key.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
                     ? entry.getValue() - 1.0D
                     : entry.getValue();
             snapshots.add(new ModifierSnapshot(
@@ -203,23 +218,22 @@ public final class SpellSideEdgeOffhandAttributeBridge {
         return amount == 0.0D ? 0.0D : amount;
     }
 
-    private static AttributeModifier remapModifier(Attribute attribute, AttributeModifier modifier) {
+    private static AttributeModifier remapModifier(Holder<Attribute> attribute, AttributeModifier modifier) {
         var modifierIdSeed = MODIFIER_NAME_PREFIX
                 + ".copy."
                 + resolveAttributeToken(attribute)
                 + "."
-                + modifier.getOperation().name().toLowerCase(Locale.ROOT)
+                + modifier.operation().name().toLowerCase(Locale.ROOT)
                 + "."
-                + modifier.getId();
+                + modifier.id();
         return new AttributeModifier(
-                UUID.nameUUIDFromBytes(modifierIdSeed.getBytes(StandardCharsets.UTF_8)),
-                modifierIdSeed,
-                modifier.getAmount(),
-                modifier.getOperation()
+                ResourceLocationHelper.fromStableId(modifierIdSeed),
+                modifier.amount(),
+                modifier.operation()
         );
     }
 
-    private static void applyModifiers(Player player, Multimap<Attribute, AttributeModifier> modifiers) {
+    private static void applyModifiers(Player player, Multimap<Holder<Attribute>, AttributeModifier> modifiers) {
         if (modifiers == null || modifiers.isEmpty()) {
             return;
         }
@@ -230,12 +244,12 @@ public final class SpellSideEdgeOffhandAttributeBridge {
                 continue;
             }
 
-            attributeInstance.removeModifier(entry.getValue().getId());
+            attributeInstance.removeModifier(entry.getValue().id());
             attributeInstance.addTransientModifier(entry.getValue());
         }
     }
 
-    private static void removeModifiers(Player player, Multimap<Attribute, AttributeModifier> modifiers) {
+    private static void removeModifiers(Player player, Multimap<Holder<Attribute>, AttributeModifier> modifiers) {
         if (modifiers == null || modifiers.isEmpty()) {
             return;
         }
@@ -246,20 +260,18 @@ public final class SpellSideEdgeOffhandAttributeBridge {
                 continue;
             }
 
-            removeModifier(attributeInstance, entry.getValue().getId());
+            removeModifier(attributeInstance, entry.getValue().id());
         }
     }
 
-    private static void removeModifier(AttributeInstance attributeInstance, UUID modifierId) {
+    private static void removeModifier(AttributeInstance attributeInstance, net.minecraft.resources.ResourceLocation modifierId) {
         attributeInstance.removeModifier(modifierId);
     }
 
-    private static String resolveAttributeToken(Attribute attribute) {
-        var registryKey = ForgeRegistries.ATTRIBUTES.getKey(attribute);
-        if (registryKey == null) {
-            return "unknown";
-        }
-        return normalizeToken(registryKey.toString());
+    private static String resolveAttributeToken(Holder<Attribute> attribute) {
+        return attribute.unwrapKey()
+                .map(key -> normalizeToken(key.location().toString()))
+                .orElseGet(() -> normalizeToken(BuiltInRegistries.ATTRIBUTE.getKey(attribute.value()).toString()));
     }
 
     private static String normalizeToken(String token) {
@@ -270,21 +282,33 @@ public final class SpellSideEdgeOffhandAttributeBridge {
     }
 
     private record ModifierKey(
-            Attribute attribute,
+            Holder<Attribute> attribute,
             AttributeModifier.Operation operation
     ) {
     }
 
     private record ModifierSnapshot(
-            Attribute attribute,
+            Holder<Attribute> attribute,
             AttributeModifier.Operation operation,
             long amountBits
     ) {
     }
 
     private record AppliedBridgeModifiers(
-            Multimap<Attribute, AttributeModifier> modifiers,
+            Multimap<Holder<Attribute>, AttributeModifier> modifiers,
             Set<ModifierSnapshot> snapshot
     ) {
+    }
+
+    private static final class ResourceLocationHelper {
+        private ResourceLocationHelper() {
+        }
+
+        private static net.minecraft.resources.ResourceLocation fromStableId(String value) {
+            return net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(
+                    "apprenticecodex",
+                    normalizeToken(value)
+            );
+        }
     }
 }

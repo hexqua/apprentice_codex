@@ -5,7 +5,7 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.SpellSideEdgeRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -25,12 +25,12 @@ public final class SpellSideEdge extends AbstractSpellSideEdgeItem {
     }
 
     @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
+    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
+        consumer.accept(new GeoRenderProvider() {
             private SpellSideEdgeRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public BlockEntityWithoutLevelRenderer getGeoItemRenderer() {
                 if (renderer == null) {
                     renderer = new SpellSideEdgeRenderer();
                 }

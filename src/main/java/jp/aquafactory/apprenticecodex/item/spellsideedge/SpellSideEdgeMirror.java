@@ -7,17 +7,19 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.SpellSideEdgeMirrorRenderer;
 import jp.aquafactory.apprenticecodex.spell.edgedancer.EdgeDancerClientTooltip;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
+import net.minecraft.world.item.component.CustomData;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,10 +34,10 @@ public final class SpellSideEdgeMirror extends AbstractSpellSideEdgeItem {
 
     public static ItemStack create(UUID instanceId, ItemStack sourceStack) {
         var stack = new ItemStack(ItemRegistry.SPELL_SIDE_EDGE_MIRROR.get());
-        if (sourceStack != null && sourceStack.hasTag()) {
-            stack.setTag(sourceStack.getTag().copy());
+        if (sourceStack != null) {
+            stack.applyComponents(sourceStack.getComponentsPatch());
         }
-        stack.getOrCreateTag().putUUID(INSTANCE_ID_TAG, instanceId);
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putUUID(INSTANCE_ID_TAG, instanceId));
         setInitialSpellContainer(stack, SpellRegistry.ANCHOR_BLINK);
         return stack;
     }
@@ -53,7 +55,7 @@ public final class SpellSideEdgeMirror extends AbstractSpellSideEdgeItem {
             return Optional.empty();
         }
 
-        CompoundTag tag = stack.getTag();
+        CompoundTag tag = getCustomDataTag(stack);
         return tag != null && tag.hasUUID(INSTANCE_ID_TAG)
                 ? Optional.of(tag.getUUID(INSTANCE_ID_TAG))
                 : Optional.empty();
@@ -77,12 +79,12 @@ public final class SpellSideEdgeMirror extends AbstractSpellSideEdgeItem {
     }
 
     @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
+    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
+        consumer.accept(new GeoRenderProvider() {
             private SpellSideEdgeMirrorRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public BlockEntityWithoutLevelRenderer getGeoItemRenderer() {
                 if (renderer == null) {
                     renderer = new SpellSideEdgeMirrorRenderer();
                 }
@@ -93,11 +95,11 @@ public final class SpellSideEdgeMirror extends AbstractSpellSideEdgeItem {
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+        super.appendHoverText(stack, context, lines, flag);
 
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
+        if (FMLEnvironment.dist == Dist.CLIENT) {
                 EdgeDancerClientTooltip.getStoredItemName(stack).ifPresent(storedItemName -> {
                     lines.add(Component.translatable(
                             "item." + ApprenticeCodex.MODID + ".bound_weapon.contain_item.item",
@@ -106,6 +108,12 @@ public final class SpellSideEdgeMirror extends AbstractSpellSideEdgeItem {
                     lines.add(Component.translatable(
                             "item." + ApprenticeCodex.MODID + ".bound_weapon.contain_item.hint"
                     ).withStyle(ChatFormatting.DARK_GRAY));
-                }));
+                });
+        }
+    }
+
+    private static @Nullable CompoundTag getCustomDataTag(ItemStack stack) {
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        return customData == null ? null : customData.copyTag();
     }
 }

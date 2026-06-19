@@ -241,8 +241,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         malumMagicCapableWeaponTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
         tomagicReversalWeaponTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
-        surgeEnchantableTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
-        attunementEnchantableTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
         transcendenceEnchantableTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
         wisdomEnchantableTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
         vanillaSwordEnchantableTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
