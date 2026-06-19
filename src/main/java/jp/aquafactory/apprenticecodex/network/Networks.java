@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientAnchorBlinkPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
@@ -24,6 +25,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncBoundSwordStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffOverheatPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncEdgeDancerStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
@@ -113,6 +115,11 @@ public final class Networks {
                 ClientJumpcastCharmCastPacket.TYPE,
                 ClientJumpcastCharmCastPacket.STREAM_CODEC,
                 ClientJumpcastCharmCastPacket::handle
+        );
+        registrar.playToServer(
+                ClientAnchorBlinkPacket.TYPE,
+                ClientAnchorBlinkPacket.STREAM_CODEC,
+                ClientAnchorBlinkPacket::handle
         );
         registrar.playToServer(
                 ClientMirageAvoidanceCastPacket.TYPE,
@@ -243,6 +250,11 @@ public final class Networks {
                 SyncBoundSwordStatePacket.TYPE,
                 SyncBoundSwordStatePacket.STREAM_CODEC,
                 SyncBoundSwordStatePacket::handle
+        );
+        registrar.playToClient(
+                SyncEdgeDancerStatePacket.TYPE,
+                SyncEdgeDancerStatePacket.STREAM_CODEC,
+                SyncEdgeDancerStatePacket::handle
         );
         registrar.playToClient(
                 SyncTamersPocketCountPacket.TYPE,

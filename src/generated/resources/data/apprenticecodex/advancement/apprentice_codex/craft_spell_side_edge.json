@@ -1,0 +1,45 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_iron_spell_amplifier",
+  "criteria": {
+    "crafted_spell_side_edge": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:spell_side_edge"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_spell_side_edge.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "components": {
+        "irons_spellbooks:spell_container": {
+          "data": [
+            {
+              "id": "apprenticecodex:edge_dancer",
+              "index": 0,
+              "level": 1,
+              "locked": true
+            }
+          ],
+          "maxSpells": 1,
+          "mustEquip": false,
+          "spellWheel": true
+        }
+      },
+      "count": 1,
+      "id": "apprenticecodex:spell_side_edge"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_spell_side_edge.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_spell_side_edge"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

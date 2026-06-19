@@ -1,0 +1,38 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": {
+      "item": "irons_spellbooks:magic_cloth"
+    },
+    "E": {
+      "item": "minecraft:emerald"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_ingot"
+    }
+  },
+  "pattern": [
+    " M",
+    "EC"
+  ],
+  "result": {
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [
+          {
+            "id": "apprenticecodex:edge_dancer",
+            "index": 0,
+            "level": 1,
+            "locked": true
+          }
+        ],
+        "maxSpells": 1,
+        "mustEquip": false,
+        "spellWheel": true
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:spell_side_edge"
+  }
+}

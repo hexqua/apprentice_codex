@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncBoundSwordStatePacket;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.boundbow.BoundBowManager;
+import jp.aquafactory.apprenticecodex.spell.edgedancer.EdgeDancerManager;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -42,6 +43,7 @@ public final class BoundSwordManager {
                                 BoundSword spell, float displayDamage, boolean forceTryDualWield) {
         deactivate(player, true);
         BoundBowManager.deactivate(player, true);
+        EdgeDancerManager.deactivate(player, true);
 
         var spellData = Capabilities.getSpellDataOrNull(player);
         if (spellData == null) {

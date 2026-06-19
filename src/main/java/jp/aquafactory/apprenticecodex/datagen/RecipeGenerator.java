@@ -378,6 +378,15 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(Items.NETHERITE_SWORD), has(Items.NETHERITE_SWORD))
                 .save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SPELL_SIDE_EDGE.get())
+                .pattern(" M")
+                .pattern("EC")
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_INGOT.get())
+                .define('C', io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get())
+                .define('E', Items.EMERALD)
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_INGOT.get()))
+                .save(recipeOutput);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.ELEMENTAL_BOW.get())
                 .pattern(" AS")
                 .pattern("DMS")
