@@ -193,6 +193,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void anchorBlinkImpactedDaggerDoesNotDamageAgain(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.anchorBlinkImpactedDaggerDoesNotDamageAgain(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void anchorBlinkPostTeleportProtectionOnlyBlocksEnemyDamage(GameTestHelper helper) {
         SpellSideEdgeGameTestScenarios.anchorBlinkPostTeleportProtectionOnlyBlocksEnemyDamage(helper);
     }

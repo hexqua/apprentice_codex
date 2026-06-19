@@ -26,8 +26,10 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -35,6 +37,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.fml.ModList;
@@ -625,6 +628,28 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
         });
     }
 
+    static void anchorBlinkImpactedDaggerDoesNotDamageAgain(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "anchor_blink_rehit_owner_test");
+            var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0));
+            var dagger = new TestableAnchorBlinkDaggerEntity(helper.getLevel(), player);
+            dagger.setDamage(4.0F);
+            helper.getLevel().addFreshEntity(dagger);
+
+            var initialHealth = target.getHealth();
+            dagger.hitEntityForTesting(target);
+            var afterFirstHit = target.getHealth();
+            helper.assertTrue(afterFirstHit < initialHealth,
+                    "Anchor Blink dagger should damage the target on first entity hit");
+
+            target.invulnerableTime = 0;
+            dagger.hitEntityForTesting(target);
+
+            helper.assertTrue(Math.abs(target.getHealth() - afterFirstHit) < TOLERANCE,
+                    "Impacted Anchor Blink dagger should not damage the target again");
+        });
+    }
+
     static void anchorBlinkPostTeleportProtectionOnlyBlocksEnemyDamage(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
@@ -745,5 +770,15 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
 
     private static AnchorBlink anchorBlink() {
         return (AnchorBlink) SpellRegistry.ANCHOR_BLINK.get();
+    }
+
+    private static final class TestableAnchorBlinkDaggerEntity extends AnchorBlinkDaggerEntity {
+        private TestableAnchorBlinkDaggerEntity(Level level, LivingEntity owner) {
+            super(EntityRegistry.ANCHOR_BLINK_DAGGER.get(), level, owner);
+        }
+
+        private void hitEntityForTesting(Entity target) {
+            onHitEntity(new EntityHitResult(target));
+        }
     }
 }

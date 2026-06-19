@@ -108,11 +108,15 @@ public class AnchorBlinkDaggerEntity extends ThrowableProjectile implements Anti
 
     @Override
     protected boolean canHitEntity(@NotNull Entity target) {
-        return super.canHitEntity(target) && CombatTools.isValidCombatTarget(target, getOwner());
+        return !isImpacted() && super.canHitEntity(target) && CombatTools.isValidCombatTarget(target, getOwner());
     }
 
     @Override
     protected void onHitEntity(@NotNull EntityHitResult hitResult) {
+        if (isImpacted()) {
+            return;
+        }
+
         super.onHitEntity(hitResult);
         if (!(level() instanceof ServerLevel)) {
             return;
@@ -135,6 +139,10 @@ public class AnchorBlinkDaggerEntity extends ThrowableProjectile implements Anti
 
     @Override
     protected void onHitBlock(@NotNull BlockHitResult hitResult) {
+        if (isImpacted()) {
+            return;
+        }
+
         super.onHitBlock(hitResult);
         if (level().isClientSide) {
             return;
