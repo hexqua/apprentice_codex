@@ -438,6 +438,36 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
         });
     }
 
+    static void edgeDancerOffhandSwapCancelsAndOnlyDeactivates(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "edge_dancer_offhand_swap_test");
+            var mainhand = ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance();
+            player.setItemInHand(InteractionHand.MAIN_HAND, mainhand);
+            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SHIELD));
+
+            EdgeDancerManager.activate(player, 1, CastSource.SPELLBOOK, resolveMagicData(helper, player), edgeDancer());
+            var handled = EdgeDancerManager.handlePlayerAction(
+                    player,
+                    new ServerboundPlayerActionPacket(
+                            ServerboundPlayerActionPacket.Action.SWAP_ITEM_WITH_OFFHAND,
+                            BlockPos.ZERO,
+                            Direction.DOWN,
+                            0
+                    )
+            );
+
+            helper.assertTrue(handled,
+                    "Swapping offhand during Edge Dancer should be cancelled");
+            helper.assertTrue(SpellSideEdge.isSpellSideEdge(player.getMainHandItem()),
+                    "Cancelled Edge Dancer offhand swap should keep Spell Side Edge in the main hand");
+            helper.assertTrue(player.getOffhandItem().is(Items.SHIELD),
+                    "Cancelled Edge Dancer offhand swap should restore the original offhand item");
+            helper.assertTrue(!Capabilities.getSpellDataOrNull(player)
+                            .get(CodexSpellStateTypeRegister.EDGE_DANCER_STATE).active,
+                    "Cancelled Edge Dancer offhand swap should deactivate the effect");
+        });
+    }
+
     static void spellSideEdgeMirrorOffhandDoesNotApplyVanillaAttackModifiers(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = SpellSideEdgeMirror.create(UUID.randomUUID(),
@@ -575,6 +605,23 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
                     "Anchor Blink should spawn exactly one anchor dagger but got " + daggers.size());
             helper.assertTrue(daggers.get(0).getDamageForTesting() > 0.0F,
                     "Anchor Blink dagger should carry spell damage");
+        });
+    }
+
+    static void anchorBlinkReadyAnchorOnlyMatchesOwner(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "anchor_blink_owner_test");
+            var otherPlayer = createEquipmentTestPlayer(helper, new BlockPos(2, 2, 0),
+                    "anchor_blink_other_owner_test");
+            var dagger = new AnchorBlinkDaggerEntity(EntityRegistry.ANCHOR_BLINK_DAGGER.get(), helper.getLevel(), owner);
+            helper.getLevel().addFreshEntity(dagger);
+
+            dagger.impactForTesting(owner.position().add(1.0D, 0.0D, 0.0D));
+
+            helper.assertTrue(dagger.isReadyAnchorFor(owner),
+                    "Anchor Blink ready anchor should match its owner");
+            helper.assertFalse(dagger.isReadyAnchorFor(otherPlayer),
+                    "Anchor Blink ready anchor should not match another player");
         });
     }
 

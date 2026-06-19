@@ -50,7 +50,7 @@ public final class AnchorBlinkClientInputEvent {
         return player != null && level != null && !level.getEntitiesOfClass(
                 AnchorBlinkDaggerEntity.class,
                 player.getBoundingBox().inflate(128.0D),
-                AnchorBlinkDaggerEntity::isImpacted
+                dagger -> dagger.isReadyAnchorFor(player)
         ).isEmpty();
     }
 }

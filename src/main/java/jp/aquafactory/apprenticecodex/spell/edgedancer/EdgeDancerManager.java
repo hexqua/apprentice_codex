@@ -180,8 +180,14 @@ public final class EdgeDancerManager {
     public static boolean handlePlayerAction(ServerPlayer player, ServerboundPlayerActionPacket packet) {
         var action = packet.getAction();
         if (action != ServerboundPlayerActionPacket.Action.DROP_ITEM
-                && action != ServerboundPlayerActionPacket.Action.DROP_ALL_ITEMS) {
+                && action != ServerboundPlayerActionPacket.Action.DROP_ALL_ITEMS
+                && action != ServerboundPlayerActionPacket.Action.SWAP_ITEM_WITH_OFFHAND) {
             return false;
+        }
+
+        if (action == ServerboundPlayerActionPacket.Action.SWAP_ITEM_WITH_OFFHAND && hasActiveEdgeDancer(player)) {
+            deactivate(player, true);
+            return true;
         }
 
         var selected = player.getInventory().getSelected();
