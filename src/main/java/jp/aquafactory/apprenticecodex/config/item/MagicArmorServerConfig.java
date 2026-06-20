@@ -8,6 +8,8 @@ public final class MagicArmorServerConfig {
     private final ModConfigSpec.DoubleValue chromaticMagiaDressSpellPowerBonusPerPiece;
     private final ModConfigSpec.DoubleValue elementMaidenRobeSpellPowerBonus;
     private final ModConfigSpec.DoubleValue elementMaidenRobeSchoolSpellPowerBonus;
+    private final ModConfigSpec.DoubleValue magiAgentSuitSpellPowerBonus;
+    private final ModConfigSpec.DoubleValue magiAgentSuitSchoolSpellPowerBonus;
     private final ModConfigSpec.DoubleValue stealthRuneArmorSpellPowerBonusPerPiece;
 
     private Double elementMaidenRobeSchoolSpellPowerBonusOverride;
@@ -18,6 +20,8 @@ public final class MagicArmorServerConfig {
             ModConfigSpec.DoubleValue chromaticMagiaDressSpellPowerBonusPerPiece,
             ModConfigSpec.DoubleValue elementMaidenRobeSpellPowerBonus,
             ModConfigSpec.DoubleValue elementMaidenRobeSchoolSpellPowerBonus,
+            ModConfigSpec.DoubleValue magiAgentSuitSpellPowerBonus,
+            ModConfigSpec.DoubleValue magiAgentSuitSchoolSpellPowerBonus,
             ModConfigSpec.DoubleValue stealthRuneArmorSpellPowerBonusPerPiece
     ) {
         this.apprenticeMageRobeSpellPowerBonusPerPiece = apprenticeMageRobeSpellPowerBonusPerPiece;
@@ -25,6 +29,8 @@ public final class MagicArmorServerConfig {
         this.chromaticMagiaDressSpellPowerBonusPerPiece = chromaticMagiaDressSpellPowerBonusPerPiece;
         this.elementMaidenRobeSpellPowerBonus = elementMaidenRobeSpellPowerBonus;
         this.elementMaidenRobeSchoolSpellPowerBonus = elementMaidenRobeSchoolSpellPowerBonus;
+        this.magiAgentSuitSpellPowerBonus = magiAgentSuitSpellPowerBonus;
+        this.magiAgentSuitSchoolSpellPowerBonus = magiAgentSuitSchoolSpellPowerBonus;
         this.stealthRuneArmorSpellPowerBonusPerPiece = stealthRuneArmorSpellPowerBonusPerPiece;
     }
 
@@ -54,6 +60,16 @@ public final class MagicArmorServerConfig {
                 "ElementMaidenRobe",
                 0.20D
         );
+        var magiAgentSuitSpellPowerBonus = defineSpellPowerBonus(
+                builder,
+                "MagiAgentSuit",
+                0.05D
+        );
+        var magiAgentSuitSchoolSpellPowerBonus = defineSchoolRuneSpellPowerBonus(
+                builder,
+                "MagiAgentSuit",
+                0.10D
+        );
         var stealthRuneArmorSpellPowerBonusPerPiece = defineSpellPowerBonusPerPiece(
                 builder,
                 "StealthRuneArmor",
@@ -66,6 +82,8 @@ public final class MagicArmorServerConfig {
                 chromaticMagiaDressSpellPowerBonusPerPiece,
                 elementMaidenRobeSpellPowerBonus,
                 elementMaidenRobeSchoolSpellPowerBonus,
+                magiAgentSuitSpellPowerBonus,
+                magiAgentSuitSchoolSpellPowerBonus,
                 stealthRuneArmorSpellPowerBonusPerPiece
         );
     }
@@ -90,6 +108,14 @@ public final class MagicArmorServerConfig {
         return elementMaidenRobeSchoolSpellPowerBonusOverride == null
                 ? elementMaidenRobeSchoolSpellPowerBonus.get()
                 : elementMaidenRobeSchoolSpellPowerBonusOverride;
+    }
+
+    public double magiAgentSuitSpellPowerBonus() {
+        return magiAgentSuitSpellPowerBonus.get();
+    }
+
+    public double magiAgentSuitSchoolSpellPowerBonus() {
+        return magiAgentSuitSchoolSpellPowerBonus.get();
     }
 
     public double stealthRuneArmorSpellPowerBonusPerPiece() {
@@ -143,6 +169,23 @@ public final class MagicArmorServerConfig {
                 .push(sectionName);
         var value = builder.defineInRange(
                 "schoolSpellPowerBonus",
+                defaultValue,
+                0.0D,
+                10.0D
+        );
+        builder.pop();
+        return value;
+    }
+
+    private static ModConfigSpec.DoubleValue defineSchoolRuneSpellPowerBonus(
+            ModConfigSpec.Builder builder,
+            String sectionName,
+            double defaultValue
+    ) {
+        builder.comment("School spell power bonus amount from a school rune inserted at the Spell Calibration Bench. 0.01 = +1%.")
+                .push(sectionName);
+        var value = builder.defineInRange(
+                "schoolRuneSpellPowerBonus",
                 defaultValue,
                 0.0D,
                 10.0D

@@ -189,6 +189,8 @@
   "item.apprenticecodex.chromatic_magia_dress_leggings.desc": "この防具は詠唱し続ける魔法の\"色\"に染まる。",
   "item.apprenticecodex.chromatic_magia_dress_boots.desc": "この防具は詠唱が不要な魔法の\"色\"に染まる。",
   "item.apprenticecodex.element_maiden_robe.desc": "この防具は装備している魔法書の影響を受ける。",
+  "item.apprenticecodex.magi_agent_suit.rune_hint": "この防具は術式調整台で系統を調整できる。",
+  "item.apprenticecodex.magi_agent_suit.school_rune": "現在\"%s\"の系統に調整されている。",
   "item.apprenticecodex.charged_twin_blade_staff.desc.throwable": "%dマナを消費することで杖を複製して投擲できる。",
   "item.apprenticecodex.charged_twin_blade_staff.desc.reptide": "%dマナを消費することで激流が発動する。",
   "item.apprenticecodex.charged_twin_blade_staff.desc.channeling": "この杖を投げた先で魔法が発動する。",

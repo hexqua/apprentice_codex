@@ -1,0 +1,62 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_diamond_spellcaster_gun",
+  "criteria": {
+    "equip_magi_agent_suit": {
+      "conditions": {
+        "player": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "equipment": {
+                "chest": {
+                  "items": [
+                    "apprenticecodex:magi_agent_suit_coat"
+                  ]
+                },
+                "feet": {
+                  "items": [
+                    "apprenticecodex:magi_agent_suit_boots"
+                  ]
+                },
+                "head": {
+                  "items": [
+                    "apprenticecodex:magi_agent_suit_hood"
+                  ]
+                },
+                "legs": {
+                  "items": [
+                    "apprenticecodex:magi_agent_suit_leggings"
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tick"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.equip_magi_agent_suit.description"
+    },
+    "frame": "goal",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:magi_agent_suit_hood",
+      "nbt": "{Damage:0}"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.equip_magi_agent_suit.title"
+    }
+  },
+  "requirements": [
+    [
+      "equip_magi_agent_suit"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

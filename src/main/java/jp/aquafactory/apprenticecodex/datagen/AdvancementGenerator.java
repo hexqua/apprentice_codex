@@ -89,6 +89,16 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                                 .build())
                         .build()
         );
+        var magiAgentSuitEquipPredicate = EntityPredicate.wrap(
+                EntityPredicate.Builder.entity()
+                        .equipment(EntityEquipmentPredicate.Builder.equipment()
+                                .head(ItemPredicate.Builder.item().of(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get()).build())
+                                .chest(ItemPredicate.Builder.item().of(ItemRegistry.MAGI_AGENT_SUIT_COAT.get()).build())
+                                .legs(ItemPredicate.Builder.item().of(ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get()).build())
+                                .feet(ItemPredicate.Builder.item().of(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()).build())
+                                .build())
+                        .build()
+        );
 
         var root = Advancement.Builder.advancement()
                 .display(ItemRegistry.SKY_EDGE_SWORD.get(),
@@ -516,6 +526,19 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         false)
                 .addCriterion("crafted_diamond_spellcaster_gun", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.DIAMOND_SPELLCASTER_GUN.getId()))
                 .save(saver, advancementId("craft_diamond_spellcaster_gun"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(diamondGun)
+                .display(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.equip_magi_agent_suit.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.equip_magi_agent_suit.description"),
+                        null,
+                        FrameType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("equip_magi_agent_suit", new PlayerTrigger.TriggerInstance(CriteriaTriggers.TICK.getId(), magiAgentSuitEquipPredicate))
+                .save(saver, advancementId("equip_magi_agent_suit"), existingFileHelper);
 
         Advancement.Builder.advancement()
                 .parent(diamondGun)

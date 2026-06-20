@@ -291,6 +291,14 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.elementMaidenRobeSchoolSpellPowerBonus();
     }
 
+    public static double magiAgentSuitSpellPowerBonus() {
+        return ITEMS_CONFIG.magiAgentSuitSpellPowerBonus();
+    }
+
+    public static double magiAgentSuitSchoolSpellPowerBonus() {
+        return ITEMS_CONFIG.magiAgentSuitSchoolSpellPowerBonus();
+    }
+
     public static double stealthRuneArmorSpellPowerBonusPerPiece() {
         return ITEMS_CONFIG.stealthRuneArmorSpellPowerBonusPerPiece();
     }
