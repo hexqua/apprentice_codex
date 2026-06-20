@@ -15,9 +15,15 @@
     {
       "type": "malum:arcane",
       "count": 8
+    },
+    {
+      "type": "malum:earthen",
+      "count": 8
     }
   ],
   "validItems": [
-    "apprenticecodex:mana_force_blade"
+    "apprenticecodex:elemental_bow",
+    "apprenticecodex:mana_force_blade",
+    "apprenticecodex:spell_side_edge"
   ]
 }

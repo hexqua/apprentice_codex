@@ -1082,11 +1082,13 @@ public class ApprenticeCodexGameTestScenarios {
 
             if (ModList.get().isLoaded(MALUM_MOD_ID)) {
                 assertRecipePresent(helper, recipeManager,
-                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "malum/spirit_crucible/repair/apprentice_mage_robe"));
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "malum/spirit_crucible/repair/arcane_essence_armaments_repair"));
                 assertRecipePresent(helper, recipeManager,
-                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "malum/spirit_crucible/repair/enchantress_robe"));
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "malum/spirit_crucible/repair/arcane_ingot_armaments_repair"));
                 assertRecipePresent(helper, recipeManager,
-                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "malum/spirit_crucible/repair/reflectcast_shield"));
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "malum/spirit_crucible/repair/hogskin_armaments_repair"));
+                assertRecipePresent(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "malum/spirit_crucible/repair/mithril_scrap_armaments_repair"));
             }
 
             helper.assertFalse(recipeManager.getAllRecipesFor(RecipeRegistry.ESSENCE_SMOKER_RECIPE_TYPE.get()).isEmpty(),

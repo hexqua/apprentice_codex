@@ -18,6 +18,10 @@
     }
   ],
   "validItems": [
+    "apprenticecodex:apprentice_mage_scarf",
+    "apprenticecodex:apprentice_mage_torso",
+    "apprenticecodex:apprentice_mage_leggings",
+    "apprenticecodex:apprentice_mage_boots",
     "apprenticecodex:reflectcast_shield"
   ]
 }

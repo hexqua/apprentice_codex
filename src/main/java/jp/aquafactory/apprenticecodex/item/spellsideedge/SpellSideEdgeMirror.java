@@ -79,6 +79,11 @@ public final class SpellSideEdgeMirror extends AbstractSpellSideEdgeItem {
     }
 
     @Override
+    public boolean isValidRepairItem(@NotNull ItemStack toRepair, @NotNull ItemStack repair) {
+        return false;
+    }
+
+    @Override
     public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
         consumer.accept(new GeoRenderProvider() {
             private SpellSideEdgeMirrorRenderer renderer;

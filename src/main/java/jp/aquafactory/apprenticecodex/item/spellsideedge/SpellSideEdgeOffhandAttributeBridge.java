@@ -12,8 +12,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -154,12 +152,7 @@ public final class SpellSideEdgeOffhandAttributeBridge {
     }
 
     private static java.util.List<ItemAttributeModifiers.Entry> resolveRuntimeModifiers(ItemStack stack) {
-        var event = new ItemAttributeModifierEvent(
-                stack,
-                stack.getAttributeModifiers()
-        );
-        NeoForge.EVENT_BUS.post(event);
-        return event.getModifiers();
+        return stack.getAttributeModifiers().modifiers();
     }
 
     private static Multimap<Holder<Attribute>, AttributeModifier> filterBySlot(
