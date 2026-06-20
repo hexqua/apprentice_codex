@@ -7,7 +7,16 @@
     "tag": "irons_spellbooks:wizard_base_chestplate"
   },
   "result": {
-    "item": "apprenticecodex:magi_agent_suit_coat"
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [],
+        "maxSpells": 1,
+        "mustEquip": true,
+        "spellWheel": true
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:magi_agent_suit_coat"
   },
   "template": {
     "item": "irons_spellbooks:magic_cloth"

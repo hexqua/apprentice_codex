@@ -10,24 +10,16 @@
             "predicate": {
               "equipment": {
                 "chest": {
-                  "items": [
-                    "apprenticecodex:magi_agent_suit_coat"
-                  ]
+                  "items": "apprenticecodex:magi_agent_suit_coat"
                 },
                 "feet": {
-                  "items": [
-                    "apprenticecodex:magi_agent_suit_boots"
-                  ]
+                  "items": "apprenticecodex:magi_agent_suit_boots"
                 },
                 "head": {
-                  "items": [
-                    "apprenticecodex:magi_agent_suit_hood"
-                  ]
+                  "items": "apprenticecodex:magi_agent_suit_hood"
                 },
                 "legs": {
-                  "items": [
-                    "apprenticecodex:magi_agent_suit_leggings"
-                  ]
+                  "items": "apprenticecodex:magi_agent_suit_leggings"
                 }
               }
             }
@@ -38,17 +30,14 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.equip_magi_agent_suit.description"
     },
     "frame": "goal",
-    "hidden": false,
     "icon": {
-      "item": "apprenticecodex:magi_agent_suit_hood",
-      "nbt": "{Damage:0}"
+      "count": 1,
+      "id": "apprenticecodex:magi_agent_suit_hood"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.equip_magi_agent_suit.title"
     }

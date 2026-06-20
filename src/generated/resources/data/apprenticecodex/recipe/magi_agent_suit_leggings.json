@@ -7,7 +7,8 @@
     "tag": "irons_spellbooks:wizard_base_leggings"
   },
   "result": {
-    "item": "apprenticecodex:magi_agent_suit_leggings"
+    "count": 1,
+    "id": "apprenticecodex:magi_agent_suit_leggings"
   },
   "template": {
     "item": "irons_spellbooks:magic_cloth"

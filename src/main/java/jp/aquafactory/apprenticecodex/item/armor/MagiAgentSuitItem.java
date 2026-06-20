@@ -1,45 +1,44 @@
 package jp.aquafactory.apprenticecodex.item.armor;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.renderer.armor.MagiAgentSuitRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.renderer.GeoArmorRenderer;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
@@ -48,47 +47,45 @@ import java.util.function.Consumer;
 public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpellContainer {
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 1;
 
-    private static final ResourceLocation ARMOR_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/magi_agent_suit.png");
     private static final String CALIBRATION_TAG = "MagiAgentSuitCalibration";
-    private static final String ADJUSTMENT_TAG = "Adjustment";
+    private static final String ADJUSTMENT_ITEM_TAG = "AdjustmentItem";
     private static final String RUNE_HINT_KEY = "item." + ApprenticeCodex.MODID + ".magi_agent_suit.rune_hint";
     private static final String SCHOOL_RUNE_KEY = "item." + ApprenticeCodex.MODID + ".magi_agent_suit.school_rune";
     private static final String SPELL_HINT_KEY = "item." + ApprenticeCodex.MODID + ".magi_agent_suit.spell_hint";
     private static final String SPELL_HINT_OPEN_KEY = "item." + ApprenticeCodex.MODID + ".magi_agent_suit.spell_hint_open";
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private final Type armorType;
-    private final Multimap<Attribute, AttributeModifier> armorAttributeModifiers;
+    private final ItemAttributeModifiers armorAttributeModifiers;
 
     public MagiAgentSuitItem(Type type) {
-        super(MagiAgentSuitStats.MATERIAL, type, new Properties());
-        this.armorType = type;
+        super(Holder.direct(MagiAgentSuitStats.MATERIAL), type, MagiAgentSuitStats.createProperties(type).fireResistant());
         this.armorAttributeModifiers = MagiAgentSuitStats.createAttributeModifiers(type);
         GeoItem.registerSyncedAnimatable(this);
     }
 
     public Type getArmorType() {
-        return armorType;
+        return getType();
     }
 
     public boolean hasImbueSlot() {
-        return armorType == Type.CHESTPLATE;
+        return getType() == Type.CHESTPLATE;
     }
 
     @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private GeoArmorRenderer<?> renderer;
+    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
+        consumer.accept(new GeoRenderProvider() {
+            private MagiAgentSuitRenderer renderer;
 
             @Override
-            public @NotNull HumanoidModel<?> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack itemStack,
-                                                                   EquipmentSlot equipmentSlot, HumanoidModel<?> original) {
+            public <T extends LivingEntity> HumanoidModel<?> getGeoArmorRenderer(
+                    @Nullable T livingEntity,
+                    ItemStack itemStack,
+                    @Nullable EquipmentSlot equipmentSlot,
+                    @Nullable HumanoidModel<T> original
+            ) {
                 if (renderer == null) {
                     renderer = new MagiAgentSuitRenderer();
                 }
-
-                renderer.prepForRender(livingEntity, itemStack, equipmentSlot, original);
                 return renderer;
             }
         });
@@ -113,17 +110,18 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-        if (enchantmentId == null) {
-            return false;
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        if (super.supportsEnchantment(stack, enchantment)) {
+            return true;
         }
 
-        if (ApprenticeCodex.MODID.equals(enchantmentId.getNamespace())) {
-            return EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get();
-        }
+        var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
+        return enchantmentId != null && enchantmentId.equals(Enchantments.WISDOM.location());
+    }
 
-        return enchantment.canApplyAtEnchantingTable(createArmorProbeStack());
+    @Override
+    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -132,40 +130,42 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
             return false;
         }
 
-        var enchantments = EnchantmentHelper.getEnchantments(book);
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
         if (enchantments.isEmpty()) {
             return true;
         }
 
         return enchantments.keySet().stream()
-                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
+                .allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        var baseModifiers = super.getAttributeModifiers(slot, stack);
-        if (slot != armorType.getSlot()) {
-            return baseModifiers;
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        var builder = ItemAttributeModifiers.builder();
+        for (var entry : super.getDefaultAttributeModifiers(stack).modifiers()) {
+            builder.add(entry.attribute(), entry.modifier(), entry.slot());
         }
-
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        builder.putAll(baseModifiers);
-        builder.putAll(armorAttributeModifiers);
+        for (var entry : armorAttributeModifiers.modifiers()) {
+            builder.add(entry.attribute(), entry.modifier(), entry.slot());
+        }
         MagiAgentSuitStats.addSpellPowerModifier(
                 builder,
-                armorType,
+                getType(),
                 ApprenticeCodexServerConfig.magiAgentSuitSpellPowerBonus()
         );
         var schoolPowerAttribute = getResolvedSchoolPowerAttribute(stack);
         if (schoolPowerAttribute != null) {
             MagiAgentSuitStats.addSchoolSpellPowerModifier(
                     builder,
-                    schoolPowerAttribute,
-                    armorType,
+                    BuiltInRegistries.ATTRIBUTE.wrapAsHolder(schoolPowerAttribute),
+                    getType(),
                     ApprenticeCodexServerConfig.magiAgentSuitSchoolSpellPowerBonus()
             );
         }
-        return builder.build();
+        return MagicArmorAttributeHelper.mergeTooltipEquivalentModifiers(
+                builder.build(),
+                "apprenticecodex.magi_agent_suit." + MagiAgentSuitStats.typeToken(getType()) + ".merged"
+        );
     }
 
     @Override
@@ -179,8 +179,8 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+    public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, context, lines, flag);
         appendSuitEffectHoverText(lines);
         var school = getResolvedCalibrationSchool(stack);
         if (school == null) {
@@ -188,11 +188,6 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
         } else {
             lines.add(Component.translatable(SCHOOL_RUNE_KEY, school.getDisplayName()).withStyle(ChatFormatting.GRAY));
         }
-    }
-
-    @Override
-    public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
-        return ARMOR_TEXTURE.toString();
     }
 
     @Override
@@ -205,11 +200,17 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
             return ItemStack.EMPTY;
         }
 
-        var calibrationTag = suitStack.getTagElement(CALIBRATION_TAG);
-        if (calibrationTag == null || !calibrationTag.contains(ADJUSTMENT_TAG, Tag.TAG_COMPOUND)) {
+        var calibrationTag = getCalibrationTag(suitStack);
+        if (calibrationTag == null) {
             return ItemStack.EMPTY;
         }
-        return ItemStack.of(calibrationTag.getCompound(ADJUSTMENT_TAG));
+        var itemId = ResourceLocation.tryParse(calibrationTag.getString(ADJUSTMENT_ITEM_TAG));
+        if (itemId == null) {
+            return ItemStack.EMPTY;
+        }
+
+        var item = BuiltInRegistries.ITEM.get(itemId);
+        return item == Items.AIR ? ItemStack.EMPTY : new ItemStack(item);
     }
 
     public static void setCalibrationAdjustment(@NotNull ItemStack suitStack, int slot, @NotNull ItemStack stack) {
@@ -222,9 +223,16 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
             return;
         }
 
-        var storedStack = stack.copy();
-        storedStack.setCount(1);
-        suitStack.getOrCreateTagElement(CALIBRATION_TAG).put(ADJUSTMENT_TAG, storedStack.save(new CompoundTag()));
+        var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        if (itemId == null) {
+            return;
+        }
+
+        CustomData.update(DataComponents.CUSTOM_DATA, suitStack, tag -> {
+            var calibrationTag = tag.getCompound(CALIBRATION_TAG);
+            calibrationTag.putString(ADJUSTMENT_ITEM_TAG, itemId.toString());
+            tag.put(CALIBRATION_TAG, calibrationTag);
+        });
     }
 
     public static boolean isCalibrationAdjustmentItem(@NotNull ItemStack stack) {
@@ -237,7 +245,7 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
 
     private void appendSuitEffectHoverText(List<Component> lines) {
         var descriptionKey = getDescriptionId() + ".desc";
-        if (armorType == Type.HELMET) {
+        if (getType() == Type.HELMET) {
             lines.add(Component.translatable(descriptionKey).withStyle(ChatFormatting.GRAY));
             return;
         }
@@ -250,7 +258,7 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
 
         lines.add(Component.translatable(SPELL_HINT_OPEN_KEY).withStyle(ChatFormatting.GRAY));
         for (var spell : MagiAgentSuitEffects.targetSpells()) {
-            if (armorType == Type.LEGGINGS && spell.getCastType() == CastType.INSTANT) {
+            if (getType() == Type.LEGGINGS && spell.getCastType() == CastType.INSTANT) {
                 continue;
             }
             lines.add(Component.literal("- ")
@@ -285,23 +293,23 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
     }
 
     private static void clearCalibrationAdjustment(@NotNull ItemStack suitStack) {
-        var calibrationTag = suitStack.getTagElement(CALIBRATION_TAG);
+        var calibrationTag = getCalibrationTag(suitStack);
         if (calibrationTag == null) {
             return;
         }
 
-        calibrationTag.remove(ADJUSTMENT_TAG);
-        if (calibrationTag.isEmpty()) {
-            suitStack.removeTagKey(CALIBRATION_TAG);
-        }
+        CustomData.update(DataComponents.CUSTOM_DATA, suitStack, data -> data.remove(CALIBRATION_TAG));
     }
 
-    private ItemStack createArmorProbeStack() {
-        return switch (armorType) {
-            case HELMET -> new ItemStack(Items.LEATHER_HELMET);
-            case CHESTPLATE -> new ItemStack(Items.LEATHER_CHESTPLATE);
-            case LEGGINGS -> new ItemStack(Items.LEATHER_LEGGINGS);
-            case BOOTS -> new ItemStack(Items.LEATHER_BOOTS);
-        };
+    private static @Nullable CompoundTag getCalibrationTag(ItemStack stack) {
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return null;
+        }
+
+        var tag = customData.copyTag();
+        return tag.contains(CALIBRATION_TAG, Tag.TAG_COMPOUND)
+                ? tag.getCompound(CALIBRATION_TAG)
+                : null;
     }
 }

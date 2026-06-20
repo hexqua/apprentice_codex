@@ -595,7 +595,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     helper,
                     "Magi Agent Suit",
                     item -> item instanceof MagiAgentSuitItem,
-                    ApprenticeCodexGameTestScenarios::expectedMagiAgentSuitEnchantments
+                    stack -> expectedMagiAgentSuitEnchantments(helper.getLevel().registryAccess(), stack)
             );
         });
     }
@@ -1098,6 +1098,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         return switch (armorType) {
             case HELMET, BOOTS -> 3;
             case CHESTPLATE, LEGGINGS -> 6;
+            case BODY -> throw new IllegalArgumentException("Magi Agent Suit does not use body armor type");
         };
     }
 

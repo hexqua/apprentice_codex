@@ -9685,13 +9685,17 @@ public class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    static Set<ResourceLocation> expectedMagiAgentSuitEnchantments(ItemStack stack) {
+    static Set<ResourceLocation> expectedMagiAgentSuitEnchantments(RegistryAccess registryAccess, ItemStack stack) {
         var probeStack = createArmorProbeStack(stack);
         var expectedEnchantments = collectAllowedEnchantments(
-                probeStack,
-                enchantment -> enchantment.canApplyAtEnchantingTable(probeStack)
+                registryAccess,
+                enchantment -> enchantment.value().canEnchant(probeStack)
         );
-        expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
+        expectedEnchantments.addAll(registryIdSet(
+                Enchantments.ALACRITY,
+                Enchantments.TENSE,
+                Enchantments.WISDOM
+        ));
         return expectedEnchantments;
     }
 

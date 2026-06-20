@@ -116,7 +116,7 @@ public final class MagiAgentSuitEffects {
             return false;
         }
 
-        var castingMoveSpeed = entity.getAttribute(AttributeRegistry.CASTING_MOVESPEED.get());
+        var castingMoveSpeed = entity.getAttribute(AttributeRegistry.CASTING_MOVESPEED);
         if (castingMoveSpeed == null) {
             return true;
         }

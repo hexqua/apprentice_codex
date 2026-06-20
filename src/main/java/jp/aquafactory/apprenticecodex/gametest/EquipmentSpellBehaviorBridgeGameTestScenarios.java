@@ -660,13 +660,13 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             );
 
             var controlEvent = new SpellCooldownAddedEvent.Pre(baseCooldown, spell, player, CastSource.SPELLBOOK);
-            MinecraftForge.EVENT_BUS.post(controlEvent);
+            NeoForge.EVENT_BUS.post(controlEvent);
             helper.assertTrue(controlEvent.getEffectiveCooldown() == baseCooldown,
                     "Magi Agent Suit Boots should not reduce cooldown while unequipped");
 
             player.setItemSlot(EquipmentSlot.FEET, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()));
             var bootsEvent = new SpellCooldownAddedEvent.Pre(baseCooldown, spell, player, CastSource.SPELLBOOK);
-            MinecraftForge.EVENT_BUS.post(bootsEvent);
+            NeoForge.EVENT_BUS.post(bootsEvent);
 
             var expectedCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     spell,
@@ -696,7 +696,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
                     CastSource.SPELLBOOK
             );
             var cooldownEvent = new SpellCooldownAddedEvent.Pre(baseCooldown, spell, player, CastSource.SPELLBOOK);
-            MinecraftForge.EVENT_BUS.post(cooldownEvent);
+            NeoForge.EVENT_BUS.post(cooldownEvent);
 
             var expectedCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     spell,

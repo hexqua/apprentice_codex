@@ -1,45 +1,35 @@
 package jp.aquafactory.apprenticecodex.item.armor;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
-import net.minecraft.sounds.SoundEvent;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.crafting.Ingredient;
-import org.jetbrains.annotations.NotNull;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.function.Supplier;
 
 public final class MagiAgentSuitStats {
-    public static final ArmorMaterial MATERIAL = new MagiAgentSuitMaterial();
     public static final double MAX_MANA_BONUS = 125.0D;
 
     private static final int DURABILITY_MULTIPLIER = 33;
     private static final int ENCHANTMENT_VALUE = 22;
     private static final float MATERIAL_TOUGHNESS = 0.0F;
     private static final float KNOCKBACK_RESISTANCE = 0.0F;
-    private static final SoundEvent EQUIP_SOUND = SoundRegistry.VANILLA_ARMOR_EQUIP_ROBE.get();
     private static final Supplier<Ingredient> REPAIR_INGREDIENT =
             () -> Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get());
-
-    private static final Map<ArmorItem.Type, Integer> BASE_DURABILITY = Map.of(
-            ArmorItem.Type.HELMET, 11,
-            ArmorItem.Type.CHESTPLATE, 16,
-            ArmorItem.Type.LEGGINGS, 15,
-            ArmorItem.Type.BOOTS, 13
-    );
 
     private static final Map<ArmorItem.Type, Integer> DEFENSE = Map.of(
             ArmorItem.Type.HELMET, 3,
@@ -55,7 +45,23 @@ public final class MagiAgentSuitStats {
             ArmorItem.Type.BOOTS, 1.0D
     );
 
+    public static final ArmorMaterial MATERIAL = new ArmorMaterial(
+            DEFENSE,
+            ENCHANTMENT_VALUE,
+            SoundRegistry.VANILLA_ARMOR_EQUIP_ROBE,
+            REPAIR_INGREDIENT,
+            List.of(new ArmorMaterial.Layer(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "magi_agent_suit"))),
+            MATERIAL_TOUGHNESS,
+            KNOCKBACK_RESISTANCE
+    );
+
     private MagiAgentSuitStats() {
+    }
+
+    public static Item.Properties createProperties(ArmorItem.Type type) {
+        return new Item.Properties()
+                .stacksTo(1)
+                .durability(type.getDurability(DURABILITY_MULTIPLIER));
     }
 
     public static int enchantmentValue() {
@@ -66,48 +72,54 @@ public final class MagiAgentSuitStats {
         return REPAIR_INGREDIENT.get().test(stack);
     }
 
-    public static Multimap<Attribute, AttributeModifier> createAttributeModifiers(ArmorItem.Type type) {
+    public static ItemAttributeModifiers createAttributeModifiers(ArmorItem.Type type) {
         var bonuses = List.of(
-                new AttributeBonus(AttributeRegistry.MAX_MANA, MAX_MANA_BONUS, AttributeModifier.Operation.ADDITION, "max_mana"),
-                new AttributeBonus(() -> Attributes.ARMOR_TOUGHNESS, toughnessFor(type), AttributeModifier.Operation.ADDITION, "armor_toughness")
+                new AttributeBonus(AttributeRegistry.MAX_MANA, MAX_MANA_BONUS, AttributeModifier.Operation.ADD_VALUE, "max_mana"),
+                new AttributeBonus(Attributes.ARMOR_TOUGHNESS, toughnessFor(type), AttributeModifier.Operation.ADD_VALUE, "armor_toughness")
         );
 
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        var prefix = "apprenticecodex.magi_agent_suit." + typeToken(type);
+        var builder = ItemAttributeModifiers.builder();
+        var slotGroup = EquipmentSlotGroup.bySlot(type.getSlot());
         for (int i = 0; i < bonuses.size(); ++i) {
             var bonus = bonuses.get(i);
-            var attribute = bonus.attributeSupplier().get();
-            if (attribute == null || bonus.amount() == 0.0D) {
+            if (bonus.amount() == 0.0D) {
                 continue;
             }
 
-            var modifierSeed = prefix + "." + bonus.key() + "." + i;
-            var modifierId = UUID.nameUUIDFromBytes(modifierSeed.getBytes(StandardCharsets.UTF_8));
-            builder.put(
-                    attribute,
-                    new AttributeModifier(modifierId, modifierSeed, bonus.amount(), bonus.operation())
+            builder.add(
+                    bonus.attribute(),
+                    new AttributeModifier(
+                            ResourceLocation.fromNamespaceAndPath(
+                                    ApprenticeCodex.MODID,
+                                    "magi_agent_suit_" + typeToken(type) + "_" + bonus.key() + "_" + i
+                            ),
+                            bonus.amount(),
+                            bonus.operation()
+                    ),
+                    slotGroup
             );
         }
         return builder.build();
     }
 
     static void addSpellPowerModifier(
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            ItemAttributeModifiers.Builder builder,
             ArmorItem.Type type,
             double amount
     ) {
         MagicArmorAttributeHelper.addModifier(
                 builder,
-                AttributeRegistry.SPELL_POWER.get(),
+                AttributeRegistry.SPELL_POWER,
                 amount,
-                AttributeModifier.Operation.MULTIPLY_BASE,
-                "apprenticecodex.magi_agent_suit." + typeToken(type) + ".spell_power.1"
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                EquipmentSlotGroup.bySlot(type.getSlot()),
+                "magi_agent_suit_" + typeToken(type) + "_spell_power_config"
         );
     }
 
     static void addSchoolSpellPowerModifier(
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
-            Attribute attribute,
+            ItemAttributeModifiers.Builder builder,
+            Holder<Attribute> attribute,
             ArmorItem.Type type,
             double amount
     ) {
@@ -115,8 +127,9 @@ public final class MagiAgentSuitStats {
                 builder,
                 attribute,
                 amount,
-                AttributeModifier.Operation.MULTIPLY_BASE,
-                "apprenticecodex.magi_agent_suit." + typeToken(type) + ".school_spell_power.1"
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                EquipmentSlotGroup.bySlot(type.getSlot()),
+                "magi_agent_suit_" + typeToken(type) + "_school_spell_power_config"
         );
     }
 
@@ -126,15 +139,8 @@ public final class MagiAgentSuitStats {
             case CHESTPLATE -> "chestplate";
             case LEGGINGS -> "leggings";
             case BOOTS -> "boots";
+            case BODY -> "body";
         };
-    }
-
-    private static int durabilityFor(ArmorItem.Type type) {
-        return BASE_DURABILITY.getOrDefault(type, 0) * DURABILITY_MULTIPLIER;
-    }
-
-    private static int defenseFor(ArmorItem.Type type) {
-        return DEFENSE.getOrDefault(type, 0);
     }
 
     private static double toughnessFor(ArmorItem.Type type) {
@@ -142,57 +148,15 @@ public final class MagiAgentSuitStats {
     }
 
     private record AttributeBonus(
-            Supplier<? extends Attribute> attributeSupplier,
+            Holder<Attribute> attribute,
             double amount,
             AttributeModifier.Operation operation,
             String key
     ) {
         private AttributeBonus {
-            Objects.requireNonNull(attributeSupplier);
+            Objects.requireNonNull(attribute);
             Objects.requireNonNull(operation);
             Objects.requireNonNull(key);
-        }
-    }
-
-    private static final class MagiAgentSuitMaterial implements ArmorMaterial {
-        @Override
-        public int getDurabilityForType(ArmorItem.@NotNull Type type) {
-            return durabilityFor(type);
-        }
-
-        @Override
-        public int getDefenseForType(ArmorItem.@NotNull Type type) {
-            return defenseFor(type);
-        }
-
-        @Override
-        public int getEnchantmentValue() {
-            return ENCHANTMENT_VALUE;
-        }
-
-        @Override
-        public @NotNull SoundEvent getEquipSound() {
-            return EQUIP_SOUND;
-        }
-
-        @Override
-        public @NotNull Ingredient getRepairIngredient() {
-            return REPAIR_INGREDIENT.get();
-        }
-
-        @Override
-        public @NotNull String getName() {
-            return ApprenticeCodex.MODID + ":magi_agent_suit";
-        }
-
-        @Override
-        public float getToughness() {
-            return MATERIAL_TOUGHNESS;
-        }
-
-        @Override
-        public float getKnockbackResistance() {
-            return KNOCKBACK_RESISTANCE;
         }
     }
 }

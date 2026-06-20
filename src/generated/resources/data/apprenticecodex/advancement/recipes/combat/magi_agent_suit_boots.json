@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "apprenticecodex:spell_dominator_round"
-            ]
+            "items": "apprenticecodex:spell_dominator_round"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_spell_dominator_round",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_spell_dominator_round"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:magi_agent_suit_boots"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

@@ -5,7 +5,7 @@ import io.redspace.ironsspellbooks.player.ClientMagicData;
 import io.redspace.ironsspellbooks.player.ClientPlayerEvents;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
-import net.minecraftforge.client.event.MovementInputUpdateEvent;
+import net.neoforged.neoforge.client.event.MovementInputUpdateEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

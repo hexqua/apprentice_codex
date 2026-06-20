@@ -7,11 +7,11 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class MagiAgentSuitCooldownEvent {
     private MagiAgentSuitCooldownEvent() {
     }
