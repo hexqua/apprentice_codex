@@ -93,7 +93,7 @@
 					]
 				},
 				{
-					"name": "arm_rune",
+					"name": "arm_r_rune",
 					"parent": "brace_r",
 					"pivot": [-8.1, 14, 0],
 					"cubes": [
@@ -134,7 +134,7 @@
 					]
 				},
 				{
-					"name": "arm_rune2",
+					"name": "arm_l_rune",
 					"parent": "brace_l",
 					"pivot": [8.1, 15, 0],
 					"cubes": [
