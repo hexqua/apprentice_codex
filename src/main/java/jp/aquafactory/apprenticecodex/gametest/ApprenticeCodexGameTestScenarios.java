@@ -9685,6 +9685,20 @@ public class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
+    static Set<ResourceLocation> expectedMagiAgentSuitEnchantments(RegistryAccess registryAccess, ItemStack stack) {
+        var probeStack = createArmorProbeStack(stack);
+        var expectedEnchantments = collectAllowedEnchantments(
+                registryAccess,
+                enchantment -> enchantment.value().canEnchant(probeStack)
+        );
+        expectedEnchantments.addAll(registryIdSet(
+                Enchantments.ALACRITY,
+                Enchantments.TENSE,
+                Enchantments.WISDOM
+        ));
+        return expectedEnchantments;
+    }
+
     static ItemStack createArmorProbeStack(ItemStack stack) {
         if (!(stack.getItem() instanceof ArmorItem armorItem)) {
             throw new IllegalArgumentException("Expected armor item for enchantment probe: " + stack);

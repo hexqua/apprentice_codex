@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": {
+    "item": "apprenticecodex:spell_dominator_round"
+  },
+  "base": {
+    "tag": "irons_spellbooks:wizard_base_leggings"
+  },
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:magi_agent_suit_leggings"
+  },
+  "template": {
+    "item": "irons_spellbooks:magic_cloth"
+  }
+}

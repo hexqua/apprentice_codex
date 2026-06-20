@@ -9,9 +9,11 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
+import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponRecastSpell;
+import jp.aquafactory.apprenticecodex.spell.IMagiAgentSuitAffectedSpell;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.SummonedFirearmTools;
@@ -33,7 +35,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRifleEntity> {
+public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRifleEntity> implements IMagiAgentSuitAffectedSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "commence_fire");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -119,6 +121,11 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     }
 
     @Override
+    public boolean canBeInterrupted(@Nullable net.minecraft.world.entity.player.Player player) {
+        return canBeInterruptedWithMagiAgentSuit(this, player, super.canBeInterrupted(player));
+    }
+
+    @Override
     public int getEffectiveCastTime(int spellLevel, LivingEntity entity) {
         if (entity == null) {
             return getCastTime(spellLevel);
@@ -135,7 +142,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
         }
 
         // 射撃は固定値(0.5秒)
-        return 10;
+        return MagiAgentSuitEffects.applyBootsCommenceFireRecastCastTime(this, 10, entity);
     }
 
     @Override

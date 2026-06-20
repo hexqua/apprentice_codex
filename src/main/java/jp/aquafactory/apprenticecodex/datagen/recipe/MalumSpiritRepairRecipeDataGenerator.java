@@ -23,6 +23,7 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
     private static final String ELDRITCH_SPIRIT = MALUM_MOD_ID + ":eldritch";
     private static final String INFERNAL_SPIRIT = MALUM_MOD_ID + ":infernal";
     private static final String SACRED_SPIRIT = MALUM_MOD_ID + ":sacred";
+    private static final String AERIAL_SPIRIT = MALUM_MOD_ID + ":aerial";
 
     private final PackOutput.PathProvider pathProvider;
 
@@ -100,6 +101,22 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
                         List.of(
                                 spirit(ARCANE_SPIRIT, 8),
                                 spirit(EARTH_SPIRIT, 8)
+                        )
+                ),
+                recipe(
+                        "magic_cloth_armaments_repair",
+                        0.5F,
+                        List.of(
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.MAGI_AGENT_SUIT_HOOD.get(),
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.MAGI_AGENT_SUIT_COAT.get(),
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get(),
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()
+                        ),
+                        io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get(),
+                        1,
+                        List.of(
+                                spirit(ARCANE_SPIRIT, 8),
+                                spirit(AERIAL_SPIRIT, 8)
                         )
                 )
         );

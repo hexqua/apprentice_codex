@@ -19,6 +19,10 @@
     "apprenticecodex:element_maiden_robe_ribbon",
     "apprenticecodex:element_maiden_robe_robe",
     "apprenticecodex:element_maiden_robe_leggings",
-    "apprenticecodex:element_maiden_robe_boots"
+    "apprenticecodex:element_maiden_robe_boots",
+    "apprenticecodex:magi_agent_suit_hood",
+    "apprenticecodex:magi_agent_suit_coat",
+    "apprenticecodex:magi_agent_suit_leggings",
+    "apprenticecodex:magi_agent_suit_boots"
   ]
 }

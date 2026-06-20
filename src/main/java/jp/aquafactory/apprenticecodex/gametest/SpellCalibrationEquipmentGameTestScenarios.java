@@ -453,6 +453,37 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertFalse(bladeMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(new ItemStack(ItemRegistry.ENCHANTRESS_HAT.get())),
                     "Enchantress Hat should not be accepted by Spell Calibration Bench");
 
+            var fireRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get());
+            var healScroll = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get());
+            var suitHoodMenu = createSpellCalibrationBenchMenuWithTarget(player, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get()));
+            helper.assertTrue(suitHoodMenu.hasMagiAgentSuit(),
+                    "Magi Agent Suit hood should be accepted by Spell Calibration Bench");
+            helper.assertTrue(suitHoodMenu.isAdjustmentSlotEnabled(0),
+                    "Magi Agent Suit should enable its first adjustment slot");
+            helper.assertFalse(suitHoodMenu.isAdjustmentSlotEnabled(1),
+                    "Magi Agent Suit should not enable more than one adjustment slot");
+            helper.assertTrue(suitHoodMenu.getEnabledScrollSlotCount() == 0,
+                    "Magi Agent Suit non-chest pieces should not expose scroll slots");
+            helper.assertTrue(suitHoodMenu.getSlot(SpellCalibrationBenchMenu.ADJUSTMENT_MENU_SLOT_START).mayPlace(fireRune),
+                    "Magi Agent Suit should accept school runes in the first adjustment slot");
+            helper.assertFalse(suitHoodMenu.getSlot(SpellCalibrationBenchMenu.ADJUSTMENT_MENU_SLOT_START + 1).mayPlace(fireRune),
+                    "Magi Agent Suit should reject school runes outside the first adjustment slot");
+            helper.assertFalse(suitHoodMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).mayPlace(healScroll),
+                    "Magi Agent Suit non-chest pieces should reject scroll placement");
+
+            var suitCoat = new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_COAT.get());
+            var suitCoatMenu = createSpellCalibrationBenchMenuWithTarget(player, suitCoat);
+            helper.assertTrue(suitCoatMenu.getEnabledScrollSlotCount() == 1,
+                    "Magi Agent Suit coat should expose one scroll slot");
+            suitCoatMenu.getSlot(SpellCalibrationBenchMenu.ADJUSTMENT_MENU_SLOT_START).set(fireRune.copy());
+            helper.assertTrue(jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem
+                            .getCalibrationAdjustment(suitCoat, 0)
+                            .is(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get()),
+                    "Magi Agent Suit coat should store a school rune through the Spell Calibration Bench");
+            suitCoatMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(healScroll.copy());
+            assertStackHasSpell(helper, suitCoat, io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get(), 1,
+                    "Magi Agent Suit coat should accept scroll imbue at the Spell Calibration Bench");
+
             var presetStaffMenu = createSpellCalibrationBenchMenuWithTarget(
                     player,
                     createInitializedPresetStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get())

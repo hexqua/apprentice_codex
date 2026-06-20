@@ -240,6 +240,22 @@ final class ItemsServerConfig {
         return magicArmorConfig.elementMaidenRobeSchoolSpellPowerBonus();
     }
 
+    double magiAgentSuitSpellPowerBonus() {
+        return magicArmorConfig.magiAgentSuitSpellPowerBonus();
+    }
+
+    double magiAgentSuitSchoolSpellPowerBonus() {
+        return magicArmorConfig.magiAgentSuitSchoolSpellPowerBonus();
+    }
+
+    double magiAgentSuitAmmoNoConsumeChance() {
+        return magicArmorConfig.magiAgentSuitAmmoNoConsumeChance();
+    }
+
+    boolean magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed() {
+        return magicArmorConfig.magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed();
+    }
+
     double stealthRuneArmorSpellPowerBonusPerPiece() {
         return magicArmorConfig.stealthRuneArmorSpellPowerBonusPerPiece();
     }
@@ -869,6 +885,16 @@ final class ItemsServerConfig {
 
     void setElementMaidenRobeSchoolSpellPowerBonusForGameTest(double value) {
         magicArmorConfig.setElementMaidenRobeSchoolSpellPowerBonusForGameTest(value);
+    }
+
+    void setMagiAgentSuitAmmoConfigForGameTest(
+            double ammoNoConsumeChance,
+            boolean skipStaffrifleManaCostWhenAmmoNotConsumed
+    ) {
+        magicArmorConfig.setMagiAgentSuitAmmoConfigForGameTest(
+                ammoNoConsumeChance,
+                skipStaffrifleManaCostWhenAmmoNotConsumed
+        );
     }
 
     void setZenithStaffManaCostMultiplierForGameTest(double value) {

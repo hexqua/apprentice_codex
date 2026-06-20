@@ -5,10 +5,10 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowStartSoundContext;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffCastHelper;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
-import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
@@ -20,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Optional;
 
@@ -33,7 +34,20 @@ public abstract class AbstractSpellMixin {
             )
     )
     private double apprentice_codex$useDivinePossessionSchoolPower(SchoolType schoolType, LivingEntity caster) {
-        return DivinePossessionPowerHelper.resolveSchoolPower(schoolType, caster);
+        return MagiAgentSuitEffects.resolveSchoolPower((AbstractSpell) (Object) this, schoolType, caster);
+    }
+
+    @Inject(method = "getEffectiveCastTime", at = @At("RETURN"), cancellable = true)
+    private void apprentice_codex$applyMagiAgentSuitBootsCastTimeReduction(
+            int spellLevel,
+            LivingEntity entity,
+            CallbackInfoReturnable<Integer> cir
+    ) {
+        cir.setReturnValue(MagiAgentSuitEffects.applyBootsCastTimeReduction(
+                (AbstractSpell) (Object) this,
+                cir.getReturnValue(),
+                entity
+        ));
     }
 
     @Redirect(

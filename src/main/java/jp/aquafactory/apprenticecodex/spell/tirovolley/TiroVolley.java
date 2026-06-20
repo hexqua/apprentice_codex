@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.ICastHighlightSpell;
+import jp.aquafactory.apprenticecodex.spell.IMagiAgentSuitAffectedSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
@@ -43,7 +44,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-public class TiroVolley extends AbstractSpell implements ICastHighlightSpell {
+public class TiroVolley extends AbstractSpell implements ICastHighlightSpell, IMagiAgentSuitAffectedSpell {
     private static final int BASE_FIRE_DELAY_TICKS = 20;
     private static final int MAX_SPAWNS_PER_CAST_CALL = 32;
     private static final double LOOK_TARGET_CHANCE = 2.0 / 3.0;
@@ -117,6 +118,11 @@ public class TiroVolley extends AbstractSpell implements ICastHighlightSpell {
     @Override
     public CastType getCastType() {
         return CastType.CONTINUOUS;
+    }
+
+    @Override
+    public boolean canBeInterrupted(@Nullable Player player) {
+        return canBeInterruptedWithMagiAgentSuit(this, player, super.canBeInterrupted(player));
     }
 
     @Override

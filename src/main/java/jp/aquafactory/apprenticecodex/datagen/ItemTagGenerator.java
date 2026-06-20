@@ -304,28 +304,32 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ENCHANTRESS_HAT.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
-                ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get()
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_HOOD.get()
         );
         tag(MINECRAFT_CHEST_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
-                ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_COAT.get()
         );
         tag(MINECRAFT_LEG_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
                 ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
-                ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get()
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get()
         );
         tag(MINECRAFT_FOOT_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_BOOTS.get(),
                 ItemRegistry.ENCHANTRESS_BOOTS.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get(),
-                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get()
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()
         );
         vanillaDurabilityEnchantableTag.add(
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
@@ -348,6 +352,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
                 ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
                 ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_HOOD.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_COAT.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get(),
                 ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.REFLECTCAST_SHIELD.get()
         );
@@ -371,7 +379,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
                 ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
                 ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
-                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get()
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_HOOD.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_COAT.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()
         );
         tag(MINECRAFT_ENCHANTABLE_VANISHING).add(
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
@@ -394,6 +406,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
                 ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
                 ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_HOOD.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_COAT.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get(),
                 ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.REFLECTCAST_SHIELD.get()
         );
@@ -401,7 +417,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
                 ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
                 ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
-                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get()
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_HOOD.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_COAT.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get(),
+                ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()
         );
         transcendenceEnchantableTag.add(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get());
         surgeEnchantableTag.add(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get());
@@ -487,7 +507,13 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
         // 付呪魔女防具は 1.20.1 と同様に叡智のみを許可し、専用エンチャ系タグから外す.
         tag(OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE)
-                .addTag(OFFHAND_MAGIC_ENCHANTABLE);
+                .addTag(OFFHAND_MAGIC_ENCHANTABLE)
+                .add(
+                        ItemRegistry.MAGI_AGENT_SUIT_HOOD.get(),
+                        ItemRegistry.MAGI_AGENT_SUIT_COAT.get(),
+                        ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get(),
+                        ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()
+                );
         tag(SPELL_CONTAINER_MAGIC_ENCHANTABLE)
                 .addTag(OFFHAND_MAGIC_ENCHANTABLE)
                 .addTag(SPELL_GUN_ENCHANTABLE);

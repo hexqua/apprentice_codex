@@ -109,6 +109,7 @@ import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntletCastEvent;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
+import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitCooldownEvent;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellListManager;
@@ -644,6 +645,106 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             helper.assertTrue(scrollcasterFirstEvent.getEffectiveCooldown() == expectedCooldown,
                     "Scrollcaster Gauntlet -> CraftsmansDelight cooldown order should keep the reduced gauntlet cooldown but got "
                             + scrollcasterFirstEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+        });
+    }
+
+    static void magiAgentSuitBootsCooldownReducesTargetSpell(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "magi_agent_boots_cooldown_test");
+            var spell = SpellRegistry.COMMENCE_FIRE.get();
+            var baseCooldown = io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
+                    spell,
+                    player,
+                    CastSource.SPELLBOOK
+            );
+
+            var controlEvent = new SpellCooldownAddedEvent.Pre(baseCooldown, spell, player, CastSource.SPELLBOOK);
+            NeoForge.EVENT_BUS.post(controlEvent);
+            helper.assertTrue(controlEvent.getEffectiveCooldown() == baseCooldown,
+                    "Magi Agent Suit Boots should not reduce cooldown while unequipped");
+
+            player.setItemSlot(EquipmentSlot.FEET, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()));
+            var bootsEvent = new SpellCooldownAddedEvent.Pre(baseCooldown, spell, player, CastSource.SPELLBOOK);
+            NeoForge.EVENT_BUS.post(bootsEvent);
+
+            var expectedCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    spell,
+                    player,
+                    CastSource.SPELLBOOK,
+                    ItemStack.EMPTY
+            );
+            helper.assertTrue(expectedCooldown < baseCooldown,
+                    "Magi Agent Suit Boots expected cooldown should be shorter than base cooldown");
+            helper.assertTrue(bootsEvent.getEffectiveCooldown() == expectedCooldown,
+                    "Magi Agent Suit Boots should reduce target spell cooldown but got "
+                            + bootsEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+        });
+    }
+
+    static void magiAgentSuitBootsCooldownKeepsCraftsmansDelightBestValue(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "magi_agent_boots_craftsmans_cooldown_test");
+            player.setItemSlot(EquipmentSlot.FEET, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()));
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+
+            var spell = SpellRegistry.THERMAL_PROCESS.get();
+            var baseCooldown = io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
+                    spell,
+                    player,
+                    CastSource.SPELLBOOK
+            );
+            var cooldownEvent = new SpellCooldownAddedEvent.Pre(baseCooldown, spell, player, CastSource.SPELLBOOK);
+            NeoForge.EVENT_BUS.post(cooldownEvent);
+
+            var expectedCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    spell,
+                    player,
+                    CastSource.SPELLBOOK,
+                    ItemStack.EMPTY
+            );
+            var bootsOnlyCooldown = Math.max(1, spell.getSpellCooldown() / 2);
+            helper.assertTrue(expectedCooldown < bootsOnlyCooldown,
+                    "CraftsmansDelight should remain the stronger Thermal Process cooldown reduction");
+            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
+                    "Magi Agent Suit Boots and CraftsmansDelight should keep the strongest cooldown but got "
+                            + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+        });
+    }
+
+    static void magiAgentSuitBootsCooldownPreservesExistingAdditiveCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "magi_agent_boots_additive_cooldown_test");
+            player.setItemSlot(EquipmentSlot.FEET, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()));
+
+            var spell = SpellRegistry.COMMENCE_FIRE.get();
+            var baseCooldown = io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
+                    spell,
+                    player,
+                    CastSource.SPELLBOOK
+            );
+            var bootsCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    spell,
+                    player,
+                    CastSource.SPELLBOOK,
+                    ItemStack.EMPTY
+            );
+            var extraCooldown = 37;
+            var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    baseCooldown + extraCooldown,
+                    spell,
+                    player,
+                    CastSource.SPELLBOOK
+            );
+
+            MagiAgentSuitCooldownEvent.onSpellCooldownAdded(cooldownEvent);
+
+            var expectedCooldown = bootsCooldown + extraCooldown;
+            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
+                    "Magi Agent Suit Boots should keep additive cooldown components but got "
+                            + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
         });
     }
 

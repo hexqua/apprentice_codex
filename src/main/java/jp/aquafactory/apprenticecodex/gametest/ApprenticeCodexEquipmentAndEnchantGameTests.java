@@ -1273,6 +1273,201 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void meditationPotionsExposeExpectedEffectsAndDurations(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.meditationPotionsExposeExpectedEffectsAndDurations(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void swingcastStaffTiersExposeRequestedImbueRules(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.swingcastStaffTiersExposeRequestedImbueRules(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffStartsWithHiddenManaSlash(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffStartsWithHiddenManaSlash(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffMissSwingCastsManaSlash(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffMissSwingCastsManaSlash(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffHitSwingDoesNotCastManaSlash(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffHitSwingDoesNotCastManaSlash(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffVanillaAttackEntityHitDoesNotCastManaSlash(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffVanillaAttackEntityHitDoesNotCastManaSlash(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffDelayedHitDoesNotCastManaSlash(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffDelayedHitDoesNotCastManaSlash(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffMissTriggerDoesNotUseSwappedStack(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffMissTriggerDoesNotUseSwappedStack(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffPendingMissTriggerKeepsEarlierHand(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffPendingMissTriggerKeepsEarlierHand(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffMainHandHitDoesNotSuppressOffhandMiss(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffMainHandHitDoesNotSuppressOffhandMiss(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeld(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeld(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeldInOffhand(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeldInOffhand(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffLegacyWheelReplacementStaysRemovableWhenHeld(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystalBladedStaffLegacyWheelReplacementStaysRemovableWhenHeld(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaSlashOffhandSwingUsesOffhandCatalystAttackDamage(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.manaSlashOffhandSwingUsesOffhandCatalystAttackDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaSlashCatalystDamageUsesStackAttributeModifiers(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.manaSlashCatalystDamageUsesStackAttributeModifiers(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaSlashCatalystDamageAppliesAttributeEventOnce(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.manaSlashCatalystDamageAppliesAttributeEventOnce(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaSlashDamageMultiplierAppliesAfterMinimumDamage(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.manaSlashDamageMultiplierAppliesAfterMinimumDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaSlashAllowsNonSwingcastPrecondition(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.manaSlashAllowsNonSwingcastPrecondition(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaSlashRequiresSwingcastCatalystWhenContextIsActive(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.manaSlashRequiresSwingcastCatalystWhenContextIsActive(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void craftsmansDelightAppliesToExternalSpellManaAndCooldown(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightAppliesToExternalSpellManaAndCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void craftsmansDelightAppliesToHarvestMoonAndEarthForgeManaAndCooldown(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightAppliesToHarvestMoonAndEarthForgeManaAndCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void craftsmansDelightScrollcasterGauntletCooldownKeepsItemPolicy(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightScrollcasterGauntletCooldownKeepsItemPolicy(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magiAgentSuitBootsCooldownReducesTargetSpell(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.magiAgentSuitBootsCooldownReducesTargetSpell(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magiAgentSuitBootsCooldownKeepsCraftsmansDelightBestValue(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.magiAgentSuitBootsCooldownKeepsCraftsmansDelightBestValue(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magiAgentSuitBootsCooldownPreservesExistingAdditiveCooldown(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.magiAgentSuitBootsCooldownPreservesExistingAdditiveCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void strongestLimitedBaseCooldownSelectionIgnoresStacking(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.strongestLimitedBaseCooldownSelectionIgnoresStacking(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void craftsmansDelightExtendsTouchDigRange(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightExtendsTouchDigRange(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void touchDigMergesRingMiningEnchantments(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.touchDigMergesRingMiningEnchantments(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void touchDigUsesRingMiningEnchantmentsWhenCastBareHanded(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.touchDigUsesRingMiningEnchantmentsWhenCastBareHanded(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void spectralHammerUsesCraftsmansDelightRingMiningEnchantments(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.spectralHammerUsesCraftsmansDelightRingMiningEnchantments(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void heavenlyFistWithCraftsmansDelightHarvestsSilkTouchedBuddingCrystal(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.heavenlyFistWithCraftsmansDelightHarvestsSilkTouchedBuddingCrystal(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void heavenlyFistWithoutCraftsmansDelightLeavesBuddingCrystal(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.heavenlyFistWithoutCraftsmansDelightLeavesBuddingCrystal(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void heavenlyFistSkipsCrystalNotGrowingFromHarvestSource(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.heavenlyFistSkipsCrystalNotGrowingFromHarvestSource(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void heavenlyFistSkipsImmatureAmethystBuds(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.heavenlyFistSkipsImmatureAmethystBuds(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void tinyLumberjackWithCraftsmansDelightMovesJobDropsToOrigin(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.tinyLumberjackWithCraftsmansDelightMovesJobDropsToOrigin(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void tinyLumberjackDropMoveFollowsCurrentCraftsmansDelightEquipment(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.tinyLumberjackDropMoveFollowsCurrentCraftsmansDelightEquipment(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void worldFlatterPenetratedArmorEffectAndDamageTags(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.worldFlatterPenetratedArmorEffectAndDamageTags(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void worldFlatterBlockTargetFilterMatchesPickaxeOrShovel(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.worldFlatterBlockTargetFilterMatchesPickaxeOrShovel(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void worldFlatterEntityAttackRequiresArrivalAndHitsSingleTarget(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.worldFlatterEntityAttackRequiresArrivalAndHitsSingleTarget(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowFallsBackToNoneWhenLegacyModeCannotResolve(GameTestHelper helper) {
         ElementalBowGameTestScenarios.elementalBowFallsBackToNoneWhenLegacyModeCannotResolve(helper);
     }
@@ -1405,6 +1600,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void elementMaidenRobeKeepsExpectedStatsImbueAndMagicEnchantments(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.elementMaidenRobeKeepsExpectedStatsImbueAndMagicEnchantments(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magiAgentSuitKeepsExpectedStatsImbueAndCalibrationRune(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.magiAgentSuitKeepsExpectedStatsImbueAndCalibrationRune(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1658,187 +1858,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void meditationPotionsExposeExpectedEffectsAndDurations(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.meditationPotionsExposeExpectedEffectsAndDurations(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void swingcastStaffTiersExposeRequestedImbueRules(GameTestHelper helper) {
-        SwingcastStaffGameTestScenarios.swingcastStaffTiersExposeRequestedImbueRules(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void crystalBladedStaffStartsWithHiddenManaSlash(GameTestHelper helper) {
-        SwingcastStaffGameTestScenarios.crystalBladedStaffStartsWithHiddenManaSlash(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void crystalBladedStaffMissSwingCastsManaSlash(GameTestHelper helper) {
-        SwingcastStaffGameTestScenarios.crystalBladedStaffMissSwingCastsManaSlash(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void crystalBladedStaffHitSwingDoesNotCastManaSlash(GameTestHelper helper) {
-        SwingcastStaffGameTestScenarios.crystalBladedStaffHitSwingDoesNotCastManaSlash(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void crystalBladedStaffVanillaAttackEntityHitDoesNotCastManaSlash(GameTestHelper helper) {
-        SwingcastStaffGameTestScenarios.crystalBladedStaffVanillaAttackEntityHitDoesNotCastManaSlash(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void crystalBladedStaffDelayedHitDoesNotCastManaSlash(GameTestHelper helper) {
-        SwingcastStaffGameTestScenarios.crystalBladedStaffDelayedHitDoesNotCastManaSlash(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void crystalBladedStaffMissTriggerDoesNotUseSwappedStack(GameTestHelper helper) {
-        SwingcastStaffGameTestScenarios.crystalBladedStaffMissTriggerDoesNotUseSwappedStack(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void crystalBladedStaffPendingMissTriggerKeepsEarlierHand(GameTestHelper helper) {
-        SwingcastStaffGameTestScenarios.crystalBladedStaffPendingMissTriggerKeepsEarlierHand(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void crystalBladedStaffMainHandHitDoesNotSuppressOffhandMiss(GameTestHelper helper) {
-        SwingcastStaffGameTestScenarios.crystalBladedStaffMainHandHitDoesNotSuppressOffhandMiss(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeld(GameTestHelper helper) {
-        SwingcastStaffGameTestScenarios.crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeld(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeldInOffhand(GameTestHelper helper) {
-        SwingcastStaffGameTestScenarios.crystalBladedStaffLegacyWheelPresetIsHiddenWhenHeldInOffhand(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void crystalBladedStaffLegacyWheelReplacementStaysRemovableWhenHeld(GameTestHelper helper) {
-        SwingcastStaffGameTestScenarios.crystalBladedStaffLegacyWheelReplacementStaysRemovableWhenHeld(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void manaSlashOffhandSwingUsesOffhandCatalystAttackDamage(GameTestHelper helper) {
-        SwingcastStaffGameTestScenarios.manaSlashOffhandSwingUsesOffhandCatalystAttackDamage(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void manaSlashCatalystDamageUsesStackAttributeModifiers(GameTestHelper helper) {
-        SwingcastStaffGameTestScenarios.manaSlashCatalystDamageUsesStackAttributeModifiers(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
     public static void manaSlashCatalystDamageUsesApplicableSlotGroups(GameTestHelper helper) {
         SwingcastStaffGameTestScenarios.manaSlashCatalystDamageUsesApplicableSlotGroups(helper);
     }
 
-    @GameTest(template = TEMPLATE)
-    public static void manaSlashCatalystDamageAppliesAttributeEventOnce(GameTestHelper helper) {
-        SwingcastStaffGameTestScenarios.manaSlashCatalystDamageAppliesAttributeEventOnce(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void manaSlashDamageMultiplierAppliesAfterMinimumDamage(GameTestHelper helper) {
-        SwingcastStaffGameTestScenarios.manaSlashDamageMultiplierAppliesAfterMinimumDamage(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void manaSlashAllowsNonSwingcastPrecondition(GameTestHelper helper) {
-        SwingcastStaffGameTestScenarios.manaSlashAllowsNonSwingcastPrecondition(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void manaSlashRequiresSwingcastCatalystWhenContextIsActive(GameTestHelper helper) {
-        SwingcastStaffGameTestScenarios.manaSlashRequiresSwingcastCatalystWhenContextIsActive(helper);
-    }
-
-    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
-    public static void craftsmansDelightAppliesToExternalSpellManaAndCooldown(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightAppliesToExternalSpellManaAndCooldown(helper);
-    }
-
-    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
-    public static void craftsmansDelightAppliesToHarvestMoonAndEarthForgeManaAndCooldown(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightAppliesToHarvestMoonAndEarthForgeManaAndCooldown(helper);
-    }
-
-    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
-    public static void craftsmansDelightScrollcasterGauntletCooldownKeepsItemPolicy(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightScrollcasterGauntletCooldownKeepsItemPolicy(helper);
-    }
-
-    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
-    public static void strongestLimitedBaseCooldownSelectionIgnoresStacking(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.strongestLimitedBaseCooldownSelectionIgnoresStacking(helper);
-    }
-
-    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
-    public static void craftsmansDelightExtendsTouchDigRange(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightExtendsTouchDigRange(helper);
-    }
-
-    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
-    public static void touchDigMergesRingMiningEnchantments(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.touchDigMergesRingMiningEnchantments(helper);
-    }
-
-    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
-    public static void touchDigUsesRingMiningEnchantmentsWhenCastBareHanded(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.touchDigUsesRingMiningEnchantmentsWhenCastBareHanded(helper);
-    }
-
-    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
-    public static void spectralHammerUsesCraftsmansDelightRingMiningEnchantments(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.spectralHammerUsesCraftsmansDelightRingMiningEnchantments(helper);
-    }
-
-    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
-    public static void heavenlyFistWithCraftsmansDelightHarvestsSilkTouchedBuddingCrystal(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.heavenlyFistWithCraftsmansDelightHarvestsSilkTouchedBuddingCrystal(helper);
-    }
-
-    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
-    public static void heavenlyFistWithoutCraftsmansDelightLeavesBuddingCrystal(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.heavenlyFistWithoutCraftsmansDelightLeavesBuddingCrystal(helper);
-    }
-
-    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
-    public static void heavenlyFistSkipsCrystalNotGrowingFromHarvestSource(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.heavenlyFistSkipsCrystalNotGrowingFromHarvestSource(helper);
-    }
-
-    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
-    public static void heavenlyFistSkipsImmatureAmethystBuds(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.heavenlyFistSkipsImmatureAmethystBuds(helper);
-    }
-
-    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
-    public static void tinyLumberjackWithCraftsmansDelightMovesJobDropsToOrigin(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.tinyLumberjackWithCraftsmansDelightMovesJobDropsToOrigin(helper);
-    }
-
-    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
-    public static void tinyLumberjackDropMoveFollowsCurrentCraftsmansDelightEquipment(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.tinyLumberjackDropMoveFollowsCurrentCraftsmansDelightEquipment(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void worldFlatterPenetratedArmorEffectAndDamageTags(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.worldFlatterPenetratedArmorEffectAndDamageTags(helper);
-    }
-
-    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
-    public static void worldFlatterBlockTargetFilterMatchesPickaxeOrShovel(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.worldFlatterBlockTargetFilterMatchesPickaxeOrShovel(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void worldFlatterEntityAttackRequiresArrivalAndHitsSingleTarget(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.worldFlatterEntityAttackRequiresArrivalAndHitsSingleTarget(helper);
-    }
 }
