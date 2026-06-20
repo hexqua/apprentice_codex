@@ -1233,6 +1233,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void magiAgentSuitBootsCooldownReducesTargetSpell(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.magiAgentSuitBootsCooldownReducesTargetSpell(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magiAgentSuitBootsCooldownKeepsCraftsmansDelightBestValue(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.magiAgentSuitBootsCooldownKeepsCraftsmansDelightBestValue(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void strongestLimitedBaseCooldownSelectionIgnoresStacking(GameTestHelper helper) {
         EquipmentSpellBehaviorBridgeGameTestScenarios.strongestLimitedBaseCooldownSelectionIgnoresStacking(helper);
     }

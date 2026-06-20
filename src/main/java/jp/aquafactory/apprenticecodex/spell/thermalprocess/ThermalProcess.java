@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDe
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
+import jp.aquafactory.apprenticecodex.spell.IMagiAgentSuitAffectedSpell;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -28,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThrowerEntity> implements ICraftsmansDelightAffectedSpell {
+public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThrowerEntity> implements ICraftsmansDelightAffectedSpell, IMagiAgentSuitAffectedSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "thermal_process");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -96,6 +97,11 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
     @Override
     public CastType getCastType() {
         return CastType.CONTINUOUS;
+    }
+
+    @Override
+    public boolean canBeInterrupted(@org.jetbrains.annotations.Nullable net.minecraft.world.entity.player.Player player) {
+        return canBeInterruptedWithMagiAgentSuit(this, player, super.canBeInterrupted(player));
     }
 
     @Override

@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
 import net.minecraft.server.level.ServerPlayer;
@@ -43,6 +44,12 @@ public final class MultipurposeStaffrifleCastEvent {
         }
 
         if (!player.isCreative()) {
+            if (MagiAgentSuitEffects.shouldSkipAmmoConsumption(player)) {
+                if (MagiAgentSuitEffects.shouldSkipStaffrifleManaCostWithAmmo()) {
+                    event.setManaCost(0);
+                }
+                return;
+            }
             SpellGunCastEvent.consumeAmmo(player, player.getInventory(), staffrifle.getAmmoItem(castingItem), staffrifle);
         }
     }

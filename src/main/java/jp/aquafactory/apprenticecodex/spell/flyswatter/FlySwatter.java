@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.spell.IMagiAgentSuitAffectedSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
@@ -38,7 +39,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEntity> {
+public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEntity> implements IMagiAgentSuitAffectedSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "fly_swatter");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -101,6 +102,11 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
     @Override
     public CastType getCastType() {
         return CastType.CONTINUOUS;
+    }
+
+    @Override
+    public boolean canBeInterrupted(@org.jetbrains.annotations.Nullable net.minecraft.world.entity.player.Player player) {
+        return canBeInterruptedWithMagiAgentSuit(this, player, super.canBeInterrupted(player));
     }
 
     @Override

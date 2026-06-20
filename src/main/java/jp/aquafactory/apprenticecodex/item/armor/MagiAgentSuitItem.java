@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
+import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
@@ -29,7 +30,9 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,6 +54,8 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
     private static final String ADJUSTMENT_TAG = "Adjustment";
     private static final String RUNE_HINT_KEY = "item." + ApprenticeCodex.MODID + ".magi_agent_suit.rune_hint";
     private static final String SCHOOL_RUNE_KEY = "item." + ApprenticeCodex.MODID + ".magi_agent_suit.school_rune";
+    private static final String SPELL_HINT_KEY = "item." + ApprenticeCodex.MODID + ".magi_agent_suit.spell_hint";
+    private static final String SPELL_HINT_OPEN_KEY = "item." + ApprenticeCodex.MODID + ".magi_agent_suit.spell_hint_open";
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final Type armorType;
@@ -176,6 +181,7 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
     @Override
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, level, lines, flag);
+        appendSuitEffectHoverText(lines);
         var school = getResolvedCalibrationSchool(stack);
         if (school == null) {
             lines.add(Component.translatable(RUNE_HINT_KEY).withStyle(ChatFormatting.GRAY));
@@ -227,6 +233,44 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
 
     public static @Nullable SchoolType getResolvedCalibrationSchool(ItemStack stack) {
         return ScrollcasterSchoolRuneResolver.resolveSchool(getCalibrationAdjustment(stack, 0)).orElse(null);
+    }
+
+    private void appendSuitEffectHoverText(List<Component> lines) {
+        var descriptionKey = getDescriptionId() + ".desc";
+        if (armorType == Type.HELMET) {
+            lines.add(Component.translatable(descriptionKey).withStyle(ChatFormatting.GRAY));
+            return;
+        }
+
+        if (!isShiftDown()) {
+            lines.add(Component.translatable(descriptionKey).withStyle(ChatFormatting.GRAY));
+            lines.add(Component.translatable(SPELL_HINT_KEY).withStyle(ChatFormatting.DARK_GRAY));
+            return;
+        }
+
+        lines.add(Component.translatable(SPELL_HINT_OPEN_KEY).withStyle(ChatFormatting.GRAY));
+        for (var spell : MagiAgentSuitEffects.targetSpells()) {
+            if (armorType == Type.LEGGINGS && spell.getCastType() == CastType.INSTANT) {
+                continue;
+            }
+            lines.add(Component.literal("- ")
+                    .append(spell.getDisplayName(null))
+                    .withStyle(ChatFormatting.GRAY));
+        }
+    }
+
+    private static boolean isShiftDown() {
+        if (FMLEnvironment.dist != Dist.CLIENT) {
+            return false;
+        }
+
+        try {
+            var screenClass = Class.forName("net.minecraft.client.gui.screens.Screen");
+            var hasShiftDown = screenClass.getMethod("hasShiftDown");
+            return Boolean.TRUE.equals(hasShiftDown.invoke(null));
+        } catch (ReflectiveOperationException | LinkageError e) {
+            return false;
+        }
     }
 
     private static @Nullable Attribute getResolvedSchoolPowerAttribute(ItemStack stack) {
