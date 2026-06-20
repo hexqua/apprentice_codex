@@ -1233,6 +1233,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void magiAgentSuitBootsCooldownReducesTargetSpell(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.magiAgentSuitBootsCooldownReducesTargetSpell(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magiAgentSuitBootsCooldownKeepsCraftsmansDelightBestValue(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.magiAgentSuitBootsCooldownKeepsCraftsmansDelightBestValue(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magiAgentSuitBootsCooldownPreservesExistingAdditiveCooldown(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.magiAgentSuitBootsCooldownPreservesExistingAdditiveCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void strongestLimitedBaseCooldownSelectionIgnoresStacking(GameTestHelper helper) {
         EquipmentSpellBehaviorBridgeGameTestScenarios.strongestLimitedBaseCooldownSelectionIgnoresStacking(helper);
     }
@@ -1625,6 +1640,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void elementMaidenRobeKeepsExpectedStatsImbueAndMagicEnchantments(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.elementMaidenRobeKeepsExpectedStatsImbueAndMagicEnchantments(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magiAgentSuitKeepsExpectedStatsImbueAndCalibrationRune(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.magiAgentSuitKeepsExpectedStatsImbueAndCalibrationRune(helper);
     }
 
     @GameTest(template = TEMPLATE)

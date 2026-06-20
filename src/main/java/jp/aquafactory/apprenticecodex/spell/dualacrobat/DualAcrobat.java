@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.spell.IMagiAgentSuitAffectedSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -26,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-public class DualAcrobat extends AbstractSummonWeaponSpell<DualAcrobatSmgEntity> {
+public class DualAcrobat extends AbstractSummonWeaponSpell<DualAcrobatSmgEntity> implements IMagiAgentSuitAffectedSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "dual_acrobat");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -86,6 +87,11 @@ public class DualAcrobat extends AbstractSummonWeaponSpell<DualAcrobatSmgEntity>
     @Override
     public CastType getCastType() {
         return CastType.CONTINUOUS;
+    }
+
+    @Override
+    public boolean canBeInterrupted(@Nullable net.minecraft.world.entity.player.Player player) {
+        return canBeInterruptedWithMagiAgentSuit(this, player, super.canBeInterrupted(player));
     }
 
     @Override

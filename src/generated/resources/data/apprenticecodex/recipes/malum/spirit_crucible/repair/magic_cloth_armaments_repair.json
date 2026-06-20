@@ -1,0 +1,32 @@
+{
+  "type": "malum:spirit_repair",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "malum"
+    }
+  ],
+  "durabilityPercentage": 0.5,
+  "inputs": [
+    "apprenticecodex:magi_agent_suit_hood",
+    "apprenticecodex:magi_agent_suit_coat",
+    "apprenticecodex:magi_agent_suit_leggings",
+    "apprenticecodex:magi_agent_suit_boots"
+  ],
+  "itemIdRegex": "",
+  "modIdRegex": "",
+  "repairMaterial": {
+    "count": 1,
+    "item": "irons_spellbooks:magic_cloth"
+  },
+  "spirits": [
+    {
+      "type": "arcane",
+      "count": 8
+    },
+    {
+      "type": "aerial",
+      "count": 8
+    }
+  ]
+}

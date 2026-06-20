@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.Scroll;
 import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
@@ -54,6 +55,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     private static final int HOTBAR_SLOT_END = HOTBAR_SLOT_START + HOTBAR_SLOT_COUNT;
 
     public static final int TARGET_MENU_SLOT = GAUNTLET_SLOT;
+    public static final int ADJUSTMENT_MENU_SLOT_START = ADJUSTMENT_SLOT_START;
     public static final int SCROLL_MENU_SLOT_START = SCROLL_SLOT_START;
 
     private final ContainerLevelAccess access;
@@ -158,8 +160,12 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         return isRevolvercastStaff(getGauntletStack());
     }
 
+    public boolean hasMagiAgentSuit() {
+        return isMagiAgentSuit(getGauntletStack());
+    }
+
     public boolean hasStoredCalibrationTarget() {
-        return hasGauntlet() || hasRevolvercastStaff();
+        return hasGauntlet() || hasRevolvercastStaff() || hasMagiAgentSuit();
     }
 
     public boolean hasCalibrationTarget() {
@@ -167,7 +173,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     public boolean hasOperationalImbueTarget() {
-        return !hasStoredCalibrationTarget() && SpellCalibrationImbueHelper.isSupportedTarget(getGauntletStack());
+        return hasMagiAgentSuitImbueTarget()
+                || !hasStoredCalibrationTarget() && SpellCalibrationImbueHelper.isSupportedTarget(getGauntletStack());
     }
 
     public int getEnabledScrollSlotCount() {
@@ -184,6 +191,16 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         return hasCalibrationTarget() && slot >= 0 && slot < getEnabledScrollSlotCount();
     }
 
+    public boolean isAdjustmentSlotEnabled(int slot) {
+        if (!hasStoredCalibrationTarget() || slot < 0) {
+            return false;
+        }
+        if (hasMagiAgentSuit()) {
+            return slot < MagiAgentSuitItem.CALIBRATION_ADJUSTMENT_SLOT_COUNT;
+        }
+        return slot < ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT;
+    }
+
     public @NotNull ItemStack getScrollItem(int slot) {
         return getScroll(slot);
     }
@@ -193,21 +210,21 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     public @NotNull ItemStack getLockedPreviewScrollItem(int slot) {
-        if (hasStoredCalibrationTarget() || !hasOperationalImbueTarget() || !isScrollSlotEnabled(slot)) {
+        if (hasStoredScrollTarget() || !hasOperationalImbueTarget() || !isScrollSlotEnabled(slot)) {
             return ItemStack.EMPTY;
         }
         return SpellCalibrationImbueHelper.createLockedPreviewScrollForSlot(getGauntletStack(), slot);
     }
 
     public boolean shouldRenderUnsupportedImbueOverlay(int slot) {
-        return !hasStoredCalibrationTarget()
+        return !hasStoredScrollTarget()
                 && hasCalibrationTarget()
                 && !hasOperationalImbueTarget()
                 && isScrollSlotEnabled(slot);
     }
 
     public boolean hasTargetSpellAt(int slot) {
-        return !hasStoredCalibrationTarget() && SpellCalibrationImbueHelper.hasSpellAt(getGauntletStack(), slot);
+        return !hasStoredScrollTarget() && SpellCalibrationImbueHelper.hasSpellAt(getGauntletStack(), slot);
     }
 
     public @NotNull List<Component> getImbueRestrictionTooltipLines() {
@@ -246,6 +263,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         if (hasRevolvercastStaff()) {
             return RevolvercastStaff.getCalibrationAdjustment(getGauntletStack(), slot);
         }
+        if (hasMagiAgentSuit()) {
+            return MagiAgentSuitItem.getCalibrationAdjustment(getGauntletStack(), slot);
+        }
         return ItemStack.EMPTY;
     }
 
@@ -262,6 +282,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             ScrollcasterGauntlet.setCalibrationAdjustment(getGauntletStack(), slot, storedStack);
         } else if (hasRevolvercastStaff()) {
             RevolvercastStaff.setCalibrationAdjustment(getGauntletStack(), slot, storedStack);
+        } else if (hasMagiAgentSuit()) {
+            MagiAgentSuitItem.setCalibrationAdjustment(getGauntletStack(), slot, storedStack);
         }
     }
 
@@ -286,6 +308,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         } else if (hasRevolvercastStaff()) {
             RevolvercastStaff.refreshResolvedCalibrationSchool(gauntletStack);
             RevolvercastStaff.refreshSelectedSpellContainer(gauntletStack);
+        } else if (hasMagiAgentSuit()) {
+            SpellCalibrationImbueHelper.prepareTarget(gauntletStack);
         } else if (!gauntletStack.isEmpty()) {
             SpellCalibrationImbueHelper.prepareTarget(gauntletStack);
         }
@@ -328,7 +352,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     private void awardImbueScrollExtraction(@NotNull Player player, @NotNull ItemStack extractedStack) {
-        if (hasStoredCalibrationTarget() || !isScroll(extractedStack) || !(player instanceof ServerPlayer serverPlayer)) {
+        if (hasStoredScrollTarget() || !isScroll(extractedStack) || !(player instanceof ServerPlayer serverPlayer)) {
             return;
         }
 
@@ -417,9 +441,26 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         return !stack.isEmpty() && stack.is(ItemRegistry.REVOLVERCAST_STAFF.get());
     }
 
+    private static boolean isMagiAgentSuit(@NotNull ItemStack stack) {
+        return !stack.isEmpty() && stack.getItem() instanceof MagiAgentSuitItem;
+    }
+
     private static boolean isCalibrationTarget(@NotNull ItemStack stack) {
         return isScrollcasterGauntlet(stack) || isRevolvercastStaff(stack)
+                || isMagiAgentSuit(stack)
                 || SpellCalibrationImbueHelper.isVisibleImbueTarget(stack);
+    }
+
+    private boolean hasStoredScrollTarget() {
+        return hasGauntlet() || hasRevolvercastStaff();
+    }
+
+    private boolean hasMagiAgentSuitImbueTarget() {
+        var stack = getGauntletStack();
+        return !stack.isEmpty()
+                && stack.getItem() instanceof MagiAgentSuitItem suitItem
+                && suitItem.hasImbueSlot()
+                && SpellCalibrationImbueHelper.isSupportedTarget(stack);
     }
 
     private final class AdjustmentContainer implements Container {
@@ -616,6 +657,10 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
                 return false;
             }
 
+            if (!isAdjustmentSlotEnabled(calibrationSlot)) {
+                return false;
+            }
+
             if (hasGauntlet()) {
                 return (isSpellSlotUpgrade(stack) || isSchoolRune(stack) || isEnchantmentBook(stack) || isFreecastStaff(stack))
                         && (!isSchoolRune(stack) || !hasSchoolRuneAdjustmentExcept(calibrationSlot))
@@ -626,12 +671,16 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
                         && (!isSchoolRune(stack) || !hasSchoolRuneAdjustmentExcept(calibrationSlot))
                         && (!isRecoveryRune(stack) || !hasRecoveryRuneAdjustmentExcept(calibrationSlot));
             }
+            if (hasMagiAgentSuit()) {
+                return MagiAgentSuitItem.isCalibrationAdjustmentItem(stack)
+                        && !hasSchoolRuneAdjustmentExcept(calibrationSlot);
+            }
             return false;
         }
 
         @Override
         public boolean mayPickup(@NotNull Player player) {
-            return hasStoredCalibrationTarget();
+            return hasStoredCalibrationTarget() && (isAdjustmentSlotEnabled(calibrationSlot) || hasItem());
         }
 
         @Override

@@ -8,7 +8,7 @@
       }
     },
     {
-      "count": 4,
+      "count": 16,
       "ingredient": {
         "item": "apprenticecodex:empty_multi_purpose_spell_casing"
       }
@@ -23,7 +23,7 @@
   "priority": 0,
   "results": [
     {
-      "count": 4,
+      "count": 16,
       "item": "apprenticecodex:multi_purpose_spell_round"
     }
   ]
