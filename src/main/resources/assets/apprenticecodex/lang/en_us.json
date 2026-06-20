@@ -185,6 +185,8 @@
   "item.apprenticecodex.chromatic_magia_dress_leggings.desc": "This armor is dyed with the \"COLOR\" of the spell continuous casting.",
   "item.apprenticecodex.chromatic_magia_dress_boots.desc": "This armor is dyed with the \"COLOR\" of the spell without casting.",
   "item.apprenticecodex.element_maiden_robe.desc": "This armor is affected by the equipped spellbook.",
+  "item.apprenticecodex.magi_agent_suit.rune_hint": "Tune this armor's school at a Spell Calibration Bench.",
+  "item.apprenticecodex.magi_agent_suit.school_rune": "Currently tuned to the \"%s\" school.",
   "item.apprenticecodex.charged_twin_blade_staff.desc.throwable": "%d mana to duplicate the staff and throw it.",
   "item.apprenticecodex.charged_twin_blade_staff.desc.reptide": "%d mana to activate riptide.",
   "item.apprenticecodex.charged_twin_blade_staff.desc.channeling": "This staff will cast a spell when thrown.",

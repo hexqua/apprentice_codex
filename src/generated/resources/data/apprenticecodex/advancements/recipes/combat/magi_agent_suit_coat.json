@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_spell_dominator_round": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "apprenticecodex:spell_dominator_round"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "apprenticecodex:magi_agent_suit_coat"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_spell_dominator_round",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "apprenticecodex:magi_agent_suit_coat"
+    ]
+  },
+  "sends_telemetry_event": false
+}

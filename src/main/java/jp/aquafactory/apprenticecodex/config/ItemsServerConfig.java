@@ -240,6 +240,14 @@ final class ItemsServerConfig {
         return magicArmorConfig.elementMaidenRobeSchoolSpellPowerBonus();
     }
 
+    double magiAgentSuitSpellPowerBonus() {
+        return magicArmorConfig.magiAgentSuitSpellPowerBonus();
+    }
+
+    double magiAgentSuitSchoolSpellPowerBonus() {
+        return magicArmorConfig.magiAgentSuitSchoolSpellPowerBonus();
+    }
+
     double stealthRuneArmorSpellPowerBonusPerPiece() {
         return magicArmorConfig.stealthRuneArmorSpellPowerBonusPerPiece();
     }

@@ -24,6 +24,8 @@ import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeSchoolPowerBon
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeStats;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeStats;
+import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
+import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitStats;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
@@ -282,6 +284,12 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     "Element Maiden Robe",
                     item -> item instanceof ElementMaidenRobeItem,
                     ApprenticeCodexGameTestScenarios::expectedElementMaidenRobeEnchantments
+            );
+            assertCategoryEnchantments(
+                    helper,
+                    "Magi Agent Suit",
+                    item -> item instanceof MagiAgentSuitItem,
+                    ApprenticeCodexGameTestScenarios::expectedMagiAgentSuitEnchantments
             );
         });
     }
@@ -627,6 +635,93 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                             + describeModifiers(enchantedModifiers));
         });
     }
+
+    static void magiAgentSuitKeepsExpectedStatsImbueAndCalibrationRune(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
+            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
+            var fireSpellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get();
+            var expectedSpellPower = ApprenticeCodexServerConfig.magiAgentSuitSpellPowerBonus();
+            var expectedSchoolSpellPower = ApprenticeCodexServerConfig.magiAgentSuitSchoolSpellPowerBonus();
+            var pieces = Map.of(
+                    ArmorItem.Type.HELMET, (MagiAgentSuitItem) ItemRegistry.MAGI_AGENT_SUIT_HOOD.get(),
+                    ArmorItem.Type.CHESTPLATE, (MagiAgentSuitItem) ItemRegistry.MAGI_AGENT_SUIT_COAT.get(),
+                    ArmorItem.Type.LEGGINGS, (MagiAgentSuitItem) ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get(),
+                    ArmorItem.Type.BOOTS, (MagiAgentSuitItem) ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()
+            );
+
+            for (var entry : pieces.entrySet()) {
+                var armorType = entry.getKey();
+                var item = entry.getValue();
+                var stack = new ItemStack(item);
+                item.initializeSpellContainer(stack);
+
+                helper.assertTrue(item.getMaterial().getDefenseForType(armorType) == expectedMagiAgentSuitDefense(armorType),
+                        "Magi Agent Suit " + armorType + " defense changed");
+                helper.assertTrue(item.getEnchantmentValue(stack) == MagiAgentSuitStats.enchantmentValue(),
+                        "Magi Agent Suit " + armorType + " enchantment value changed");
+                helper.assertTrue(item.isValidRepairItem(
+                                stack,
+                                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get())
+                        ),
+                        "Magi Agent Suit " + armorType + " should repair with magic cloth");
+                helper.assertTrue(ISpellContainer.isSpellContainer(stack) == item.hasImbueSlot(),
+                        "Magi Agent Suit " + armorType + " imbue surface regression");
+
+                var hintLines = new ArrayList<Component>();
+                item.appendHoverText(stack, helper.getLevel(), hintLines, TooltipFlag.Default.NORMAL);
+                helper.assertTrue(hintLines.stream().anyMatch(line ->
+                                line.getContents() instanceof TranslatableContents contents
+                                        && "item.apprenticecodex.magi_agent_suit.rune_hint".equals(contents.getKey())),
+                        "Magi Agent Suit " + armorType + " should show its rune hint before calibration");
+
+                MagiAgentSuitItem.setCalibrationAdjustment(
+                        stack,
+                        0,
+                        new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get())
+                );
+                helper.assertTrue(MagiAgentSuitItem.getCalibrationAdjustment(stack, 0)
+                                .is(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get()),
+                        "Magi Agent Suit " + armorType + " should store the calibration rune");
+
+                var modifiers = item.getAttributeModifiers(armorType.getSlot(), stack);
+                var maxManaBonus = sumModifierAmount(modifiers.get(maxManaAttribute), AttributeModifier.Operation.ADDITION);
+                helper.assertTrue(Math.abs(maxManaBonus - MagiAgentSuitStats.MAX_MANA_BONUS) < 1.0e-9D,
+                        "Magi Agent Suit " + armorType + " max mana regression: " + describeModifiers(modifiers));
+
+                var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.MULTIPLY_BASE);
+                helper.assertTrue(Math.abs(spellPowerBonus - expectedSpellPower) < 1.0e-9D,
+                        "Magi Agent Suit " + armorType + " spell power config regression: " + describeModifiers(modifiers));
+
+                var schoolSpellPowerBonus = sumModifierAmount(modifiers.get(fireSpellPowerAttribute), AttributeModifier.Operation.MULTIPLY_BASE);
+                helper.assertTrue(Math.abs(schoolSpellPowerBonus - expectedSchoolSpellPower) < 1.0e-9D,
+                        "Magi Agent Suit " + armorType + " school rune spell power regression: " + describeModifiers(modifiers));
+
+                var toughnessBonus = sumModifierAmount(modifiers.get(Attributes.ARMOR_TOUGHNESS), AttributeModifier.Operation.ADDITION);
+                helper.assertTrue(Math.abs(toughnessBonus - expectedMagiAgentSuitToughness(armorType)) < 1.0e-9D,
+                        "Magi Agent Suit " + armorType + " toughness regression: " + describeModifiers(modifiers));
+
+                var tunedLines = new ArrayList<Component>();
+                item.appendHoverText(stack, helper.getLevel(), tunedLines, TooltipFlag.Default.NORMAL);
+                helper.assertTrue(tunedLines.stream().anyMatch(line ->
+                                line.getContents() instanceof TranslatableContents contents
+                                        && "item.apprenticecodex.magi_agent_suit.school_rune".equals(contents.getKey())),
+                        "Magi Agent Suit " + armorType + " should show its tuned school tooltip");
+            }
+        });
+    }
+
+    private static int expectedMagiAgentSuitDefense(ArmorItem.Type armorType) {
+        return switch (armorType) {
+            case HELMET, BOOTS -> 3;
+            case CHESTPLATE, LEGGINGS -> 6;
+        };
+    }
+
+    private static double expectedMagiAgentSuitToughness(ArmorItem.Type armorType) {
+        return armorType == ArmorItem.Type.LEGGINGS ? 2.0D : 1.0D;
+    }
+
     static void elementMaidenRobeSchoolSpellPowerDistributesSpellbookSchools(GameTestHelper helper) {
         helper.succeedIf(() -> {
             try (var ignored = ApprenticeCodexServerConfig.useElementMaidenRobeSchoolSpellPowerBonusOverrideForGameTest(0.20D)) {

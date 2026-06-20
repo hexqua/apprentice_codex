@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.jumpcastcharm.JumpcastCharm;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmulet;
@@ -308,6 +309,7 @@ public final class SpellCalibrationImbueHelper {
                 || item instanceof AbstractSpellGunItem
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof AbstractImbueShieldItem
+                || item instanceof MagiAgentSuitItem
                 || item instanceof AbstractOffhandMagicItem
                 || item instanceof AlchemistsFlask
                 || stack.is(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE);

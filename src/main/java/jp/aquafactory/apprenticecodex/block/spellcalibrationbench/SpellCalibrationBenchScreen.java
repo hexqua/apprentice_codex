@@ -128,8 +128,8 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
     }
 
     private void renderDisabledSlotOverlays(GuiGraphics gui) {
-        if (!menu.hasStoredCalibrationTarget()) {
-            for (var slot = 0; slot < ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+        for (var slot = 0; slot < ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            if (!menu.isAdjustmentSlotEnabled(slot)) {
                 renderDisabledSlotOverlay(
                         gui,
                         SpellCalibrationBenchMenu.ADJUSTMENT_SLOT_X + slot * SLOT_SPACING,
@@ -286,7 +286,7 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
         }
 
         for (var slot = 0; slot < ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (!menu.getAdjustmentItem(slot).isEmpty()) {
+            if (!menu.isAdjustmentSlotEnabled(slot) || !menu.getAdjustmentItem(slot).isEmpty()) {
                 continue;
             }
 
@@ -303,6 +303,10 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
     private List<Component> createAdjustmentItemHintTooltip() {
         var lines = new ArrayList<Component>();
         lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_title"));
+        if (menu.hasMagiAgentSuit()) {
+            lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_runes"));
+            return List.copyOf(lines);
+        }
         lines.add(SLOT_UPGRADE_GROUP);
         appendTaggedItemHintLines(
                 lines,

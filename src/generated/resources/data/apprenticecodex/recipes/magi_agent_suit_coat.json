@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": {
+    "item": "apprenticecodex:spell_dominator_round"
+  },
+  "base": {
+    "tag": "irons_spellbooks:wizard_base_chestplate"
+  },
+  "result": {
+    "item": "apprenticecodex:magi_agent_suit_coat"
+  },
+  "template": {
+    "item": "irons_spellbooks:magic_cloth"
+  }
+}
