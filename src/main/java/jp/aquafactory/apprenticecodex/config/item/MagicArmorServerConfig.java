@@ -10,9 +10,13 @@ public final class MagicArmorServerConfig {
     private final ModConfigSpec.DoubleValue elementMaidenRobeSchoolSpellPowerBonus;
     private final ModConfigSpec.DoubleValue magiAgentSuitSpellPowerBonus;
     private final ModConfigSpec.DoubleValue magiAgentSuitSchoolSpellPowerBonus;
+    private final ModConfigSpec.DoubleValue magiAgentSuitAmmoNoConsumeChance;
+    private final ModConfigSpec.BooleanValue magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed;
     private final ModConfigSpec.DoubleValue stealthRuneArmorSpellPowerBonusPerPiece;
 
     private Double elementMaidenRobeSchoolSpellPowerBonusOverride;
+    private Double magiAgentSuitAmmoNoConsumeChanceOverride;
+    private Boolean magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumedOverride;
 
     private MagicArmorServerConfig(
             ModConfigSpec.DoubleValue apprenticeMageRobeSpellPowerBonusPerPiece,
@@ -22,6 +26,8 @@ public final class MagicArmorServerConfig {
             ModConfigSpec.DoubleValue elementMaidenRobeSchoolSpellPowerBonus,
             ModConfigSpec.DoubleValue magiAgentSuitSpellPowerBonus,
             ModConfigSpec.DoubleValue magiAgentSuitSchoolSpellPowerBonus,
+            ModConfigSpec.DoubleValue magiAgentSuitAmmoNoConsumeChance,
+            ModConfigSpec.BooleanValue magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed,
             ModConfigSpec.DoubleValue stealthRuneArmorSpellPowerBonusPerPiece
     ) {
         this.apprenticeMageRobeSpellPowerBonusPerPiece = apprenticeMageRobeSpellPowerBonusPerPiece;
@@ -31,6 +37,9 @@ public final class MagicArmorServerConfig {
         this.elementMaidenRobeSchoolSpellPowerBonus = elementMaidenRobeSchoolSpellPowerBonus;
         this.magiAgentSuitSpellPowerBonus = magiAgentSuitSpellPowerBonus;
         this.magiAgentSuitSchoolSpellPowerBonus = magiAgentSuitSchoolSpellPowerBonus;
+        this.magiAgentSuitAmmoNoConsumeChance = magiAgentSuitAmmoNoConsumeChance;
+        this.magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed =
+                magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed;
         this.stealthRuneArmorSpellPowerBonusPerPiece = stealthRuneArmorSpellPowerBonusPerPiece;
     }
 
@@ -70,6 +79,9 @@ public final class MagicArmorServerConfig {
                 "MagiAgentSuit",
                 0.10D
         );
+        var magiAgentSuitAmmoNoConsumeChance = defineMagiAgentSuitAmmoNoConsumeChance(builder);
+        var magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed =
+                defineMagiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed(builder);
         var stealthRuneArmorSpellPowerBonusPerPiece = defineSpellPowerBonusPerPiece(
                 builder,
                 "StealthRuneArmor",
@@ -84,6 +96,8 @@ public final class MagicArmorServerConfig {
                 elementMaidenRobeSchoolSpellPowerBonus,
                 magiAgentSuitSpellPowerBonus,
                 magiAgentSuitSchoolSpellPowerBonus,
+                magiAgentSuitAmmoNoConsumeChance,
+                magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed,
                 stealthRuneArmorSpellPowerBonusPerPiece
         );
     }
@@ -118,12 +132,33 @@ public final class MagicArmorServerConfig {
         return magiAgentSuitSchoolSpellPowerBonus.get();
     }
 
+    public double magiAgentSuitAmmoNoConsumeChance() {
+        return magiAgentSuitAmmoNoConsumeChanceOverride == null
+                ? magiAgentSuitAmmoNoConsumeChance.get()
+                : magiAgentSuitAmmoNoConsumeChanceOverride;
+    }
+
+    public boolean magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed() {
+        return magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumedOverride == null
+                ? magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed.get()
+                : magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumedOverride;
+    }
+
     public double stealthRuneArmorSpellPowerBonusPerPiece() {
         return stealthRuneArmorSpellPowerBonusPerPiece.get();
     }
 
     public void setElementMaidenRobeSchoolSpellPowerBonusForGameTest(double value) {
         elementMaidenRobeSchoolSpellPowerBonusOverride = value;
+    }
+
+    public void setMagiAgentSuitAmmoConfigForGameTest(
+            double ammoNoConsumeChance,
+            boolean skipStaffrifleManaCostWhenAmmoNotConsumed
+    ) {
+        magiAgentSuitAmmoNoConsumeChanceOverride = ammoNoConsumeChance;
+        magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumedOverride =
+                skipStaffrifleManaCostWhenAmmoNotConsumed;
     }
 
     private static ModConfigSpec.DoubleValue defineSpellPowerBonusPerPiece(
@@ -189,6 +224,32 @@ public final class MagicArmorServerConfig {
                 defaultValue,
                 0.0D,
                 10.0D
+        );
+        builder.pop();
+        return value;
+    }
+
+    private static ModConfigSpec.DoubleValue defineMagiAgentSuitAmmoNoConsumeChance(ModConfigSpec.Builder builder) {
+        builder.comment("Chance for Magi Agent Suit Hood to prevent Spellgun and Staffrifle ammo consumption. 1.0 = always, 0.0 = disabled.")
+                .push("MagiAgentSuit");
+        var value = builder.defineInRange(
+                "ammoNoConsumeChance",
+                0.5D,
+                0.0D,
+                1.0D
+        );
+        builder.pop();
+        return value;
+    }
+
+    private static ModConfigSpec.BooleanValue defineMagiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed(
+            ModConfigSpec.Builder builder
+    ) {
+        builder.comment("When Magi Agent Suit Hood prevents Staffrifle ammo consumption, also prevent that Staffrifle mana cost.")
+                .push("MagiAgentSuit");
+        var value = builder.define(
+                "skipStaffrifleManaCostWhenAmmoNotConsumed",
+                true
         );
         builder.pop();
         return value;

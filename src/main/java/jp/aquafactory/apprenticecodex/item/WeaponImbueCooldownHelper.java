@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.config.ServerConfigs;
+import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightSpellSupport;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -43,7 +44,8 @@ public final class WeaponImbueCooldownHelper {
         var craftsmansDelightCooldown = CraftsmansDelightSpellSupport.isCooldownReductionTarget(spell)
                 ? CraftsmansDelight.applyCooldownDiscount(baseCooldown, player)
                 : baseCooldown;
-        return selectStrongestLimitedBaseCooldown(baseCooldown, craftsmansDelightCooldown);
+        var magiAgentSuitCooldown = MagiAgentSuitEffects.applyBootsCooldownDiscount(baseCooldown, spell, player);
+        return selectStrongestLimitedBaseCooldown(baseCooldown, craftsmansDelightCooldown, magiAgentSuitCooldown);
     }
 
     public static int selectStrongestLimitedBaseCooldown(int baseCooldown, int... candidateCooldowns) {

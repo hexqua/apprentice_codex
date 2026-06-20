@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -45,6 +46,9 @@ public final class SpellGunCastEvent {
         if (!player.isCreative()) {
             var ammoItem = spellGunItem.getAmmoItem(castingItem, spellGunItem.getPrimarySpellData(castingItem));
             if (ammoItem != null) {
+                if (MagiAgentSuitEffects.shouldSkipAmmoConsumption(player)) {
+                    return;
+                }
                 consumeAmmo(player, player.getInventory(), ammoItem, spellGunItem);
             }
         }

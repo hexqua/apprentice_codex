@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.spell.IMagiAgentSuitAffectedSpell;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -25,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-public class BreachingEnemy extends AbstractSummonWeaponSpell<BreachingEnemyShotgunEntity> {
+public class BreachingEnemy extends AbstractSummonWeaponSpell<BreachingEnemyShotgunEntity> implements IMagiAgentSuitAffectedSpell {
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "breaching_enemy");
 
@@ -81,6 +82,11 @@ public class BreachingEnemy extends AbstractSummonWeaponSpell<BreachingEnemyShot
     @Override
     public CastType getCastType() {
         return CastType.LONG;
+    }
+
+    @Override
+    public boolean canBeInterrupted(@org.jetbrains.annotations.Nullable net.minecraft.world.entity.player.Player player) {
+        return canBeInterruptedWithMagiAgentSuit(this, player, super.canBeInterrupted(player));
     }
 
     @Override

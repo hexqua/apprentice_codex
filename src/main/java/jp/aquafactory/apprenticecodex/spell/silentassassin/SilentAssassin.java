@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.spell.IMagiAgentSuitAffectedSpell;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.SummonedFirearmTools;
 import net.minecraft.network.chat.Component;
@@ -27,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-public class SilentAssassin extends AbstractSummonWeaponSpell<SilentAssassinRifleEntity> {
+public class SilentAssassin extends AbstractSummonWeaponSpell<SilentAssassinRifleEntity> implements IMagiAgentSuitAffectedSpell {
     private static final double AWARENESS_SUPPRESSION_RADIUS = 16.0D;
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "silent_assassin");
@@ -92,6 +93,10 @@ public class SilentAssassin extends AbstractSummonWeaponSpell<SilentAssassinRifl
         return CastType.LONG;
     }
 
+    @Override
+    public boolean canBeInterrupted(@org.jetbrains.annotations.Nullable net.minecraft.world.entity.player.Player player) {
+        return canBeInterruptedWithMagiAgentSuit(this, player, super.canBeInterrupted(player));
+    }
 
     @Override
     public final Optional<SoundEvent> getCastStartSound() {

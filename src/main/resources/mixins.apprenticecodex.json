@@ -53,7 +53,7 @@
     "BetterCombatItemInHandLayerMixin",
     "BetterCombatItemInHandRendererMixin",
     "ClientPlayerEventsAutocastAmuletTooltipMixin",
-    "ClientPlayerEventsFocusStaffbowMixin",
+    "ClientPlayerEventsCastingMoveSpeedMixin",
     "ClientPlayerRecastsMixin",
     "ClientInputEventsMixin",
     "ClientSpellCastHelperMixin",

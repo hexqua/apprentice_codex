@@ -299,6 +299,14 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.magiAgentSuitSchoolSpellPowerBonus();
     }
 
+    public static double magiAgentSuitAmmoNoConsumeChance() {
+        return ITEMS_CONFIG.magiAgentSuitAmmoNoConsumeChance();
+    }
+
+    public static boolean magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed() {
+        return ITEMS_CONFIG.magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed();
+    }
+
     public static double stealthRuneArmorSpellPowerBonusPerPiece() {
         return ITEMS_CONFIG.stealthRuneArmorSpellPowerBonusPerPiece();
     }
@@ -1065,6 +1073,24 @@ public final class ApprenticeCodexServerConfig {
         var previousValue = ITEMS_CONFIG.elementMaidenRobeSchoolSpellPowerBonus();
         ITEMS_CONFIG.setElementMaidenRobeSchoolSpellPowerBonusForGameTest(value);
         return () -> ITEMS_CONFIG.setElementMaidenRobeSchoolSpellPowerBonusForGameTest(previousValue);
+    }
+
+    public static GameTestConfigOverride useMagiAgentSuitAmmoConfigOverrideForGameTest(
+            double ammoNoConsumeChance,
+            boolean skipStaffrifleManaCostWhenAmmoNotConsumed
+    ) {
+        var previousAmmoNoConsumeChance = ITEMS_CONFIG.magiAgentSuitAmmoNoConsumeChance();
+        var previousSkipStaffrifleManaCostWhenAmmoNotConsumed =
+                ITEMS_CONFIG.magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed();
+
+        ITEMS_CONFIG.setMagiAgentSuitAmmoConfigForGameTest(
+                ammoNoConsumeChance,
+                skipStaffrifleManaCostWhenAmmoNotConsumed
+        );
+        return () -> ITEMS_CONFIG.setMagiAgentSuitAmmoConfigForGameTest(
+                previousAmmoNoConsumeChance,
+                previousSkipStaffrifleManaCostWhenAmmoNotConsumed
+        );
     }
 
     public static GameTestConfigOverride useZenithStaffManaCostMultiplierOverrideForGameTest(double value) {

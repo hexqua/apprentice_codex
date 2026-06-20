@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponRecastSpell;
+import jp.aquafactory.apprenticecodex.spell.IMagiAgentSuitAffectedSpell;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -29,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunEntity> {
+public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunEntity> implements IMagiAgentSuitAffectedSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "quick_arms");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -114,6 +115,11 @@ public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunE
     @Override
     public CastType getCastType() {
         return CastType.INSTANT;
+    }
+
+    @Override
+    public boolean canBeInterrupted(@org.jetbrains.annotations.Nullable net.minecraft.world.entity.player.Player player) {
+        return canBeInterruptedWithMagiAgentSuit(this, player, super.canBeInterrupted(player));
     }
 
     @Override
