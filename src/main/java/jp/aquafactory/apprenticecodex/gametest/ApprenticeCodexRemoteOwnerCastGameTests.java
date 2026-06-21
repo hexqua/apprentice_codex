@@ -218,6 +218,18 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
             ApprenticeCodexGameTestScenarios.assertSchoolSpellPowerBonus(helper, leggings, EquipmentSlot.LEGS, continuousSpell, 2.0D * bonus,
                     "Chromatic Magia Dress leggings should record a new Remote Owner CONTINUOUS session after finish");
             RemoteOwnerCastRunner.finishContinuousCast(owner.serverLevel(), owner, secondSession, false);
+
+            magicData.setMana(1000.0F);
+            var concurrentFirstSession = startRemoteOwnerContinuousCast(helper, owner, spellData);
+            var concurrentSecondSession = startRemoteOwnerContinuousCast(helper, owner, spellData);
+            tickRemoteOwnerContinuousCast(owner, concurrentFirstSession, 12);
+            ApprenticeCodexGameTestScenarios.assertSchoolSpellPowerBonus(helper, leggings, EquipmentSlot.LEGS, continuousSpell, 3.0D * bonus,
+                    "Chromatic Magia Dress leggings should record the first concurrent Remote Owner CONTINUOUS session");
+            tickRemoteOwnerContinuousCast(owner, concurrentSecondSession, 12);
+            ApprenticeCodexGameTestScenarios.assertSchoolSpellPowerBonus(helper, leggings, EquipmentSlot.LEGS, continuousSpell, 4.0D * bonus,
+                    "Chromatic Magia Dress leggings should record same-owner concurrent Remote Owner CONTINUOUS sessions separately");
+            RemoteOwnerCastRunner.finishContinuousCast(owner.serverLevel(), owner, concurrentFirstSession, false);
+            RemoteOwnerCastRunner.finishContinuousCast(owner.serverLevel(), owner, concurrentSecondSession, false);
         });
     }
 
