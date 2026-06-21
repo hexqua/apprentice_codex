@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
+import jp.aquafactory.apprenticecodex.compat.create.CreateToolboxLinearBuildBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
@@ -45,7 +46,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.ArrayList;
@@ -388,6 +388,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         var sources = new ArrayList<LinearBuildItemSource>();
         addPersonalShelfSources(player, sources);
         addEnderChestSource(player, sources);
+        addCreateToolboxSources(player, sources);
         addCompanionTrunkSource(player, sources);
         addOwnedChestedHorseSources(player, sources);
         addCuriosItemHandlerSources(player, sources);
@@ -405,7 +406,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         if (!hasOwnedPersonalShelfNearby(player)) {
             return;
         }
-        player.getCapability(Capabilities.PERSONAL_INVENTORY).ifPresent(inventory -> sources.add(new ItemHandlerSource(
+        player.getCapability(Capabilities.PERSONAL_INVENTORY).ifPresent(inventory -> sources.add(LinearBuildItemSources.itemHandler(
                 inventory.getHandler(),
                 Component.translatable("container.apprenticecodex.personal_shelf"),
                 true
@@ -455,12 +456,16 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         return false;
     }
 
+    private void addCreateToolboxSources(ServerPlayer player, List<LinearBuildItemSource> sources) {
+        sources.addAll(CreateToolboxLinearBuildBridge.collectSources(player));
+    }
+
     private void addCompanionTrunkSource(ServerPlayer player, List<LinearBuildItemSource> sources) {
         var storage = Capabilities.getCompanionTrunkInventoryOrNull(player);
         if (storage == null) {
             return;
         }
-        sources.add(new ItemHandlerSource(
+        sources.add(LinearBuildItemSources.itemHandler(
                 storage.getHandler(),
                 Component.translatable("container.apprenticecodex.companion_trunk.default"),
                 true
@@ -475,7 +480,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
                         && horse.isTamed()
                         && player.getUUID().equals(horse.getOwnerUUID())
                         && (horse.getType() == EntityType.DONKEY || horse.getType() == EntityType.MULE))) {
-            horse.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(handler -> sources.add(new ItemHandlerSource(
+            horse.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(handler -> sources.add(LinearBuildItemSources.itemHandler(
                     handler,
                     horse.getDisplayName(),
                     true
@@ -488,7 +493,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
                 .map(inventory -> inventory.findCurios(stack -> stack.getCapability(ForgeCapabilities.ITEM_HANDLER).isPresent()))
                 .orElse(List.of())
                 .forEach(slotResult -> slotResult.stack().getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(handler ->
-                        sources.add(new ItemHandlerSource(handler, slotResult.stack().getHoverName(), true))));
+                        sources.add(LinearBuildItemSources.itemHandler(handler, slotResult.stack().getHoverName(), true))));
     }
 
     private void addInventoryItemHandlerSources(ServerPlayer player, List<LinearBuildItemSource> sources) {
@@ -499,7 +504,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
             }
             var label = stack.getHoverName();
             stack.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(handler ->
-                    sources.add(new InventoryStackItemHandlerSource(handler, label, player.getInventory())));
+                    sources.add(LinearBuildItemSources.inventoryStackItemHandler(handler, label, player.getInventory())));
         }
     }
 
@@ -556,23 +561,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
     }
 
     private static boolean isSameItemIgnoringEmptyTag(ItemStack left, ItemStack right) {
-        if (left.isEmpty() || right.isEmpty() || !left.is(right.getItem())) {
-            return false;
-        }
-        if (left.isDamageableItem() && left.getDamageValue() != right.getDamageValue()) {
-            return false;
-        }
-        var leftTag = normalizedTag(left);
-        var rightTag = normalizedTag(right);
-        if (leftTag == null) {
-            return rightTag == null;
-        }
-        return leftTag.equals(rightTag);
-    }
-
-    private static CompoundTag normalizedTag(ItemStack stack) {
-        var tag = stack.getTag();
-        return tag == null || tag.isEmpty() ? null : tag;
+        return LinearBuildItemSources.isSameItemIgnoringEmptyTag(left, right);
     }
 
     private void sendError(LivingEntity entity, String key) {
@@ -606,77 +595,6 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
 
     private interface InventoryStackConsumer {
         void accept(int slot, ItemStack stack);
-    }
-
-    private interface LinearBuildItemSource {
-        Component label();
-
-        boolean shouldNotifyRetrieved();
-
-        boolean hasMatchingItem(ItemStack template);
-
-        boolean consumeOne(ItemStack template);
-    }
-
-    private static class ItemHandlerSource implements LinearBuildItemSource {
-        private final IItemHandler handler;
-        private final Component label;
-        private final boolean notifyRetrieved;
-
-        private ItemHandlerSource(IItemHandler handler, Component label, boolean notifyRetrieved) {
-            this.handler = handler;
-            this.label = label;
-            this.notifyRetrieved = notifyRetrieved;
-        }
-
-        @Override
-        public Component label() {
-            return label;
-        }
-
-        @Override
-        public boolean shouldNotifyRetrieved() {
-            return notifyRetrieved;
-        }
-
-        @Override
-        public boolean hasMatchingItem(ItemStack template) {
-            return findSlot(template) >= 0;
-        }
-
-        @Override
-        public boolean consumeOne(ItemStack template) {
-            var slot = findSlot(template);
-            return slot >= 0 && !handler.extractItem(slot, 1, false).isEmpty();
-        }
-
-        private int findSlot(ItemStack template) {
-            for (var slot = 0; slot < handler.getSlots(); ++slot) {
-                var stack = handler.getStackInSlot(slot);
-                if (isSameItemIgnoringEmptyTag(stack, template) && !handler.extractItem(slot, 1, true).isEmpty()) {
-                    return slot;
-                }
-            }
-            return -1;
-        }
-    }
-
-    private static final class InventoryStackItemHandlerSource extends ItemHandlerSource {
-        private final Inventory inventory;
-
-        private InventoryStackItemHandlerSource(IItemHandler handler, Component label, Inventory inventory) {
-            super(handler, label, true);
-            this.inventory = inventory;
-        }
-
-        @Override
-        public boolean consumeOne(ItemStack template) {
-            var consumed = super.consumeOne(template);
-            if (consumed) {
-                inventory.setChanged();
-            }
-            return consumed;
-        }
     }
 
     private static final class ContainerSource implements LinearBuildItemSource {

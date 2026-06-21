@@ -1413,9 +1413,22 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     private static ItemStack invokeCreateGameTestHookItemStack(String methodName, ServerLevel level, BlockPos pos) {
+        return invokeCreateGameTestHookItemStack(
+                methodName,
+                new Class<?>[]{ServerLevel.class, BlockPos.class},
+                level,
+                pos
+        );
+    }
+
+    private static ItemStack invokeCreateGameTestHookItemStack(
+            String methodName,
+            Class<?>[] parameterTypes,
+            Object... args
+    ) {
         try {
             var hookClass = Class.forName(CREATE_GAMETEST_HOOKS_CLASS);
-            var result = hookClass.getMethod(methodName, ServerLevel.class, BlockPos.class).invoke(null, level, pos);
+            var result = hookClass.getMethod(methodName, parameterTypes).invoke(null, args);
             return result instanceof ItemStack stack ? stack : ItemStack.EMPTY;
         } catch (ReflectiveOperationException exception) {
             throw new IllegalStateException("Create GameTest hook invocation failed: " + methodName, exception);
@@ -6738,6 +6751,144 @@ public class ApprenticeCodexGameTestScenarios {
             var trunkStack = trunkInventory.getHandler().getStackInSlot(0);
             helper.assertTrue(trunkStack.is(Items.OAK_PLANKS) && trunkStack.getCount() == 2,
                     "Linear Build should not retrieve blocks from storage in creative mode");
+        });
+    }
+
+    static void linearBuildPrefersEnderChestBeforeCreateToolbox(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        helper.succeedIf(() -> {
+            var targetPos = new BlockPos(5, 3, 2);
+            var toolboxPos = new BlockPos(0, 2, 0);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_ender_before_toolbox_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS));
+            player.getEnderChestInventory().setItem(0, new ItemStack(Items.OAK_PLANKS, 2));
+            helper.setBlock(new BlockPos(2, 2, 2), Blocks.ENDER_CHEST);
+            helper.setBlock(targetPos, Blocks.STONE);
+            invokeCreateGameTestHookVoid(
+                    "placeToolboxWithItem",
+                    new Class<?>[]{ServerLevel.class, BlockPos.class, ItemStack.class},
+                    helper.getLevel(),
+                    helper.absolutePos(toolboxPos),
+                    new ItemStack(Items.OAK_PLANKS, 2)
+            );
+
+            castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+            helper.assertTrue(player.getEnderChestInventory().getItem(0).isEmpty(),
+                    "Linear Build should consume Ender Chest blocks before Create Toolbox blocks");
+            var toolboxStack = invokeCreateGameTestHookItemStack(
+                    "getToolboxItem",
+                    new Class<?>[]{ServerLevel.class, BlockPos.class, int.class},
+                    helper.getLevel(),
+                    helper.absolutePos(toolboxPos),
+                    0
+            );
+            helper.assertTrue(toolboxStack.is(Items.OAK_PLANKS) && toolboxStack.getCount() == 2,
+                    "Linear Build consumed Create Toolbox before Ender Chest");
+            helper.assertTrue(player.getMainHandItem().is(Items.OAK_PLANKS) && player.getMainHandItem().getCount() == 1,
+                    "Linear Build should leave held stack untouched while Ender Chest has enough blocks");
+        });
+    }
+
+    static void linearBuildConsumesPlacedCreateToolboxBeforeCompanionTrunk(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var targetPos = new BlockPos(5, 3, 2);
+        var toolboxPos = new BlockPos(0, 2, 0);
+        var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_toolbox_before_trunk_test");
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS));
+        var trunkInventory = Capabilities.getCompanionTrunkInventoryOrNull(player);
+        helper.assertTrue(trunkInventory != null, "Linear Build test could not resolve Companion Trunk inventory");
+        trunkInventory.getHandler().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 2));
+        helper.setBlock(targetPos, Blocks.STONE);
+        invokeCreateGameTestHookVoid(
+                "placeToolboxWithItem",
+                new Class<?>[]{ServerLevel.class, BlockPos.class, ItemStack.class},
+                helper.getLevel(),
+                helper.absolutePos(toolboxPos),
+                new ItemStack(Items.OAK_PLANKS, 2)
+        );
+
+        helper.runAtTickTime(2, () -> {
+            castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+            var toolboxStack = invokeCreateGameTestHookItemStack(
+                    "getToolboxItem",
+                    new Class<?>[]{ServerLevel.class, BlockPos.class, int.class},
+                    helper.getLevel(),
+                    helper.absolutePos(toolboxPos),
+                    0
+            );
+            helper.assertTrue(toolboxStack.isEmpty(),
+                    "Linear Build should consume matching blocks from placed Create Toolbox before Companion Trunk");
+            var trunkStack = trunkInventory.getHandler().getStackInSlot(0);
+            helper.assertTrue(trunkStack.is(Items.OAK_PLANKS) && trunkStack.getCount() == 2,
+                    "Linear Build consumed Companion Trunk before placed Create Toolbox");
+            helper.assertTrue(player.getMainHandItem().is(Items.OAK_PLANKS) && player.getMainHandItem().getCount() == 1,
+                    "Linear Build should leave held stack untouched while Create Toolbox has enough blocks");
+            helper.succeed();
+        });
+    }
+
+    static void linearBuildConsumesInventoryCreateToolboxAfterPlacedToolboxMisses(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var targetPos = new BlockPos(5, 3, 2);
+        var placedToolboxPos = new BlockPos(0, 2, 0);
+        var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_inventory_toolbox_test");
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS));
+        var trunkInventory = Capabilities.getCompanionTrunkInventoryOrNull(player);
+        helper.assertTrue(trunkInventory != null, "Linear Build test could not resolve Companion Trunk inventory");
+        trunkInventory.getHandler().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 2));
+        helper.setBlock(targetPos, Blocks.STONE);
+        invokeCreateGameTestHookVoid(
+                "placeToolboxWithItem",
+                new Class<?>[]{ServerLevel.class, BlockPos.class, ItemStack.class},
+                helper.getLevel(),
+                helper.absolutePos(placedToolboxPos),
+                new ItemStack(Items.DIRT, 2)
+        );
+        var inventoryToolbox = invokeCreateGameTestHookItemStack(
+                "createToolboxStackWithItem",
+                new Class<?>[]{ItemStack.class},
+                new ItemStack(Items.OAK_PLANKS, 2)
+        );
+        player.getInventory().setItem(10, inventoryToolbox);
+
+        helper.runAtTickTime(2, () -> {
+            castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+            var placedToolboxStack = invokeCreateGameTestHookItemStack(
+                    "getToolboxItem",
+                    new Class<?>[]{ServerLevel.class, BlockPos.class, int.class},
+                    helper.getLevel(),
+                    helper.absolutePos(placedToolboxPos),
+                    0
+            );
+            helper.assertTrue(placedToolboxStack.is(Items.DIRT) && placedToolboxStack.getCount() == 2,
+                    "Linear Build should skip placed Create Toolbox when it lacks the matching block");
+            var inventoryToolboxStack = invokeCreateGameTestHookItemStack(
+                    "getToolboxStackItem",
+                    new Class<?>[]{ItemStack.class, int.class},
+                    player.getInventory().getItem(10),
+                    0
+            );
+            helper.assertTrue(inventoryToolboxStack.isEmpty(),
+                    "Linear Build should consume matching blocks from inventory Create Toolbox after placed Toolbox misses");
+            var trunkStack = trunkInventory.getHandler().getStackInSlot(0);
+            helper.assertTrue(trunkStack.is(Items.OAK_PLANKS) && trunkStack.getCount() == 2,
+                    "Linear Build consumed Companion Trunk before inventory Create Toolbox");
+            helper.succeed();
         });
     }
 
