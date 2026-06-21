@@ -55,6 +55,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
+import jp.aquafactory.apprenticecodex.config.spell.LinearBuildServerConfig;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
 import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
@@ -155,6 +156,7 @@ import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarS
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceBurst;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerEntity;
+import jp.aquafactory.apprenticecodex.spell.linearbuild.LinearBuild;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileEntity;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidanceEvents;
@@ -172,6 +174,8 @@ import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManag
 import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonEntity;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
@@ -253,10 +257,12 @@ import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
 import net.minecraft.world.level.block.FlowerPotBlock;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
+import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
@@ -6572,6 +6578,146 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void linearBuildPlacesUntilPlayerAxis(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var targetPos = new BlockPos(5, 3, 2);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(1, 3, 2), "linear_build_axis_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 3));
+            helper.setBlock(targetPos, Blocks.STONE);
+
+            castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+            helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(4, 3, 2));
+            helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(3, 3, 2));
+            helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(2, 3, 2));
+            helper.assertBlockNotPresent(Blocks.OAK_PLANKS, new BlockPos(1, 3, 2));
+            helper.assertTrue(player.getMainHandItem().isEmpty(),
+                    "Linear Build should consume exactly the blocks it placed from main hand");
+        });
+    }
+
+    static void linearBuildTriesOneBlockWhenFirstPlacementTouchesPlayerAxis(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var targetPos = new BlockPos(4, 2, 2);
+            var placePos = new BlockPos(4, 3, 2);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(1, 3, 2), "linear_build_initial_axis_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS));
+            helper.setBlock(targetPos, Blocks.STONE);
+
+            castLinearBuild(helper, player, targetPos, Direction.UP);
+
+            helper.assertBlockPresent(Blocks.OAK_PLANKS, placePos);
+            helper.assertTrue(player.getMainHandItem().isEmpty(),
+                    "Linear Build should try and consume one block even when the first placement touches the player Y axis");
+        });
+    }
+
+    static void linearBuildUpwardFromPlayerYBlockPlacesOnlyOne(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var targetPos = new BlockPos(4, 3, 2);
+            var firstPlacePos = new BlockPos(4, 4, 2);
+            var secondPlacePos = new BlockPos(4, 5, 2);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(1, 3, 2), "linear_build_upward_same_y_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 4));
+            helper.setBlock(targetPos, Blocks.STONE);
+
+            castLinearBuild(helper, player, targetPos, Direction.UP);
+
+            helper.assertBlockPresent(Blocks.OAK_PLANKS, firstPlacePos);
+            helper.assertBlockNotPresent(Blocks.OAK_PLANKS, secondPlacePos);
+            helper.assertTrue(player.getMainHandItem().is(Items.OAK_PLANKS) && player.getMainHandItem().getCount() == 3,
+                    "Linear Build should place only one block when extending upward from a block on the player's Y axis");
+        });
+    }
+
+    static void linearBuildPrefersOffhandBlockTemplate(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var targetPos = new BlockPos(5, 3, 2);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_offhand_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIRT, 4));
+            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.OAK_PLANKS, 3));
+            helper.setBlock(targetPos, Blocks.STONE);
+
+            castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+            helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(4, 3, 2));
+            helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(3, 3, 2));
+            helper.assertBlockNotPresent(Blocks.OAK_PLANKS, new BlockPos(2, 3, 2));
+            helper.assertTrue(player.getMainHandItem().is(Items.DIRT) && player.getMainHandItem().getCount() == 4,
+                    "Linear Build should not use the main hand block when the offhand holds a block");
+            helper.assertTrue(player.getOffhandItem().is(Items.OAK_PLANKS) && player.getOffhandItem().getCount() == 1,
+                    "Linear Build should consume the selected offhand block template");
+        });
+    }
+
+    static void linearBuildSkipsBlockedPositionsByDefault(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var targetPos = new BlockPos(6, 3, 2);
+            var blockedPos = new BlockPos(4, 3, 2);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(1, 3, 2), "linear_build_skip_blocked_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 4));
+            helper.setBlock(targetPos, Blocks.STONE);
+            helper.setBlock(blockedPos, Blocks.COBBLESTONE);
+
+            castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+            helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(5, 3, 2));
+            helper.assertBlockPresent(Blocks.COBBLESTONE, blockedPos);
+            helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(3, 3, 2));
+            helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(2, 3, 2));
+            helper.assertBlockNotPresent(Blocks.OAK_PLANKS, new BlockPos(1, 3, 2));
+            helper.assertTrue(player.getMainHandItem().is(Items.OAK_PLANKS) && player.getMainHandItem().getCount() == 1,
+                    "Linear Build should skip blocked positions without consuming a block for them");
+        });
+    }
+
+    static void linearBuildAbortOnFailedPlacementConfigStopsAtBlockedPosition(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useLinearBuildConfigOverrideForGameTest(
+                    new LinearBuildServerConfig.Values(true)
+            )) {
+                var targetPos = new BlockPos(6, 3, 2);
+                var blockedPos = new BlockPos(4, 3, 2);
+                var player = createEquipmentTestPlayer(helper, new BlockPos(1, 3, 2), "linear_build_abort_blocked_test");
+                player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 4));
+                helper.setBlock(targetPos, Blocks.STONE);
+                helper.setBlock(blockedPos, Blocks.COBBLESTONE);
+
+                castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+                helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(5, 3, 2));
+                helper.assertBlockPresent(Blocks.COBBLESTONE, blockedPos);
+                helper.assertBlockNotPresent(Blocks.OAK_PLANKS, new BlockPos(3, 3, 2));
+                helper.assertBlockNotPresent(Blocks.OAK_PLANKS, new BlockPos(2, 3, 2));
+                helper.assertTrue(player.getMainHandItem().is(Items.OAK_PLANKS) && player.getMainHandItem().getCount() == 3,
+                        "Linear Build should keep the legacy stop-on-failure behavior when configured");
+            }
+        });
+    }
+
+    static void linearBuildCopiesSameBlockStateAndConsumesCompanionTrunkFirst(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var targetPos = new BlockPos(5, 3, 2);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_trunk_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_SLAB));
+            var trunkInventory = Capabilities.getCompanionTrunkInventoryOrNull(player);
+            helper.assertTrue(trunkInventory != null, "Linear Build test could not resolve Companion Trunk inventory");
+            trunkInventory.getHandler().setStackInSlot(0, new ItemStack(Items.OAK_SLAB, 2));
+            helper.setBlock(targetPos, Blocks.OAK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.TOP));
+
+            castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+            helper.assertBlockPresent(Blocks.OAK_SLAB, new BlockPos(4, 3, 2));
+            helper.assertBlockProperty(new BlockPos(4, 3, 2), SlabBlock.TYPE, SlabType.TOP);
+            helper.assertBlockPresent(Blocks.OAK_SLAB, new BlockPos(3, 3, 2));
+            helper.assertBlockProperty(new BlockPos(3, 3, 2), SlabBlock.TYPE, SlabType.TOP);
+            helper.assertTrue(trunkInventory.getHandler().getStackInSlot(0).isEmpty(),
+                    "Linear Build should consume matching blocks from Companion Trunk before the held stack");
+            helper.assertTrue(player.getMainHandItem().is(Items.OAK_SLAB) && player.getMainHandItem().getCount() == 1,
+                    "Linear Build should leave the held stack untouched while Companion Trunk has enough blocks");
+        });
+    }
+
     static void dualAcrobatAmmoStopsAtMaximum(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
@@ -8213,6 +8359,27 @@ public class ApprenticeCodexGameTestScenarios {
         var magicData = MagicData.getPlayerMagicData(player);
         magicData.setAdditionalCastData(castData);
         spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+    }
+
+    static void castLinearBuild(GameTestHelper helper, FakePlayer player, BlockPos targetPos, Direction hitFace) {
+        var spell = (LinearBuild) SpellRegistry.LINEAR_BUILD.get();
+        var absoluteTargetPos = helper.absolutePos(targetPos);
+        var targetData = new BlockTargetData();
+        targetData.setTarget(
+                absoluteTargetPos,
+                hitFace,
+                Vec3.atCenterOf(absoluteTargetPos),
+                absoluteTargetPos.relative(hitFace),
+                hitFace.getOpposite()
+        );
+        BlockTargetingHelper.setPendingServerTarget(player, spell.getSpellResource(), targetData);
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Linear Build test could not resolve player magic data");
+        helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                "Linear Build pre-cast check should accept the prepared block target");
+        spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+        spell.onServerCastComplete(helper.getLevel(), 1, player, magicData, false);
     }
 
     static FakePlayer createSenseEvilPlayer(GameTestHelper helper, BlockPos pos, String profileName) {

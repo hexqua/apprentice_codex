@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerC
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
+import jp.aquafactory.apprenticecodex.config.spell.LinearBuildServerConfig;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
@@ -1102,6 +1103,18 @@ public final class ApprenticeCodexServerConfig {
 
     public static float forceFieldDrainManaBasePerHit() {
         return SPELLS_CONFIG.forceFieldDrainManaBasePerHit();
+    }
+
+    public static LinearBuildServerConfig.Values linearBuildConfig() {
+        return SPELLS_CONFIG.linearBuildConfig();
+    }
+
+    public static GameTestConfigOverride useLinearBuildConfigOverrideForGameTest(
+            LinearBuildServerConfig.Values values
+    ) {
+        var previousValues = SPELLS_CONFIG.linearBuildConfig();
+        SPELLS_CONFIG.setLinearBuildConfigForGameTest(values);
+        return () -> SPELLS_CONFIG.setLinearBuildConfigForGameTest(previousValues);
     }
 
     public static boolean isMistFormPassableBlockDenied(BlockState state) {
