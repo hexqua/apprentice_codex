@@ -66,7 +66,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
             .setMinRarity(SpellRarity.UNCOMMON)
             .setSchoolResource(SchoolRegistry.EVOCATION_RESOURCE)
             .setMaxLevel(1)
-            .setCooldownSeconds(0)
+            .setCooldownSeconds(0.5)
             .build();
 
     public LinearBuild() {
