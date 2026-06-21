@@ -340,7 +340,8 @@ public final class RemoteOwnerCastRunner {
                         spellData,
                         magicData,
                         session.castSource(),
-                        session.castingSlot()
+                        session.castingSlot(),
+                        session.sessionId()
                 );
                 runWithContinuousContext(owner, session,
                         () -> spell.onCast(level, spellData.getLevel(), spellCaster, session.castSource(), magicData));
@@ -409,7 +410,8 @@ public final class RemoteOwnerCastRunner {
                     owner.getUUID(),
                     session.spellData(),
                     session.castSource(),
-                    session.castingSlot()
+                    session.castingSlot(),
+                    session.sessionId()
             );
             cleanupContinuousSession(session.anchor(), session.magicData(), retainAnchor);
         }
@@ -425,7 +427,8 @@ public final class RemoteOwnerCastRunner {
                 session.ownerId(),
                 session.spellData(),
                 session.castSource(),
-                session.castingSlot()
+                session.castingSlot(),
+                session.sessionId()
         );
         cleanupContinuousSession(session.anchor(), session.magicData());
     }
@@ -784,6 +787,7 @@ public final class RemoteOwnerCastRunner {
     }
 
     public static final class ContinuousCastSession {
+        private final UUID sessionId = UUID.randomUUID();
         private final UUID ownerId;
         private final SpellData spellData;
         private final ItemStack sourceStack;
@@ -831,6 +835,10 @@ public final class RemoteOwnerCastRunner {
 
         public UUID ownerId() {
             return ownerId;
+        }
+
+        public UUID sessionId() {
+            return sessionId;
         }
 
         public SpellData spellData() {
