@@ -42,7 +42,8 @@ public final class ChromaticMagiaDressCastEvent {
         }
 
         var spell = SpellRegistry.getSpell(event.getSpellId());
-        recordCast(player, spell, event.getSpellLevel(), magicData, magicData, null, event.getCastSource(),
+        recordCast(player, spell, event.getSpellLevel(), magicData, magicData,
+                hasActiveRecast(magicData, spell), null, event.getCastSource(),
                 magicData.getCastingEquipmentSlot(), ChromaticMagiaDressCastEvent::recordLocalContinuousCast);
     }
 
@@ -57,7 +58,24 @@ public final class ChromaticMagiaDressCastEvent {
         }
 
         var ownerMagicData = MagicData.getPlayerMagicData(owner);
-        recordCast(owner, spellData.getSpell(), spellData.getLevel(), ownerMagicData, ownerMagicData, null, castSource,
+        recordRemoteOwnerCast(owner, spellData, castSource, castingSlot,
+                hasActiveRecast(ownerMagicData, spellData.getSpell()));
+    }
+
+    public static void recordRemoteOwnerCast(
+            ServerPlayer owner,
+            SpellData spellData,
+            CastSource castSource,
+            String castingSlot,
+            boolean activeRecastBeforeCast
+    ) {
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            return;
+        }
+
+        var ownerMagicData = MagicData.getPlayerMagicData(owner);
+        recordCast(owner, spellData.getSpell(), spellData.getLevel(), ownerMagicData, ownerMagicData,
+                activeRecastBeforeCast, null, castSource,
                 castingSlot, ChromaticMagiaDressCastEvent::recordLocalContinuousCast);
     }
 
@@ -67,14 +85,16 @@ public final class ChromaticMagiaDressCastEvent {
             MagicData sessionMagicData,
             CastSource castSource,
             String castingSlot,
-            UUID sessionId
+            UUID sessionId,
+            boolean activeRecastBeforeCast
     ) {
         if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
             return;
         }
 
         var ownerMagicData = MagicData.getPlayerMagicData(owner);
-        recordCast(owner, spellData.getSpell(), spellData.getLevel(), ownerMagicData, sessionMagicData, sessionId, castSource,
+        recordCast(owner, spellData.getSpell(), spellData.getLevel(), ownerMagicData, sessionMagicData,
+                activeRecastBeforeCast, sessionId, castSource,
                 castingSlot, ChromaticMagiaDressCastEvent::recordRemoteOwnerContinuousCastKey);
     }
 
@@ -138,13 +158,14 @@ public final class ChromaticMagiaDressCastEvent {
             int spellLevel,
             MagicData ownerMagicData,
             MagicData castingMagicData,
+            boolean activeRecastBeforeCast,
             UUID continuousSessionId,
             CastSource castSource,
             String castingSlot,
             ContinuousCastRecorder continuousCastRecorder
     ) {
         if (ownerMagicData == null || spell == null || spell == SpellRegistry.none()
-                || ownerMagicData.getPlayerRecasts().hasRecastForSpell(spell.getSpellId())) {
+                || activeRecastBeforeCast) {
             return;
         }
 
@@ -227,6 +248,10 @@ public final class ChromaticMagiaDressCastEvent {
 
     private static boolean isActiveContinuousCast(MagicData magicData) {
         return magicData != null && magicData.isCasting() && magicData.getCastType() == CastType.CONTINUOUS;
+    }
+
+    private static boolean hasActiveRecast(MagicData magicData, AbstractSpell spell) {
+        return magicData != null && spell != null && magicData.getPlayerRecasts().hasRecastForSpell(spell.getSpellId());
     }
 
     @FunctionalInterface
