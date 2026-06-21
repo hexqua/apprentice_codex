@@ -22,7 +22,8 @@ import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ChromaticMagiaDressCastEvent {
-    private static final Map<UUID, ContinuousCastSessionKey> RECORDED_CONTINUOUS_CASTS = new HashMap<>();
+    private static final Map<UUID, ContinuousCastSessionKey> RECORDED_LOCAL_CONTINUOUS_CASTS = new HashMap<>();
+    private static final Map<UUID, ContinuousCastSessionKey> RECORDED_REMOTE_OWNER_CONTINUOUS_CASTS = new HashMap<>();
 
     private ChromaticMagiaDressCastEvent() {
     }
@@ -40,7 +41,7 @@ public final class ChromaticMagiaDressCastEvent {
 
         var spell = SpellRegistry.getSpell(event.getSpellId());
         recordCast(player, spell, event.getSpellLevel(), magicData, magicData, event.getCastSource(),
-                magicData.getCastingEquipmentSlot());
+                magicData.getCastingEquipmentSlot(), RECORDED_LOCAL_CONTINUOUS_CASTS);
     }
 
     public static void recordRemoteOwnerCast(
@@ -55,7 +56,7 @@ public final class ChromaticMagiaDressCastEvent {
 
         var ownerMagicData = MagicData.getPlayerMagicData(owner);
         recordCast(owner, spellData.getSpell(), spellData.getLevel(), ownerMagicData, ownerMagicData, castSource,
-                castingSlot);
+                castingSlot, RECORDED_LOCAL_CONTINUOUS_CASTS);
     }
 
     public static void recordRemoteOwnerContinuousCast(
@@ -71,7 +72,7 @@ public final class ChromaticMagiaDressCastEvent {
 
         var ownerMagicData = MagicData.getPlayerMagicData(owner);
         recordCast(owner, spellData.getSpell(), spellData.getLevel(), ownerMagicData, sessionMagicData, castSource,
-                castingSlot);
+                castingSlot, RECORDED_REMOTE_OWNER_CONTINUOUS_CASTS);
     }
 
     public static void clearRemoteOwnerContinuousCast(
@@ -85,7 +86,7 @@ public final class ChromaticMagiaDressCastEvent {
         }
 
         var key = ContinuousCastSessionKey.from(ownerId, spellData, castSource, castingSlot);
-        RECORDED_CONTINUOUS_CASTS.remove(ownerId, key);
+        RECORDED_REMOTE_OWNER_CONTINUOUS_CASTS.remove(ownerId, key);
     }
 
     @SubscribeEvent
@@ -96,25 +97,27 @@ public final class ChromaticMagiaDressCastEvent {
 
         var magicData = MagicData.getPlayerMagicData(player);
         if (!isActiveContinuousCast(magicData)) {
-            RECORDED_CONTINUOUS_CASTS.remove(player.getUUID());
+            RECORDED_LOCAL_CONTINUOUS_CASTS.remove(player.getUUID());
             return;
         }
 
         var activeKey = ContinuousCastSessionKey.from(player, magicData);
-        var previousKey = RECORDED_CONTINUOUS_CASTS.get(player.getUUID());
+        var previousKey = RECORDED_LOCAL_CONTINUOUS_CASTS.get(player.getUUID());
         if (previousKey != null && !previousKey.equals(activeKey)) {
-            RECORDED_CONTINUOUS_CASTS.remove(player.getUUID());
+            RECORDED_LOCAL_CONTINUOUS_CASTS.remove(player.getUUID());
         }
     }
 
     @SubscribeEvent
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
-        RECORDED_CONTINUOUS_CASTS.remove(event.getEntity().getUUID());
+        RECORDED_LOCAL_CONTINUOUS_CASTS.remove(event.getEntity().getUUID());
+        RECORDED_REMOTE_OWNER_CONTINUOUS_CASTS.remove(event.getEntity().getUUID());
     }
 
     @SubscribeEvent
     public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
-        RECORDED_CONTINUOUS_CASTS.remove(event.getEntity().getUUID());
+        RECORDED_LOCAL_CONTINUOUS_CASTS.remove(event.getEntity().getUUID());
+        RECORDED_REMOTE_OWNER_CONTINUOUS_CASTS.remove(event.getEntity().getUUID());
     }
 
     private static void recordCast(
@@ -124,7 +127,8 @@ public final class ChromaticMagiaDressCastEvent {
             MagicData ownerMagicData,
             MagicData castingMagicData,
             CastSource castSource,
-            String castingSlot
+            String castingSlot,
+            Map<UUID, ContinuousCastSessionKey> recordedContinuousCasts
     ) {
         if (ownerMagicData == null || spell == null || spell == SpellRegistry.none()
                 || ownerMagicData.getPlayerRecasts().hasRecastForSpell(spell.getSpellId())) {
@@ -132,7 +136,8 @@ public final class ChromaticMagiaDressCastEvent {
         }
 
         var castType = spell.getCastType();
-        if (!shouldRecordContinuousCast(player, castingMagicData, spell, spellLevel, castType, castSource, castingSlot)) {
+        if (!shouldRecordContinuousCast(player, castingMagicData, spell, spellLevel, castType, castSource, castingSlot,
+                recordedContinuousCasts)) {
             return;
         }
 
@@ -162,7 +167,8 @@ public final class ChromaticMagiaDressCastEvent {
             int spellLevel,
             CastType castType,
             CastSource castSource,
-            String castingSlot
+            String castingSlot,
+            Map<UUID, ContinuousCastSessionKey> recordedContinuousCasts
     ) {
         if (castType != CastType.CONTINUOUS
                 || !matchesActiveContinuousCast(magicData, spell, spellLevel, castSource, castingSlot)) {
@@ -170,13 +176,13 @@ public final class ChromaticMagiaDressCastEvent {
         }
 
         var key = ContinuousCastSessionKey.from(player, magicData);
-        var previousKey = RECORDED_CONTINUOUS_CASTS.get(player.getUUID());
+        var previousKey = recordedContinuousCasts.get(player.getUUID());
         if (key.equals(previousKey)) {
             return false;
         }
 
         // Iron's 1.20.1 Forge は CONTINUOUS の効果 tick ごとに SpellOnCastEvent を出すため、同じ詠唱中は初回だけ記録する。
-        RECORDED_CONTINUOUS_CASTS.put(player.getUUID(), key);
+        recordedContinuousCasts.put(player.getUUID(), key);
         return true;
     }
 

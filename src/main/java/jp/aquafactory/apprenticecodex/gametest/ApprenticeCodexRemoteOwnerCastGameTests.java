@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.datagen.spell.RemoteOwnerCastSpellProfileDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SpellDispenserSpellProfileDataGenerator;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmulet;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -44,6 +45,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
@@ -204,6 +206,8 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
             var continuousSpell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get();
             var spellData = new SpellData(continuousSpell, 1);
             var firstSession = startRemoteOwnerContinuousCast(helper, owner, spellData);
+            helper.assertFalse(magicData.isCasting(),
+                    "Remote Owner CONTINUOUS should not mark owner MagicData as active casting");
             tickRemoteOwnerContinuousCast(owner, firstSession, 12);
             ApprenticeCodexGameTestScenarios.assertSchoolSpellPowerBonus(helper, leggings, EquipmentSlot.LEGS, continuousSpell, bonus,
                     "Chromatic Magia Dress leggings should record the first Remote Owner CONTINUOUS onCast only once");
@@ -616,6 +620,7 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
     ) {
         for (var i = 0; i < ticks && !session.isFinished(); ++i) {
             RemoteOwnerCastRunner.tickContinuousCast(owner.serverLevel(), owner, session);
+            ChromaticMagiaDressCastEvent.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, owner));
         }
     }
 
