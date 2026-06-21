@@ -67,12 +67,6 @@ public class SlashBlade extends AbstractSummonWeaponSpell<SlashBladeKatanaEntity
     }
 
     @Override
-    public int getEffectiveCastTime(int spellLevel, LivingEntity entity) {
-        // 詠唱時間短縮は乗らない.
-        return getCastTime(spellLevel);
-    }
-
-    @Override
     public ResourceLocation getSpellResource() {
         return spellId;
     }
