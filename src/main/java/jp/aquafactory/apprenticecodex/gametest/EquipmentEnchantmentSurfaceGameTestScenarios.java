@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressCastEvent;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressStats;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
@@ -53,6 +54,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.storage.loot.functions.EnchantRandomlyFunction;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -927,6 +929,26 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             postSpellOnCast(player, continuousSpell, 1);
             assertSchoolSpellPowerBonus(helper, leggings, EquipmentSlot.LEGS, continuousSpell, schoolSpellPowerBonusPerHistory,
                     "Chromatic Magia Dress leggings should record CONTINUOUS spells");
+
+            var heldContinuousLeggings = new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get());
+            player.setItemSlot(EquipmentSlot.LEGS, heldContinuousLeggings);
+            magicData.initiateCast(continuousSpell, 1, 60, CastSource.SPELLBOOK, "gametest");
+            postSpellOnCast(player, continuousSpell, 1);
+            postSpellOnCast(player, continuousSpell, 1);
+            postSpellOnCast(player, continuousSpell, 1);
+            assertSchoolSpellPowerBonus(helper, heldContinuousLeggings, EquipmentSlot.LEGS, continuousSpell,
+                    schoolSpellPowerBonusPerHistory,
+                    "Chromatic Magia Dress leggings should record only once during one CONTINUOUS hold");
+
+            magicData.resetCastingState();
+            ChromaticMagiaDressCastEvent.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            magicData.initiateCast(continuousSpell, 1, 60, CastSource.SPELLBOOK, "gametest");
+            postSpellOnCast(player, continuousSpell, 1);
+            assertSchoolSpellPowerBonus(helper, heldContinuousLeggings, EquipmentSlot.LEGS, continuousSpell,
+                    2.0D * schoolSpellPowerBonusPerHistory,
+                    "Chromatic Magia Dress leggings should record a new CONTINUOUS hold after the previous cast ends");
+            magicData.resetCastingState();
+            ChromaticMagiaDressCastEvent.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
 
             var instantSpell = SpellRegistry.MANA_SLASH.get();
             postSpellOnCast(player, instantSpell, 1);

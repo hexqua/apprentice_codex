@@ -85,11 +85,6 @@ public class PrecisionJack extends AbstractSummonWeaponSpell<PrecisionJackKnifeE
     }
 
     @Override
-    public int getEffectiveCastTime(int spellLevel, LivingEntity entity) {
-        return getCastTime(spellLevel);
-    }
-
-    @Override
     public boolean canBeInterrupted(@Nullable net.minecraft.world.entity.player.Player player) {
         return false;
     }

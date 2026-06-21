@@ -13,6 +13,7 @@ import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import io.redspace.ironsspellbooks.spells.EntityCastData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressCastEvent;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import jp.aquafactory.apprenticecodex.utility.SpellManaAccessHelper;
@@ -26,6 +27,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
 
 public final class RemoteOwnerCastRunner {
     private static final int CONTINUOUS_CAST_TICK_INTERVAL = 10;
@@ -270,6 +273,7 @@ public final class RemoteOwnerCastRunner {
             syncOwnerManaForCast(manaAccess, sessionMagicData);
 
             return ContinuousCastStartResult.success(new ContinuousCastSession(
+                    owner.getUUID(),
                     spellData,
                     sourceStack.copy(),
                     profile,
@@ -328,6 +332,9 @@ public final class RemoteOwnerCastRunner {
             }
 
             try {
+                var ownerMagicData = MagicData.getPlayerMagicData(owner);
+                var activeRecastBeforeCast = ownerMagicData != null
+                        && ownerMagicData.getPlayerRecasts().hasRecastForSpell(spell.getSpellId());
                 session.markReachedOnCast();
                 syncAnchorCasterFromOwner(owner, session);
                 var spellCaster = resolveContinuousSpellCaster(owner, session);
@@ -335,6 +342,15 @@ public final class RemoteOwnerCastRunner {
                         () -> spell.onCast(level, spellData.getLevel(), spellCaster, session.castSource(), magicData));
                 syncOwnerManaForCast(session.manaAccess(), magicData);
                 bindAnchorIfNeeded(level, owner, session);
+                ChromaticMagiaDressCastEvent.recordRemoteOwnerContinuousCast(
+                        owner,
+                        spellData,
+                        magicData,
+                        session.castSource(),
+                        session.castingSlot(),
+                        session.sessionId(),
+                        activeRecastBeforeCast
+                );
             } catch (RuntimeException exception) {
                 ApprenticeCodex.LOGGER.warn(
                         "Remote Owner Continuous Cast exception during onCast: spell={}, origin={}",
@@ -394,6 +410,13 @@ public final class RemoteOwnerCastRunner {
                     exception
             );
         } finally {
+            ChromaticMagiaDressCastEvent.clearRemoteOwnerContinuousCast(
+                    owner.getUUID(),
+                    session.spellData(),
+                    session.castSource(),
+                    session.castingSlot(),
+                    session.sessionId()
+            );
             cleanupContinuousSession(session.anchor(), session.magicData(), retainAnchor);
         }
     }
@@ -404,6 +427,13 @@ public final class RemoteOwnerCastRunner {
         }
 
         session.markFinished(0);
+        ChromaticMagiaDressCastEvent.clearRemoteOwnerContinuousCast(
+                session.ownerId(),
+                session.spellData(),
+                session.castSource(),
+                session.castingSlot(),
+                session.sessionId()
+        );
         cleanupContinuousSession(session.anchor(), session.magicData());
     }
 
@@ -594,6 +624,7 @@ public final class RemoteOwnerCastRunner {
         var useIsolatedMagicData = ownerMagicData.isCasting();
         var castMagicData = useIsolatedMagicData ? new MagicData() : ownerMagicData;
         var originalSyncedData = useIsolatedMagicData ? null : ownerMagicData.getSyncedData();
+        var activeRecastBeforeCast = ownerMagicData.getPlayerRecasts().hasRecastForSpell(spell.getSpellId());
         var retainAnchor = false;
         try {
             // Iron's の SpellOnCastEvent 中は元詠唱が owner MagicData に残るため、busy 時だけ実行状態を分離する。
@@ -633,6 +664,13 @@ public final class RemoteOwnerCastRunner {
                 if (useIsolatedMagicData) {
                     transferIsolatedRecasts(ownerMagicData, castMagicData);
                 }
+                ChromaticMagiaDressCastEvent.recordRemoteOwnerCast(
+                        owner,
+                        spellData,
+                        castSource,
+                        castingSlot,
+                        activeRecastBeforeCast
+                );
             }
             return CastResult.success();
         } catch (RuntimeException exception) {
@@ -760,6 +798,8 @@ public final class RemoteOwnerCastRunner {
     }
 
     public static final class ContinuousCastSession {
+        private final UUID sessionId = UUID.randomUUID();
+        private final UUID ownerId;
         private final SpellData spellData;
         private final ItemStack sourceStack;
         private final RemoteOwnerCastProfile profile;
@@ -777,6 +817,7 @@ public final class RemoteOwnerCastRunner {
         private int finishedCooldownTicks;
 
         private ContinuousCastSession(
+                UUID ownerId,
                 SpellData spellData,
                 ItemStack sourceStack,
                 RemoteOwnerCastProfile profile,
@@ -789,6 +830,7 @@ public final class RemoteOwnerCastRunner {
                 PlayerManaAccess manaAccess,
                 @Nullable RemoteOwnerCastAnchorEntity anchor
         ) {
+            this.ownerId = ownerId;
             this.spellData = spellData;
             this.sourceStack = sourceStack;
             this.profile = profile;
@@ -800,6 +842,14 @@ public final class RemoteOwnerCastRunner {
             this.magicData = magicData;
             this.manaAccess = manaAccess;
             this.anchor = anchor;
+        }
+
+        public UUID ownerId() {
+            return ownerId;
+        }
+
+        public UUID sessionId() {
+            return sessionId;
         }
 
         public SpellData spellData() {
