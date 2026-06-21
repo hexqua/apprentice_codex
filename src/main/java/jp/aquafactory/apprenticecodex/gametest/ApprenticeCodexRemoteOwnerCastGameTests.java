@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.datagen.spell.RemoteOwnerCastSpellProfileDataGenerator;
@@ -20,6 +21,7 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRunner;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
@@ -37,7 +39,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
@@ -55,6 +59,16 @@ import java.util.UUID;
 public final class ApprenticeCodexRemoteOwnerCastGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final String CONFIG_BATCH = "apprenticecodex.remote_owner_cast_config";
+    private static final String INSCRIBE_ICE_ISOLATED_BATCH =
+            "apprenticecodex.remote_owner_cast_inscribe_ice_isolated";
+    private static final String CHROMATIC_RECORD_CASTING_SLOT = "chromatic_magia_dress_remote_owner_test";
+    private static final RemoteOwnerCastProfile CHROMATIC_RECORD_PROFILE = new RemoteOwnerCastProfile(
+            RemoteOwnerCastMode.PLAYER_SELF,
+            RemoteOwnerOriginMode.PLAYER_SELF,
+            RemoteOwnerDirectionMode.PLAYER_LOOK,
+            Optional.empty(),
+            true
+    );
 
     private ApprenticeCodexRemoteOwnerCastGameTests() {
     }
@@ -132,6 +146,75 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
         helper.assertFalse(amulet.canImbueSpell(SpellRegistry.RAISE_DEAD_SPELL.get(), 1),
                 "Satellite Followcast Amulet should keep rejecting recast spells.");
         helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void remoteOwnerCastRecordsChromaticMagiaDressInstantLongAndInitialRecast(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createChromaticRecordTestOwner(helper, "chromatic_remote_owner_cast_test");
+            var magicData = requireMagicData(helper, owner);
+            magicData.setMana(1000.0F);
+
+            var helmet = new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get());
+            var chestplate = new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get());
+            var boots = new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get());
+            owner.setItemSlot(EquipmentSlot.HEAD, helmet);
+            owner.setItemSlot(EquipmentSlot.CHEST, chestplate);
+            owner.setItemSlot(EquipmentSlot.FEET, boots);
+
+            var bonus = ApprenticeCodexServerConfig.chromaticMagiaDressSchoolSpellPowerBonusPerHistory();
+            var instantSpell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
+            assertRemoteOwnerCastSucceeds(helper, owner, new SpellData(instantSpell, 1),
+                    "Remote Owner INSTANT Chromatic Magia Dress test cast failed");
+            ApprenticeCodexGameTestScenarios.assertSchoolSpellPowerBonus(helper, boots, EquipmentSlot.FEET, instantSpell, bonus,
+                    "Chromatic Magia Dress boots should record Remote Owner INSTANT casts");
+
+            var longSpell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.COMPOUND_PHIAL.get();
+            assertRemoteOwnerCastSucceeds(helper, owner, new SpellData(longSpell, 1),
+                    "Remote Owner LONG Chromatic Magia Dress test cast failed");
+            ApprenticeCodexGameTestScenarios.assertSchoolSpellPowerBonus(helper, helmet, EquipmentSlot.HEAD, longSpell, bonus,
+                    "Chromatic Magia Dress helmet should record Remote Owner LONG casts");
+
+            var recastSpell = SpellRegistry.RAISE_DEAD_SPELL.get();
+            assertRemoteOwnerCastSucceeds(helper, owner, new SpellData(recastSpell, 1),
+                    "Remote Owner initial recast Chromatic Magia Dress test cast failed");
+            ApprenticeCodexGameTestScenarios.assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, recastSpell, bonus,
+                    "Chromatic Magia Dress chestplate should record Remote Owner initial recast-capable casts");
+
+            var activeRecastResult = tryRemoteOwnerCast(owner, new SpellData(recastSpell, 1));
+            helper.assertTrue(activeRecastResult.handled() && !activeRecastResult.succeeded(),
+                    "Remote Owner active recast test should fail before recording a second history");
+            ApprenticeCodexGameTestScenarios.assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, recastSpell, bonus,
+                    "Chromatic Magia Dress chestplate should not record Remote Owner active recasts");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void remoteOwnerContinuousCastRecordsChromaticMagiaDressOncePerSession(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createChromaticRecordTestOwner(helper, "chromatic_remote_owner_continuous_test");
+            var magicData = requireMagicData(helper, owner);
+            magicData.setMana(1000.0F);
+
+            var leggings = new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get());
+            owner.setItemSlot(EquipmentSlot.LEGS, leggings);
+
+            var bonus = ApprenticeCodexServerConfig.chromaticMagiaDressSchoolSpellPowerBonusPerHistory();
+            var continuousSpell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get();
+            var spellData = new SpellData(continuousSpell, 1);
+            var firstSession = startRemoteOwnerContinuousCast(helper, owner, spellData);
+            tickRemoteOwnerContinuousCast(owner, firstSession, 12);
+            ApprenticeCodexGameTestScenarios.assertSchoolSpellPowerBonus(helper, leggings, EquipmentSlot.LEGS, continuousSpell, bonus,
+                    "Chromatic Magia Dress leggings should record the first Remote Owner CONTINUOUS onCast only once");
+            RemoteOwnerCastRunner.finishContinuousCast(owner.serverLevel(), owner, firstSession, false);
+
+            magicData.setMana(1000.0F);
+            var secondSession = startRemoteOwnerContinuousCast(helper, owner, spellData);
+            tickRemoteOwnerContinuousCast(owner, secondSession, 1);
+            ApprenticeCodexGameTestScenarios.assertSchoolSpellPowerBonus(helper, leggings, EquipmentSlot.LEGS, continuousSpell, 2.0D * bonus,
+                    "Chromatic Magia Dress leggings should record a new Remote Owner CONTINUOUS session after finish");
+            RemoteOwnerCastRunner.finishContinuousCast(owner.serverLevel(), owner, secondSession, false);
+        });
     }
 
     @GameTest(template = TEMPLATE)
@@ -457,6 +540,74 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
         helper.assertTrue(instance != null, message + ": missing attribute");
         helper.assertTrue(Math.abs(instance.getValue() - expected) < 1.0E-6D,
                 message + ": " + instance.getValue() + " / expected " + expected);
+    }
+
+    private static FakePlayer createChromaticRecordTestOwner(GameTestHelper helper, String profileName) {
+        var owner = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(helper, new net.minecraft.core.BlockPos(0, 2, 0),
+                profileName);
+        helper.getLevel().addFreshEntity(owner);
+        return owner;
+    }
+
+    private static MagicData requireMagicData(GameTestHelper helper, FakePlayer owner) {
+        var magicData = MagicData.getPlayerMagicData(owner);
+        helper.assertTrue(magicData != null, "Remote Owner Chromatic Magia Dress test could not resolve player mana data");
+        return magicData;
+    }
+
+    private static void assertRemoteOwnerCastSucceeds(GameTestHelper helper, FakePlayer owner, SpellData spellData, String message) {
+        var result = tryRemoteOwnerCast(owner, spellData);
+        helper.assertTrue(result.handled() && result.succeeded(), message);
+    }
+
+    private static RemoteOwnerCastRunner.CastResult tryRemoteOwnerCast(FakePlayer owner, SpellData spellData) {
+        return RemoteOwnerCastRunner.tryCast(
+                owner.serverLevel(),
+                owner,
+                ItemStack.EMPTY,
+                spellData,
+                CHROMATIC_RECORD_PROFILE,
+                RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST,
+                owner.getEyePosition(),
+                owner.getLookAngle(),
+                CastSource.SWORD,
+                CHROMATIC_RECORD_CASTING_SLOT,
+                false
+        );
+    }
+
+    private static RemoteOwnerCastRunner.ContinuousCastSession startRemoteOwnerContinuousCast(
+            GameTestHelper helper,
+            FakePlayer owner,
+            SpellData spellData
+    ) {
+        var result = RemoteOwnerCastRunner.tryStartContinuousCast(
+                owner.serverLevel(),
+                owner,
+                ItemStack.EMPTY,
+                spellData,
+                CHROMATIC_RECORD_PROFILE,
+                RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST,
+                owner.getEyePosition(),
+                owner.getLookAngle(),
+                CastSource.SWORD,
+                CHROMATIC_RECORD_CASTING_SLOT,
+                40,
+                false
+        );
+        helper.assertTrue(result.handled() && result.succeeded() && result.session() != null,
+                "Remote Owner CONTINUOUS Chromatic Magia Dress test cast failed");
+        return result.session();
+    }
+
+    private static void tickRemoteOwnerContinuousCast(
+            FakePlayer owner,
+            RemoteOwnerCastRunner.ContinuousCastSession session,
+            int ticks
+    ) {
+        for (var i = 0; i < ticks && !session.isFinished(); ++i) {
+            RemoteOwnerCastRunner.tickContinuousCast(owner.serverLevel(), owner, session);
+        }
     }
 
     private static void assertVecClose(GameTestHelper helper, Vec3 actual, Vec3 expected, String message) {
