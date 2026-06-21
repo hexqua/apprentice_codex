@@ -853,7 +853,8 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
                 return false;
             }
 
-            var stack = ItemStack.of(entries.getCompound(entry));
+            var originalEntry = entries.getCompound(entry);
+            var stack = ItemStack.of(originalEntry);
             if (!isSameItemIgnoringEmptyTag(stack, template)) {
                 return false;
             }
@@ -861,7 +862,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
             if (stack.isEmpty()) {
                 entries.remove(entry);
             } else {
-                entries.set(entry, stack.save(new CompoundTag()));
+                entries.set(entry, saveRemainingEntry(originalEntry, stack));
             }
             saveItems(entries);
             inventory.setChanged();
@@ -893,6 +894,10 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
 
         protected abstract ListTag getItems();
 
+        protected CompoundTag saveRemainingEntry(CompoundTag originalEntry, ItemStack stack) {
+            return stack.save(new CompoundTag());
+        }
+
         protected abstract void saveItems(ListTag items);
     }
 
@@ -908,6 +913,15 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
                 return new ListTag();
             }
             return blockEntityTag.getList("Items", Tag.TAG_COMPOUND).copy();
+        }
+
+        @Override
+        protected CompoundTag saveRemainingEntry(CompoundTag originalEntry, ItemStack stack) {
+            var savedEntry = super.saveRemainingEntry(originalEntry, stack);
+            if (originalEntry.contains("Slot", Tag.TAG_BYTE)) {
+                savedEntry.putByte("Slot", originalEntry.getByte("Slot"));
+            }
+            return savedEntry;
         }
 
         @Override

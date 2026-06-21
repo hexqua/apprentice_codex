@@ -7085,6 +7085,32 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void linearBuildShulkerSourceKeepsSlotAfterPartialConsume(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useLinearBuildConfigOverrideForGameTest(
+                    new LinearBuildServerConfig.Values(false, true, true)
+            )) {
+                var targetPos = new BlockPos(5, 3, 2);
+                var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_shulker_slot_test");
+                player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS));
+                player.getInventory().setItem(10, createShulkerWithItem(10, new ItemStack(Items.OAK_PLANKS, 64)));
+                helper.setBlock(targetPos, Blocks.STONE);
+
+                castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+                var shulker = player.getInventory().getItem(10);
+                var movedStack = getShulkerSlotItem(shulker, 0);
+                helper.assertTrue(movedStack.isEmpty(),
+                        "Linear Build should not move partially consumed Shulker contents to slot 0");
+                var remainingStack = getShulkerSlotItem(shulker, 10);
+                helper.assertTrue(remainingStack.is(Items.OAK_PLANKS) && remainingStack.getCount() == 62,
+                        "Linear Build should keep partially consumed Shulker contents in their original slot");
+                helper.assertTrue(player.getMainHandItem().is(Items.OAK_PLANKS) && player.getMainHandItem().getCount() == 1,
+                        "Linear Build should leave held stack untouched while Shulker has enough blocks");
+            }
+        });
+    }
+
     static void linearBuildBundleSourceFollowsServerConfig(GameTestHelper helper) {
         helper.succeedIf(() -> {
             try (var ignored = ApprenticeCodexServerConfig.useLinearBuildConfigOverrideForGameTest(
@@ -7144,10 +7170,14 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     private static ItemStack createShulkerWithItem(ItemStack stack) {
+        return createShulkerWithItem(0, stack);
+    }
+
+    private static ItemStack createShulkerWithItem(int slot, ItemStack stack) {
         var shulker = new ItemStack(Items.SHULKER_BOX);
         var items = new ListTag();
         var entry = stack.save(new CompoundTag());
-        entry.putByte("Slot", (byte) 0);
+        entry.putByte("Slot", (byte) slot);
         items.add(entry);
         shulker.getOrCreateTagElement("BlockEntityTag").put("Items", items);
         return shulker;
@@ -7174,6 +7204,21 @@ public class ApprenticeCodexGameTestScenarios {
             return ItemStack.EMPTY;
         }
         return ItemStack.of(items.getCompound(slot));
+    }
+
+    private static ItemStack getShulkerSlotItem(ItemStack shulker, int slot) {
+        var blockEntityTag = shulker.getTagElement("BlockEntityTag");
+        if (blockEntityTag == null) {
+            return ItemStack.EMPTY;
+        }
+        var items = blockEntityTag.getList("Items", Tag.TAG_COMPOUND);
+        for (var i = 0; i < items.size(); ++i) {
+            var entry = items.getCompound(i);
+            if (entry.contains("Slot", Tag.TAG_BYTE) && entry.getByte("Slot") == (byte) slot) {
+                return ItemStack.of(entry);
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     static void dualAcrobatAmmoStopsAtMaximum(GameTestHelper helper) {
