@@ -440,6 +440,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildShulkerSourceKeepsSlotAfterPartialConsume(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildShulkerSourceKeepsSlotAfterPartialConsume(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
     public static void linearBuildBundleSourceFollowsServerConfig(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.linearBuildBundleSourceFollowsServerConfig(helper);
     }
