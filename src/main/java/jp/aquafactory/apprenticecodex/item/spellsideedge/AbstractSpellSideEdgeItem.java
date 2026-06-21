@@ -20,6 +20,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tiers;
 import net.minecraft.world.item.TooltipFlag;
@@ -66,6 +67,8 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem implements Geo
         super(Tiers.DIAMOND, new Item.Properties()
                 .stacksTo(1)
                 .durability(DURABILITY)
+                .rarity(Rarity.RARE)
+                .fireResistant()
                 .attributes(SwordItem.createAttributes(Tiers.DIAMOND, 0, (float) ATTACK_SPEED_MODIFIER_AMOUNT)));
         GeoItem.registerSyncedAnimatable(this);
     }

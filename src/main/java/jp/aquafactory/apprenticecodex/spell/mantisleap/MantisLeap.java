@@ -124,12 +124,6 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
     }
 
     @Override
-    public int getEffectiveCastTime(int spellLevel, LivingEntity entity) {
-        // 詠唱時間短縮は乗らない.
-        return getCastTime(spellLevel);
-    }
-
-    @Override
     public Optional<SoundEvent> getCastStartSound() {
         return Optional.of(SoundRegistry.MANTIS.get());
     }

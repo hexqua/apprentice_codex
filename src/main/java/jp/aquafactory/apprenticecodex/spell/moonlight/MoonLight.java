@@ -82,11 +82,6 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
     }
 
     @Override
-    public int getEffectiveCastTime(int spellLevel, LivingEntity entity) {
-        return getCastTime(spellLevel);
-    }
-
-    @Override
     public CastType getCastType() {
         return CastType.LONG;
     }
