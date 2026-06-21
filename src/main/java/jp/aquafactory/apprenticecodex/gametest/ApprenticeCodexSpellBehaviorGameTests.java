@@ -22,6 +22,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String HARVEST_MOON_ISOLATED_BATCH = "apprenticecodex.harvest_moon_isolated";
     private static final String AUTO_MAGNET_ISOLATED_BATCH = "apprenticecodex.auto_magnet_isolated";
     private static final String EARTH_FORGE_ISOLATED_BATCH = "apprenticecodex.earth_forge_isolated";
+    private static final String LINEAR_BUILD_ISOLATED_BATCH = "apprenticecodex.linear_build_isolated";
     private static final String COMPOUND_PHIAL_ISOLATED_BATCH = "apprenticecodex.compound_phial_isolated";
     private static final String ASSIST_WINGS_ISOLATED_BATCH = "apprenticecodex.assist_wings_isolated";
     private static final String MYSTIC_SHIELD_ISOLATED_BATCH = "apprenticecodex.mystic_shield_isolated";
@@ -331,6 +332,41 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = EARTH_FORGE_ISOLATED_BATCH)
     public static void blockToolsTemporaryUseKeepsOneCountStackAndHands(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.blockToolsTemporaryUseKeepsOneCountStackAndHands(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildPlacesUntilPlayerAxis(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildPlacesUntilPlayerAxis(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildTriesOneBlockWhenFirstPlacementTouchesPlayerAxis(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildTriesOneBlockWhenFirstPlacementTouchesPlayerAxis(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildUpwardFromPlayerYBlockPlacesOnlyOne(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildUpwardFromPlayerYBlockPlacesOnlyOne(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildPrefersOffhandBlockTemplate(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildPrefersOffhandBlockTemplate(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildSkipsBlockedPositionsByDefault(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildSkipsBlockedPositionsByDefault(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildAbortOnFailedPlacementConfigStopsAtBlockedPosition(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildAbortOnFailedPlacementConfigStopsAtBlockedPosition(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildCopiesSameBlockStateAndConsumesCompanionTrunkFirst(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildCopiesSameBlockStateAndConsumesCompanionTrunkFirst(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = COMPOUND_PHIAL_ISOLATED_BATCH, timeoutTicks = 40)

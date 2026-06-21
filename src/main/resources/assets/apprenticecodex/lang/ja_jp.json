@@ -771,6 +771,7 @@
   "ui.apprenticecodex.anchor_blink.anchor_distance": "アンカー成立距離: %sブロック",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
+  "ui.apprenticecodex.too_far": "遠すぎる！",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",
   "ui.apprenticecodex.recast_summon_spell.no_weapon": "武器が見つからない！",
   "ui.apprenticecodex.commence_fire.during_recoil": "反動が鎮まっていない",
@@ -838,6 +839,8 @@
   "ui.apprenticecodex.anchor_blink.requires_mirror": "オフハンドに詠唱補助の逆刃が必要だ！",
   "ui.apprenticecodex.anchor_blink.ready_for_blink": "ダガーが何かに刺さったため、ジャンプすることで跳躍できる！",
   "ui.apprenticecodex.anchor_blink.too_far": "刺さった場所が遠すぎるため、刺さったダガーが維持できず自壊する...",
+  "ui.apprenticecodex.linear_build.not_block": "この呪文を使うにはブロックを手に持っている必要がある",
+  "ui.apprenticecodex.linear_build.retrieved_from_container": "[%s]から取り寄せている...",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "射撃モードを%sに設定",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "オーバーヒートで消費マナが%sに増加している！",
