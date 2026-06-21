@@ -355,6 +355,16 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildRejectsLargeAndDenylistedTemplates(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildRejectsLargeAndDenylistedTemplates(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildRejectsOffhandTemplateWithoutMainHandFallback(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildRejectsOffhandTemplateWithoutMainHandFallback(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
     public static void linearBuildSkipsBlockedPositionsByDefault(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.linearBuildSkipsBlockedPositionsByDefault(helper);
     }

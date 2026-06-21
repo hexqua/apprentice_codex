@@ -118,5 +118,8 @@ public final class BlockTagGenerator extends BlockTagsProvider {
                 Blocks.POWDER_SNOW,
                 Blocks.SWEET_BERRY_BUSH
         );
+
+        tag(TagRegistry.Blocks.LINEAR_BUILD_DENYLIST)
+                .addOptional(ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "inscription_table"));
     }
 }

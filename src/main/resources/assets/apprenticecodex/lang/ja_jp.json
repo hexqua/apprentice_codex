@@ -840,6 +840,8 @@
   "ui.apprenticecodex.anchor_blink.ready_for_blink": "ダガーが何かに刺さったため、ジャンプすることで跳躍できる！",
   "ui.apprenticecodex.anchor_blink.too_far": "刺さった場所が遠すぎるため、刺さったダガーが維持できず自壊する...",
   "ui.apprenticecodex.linear_build.not_block": "この呪文を使うにはブロックを手に持っている必要がある",
+  "ui.apprenticecodex.linear_build.invalid_large_size": "%sは大きすぎてこの魔法では設置できない！",
+  "ui.apprenticecodex.linear_build.invalid_by_deny_list": "%sはこの魔法による設置を許可されていない...",
   "ui.apprenticecodex.linear_build.retrieved_from_container": "[%s]から取り寄せている...",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "射撃モードを%sに設定",

@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncLinearBuildNotificationPacket;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
@@ -40,7 +41,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -60,6 +63,8 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
     private static final String NOT_BLOCK_MESSAGE = "ui.apprenticecodex.linear_build.not_block";
     private static final String TOO_FAR_MESSAGE = "ui.apprenticecodex.too_far";
     private static final String RETRIEVED_MESSAGE = "ui.apprenticecodex.linear_build.retrieved_from_container";
+    private static final String INVALID_LARGE_SIZE_MESSAGE = "ui.apprenticecodex.linear_build.invalid_large_size";
+    private static final String INVALID_BY_DENY_LIST_MESSAGE = "ui.apprenticecodex.linear_build.invalid_by_deny_list";
     private static final int PLAYER_INVENTORY_ITEM_SLOTS = 36;
     private static final int SHULKER_SLOT_COUNT = 27;
 
@@ -129,8 +134,8 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         }
 
         var blockTemplate = resolveHeldBlockTemplate(player);
-        if (blockTemplate.isEmpty()) {
-            sendError(entity, NOT_BLOCK_MESSAGE);
+        if (!blockTemplate.isValid()) {
+            sendBlockTemplateError(entity, blockTemplate);
             return false;
         }
 
@@ -151,14 +156,14 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (!level.isClientSide && entity instanceof ServerPlayer player) {
             var blockTemplate = resolveHeldBlockTemplate(player);
-            if (blockTemplate.isEmpty()) {
-                sendError(player, NOT_BLOCK_MESSAGE);
+            if (!blockTemplate.isValid()) {
+                sendBlockTemplateError(player, blockTemplate);
             } else {
                 var target = restoreTarget(playerMagicData).or(() -> resolveTarget(level, entity));
                 if (target.isEmpty()) {
                     sendError(player, TOO_FAR_MESSAGE);
                 } else {
-                    placeLine(level, player, blockTemplate.get(), target.get());
+                    placeLine(level, player, blockTemplate.stack(), target.get());
                 }
             }
         }
@@ -176,18 +181,37 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         super.onServerCastComplete(level, spellLevel, entity, playerMagicData, cancelled);
     }
 
-    private Optional<ItemStack> resolveHeldBlockTemplate(Player player) {
+    private BlockTemplateResult resolveHeldBlockTemplate(Player player) {
         var offhand = player.getOffhandItem();
         if (offhand.getItem() instanceof BlockItem) {
-            return Optional.of(offhand.copy());
+            return validateBlockTemplate(offhand);
         }
 
         var mainHand = player.getMainHandItem();
         if (mainHand.getItem() instanceof BlockItem) {
-            return Optional.of(mainHand.copy());
+            return validateBlockTemplate(mainHand);
         }
 
-        return Optional.empty();
+        return BlockTemplateResult.notBlock();
+    }
+
+    private BlockTemplateResult validateBlockTemplate(ItemStack stack) {
+        if (!(stack.getItem() instanceof BlockItem blockItem)) {
+            return BlockTemplateResult.notBlock();
+        }
+
+        var block = blockItem.getBlock();
+        if (isLargeBlockTemplate(block)) {
+            return BlockTemplateResult.invalid(stack, INVALID_LARGE_SIZE_MESSAGE);
+        }
+        if (block.defaultBlockState().is(TagRegistry.Blocks.LINEAR_BUILD_DENYLIST)) {
+            return BlockTemplateResult.invalid(stack, INVALID_BY_DENY_LIST_MESSAGE);
+        }
+        return BlockTemplateResult.valid(stack);
+    }
+
+    private static boolean isLargeBlockTemplate(Block block) {
+        return block instanceof DoorBlock || block instanceof BedBlock;
     }
 
     private Optional<PlacementTarget> resolveTarget(Level level, LivingEntity entity) {
@@ -592,9 +616,19 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         Networks.sendToPlayer(player, new SyncLinearBuildNotificationPacket(getSpellResource().toString(), iconStack, remainingBlocks));
     }
 
-    private void sendError(LivingEntity entity, String key) {
+    private void sendBlockTemplateError(LivingEntity entity, BlockTemplateResult result) {
+        if (result.errorKey() == null) {
+            sendError(entity, NOT_BLOCK_MESSAGE);
+            return;
+        }
+        sendError(entity, result.errorKey(), result.errorSubject());
+    }
+
+    private void sendError(LivingEntity entity, String key, Object... args) {
         if (entity instanceof ServerPlayer player && player.connection != null) {
-            player.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable(key).withStyle(ChatFormatting.RED)));
+            player.connection.send(new ClientboundSetActionBarTextPacket(
+                    Component.translatable(key, args).withStyle(ChatFormatting.RED)
+            ));
         }
     }
 
@@ -619,6 +653,24 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
     }
 
     private record PlacementTarget(BlockPos hitPos, Direction hitFace) {
+    }
+
+    private record BlockTemplateResult(ItemStack stack, String errorKey, Component errorSubject) {
+        private static BlockTemplateResult valid(ItemStack stack) {
+            return new BlockTemplateResult(stack.copy(), null, Component.empty());
+        }
+
+        private static BlockTemplateResult invalid(ItemStack stack, String errorKey) {
+            return new BlockTemplateResult(ItemStack.EMPTY, errorKey, stack.getHoverName());
+        }
+
+        private static BlockTemplateResult notBlock() {
+            return new BlockTemplateResult(ItemStack.EMPTY, null, Component.empty());
+        }
+
+        private boolean isValid() {
+            return errorKey == null && !stack.isEmpty();
+        }
     }
 
     private interface InventoryStackConsumer {
