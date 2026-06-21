@@ -11,4 +11,6 @@ public interface LinearBuildItemSource {
     boolean hasMatchingItem(ItemStack template);
 
     boolean consumeOne(ItemStack template);
+
+    long countMatchingItems(ItemStack template);
 }

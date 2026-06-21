@@ -32,6 +32,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowConfigPack
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncLinearBuildNotificationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaShieldCharmConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterActivePacket;
@@ -59,7 +60,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "47";
+    private static final String PROTOCOL_VERSION = "48";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -347,6 +348,13 @@ public final class Networks {
                 SyncAutocastAmuletNotificationPacket::encode,
                 SyncAutocastAmuletNotificationPacket::decode,
                 SyncAutocastAmuletNotificationPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncLinearBuildNotificationPacket.class,
+                SyncLinearBuildNotificationPacket::encode,
+                SyncLinearBuildNotificationPacket::decode,
+                SyncLinearBuildNotificationPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

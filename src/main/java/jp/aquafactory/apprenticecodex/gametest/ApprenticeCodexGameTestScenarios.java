@@ -197,6 +197,7 @@ import net.minecraft.core.SectionPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.network.chat.TextColor;
@@ -6687,7 +6688,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void linearBuildAbortOnFailedPlacementConfigStopsAtBlockedPosition(GameTestHelper helper) {
         helper.succeedIf(() -> {
             try (var ignored = ApprenticeCodexServerConfig.useLinearBuildConfigOverrideForGameTest(
-                    new LinearBuildServerConfig.Values(true)
+                    new LinearBuildServerConfig.Values(true, true, true)
             )) {
                 var targetPos = new BlockPos(6, 3, 2);
                 var blockedPos = new BlockPos(4, 3, 2);
@@ -6754,6 +6755,25 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void linearBuildConsumesPersonalShelfWithoutNearbyShelf(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var targetPos = new BlockPos(5, 3, 2);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_personal_shelf_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS));
+            var personalInventory = player.getCapability(Capabilities.PERSONAL_INVENTORY)
+                    .orElseThrow(() -> new IllegalStateException("Missing personal inventory for Linear Build GameTest"));
+            personalInventory.getHandler().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 2));
+            helper.setBlock(targetPos, Blocks.STONE);
+
+            castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+            helper.assertTrue(personalInventory.getHandler().getStackInSlot(0).isEmpty(),
+                    "Linear Build should consume Personal Shelf inventory without requiring a nearby shelf block");
+            helper.assertTrue(player.getMainHandItem().is(Items.OAK_PLANKS) && player.getMainHandItem().getCount() == 1,
+                    "Linear Build should leave held stack untouched while Personal Shelf has enough blocks");
+        });
+    }
+
     static void linearBuildPrefersEnderChestBeforeCreateToolbox(GameTestHelper helper) {
         if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
             helper.succeed();
@@ -6766,7 +6786,6 @@ public class ApprenticeCodexGameTestScenarios {
             var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_ender_before_toolbox_test");
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS));
             player.getEnderChestInventory().setItem(0, new ItemStack(Items.OAK_PLANKS, 2));
-            helper.setBlock(new BlockPos(2, 2, 2), Blocks.ENDER_CHEST);
             helper.setBlock(targetPos, Blocks.STONE);
             invokeCreateGameTestHookVoid(
                     "placeToolboxWithItem",
@@ -6837,7 +6856,7 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    static void linearBuildConsumesInventoryCreateToolboxAfterPlacedToolboxMisses(GameTestHelper helper) {
+    static void linearBuildIgnoresInventoryCreateToolboxAfterPlacedToolboxMisses(GameTestHelper helper) {
         if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
             helper.succeed();
             return;
@@ -6883,13 +6902,126 @@ public class ApprenticeCodexGameTestScenarios {
                     player.getInventory().getItem(10),
                     0
             );
-            helper.assertTrue(inventoryToolboxStack.isEmpty(),
-                    "Linear Build should consume matching blocks from inventory Create Toolbox after placed Toolbox misses");
+            helper.assertTrue(inventoryToolboxStack.is(Items.OAK_PLANKS) && inventoryToolboxStack.getCount() == 2,
+                    "Linear Build should ignore inventory Create Toolbox stacks");
             var trunkStack = trunkInventory.getHandler().getStackInSlot(0);
-            helper.assertTrue(trunkStack.is(Items.OAK_PLANKS) && trunkStack.getCount() == 2,
-                    "Linear Build consumed Companion Trunk before inventory Create Toolbox");
+            helper.assertTrue(trunkStack.isEmpty(),
+                    "Linear Build should fall back to Companion Trunk after placed Create Toolbox misses");
+            helper.assertTrue(player.getMainHandItem().is(Items.OAK_PLANKS) && player.getMainHandItem().getCount() == 1,
+                    "Linear Build should leave held stack untouched while Companion Trunk has enough blocks");
             helper.succeed();
         });
+    }
+
+    static void linearBuildShulkerSourceFollowsServerConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useLinearBuildConfigOverrideForGameTest(
+                    new LinearBuildServerConfig.Values(false, false, true)
+            )) {
+                var targetPos = new BlockPos(5, 3, 2);
+                var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_shulker_config_test");
+                player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 3));
+                player.getInventory().setItem(10, createShulkerWithItem(new ItemStack(Items.OAK_PLANKS, 2)));
+                helper.setBlock(targetPos, Blocks.STONE);
+
+                castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+                helper.assertTrue(player.getMainHandItem().is(Items.OAK_PLANKS) && player.getMainHandItem().getCount() == 1,
+                        "Linear Build should use held blocks when Shulker sources are disabled");
+                var disabledShulkerStack = getNestedContainerItem(player.getInventory().getItem(10), 0);
+                helper.assertTrue(disabledShulkerStack.is(Items.OAK_PLANKS) && disabledShulkerStack.getCount() == 2,
+                        "Linear Build should not consume Shulker contents while Shulker sources are disabled");
+            }
+
+            try (var ignored = ApprenticeCodexServerConfig.useLinearBuildConfigOverrideForGameTest(
+                    new LinearBuildServerConfig.Values(false, true, true)
+            )) {
+                var targetPos = new BlockPos(5, 3, 4);
+                var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 4), "linear_build_shulker_enabled_test");
+                player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 3));
+                player.getInventory().setItem(10, createShulkerWithItem(new ItemStack(Items.OAK_PLANKS, 2)));
+                helper.setBlock(targetPos, Blocks.STONE);
+
+                castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+                helper.assertTrue(getNestedContainerItem(player.getInventory().getItem(10), 0).isEmpty(),
+                        "Linear Build should consume Shulker contents while Shulker sources are enabled");
+                helper.assertTrue(player.getMainHandItem().is(Items.OAK_PLANKS) && player.getMainHandItem().getCount() == 3,
+                        "Linear Build should leave held stack untouched while enabled Shulker has enough blocks");
+            }
+        });
+    }
+
+    static void linearBuildBundleSourceFollowsServerConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useLinearBuildConfigOverrideForGameTest(
+                    new LinearBuildServerConfig.Values(false, true, false)
+            )) {
+                var targetPos = new BlockPos(5, 3, 2);
+                var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_bundle_config_test");
+                player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 3));
+                player.getInventory().setItem(10, createBundleWithItem(new ItemStack(Items.OAK_PLANKS, 2)));
+                helper.setBlock(targetPos, Blocks.STONE);
+
+                castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+                helper.assertTrue(player.getMainHandItem().is(Items.OAK_PLANKS) && player.getMainHandItem().getCount() == 1,
+                        "Linear Build should use held blocks when Bundle sources are disabled");
+                var disabledBundleStack = getNestedContainerItem(player.getInventory().getItem(10), 0);
+                helper.assertTrue(disabledBundleStack.is(Items.OAK_PLANKS) && disabledBundleStack.getCount() == 2,
+                        "Linear Build should not consume Bundle contents while Bundle sources are disabled");
+            }
+
+            try (var ignored = ApprenticeCodexServerConfig.useLinearBuildConfigOverrideForGameTest(
+                    new LinearBuildServerConfig.Values(false, true, true)
+            )) {
+                var targetPos = new BlockPos(5, 3, 4);
+                var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 4), "linear_build_bundle_enabled_test");
+                player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 3));
+                player.getInventory().setItem(10, createBundleWithItem(new ItemStack(Items.OAK_PLANKS, 2)));
+                helper.setBlock(targetPos, Blocks.STONE);
+
+                castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+                helper.assertTrue(getNestedContainerItem(player.getInventory().getItem(10), 0).isEmpty(),
+                        "Linear Build should consume Bundle contents while Bundle sources are enabled");
+                helper.assertTrue(player.getMainHandItem().is(Items.OAK_PLANKS) && player.getMainHandItem().getCount() == 3,
+                        "Linear Build should leave held stack untouched while enabled Bundle has enough blocks");
+            }
+        });
+    }
+
+    private static ItemStack createShulkerWithItem(ItemStack stack) {
+        var shulker = new ItemStack(Items.SHULKER_BOX);
+        var items = new ListTag();
+        var entry = stack.save(new CompoundTag());
+        entry.putByte("Slot", (byte) 0);
+        items.add(entry);
+        shulker.getOrCreateTagElement("BlockEntityTag").put("Items", items);
+        return shulker;
+    }
+
+    private static ItemStack createBundleWithItem(ItemStack stack) {
+        var bundle = new ItemStack(Items.BUNDLE);
+        var items = new ListTag();
+        items.add(stack.save(new CompoundTag()));
+        bundle.getOrCreateTag().put("Items", items);
+        return bundle;
+    }
+
+    private static ItemStack getNestedContainerItem(ItemStack containerStack, int slot) {
+        var tag = containerStack.getTag();
+        if (tag == null) {
+            return ItemStack.EMPTY;
+        }
+        var blockEntityTag = tag.getCompound("BlockEntityTag");
+        var items = blockEntityTag.isEmpty()
+                ? tag.getList("Items", Tag.TAG_COMPOUND)
+                : blockEntityTag.getList("Items", Tag.TAG_COMPOUND);
+        if (slot < 0 || slot >= items.size()) {
+            return ItemStack.EMPTY;
+        }
+        return ItemStack.of(items.getCompound(slot));
     }
 
     static void dualAcrobatAmmoStopsAtMaximum(GameTestHelper helper) {

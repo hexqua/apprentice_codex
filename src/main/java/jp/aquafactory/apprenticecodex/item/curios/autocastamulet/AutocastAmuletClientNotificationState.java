@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.curios.autocastamulet;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 public final class AutocastAmuletClientNotificationState {
@@ -26,6 +27,15 @@ public final class AutocastAmuletClientNotificationState {
         }
 
         CONTROLLER.queueManaLow(gameTime, spellId, spellIcon);
+    }
+
+    public static void queueLinearBuildRemaining(ResourceLocation spellId, ItemStack iconStack, String countLabel) {
+        var gameTime = resolveCurrentGameTime();
+        if (gameTime < 0L) {
+            return;
+        }
+
+        CONTROLLER.queueLinearBuildRemaining(gameTime, spellId, iconStack, countLabel);
     }
 
     public static void tick() {
