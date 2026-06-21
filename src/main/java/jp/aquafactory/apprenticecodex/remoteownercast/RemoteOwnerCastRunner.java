@@ -332,21 +332,25 @@ public final class RemoteOwnerCastRunner {
             }
 
             try {
+                var ownerMagicData = MagicData.getPlayerMagicData(owner);
+                var activeRecastBeforeCast = ownerMagicData != null
+                        && ownerMagicData.getPlayerRecasts().hasRecastForSpell(spell.getSpellId());
                 session.markReachedOnCast();
                 syncAnchorCasterFromOwner(owner, session);
                 var spellCaster = resolveContinuousSpellCaster(owner, session);
+                runWithContinuousContext(owner, session,
+                        () -> spell.onCast(level, spellData.getLevel(), spellCaster, session.castSource(), magicData));
+                syncOwnerManaForCast(session.manaAccess(), magicData);
+                bindAnchorIfNeeded(level, owner, session);
                 ChromaticMagiaDressCastEvent.recordRemoteOwnerContinuousCast(
                         owner,
                         spellData,
                         magicData,
                         session.castSource(),
                         session.castingSlot(),
-                        session.sessionId()
+                        session.sessionId(),
+                        activeRecastBeforeCast
                 );
-                runWithContinuousContext(owner, session,
-                        () -> spell.onCast(level, spellData.getLevel(), spellCaster, session.castSource(), magicData));
-                syncOwnerManaForCast(session.manaAccess(), magicData);
-                bindAnchorIfNeeded(level, owner, session);
             } catch (RuntimeException exception) {
                 ApprenticeCodex.LOGGER.warn(
                         "Remote Owner Continuous Cast exception during onCast: spell={}, origin={}",
@@ -620,6 +624,7 @@ public final class RemoteOwnerCastRunner {
         var useIsolatedMagicData = ownerMagicData.isCasting();
         var castMagicData = useIsolatedMagicData ? new MagicData() : ownerMagicData;
         var originalSyncedData = useIsolatedMagicData ? null : ownerMagicData.getSyncedData();
+        var activeRecastBeforeCast = ownerMagicData.getPlayerRecasts().hasRecastForSpell(spell.getSpellId());
         var retainAnchor = false;
         try {
             // Iron's の SpellOnCastEvent 中は元詠唱が owner MagicData に残るため、busy 時だけ実行状態を分離する。
@@ -649,7 +654,6 @@ public final class RemoteOwnerCastRunner {
                 }
 
                 syncOwnerManaForCast(manaAccess, castMagicData);
-                ChromaticMagiaDressCastEvent.recordRemoteOwnerCast(owner, spellData, castSource, castingSlot);
                 spell.onCast(level, spellData.getLevel(), spellCaster, castSource, castMagicData);
                 retainAnchor = retainAnchorForSummonWeapon(level, castMagicData.getAdditionalCastData(), spellCasterAnchor);
                 syncOwnerManaForCast(manaAccess, castMagicData);
@@ -660,6 +664,13 @@ public final class RemoteOwnerCastRunner {
                 if (useIsolatedMagicData) {
                     transferIsolatedRecasts(ownerMagicData, castMagicData);
                 }
+                ChromaticMagiaDressCastEvent.recordRemoteOwnerCast(
+                        owner,
+                        spellData,
+                        castSource,
+                        castingSlot,
+                        activeRecastBeforeCast
+                );
             }
             return CastResult.success();
         } catch (RuntimeException exception) {
