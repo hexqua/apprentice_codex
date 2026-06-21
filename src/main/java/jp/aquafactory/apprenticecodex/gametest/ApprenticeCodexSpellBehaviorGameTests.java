@@ -374,6 +374,21 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.linearBuildCreativeCopiesHeldBlockWithoutConsumingStorage(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildPrefersEnderChestBeforeCreateToolbox(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildPrefersEnderChestBeforeCreateToolbox(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildConsumesPlacedCreateToolboxBeforeCompanionTrunk(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildConsumesPlacedCreateToolboxBeforeCompanionTrunk(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildConsumesInventoryCreateToolboxAfterPlacedToolboxMisses(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildConsumesInventoryCreateToolboxAfterPlacedToolboxMisses(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = COMPOUND_PHIAL_ISOLATED_BATCH, timeoutTicks = 40)
     public static void compoundPhialSplashDamageUsesWeakFalloffAndKeepsSelfHit(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.compoundPhialSplashDamageUsesWeakFalloffAndKeepsSelfHit(helper);
