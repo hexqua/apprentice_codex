@@ -43,6 +43,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
@@ -247,7 +250,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
                 ? List.of(CreativeItemSource.INSTANCE)
                 : collectItemSources(player, blockTemplate);
         var retrievedLabels = new LinkedHashSet<Component>();
-        var copiedState = resolveCopiedState(level, blockItem, target);
+        var copySourceState = resolveCopySourceState(level, blockItem, target);
         var abortOnFailedPlacement = ApprenticeCodexServerConfig.linearBuildConfig().abortOnFailedPlacement();
         var placed = false;
 
@@ -264,12 +267,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
                 break;
             }
 
-            boolean placedAtPosition = copiedState
-                    .map(state -> tryPlaceCopiedState(level, blockItem, source, blockTemplate, pos, state))
-                    .orElse(false);
-            if (!placedAtPosition) {
-                placedAtPosition = tryPlaceAt(level, player, blockTemplate, source, pos, target.hitFace());
-            }
+            var placedAtPosition = tryPlaceAt(level, player, blockTemplate, source, pos, target.hitFace(), copySourceState);
             if (!placedAtPosition) {
                 if (abortOnFailedPlacement) {
                     break;
@@ -297,7 +295,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         player.getInventory().setChanged();
     }
 
-    private Optional<BlockState> resolveCopiedState(Level level, BlockItem blockItem, PlacementTarget target) {
+    private Optional<BlockState> resolveCopySourceState(Level level, BlockItem blockItem, PlacementTarget target) {
         var hitState = level.getBlockState(target.hitPos());
         if (hitState.getBlock() != blockItem.getBlock()) {
             return Optional.empty();
@@ -343,7 +341,12 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
     }
 
     private boolean tryPlaceAt(Level level, ServerPlayer player, ItemStack blockTemplate,
-                               LinearBuildItemSource source, BlockPos pos, Direction hitFace) {
+                               LinearBuildItemSource source, BlockPos pos, Direction hitFace,
+                               Optional<BlockState> copySourceState) {
+        if (!source.hasMatchingItem(blockTemplate)) {
+            return false;
+        }
+
         var before = level.getBlockState(pos);
         var result = BlockTools.useItemOnBlockByPlayerMainHand(level, player, pos, singleUseStack(blockTemplate), hitFace);
         if (!result.consumesAction() && result != InteractionResult.SUCCESS) {
@@ -352,33 +355,63 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         if (level.getBlockState(pos) == before || level.getBlockState(pos).canBeReplaced()) {
             return false;
         }
-        return source.consumeOne(blockTemplate);
-    }
 
-    private boolean tryPlaceCopiedState(Level level, BlockItem blockItem, LinearBuildItemSource source,
-                                        ItemStack blockTemplate, BlockPos pos, BlockState copiedState) {
-        if (level.getBlockState(pos).getBlock() == copiedState.getBlock()) {
-            return false;
-        }
-        if (!level.getBlockState(pos).canBeReplaced()) {
-            return false;
-        }
-        if (!copiedState.canSurvive(level, pos)) {
-            return false;
-        }
-        if (!source.hasMatchingItem(blockTemplate)) {
-            return false;
-        }
+        copySourceState.ifPresent(state -> applyCopiedPlacementProperties(level, pos, state));
 
-        var before = level.getBlockState(pos);
-        if (!level.setBlock(pos, copiedState, Block.UPDATE_ALL)) {
-            return false;
-        }
         if (source.consumeOne(blockTemplate)) {
             return true;
         }
         level.setBlock(pos, before, Block.UPDATE_ALL);
         return false;
+    }
+
+    private void applyCopiedPlacementProperties(Level level, BlockPos pos, BlockState sourceState) {
+        var currentState = level.getBlockState(pos);
+        if (currentState.getBlock() != sourceState.getBlock()) {
+            return;
+        }
+
+        var copiedState = currentState;
+        copiedState = copyProperty(copiedState, sourceState, BlockStateProperties.FACING);
+        copiedState = copyProperty(copiedState, sourceState, BlockStateProperties.HORIZONTAL_FACING);
+        copiedState = copyProperty(copiedState, sourceState, BlockStateProperties.AXIS);
+        copiedState = copyProperty(copiedState, sourceState, BlockStateProperties.HORIZONTAL_AXIS);
+        copiedState = copyProperty(copiedState, sourceState, BlockStateProperties.ROTATION_16);
+        copiedState = copyProperty(copiedState, sourceState, BlockStateProperties.HALF);
+        copiedState = copySlabType(copiedState, sourceState);
+
+        if (copiedState != currentState && copiedState.canSurvive(level, pos)) {
+            level.setBlock(pos, copiedState, Block.UPDATE_ALL);
+        }
+    }
+
+    private static BlockState copySlabType(BlockState currentState, BlockState sourceState) {
+        if (!currentState.hasProperty(BlockStateProperties.SLAB_TYPE)
+                || !sourceState.hasProperty(BlockStateProperties.SLAB_TYPE)) {
+            return currentState;
+        }
+
+        var sourceType = sourceState.getValue(BlockStateProperties.SLAB_TYPE);
+        if (sourceType == SlabType.DOUBLE) {
+            return currentState;
+        }
+        return copyProperty(currentState, sourceState, BlockStateProperties.SLAB_TYPE);
+    }
+
+    private static <T extends Comparable<T>> BlockState copyProperty(
+            BlockState currentState,
+            BlockState sourceState,
+            Property<T> property
+    ) {
+        if (!currentState.hasProperty(property) || !sourceState.hasProperty(property)) {
+            return currentState;
+        }
+
+        var value = sourceState.getValue(property);
+        if (!property.getPossibleValues().contains(value)) {
+            return currentState;
+        }
+        return currentState.setValue(property, value);
     }
 
     private ItemStack singleUseStack(ItemStack template) {

@@ -365,8 +365,48 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
-    public static void linearBuildCopiesSameBlockStateAndConsumesCompanionTrunkFirst(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.linearBuildCopiesSameBlockStateAndConsumesCompanionTrunkFirst(helper);
+    public static void linearBuildCopiesTopSlabAndConsumesCompanionTrunkFirst(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildCopiesTopSlabAndConsumesCompanionTrunkFirst(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildCopiesBottomSlabType(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildCopiesBottomSlabType(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildDoesNotCopyDoubleSlabType(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildDoesNotCopyDoubleSlabType(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildCopiesFurnaceFacing(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildCopiesFurnaceFacing(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildCopiesLogAxis(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildCopiesLogAxis(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildCopiesPistonFacing(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildCopiesPistonFacing(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildCopiesSpellDispenserFacing(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildCopiesSpellDispenserFacing(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildKeepsShulkerBlockEntityTagContents(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildKeepsShulkerBlockEntityTagContents(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildCopiesStairFacingAndHalfOnly(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildCopiesStairFacingAndHalfOnly(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
