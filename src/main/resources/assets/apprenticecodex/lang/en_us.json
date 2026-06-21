@@ -837,6 +837,8 @@
   "ui.apprenticecodex.anchor_blink.ready_for_blink": "The dagger is anchored. Jump to blink to it!",
   "ui.apprenticecodex.anchor_blink.too_far": "The dagger struck too far away, so it can't stay anchored and breaks apart...",
   "ui.apprenticecodex.linear_build.not_block": "You need to hold a block to use this spell",
+  "ui.apprenticecodex.linear_build.invalid_large_size": "%s is too large for this spell to place!",
+  "ui.apprenticecodex.linear_build.invalid_by_deny_list": "%s is not allowed to be placed by this spell...",
   "ui.apprenticecodex.linear_build.retrieved_from_container": "Retrieving from [%s]...",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "Switched firing mode to %s",

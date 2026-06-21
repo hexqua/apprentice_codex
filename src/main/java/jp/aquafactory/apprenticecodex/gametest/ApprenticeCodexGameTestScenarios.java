@@ -6671,6 +6671,55 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void linearBuildRejectsLargeAndDenylistedTemplates(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertLinearBuildRejectsTemplate(
+                    helper,
+                    new ItemStack(Items.OAK_DOOR),
+                    "linear_build_oak_door_reject_test",
+                    "Linear Build should reject door templates"
+            );
+            assertLinearBuildRejectsTemplate(
+                    helper,
+                    new ItemStack(Items.WHITE_BED),
+                    "linear_build_white_bed_reject_test",
+                    "Linear Build should reject bed templates"
+            );
+
+            var inscriptionTable = ForgeRegistries.BLOCKS.getValue(
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "inscription_table")
+            );
+            helper.assertTrue(inscriptionTable != null, "irons_spellbooks:inscription_table is not registered");
+            assertLinearBuildRejectsTemplate(
+                    helper,
+                    new ItemStack(inscriptionTable.asItem()),
+                    "linear_build_inscription_table_reject_test",
+                    "Linear Build should reject denylisted Inscription Table templates"
+            );
+        });
+    }
+
+    static void linearBuildRejectsOffhandTemplateWithoutMainHandFallback(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var targetPos = new BlockPos(5, 3, 2);
+            var placePos = new BlockPos(4, 3, 2);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_offhand_reject_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS));
+            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.OAK_DOOR));
+            helper.setBlock(targetPos, Blocks.STONE);
+
+            assertLinearBuildPreCastRejected(helper, player, targetPos, Direction.WEST,
+                    "Linear Build should reject the offhand template before checking main hand fallback");
+
+            helper.assertBlockNotPresent(Blocks.OAK_PLANKS, placePos);
+            helper.assertBlockNotPresent(Blocks.OAK_DOOR, placePos);
+            helper.assertTrue(player.getMainHandItem().is(Items.OAK_PLANKS) && player.getMainHandItem().getCount() == 1,
+                    "Linear Build should not consume the main hand fallback block");
+            helper.assertTrue(player.getOffhandItem().is(Items.OAK_DOOR) && player.getOffhandItem().getCount() == 1,
+                    "Linear Build should not consume the rejected offhand template");
+        });
+    }
+
     static void linearBuildSkipsBlockedPositionsByDefault(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var targetPos = new BlockPos(6, 3, 2);
@@ -7167,6 +7216,52 @@ public class ApprenticeCodexGameTestScenarios {
         helper.assertTrue(player.getMainHandItem().isEmpty(),
                 "Linear Build should consume exactly one block for the single placement");
         return placePos;
+    }
+
+    private static void assertLinearBuildRejectsTemplate(
+            GameTestHelper helper,
+            ItemStack blockStack,
+            String profileName,
+            String message
+    ) {
+        var targetPos = new BlockPos(5, 3, 2);
+        var placePos = new BlockPos(4, 3, 2);
+        var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), profileName);
+        player.setItemInHand(InteractionHand.MAIN_HAND, blockStack.copy());
+        helper.setBlock(targetPos, Blocks.STONE);
+
+        assertLinearBuildPreCastRejected(helper, player, targetPos, Direction.WEST, message);
+
+        helper.assertBlockNotPresent(Block.byItem(blockStack.getItem()), placePos);
+        helper.assertTrue(
+                ItemStack.isSameItemSameTags(player.getMainHandItem(), blockStack)
+                        && player.getMainHandItem().getCount() == blockStack.getCount(),
+                message + " without consuming the template"
+        );
+    }
+
+    private static void assertLinearBuildPreCastRejected(
+            GameTestHelper helper,
+            FakePlayer player,
+            BlockPos targetPos,
+            Direction hitFace,
+            String message
+    ) {
+        var spell = (LinearBuild) SpellRegistry.LINEAR_BUILD.get();
+        var absoluteTargetPos = helper.absolutePos(targetPos);
+        var targetData = new BlockTargetData();
+        targetData.setTarget(
+                absoluteTargetPos,
+                hitFace,
+                Vec3.atCenterOf(absoluteTargetPos),
+                absoluteTargetPos.relative(hitFace),
+                hitFace.getOpposite()
+        );
+        BlockTargetingHelper.setPendingServerTarget(player, spell.getSpellResource(), targetData);
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Linear Build rejection test could not resolve player magic data");
+        helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData), message);
     }
 
     private static ItemStack createShulkerWithItem(ItemStack stack) {
