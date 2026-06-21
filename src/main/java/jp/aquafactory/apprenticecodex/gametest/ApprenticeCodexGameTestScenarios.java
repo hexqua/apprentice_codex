@@ -6718,6 +6718,29 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void linearBuildCreativeCopiesHeldBlockWithoutConsumingStorage(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var targetPos = new BlockPos(5, 3, 2);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_creative_test");
+            player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 1));
+            var trunkInventory = Capabilities.getCompanionTrunkInventoryOrNull(player);
+            helper.assertTrue(trunkInventory != null, "Linear Build test could not resolve Companion Trunk inventory");
+            trunkInventory.getHandler().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 2));
+            helper.setBlock(targetPos, Blocks.STONE);
+
+            castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+            helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(4, 3, 2));
+            helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(3, 3, 2));
+            helper.assertTrue(player.getMainHandItem().is(Items.OAK_PLANKS) && player.getMainHandItem().getCount() == 1,
+                    "Linear Build should not consume the held block in creative mode");
+            var trunkStack = trunkInventory.getHandler().getStackInSlot(0);
+            helper.assertTrue(trunkStack.is(Items.OAK_PLANKS) && trunkStack.getCount() == 2,
+                    "Linear Build should not retrieve blocks from storage in creative mode");
+        });
+    }
+
     static void dualAcrobatAmmoStopsAtMaximum(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();

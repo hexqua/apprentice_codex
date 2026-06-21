@@ -243,7 +243,9 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
             return;
         }
 
-        var sources = collectItemSources(player, blockTemplate);
+        List<LinearBuildItemSource> sources = player.getAbilities().instabuild
+                ? List.of(CreativeItemSource.INSTANCE)
+                : collectItemSources(player, blockTemplate);
         var retrievedLabels = new LinkedHashSet<Component>();
         var copiedState = resolveCopiedState(level, blockItem, target);
         var abortOnFailedPlacement = ApprenticeCodexServerConfig.linearBuildConfig().abortOnFailedPlacement();
@@ -808,6 +810,33 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
                 inventory.offhand.set(0, ItemStack.EMPTY);
             }
             inventory.setChanged();
+            return true;
+        }
+    }
+
+    private static final class CreativeItemSource implements LinearBuildItemSource {
+        private static final CreativeItemSource INSTANCE = new CreativeItemSource();
+
+        private CreativeItemSource() {
+        }
+
+        @Override
+        public Component label() {
+            return Component.empty();
+        }
+
+        @Override
+        public boolean shouldNotifyRetrieved() {
+            return false;
+        }
+
+        @Override
+        public boolean hasMatchingItem(ItemStack template) {
+            return true;
+        }
+
+        @Override
+        public boolean consumeOne(ItemStack template) {
             return true;
         }
     }
