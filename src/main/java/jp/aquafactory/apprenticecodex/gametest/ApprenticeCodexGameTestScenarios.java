@@ -41,6 +41,7 @@ import java.util.UUID;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntity;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntity;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfile;
@@ -250,20 +251,26 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.block.AttachedStemBlock;
+import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
 import net.minecraft.world.level.block.FlowerPotBlock;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
+import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.Half;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.SlabType;
+import net.minecraft.world.level.block.state.properties.StairsShape;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
@@ -6709,7 +6716,7 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    static void linearBuildCopiesSameBlockStateAndConsumesCompanionTrunkFirst(GameTestHelper helper) {
+    static void linearBuildCopiesTopSlabAndConsumesCompanionTrunkFirst(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var targetPos = new BlockPos(5, 3, 2);
             var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_trunk_test");
@@ -6729,6 +6736,132 @@ public class ApprenticeCodexGameTestScenarios {
                     "Linear Build should consume matching blocks from Companion Trunk before the held stack");
             helper.assertTrue(player.getMainHandItem().is(Items.OAK_SLAB) && player.getMainHandItem().getCount() == 1,
                     "Linear Build should leave the held stack untouched while Companion Trunk has enough blocks");
+        });
+    }
+
+    static void linearBuildCopiesBottomSlabType(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var placePos = placeSingleLinearBuildBlock(
+                    helper,
+                    new ItemStack(Items.OAK_SLAB),
+                    Blocks.OAK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM),
+                    "linear_build_bottom_slab_test"
+            );
+
+            helper.assertBlockPresent(Blocks.OAK_SLAB, placePos);
+            helper.assertBlockProperty(placePos, SlabBlock.TYPE, SlabType.BOTTOM);
+        });
+    }
+
+    static void linearBuildDoesNotCopyDoubleSlabType(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var placePos = placeSingleLinearBuildBlock(
+                    helper,
+                    new ItemStack(Items.OAK_SLAB),
+                    Blocks.OAK_SLAB.defaultBlockState().setValue(SlabBlock.TYPE, SlabType.DOUBLE),
+                    "linear_build_double_slab_test"
+            );
+
+            helper.assertBlockPresent(Blocks.OAK_SLAB, placePos);
+            helper.assertTrue(helper.getBlockState(placePos).getValue(SlabBlock.TYPE) != SlabType.DOUBLE,
+                    "Linear Build should not create a double slab from one slab item");
+        });
+    }
+
+    static void linearBuildCopiesFurnaceFacing(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var placePos = placeSingleLinearBuildBlock(
+                    helper,
+                    new ItemStack(Items.FURNACE),
+                    Blocks.FURNACE.defaultBlockState().setValue(AbstractFurnaceBlock.FACING, Direction.EAST),
+                    "linear_build_furnace_facing_test"
+            );
+
+            helper.assertBlockPresent(Blocks.FURNACE, placePos);
+            helper.assertBlockProperty(placePos, AbstractFurnaceBlock.FACING, Direction.EAST);
+        });
+    }
+
+    static void linearBuildCopiesLogAxis(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var placePos = placeSingleLinearBuildBlock(
+                    helper,
+                    new ItemStack(Items.OAK_LOG),
+                    Blocks.OAK_LOG.defaultBlockState().setValue(RotatedPillarBlock.AXIS, Direction.Axis.X),
+                    "linear_build_log_axis_test"
+            );
+
+            helper.assertBlockPresent(Blocks.OAK_LOG, placePos);
+            helper.assertBlockProperty(placePos, RotatedPillarBlock.AXIS, Direction.Axis.X);
+        });
+    }
+
+    static void linearBuildCopiesPistonFacing(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var placePos = placeSingleLinearBuildBlock(
+                    helper,
+                    new ItemStack(Items.PISTON),
+                    Blocks.PISTON.defaultBlockState().setValue(DirectionalBlock.FACING, Direction.UP),
+                    "linear_build_piston_facing_test"
+            );
+
+            helper.assertBlockPresent(Blocks.PISTON, placePos);
+            helper.assertBlockProperty(placePos, DirectionalBlock.FACING, Direction.UP);
+        });
+    }
+
+    static void linearBuildCopiesSpellDispenserFacing(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var placePos = placeSingleLinearBuildBlock(
+                    helper,
+                    new ItemStack(ItemRegistry.SPELL_DISPENSER.get()),
+                    BlockRegistry.SPELL_DISPENSER.get().defaultBlockState().setValue(SpellDispenser.FACING, Direction.EAST),
+                    "linear_build_spell_dispenser_facing_test"
+            );
+
+            helper.assertBlockPresent(BlockRegistry.SPELL_DISPENSER.get(), placePos);
+            helper.assertBlockProperty(placePos, SpellDispenser.FACING, Direction.EAST);
+            helper.assertTrue(helper.getLevel().getBlockEntity(helper.absolutePos(placePos)) != null,
+                    "Linear Build should keep Spell Dispenser block entity initialization");
+        });
+    }
+
+    static void linearBuildKeepsShulkerBlockEntityTagContents(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var placePos = placeSingleLinearBuildBlock(
+                    helper,
+                    createShulkerWithItem(new ItemStack(Items.DIAMOND, 3)),
+                    Blocks.SHULKER_BOX.defaultBlockState(),
+                    "linear_build_shulker_contents_test"
+            );
+
+            helper.assertBlockPresent(Blocks.SHULKER_BOX, placePos);
+            var blockEntity = helper.getLevel().getBlockEntity(helper.absolutePos(placePos));
+            helper.assertTrue(blockEntity instanceof ShulkerBoxBlockEntity,
+                    "Linear Build should place a Shulker Box block entity");
+            var storedStack = ((ShulkerBoxBlockEntity) blockEntity).getItem(0);
+            helper.assertTrue(storedStack.is(Items.DIAMOND) && storedStack.getCount() == 3,
+                    "Linear Build should preserve Shulker Box BlockEntityTag contents");
+        });
+    }
+
+    static void linearBuildCopiesStairFacingAndHalfOnly(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var placePos = placeSingleLinearBuildBlock(
+                    helper,
+                    new ItemStack(Items.OAK_STAIRS),
+                    Blocks.OAK_STAIRS.defaultBlockState()
+                            .setValue(StairBlock.FACING, Direction.SOUTH)
+                            .setValue(StairBlock.HALF, Half.TOP)
+                            .setValue(StairBlock.SHAPE, StairsShape.INNER_LEFT),
+                    "linear_build_stair_shape_test"
+            );
+
+            helper.assertBlockPresent(Blocks.OAK_STAIRS, placePos);
+            helper.assertBlockProperty(placePos, StairBlock.FACING, Direction.SOUTH);
+            helper.assertBlockProperty(placePos, StairBlock.HALF, Half.TOP);
+            helper.assertTrue(helper.getBlockState(placePos).getValue(StairBlock.SHAPE) != StairsShape.INNER_LEFT,
+                    "Linear Build should not copy stair connection shape");
         });
     }
 
@@ -6989,6 +7122,25 @@ public class ApprenticeCodexGameTestScenarios {
                         "Linear Build should leave held stack untouched while enabled Bundle has enough blocks");
             }
         });
+    }
+
+    private static BlockPos placeSingleLinearBuildBlock(
+            GameTestHelper helper,
+            ItemStack blockStack,
+            BlockState targetState,
+            String profileName
+    ) {
+        var targetPos = new BlockPos(5, 3, 2);
+        var placePos = new BlockPos(4, 3, 2);
+        var player = createEquipmentTestPlayer(helper, new BlockPos(3, 3, 2), profileName);
+        player.setItemInHand(InteractionHand.MAIN_HAND, blockStack);
+        helper.setBlock(targetPos, targetState);
+
+        castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+        helper.assertTrue(player.getMainHandItem().isEmpty(),
+                "Linear Build should consume exactly one block for the single placement");
+        return placePos;
     }
 
     private static ItemStack createShulkerWithItem(ItemStack stack) {
