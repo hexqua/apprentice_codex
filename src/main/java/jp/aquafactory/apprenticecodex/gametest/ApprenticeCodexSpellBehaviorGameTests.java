@@ -375,6 +375,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildConsumesPersonalShelfWithoutNearbyShelf(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildConsumesPersonalShelfWithoutNearbyShelf(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
     public static void linearBuildPrefersEnderChestBeforeCreateToolbox(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.linearBuildPrefersEnderChestBeforeCreateToolbox(helper);
     }
@@ -385,8 +390,18 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
-    public static void linearBuildConsumesInventoryCreateToolboxAfterPlacedToolboxMisses(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.linearBuildConsumesInventoryCreateToolboxAfterPlacedToolboxMisses(helper);
+    public static void linearBuildIgnoresInventoryCreateToolboxAfterPlacedToolboxMisses(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildIgnoresInventoryCreateToolboxAfterPlacedToolboxMisses(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildShulkerSourceFollowsServerConfig(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildShulkerSourceFollowsServerConfig(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildBundleSourceFollowsServerConfig(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildBundleSourceFollowsServerConfig(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = COMPOUND_PHIAL_ISOLATED_BATCH, timeoutTicks = 40)

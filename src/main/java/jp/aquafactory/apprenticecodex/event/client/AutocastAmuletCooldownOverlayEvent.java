@@ -70,23 +70,27 @@ public final class AutocastAmuletCooldownOverlayEvent {
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(0.0F, 0.0F, 200.0F);
         guiGraphics.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, applyAlpha(PANEL_BACKGROUND_COLOR, alpha));
-        // GUI テキストや塗りつぶしと違い、spell icon の blit はブレンド状態を明示しないと alpha が効かないことがある。
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        guiGraphics.setColor(1.0F, 1.0F, 1.0F, alpha);
-        guiGraphics.blit(
-                notification.spellIcon(),
-                iconX,
-                iconY,
-                0,
-                0,
-                ICON_SIZE,
-                ICON_SIZE,
-                SPELL_ICON_TEXTURE_SIZE,
-                SPELL_ICON_TEXTURE_SIZE
-        );
-        guiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.disableBlend();
+        if (notification.itemIcon().isEmpty()) {
+            // GUI テキストや塗りつぶしと違い、spell icon の blit はブレンド状態を明示しないと alpha が効かないことがある。
+            RenderSystem.enableBlend();
+            RenderSystem.defaultBlendFunc();
+            guiGraphics.setColor(1.0F, 1.0F, 1.0F, alpha);
+            guiGraphics.blit(
+                    notification.spellIcon(),
+                    iconX,
+                    iconY,
+                    0,
+                    0,
+                    ICON_SIZE,
+                    ICON_SIZE,
+                    SPELL_ICON_TEXTURE_SIZE,
+                    SPELL_ICON_TEXTURE_SIZE
+            );
+            guiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+            RenderSystem.disableBlend();
+        } else {
+            guiGraphics.renderItem(notification.itemIcon(), iconX, iconY);
+        }
         guiGraphics.drawString(font, text, textX, textY, applyAlpha(resolveTextColor(notification), alpha), true);
         guiGraphics.pose().popPose();
     }
@@ -96,6 +100,7 @@ public final class AutocastAmuletCooldownOverlayEvent {
             case CAST -> TEXT_COLOR;
             case THRESHOLD -> THRESHOLD_TEXT_COLOR;
             case MANA_LOW -> MANA_LOW_TEXT_COLOR;
+            case LINEAR_BUILD_REMAINING -> TEXT_COLOR;
         };
     }
 

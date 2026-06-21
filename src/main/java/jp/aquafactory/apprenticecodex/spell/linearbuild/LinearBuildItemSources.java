@@ -74,6 +74,18 @@ public final class LinearBuildItemSources {
             return slot >= 0 && !handler.extractItem(slot, 1, false).isEmpty();
         }
 
+        @Override
+        public long countMatchingItems(ItemStack template) {
+            var total = 0L;
+            for (var slot = 0; slot < handler.getSlots(); ++slot) {
+                var stack = handler.getStackInSlot(slot);
+                if (isSameItemIgnoringEmptyTag(stack, template)) {
+                    total += handler.extractItem(slot, stack.getCount(), true).getCount();
+                }
+            }
+            return total;
+        }
+
         private int findSlot(ItemStack template) {
             for (var slot = 0; slot < handler.getSlots(); ++slot) {
                 var stack = handler.getStackInSlot(slot);

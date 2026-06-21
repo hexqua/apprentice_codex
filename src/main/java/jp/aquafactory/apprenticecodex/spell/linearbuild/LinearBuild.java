@@ -9,9 +9,10 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.compat.create.CreateToolboxLinearBuildBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.SyncLinearBuildNotificationPacket;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
-import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.ChatFormatting;
@@ -40,7 +41,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -291,6 +291,9 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         if (!retrievedLabels.isEmpty()) {
             sendRetrievedMessage(player, retrievedLabels);
         }
+        if (!player.getAbilities().instabuild) {
+            sendRemainingBlockNotification(player, blockTemplate, countRemainingBlocks(sources, blockTemplate));
+        }
         player.getInventory().setChanged();
     }
 
@@ -403,9 +406,6 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
     }
 
     private void addPersonalShelfSources(ServerPlayer player, List<LinearBuildItemSource> sources) {
-        if (!hasOwnedPersonalShelfNearby(player)) {
-            return;
-        }
         player.getCapability(Capabilities.PERSONAL_INVENTORY).ifPresent(inventory -> sources.add(LinearBuildItemSources.itemHandler(
                 inventory.getHandler(),
                 Component.translatable("container.apprenticecodex.personal_shelf"),
@@ -413,47 +413,12 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         )));
     }
 
-    private boolean hasOwnedPersonalShelfNearby(ServerPlayer player) {
-        var level = player.serverLevel();
-        var origin = player.blockPosition();
-        var range = getRange();
-        var min = origin.offset(-range, -range, -range);
-        var max = origin.offset(range, range, range);
-        for (var pos : BlockPos.betweenClosed(min, max)) {
-            if (!level.isLoaded(pos)) {
-                continue;
-            }
-            if (level.getBlockEntity(pos) instanceof PersonalShelfChestBlockEntity shelf
-                    && player.getUUID().equals(shelf.getOwner())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private void addEnderChestSource(ServerPlayer player, List<LinearBuildItemSource> sources) {
-        if (!hasEnderChestNearby(player)) {
-            return;
-        }
         sources.add(new ContainerSource(
                 player.getEnderChestInventory(),
                 Component.translatable("container.enderchest"),
                 true
         ));
-    }
-
-    private boolean hasEnderChestNearby(ServerPlayer player) {
-        var level = player.serverLevel();
-        var origin = player.blockPosition();
-        var range = getRange();
-        var min = origin.offset(-range, -range, -range);
-        var max = origin.offset(range, range, range);
-        for (var pos : BlockPos.betweenClosed(min, max)) {
-            if (level.isLoaded(pos) && level.getBlockState(pos).is(Blocks.ENDER_CHEST)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void addCreateToolboxSources(ServerPlayer player, List<LinearBuildItemSource> sources) {
@@ -516,6 +481,9 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
     }
 
     private void addShulkerSources(ServerPlayer player, List<LinearBuildItemSource> sources) {
+        if (!ApprenticeCodexServerConfig.linearBuildConfig().enableShulkerBoxSources()) {
+            return;
+        }
         forEachInventoryStack(player.getInventory(), (slot, stack) -> {
             if (!(stack.getItem() instanceof BlockItem blockItem) || !(blockItem.getBlock() instanceof ShulkerBoxBlock)) {
                 return;
@@ -525,6 +493,9 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
     }
 
     private void addBundleSources(ServerPlayer player, List<LinearBuildItemSource> sources) {
+        if (!ApprenticeCodexServerConfig.linearBuildConfig().enableBundleSources()) {
+            return;
+        }
         forEachInventoryStack(player.getInventory(), (slot, stack) -> {
             if (!stack.is(Items.BUNDLE)) {
                 return;
@@ -562,6 +533,30 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
 
     private static boolean isSameItemIgnoringEmptyTag(ItemStack left, ItemStack right) {
         return LinearBuildItemSources.isSameItemIgnoringEmptyTag(left, right);
+    }
+
+    private long countRemainingBlocks(List<LinearBuildItemSource> sources, ItemStack template) {
+        var total = 0L;
+        for (var source : sources) {
+            total = addSaturated(total, source.countMatchingItems(template));
+        }
+        return total;
+    }
+
+    private static long addSaturated(long left, long right) {
+        if (right <= 0L) {
+            return left;
+        }
+        if (Long.MAX_VALUE - left < right) {
+            return Long.MAX_VALUE;
+        }
+        return left + right;
+    }
+
+    private void sendRemainingBlockNotification(ServerPlayer player, ItemStack blockTemplate, long remainingBlocks) {
+        var iconStack = blockTemplate.copy();
+        iconStack.setCount(1);
+        Networks.sendToPlayer(player, new SyncLinearBuildNotificationPacket(getSpellResource().toString(), iconStack, remainingBlocks));
     }
 
     private void sendError(LivingEntity entity, String key) {
@@ -634,6 +629,18 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
             return true;
         }
 
+        @Override
+        public long countMatchingItems(ItemStack template) {
+            var total = 0L;
+            for (var slot = 0; slot < container.getContainerSize(); ++slot) {
+                var stack = container.getItem(slot);
+                if (isSameItemIgnoringEmptyTag(stack, template)) {
+                    total += stack.getCount();
+                }
+            }
+            return total;
+        }
+
         private int findSlot(ItemStack template) {
             for (var slot = 0; slot < container.getContainerSize(); ++slot) {
                 var stack = container.getItem(slot);
@@ -683,6 +690,12 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
             return true;
         }
 
+        @Override
+        public long countMatchingItems(ItemStack template) {
+            var stack = getStack();
+            return isSameItemIgnoringEmptyTag(stack, template) ? stack.getCount() : 0L;
+        }
+
         protected ItemStack getStack() {
             return inventory.getItem(slot);
         }
@@ -730,6 +743,15 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
             inventory.setChanged();
             return true;
         }
+
+        @Override
+        public long countMatchingItems(ItemStack template) {
+            if (inventory.offhand.isEmpty()) {
+                return 0L;
+            }
+            var stack = inventory.offhand.get(0);
+            return isSameItemIgnoringEmptyTag(stack, template) ? stack.getCount() : 0L;
+        }
     }
 
     private static final class CreativeItemSource implements LinearBuildItemSource {
@@ -756,6 +778,11 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         @Override
         public boolean consumeOne(ItemStack template) {
             return true;
+        }
+
+        @Override
+        public long countMatchingItems(ItemStack template) {
+            return 0L;
         }
     }
 
@@ -806,6 +833,19 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
             saveItems(entries);
             inventory.setChanged();
             return true;
+        }
+
+        @Override
+        public long countMatchingItems(ItemStack template) {
+            var total = 0L;
+            var entries = getItems();
+            for (var i = 0; i < entries.size(); ++i) {
+                var stack = ItemStack.of(entries.getCompound(i));
+                if (isSameItemIgnoringEmptyTag(stack, template)) {
+                    total += stack.getCount();
+                }
+            }
+            return total;
         }
 
         private int findEntry(ItemStack template) {

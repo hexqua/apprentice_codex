@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.curios.autocastamulet;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
@@ -64,6 +65,25 @@ public final class AutocastAmuletNotificationController {
                 spellIcon,
                 -1,
                 MANA_LOW_LABEL
+        ));
+        advance(currentTick);
+    }
+
+    public void queueLinearBuildRemaining(
+            long currentTick,
+            ResourceLocation spellId,
+            ItemStack iconStack,
+            String countLabel
+    ) {
+        var displayStack = iconStack.copy();
+        displayStack.setCount(1);
+        pendingQueue.addLast(new NotificationEntry(
+                NotificationType.LINEAR_BUILD_REMAINING,
+                spellId,
+                spellId,
+                displayStack,
+                -1,
+                countLabel
         ));
         advance(currentTick);
     }
@@ -157,16 +177,27 @@ public final class AutocastAmuletNotificationController {
     public enum NotificationType {
         CAST,
         THRESHOLD,
-        MANA_LOW
+        MANA_LOW,
+        LINEAR_BUILD_REMAINING
     }
 
     public record NotificationEntry(
             NotificationType type,
             ResourceLocation spellId,
             ResourceLocation spellIcon,
+            ItemStack itemIcon,
             int displaySeconds,
             String displayText
     ) {
+        public NotificationEntry(
+                NotificationType type,
+                ResourceLocation spellId,
+                ResourceLocation spellIcon,
+                int displaySeconds,
+                String displayText
+        ) {
+            this(type, spellId, spellIcon, ItemStack.EMPTY, displaySeconds, displayText);
+        }
     }
 
     public record ScheduledNotification(long triggerTick, NotificationEntry entry) {
