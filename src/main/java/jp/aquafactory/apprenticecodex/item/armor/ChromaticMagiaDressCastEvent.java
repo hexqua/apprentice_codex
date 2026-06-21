@@ -3,8 +3,10 @@ package jp.aquafactory.apprenticecodex.item.armor;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ArmorItem;
@@ -32,25 +34,58 @@ public final class ChromaticMagiaDressCastEvent {
         }
 
         var magicData = MagicData.getPlayerMagicData(player);
-        if (magicData == null || magicData.getPlayerRecasts().hasRecastForSpell(event.getSpellId())) {
+        if (magicData == null) {
             return;
         }
 
         var spell = SpellRegistry.getSpell(event.getSpellId());
-        if (spell == null || spell == SpellRegistry.none()) {
+        recordCast(player, spell, event.getSpellLevel(), magicData, magicData, event.getCastSource(),
+                magicData.getCastingEquipmentSlot());
+    }
+
+    public static void recordRemoteOwnerCast(
+            ServerPlayer owner,
+            SpellData spellData,
+            CastSource castSource,
+            String castingSlot
+    ) {
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
             return;
         }
 
-        var castType = spell.getCastType();
-        for (var armorStack : player.getArmorSlots()) {
-            if (!(armorStack.getItem() instanceof ChromaticMagiaDressItem dressItem)) {
-                continue;
-            }
-            if (shouldRecord(dressItem.getArmorType(), castType, spell.getRecastCount(event.getSpellLevel(), player))
-                    && shouldRecordContinuousCast(player, magicData, event, castType)) {
-                ChromaticMagiaDressHistory.append(armorStack, event.getSchoolType());
-            }
+        var ownerMagicData = MagicData.getPlayerMagicData(owner);
+        recordCast(owner, spellData.getSpell(), spellData.getLevel(), ownerMagicData, ownerMagicData, castSource,
+                castingSlot);
+    }
+
+    public static void recordRemoteOwnerContinuousCast(
+            ServerPlayer owner,
+            SpellData spellData,
+            MagicData sessionMagicData,
+            CastSource castSource,
+            String castingSlot
+    ) {
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            return;
         }
+
+        var ownerMagicData = MagicData.getPlayerMagicData(owner);
+        recordCast(owner, spellData.getSpell(), spellData.getLevel(), ownerMagicData, sessionMagicData, castSource,
+                castingSlot);
+    }
+
+    public static void clearRemoteOwnerContinuousCast(
+            UUID ownerId,
+            SpellData spellData,
+            CastSource castSource,
+            String castingSlot
+    ) {
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            return;
+        }
+
+        var key = ContinuousCastSessionKey.from(ownerId, spellData, castSource, castingSlot);
+        RECORDED_CONTINUOUS_CASTS.remove(ownerId, key);
     }
 
     @SubscribeEvent
@@ -77,6 +112,40 @@ public final class ChromaticMagiaDressCastEvent {
         RECORDED_CONTINUOUS_CASTS.remove(event.getEntity().getUUID());
     }
 
+    @SubscribeEvent
+    public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        RECORDED_CONTINUOUS_CASTS.remove(event.getEntity().getUUID());
+    }
+
+    private static void recordCast(
+            ServerPlayer player,
+            AbstractSpell spell,
+            int spellLevel,
+            MagicData ownerMagicData,
+            MagicData castingMagicData,
+            CastSource castSource,
+            String castingSlot
+    ) {
+        if (ownerMagicData == null || spell == null || spell == SpellRegistry.none()
+                || ownerMagicData.getPlayerRecasts().hasRecastForSpell(spell.getSpellId())) {
+            return;
+        }
+
+        var castType = spell.getCastType();
+        if (!shouldRecordContinuousCast(player, castingMagicData, spell, spellLevel, castType, castSource, castingSlot)) {
+            return;
+        }
+
+        for (var armorStack : player.getArmorSlots()) {
+            if (!(armorStack.getItem() instanceof ChromaticMagiaDressItem dressItem)) {
+                continue;
+            }
+            if (shouldRecord(dressItem.getArmorType(), castType, spell.getRecastCount(spellLevel, player))) {
+                ChromaticMagiaDressHistory.append(armorStack, spell.getSchoolType());
+            }
+        }
+    }
+
     private static boolean shouldRecord(ArmorItem.Type type, CastType castType, int recastCount) {
         return switch (type) {
             case HELMET -> castType == CastType.LONG;
@@ -89,10 +158,14 @@ public final class ChromaticMagiaDressCastEvent {
     private static boolean shouldRecordContinuousCast(
             ServerPlayer player,
             MagicData magicData,
-            SpellOnCastEvent event,
-            CastType castType
+            AbstractSpell spell,
+            int spellLevel,
+            CastType castType,
+            CastSource castSource,
+            String castingSlot
     ) {
-        if (castType != CastType.CONTINUOUS || !matchesActiveContinuousCast(magicData, event)) {
+        if (castType != CastType.CONTINUOUS
+                || !matchesActiveContinuousCast(magicData, spell, spellLevel, castSource, castingSlot)) {
             return true;
         }
 
@@ -107,11 +180,18 @@ public final class ChromaticMagiaDressCastEvent {
         return true;
     }
 
-    private static boolean matchesActiveContinuousCast(MagicData magicData, SpellOnCastEvent event) {
+    private static boolean matchesActiveContinuousCast(
+            MagicData magicData,
+            AbstractSpell spell,
+            int spellLevel,
+            CastSource castSource,
+            String castingSlot
+    ) {
         return isActiveContinuousCast(magicData)
-                && magicData.getCastingSpellId().equals(event.getSpellId())
-                && magicData.getCastingSpellLevel() == event.getSpellLevel()
-                && magicData.getCastSource() == event.getCastSource();
+                && magicData.getCastingSpellId().equals(spell.getSpellId())
+                && magicData.getCastingSpellLevel() == spellLevel
+                && magicData.getCastSource() == castSource
+                && java.util.Objects.equals(magicData.getCastingEquipmentSlot(), castingSlot);
     }
 
     private static boolean isActiveContinuousCast(MagicData magicData) {
@@ -132,6 +212,21 @@ public final class ChromaticMagiaDressCastEvent {
                     magicData.getCastingSpellLevel(),
                     magicData.getCastSource(),
                     magicData.getCastingEquipmentSlot()
+            );
+        }
+
+        static ContinuousCastSessionKey from(
+                UUID ownerId,
+                SpellData spellData,
+                CastSource castSource,
+                String castingEquipmentSlot
+        ) {
+            return new ContinuousCastSessionKey(
+                    ownerId,
+                    spellData.getSpell().getSpellId(),
+                    spellData.getLevel(),
+                    castSource,
+                    castingEquipmentSlot
             );
         }
     }

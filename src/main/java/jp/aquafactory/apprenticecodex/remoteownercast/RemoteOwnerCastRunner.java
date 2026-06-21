@@ -13,6 +13,7 @@ import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import io.redspace.ironsspellbooks.spells.EntityCastData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressCastEvent;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import jp.aquafactory.apprenticecodex.utility.SpellManaAccessHelper;
@@ -26,6 +27,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
 
 public final class RemoteOwnerCastRunner {
     private static final int CONTINUOUS_CAST_TICK_INTERVAL = 10;
@@ -270,6 +273,7 @@ public final class RemoteOwnerCastRunner {
             syncOwnerManaForCast(manaAccess, sessionMagicData);
 
             return ContinuousCastStartResult.success(new ContinuousCastSession(
+                    owner.getUUID(),
                     spellData,
                     sourceStack.copy(),
                     profile,
@@ -331,6 +335,13 @@ public final class RemoteOwnerCastRunner {
                 session.markReachedOnCast();
                 syncAnchorCasterFromOwner(owner, session);
                 var spellCaster = resolveContinuousSpellCaster(owner, session);
+                ChromaticMagiaDressCastEvent.recordRemoteOwnerContinuousCast(
+                        owner,
+                        spellData,
+                        magicData,
+                        session.castSource(),
+                        session.castingSlot()
+                );
                 runWithContinuousContext(owner, session,
                         () -> spell.onCast(level, spellData.getLevel(), spellCaster, session.castSource(), magicData));
                 syncOwnerManaForCast(session.manaAccess(), magicData);
@@ -394,6 +405,12 @@ public final class RemoteOwnerCastRunner {
                     exception
             );
         } finally {
+            ChromaticMagiaDressCastEvent.clearRemoteOwnerContinuousCast(
+                    owner.getUUID(),
+                    session.spellData(),
+                    session.castSource(),
+                    session.castingSlot()
+            );
             cleanupContinuousSession(session.anchor(), session.magicData(), retainAnchor);
         }
     }
@@ -404,6 +421,12 @@ public final class RemoteOwnerCastRunner {
         }
 
         session.markFinished(0);
+        ChromaticMagiaDressCastEvent.clearRemoteOwnerContinuousCast(
+                session.ownerId(),
+                session.spellData(),
+                session.castSource(),
+                session.castingSlot()
+        );
         cleanupContinuousSession(session.anchor(), session.magicData());
     }
 
@@ -623,6 +646,7 @@ public final class RemoteOwnerCastRunner {
                 }
 
                 syncOwnerManaForCast(manaAccess, castMagicData);
+                ChromaticMagiaDressCastEvent.recordRemoteOwnerCast(owner, spellData, castSource, castingSlot);
                 spell.onCast(level, spellData.getLevel(), spellCaster, castSource, castMagicData);
                 retainAnchor = retainAnchorForSummonWeapon(level, castMagicData.getAdditionalCastData(), spellCasterAnchor);
                 syncOwnerManaForCast(manaAccess, castMagicData);
@@ -760,6 +784,7 @@ public final class RemoteOwnerCastRunner {
     }
 
     public static final class ContinuousCastSession {
+        private final UUID ownerId;
         private final SpellData spellData;
         private final ItemStack sourceStack;
         private final RemoteOwnerCastProfile profile;
@@ -777,6 +802,7 @@ public final class RemoteOwnerCastRunner {
         private int finishedCooldownTicks;
 
         private ContinuousCastSession(
+                UUID ownerId,
                 SpellData spellData,
                 ItemStack sourceStack,
                 RemoteOwnerCastProfile profile,
@@ -789,6 +815,7 @@ public final class RemoteOwnerCastRunner {
                 PlayerManaAccess manaAccess,
                 @Nullable RemoteOwnerCastAnchorEntity anchor
         ) {
+            this.ownerId = ownerId;
             this.spellData = spellData;
             this.sourceStack = sourceStack;
             this.profile = profile;
@@ -800,6 +827,10 @@ public final class RemoteOwnerCastRunner {
             this.magicData = magicData;
             this.manaAccess = manaAccess;
             this.anchor = anchor;
+        }
+
+        public UUID ownerId() {
+            return ownerId;
         }
 
         public SpellData spellData() {
