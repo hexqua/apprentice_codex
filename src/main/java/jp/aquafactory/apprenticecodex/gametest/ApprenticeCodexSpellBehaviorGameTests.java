@@ -355,6 +355,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildConsumesReplaceablePlacedBlockTemplate(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildConsumesReplaceablePlacedBlockTemplate(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
     public static void linearBuildRejectsLargeAndDenylistedTemplates(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.linearBuildRejectsLargeAndDenylistedTemplates(helper);
     }

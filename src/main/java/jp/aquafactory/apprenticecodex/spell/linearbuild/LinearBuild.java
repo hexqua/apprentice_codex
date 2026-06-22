@@ -376,7 +376,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         if (!result.consumesAction() && result != InteractionResult.SUCCESS) {
             return false;
         }
-        if (level.getBlockState(pos) == before || level.getBlockState(pos).canBeReplaced()) {
+        if (level.getBlockState(pos) == before) {
             return false;
         }
 

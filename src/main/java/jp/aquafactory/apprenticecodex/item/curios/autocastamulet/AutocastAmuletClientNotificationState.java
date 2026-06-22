@@ -29,13 +29,13 @@ public final class AutocastAmuletClientNotificationState {
         CONTROLLER.queueManaLow(gameTime, spellId, spellIcon);
     }
 
-    public static void queueLinearBuildRemaining(ResourceLocation spellId, ItemStack iconStack, String countLabel) {
+    public static void updateLinearBuildRemaining(ResourceLocation spellId, ItemStack iconStack, String countLabel) {
         var gameTime = resolveCurrentGameTime();
         if (gameTime < 0L) {
             return;
         }
 
-        CONTROLLER.queueLinearBuildRemaining(gameTime, spellId, iconStack, countLabel);
+        CONTROLLER.updateLinearBuildRemaining(gameTime, spellId, iconStack, countLabel);
     }
 
     public static void tick() {

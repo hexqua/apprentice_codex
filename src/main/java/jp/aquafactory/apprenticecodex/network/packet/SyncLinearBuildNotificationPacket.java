@@ -52,7 +52,7 @@ public record SyncLinearBuildNotificationPacket(String spellId, ItemStack iconSt
                 return;
             }
 
-            AutocastAmuletClientNotificationState.queueLinearBuildRemaining(
+            AutocastAmuletClientNotificationState.updateLinearBuildRemaining(
                     spellId,
                     packet.iconStack,
                     CompactCountFormatter.format(packet.remainingBlocks)
