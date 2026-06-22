@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.curios.autocastamulet;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
@@ -65,6 +66,34 @@ public final class AutocastAmuletNotificationController {
                 -1,
                 MANA_LOW_LABEL
         ));
+        advance(currentTick);
+    }
+
+    public void updateLinearBuildRemaining(
+            long currentTick,
+            ResourceLocation spellId,
+            ItemStack iconStack,
+            String countLabel
+    ) {
+        var displayStack = iconStack.copy();
+        displayStack.setCount(1);
+        var entry = new NotificationEntry(
+                NotificationType.LINEAR_BUILD_REMAINING,
+                spellId,
+                spellId,
+                displayStack,
+                -1,
+                countLabel
+        );
+        if (activeNotification != null && activeNotification.type() == NotificationType.LINEAR_BUILD_REMAINING) {
+            activeNotification = entry;
+            activeNotificationStartedTick = currentTick;
+            pendingQueue.removeIf(notification -> notification.type() == NotificationType.LINEAR_BUILD_REMAINING);
+            return;
+        }
+
+        pendingQueue.removeIf(notification -> notification.type() == NotificationType.LINEAR_BUILD_REMAINING);
+        pendingQueue.addLast(entry);
         advance(currentTick);
     }
 
@@ -157,16 +186,27 @@ public final class AutocastAmuletNotificationController {
     public enum NotificationType {
         CAST,
         THRESHOLD,
-        MANA_LOW
+        MANA_LOW,
+        LINEAR_BUILD_REMAINING
     }
 
     public record NotificationEntry(
             NotificationType type,
             ResourceLocation spellId,
             ResourceLocation spellIcon,
+            ItemStack itemIcon,
             int displaySeconds,
             String displayText
     ) {
+        public NotificationEntry(
+                NotificationType type,
+                ResourceLocation spellId,
+                ResourceLocation spellIcon,
+                int displaySeconds,
+                String displayText
+        ) {
+            this(type, spellId, spellIcon, ItemStack.EMPTY, displaySeconds, displayText);
+        }
     }
 
     public record ScheduledNotification(long triggerTick, NotificationEntry entry) {

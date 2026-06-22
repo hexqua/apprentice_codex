@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.renderer.tooltip;
 
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
+import jp.aquafactory.apprenticecodex.utility.CompactCountFormatter;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -8,6 +9,7 @@ import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 public final class SpellcasterAmmoPouchClientTooltipComponent implements ClientTooltipComponent {
     private static final ResourceLocation BACKGROUND_SPRITE =
@@ -29,12 +31,12 @@ public final class SpellcasterAmmoPouchClientTooltipComponent implements ClientT
     }
 
     @Override
-    public int getWidth(Font font) {
+    public int getWidth(@NotNull Font font) {
         return gridSizeX() * 18 + 2;
     }
 
     @Override
-    public void renderImage(Font font, int x, int y, GuiGraphics guiGraphics) {
+    public void renderImage(@NotNull Font font, int x, int y, @NotNull GuiGraphics guiGraphics) {
         var columns = gridSizeX();
         var rows = gridSizeY();
         var itemIndex = 0;
@@ -64,13 +66,8 @@ public final class SpellcasterAmmoPouchClientTooltipComponent implements ClientT
     }
 
     private String getCountLabel(ItemStack stack) {
-        var count = stack.getCount();
-        if (count < 1000) {
-            return null;
-        }
-
         // 4桁以上はツールチップ枠内に収まらないため、簡略表記に切り替える。
-        return count / 1000 + "K";
+        return CompactCountFormatter.formatItemDecorationCount(stack.getCount());
     }
 
     private void blit(GuiGraphics guiGraphics, int x, int y, Texture texture) {

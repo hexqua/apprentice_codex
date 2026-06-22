@@ -48,6 +48,8 @@ public final class TagRegistry {
                 createBlockTag("mist_form_passable");
         public static final TagKey<Block> MIST_FORM_IGNORES_MOVEMENT_RESTRICTION =
                 createBlockTag("mist_form_ignores_movement_restriction");
+        public static final TagKey<Block> LINEAR_BUILD_DENYLIST =
+                createBlockTag("linear_build_denylist");
     }
 
     public static final class Items {
