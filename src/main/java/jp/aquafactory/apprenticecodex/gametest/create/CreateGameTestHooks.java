@@ -18,11 +18,16 @@ import jp.aquafactory.apprenticecodex.compat.create.SpellDispenserMovementBehavi
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -33,6 +38,9 @@ import net.neoforged.neoforge.items.wrapper.CombinedInvWrapper;
 import java.util.ArrayList;
 
 public final class CreateGameTestHooks {
+    private static final HolderLookup.Provider SERIALIZATION_LOOKUP =
+            RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+
     private CreateGameTestHooks() {
     }
 
@@ -160,15 +168,17 @@ public final class CreateGameTestHooks {
         var toolboxStack = new ItemStack(AllBlocks.TOOLBOXES.get(DyeColor.BROWN).get());
         var inventory = new ToolboxInventory(null);
         inventory.insertItem(0, stack.copy(), false);
-        toolboxStack.getOrCreateTag().put("Inventory", inventory.serializeNBT());
+        CustomData.update(DataComponents.CUSTOM_DATA, toolboxStack,
+                tag -> tag.put("Inventory", inventory.serializeNBT(SERIALIZATION_LOOKUP)));
         return toolboxStack;
     }
 
     public static ItemStack getToolboxStackItem(ItemStack toolboxStack, int slot) {
         var inventory = new ToolboxInventory(null);
-        var tag = toolboxStack.getTag();
+        var customData = toolboxStack.get(DataComponents.CUSTOM_DATA);
+        var tag = customData == null ? null : customData.copyTag();
         if (tag != null && tag.contains("Inventory", Tag.TAG_COMPOUND)) {
-            inventory.deserializeNBT(tag.getCompound("Inventory"));
+            inventory.deserializeNBT(SERIALIZATION_LOOKUP, tag.getCompound("Inventory"));
         }
         return inventory.getStackInSlot(slot).copy();
     }

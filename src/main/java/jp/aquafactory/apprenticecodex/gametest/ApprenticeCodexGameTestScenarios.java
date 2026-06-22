@@ -295,8 +295,10 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
@@ -7100,6 +7102,8 @@ public class ApprenticeCodexGameTestScenarios {
             var player = createEquipmentTestPlayer(helper, new BlockPos(1, 3, 2), "linear_build_upward_same_y_test");
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 4));
             helper.setBlock(targetPos, Blocks.STONE);
+            helper.setBlock(firstPlacePos, Blocks.AIR);
+            helper.setBlock(secondPlacePos, Blocks.AIR);
 
             castLinearBuild(helper, player, targetPos, Direction.UP);
 
@@ -7162,7 +7166,7 @@ public class ApprenticeCodexGameTestScenarios {
                     "Linear Build should reject bed templates"
             );
 
-            var inscriptionTable = ForgeRegistries.BLOCKS.getValue(
+            var inscriptionTable = BuiltInRegistries.BLOCK.get(
                     ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "inscription_table")
             );
             helper.assertTrue(inscriptionTable != null, "irons_spellbooks:inscription_table is not registered");
@@ -7203,7 +7207,10 @@ public class ApprenticeCodexGameTestScenarios {
             var player = createEquipmentTestPlayer(helper, new BlockPos(1, 3, 2), "linear_build_skip_blocked_test");
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 4));
             helper.setBlock(targetPos, Blocks.STONE);
+            helper.setBlock(new BlockPos(5, 3, 2), Blocks.AIR);
             helper.setBlock(blockedPos, Blocks.COBBLESTONE);
+            helper.setBlock(new BlockPos(3, 3, 2), Blocks.AIR);
+            helper.setBlock(new BlockPos(2, 3, 2), Blocks.AIR);
 
             castLinearBuild(helper, player, targetPos, Direction.WEST);
 
@@ -7227,7 +7234,10 @@ public class ApprenticeCodexGameTestScenarios {
                 var player = createEquipmentTestPlayer(helper, new BlockPos(1, 3, 2), "linear_build_abort_blocked_test");
                 player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 4));
                 helper.setBlock(targetPos, Blocks.STONE);
+                helper.setBlock(new BlockPos(5, 3, 2), Blocks.AIR);
                 helper.setBlock(blockedPos, Blocks.COBBLESTONE);
+                helper.setBlock(new BlockPos(3, 3, 2), Blocks.AIR);
+                helper.setBlock(new BlockPos(2, 3, 2), Blocks.AIR);
 
                 castLinearBuild(helper, player, targetPos, Direction.WEST);
 
@@ -7418,7 +7428,7 @@ public class ApprenticeCodexGameTestScenarios {
             var targetPos = new BlockPos(5, 3, 2);
             var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_personal_shelf_test");
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS));
-            var personalInventory = player.getCapability(Capabilities.PERSONAL_INVENTORY)
+            var personalInventory = Capabilities.getPersonalInventory(player)
                     .orElseThrow(() -> new IllegalStateException("Missing personal inventory for Linear Build GameTest"));
             personalInventory.getHandler().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 2));
             helper.setBlock(targetPos, Blocks.STONE);
@@ -7710,7 +7720,7 @@ public class ApprenticeCodexGameTestScenarios {
 
         helper.assertBlockNotPresent(Block.byItem(blockStack.getItem()), placePos);
         helper.assertTrue(
-                ItemStack.isSameItemSameTags(player.getMainHandItem(), blockStack)
+                ItemStack.isSameItemSameComponents(player.getMainHandItem(), blockStack)
                         && player.getMainHandItem().getCount() == blockStack.getCount(),
                 message + " without consuming the template"
         );
@@ -7746,50 +7756,46 @@ public class ApprenticeCodexGameTestScenarios {
 
     private static ItemStack createShulkerWithItem(int slot, ItemStack stack) {
         var shulker = new ItemStack(Items.SHULKER_BOX);
-        var items = new ListTag();
-        var entry = stack.save(new CompoundTag());
-        entry.putByte("Slot", (byte) slot);
-        items.add(entry);
-        shulker.getOrCreateTagElement("BlockEntityTag").put("Items", items);
+        var items = NonNullList.withSize(27, ItemStack.EMPTY);
+        if (slot >= 0 && slot < items.size()) {
+            items.set(slot, stack.copy());
+        }
+        shulker.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(items));
         return shulker;
     }
 
     private static ItemStack createBundleWithItem(ItemStack stack) {
         var bundle = new ItemStack(Items.BUNDLE);
-        var items = new ListTag();
-        items.add(stack.save(new CompoundTag()));
-        bundle.getOrCreateTag().put("Items", items);
+        bundle.set(DataComponents.BUNDLE_CONTENTS, new BundleContents(List.of(stack.copy())));
         return bundle;
     }
 
     private static ItemStack getNestedContainerItem(ItemStack containerStack, int slot) {
-        var tag = containerStack.getTag();
-        if (tag == null) {
+        if (slot < 0) {
             return ItemStack.EMPTY;
         }
-        var blockEntityTag = tag.getCompound("BlockEntityTag");
-        var items = blockEntityTag.isEmpty()
-                ? tag.getList("Items", Tag.TAG_COMPOUND)
-                : blockEntityTag.getList("Items", Tag.TAG_COMPOUND);
-        if (slot < 0 || slot >= items.size()) {
+        if (containerStack.is(Items.BUNDLE)) {
+            var index = 0;
+            for (var stack : containerStack.getOrDefault(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY).itemsCopy()) {
+                if (index == slot) {
+                    return stack.copy();
+                }
+                ++index;
+            }
             return ItemStack.EMPTY;
         }
-        return ItemStack.of(items.getCompound(slot));
+        return getShulkerSlotItem(containerStack, slot);
     }
 
     private static ItemStack getShulkerSlotItem(ItemStack shulker, int slot) {
-        var blockEntityTag = shulker.getTagElement("BlockEntityTag");
-        if (blockEntityTag == null) {
+        if (slot < 0) {
             return ItemStack.EMPTY;
         }
-        var items = blockEntityTag.getList("Items", Tag.TAG_COMPOUND);
-        for (var i = 0; i < items.size(); ++i) {
-            var entry = items.getCompound(i);
-            if (entry.contains("Slot", Tag.TAG_BYTE) && entry.getByte("Slot") == (byte) slot) {
-                return ItemStack.of(entry);
-            }
+        var contents = shulker.getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
+        if (slot >= contents.getSlots()) {
+            return ItemStack.EMPTY;
         }
-        return ItemStack.EMPTY;
+        return contents.getStackInSlot(slot).copy();
     }
 
     static void dualAcrobatAmmoStopsAtMaximum(GameTestHelper helper) {

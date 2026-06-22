@@ -1,26 +1,26 @@
 package jp.aquafactory.apprenticecodex.config.spell;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class LinearBuildServerConfig {
-    private final ForgeConfigSpec.BooleanValue abortOnFailedPlacement;
-    private final ForgeConfigSpec.BooleanValue enableShulkerBoxSources;
-    private final ForgeConfigSpec.BooleanValue enableBundleSources;
+    private final ModConfigSpec.BooleanValue abortOnFailedPlacement;
+    private final ModConfigSpec.BooleanValue enableShulkerBoxSources;
+    private final ModConfigSpec.BooleanValue enableBundleSources;
     private Boolean abortOnFailedPlacementOverride;
     private Boolean enableShulkerBoxSourcesOverride;
     private Boolean enableBundleSourcesOverride;
 
     private LinearBuildServerConfig(
-            ForgeConfigSpec.BooleanValue abortOnFailedPlacement,
-            ForgeConfigSpec.BooleanValue enableShulkerBoxSources,
-            ForgeConfigSpec.BooleanValue enableBundleSources
+            ModConfigSpec.BooleanValue abortOnFailedPlacement,
+            ModConfigSpec.BooleanValue enableShulkerBoxSources,
+            ModConfigSpec.BooleanValue enableBundleSources
     ) {
         this.abortOnFailedPlacement = abortOnFailedPlacement;
         this.enableShulkerBoxSources = enableShulkerBoxSources;
         this.enableBundleSources = enableBundleSources;
     }
 
-    public static LinearBuildServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static LinearBuildServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("LinearBuild");
 
         var abortOnFailedPlacement = builder

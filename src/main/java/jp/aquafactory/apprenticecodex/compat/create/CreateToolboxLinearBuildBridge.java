@@ -2,8 +2,10 @@ package jp.aquafactory.apprenticecodex.compat.create;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.spell.linearbuild.LinearBuildItemSource;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.fml.ModList;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.fml.ModList;
 
 import java.util.List;
 
@@ -24,6 +26,14 @@ public final class CreateToolboxLinearBuildBridge {
             logInitializationFailureOnce(error);
             return List.of();
         }
+    }
+
+    public static boolean isToolboxStack(ItemStack stack) {
+        if (stack.isEmpty() || !ModList.get().isLoaded(CreateCompat.MOD_ID)) {
+            return false;
+        }
+        var id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        return CreateCompat.MOD_ID.equals(id.getNamespace()) && id.getPath().endsWith("_toolbox");
     }
 
     private static void logInitializationFailureOnce(LinkageError error) {

@@ -1,10 +1,9 @@
 package jp.aquafactory.apprenticecodex.spell.linearbuild;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 
 public final class LinearBuildItemSources {
     private LinearBuildItemSources() {
@@ -26,20 +25,7 @@ public final class LinearBuildItemSources {
         if (left.isEmpty() || right.isEmpty() || !left.is(right.getItem())) {
             return false;
         }
-        if (left.isDamageableItem() && left.getDamageValue() != right.getDamageValue()) {
-            return false;
-        }
-        var leftTag = normalizedTag(left);
-        var rightTag = normalizedTag(right);
-        if (leftTag == null) {
-            return rightTag == null;
-        }
-        return leftTag.equals(rightTag);
-    }
-
-    private static CompoundTag normalizedTag(ItemStack stack) {
-        var tag = stack.getTag();
-        return tag == null || tag.isEmpty() ? null : tag;
+        return ItemStack.isSameItemSameComponents(left, right);
     }
 
     private static class ItemHandlerSource implements LinearBuildItemSource {

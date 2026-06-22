@@ -19,9 +19,10 @@ import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -39,6 +40,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.BundleContents;
+import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BedBlock;
@@ -51,7 +54,7 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.neoforged.neoforge.items.IItemHandler;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.ArrayList;
@@ -463,7 +466,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
     }
 
     private void addPersonalShelfSources(ServerPlayer player, List<LinearBuildItemSource> sources) {
-        player.getCapability(Capabilities.PERSONAL_INVENTORY).ifPresent(inventory -> sources.add(LinearBuildItemSources.itemHandler(
+        Capabilities.getPersonalInventory(player).ifPresent(inventory -> sources.add(LinearBuildItemSources.itemHandler(
                 inventory.getHandler(),
                 Component.translatable("container.apprenticecodex.personal_shelf"),
                 true
@@ -502,20 +505,27 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
                         && horse.isTamed()
                         && player.getUUID().equals(horse.getOwnerUUID())
                         && (horse.getType() == EntityType.DONKEY || horse.getType() == EntityType.MULE))) {
-            horse.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(handler -> sources.add(LinearBuildItemSources.itemHandler(
-                    handler,
-                    horse.getDisplayName(),
-                    true
-            )));
+            var handler = horse.getCapability(net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.ENTITY);
+            if (handler != null) {
+                sources.add(LinearBuildItemSources.itemHandler(
+                        handler,
+                        horse.getDisplayName(),
+                        true
+                ));
+            }
         }
     }
 
     private void addCuriosItemHandlerSources(ServerPlayer player, List<LinearBuildItemSource> sources) {
         CuriosApi.getCuriosInventory(player)
-                .map(inventory -> inventory.findCurios(stack -> stack.getCapability(ForgeCapabilities.ITEM_HANDLER).isPresent()))
+                .map(inventory -> inventory.findCurios(stack -> getItemHandler(stack) != null))
                 .orElse(List.of())
-                .forEach(slotResult -> slotResult.stack().getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(handler ->
-                        sources.add(LinearBuildItemSources.itemHandler(handler, slotResult.stack().getHoverName(), true))));
+                .forEach(slotResult -> {
+                    var handler = getItemHandler(slotResult.stack());
+                    if (handler != null) {
+                        sources.add(LinearBuildItemSources.itemHandler(handler, slotResult.stack().getHoverName(), true));
+                    }
+                });
     }
 
     private void addInventoryItemHandlerSources(ServerPlayer player, List<LinearBuildItemSource> sources) {
@@ -525,13 +535,22 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
                 continue;
             }
             var label = stack.getHoverName();
-            stack.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(handler ->
-                    sources.add(LinearBuildItemSources.inventoryStackItemHandler(handler, label, player.getInventory())));
+            var handler = getItemHandler(stack);
+            if (handler != null) {
+                sources.add(LinearBuildItemSources.inventoryStackItemHandler(handler, label, player.getInventory()));
+            }
         }
+    }
+
+    private static IItemHandler getItemHandler(ItemStack stack) {
+        return stack.getCapability(net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.ITEM);
     }
 
     private boolean isDedicatedNestedContainerStack(ItemStack stack) {
         if (stack.is(Items.BUNDLE)) {
+            return true;
+        }
+        if (CreateToolboxLinearBuildBridge.isToolboxStack(stack)) {
             return true;
         }
         return stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof ShulkerBoxBlock;
@@ -900,21 +919,20 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         @Override
         public boolean consumeOne(ItemStack template) {
             var entries = getItems();
-            var entry = findEntry(template);
+            var entry = findEntry(entries, template);
             if (entry < 0 || entry >= entries.size()) {
                 return false;
             }
 
-            var originalEntry = entries.getCompound(entry);
-            var stack = ItemStack.of(originalEntry);
+            var stack = entries.get(entry);
             if (!isSameItemIgnoringEmptyTag(stack, template)) {
                 return false;
             }
             stack.shrink(1);
             if (stack.isEmpty()) {
-                entries.remove(entry);
+                entries.set(entry, ItemStack.EMPTY);
             } else {
-                entries.set(entry, saveRemainingEntry(originalEntry, stack));
+                entries.set(entry, stack.copy());
             }
             saveItems(entries);
             inventory.setChanged();
@@ -925,8 +943,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         public long countMatchingItems(ItemStack template) {
             var total = 0L;
             var entries = getItems();
-            for (var i = 0; i < entries.size(); ++i) {
-                var stack = ItemStack.of(entries.getCompound(i));
+            for (var stack : entries) {
                 if (isSameItemIgnoringEmptyTag(stack, template)) {
                     total += stack.getCount();
                 }
@@ -936,21 +953,21 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
 
         private int findEntry(ItemStack template) {
             var entries = getItems();
+            return findEntry(entries, template);
+        }
+
+        private int findEntry(List<ItemStack> entries, ItemStack template) {
             for (var i = 0; i < entries.size(); ++i) {
-                if (isSameItemIgnoringEmptyTag(ItemStack.of(entries.getCompound(i)), template)) {
+                if (isSameItemIgnoringEmptyTag(entries.get(i), template)) {
                     return i;
                 }
             }
             return -1;
         }
 
-        protected abstract ListTag getItems();
+        protected abstract List<ItemStack> getItems();
 
-        protected CompoundTag saveRemainingEntry(CompoundTag originalEntry, ItemStack stack) {
-            return stack.save(new CompoundTag());
-        }
-
-        protected abstract void saveItems(ListTag items);
+        protected abstract void saveItems(List<ItemStack> items);
     }
 
     private static final class ShulkerBoxSource extends NestedItemListSource {
@@ -959,40 +976,24 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         }
 
         @Override
-        protected ListTag getItems() {
-            var blockEntityTag = containerStack.getTagElement("BlockEntityTag");
-            if (blockEntityTag == null) {
-                return new ListTag();
-            }
-            return blockEntityTag.getList("Items", Tag.TAG_COMPOUND).copy();
+        protected List<ItemStack> getItems() {
+            var contents = containerStack.getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
+            var items = NonNullList.withSize(SHULKER_SLOT_COUNT, ItemStack.EMPTY);
+            contents.copyInto(items);
+            return new ArrayList<>(items);
         }
 
         @Override
-        protected CompoundTag saveRemainingEntry(CompoundTag originalEntry, ItemStack stack) {
-            var savedEntry = super.saveRemainingEntry(originalEntry, stack);
-            if (originalEntry.contains("Slot", Tag.TAG_BYTE)) {
-                savedEntry.putByte("Slot", originalEntry.getByte("Slot"));
-            }
-            return savedEntry;
-        }
-
-        @Override
-        protected void saveItems(ListTag items) {
-            for (var i = 0; i < items.size(); ++i) {
-                var entry = items.getCompound(i);
-                if (!entry.contains("Slot", Tag.TAG_BYTE)) {
-                    entry.putByte("Slot", (byte) Math.min(i, SHULKER_SLOT_COUNT - 1));
-                }
+        protected void saveItems(List<ItemStack> items) {
+            var normalizedItems = NonNullList.withSize(SHULKER_SLOT_COUNT, ItemStack.EMPTY);
+            for (var i = 0; i < Math.min(items.size(), SHULKER_SLOT_COUNT); ++i) {
+                normalizedItems.set(i, items.get(i).copy());
             }
 
-            var blockEntityTag = containerStack.getOrCreateTagElement("BlockEntityTag");
-            if (items.isEmpty()) {
-                blockEntityTag.remove("Items");
+            if (normalizedItems.stream().allMatch(ItemStack::isEmpty)) {
+                containerStack.remove(DataComponents.CONTAINER);
             } else {
-                blockEntityTag.put("Items", items);
-            }
-            if (blockEntityTag.isEmpty()) {
-                containerStack.getOrCreateTag().remove("BlockEntityTag");
+                containerStack.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(normalizedItems));
             }
         }
     }
@@ -1003,20 +1004,22 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         }
 
         @Override
-        protected ListTag getItems() {
-            var tag = containerStack.getTag();
-            if (tag == null) {
-                return new ListTag();
+        protected List<ItemStack> getItems() {
+            var contents = containerStack.getOrDefault(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY);
+            var items = new ArrayList<ItemStack>();
+            for (var stack : contents.itemsCopy()) {
+                items.add(stack);
             }
-            return tag.getList("Items", Tag.TAG_COMPOUND).copy();
+            return items;
         }
 
         @Override
-        protected void saveItems(ListTag items) {
+        protected void saveItems(List<ItemStack> items) {
+            items.removeIf(ItemStack::isEmpty);
             if (items.isEmpty()) {
-                containerStack.removeTagKey("Items");
+                containerStack.remove(DataComponents.BUNDLE_CONTENTS);
             } else {
-                containerStack.getOrCreateTag().put("Items", items);
+                containerStack.set(DataComponents.BUNDLE_CONTENTS, new BundleContents(items));
             }
         }
     }
@@ -1052,7 +1055,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         }
 
         @Override
-        public CompoundTag serializeNBT() {
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
             var tag = new CompoundTag();
             if (hitBlockPos == null || hitFace == null) {
                 return tag;
@@ -1065,7 +1068,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         }
 
         @Override
-        public void deserializeNBT(CompoundTag nbt) {
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
             if (!nbt.contains("HitX")) {
                 reset();
                 return;
