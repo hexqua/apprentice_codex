@@ -684,7 +684,7 @@ public class ApprenticeCodexGameTestScenarios {
 
             var pickaxe = new ItemStack(Items.DIAMOND_PICKAXE);
             pickaxe.setDamageValue(3);
-            pickaxe.setRepairCost(7);
+            pickaxe.set(DataComponents.REPAIR_COST, 7);
             player.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
 
             var magicData = MagicData.getPlayerMagicData(player);
@@ -701,7 +701,7 @@ public class ApprenticeCodexGameTestScenarios {
 
             helper.assertTrue(pickaxe.getDamageValue() == 0,
                     "Second CraftsmansDelight-boosted repair tick should spend the carried fraction and finish repair");
-            helper.assertTrue(pickaxe.getBaseRepairCost() == 0,
+            helper.assertTrue(pickaxe.getOrDefault(DataComponents.REPAIR_COST, 0) == 0,
                     "CraftsmansDelight Mana Mending completion should reset repair cost");
         });
     }

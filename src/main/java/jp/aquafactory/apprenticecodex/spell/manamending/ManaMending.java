@@ -14,7 +14,10 @@ import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -232,7 +235,7 @@ public class ManaMending extends AbstractSpell implements ICraftsmansDelightAffe
         if (!stack.isDamageableItem() || !stack.isDamaged()) {
             return TargetResult.skipped(stack);
         }
-        if (!canRepairWithManaMending(stack)) {
+        if (!canRepairWithManaMending(entity, stack)) {
             return TargetResult.failure(ManaMendingFailure.INVALID_MENDING, stack, true);
         }
         return TargetResult.success(hand, stack);
@@ -243,8 +246,11 @@ public class ManaMending extends AbstractSpell implements ICraftsmansDelightAffe
         return result.success() ? result : TargetResult.failure(result.failure(), result.stack(), true);
     }
 
-    private boolean canRepairWithManaMending(ItemStack stack) {
-        return Enchantments.UNBREAKING.canEnchant(stack) || Enchantments.MENDING.canEnchant(stack);
+    private boolean canRepairWithManaMending(LivingEntity entity, ItemStack stack) {
+        var enchantments = entity.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        var unbreaking = enchantments.getOrThrow(Enchantments.UNBREAKING);
+        var mending = enchantments.getOrThrow(Enchantments.MENDING);
+        return unbreaking.value().canEnchant(stack) || mending.value().canEnchant(stack);
     }
 
     private boolean shouldMendThisTick(int spellLevel, LivingEntity entity, MagicData playerMagicData) {
@@ -294,7 +300,7 @@ public class ManaMending extends AbstractSpell implements ICraftsmansDelightAffe
     private void finishMending(LivingEntity entity, ItemStack targetStack, ManaMendingCastData castData) {
         var hasCraftsmansDelight = CraftsmansDelight.isEquippedBy(entity);
         if (hasCraftsmansDelight) {
-            targetStack.setRepairCost(0);
+            targetStack.set(DataComponents.REPAIR_COST, 0);
         }
         castData.reset();
         sendActionBar(
@@ -467,7 +473,7 @@ public class ManaMending extends AbstractSpell implements ICraftsmansDelightAffe
         }
 
         @Override
-        public CompoundTag serializeNBT() {
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
             var tag = new CompoundTag();
             tag.putBoolean("HasTarget", hasTarget);
             tag.putString("TargetHand", targetHand.name());
@@ -477,7 +483,7 @@ public class ManaMending extends AbstractSpell implements ICraftsmansDelightAffe
         }
 
         @Override
-        public void deserializeNBT(CompoundTag nbt) {
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
             hasTarget = nbt.getBoolean("HasTarget");
             targetHand = nbt.contains("TargetHand")
                     ? InteractionHand.valueOf(nbt.getString("TargetHand"))
