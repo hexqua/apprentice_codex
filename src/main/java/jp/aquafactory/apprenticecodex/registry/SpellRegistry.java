@@ -43,6 +43,7 @@ import jp.aquafactory.apprenticecodex.spell.longstride.LongStride;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpear;
 import jp.aquafactory.apprenticecodex.spell.manacharge.ManaCharge;
+import jp.aquafactory.apprenticecodex.spell.manamending.ManaMending;
 import jp.aquafactory.apprenticecodex.spell.manifestationgrimoire.ManifestationGrimoire;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeap;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlash;
@@ -143,6 +144,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> UNITE_LUNA = reg("unite_luna", UniteLuna::new);
     public static final RegistryObject<AbstractSpell> MYSTIC_SHIELD = reg("mystic_shield", MysticShield::new);
     public static final RegistryObject<AbstractSpell> DIVINE_POSSESSION = reg("divine_possession", DivinePossession::new);
+    public static final RegistryObject<AbstractSpell> MANA_MENDING = reg("mana_mending", ManaMending::new);
 
     // 氷.
     public static final RegistryObject<AbstractSpell> FROST_RUNE = reg("frost_rune", FrostRune::new);

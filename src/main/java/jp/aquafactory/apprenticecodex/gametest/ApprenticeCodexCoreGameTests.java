@@ -36,6 +36,26 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void manaMendingRequiresDamagedHeldItem(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaMendingRequiresDamagedHeldItem(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaMendingRepairsMainHandDamagedItem(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaMendingRepairsMainHandDamagedItem(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaMendingPrefersOffhandDamagedItem(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaMendingPrefersOffhandDamagedItem(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaMendingCraftsmansDelightBoostsRepairAndClearsRepairCost(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaMendingCraftsmansDelightBoostsRepairAndClearsRepairCost(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void searchBeaconRefundLogicOnlyRefundsWhenUnknownStructuresAreAbsent(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.searchBeaconRefundLogicOnlyRefundsWhenUnknownStructuresAreAbsent(helper);
     }
