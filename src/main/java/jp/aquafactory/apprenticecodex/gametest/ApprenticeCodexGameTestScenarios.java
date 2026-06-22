@@ -7130,6 +7130,23 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void linearBuildConsumesReplaceablePlacedBlockTemplate(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var targetPos = new BlockPos(5, 3, 2);
+            var placePos = new BlockPos(4, 3, 2);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(3, 3, 2), "linear_build_replaceable_block_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.FERN));
+            helper.setBlock(targetPos, Blocks.STONE);
+            helper.setBlock(placePos.below(), Blocks.GRASS_BLOCK);
+
+            castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+            helper.assertBlockPresent(Blocks.FERN, placePos);
+            helper.assertTrue(player.getMainHandItem().isEmpty(),
+                    "Linear Build should consume replaceable block templates that stay replaceable after placement");
+        });
+    }
+
     static void linearBuildRejectsLargeAndDenylistedTemplates(GameTestHelper helper) {
         helper.succeedIf(() -> {
             assertLinearBuildRejectsTemplate(

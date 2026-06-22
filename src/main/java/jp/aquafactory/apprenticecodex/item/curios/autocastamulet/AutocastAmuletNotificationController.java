@@ -69,7 +69,7 @@ public final class AutocastAmuletNotificationController {
         advance(currentTick);
     }
 
-    public void queueLinearBuildRemaining(
+    public void updateLinearBuildRemaining(
             long currentTick,
             ResourceLocation spellId,
             ItemStack iconStack,
@@ -77,14 +77,23 @@ public final class AutocastAmuletNotificationController {
     ) {
         var displayStack = iconStack.copy();
         displayStack.setCount(1);
-        pendingQueue.addLast(new NotificationEntry(
+        var entry = new NotificationEntry(
                 NotificationType.LINEAR_BUILD_REMAINING,
                 spellId,
                 spellId,
                 displayStack,
                 -1,
                 countLabel
-        ));
+        );
+        if (activeNotification != null && activeNotification.type() == NotificationType.LINEAR_BUILD_REMAINING) {
+            activeNotification = entry;
+            activeNotificationStartedTick = currentTick;
+            pendingQueue.removeIf(notification -> notification.type() == NotificationType.LINEAR_BUILD_REMAINING);
+            return;
+        }
+
+        pendingQueue.removeIf(notification -> notification.type() == NotificationType.LINEAR_BUILD_REMAINING);
+        pendingQueue.addLast(entry);
         advance(currentTick);
     }
 
