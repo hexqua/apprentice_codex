@@ -12,6 +12,7 @@ import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
@@ -133,6 +134,7 @@ import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.spellthrowablecard.AbstractSpellThrowableCardItem;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
+import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
 import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
 import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTransferRecipe;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
@@ -610,6 +612,98 @@ public class ApprenticeCodexGameTestScenarios {
                 new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()).is(TagRegistry.Items.ASSIST_WINGS_ONLY_JUMP_ITEMS),
                 "Smashcast Scepter should be tagged as an Assist Wings only-jump item"
         ));
+    }
+
+    static void manaMendingRequiresDamagedHeldItem(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = SpellRegistry.MANA_MENDING.get();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_mending_empty_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+
+            helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Mana Mending should reject empty hands");
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIAMOND_SWORD));
+            magicData.setAdditionalCastData(null);
+            helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Mana Mending should reject undamaged damageable items");
+        });
+    }
+
+    static void manaMendingRepairsMainHandDamagedItem(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = SpellRegistry.MANA_MENDING.get();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_mending_mainhand_test");
+            var sword = new ItemStack(Items.DIAMOND_SWORD);
+            sword.setDamageValue(5);
+            player.setItemInHand(InteractionHand.MAIN_HAND, sword);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Mana Mending should accept a damaged main-hand item");
+
+            prepareManaMendingProcessTick(magicData);
+            spell.onServerCastTick(helper.getLevel(), 1, player, magicData);
+
+            helper.assertTrue(sword.getDamageValue() == 4,
+                    "Mana Mending should repair 1 durability at level 1 but damage is " + sword.getDamageValue());
+        });
+    }
+
+    static void manaMendingPrefersOffhandDamagedItem(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = SpellRegistry.MANA_MENDING.get();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_mending_offhand_test");
+            var mainHandSword = new ItemStack(Items.DIAMOND_SWORD);
+            var offhandPickaxe = new ItemStack(Items.IRON_PICKAXE);
+            mainHandSword.setDamageValue(5);
+            offhandPickaxe.setDamageValue(5);
+            player.setItemInHand(InteractionHand.MAIN_HAND, mainHandSword);
+            player.setItemInHand(InteractionHand.OFF_HAND, offhandPickaxe);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Mana Mending should accept damaged items in both hands");
+
+            prepareManaMendingProcessTick(magicData);
+            spell.onServerCastTick(helper.getLevel(), 1, player, magicData);
+
+            helper.assertTrue(offhandPickaxe.getDamageValue() == 4,
+                    "Mana Mending should repair the offhand item first but offhand damage is "
+                            + offhandPickaxe.getDamageValue());
+            helper.assertTrue(mainHandSword.getDamageValue() == 5,
+                    "Mana Mending should not repair the main-hand item while offhand is the locked target");
+        });
+    }
+
+    static void manaMendingCraftsmansDelightBoostsRepairAndClearsRepairCost(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = SpellRegistry.MANA_MENDING.get();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_mending_craftsmans_test");
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+
+            var pickaxe = new ItemStack(Items.DIAMOND_PICKAXE);
+            pickaxe.setDamageValue(3);
+            pickaxe.setRepairCost(7);
+            player.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Mana Mending should accept a damaged item while CraftsmansDelight is equipped");
+
+            prepareManaMendingProcessTick(magicData);
+            spell.onServerCastTick(helper.getLevel(), 1, player, magicData);
+            helper.assertTrue(pickaxe.getDamageValue() == 2,
+                    "First CraftsmansDelight-boosted repair tick should repair 1 durability and carry 0.5");
+
+            prepareManaMendingProcessTick(magicData);
+            spell.onServerCastTick(helper.getLevel(), 1, player, magicData);
+
+            helper.assertTrue(pickaxe.getDamageValue() == 0,
+                    "Second CraftsmansDelight-boosted repair tick should spend the carried fraction and finish repair");
+            helper.assertTrue(pickaxe.getBaseRepairCost() == 0,
+                    "CraftsmansDelight Mana Mending completion should reset repair cost");
+        });
     }
     static void assistWingsSmashcastGroundCastJumpsWithoutKeepingWing(GameTestHelper helper) {
         helper.succeedIf(() -> {
@@ -9217,6 +9311,15 @@ public class ApprenticeCodexGameTestScenarios {
         var absoluteVec = Vec3.atBottomCenterOf(absolutePos);
         player.setPos(absoluteVec.x, absoluteVec.y, absoluteVec.z);
         return player;
+    }
+
+    static void prepareManaMendingProcessTick(MagicData magicData) {
+        var accessor = (MagicDataAccessor) magicData;
+        accessor.apprenticecodex$setCastingSpellLevel(1);
+        accessor.apprenticecodex$setCastDuration(200);
+        accessor.apprenticecodex$setCastDurationRemaining(190);
+        accessor.apprenticecodex$setCastSource(CastSource.SPELLBOOK);
+        accessor.apprenticecodex$setCastType(CastType.CONTINUOUS);
     }
 
     static void setFocusStaffbowArrowCatalyst(FakePlayer player, ItemStack arrowStack) {

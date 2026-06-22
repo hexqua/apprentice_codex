@@ -328,6 +328,7 @@
   "jei.apprenticecodex.craftsmans_delight.desc_9": "- ワールドフラッター：ブロックの破壊レベルが鉄ツールからネザライトツール相当に上昇。",
   "jei.apprenticecodex.craftsmans_delight.desc_10": "- タッチディグ：射程が2倍に伸びる。",
   "jei.apprenticecodex.craftsmans_delight.desc_11": "- 天からの鉄拳：近くの芽生えブロックから生えた最大成長の結晶を採掘する。",
+  "jei.apprenticecodex.craftsmans_delight.desc_12": "- マナ修繕：修繕が完了した時にそのアイテムの累計作業量をリセットする。",
   "jei.apprenticecodex.protection_spell_supporter.desc_1": "下記の魔法の性能を変化させ、使用中のマナ消費量も減少させる。",
   "jei.apprenticecodex.protection_spell_supporter.desc_2": "- フォースフィールド：盾で防げない攻撃も防げるようになる。",
   "jei.apprenticecodex.protection_spell_supporter.desc_3": "- ファランクスチャージ：盾を構えた時の移動速度が上昇し、前方からのカウンタースペルを無力化できる。",
@@ -656,6 +657,7 @@
   "spell.apprenticecodex.edge_dancer": "エッジダンサー",
   "spell.apprenticecodex.anchor_blink": "アンカーブリンク",
   "spell.apprenticecodex.linear_build": "リニアビルド",
+  "spell.apprenticecodex.mana_mending": "マナ修繕",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -726,6 +728,7 @@
   "spell.apprenticecodex.edge_dancer.guide": "詠唱補助の刃の固有の潜在魔法。利き手ではない方に利き手の刃を転写する。転写時に手に持っていたアイテムは一時的に刃の中に封じ込まれ、手放すなどで刃が自壊した際に手元に戻る。戦闘に関する理が存在しない場合は戦闘補助具として機能し、利き手の刃の攻撃が無敵時間を無視するようになる。他の錬成武器と同時に存在できない。大魔術師のお守りを装備していると転写解除時に条件を問わずクールダウンが発生しない。",
   "spell.apprenticecodex.anchor_blink.guide": "詠唱補助の逆刃の固有の潜在魔法。オフハンドに持っているダガーを前方に投擲して攻撃する。何かに刺さった時点でジャンプキーを押している、または刺さってから3秒以内にジャンプすると、刺さった場所へ転移する。ダガーを投擲する都合上、エッジダンサーの効果が終了する。",
   "spell.apprenticecodex.linear_build.guide": "視線の先から自分の座標の軸と交差する直前までの間に手持ちのブロックを設置する。ブロックをどちらの手にも持っていない時は使用できず、視線先のブロックが方向などを持っている場合は極力それを真似て設置しようとする。使用するブロックはオフハンドのものが優先され、消費は手持ち以外から優先的に消費する。自分に紐づいているパーソナルシェルフやエンダーチェスト、近くにある自分の工具箱やペット、装備しているバックパックや持っているシュルカーボックス、バンドルからも取り寄せる事ができる。",
+  "spell.apprenticecodex.mana_mending.guide": "自分のマナを手元のアイテムに流し込んで修繕を行う。利き手とオフハンドの両方にアイテムを持っている場合、オフハンドが優先される。損傷しているアイテムを直接持っていない場合は使用できない。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -769,6 +772,7 @@
   "ui.apprenticecodex.bound_bow.forge_arrow_mana_cost": "矢の錬成に必要なマナ: %s",
   "ui.apprenticecodex.inscribe_ice.notched_frozen_damage": "魔力炸裂時のダメージ: %s",
   "ui.apprenticecodex.anchor_blink.anchor_distance": "アンカー成立距離: %sブロック",
+  "ui.apprenticecodex.mana_mending.repair_per_second": "アイテムの修繕速度: %s/秒",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.too_far": "遠すぎる！",
@@ -843,6 +847,13 @@
   "ui.apprenticecodex.linear_build.invalid_large_size": "%sは大きすぎてこの魔法では設置できない！",
   "ui.apprenticecodex.linear_build.invalid_by_deny_list": "%sはこの魔法による設置を許可されていない...",
   "ui.apprenticecodex.linear_build.retrieved_from_container": "[%s]から取り寄せている...",
+  "ui.apprenticecodex.mana_mending.repair_progress": "%1$sの修繕が%2$s%%完了...",
+  "ui.apprenticecodex.mana_mending.repair_finished": "%1$sの修繕が完了した！",
+  "ui.apprenticecodex.mana_mending.invalid_by_empty": "この呪文を使うには損傷しているアイテムを手に持っている必要がある",
+  "ui.apprenticecodex.mana_mending.canceled_by_swap": "修繕の魔力を維持できない！",
+  "ui.apprenticecodex.mana_mending.invalid_mending": "%1$sは修繕することができない...",
+  "ui.apprenticecodex.mana_mending.invalid_by_deny_list": "%1$sはこの魔法による修繕を許可されていない！",
+  "ui.apprenticecodex.mana_mending.repair_finished_bonus": "%1$sの修繕が完了し、新品同様になった！",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "射撃モードを%sに設定",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "オーバーヒートで消費マナが%sに増加している！",
