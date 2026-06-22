@@ -618,6 +618,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void autocastAmuletNotificationControllerUpdatesLinearBuildRemaining(GameTestHelper helper) {
+        AutocastAmuletGameTestScenarios.autocastAmuletNotificationControllerUpdatesLinearBuildRemaining(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void ironSpellcasterGunExtractedSpellStaysClearedAfterSaveLoad(GameTestHelper helper) {
         EquipmentSpellGunGameTestScenarios.ironSpellcasterGunExtractedSpellStaysClearedAfterSaveLoad(helper);
     }

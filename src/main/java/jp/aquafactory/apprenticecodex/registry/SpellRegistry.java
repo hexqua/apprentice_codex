@@ -38,6 +38,7 @@ import jp.aquafactory.apprenticecodex.spell.higanbana.Higanbana;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellar;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
 import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssault;
+import jp.aquafactory.apprenticecodex.spell.linearbuild.LinearBuild;
 import jp.aquafactory.apprenticecodex.spell.longstride.LongStride;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpear;
@@ -125,6 +126,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> BOUND_BOW = reg("bound_bow", BoundBow::new);
     public static final RegistryObject<AbstractSpell> LETHAL_ASSAULT = reg("lethal_assault", LethalAssault::new);
     public static final RegistryObject<AbstractSpell> EDGE_DANCER = reg("edge_dancer", EdgeDancer::new);
+    public static final RegistryObject<AbstractSpell> LINEAR_BUILD = reg("linear_build", LinearBuild::new);
 
     // 炎.
     public static final RegistryObject<AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);

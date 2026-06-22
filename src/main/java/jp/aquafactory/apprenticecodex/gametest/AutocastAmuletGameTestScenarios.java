@@ -14,6 +14,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Items;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 
@@ -471,6 +472,39 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
                             && delayedThreshold.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.THRESHOLD
                             && "60s".equals(delayedThreshold.displayText()),
                     "Autocast Amulet delayed threshold notification should keep the original 60 second label");
+        });
+    }
+
+    static void autocastAmuletNotificationControllerUpdatesLinearBuildRemaining(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var linearController = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
+            var linearId = ResourceLocation.fromNamespaceAndPath("apprenticecodex", "linear_build");
+            var castId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "greater_heal");
+            var castIcon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/greater_heal.png");
+
+            linearController.updateLinearBuildRemaining(0L, linearId, new ItemStack(Items.FERN), "10");
+            linearController.updateLinearBuildRemaining(5L, linearId, new ItemStack(Items.FERN), "9");
+            linearController.advance(34L);
+
+            var activeLinear = linearController.getActiveNotification();
+            helper.assertTrue(activeLinear != null
+                            && activeLinear.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.LINEAR_BUILD_REMAINING
+                            && "9".equals(activeLinear.displayText()),
+                    "Linear Build remaining notification should update the active entry and refresh its display duration");
+
+            var queuedController = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
+            queuedController.queueCooldownCast(0L, castId, castIcon, 1200);
+            queuedController.updateLinearBuildRemaining(1L, linearId, new ItemStack(Items.FERN), "10");
+            queuedController.updateLinearBuildRemaining(2L, linearId, new ItemStack(Items.FERN), "9");
+            helper.assertTrue(queuedController.getPendingQueueSize() == 1,
+                    "Linear Build remaining notifications should keep only the latest pending entry");
+
+            queuedController.advance(30L);
+            var queuedLinear = queuedController.getActiveNotification();
+            helper.assertTrue(queuedLinear != null
+                            && queuedLinear.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.LINEAR_BUILD_REMAINING
+                            && "9".equals(queuedLinear.displayText()),
+                    "Linear Build remaining notification should show the latest queued value after earlier notifications finish");
         });
     }
 }

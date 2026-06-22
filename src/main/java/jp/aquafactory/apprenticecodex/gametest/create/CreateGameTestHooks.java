@@ -10,6 +10,7 @@ import com.simibubi.create.api.contraption.storage.item.WrapperMountedItemStorag
 import com.simibubi.create.content.contraptions.Contraption;
 import com.simibubi.create.content.contraptions.MountedStorageManager;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
+import com.simibubi.create.content.equipment.toolbox.ToolboxInventory;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.compat.create.SpellDispenserMovementBehaviour;
@@ -17,10 +18,16 @@ import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.wrapper.CombinedInvWrapper;
@@ -141,6 +148,33 @@ public final class CreateGameTestHooks {
         return invokeBlockEntityItemStackGetter(level, worldPos, "getHeldItem");
     }
 
+    public static void placeToolboxWithItem(ServerLevel level, BlockPos worldPos, ItemStack stack) {
+        level.setBlock(worldPos, AllBlocks.TOOLBOXES.get(DyeColor.BROWN).getDefaultState(), 3);
+        registerToolbox(level, worldPos);
+        getToolboxItemHandler(level, worldPos).insertItem(0, stack.copy(), false);
+    }
+
+    public static ItemStack getToolboxItem(ServerLevel level, BlockPos worldPos, int slot) {
+        return getToolboxItemHandler(level, worldPos).getStackInSlot(slot).copy();
+    }
+
+    public static ItemStack createToolboxStackWithItem(ItemStack stack) {
+        var toolboxStack = new ItemStack(AllBlocks.TOOLBOXES.get(DyeColor.BROWN).get());
+        var inventory = new ToolboxInventory(null);
+        inventory.insertItem(0, stack.copy(), false);
+        toolboxStack.getOrCreateTag().put("Inventory", inventory.serializeNBT());
+        return toolboxStack;
+    }
+
+    public static ItemStack getToolboxStackItem(ItemStack toolboxStack, int slot) {
+        var inventory = new ToolboxInventory(null);
+        var tag = toolboxStack.getTag();
+        if (tag != null && tag.contains("Inventory", Tag.TAG_COMPOUND)) {
+            inventory.deserializeNBT(tag.getCompound("Inventory"));
+        }
+        return inventory.getStackInSlot(slot).copy();
+    }
+
     public static void placeChuteWithItem(ServerLevel level, BlockPos worldPos, ItemStack stack) {
         level.setBlock(worldPos, AllBlocks.CHUTE.getDefaultState(), 3);
         invokeBlockEntityMethod(level, worldPos, "setItem", new Class<?>[]{ItemStack.class}, stack.copy());
@@ -148,6 +182,46 @@ public final class CreateGameTestHooks {
 
     public static ItemStack getChuteItem(ServerLevel level, BlockPos worldPos) {
         return invokeBlockEntityItemStackGetter(level, worldPos, "getItem");
+    }
+
+    private static IItemHandler getToolboxItemHandler(ServerLevel level, BlockPos worldPos) {
+        var blockEntity = level.getBlockEntity(worldPos);
+        if (blockEntity == null) {
+            throw new IllegalStateException("Create GameTest toolbox setup failed: missing block entity");
+        }
+
+        try {
+            var result = blockEntity.getClass()
+                    .getMethod("getCapability", Capability.class, Direction.class)
+                    .invoke(blockEntity, ForgeCapabilities.ITEM_HANDLER, null);
+            if (result instanceof LazyOptional<?> lazyOptional) {
+                var handler = lazyOptional.cast().resolve().orElse(null);
+                if (handler instanceof IItemHandler itemHandler) {
+                    return itemHandler;
+                }
+            }
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Create GameTest toolbox setup failed", exception);
+        }
+
+        throw new IllegalStateException("Create GameTest toolbox setup failed: missing item handler");
+    }
+
+    private static void registerToolbox(ServerLevel level, BlockPos worldPos) {
+        var blockEntity = level.getBlockEntity(worldPos);
+        if (blockEntity == null) {
+            throw new IllegalStateException("Create GameTest toolbox setup failed: missing block entity");
+        }
+
+        try {
+            var toolboxClass = Class.forName("com.simibubi.create.content.equipment.toolbox.ToolboxBlockEntity");
+            var handlerClass = Class.forName("com.simibubi.create.content.equipment.toolbox.ToolboxHandler");
+            if (toolboxClass.isInstance(blockEntity)) {
+                handlerClass.getMethod("onLoad", toolboxClass).invoke(null, blockEntity);
+            }
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Create GameTest toolbox registration failed", exception);
+        }
     }
 
     public static void placeBasinWithItems(ServerLevel level, BlockPos worldPos, ItemStack[] stacks) {
