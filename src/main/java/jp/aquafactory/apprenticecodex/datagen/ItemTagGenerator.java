@@ -611,6 +611,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(TagRegistry.Items.SPELL_AUTONOMY_CARD_CRAFTING_MATERIALS).add(
                 net.minecraft.world.item.Items.ENDER_EYE
         );
+        tag(TagRegistry.Items.MANA_MENDING_DENYLIST);
 
         // 魔法召喚武器はダミー用途のため、JEIなどのレシピビューアから除外する.
         tag(HIDDEN_FROM_RECIPE_VIEWERS).add(
