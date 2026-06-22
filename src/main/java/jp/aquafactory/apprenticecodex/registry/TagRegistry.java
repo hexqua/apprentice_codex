@@ -82,6 +82,8 @@ public final class TagRegistry {
                 createItemTag("spell_invoke_card_crafting_materials");
         public static final TagKey<Item> SPELL_AUTONOMY_CARD_CRAFTING_MATERIALS =
                 createItemTag("spell_autonomy_card_crafting_materials");
+        public static final TagKey<Item> MANA_MENDING_DENYLIST =
+                createItemTag("mana_mending_denylist");
     }
 
     public static final class EntityTypes {
