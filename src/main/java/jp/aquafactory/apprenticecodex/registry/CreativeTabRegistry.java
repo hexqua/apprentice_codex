@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.registry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
 import jp.aquafactory.apprenticecodex.potion.SchoolAffinityPotion;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
@@ -11,6 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.fml.ModList;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -62,6 +64,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get());
         output.accept(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get());
         output.accept(ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get());
+        addCreateRoundMaterialsToTab(output);
         output.accept(ItemRegistry.SPELL_INVOKE_CARD.get().getDefaultInstance());
         output.accept(ItemRegistry.SPELL_AUTONOMY_CARD.get().getDefaultInstance());
         output.accept(ItemRegistry.IRON_SPELLCASTER_GUN.get());
@@ -149,6 +152,17 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get());
         output.accept(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get());
         addSpellScrollsToTab(output);
+    }
+
+    private static void addCreateRoundMaterialsToTab(CreativeModeTab.Output output) {
+        if (!ModList.get().isLoaded(CreateCompat.MOD_ID)) {
+            return;
+        }
+
+        output.accept(ItemRegistry.ARCANE_PROPELLANT_CHARGE.get());
+        output.accept(ItemRegistry.SPELL_BULLET_HEAD.get());
+        output.accept(ItemRegistry.SPELL_BULLET_MOLD.get());
+        output.accept(ItemRegistry.SPELL_CASING_MOLD.get());
     }
 
     private static void addSpellScrollsToTab(CreativeModeTab.Output output) {
