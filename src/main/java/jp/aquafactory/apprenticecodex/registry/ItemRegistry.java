@@ -137,6 +137,16 @@ public final class ItemRegistry {
                     .build())));
 
     public static final RegistryObject<Item> SPELLSTAINED_ARCANE_INGOT = simple("spellstained_arcane_ingot");
+    public static final RegistryObject<Item> ARCANE_PROPELLANT_CHARGE =
+            ITEMS.register("arcane_propellant_charge", RoundIncompleteMaterialItem::new);
+    public static final RegistryObject<Item> SPELL_BULLET_HEAD =
+            ITEMS.register("spell_bullet_head", RoundIncompleteMaterialItem::new);
+    public static final RegistryObject<Item> SPELL_BULLET_MOLD =
+            ITEMS.register("spell_bullet_mold", RoundIncompleteMaterialItem::new);
+    public static final RegistryObject<Item> SPELL_CASING_MOLD =
+            ITEMS.register("spell_casing_mold", RoundIncompleteMaterialItem::new);
+    public static final RegistryObject<Item> INCOMPLETE_SPELLCASTER_ROUND =
+            ITEMS.register("incomplete_spellcaster_round", RoundIncompleteMaterialItem::new);
     public static final RegistryObject<Item> EMPTY_RAPID_SPELLCASTER_CASING =
             ITEMS.register("empty_rapid_spellcaster_casing", SpellcasterRoundItem::new);
     public static final RegistryObject<Item> EMPTY_BASIC_SPELLCASTER_CASING =

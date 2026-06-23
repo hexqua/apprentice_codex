@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "create"
+    }
+  ],
+  "key": {
+    "B": {
+      "tag": "forge:ingots/brass"
+    },
+    "R": {
+      "item": "apprenticecodex:empty_rapid_spellcaster_casing"
+    }
+  },
+  "pattern": [
+    " B ",
+    "BRB",
+    " B "
+  ],
+  "result": {
+    "item": "apprenticecodex:spell_casing_mold"
+  },
+  "show_notification": true
+}
