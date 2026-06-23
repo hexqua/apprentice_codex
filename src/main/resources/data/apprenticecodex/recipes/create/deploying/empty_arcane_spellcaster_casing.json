@@ -1,0 +1,24 @@
+{
+  "type": "create:deploying",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "create"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    {
+      "item": "apprenticecodex:spell_casing_mold"
+    }
+  ],
+  "keepHeldItem": true,
+  "results": [
+    {
+      "count": 12,
+      "item": "apprenticecodex:empty_arcane_spellcaster_casing"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "type": "create:deploying",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "create"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "apprenticecodex:spellstained_arcane_ingot"
+    },
+    {
+      "item": "apprenticecodex:spell_casing_mold"
+    }
+  ],
+  "keepHeldItem": true,
+  "results": [
+    {
+      "count": 16,
+      "item": "apprenticecodex:empty_spell_dominator_casing"
+    }
+  ]
+}

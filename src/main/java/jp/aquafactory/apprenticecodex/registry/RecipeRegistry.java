@@ -69,7 +69,6 @@ public final class RecipeRegistry {
                     "alchemists_flask_tipped_arrow",
                     () -> new SimpleCraftingRecipeSerializer<>(AlchemistsFlaskTippedArrowRecipe::new)
             );
-
     public static final RegistryObject<RecipeType<GrindRunnerRecipe>> GRIND_RUNNER_RECIPE_TYPE =
             RECIPE_TYPES.register("grind_runner", () -> new RecipeType<>() {
                 @Override
