@@ -954,6 +954,16 @@ public class ApprenticeCodexGameTestScenarios {
                 assertRecipeLoadedWithSerializerId(helper, recipeManager,
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_casing_mold"),
                         ResourceLocation.fromNamespaceAndPath("minecraft", "crafting_shaped"));
+                assertShapedRecipeCenterIngredientMatches(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_casing_mold"),
+                        new ItemStack(ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get()),
+                        new ItemStack(ItemRegistry.RAPID_SPELLCASTER_ROUND.get()),
+                        "Spell Casing Mold recipe should use the empty casing tag");
+                assertShapedRecipeCenterIngredientMatches(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_bullet_mold"),
+                        new ItemStack(ItemRegistry.RAPID_SPELLCASTER_ROUND.get()),
+                        new ItemStack(ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get()),
+                        "Spell Bullet Mold recipe should use Rapid Spellcaster Round");
                 assertRecipeLoadedWithSerializerId(helper, recipeManager,
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/mixing/arcane_propellant_charge"),
                         ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "mixing"));
@@ -11126,6 +11136,34 @@ public class ApprenticeCodexGameTestScenarios {
         var actualSerializerId = BuiltInRegistries.RECIPE_SERIALIZER.getKey(recipe.getSerializer());
         helper.assertTrue(expectedSerializerId.equals(actualSerializerId),
                 "Recipe serializer mismatch for " + recipeId + ": expected " + expectedSerializerId + " but got " + actualSerializerId);
+    }
+
+    static void assertShapedRecipeCenterIngredientMatches(
+            GameTestHelper helper,
+            RecipeManager recipeManager,
+            ResourceLocation recipeId,
+            ItemStack acceptedStack,
+            ItemStack rejectedStack,
+            String message
+    ) {
+        var recipe = recipeManager.byKey(recipeId).orElse(null);
+        helper.assertTrue(recipe instanceof net.minecraft.world.item.crafting.ShapedRecipe,
+                "Expected shaped recipe for " + recipeId);
+        if (!(recipe instanceof net.minecraft.world.item.crafting.ShapedRecipe shapedRecipe)) {
+            return;
+        }
+
+        var ingredients = shapedRecipe.getIngredients();
+        helper.assertTrue(ingredients.size() > 4, "Recipe center ingredient missing for " + recipeId);
+        if (ingredients.size() <= 4) {
+            return;
+        }
+
+        var centerIngredient = ingredients.get(4);
+        helper.assertTrue(centerIngredient.test(acceptedStack),
+                message + ": accepted stack did not match");
+        helper.assertFalse(centerIngredient.test(rejectedStack),
+                message + ": rejected stack unexpectedly matched");
     }
 
     static void assertSearchBeaconTarget(GameTestHelper helper, Item item, String expectedTarget) {
