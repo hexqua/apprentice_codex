@@ -27,7 +27,7 @@ public class DiamondSpellcasterGun extends AbstractSpellGunItem implements GeoIt
             ApprenticeCodexServerConfig::diamondSpellgunMaxInstantImbueCooldownTicks,
             false,
             ApprenticeCodexServerConfig::diamondSpellgunOverriddenSpellCooldownTicks,
-            0
+            true
     );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 

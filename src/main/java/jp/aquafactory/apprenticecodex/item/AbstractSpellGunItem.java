@@ -356,7 +356,8 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return spell.getCastType() == CastType.INSTANT || isZeroTickLongCastAnimationOverride(spell);
     }
 
-    public AnimationHolder getSpellGunCastStartAnimation(ItemStack stack, AbstractSpell spell, int spellLevel) {
+    public AnimationHolder getSpellGunCastStartAnimation() {
+        // モーションは全て片手INSTANTに上書きする.
         return SpellAnimations.ANIMATION_INSTANT_CAST;
     }
 
@@ -371,7 +372,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
     @Override
     public final AnimationHolder getCastStartAnimation(ItemStack stack, AbstractSpell spell, int spellLevel) {
-        return getSpellGunCastStartAnimation(stack, spell, spellLevel);
+        return getSpellGunCastStartAnimation();
     }
 
     @Override
@@ -401,7 +402,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
     @Nullable
     private Integer getOverriddenLongCastTicks() {
-        return spellGunConfig.overriddenLongCastDurationTicks();
+        return spellGunConfig.instantLongCast() ? 0 : null;
     }
 
     private boolean matchesSpellGunAnimationOverrideSpell(ItemStack stack, @Nullable AbstractSpell spell) {
@@ -420,8 +421,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     private boolean isZeroTickLongCastAnimationOverride(AbstractSpell spell) {
         return spell.getCastType() == CastType.LONG
                 && spellGunConfig.supports(SpellGunCastType.LONG)
-                && spellGunConfig.overriddenLongCastDurationTicks() != null
-                && spellGunConfig.overriddenLongCastDurationTicks() <= 0;
+                && spellGunConfig.instantLongCast();
     }
 
     private boolean passesImbueConditions(AbstractSpell spell, int spellLevel) {
@@ -760,15 +760,10 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             ));
         }
 
-        var overriddenLongCastTicks = getOverriddenLongCastTicks();
-        if (overriddenLongCastTicks != null) {
-            var translationKey = overriddenLongCastTicks <= 0
-                    ? "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant"
-                    : "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_reduce_cast";
-            var tooltip = overriddenLongCastTicks <= 0
-                    ? Component.translatable(translationKey)
-                    : Component.translatable(translationKey, ImbueTooltipHelper.formatTooltipSeconds(overriddenLongCastTicks));
-            translatedLines.add(tooltip.withStyle(ChatFormatting.GRAY));
+        if (spellGunConfig.instantLongCast()) {
+            translatedLines.add(ImbueTooltipHelper.translatableGray(
+                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant"
+            ));
         }
         return translatedLines;
     }
@@ -888,7 +883,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             @Nullable IntSupplier maxInstantImbueCooldownTicksSupplier,
             boolean requireZeroInstantRecast,
             @Nullable IntSupplier overriddenSpellCooldownTicksSupplier,
-            @Nullable Integer overriddenLongCastDurationTicks
+            boolean instantLongCast
     ) {
         public SpellGunConfig {
             supportedCastTypes = Set.copyOf(Objects.requireNonNull(supportedCastTypes));
