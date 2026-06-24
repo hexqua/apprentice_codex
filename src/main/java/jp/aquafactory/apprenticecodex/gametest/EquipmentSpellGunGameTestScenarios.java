@@ -425,6 +425,22 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             );
         });
     }
+    static void reflectcastShieldAbilityTooltipShowsManaBypass(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var lines = collectImbueShieldAbilityTooltipLines(helper);
+            helper.assertTrue(containsTranslatableKey(
+                            lines,
+                            "item.apprenticecodex.spellgun.tooltip.ability_no_mana"
+                    ),
+                    "Reflectcast Shield should show no-mana ability tooltip");
+            helper.assertTrue(containsTranslatableKey(
+                            lines,
+                            "item.apprenticecodex.spellgun.tooltip.ability_long_to_instant"
+                    ),
+                    "Reflectcast Shield should show instant LONG cast ability tooltip");
+        });
+    }
+
     static void spellgunServerConfigDefaultsMatchCurrentHardcodedValues(GameTestHelper helper) {
         helper.succeedIf(() -> {
             helper.assertTrue(ApprenticeCodexServerConfig.ironSpellgunMaxInstantImbueCooldownTicks() == 20 * 5,
@@ -584,6 +600,18 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             return (List<Component>) method.invoke(item);
         } catch (ReflectiveOperationException exception) {
             helper.fail("Spellgun ability tooltip reflection failed: " + exception);
+            return List.of();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Component> collectImbueShieldAbilityTooltipLines(GameTestHelper helper) {
+        try {
+            var method = AbstractImbueShieldItem.class.getDeclaredMethod("collectImbueShieldAbilityTooltipSection");
+            method.setAccessible(true);
+            return (List<Component>) method.invoke(null);
+        } catch (ReflectiveOperationException exception) {
+            helper.fail("Reflectcast Shield ability tooltip reflection failed: " + exception);
             return List.of();
         }
     }
