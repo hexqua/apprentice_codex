@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
+import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -151,6 +152,23 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     "Mithril Freecast Staff should accept Silver Ring adjustments");
             helper.assertFalse(mithrilFreecastStaffMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).mayPlace(healScroll),
                     "Mithril Freecast Staff should reject scroll placement");
+
+            var gauntletWithFreecastAdjustmentMenu = createSpellCalibrationBenchMenuWithTarget(
+                    player,
+                    new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get())
+            );
+            var playerInventoryMenuSlot = SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START
+                    + ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOT_COUNT;
+            player.getInventory().setItem(9, new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()));
+            var quickMovedFreecastStaff = gauntletWithFreecastAdjustmentMenu.quickMoveStack(player, playerInventoryMenuSlot);
+            helper.assertTrue(quickMovedFreecastStaff.is(ItemRegistry.MITHRIL_FREECAST_STAFF.get()),
+                    "Shift-clicked Mithril Freecast Staff should move while Scrollcaster Gauntlet is the target");
+            helper.assertTrue(player.getInventory().getItem(9).isEmpty(),
+                    "Shift-clicked Mithril Freecast Staff should leave the player inventory");
+            helper.assertTrue(gauntletWithFreecastAdjustmentMenu.getSlot(SpellCalibrationBenchMenu.ADJUSTMENT_MENU_SLOT_START)
+                            .getItem()
+                            .is(ItemRegistry.MITHRIL_FREECAST_STAFF.get()),
+                    "Shift-clicked Mithril Freecast Staff should enter a Scrollcaster Gauntlet adjustment slot");
 
             var suitCoat = new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_COAT.get());
             var suitCoatMenu = createSpellCalibrationBenchMenuWithTarget(player, suitCoat);
