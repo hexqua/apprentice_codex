@@ -9,8 +9,8 @@ public class NetheriteSwingcastStaff extends AbstractSwingcastStaffItem {
             Rarity.RARE,
             15,
             7.0D,
-            allNonContinuousCastTypes(),
-            SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME,
+            instantOnlyCastTypes(),
+            SwingcastCooldownMode.IMBUED_ONLY,
             bonus(AttributeRegistry.SPELL_POWER, 0.1, AttributeModifier.Operation.MULTIPLY_BASE)
     );
 

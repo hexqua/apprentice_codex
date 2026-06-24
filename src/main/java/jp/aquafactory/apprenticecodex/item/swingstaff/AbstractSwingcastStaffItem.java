@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.renderer.item.SwingcastStaffRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -46,6 +47,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem implements GeoItem, IJeiInfoItem {
     private static final String JEI_INFO_GROUP_ID = "swingcast_staves";
@@ -200,6 +202,17 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
     }
 
     @Override
+    protected void onInvalidSwingTriggeredSpell(Player player, ItemStack stack, SpellData spellData) {
+        player.displayClientMessage(
+                Component.translatable(
+                        "ui.apprenticecodex.swingcast.cannot_swing_cast",
+                        spellData.getSpell().getDisplayName(player)
+                ).withStyle(ChatFormatting.RED),
+                true
+        );
+    }
+
+    @Override
     protected AutoCloseable openSwingTriggeredSpellCastContext(
             Player player,
             ItemStack stack,
@@ -325,13 +338,37 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
     ) {
         // Swingcast Staff でも Offhand 系と同じ `bonus(...)` 記法を使えるよう、
         // mainhand 用 AttributeBonus を tier 定義専用の BonusSpec へ変換して受け取る。
-        var tierHandBonuses = List.of(handBonuses).stream()
+        var tierHandBonuses = Stream.of(handBonuses)
                 .map(AbstractSwingcastStaffItem::toBonusSpec)
                 .toList();
         return createTierFromBonusSpecs(
                 rarity,
                 enchantmentValue,
                 displayedAttackDamage,
+                1.6D,
+                tierHandBonuses,
+                supportedCastTypes,
+                swingcastCooldownMode
+        );
+    }
+
+    protected static SwingcastStaffTier createTier(
+            net.minecraft.world.item.Rarity rarity,
+            int enchantmentValue,
+            double displayedAttackDamage,
+            double displayedAttackSpeed,
+            Set<SpellGunCastType> supportedCastTypes,
+            SwingcastCooldownMode swingcastCooldownMode,
+            AttributeBonus... handBonuses
+    ) {
+        var tierHandBonuses = Stream.of(handBonuses)
+                .map(AbstractSwingcastStaffItem::toBonusSpec)
+                .toList();
+        return createTierFromBonusSpecs(
+                rarity,
+                enchantmentValue,
+                displayedAttackDamage,
+                displayedAttackSpeed,
                 tierHandBonuses,
                 supportedCastTypes,
                 swingcastCooldownMode
@@ -342,6 +379,7 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
             net.minecraft.world.item.Rarity rarity,
             int enchantmentValue,
             double displayedAttackDamage,
+            double displayedAttackSpeed,
             List<SwingcastStaffTier.BonusSpec> handBonuses,
             Set<SpellGunCastType> supportedCastTypes,
             SwingcastCooldownMode swingcastCooldownMode
@@ -350,7 +388,7 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
                 rarity,
                 enchantmentValue,
                 displayedAttackDamage,
-                1.6D,
+                displayedAttackSpeed,
                 handBonuses,
                 supportedCastTypes,
                 null,
@@ -406,9 +444,13 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
                     ));
                 }
             }
-            case IMBUED_PLUS_LONG_CAST_TIME -> translatedLines.add(ImbueTooltipHelper.translatableGray(
-                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_extend_cooldown"
-            ));
+            case IMBUED_PLUS_LONG_CAST_TIME -> {
+                if (tier.supportedCastTypes().contains(SpellGunCastType.LONG)) {
+                    translatedLines.add(ImbueTooltipHelper.translatableGray(
+                            "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_extend_cooldown"
+                    ));
+                }
+            }
             case IMBUED_ONLY -> {
             }
         }

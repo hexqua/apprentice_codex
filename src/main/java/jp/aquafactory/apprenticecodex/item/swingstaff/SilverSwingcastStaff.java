@@ -10,7 +10,7 @@ public class SilverSwingcastStaff extends AbstractSwingcastStaffItem {
             18,
             3.0D,
             allNonContinuousCastTypes(),
-            SwingcastCooldownMode.IMBUED_ONLY,
+            SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME,
             bonus(AttributeRegistry.SPELL_POWER, 0.05, AttributeModifier.Operation.MULTIPLY_BASE),
             bonus(AttributeRegistry.MAX_MANA, 50, AttributeModifier.Operation.ADDITION)
     );
