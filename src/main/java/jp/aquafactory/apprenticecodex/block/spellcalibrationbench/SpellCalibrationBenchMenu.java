@@ -232,9 +232,14 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     public boolean shouldRenderMismatchCastConditionWarning(int slot) {
-        return hasRevolvercastStaff()
-                && isScrollSlotEnabled(slot)
-                && RevolvercastStaff.isMismatchedCastConditionScroll(getGauntletStack(), slot);
+        if (!isScrollSlotEnabled(slot)) {
+            return false;
+        }
+        if (hasRevolvercastStaff()) {
+            return RevolvercastStaff.isMismatchedCastConditionScroll(getGauntletStack(), slot);
+        }
+        return hasOperationalImbueTarget()
+                && SpellCalibrationImbueHelper.isMismatchedCastConditionAt(getGauntletStack(), slot);
     }
 
     public boolean hasTargetSpellAt(int slot) {

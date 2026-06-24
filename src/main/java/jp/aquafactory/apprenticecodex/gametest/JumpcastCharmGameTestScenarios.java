@@ -4,7 +4,6 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
-import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.curios.jumpcastcharm.JumpcastCharm;
 import jp.aquafactory.apprenticecodex.item.curios.jumpcastcharm.JumpcastCharmCastManager;
@@ -52,11 +51,11 @@ final class JumpcastCharmGameTestScenarios extends ApprenticeCodexGameTestScenar
                             1
                     ),
                     "Jumpcast Charm should accept INSTANT spells");
-            helper.assertTrue(charm.canImbueSpell(
+            helper.assertFalse(charm.canImbueSpell(
                             io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get(),
                             1
                     ),
-                    "Jumpcast Charm should accept LONG spells");
+                    "Jumpcast Charm should reject LONG spells");
             helper.assertFalse(charm.canImbueSpell(jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_CHARGE.get(), 1),
                     "Jumpcast Charm should reject CONTINUOUS spells");
             helper.assertTrue(SpellCalibrationImbueHelper.isSupportedTarget(stack),
@@ -70,9 +69,15 @@ final class JumpcastCharmGameTestScenarios extends ApprenticeCodexGameTestScenar
                             createSpellScroll(jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_CHARGE.get())
                     ),
                     "Jumpcast Charm should reject CONTINUOUS scrolls in the Spell Calibration Bench");
+            helper.assertFalse(menu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).mayPlace(
+                            createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get())
+                    ),
+                    "Jumpcast Charm should reject LONG scrolls in the Spell Calibration Bench");
             menu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(
                     createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())
             );
+            helper.assertFalse(menu.shouldRenderMismatchCastConditionWarning(0),
+                    "Calibration-imbued INSTANT Jumpcast Charm should not show a cast condition mismatch warning");
             assertStackHasSpell(
                     helper,
                     stack,
@@ -80,6 +85,18 @@ final class JumpcastCharmGameTestScenarios extends ApprenticeCodexGameTestScenar
                     1,
                     "Calibration-imbued Jumpcast Charm should contain magic_missile"
             );
+
+            var legacyLongStack = new ItemStack(ItemRegistry.JUMPCAST_CHARM.get());
+            charm.initializeSpellContainer(legacyLongStack);
+            setSingleUnlockedSpell(
+                    helper,
+                    legacyLongStack,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get(),
+                    1
+            );
+            var legacyLongMenu = createSpellCalibrationBenchMenuWithTarget(player, legacyLongStack);
+            helper.assertTrue(legacyLongMenu.shouldRenderMismatchCastConditionWarning(0),
+                    "Legacy LONG Jumpcast Charm should show a cast condition mismatch warning");
         });
     }
 
@@ -101,31 +118,23 @@ final class JumpcastCharmGameTestScenarios extends ApprenticeCodexGameTestScenar
         });
     }
 
-    static void jumpcastCharmLongSpellCompletesImmediatelyAndExtendsCooldown(GameTestHelper helper) {
+    static void jumpcastCharmLongSpellFailsWithoutSpendingOrCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
             var player = createJumpcastPlayer(helper, "jumpcast_charm_long_test", spell, 1);
             var magicData = magicData(helper, player, "long");
             magicData.getSyncedData().learnSpell(spell, false);
             magicData.setMana(500.0F);
-            player.setHealth(Math.max(1.0F, player.getMaxHealth() - 10.0F));
+            var manaBefore = magicData.getMana();
 
-            helper.assertTrue(JumpcastCharmCastManager.tryCast(player),
-                    "Jumpcast Charm should cast an imbued LONG spell while airborne");
+            helper.assertFalse(JumpcastCharmCastManager.tryCast(player),
+                    "Jumpcast Charm should reject an imbued LONG spell while airborne");
             helper.assertFalse(magicData.isCasting(),
-                    "Jumpcast Charm LONG cast should complete immediately");
-
-            var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
-            var expectedCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
-                    spell,
-                    player,
-                    CastSource.SWORD,
-                    getEquippedJumpcastCharm(player)
-            ) + spell.getEffectiveCastTime(1, player);
-            helper.assertTrue(cooldown != null && cooldown.getSpellCooldown() == expectedCooldown,
-                    "Jumpcast Charm LONG cooldown should add the original cast time but got "
-                            + (cooldown == null ? "null" : cooldown.getSpellCooldown())
-                            + " / expected " + expectedCooldown);
+                    "Rejected Jumpcast Charm LONG cast should not start casting");
+            helper.assertTrue(Math.abs(magicData.getMana() - manaBefore) < 1.0e-4F,
+                    "Rejected Jumpcast Charm LONG cast should not spend mana: " + magicData.getMana());
+            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "Rejected Jumpcast Charm LONG cast should not add cooldown");
         });
     }
 
@@ -240,14 +249,6 @@ final class JumpcastCharmGameTestScenarios extends ApprenticeCodexGameTestScenar
         setSingleUnlockedSpell(helper, stack, spell, spellLevel);
         equipCurio(player, CuriosSlotConstants.FEET, stack);
         return player;
-    }
-
-    private static ItemStack getEquippedJumpcastCharm(net.minecraftforge.common.util.FakePlayer player) {
-        return top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
-                .resolve()
-                .flatMap(inventory -> inventory.findFirstCurio(stack -> stack.getItem() instanceof JumpcastCharm))
-                .map(top.theillusivec4.curios.api.SlotResult::stack)
-                .orElse(ItemStack.EMPTY);
     }
 
     private static MagicData magicData(
