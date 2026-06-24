@@ -222,7 +222,12 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
         }
 
         var spellData = getPrimarySpellData(stack);
-        if (spellData == null || !canImbueSpell(spellData)) {
+        if (spellData == null) {
+            return false;
+        }
+
+        if (!canImbueSpell(spellData)) {
+            onInvalidSwingTriggeredSpell(player, stack, spellData);
             return false;
         }
 
@@ -262,6 +267,9 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
             @Nullable MagicData magicData
     ) {
         return 0;
+    }
+
+    protected void onInvalidSwingTriggeredSpell(Player player, ItemStack stack, SpellData spellData) {
     }
 
     protected AutoCloseable openSwingTriggeredSpellCastContext(

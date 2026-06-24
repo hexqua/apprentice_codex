@@ -3,11 +3,13 @@ package jp.aquafactory.apprenticecodex.item;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -15,20 +17,34 @@ import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -42,17 +58,29 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
         implements GeoItem, CastAnimationOverrideItem, IJeiInfoItem, SwingTriggeredMagicItem, ArcaneAnvilImbueBlockItem {
     private static final String ITEM_KEY = "mithril_freecast_staff";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.mithril_freecast_staff.desc_";
+    public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     private static final String MAIN_CONTROLLER = "main";
+    private static final String CALIBRATION_TAG = "SpellCalibration";
+    private static final String ADJUSTMENTS_TAG = "Adjustments";
+    private static final String SLOT_TAG = "Slot";
+    private static final String ITEM_TAG = "Item";
+    private static final String SCHOOL_POWER_SCHOOL_TAG = "SchoolPowerSchool";
+    private static final HolderLookup.Provider FALLBACK_SERIALIZATION_LOOKUP =
+            RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final int ENCHANTMENT_VALUE = 15;
     private static final double DISPLAYED_ATTACK_DAMAGE = 8.0D;
     private static final double DISPLAYED_ATTACK_SPEED = 1.8D;
-    private static final double SPELL_POWER_BONUS = 0.1D;
+    private static final double GENERAL_SPELL_POWER_BONUS = 0.10D;
+    private static final double SCHOOL_SPELL_POWER_BONUS = 0.15D;
+    private static final ResourceLocation SPELL_POWER_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "mithril_freecast_staff.mainhand.spell_power");
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final ResourceLocation textureLocation = ResourceLocation.fromNamespaceAndPath(
@@ -67,9 +95,7 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
                 ENCHANTMENT_VALUE,
                 ITEM_KEY,
                 DISPLAYED_ATTACK_DAMAGE,
-                DISPLAYED_ATTACK_SPEED - 4.0D,
-                bonus(AttributeRegistry.SPELL_POWER.value(), SPELL_POWER_BONUS,
-                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE, "spell_power")
+                DISPLAYED_ATTACK_SPEED - 4.0D
         );
         GeoItem.registerSyncedAnimatable(this);
     }
@@ -80,6 +106,55 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
 
     public boolean hasCustomRendering() {
         return true;
+    }
+
+    @Override
+    public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers(@NotNull ItemStack stack) {
+        var builder = ItemAttributeModifiers.builder();
+        builder.add(
+                net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
+                new AttributeModifier(
+                        Item.BASE_ATTACK_DAMAGE_ID,
+                        DISPLAYED_ATTACK_DAMAGE - 1.0D,
+                        AttributeModifier.Operation.ADD_VALUE
+                ),
+                EquipmentSlotGroup.MAINHAND
+        );
+        builder.add(
+                net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED,
+                new AttributeModifier(
+                        Item.BASE_ATTACK_SPEED_ID,
+                        DISPLAYED_ATTACK_SPEED - 4.0D,
+                        AttributeModifier.Operation.ADD_VALUE
+                ),
+                EquipmentSlotGroup.MAINHAND
+        );
+
+        var spellPowerAmount = SCHOOL_SPELL_POWER_BONUS;
+        var spellPowerAttribute = getResolvedSchoolPowerAttribute(stack);
+        if (spellPowerAttribute == null) {
+            builder.add(
+                    AttributeRegistry.SPELL_POWER,
+                    new AttributeModifier(
+                            SPELL_POWER_MODIFIER_ID,
+                            GENERAL_SPELL_POWER_BONUS,
+                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                    ),
+                    EquipmentSlotGroup.MAINHAND
+            );
+            return builder.build();
+        }
+
+        builder.add(
+                BuiltInRegistries.ATTRIBUTE.wrapAsHolder(spellPowerAttribute),
+                new AttributeModifier(
+                        SPELL_POWER_MODIFIER_ID,
+                        spellPowerAmount,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                ),
+                EquipmentSlotGroup.MAINHAND
+        );
+        return builder.build();
     }
 
     @Override
@@ -133,7 +208,7 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
 
         var spellData = selectionOption.spellData;
         var spell = spellData.getSpell();
-        if (!canSwingCastSpell(spell)) {
+        if (!canSwingCastSpell(spell, hasSilverRingAdjustment(stack))) {
             return false;
         }
 
@@ -164,7 +239,7 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
                     spell,
                     magicData,
                     resolveSpellSelectionSlot(hand),
-                    spell.getCastType() == CastType.LONG ? 0 : null
+                    spell.getCastType() == CastType.LONG && hasSilverRingAdjustment(stack) ? 0 : null
             );
             return true;
         } catch (Exception exception) {
@@ -172,7 +247,7 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
         }
     }
 
-    public int resolveSwingTriggeredCooldownTicks(Player player, ItemStack stack, AbstractSpell spell, int currentEffectiveCooldown) {
+    public int resolveSwingTriggeredCooldownTicks(Player player, AbstractSpell spell, int currentEffectiveCooldown) {
         var spellLevel = resolveEffectiveSpellLevel(player, spell);
         return currentEffectiveCooldown
                 + (spell.getCastType() == CastType.LONG ? spell.getEffectiveCastTime(spellLevel, player) : 0);
@@ -203,7 +278,14 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
                                 @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
         lines.add(Component.translatable("item.apprenticecodex.freecast.common.desc").withStyle(ChatFormatting.GRAY));
-        appendFreecastTooltip(lines);
+        var resolvedSchool = getResolvedCalibrationSchool(stack);
+        if (resolvedSchool != null) {
+            lines.add(Component.translatable(
+                    "item.apprenticecodex.revolvercast_staff.school_rune",
+                    resolvedSchool.getDisplayName()
+            ).withStyle(ChatFormatting.GRAY));
+        }
+        appendFreecastTooltip(stack, lines);
     }
 
     @Override
@@ -227,12 +309,77 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     public static boolean canSwingCastSpell(@Nullable AbstractSpell spell) {
+        return canSwingCastSpell(spell, false);
+    }
+
+    public static boolean canSwingCastSpell(@Nullable AbstractSpell spell, boolean enablesLongCast) {
         if (spell == null || spell == SpellRegistry.none()) {
             return false;
         }
 
-        return EnumSet.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG)
+        return getSupportedSwingCastTypes(enablesLongCast)
                 .contains(SpellGunCastType.from(spell.getCastType()));
+    }
+
+    public static EnumSet<SpellGunCastType> getSupportedSwingCastTypes(@NotNull ItemStack staffStack) {
+        return getSupportedSwingCastTypes(hasSilverRingAdjustment(staffStack));
+    }
+
+    public static EnumSet<SpellGunCastType> getSupportedSwingCastTypes(boolean enablesLongCast) {
+        return enablesLongCast
+                ? EnumSet.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG)
+                : EnumSet.of(SpellGunCastType.INSTANT);
+    }
+
+    public static @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack staffStack, int slot) {
+        return getCalibrationItem(staffStack, slot);
+    }
+
+    public static void setCalibrationAdjustment(@NotNull ItemStack staffStack, int slot, @NotNull ItemStack stack) {
+        setCalibrationItem(staffStack, slot, stack);
+        refreshResolvedCalibrationSchool(staffStack);
+    }
+
+    public static void refreshResolvedCalibrationSchool(@NotNull ItemStack staffStack) {
+        if (!isValidCalibrationAccess(staffStack, 0)) {
+            return;
+        }
+
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            var school = ScrollcasterSchoolRuneResolver.resolveSchool(getCalibrationAdjustment(staffStack, slot));
+            if (school.isPresent()) {
+                setResolvedCalibrationSchoolId(staffStack, school.get().getId());
+                return;
+            }
+        }
+
+        clearResolvedCalibrationSchool(staffStack);
+    }
+
+    public static @Nullable SchoolType getResolvedCalibrationSchool(ItemStack stack) {
+        var schoolId = getResolvedCalibrationSchoolId(stack);
+        return schoolId == null ? null : SchoolRegistry.getSchool(schoolId);
+    }
+
+    public static boolean isCalibrationAdjustmentItem(@NotNull ItemStack stack) {
+        return ScrollcasterSchoolRuneResolver.isSchoolRune(stack) || isSilverRing(stack);
+    }
+
+    public static boolean isSilverRing(@NotNull ItemStack stack) {
+        return !stack.isEmpty() && stack.getItem() == io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get();
+    }
+
+    public static boolean hasSilverRingAdjustment(@NotNull ItemStack staffStack) {
+        if (!isValidCalibrationAccess(staffStack, 0)) {
+            return false;
+        }
+
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            if (isSilverRing(getCalibrationAdjustment(staffStack, slot))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private int resolveEffectiveSpellLevel(Player player, AbstractSpell spell) {
@@ -252,29 +399,161 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
         return spell.getLevelFor(1, player);
     }
 
-    private void appendFreecastTooltip(List<Component> lines) {
+    private static @Nullable Attribute getResolvedSchoolPowerAttribute(ItemStack stack) {
+        return MagicTools.resolveSchoolPowerAttribute(getResolvedCalibrationSchool(stack));
+    }
+
+    private static @NotNull ItemStack getCalibrationItem(@NotNull ItemStack staffStack, int slot) {
+        if (!isValidCalibrationAccess(staffStack, slot)) {
+            return ItemStack.EMPTY;
+        }
+
+        var calibrationTag = getCalibrationTag(staffStack);
+        if (calibrationTag == null || !calibrationTag.contains(ADJUSTMENTS_TAG, Tag.TAG_LIST)) {
+            return ItemStack.EMPTY;
+        }
+
+        var list = calibrationTag.getList(ADJUSTMENTS_TAG, Tag.TAG_COMPOUND);
+        for (var index = 0; index < list.size(); ++index) {
+            var entry = list.getCompound(index);
+            if (entry.getInt(SLOT_TAG) != slot || !entry.contains(ITEM_TAG, Tag.TAG_COMPOUND)) {
+                continue;
+            }
+            return ItemStack.parseOptional(serializationLookup(), entry.getCompound(ITEM_TAG));
+        }
+        return ItemStack.EMPTY;
+    }
+
+    private static void setCalibrationItem(@NotNull ItemStack staffStack, int slot, @NotNull ItemStack stack) {
+        if (!isValidCalibrationAccess(staffStack, slot)) {
+            return;
+        }
+
+        updateCalibrationTag(staffStack, calibrationTag -> {
+            var list = calibrationTag.contains(ADJUSTMENTS_TAG, Tag.TAG_LIST)
+                    ? calibrationTag.getList(ADJUSTMENTS_TAG, Tag.TAG_COMPOUND)
+                    : new ListTag();
+            removeCalibrationItem(list, slot);
+
+            if (!stack.isEmpty()) {
+                var storedStack = stack.copy();
+                storedStack.setCount(1);
+                var entry = new CompoundTag();
+                entry.putInt(SLOT_TAG, slot);
+                entry.put(ITEM_TAG, storedStack.saveOptional(serializationLookup()));
+                list.add(entry);
+            }
+
+            if (list.isEmpty()) {
+                calibrationTag.remove(ADJUSTMENTS_TAG);
+            } else {
+                calibrationTag.put(ADJUSTMENTS_TAG, list);
+            }
+        });
+    }
+
+    private static ResourceLocation getResolvedCalibrationSchoolId(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return null;
+        }
+
+        var calibrationTag = getCalibrationTag(stack);
+        if (calibrationTag == null || !calibrationTag.contains(SCHOOL_POWER_SCHOOL_TAG, Tag.TAG_STRING)) {
+            return null;
+        }
+
+        return ResourceLocation.tryParse(calibrationTag.getString(SCHOOL_POWER_SCHOOL_TAG));
+    }
+
+    private static void setResolvedCalibrationSchoolId(ItemStack stack, ResourceLocation schoolId) {
+        updateCalibrationTag(stack, tag -> tag.putString(SCHOOL_POWER_SCHOOL_TAG, schoolId.toString()));
+    }
+
+    private static void clearResolvedCalibrationSchool(ItemStack stack) {
+        updateCalibrationTag(stack, tag -> tag.remove(SCHOOL_POWER_SCHOOL_TAG));
+    }
+
+    private static @Nullable CompoundTag getCustomDataTag(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return null;
+        }
+
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        return customData == null ? null : customData.copyTag();
+    }
+
+    private static @Nullable CompoundTag getCalibrationTag(ItemStack stack) {
+        var rootTag = getCustomDataTag(stack);
+        if (rootTag == null || !rootTag.contains(CALIBRATION_TAG, Tag.TAG_COMPOUND)) {
+            return null;
+        }
+        return rootTag.getCompound(CALIBRATION_TAG);
+    }
+
+    private static void updateCalibrationTag(ItemStack stack, Consumer<CompoundTag> updater) {
+        if (stack == null || stack.isEmpty()) {
+            return;
+        }
+
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, rootTag -> {
+            var calibrationTag = rootTag.contains(CALIBRATION_TAG, Tag.TAG_COMPOUND)
+                    ? rootTag.getCompound(CALIBRATION_TAG)
+                    : new CompoundTag();
+            updater.accept(calibrationTag);
+            if (calibrationTag.isEmpty()) {
+                rootTag.remove(CALIBRATION_TAG);
+            } else {
+                rootTag.put(CALIBRATION_TAG, calibrationTag);
+            }
+        });
+    }
+
+    private static HolderLookup.Provider serializationLookup() {
+        var server = ServerLifecycleHooks.getCurrentServer();
+        return server == null ? FALLBACK_SERIALIZATION_LOOKUP : server.registryAccess();
+    }
+
+    private static void removeCalibrationItem(ListTag list, int slot) {
+        for (var index = list.size() - 1; index >= 0; --index) {
+            if (list.getCompound(index).getInt(SLOT_TAG) == slot) {
+                list.remove(index);
+            }
+        }
+    }
+
+    private static boolean isValidCalibrationAccess(@NotNull ItemStack staffStack, int slot) {
+        return !staffStack.isEmpty()
+                && staffStack.getItem() instanceof MithrilFreecastStaff
+                && slot >= 0
+                && slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT;
+    }
+
+    private void appendFreecastTooltip(ItemStack stack, List<Component> lines) {
         ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
         if (ImbueTooltipHelper.appendHintIfDetailsHidden(lines)) {
             return;
         }
 
-        ImbueTooltipHelper.appendTooltipSection(
-                lines,
-                List.of(
+        var abilityLines = hasSilverRingAdjustment(stack)
+                ? List.of(
                         ImbueTooltipHelper.translatableGray(
                                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant"
                         ),
                         ImbueTooltipHelper.translatableGray(
                                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_extend_cooldown"
                         )
-                ),
+                )
+                : List.<Component>of();
+        ImbueTooltipHelper.appendTooltipSection(
+                lines,
+                abilityLines,
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_freecast_title",
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_none"
         );
         ImbueTooltipHelper.appendTooltipSection(
                 lines,
                 ImbueTooltipHelper.collectCastTypeRestrictionLines(
-                        EnumSet.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG)
+                        getSupportedSwingCastTypes(stack)
                 ),
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_freecast_title",
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_none"

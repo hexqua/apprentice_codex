@@ -29,6 +29,8 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
     private static final int DISABLED_SLOT_V = 0;
     private static final int RESTRICTED_SLOT_U = 192;
     private static final int RESTRICTED_SLOT_V = 0;
+    private static final int MISMATCH_SLOT_U = 208;
+    private static final int MISMATCH_SLOT_V = 0;
     private static final int BLOCKED_SLOT_U = 177;
     private static final int BLOCKED_SLOT_V = 16;
     private static final int BLOCKED_SLOT_SIZE = 15;
@@ -43,6 +45,8 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
             Component.translatable("ui.apprenticecodex.spell_calibration_bench.cant_imbue_unsupported_equipment");
     private static final Component WARNING_RESTRICT_IMBUE_CONDITION =
             Component.translatable("ui.apprenticecodex.spell_calibration_bench.warning_restrict_imbue_condition");
+    private static final Component WARNING_MISMATCH_CAST_CONDITION =
+            Component.translatable("ui.apprenticecodex.spell_calibration_bench.warning_mismatch_cast_condition");
     private static final Component SCROLL_LABEL =
             Component.translatable("container.apprenticecodex.spell_calibration_bench.scroll_label");
     private static final Component SLOT_UPGRADE_GROUP =
@@ -71,6 +75,7 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
     protected void renderBg(@NotNull GuiGraphics gui, float partialTicks, int mouseX, int mouseY) {
         gui.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
         renderRestrictedSlotWarnings(gui);
+        renderMismatchCastConditionWarnings(gui);
         renderLockedPreviewScrolls(gui);
         renderDisabledSlotOverlays(gui);
         renderUnsupportedImbueOverlays(gui);
@@ -117,6 +122,11 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
             tooltip.add(WARNING_RESTRICT_IMBUE_CONDITION);
             tooltip.addAll(menu.getImbueRestrictionTooltipLines());
             gui.renderComponentTooltip(font, tooltip, mouseX, mouseY);
+            return;
+        }
+
+        if (findHoveredMismatchedCastConditionSlot(mouseX, mouseY) >= 0) {
+            gui.renderTooltip(font, WARNING_MISMATCH_CAST_CONDITION, mouseX, mouseY);
             return;
         }
 
@@ -174,6 +184,23 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
 
     private void renderRestrictedSlotWarning(GuiGraphics gui, int x, int y) {
         gui.blit(TEXTURE, leftPos + x, topPos + y, RESTRICTED_SLOT_U, RESTRICTED_SLOT_V, SLOT_SIZE, SLOT_SIZE);
+    }
+
+    private void renderMismatchCastConditionWarnings(GuiGraphics gui) {
+        for (var slot = 0; slot < ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOT_COUNT; ++slot) {
+            if (!menu.shouldRenderMismatchCastConditionWarning(slot)) {
+                continue;
+            }
+            renderMismatchCastConditionWarning(
+                    gui,
+                    SpellCalibrationBenchMenu.SCROLL_SLOT_X + slot % SCROLL_COLUMNS * SLOT_SPACING,
+                    SpellCalibrationBenchMenu.SCROLL_SLOT_Y + slot / SCROLL_COLUMNS * SLOT_SPACING
+            );
+        }
+    }
+
+    private void renderMismatchCastConditionWarning(GuiGraphics gui, int x, int y) {
+        gui.blit(TEXTURE, leftPos + x, topPos + y, MISMATCH_SLOT_U, MISMATCH_SLOT_V, SLOT_SIZE, SLOT_SIZE);
     }
 
     private void renderUnsupportedImbueOverlays(GuiGraphics gui) {
@@ -269,6 +296,16 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
         return -1;
     }
 
+    private int findHoveredMismatchedCastConditionSlot(int mouseX, int mouseY) {
+        for (var slot = 0; slot < ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOT_COUNT; ++slot) {
+            if (!menu.shouldRenderMismatchCastConditionWarning(slot) || !isHoveringScrollSlot(slot, mouseX, mouseY)) {
+                continue;
+            }
+            return slot;
+        }
+        return -1;
+    }
+
     private boolean isRestrictedWarningSlot(int slot) {
         return menu.isScrollSlotEnabled(slot)
                 && menu.getScrollItem(slot).isEmpty();
@@ -308,6 +345,11 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
             lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_runes"));
             return List.copyOf(lines);
         }
+        if (menu.hasMithrilFreecastStaff()) {
+            lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_runes"));
+            appendSilverRingHint(lines);
+            return List.copyOf(lines);
+        }
         lines.add(SLOT_UPGRADE_GROUP);
         appendTaggedItemHintLines(
                 lines,
@@ -325,6 +367,7 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
                     "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_single_specific_item",
                     new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()).getHoverName()
             ));
+            appendSilverRingHint(lines);
         }
         lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_runes"));
         if (menu.hasRevolvercastStaff()) {
@@ -332,8 +375,16 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
                     "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_single_specific_item",
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()).getHoverName()
             ));
+            appendSilverRingHint(lines);
         }
         return List.copyOf(lines);
+    }
+
+    private static void appendSilverRingHint(List<Component> lines) {
+        lines.add(Component.translatable(
+                "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_single_specific_item",
+                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()).getHoverName()
+        ));
     }
 
     private static void appendTaggedItemHintLines(List<Component> lines, TagKey<Item> tag, ItemStack fallbackStack) {
