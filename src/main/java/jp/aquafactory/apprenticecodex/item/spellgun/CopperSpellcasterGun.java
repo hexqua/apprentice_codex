@@ -30,7 +30,7 @@ public class CopperSpellcasterGun extends AbstractSpellGunItem implements GeoIte
             ApprenticeCodexServerConfig::copperSpellgunMaxInstantImbueCooldownTicks,
             false,
             ApprenticeCodexServerConfig::copperSpellgunOverriddenSpellCooldownTicks,
-            0
+            true
     );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
