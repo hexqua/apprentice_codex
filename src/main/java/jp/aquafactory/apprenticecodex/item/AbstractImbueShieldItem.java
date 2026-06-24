@@ -338,7 +338,7 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
 
         ImbueTooltipHelper.appendTooltipSection(
                 lines,
-                List.of(ImbueTooltipHelper.translatableGray("item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant")),
+                collectImbueShieldAbilityTooltipSection(),
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_title",
                 null
         );
@@ -351,6 +351,13 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
     }
 
     protected void appendAlwaysVisibleImbueTooltip(List<Component> lines) {
+    }
+
+    private static List<Component> collectImbueShieldAbilityTooltipSection() {
+        return List.of(
+                ImbueTooltipHelper.translatableGray("item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_no_mana"),
+                ImbueTooltipHelper.translatableGray("item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant")
+        );
     }
 
     private static List<Component> collectRestrictTooltipSection() {

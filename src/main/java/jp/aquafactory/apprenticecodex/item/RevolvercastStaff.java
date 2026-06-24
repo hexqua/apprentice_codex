@@ -226,11 +226,22 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
 
         refreshSelectedSpellContainer(stack);
         var spellData = getSelectedSpellData(stack);
-        if (spellData == SpellData.EMPTY || !canImbueSpell(spellData)) {
+        if (spellData == SpellData.EMPTY) {
             return false;
         }
 
         var spell = spellData.getSpell();
+        if (!canSwingCastSpell(stack, spell)) {
+            player.displayClientMessage(
+                    Component.translatable(
+                            "ui.apprenticecodex.swingcast.cannot_swing_cast",
+                            spell.getDisplayName(player)
+                    ).withStyle(ChatFormatting.RED),
+                    true
+            );
+            return false;
+        }
+
         var magicData = MagicData.getPlayerMagicData(player);
         if (magicData != null && magicData.getPlayerCooldowns().isOnCooldown(spell)) {
             if (advanceAfterFailedCastIfNeeded(stack)) {
@@ -270,7 +281,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
                     spell,
                     magicData,
                     resolveSpellSelectionSlot(hand),
-                    spell.getCastType() == CastType.LONG ? 0 : null
+                    spell.getCastType() == CastType.LONG && hasSilverRingAdjustment(stack) ? 0 : null
             );
             return true;
         } catch (Exception exception) {
@@ -309,7 +320,11 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
 
     @Override
     public List<Component> getImbueRestrictionTooltipLines() {
-        return collectRestrictTooltipSection();
+        return ImbueTooltipHelper.collectCastTypeRestrictionLines(getSupportedSwingCastTypes(false));
+    }
+
+    public List<Component> getImbueRestrictionTooltipLines(ItemStack stack) {
+        return collectRestrictTooltipSection(stack);
     }
 
     @Override
@@ -329,7 +344,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
                     resolvedSchool.getDisplayName()
             ).withStyle(ChatFormatting.GRAY));
         }
-        appendRevolvercastTooltip(lines);
+        appendRevolvercastTooltip(stack, lines);
     }
 
     @Override
@@ -374,12 +389,30 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     public static boolean canSwingCastSpell(@Nullable AbstractSpell spell) {
+        return canSwingCastSpell(spell, false);
+    }
+
+    public static boolean canSwingCastSpell(@NotNull ItemStack staffStack, @Nullable AbstractSpell spell) {
+        return canSwingCastSpell(spell, hasSilverRingAdjustment(staffStack));
+    }
+
+    public static boolean canSwingCastSpell(@Nullable AbstractSpell spell, boolean enablesLongCast) {
         if (spell == null || spell == SpellRegistry.none()) {
             return false;
         }
 
-        return EnumSet.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG)
+        return getSupportedSwingCastTypes(enablesLongCast)
                 .contains(SpellGunCastType.from(spell.getCastType()));
+    }
+
+    public static EnumSet<SpellGunCastType> getSupportedSwingCastTypes(@NotNull ItemStack staffStack) {
+        return getSupportedSwingCastTypes(hasSilverRingAdjustment(staffStack));
+    }
+
+    public static EnumSet<SpellGunCastType> getSupportedSwingCastTypes(boolean enablesLongCast) {
+        return enablesLongCast
+                ? EnumSet.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG)
+                : EnumSet.of(SpellGunCastType.INSTANT);
     }
 
     public static @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack staffStack, int slot) {
@@ -452,7 +485,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         return isValidCalibrationAccess(staffStack, 0, 1)
                 && selectedScrollIndex >= 0
                 && selectedScrollIndex < getEnabledCalibrationScrollSlotCount(staffStack)
-                && isValidScrollSpell(getCalibrationScroll(staffStack, selectedScrollIndex));
+                && isCastableScrollSpell(staffStack, getCalibrationScroll(staffStack, selectedScrollIndex));
     }
 
     public static int normalizeSelectedScrollIndex(@NotNull ItemStack staffStack) {
@@ -508,6 +541,17 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         return getScrollSpellData(getCalibrationScroll(staffStack, selectedIndex));
     }
 
+    public static boolean isMismatchedCastConditionScroll(@NotNull ItemStack staffStack, int slot) {
+        if (!isValidCalibrationAccess(staffStack, slot, CALIBRATION_SCROLL_SLOT_COUNT)) {
+            return false;
+        }
+
+        var spellData = getScrollSpellData(getCalibrationScroll(staffStack, slot));
+        return spellData != SpellData.EMPTY
+                && spellData.getSpell() != null
+                && !canSwingCastSpell(staffStack, spellData.getSpell());
+    }
+
     public static void refreshSelectedSpellContainer(@NotNull ItemStack staffStack) {
         var spellData = getSelectedSpellData(staffStack);
         if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
@@ -546,7 +590,10 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     public static boolean isCalibrationAdjustmentItem(@NotNull ItemStack stack) {
-        return isCalibrationSlotUpgrade(stack) || ScrollcasterSchoolRuneResolver.isSchoolRune(stack) || isRecoveryRune(stack);
+        return isCalibrationSlotUpgrade(stack)
+                || ScrollcasterSchoolRuneResolver.isSchoolRune(stack)
+                || isRecoveryRune(stack)
+                || isSilverRing(stack);
     }
 
     public static boolean isCalibrationSlotUpgrade(@NotNull ItemStack stack) {
@@ -557,9 +604,22 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         return !stack.isEmpty() && stack.getItem() == io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get();
     }
 
+    public static boolean isSilverRing(@NotNull ItemStack stack) {
+        return MithrilFreecastStaff.isSilverRing(stack);
+    }
+
     public static boolean hasRecoveryRune(@NotNull ItemStack staffStack) {
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
             if (isRecoveryRune(getCalibrationAdjustment(staffStack, slot))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasSilverRingAdjustment(@NotNull ItemStack staffStack) {
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            if (isSilverRing(getCalibrationAdjustment(staffStack, slot))) {
                 return true;
             }
         }
@@ -604,36 +664,39 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         return spell.getLevelFor(1, player);
     }
 
-    private void appendRevolvercastTooltip(List<Component> lines) {
+    private void appendRevolvercastTooltip(ItemStack stack, List<Component> lines) {
         ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
         if (ImbueTooltipHelper.appendHintIfDetailsHidden(lines)) {
             return;
         }
 
-        ImbueTooltipHelper.appendTooltipSection(
-                lines,
-                List.of(
+        var abilityLines = hasSilverRingAdjustment(stack)
+                ? List.of(
                         ImbueTooltipHelper.translatableGray(
                                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant"
                         ),
                         ImbueTooltipHelper.translatableGray(
                                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_extend_cooldown"
                         )
-                ),
+                )
+                : List.<Component>of();
+        ImbueTooltipHelper.appendTooltipSection(
+                lines,
+                abilityLines,
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_swingcast_title",
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_none"
         );
         ImbueTooltipHelper.appendTooltipSection(
                 lines,
-                collectRestrictTooltipSection(),
+                collectRestrictTooltipSection(stack),
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_title",
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_none"
         );
     }
 
-    private static List<Component> collectRestrictTooltipSection() {
+    private static List<Component> collectRestrictTooltipSection(ItemStack stack) {
         return ImbueTooltipHelper.collectCastTypeRestrictionLines(
-                EnumSet.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG)
+                getSupportedSwingCastTypes(stack)
         );
     }
 
@@ -697,7 +760,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     private static int findFirstValidScrollIndex(@NotNull ItemStack staffStack) {
         var enabledSlotCount = getEnabledCalibrationScrollSlotCount(staffStack);
         for (var slot = 0; slot < enabledSlotCount; ++slot) {
-            if (isValidScrollSpell(getCalibrationScroll(staffStack, slot))) {
+            if (isCastableScrollSpell(staffStack, getCalibrationScroll(staffStack, slot))) {
                 return slot;
             }
         }
@@ -713,15 +776,18 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         var startIndex = currentIndex < 0 ? 0 : currentIndex + 1;
         for (var offset = 0; offset < enabledSlotCount; ++offset) {
             var slot = (startIndex + offset) % enabledSlotCount;
-            if (isValidScrollSpell(getCalibrationScroll(staffStack, slot))) {
+            if (isCastableScrollSpell(staffStack, getCalibrationScroll(staffStack, slot))) {
                 return slot;
             }
         }
         return -1;
     }
 
-    private static boolean isValidScrollSpell(@NotNull ItemStack scrollStack) {
-        return getScrollSpellData(scrollStack) != SpellData.EMPTY;
+    private static boolean isCastableScrollSpell(@NotNull ItemStack staffStack, @NotNull ItemStack scrollStack) {
+        var spellData = getScrollSpellData(scrollStack);
+        return spellData != SpellData.EMPTY
+                && spellData.getSpell() != null
+                && canSwingCastSpell(staffStack, spellData.getSpell());
     }
 
     private static @NotNull SpellData getScrollSpellData(@NotNull ItemStack scrollStack) {
