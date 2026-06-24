@@ -1209,12 +1209,19 @@ public class ApprenticeCodexGameTestScenarios {
                     "No Spellcaster Workbench recipes were loaded");
 
             if (ModList.get().isLoaded(CREATE_MOD_ID)) {
+                var brassIngot = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "brass_ingot"));
                 assertRecipeLoadedWithSerializerId(helper, recipeManager,
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_bullet_mold"),
                         ResourceLocation.fromNamespaceAndPath("minecraft", "crafting_shaped"));
                 assertRecipeLoadedWithSerializerId(helper, recipeManager,
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_casing_mold"),
                         ResourceLocation.fromNamespaceAndPath("minecraft", "crafting_shaped"));
+                assertRecipeAcceptsIngredientItem(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_bullet_mold"),
+                        brassIngot);
+                assertRecipeAcceptsIngredientItem(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_casing_mold"),
+                        brassIngot);
                 assertRecipeLoadedWithSerializerId(helper, recipeManager,
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/mixing/arcane_propellant_charge"),
                         ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "mixing"));
@@ -11957,11 +11964,27 @@ public class ApprenticeCodexGameTestScenarios {
             ResourceLocation recipeId,
             ResourceLocation expectedSerializerId
     ) {
-        var recipe = recipeManager.byKey(recipeId).orElse(null);
-        helper.assertTrue(recipe != null, "Missing recipe: " + recipeId);
+        var recipeHolder = recipeManager.byKey(recipeId).orElse(null);
+        helper.assertTrue(recipeHolder != null, "Missing recipe: " + recipeId);
+        var recipe = recipeHolder.value();
         var actualSerializerId = BuiltInRegistries.RECIPE_SERIALIZER.getKey(recipe.getSerializer());
         helper.assertTrue(expectedSerializerId.equals(actualSerializerId),
                 "Recipe serializer mismatch for " + recipeId + ": expected " + expectedSerializerId + " but got " + actualSerializerId);
+    }
+
+    static void assertRecipeAcceptsIngredientItem(
+            GameTestHelper helper,
+            RecipeManager recipeManager,
+            ResourceLocation recipeId,
+            Item expectedItem
+    ) {
+        var recipeHolder = recipeManager.byKey(recipeId).orElse(null);
+        helper.assertTrue(recipeHolder != null, "Missing recipe: " + recipeId);
+        var expectedStack = new ItemStack(expectedItem);
+        var acceptsItem = recipeHolder.value().getIngredients().stream()
+                .anyMatch(ingredient -> ingredient.test(expectedStack));
+        helper.assertTrue(acceptsItem, "Recipe " + recipeId + " should accept "
+                + BuiltInRegistries.ITEM.getKey(expectedItem));
     }
 
     static void assertSearchBeaconTarget(GameTestHelper helper, Item item, String expectedTarget) {

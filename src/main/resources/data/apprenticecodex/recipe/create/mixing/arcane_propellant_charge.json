@@ -6,7 +6,6 @@
       "modid": "create"
     }
   ],
-  "heatRequirement": "heated",
   "ingredients": [
     {
       "item": "minecraft:gunpowder"
@@ -18,7 +17,8 @@
   "results": [
     {
       "count": 64,
-      "item": "apprenticecodex:arcane_propellant_charge"
+      "id": "apprenticecodex:arcane_propellant_charge"
     }
-  ]
+  ],
+  "heat_requirement": "heated"
 }

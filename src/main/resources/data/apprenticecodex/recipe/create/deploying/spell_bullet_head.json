@@ -14,11 +14,11 @@
       "item": "apprenticecodex:spell_bullet_mold"
     }
   ],
-  "keepHeldItem": true,
   "results": [
     {
       "count": 24,
-      "item": "apprenticecodex:spell_bullet_head"
+      "id": "apprenticecodex:spell_bullet_head"
     }
-  ]
+  ],
+  "keep_held_item": true
 }

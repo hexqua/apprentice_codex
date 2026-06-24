@@ -9,7 +9,7 @@
   ],
   "key": {
     "B": {
-      "tag": "forge:ingots/brass"
+      "tag": "c:ingots/brass"
     },
     "R": {
       "item": "apprenticecodex:empty_rapid_spellcaster_casing"
@@ -21,7 +21,7 @@
     " B "
   ],
   "result": {
-    "item": "apprenticecodex:spell_casing_mold"
+    "id": "apprenticecodex:spell_casing_mold"
   },
   "show_notification": true
 }

@@ -12,7 +12,7 @@
   "loops": 1,
   "results": [
     {
-      "item": "apprenticecodex:multi_purpose_spell_round"
+      "id": "apprenticecodex:multi_purpose_spell_round"
     }
   ],
   "sequence": [
@@ -28,7 +28,7 @@
       ],
       "results": [
         {
-          "item": "apprenticecodex:incomplete_spellcaster_round"
+          "id": "apprenticecodex:incomplete_spellcaster_round"
         }
       ]
     },
@@ -44,7 +44,7 @@
       ],
       "results": [
         {
-          "item": "apprenticecodex:incomplete_spellcaster_round"
+          "id": "apprenticecodex:incomplete_spellcaster_round"
         }
       ]
     },
@@ -57,12 +57,12 @@
       ],
       "results": [
         {
-          "item": "apprenticecodex:incomplete_spellcaster_round"
+          "id": "apprenticecodex:incomplete_spellcaster_round"
         }
       ]
     }
   ],
-  "transitionalItem": {
-    "item": "apprenticecodex:incomplete_spellcaster_round"
+  "transitional_item": {
+    "id": "apprenticecodex:incomplete_spellcaster_round"
   }
 }

@@ -14,11 +14,11 @@
       "item": "apprenticecodex:spell_casing_mold"
     }
   ],
-  "keepHeldItem": true,
   "results": [
     {
       "count": 24,
-      "item": "apprenticecodex:empty_rapid_spellcaster_casing"
+      "id": "apprenticecodex:empty_rapid_spellcaster_casing"
     }
-  ]
+  ],
+  "keep_held_item": true
 }
