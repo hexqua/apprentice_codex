@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.item.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
 import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
+import jp.aquafactory.apprenticecodex.item.RoundIncompleteMaterialItem;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationBenchItem;
@@ -164,6 +165,16 @@ public final class ItemRegistry {
                     .build())));
 
     public static final DeferredHolder<Item, Item> SPELLSTAINED_ARCANE_INGOT = simple("spellstained_arcane_ingot");
+    public static final DeferredHolder<Item, Item> ARCANE_PROPELLANT_CHARGE =
+            ITEMS.register("arcane_propellant_charge", RoundIncompleteMaterialItem::new);
+    public static final DeferredHolder<Item, Item> SPELL_BULLET_HEAD =
+            ITEMS.register("spell_bullet_head", RoundIncompleteMaterialItem::new);
+    public static final DeferredHolder<Item, Item> SPELL_BULLET_MOLD =
+            ITEMS.register("spell_bullet_mold", RoundIncompleteMaterialItem::new);
+    public static final DeferredHolder<Item, Item> SPELL_CASING_MOLD =
+            ITEMS.register("spell_casing_mold", RoundIncompleteMaterialItem::new);
+    public static final DeferredHolder<Item, Item> INCOMPLETE_SPELLCASTER_ROUND =
+            ITEMS.register("incomplete_spellcaster_round", RoundIncompleteMaterialItem::new);
     public static final DeferredHolder<Item, Item> EMPTY_RAPID_SPELLCASTER_CASING =
             ITEMS.register("empty_rapid_spellcaster_casing", () -> new SpellcasterRoundItem());
     public static final DeferredHolder<Item, Item> EMPTY_BASIC_SPELLCASTER_CASING =

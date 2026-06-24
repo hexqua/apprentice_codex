@@ -1207,6 +1207,64 @@ public class ApprenticeCodexGameTestScenarios {
                     "No Grind Runner recipes were loaded");
             helper.assertFalse(recipeManager.getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get()).isEmpty(),
                     "No Spellcaster Workbench recipes were loaded");
+
+            if (ModList.get().isLoaded(CREATE_MOD_ID)) {
+                var brassIngot = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "brass_ingot"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_bullet_mold"),
+                        ResourceLocation.fromNamespaceAndPath("minecraft", "crafting_shaped"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_casing_mold"),
+                        ResourceLocation.fromNamespaceAndPath("minecraft", "crafting_shaped"));
+                assertRecipeAcceptsIngredientItem(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_bullet_mold"),
+                        brassIngot);
+                assertRecipeAcceptsIngredientItem(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_casing_mold"),
+                        brassIngot);
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/mixing/arcane_propellant_charge"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "mixing"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/deploying/spell_bullet_head"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "deploying"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/deploying/empty_rapid_spellcaster_casing"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "deploying"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/deploying/empty_basic_spellcaster_casing"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "deploying"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/deploying/empty_arcane_spellcaster_casing"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "deploying"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/deploying/empty_advanced_spellcaster_casing"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "deploying"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/deploying/empty_spell_dominator_casing"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "deploying"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/deploying/empty_multi_purpose_spell_casing"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "deploying"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/sequenced_assembly/rapid_spellcaster_round"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "sequenced_assembly"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/sequenced_assembly/basic_spellcaster_round"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "sequenced_assembly"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/sequenced_assembly/arcane_spellcaster_round"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "sequenced_assembly"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/sequenced_assembly/advanced_spellcaster_round"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "sequenced_assembly"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/sequenced_assembly/spell_dominator_round"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "sequenced_assembly"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/sequenced_assembly/multi_purpose_spell_round"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "sequenced_assembly"));
+            }
         });
     }
 
@@ -11898,6 +11956,35 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(recipe.getType() == expectedType,
                     "Recipe type mismatch for " + recipeId + ": " + BuiltInRegistries.RECIPE_TYPE.getKey(recipe.getType()));
         }
+    }
+
+    static void assertRecipeLoadedWithSerializerId(
+            GameTestHelper helper,
+            RecipeManager recipeManager,
+            ResourceLocation recipeId,
+            ResourceLocation expectedSerializerId
+    ) {
+        var recipeHolder = recipeManager.byKey(recipeId).orElse(null);
+        helper.assertTrue(recipeHolder != null, "Missing recipe: " + recipeId);
+        var recipe = recipeHolder.value();
+        var actualSerializerId = BuiltInRegistries.RECIPE_SERIALIZER.getKey(recipe.getSerializer());
+        helper.assertTrue(expectedSerializerId.equals(actualSerializerId),
+                "Recipe serializer mismatch for " + recipeId + ": expected " + expectedSerializerId + " but got " + actualSerializerId);
+    }
+
+    static void assertRecipeAcceptsIngredientItem(
+            GameTestHelper helper,
+            RecipeManager recipeManager,
+            ResourceLocation recipeId,
+            Item expectedItem
+    ) {
+        var recipeHolder = recipeManager.byKey(recipeId).orElse(null);
+        helper.assertTrue(recipeHolder != null, "Missing recipe: " + recipeId);
+        var expectedStack = new ItemStack(expectedItem);
+        var acceptsItem = recipeHolder.value().getIngredients().stream()
+                .anyMatch(ingredient -> ingredient.test(expectedStack));
+        helper.assertTrue(acceptsItem, "Recipe " + recipeId + " should accept "
+                + BuiltInRegistries.ITEM.getKey(expectedItem));
     }
 
     static void assertSearchBeaconTarget(GameTestHelper helper, Item item, String expectedTarget) {

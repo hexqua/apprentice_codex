@@ -1,0 +1,24 @@
+{
+  "type": "create:deploying",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "minecraft:gold_ingot"
+    },
+    {
+      "item": "apprenticecodex:spell_casing_mold"
+    }
+  ],
+  "results": [
+    {
+      "count": 16,
+      "id": "apprenticecodex:empty_advanced_spellcaster_casing"
+    }
+  ],
+  "keep_held_item": true
+}
