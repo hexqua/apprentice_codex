@@ -12,7 +12,7 @@
       "tag": "forge:ingots/brass"
     },
     "R": {
-      "item": "apprenticecodex:empty_rapid_spellcaster_casing"
+      "tag": "apprenticecodex:spellcaster_empty_casings"
     }
   },
   "pattern": [
