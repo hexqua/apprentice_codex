@@ -109,7 +109,7 @@ public class JumpcastCharm extends Item implements ICurioItem, RestrictedSpellIm
 
     @Override
     public boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel) {
-        return spell != null && spell != SpellRegistry.none() && spell.getCastType() != CastType.CONTINUOUS;
+        return spell != null && spell != SpellRegistry.none() && spell.getCastType() == CastType.INSTANT;
     }
 
     @Override
@@ -180,20 +180,13 @@ public class JumpcastCharm extends Item implements ICurioItem, RestrictedSpellIm
     }
 
     private static List<Component> collectJumpcastAbilityTooltipSection() {
-        var translatedLines = new ArrayList<Component>();
-        translatedLines.add(ImbueTooltipHelper.translatableGray(
-                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant"
-        ));
-        translatedLines.add(ImbueTooltipHelper.translatableGray(
-                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_extend_cooldown"
-        ));
-        return translatedLines;
+        return List.of();
     }
 
     private static List<Component> collectJumpcastRestrictTooltipSection() {
         var translatedLines = new ArrayList<Component>();
         translatedLines.add(ImbueTooltipHelper.translatableGray(
-                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_not_continuous"
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_instant_only"
         ));
         return translatedLines;
     }

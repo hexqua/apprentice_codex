@@ -248,6 +248,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellcasterGunAbilityTooltipUsesInstantLongCastOnly(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellcasterGunAbilityTooltipUsesInstantLongCastOnly(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void reflectcastShieldAbilityTooltipShowsManaBypass(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.reflectcastShieldAbilityTooltipShowsManaBypass(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellgunServerConfigDefaultsMatchCurrentHardcodedValues(GameTestHelper helper) {
         EquipmentSpellGunGameTestScenarios.spellgunServerConfigDefaultsMatchCurrentHardcodedValues(helper);
     }
@@ -543,8 +553,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = JUMPCAST_CHARM_CONFIG_BATCH)
-    public static void jumpcastCharmLongSpellCompletesImmediatelyAndExtendsCooldown(GameTestHelper helper) {
-        JumpcastCharmGameTestScenarios.jumpcastCharmLongSpellCompletesImmediatelyAndExtendsCooldown(helper);
+    public static void jumpcastCharmLongSpellFailsWithoutSpendingOrCooldown(GameTestHelper helper) {
+        JumpcastCharmGameTestScenarios.jumpcastCharmLongSpellFailsWithoutSpendingOrCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = JUMPCAST_CHARM_CONFIG_BATCH)

@@ -355,6 +355,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import java.util.List;
+
 final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private EquipmentSpellGunGameTestScenarios() {
     }
@@ -395,6 +397,50 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                     "Diamond Spellcaster Gun should continue rejecting continuous spells");
         });
     }
+    static void spellcasterGunAbilityTooltipUsesInstantLongCastOnly(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertSpellgunAbilityTooltipKeys(
+                    helper,
+                    (AbstractSpellGunItem) ItemRegistry.IRON_SPELLCASTER_GUN.get(),
+                    false,
+                    "Iron Spellcaster Gun"
+            );
+            assertSpellgunAbilityTooltipKeys(
+                    helper,
+                    (AbstractSpellGunItem) ItemRegistry.COPPER_SPELLCASTER_GUN.get(),
+                    true,
+                    "Copper Spellcaster Gun"
+            );
+            assertSpellgunAbilityTooltipKeys(
+                    helper,
+                    (AbstractSpellGunItem) ItemRegistry.GOLD_SPELLCASTER_GUN.get(),
+                    false,
+                    "Gold Spellcaster Gun"
+            );
+            assertSpellgunAbilityTooltipKeys(
+                    helper,
+                    (AbstractSpellGunItem) ItemRegistry.DIAMOND_SPELLCASTER_GUN.get(),
+                    true,
+                    "Diamond Spellcaster Gun"
+            );
+        });
+    }
+    static void reflectcastShieldAbilityTooltipShowsManaBypass(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var lines = collectImbueShieldAbilityTooltipLines(helper);
+            helper.assertTrue(containsTranslatableKey(
+                            lines,
+                            "item.apprenticecodex.spellgun.tooltip.ability_no_mana"
+                    ),
+                    "Reflectcast Shield should show no-mana ability tooltip");
+            helper.assertTrue(containsTranslatableKey(
+                            lines,
+                            "item.apprenticecodex.spellgun.tooltip.ability_long_to_instant"
+                    ),
+                    "Reflectcast Shield should show instant LONG cast ability tooltip");
+        });
+    }
+
     static void spellgunServerConfigDefaultsMatchCurrentHardcodedValues(GameTestHelper helper) {
         helper.succeedIf(() -> {
             helper.assertTrue(ApprenticeCodexServerConfig.ironSpellgunMaxInstantImbueCooldownTicks() == 20 * 5,
@@ -523,6 +569,57 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                     ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get()
             ) == 1, "Recast Spellcaster Gun cast should not consume ammo from the cast event");
         });
+    }
+
+    private static void assertSpellgunAbilityTooltipKeys(
+            GameTestHelper helper,
+            AbstractSpellGunItem item,
+            boolean expectInstantLongCast,
+            String itemName
+    ) {
+        var lines = collectSpellgunAbilityTooltipLines(helper, item);
+        var hasInstantLongCast = containsTranslatableKey(
+                lines,
+                "item.apprenticecodex.spellgun.tooltip.ability_long_to_instant"
+        );
+        var hasReduceCast = containsTranslatableKey(
+                lines,
+                "item.apprenticecodex.spellgun.tooltip." + "ability_reduce_" + "cast"
+        );
+        helper.assertTrue(hasInstantLongCast == expectInstantLongCast,
+                itemName + " instant LONG cast tooltip mismatch");
+        helper.assertFalse(hasReduceCast,
+                itemName + " should not show removed reduce-cast tooltip key");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Component> collectSpellgunAbilityTooltipLines(GameTestHelper helper, AbstractSpellGunItem item) {
+        try {
+            var method = AbstractSpellGunItem.class.getDeclaredMethod("collectSpellGunAbilityTooltipSection");
+            method.setAccessible(true);
+            return (List<Component>) method.invoke(item);
+        } catch (ReflectiveOperationException exception) {
+            helper.fail("Spellgun ability tooltip reflection failed: " + exception);
+            return List.of();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Component> collectImbueShieldAbilityTooltipLines(GameTestHelper helper) {
+        try {
+            var method = AbstractImbueShieldItem.class.getDeclaredMethod("collectImbueShieldAbilityTooltipSection");
+            method.setAccessible(true);
+            return (List<Component>) method.invoke(null);
+        } catch (ReflectiveOperationException exception) {
+            helper.fail("Reflectcast Shield ability tooltip reflection failed: " + exception);
+            return List.of();
+        }
+    }
+
+    private static boolean containsTranslatableKey(List<Component> lines, String key) {
+        return lines.stream().anyMatch(component ->
+                component.getContents() instanceof TranslatableContents contents && key.equals(contents.getKey())
+        );
     }
     static void goldSpellcasterGunImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
         helper.succeedIf(() -> {

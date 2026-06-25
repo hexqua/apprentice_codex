@@ -15,8 +15,9 @@ public class GoldSwingcastStaff extends AbstractSwingcastStaffItem {
             Rarity.UNCOMMON,
             22,
             3.0D,
-            allNonContinuousCastTypes(),
-            SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME,
+            2.0D,
+            instantOnlyCastTypes(),
+            SwingcastCooldownMode.IMBUED_ONLY,
             bonus((Holder<Attribute>) AttributeRegistry.SPELL_POWER, 0.05, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
     );
 

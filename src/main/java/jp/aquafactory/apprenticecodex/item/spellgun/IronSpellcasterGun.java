@@ -26,7 +26,7 @@ public class IronSpellcasterGun extends AbstractSpellGunItem implements GeoItem 
             ApprenticeCodexServerConfig::ironSpellgunMaxInstantImbueCooldownTicks,
             true,
             ApprenticeCodexServerConfig::ironSpellgunOverriddenSpellCooldownTicks,
-            null
+            false
     );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 

@@ -471,6 +471,42 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertFalse(suitHoodMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).mayPlace(healScroll),
                     "Magi Agent Suit non-chest pieces should reject scroll placement");
 
+            var mithrilFreecastStaffMenu = createSpellCalibrationBenchMenuWithTarget(
+                    player,
+                    new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get())
+            );
+            helper.assertTrue(mithrilFreecastStaffMenu.hasMithrilFreecastStaff(),
+                    "Mithril Freecast Staff should be accepted by Spell Calibration Bench as an adjustment target");
+            helper.assertTrue(mithrilFreecastStaffMenu.isAdjustmentSlotEnabled(0),
+                    "Mithril Freecast Staff should expose adjustment slots");
+            helper.assertTrue(mithrilFreecastStaffMenu.getEnabledScrollSlotCount() == 0,
+                    "Mithril Freecast Staff should not expose scroll slots at the Spell Calibration Bench");
+            helper.assertTrue(mithrilFreecastStaffMenu.getSlot(SpellCalibrationBenchMenu.ADJUSTMENT_MENU_SLOT_START)
+                            .mayPlace(fireRune),
+                    "Mithril Freecast Staff should accept school runes in adjustment slots");
+            helper.assertTrue(mithrilFreecastStaffMenu.getSlot(SpellCalibrationBenchMenu.ADJUSTMENT_MENU_SLOT_START)
+                            .mayPlace(new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())),
+                    "Mithril Freecast Staff should accept Silver Ring adjustments");
+            helper.assertFalse(mithrilFreecastStaffMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).mayPlace(healScroll),
+                    "Mithril Freecast Staff should reject scroll placement");
+
+            var gauntletWithFreecastAdjustmentMenu = createSpellCalibrationBenchMenuWithTarget(
+                    player,
+                    new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get())
+            );
+            var playerInventoryMenuSlot = SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START
+                    + ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOT_COUNT;
+            player.getInventory().setItem(9, new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()));
+            var quickMovedFreecastStaff = gauntletWithFreecastAdjustmentMenu.quickMoveStack(player, playerInventoryMenuSlot);
+            helper.assertTrue(quickMovedFreecastStaff.is(ItemRegistry.MITHRIL_FREECAST_STAFF.get()),
+                    "Shift-clicked Mithril Freecast Staff should move while Scrollcaster Gauntlet is the target");
+            helper.assertTrue(player.getInventory().getItem(9).isEmpty(),
+                    "Shift-clicked Mithril Freecast Staff should leave the player inventory");
+            helper.assertTrue(gauntletWithFreecastAdjustmentMenu.getSlot(SpellCalibrationBenchMenu.ADJUSTMENT_MENU_SLOT_START)
+                            .getItem()
+                            .is(ItemRegistry.MITHRIL_FREECAST_STAFF.get()),
+                    "Shift-clicked Mithril Freecast Staff should enter a Scrollcaster Gauntlet adjustment slot");
+
             var suitCoat = new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_COAT.get());
             var suitCoatMenu = createSpellCalibrationBenchMenuWithTarget(player, suitCoat);
             helper.assertTrue(suitCoatMenu.getEnabledScrollSlotCount() == 1,
@@ -617,12 +653,12 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     "Calibration Bench server logic should not expose Crystal Bladed Staff replacement");
 
             var mithrilFreecastStaff = createInitializedPresetStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
-            helper.assertFalse(unsupportedMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(mithrilFreecastStaff),
-                    "Calibration Bench should reject Arcane Anvil imbue blocked items");
+            helper.assertTrue(unsupportedMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(mithrilFreecastStaff),
+                    "Calibration Bench should accept Mithril Freecast Staff as an adjustment target");
             helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(mithrilFreecastStaff, 0, magicMissileScroll),
-                    "Calibration Bench server logic should reject Arcane Anvil imbue blocked items");
+                    "Calibration Bench server logic should reject direct spell insertion into Mithril Freecast Staff");
             helper.assertFalse(SpellCalibrationImbueHelper.setScrollAt(mithrilFreecastStaff, 0, magicMissileScroll.copy()),
-                    "Calibration Bench should not directly set spells on Arcane Anvil imbue blocked items");
+                    "Calibration Bench should not directly set spells on Mithril Freecast Staff");
 
             var disallowedSpellMenu = createSpellCalibrationBenchMenuWithTarget(player, new ItemStack(autocastAmulet));
             helper.assertFalse(disallowedSpellMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START)

@@ -34,7 +34,7 @@ public final class MithrilFreecastStaffCastEvent {
         }
 
         event.setEffectiveCooldown(
-                freecastStaff.resolveSwingTriggeredCooldownTicks(player, castingItem, event.getSpell(), event.getEffectiveCooldown())
+                freecastStaff.resolveSwingTriggeredCooldownTicks(player, event.getSpell(), event.getEffectiveCooldown())
         );
     }
 }

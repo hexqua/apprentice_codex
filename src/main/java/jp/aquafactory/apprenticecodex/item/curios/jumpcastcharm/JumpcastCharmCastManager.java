@@ -7,9 +7,10 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.item.curios.manathruster.ManaThrusterContext;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.FluidTags;
@@ -50,14 +51,24 @@ public final class JumpcastCharmCastManager {
         }
 
         charm.initializeSpellContainer(stack);
-        charm.normalizeImbuedSpellContainer(stack);
 
         var spellData = getSpellData(stack);
-        if (spellData == SpellData.EMPTY || !charm.canImbueSpell(spellData)) {
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
             return false;
         }
 
         var spell = spellData.getSpell();
+        if (spell.getCastType() == CastType.LONG) {
+            sendActionBar(player, Component.translatable(
+                    "ui.apprenticecodex.jumpcast.cannot_long_cast",
+                    spell.getDisplayName(player)
+            ).withStyle(ChatFormatting.RED));
+            return false;
+        }
+        if (!charm.canImbueSpell(spellData)) {
+            return false;
+        }
+
         var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
         var magicData = MagicData.getPlayerMagicData(player);
         if (magicData == null) {
@@ -76,7 +87,7 @@ public final class JumpcastCharmCastManager {
         }
 
         var castingSlot = createCastingSlot(slotResult.get());
-        var context = new ActiveJumpcast(spell.getSpellId(), JUMPCAST_SOURCE, stack.copy(), spellLevel);
+        var context = new ActiveJumpcast(spell.getSpellId(), JUMPCAST_SOURCE, stack.copy());
         ACTIVE_JUMPCASTS.put(player.getUUID(), context);
         try {
             var casted = spell.attemptInitiateCast(
@@ -92,18 +103,7 @@ public final class JumpcastCharmCastManager {
                 return false;
             }
 
-            if (spell.getCastType() == CastType.INSTANT) {
-                completeInstantCastImmediately(player, spellLevel, spell, magicData);
-            } else {
-                TriggeredSpellCastHelper.applyLongCastDurationOverride(
-                        player,
-                        spellLevel,
-                        spell,
-                        magicData,
-                        castingSlot,
-                        spell.getCastType() == CastType.LONG ? 0 : null
-                );
-            }
+            completeInstantCastImmediately(player, spellLevel, spell, magicData);
             return true;
         } catch (RuntimeException exception) {
             ApprenticeCodex.LOGGER.warn(
@@ -143,7 +143,7 @@ public final class JumpcastCharmCastManager {
                         player,
                         event.getCastSource(),
                         context.castingStack()
-                ) + context.longCastExtensionTicks(player, event.getSpell().getCastType())
+                )
         );
     }
 
@@ -170,7 +170,7 @@ public final class JumpcastCharmCastManager {
                 + slotResult.slotContext().index();
     }
 
-    private static void sendActionBar(ServerPlayer player, net.minecraft.network.chat.Component message) {
+    private static void sendActionBar(ServerPlayer player, Component message) {
         if (player.connection != null) {
             player.connection.send(new ClientboundSetActionBarTextPacket(message));
         }
@@ -190,23 +190,10 @@ public final class JumpcastCharmCastManager {
     private record ActiveJumpcast(
             String spellId,
             CastSource castSource,
-            ItemStack castingStack,
-            int spellLevel
+            ItemStack castingStack
     ) {
         private boolean matches(String spellId, CastSource castSource) {
             return this.spellId.equals(spellId) && this.castSource == castSource;
-        }
-
-        private int longCastExtensionTicks(ServerPlayer player, CastType castType) {
-            if (castType != CastType.LONG) {
-                return 0;
-            }
-
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(spellId);
-            if (spell == null || spell == io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()) {
-                return 0;
-            }
-            return Math.max(0, spell.getEffectiveCastTime(spellLevel, player));
         }
     }
 }

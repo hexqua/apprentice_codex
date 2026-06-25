@@ -117,6 +117,17 @@ public final class SpellCalibrationImbueHelper {
         return getSpellDataAt(targetStack, slot) != SpellData.EMPTY;
     }
 
+    public static boolean isMismatchedCastConditionAt(@NotNull ItemStack targetStack, int slot) {
+        if (!(targetStack.getItem() instanceof RestrictedSpellImbuableItem spellImbueItem)) {
+            return false;
+        }
+
+        var spellData = getSpellDataAt(targetStack, slot);
+        return spellData != SpellData.EMPTY
+                && spellData.getSpell() != null
+                && !spellImbueItem.canImbueSpell(spellData);
+    }
+
     public static @NotNull List<Component> getImbueRestrictionTooltipLines(@NotNull ItemStack targetStack) {
         if (targetStack.getItem() instanceof RestrictedSpellImbuableItem spellImbueItem) {
             return spellImbueItem.getImbueRestrictionTooltipLines();
