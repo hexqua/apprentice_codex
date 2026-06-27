@@ -1563,6 +1563,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellchargedGreatswordOverchargeActivationPausesDecayUntilRelease(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordOverchargeActivationPausesDecayUntilRelease(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellchargedGreatswordChargeEventRequiresMainhand(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordChargeEventRequiresMainhand(helper);
     }

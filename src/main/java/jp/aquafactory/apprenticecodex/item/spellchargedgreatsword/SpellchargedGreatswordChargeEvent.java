@@ -81,7 +81,7 @@ public final class SpellchargedGreatswordChargeEvent {
 
     @SubscribeEvent
     public static void onItemToss(ItemTossEvent event) {
-        SpellchargedGreatsword.resetCharge(event.getEntity().getItem());
+        SpellchargedGreatsword.resetAllChargeState(event.getEntity().getItem());
     }
 
     @SubscribeEvent

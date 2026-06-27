@@ -3,27 +3,37 @@ package jp.aquafactory.apprenticecodex.item.spellchargedgreatsword;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
 import org.jetbrains.annotations.NotNull;
@@ -53,14 +63,25 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     public static final int LEVEL_1_THRESHOLD_TICKS = 200;
     public static final int LEVEL_2_THRESHOLD_TICKS = 400;
     public static final int LEVEL_3_THRESHOLD_TICKS = 800;
+    public static final int OVERCHARGE_ACTIVATION_HOLD_TICKS = 20;
+    public static final int OVERCHARGE_LEVEL_2_DURATION_TICKS = 200;
+    public static final int OVERCHARGE_LEVEL_3_DURATION_TICKS = 600;
+    public static final int OVERCHARGE_AURA_FADE_TICKS = 20;
 
     private static final double ATTACK_DAMAGE_MODIFIER_AMOUNT = DISPLAY_ATTACK_DAMAGE - 1.0D;
     private static final double ATTACK_SPEED_MODIFIER_AMOUNT = DISPLAY_ATTACK_SPEED - 4.0D;
+    private static final double OVERCHARGE_ATTACK_DAMAGE_BONUS = 4.0D;
+    private static final double OVERCHARGE_ATTACK_SPEED_BONUS = 0.1D;
     private static final double[] CHARGE_ATTACK_DAMAGE_BONUSES = {0.0D, 2.0D, 5.0D, 10.0D};
     private static final double[] CHARGE_ATTACK_SPEED_BONUSES = {0.0D, -0.1D, -0.2D, -0.4D};
     private static final String TAG_CHARGE_TICKS = "SpellchargedGreatswordChargeTicks";
     private static final String TAG_LAST_CHARGE_GAME_TIME = "SpellchargedGreatswordLastChargeGameTime";
     private static final String TAG_CHARGE_LEVEL = "SpellchargedGreatswordChargeLevel";
+    private static final String TAG_OVERCHARGE_REMAINING_TICKS = "SpellchargedGreatswordOverchargeRemainingTicks";
+    private static final String TAG_OVERCHARGE_MAX_TICKS = "SpellchargedGreatswordOverchargeMaxTicks";
+    private static final String TAG_OVERCHARGE_ACTIVATED_GAME_TIME = "SpellchargedGreatswordOverchargeActivatedGameTime";
+    private static final String TAG_OVERCHARGE_END_GAME_TIME = "SpellchargedGreatswordOverchargeEndGameTime";
+    private static final String TAG_OVERCHARGE_FADE_START_GAME_TIME = "SpellchargedGreatswordOverchargeFadeStartGameTime";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK =
             new ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD);
@@ -84,13 +105,79 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
                         .durability(DURABILITY)
                         .rarity(Rarity.RARE)
                         .fireResistant()
-                        .attributes(buildMainhandModifiers(0)));
+                        .attributes(buildMainhandModifiers(ItemStack.EMPTY)));
         GeoItem.registerSyncedAnimatable(this);
     }
 
     @Override
     public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers(@NotNull ItemStack stack) {
-        return buildMainhandModifiers(getChargeLevel(stack));
+        return buildMainhandModifiers(stack);
+    }
+
+    @Override
+    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player,
+                                                           @NotNull InteractionHand usedHand) {
+        var stack = player.getItemInHand(usedHand);
+        if (usedHand != InteractionHand.MAIN_HAND || isOverchargeActive(stack) || getChargeLevel(stack) < 2) {
+            return InteractionResultHolder.pass(stack);
+        }
+
+        player.startUsingItem(usedHand);
+        return InteractionResultHolder.consume(stack);
+    }
+
+    @Override
+    public void onUseTick(@NotNull Level level, @NotNull LivingEntity livingEntity, @NotNull ItemStack stack,
+                          int remainingUseDuration) {
+        super.onUseTick(level, livingEntity, stack, remainingUseDuration);
+        if (livingEntity instanceof Player && !isOverchargeActive(stack) && getChargeLevel(stack) >= 2) {
+            freezeChargeDecay(stack, level.getGameTime());
+        }
+    }
+
+    @Override
+    public void releaseUsing(@NotNull ItemStack stack, @NotNull Level level, @NotNull LivingEntity livingEntity,
+                             int timeLeft) {
+        super.releaseUsing(stack, level, livingEntity, timeLeft);
+        if (!(livingEntity instanceof Player player) || isOverchargeActive(stack)) {
+            return;
+        }
+
+        var elapsedTicks = getUseDuration(stack, livingEntity) - timeLeft;
+        if (elapsedTicks >= OVERCHARGE_ACTIVATION_HOLD_TICKS && getChargeLevel(stack) >= 2) {
+            startOvercharge(stack, level.getGameTime(), getChargeLevel(stack));
+            playOverchargeActivationSound(level, player);
+            syncMainhandIfServer(player, stack);
+        }
+    }
+
+    @Override
+    public @NotNull UseAnim getUseAnimation(@NotNull ItemStack stack) {
+        return UseAnim.BLOCK;
+    }
+
+    @Override
+    public int getUseDuration(@NotNull ItemStack stack, @NotNull LivingEntity entity) {
+        return 72000;
+    }
+
+    @Override
+    public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity, int slotId,
+                              boolean isSelected) {
+        super.inventoryTick(stack, level, entity, slotId, isSelected);
+        if (!(entity instanceof Player player)) {
+            return;
+        }
+
+        cleanupExpiredAuraFade(stack, level.getGameTime());
+        if (!hasOverchargeState(stack)) {
+            return;
+        }
+
+        if (!isOverchargeActive(stack, level.getGameTime())) {
+            clearOvercharge(stack, level.getGameTime(), true);
+            syncMainhandIfServer(player, stack);
+        }
     }
 
     public static double computeChargeGainTicks(AbstractSpell spell, int spellLevel) {
@@ -110,7 +197,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     }
 
     public static boolean addCharge(ItemStack stack, long gameTime, double chargeTicks) {
-        if (!isSpellchargedGreatsword(stack) || chargeTicks <= 0.0D) {
+        if (!isSpellchargedGreatsword(stack) || isOverchargeActive(stack) || chargeTicks <= 0.0D) {
             return false;
         }
 
@@ -128,11 +215,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     }
 
     public static boolean refreshDecay(ItemStack stack, long gameTime) {
-        if (!isSpellchargedGreatsword(stack) || !hasChargeState(stack)) {
-            return false;
-        }
-
-        if (getEffectiveChargeTicks(stack, gameTime) > 0.0D) {
+        if (!isSpellchargedGreatsword(stack) || !hasChargeState(stack) || getEffectiveChargeTicks(stack, gameTime) > 0.0D) {
             return false;
         }
 
@@ -158,7 +241,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
 
     public static double getEffectiveChargeTicks(ItemStack stack, double gameTime) {
         var tag = getCustomDataTag(stack);
-        if (!isSpellchargedGreatsword(stack) || tag == null) {
+        if (!isSpellchargedGreatsword(stack) || isOverchargeActive(stack) || tag == null) {
             return 0.0D;
         }
 
@@ -176,7 +259,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
 
     public static int getChargeLevel(ItemStack stack) {
         var tag = getCustomDataTag(stack);
-        if (!isSpellchargedGreatsword(stack) || tag == null) {
+        if (!isSpellchargedGreatsword(stack) || isOverchargeActive(stack) || tag == null) {
             return 0;
         }
 
@@ -196,6 +279,71 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         return 0;
     }
 
+    public static boolean isOverchargeActive(ItemStack stack) {
+        return hasOverchargeState(stack);
+    }
+
+    public static boolean isOverchargeActive(ItemStack stack, double gameTime) {
+        return isSpellchargedGreatsword(stack) && resolveOverchargeRemainingTicks(stack, gameTime) > 0;
+    }
+
+    private static int resolveOverchargeRemainingTicks(ItemStack stack, double gameTime) {
+        var tag = getCustomDataTag(stack);
+        if (!hasOverchargeState(stack) || tag == null) {
+            return 0;
+        }
+
+        if (!tag.contains(TAG_OVERCHARGE_END_GAME_TIME)) {
+            return tag.getInt(TAG_OVERCHARGE_REMAINING_TICKS);
+        }
+
+        return Math.max(0, (int) Math.ceil(tag.getLong(TAG_OVERCHARGE_END_GAME_TIME) - gameTime));
+    }
+
+    public static float getOverchargeRemainingRatio(ItemStack stack) {
+        var tag = getCustomDataTag(stack);
+        if (!hasOverchargeState(stack) || tag == null) {
+            return 0.0F;
+        }
+
+        var maxTicks = Math.max(1, tag.getInt(TAG_OVERCHARGE_MAX_TICKS));
+        return Mth.clamp(tag.getInt(TAG_OVERCHARGE_REMAINING_TICKS) / (float) maxTicks, 0.0F, 1.0F);
+    }
+
+    public static float getOverchargeRemainingRatio(ItemStack stack, double gameTime) {
+        var tag = getCustomDataTag(stack);
+        if (!hasOverchargeState(stack) || tag == null) {
+            return 0.0F;
+        }
+
+        var maxTicks = Math.max(1, tag.getInt(TAG_OVERCHARGE_MAX_TICKS));
+        return Mth.clamp(resolveOverchargeRemainingTicks(stack, gameTime) / (float) maxTicks, 0.0F, 1.0F);
+    }
+
+    public static float getOverchargeAuraIntensity(ItemStack stack, double gameTime) {
+        if (isOverchargeActive(stack, gameTime)) {
+            return 1.0F;
+        }
+
+        var tag = getCustomDataTag(stack);
+        if (!isSpellchargedGreatsword(stack) || tag == null || !tag.contains(TAG_OVERCHARGE_FADE_START_GAME_TIME)) {
+            return 0.0F;
+        }
+
+        var elapsed = gameTime - tag.getLong(TAG_OVERCHARGE_FADE_START_GAME_TIME);
+        if (elapsed < 0.0D || elapsed >= OVERCHARGE_AURA_FADE_TICKS) {
+            return 0.0F;
+        }
+
+        var progress = Mth.clamp(elapsed / OVERCHARGE_AURA_FADE_TICKS, 0.0D, 1.0D);
+        return 1.0F - Mth.sin((float) (progress * Mth.HALF_PI));
+    }
+
+    public static void resetAllChargeState(ItemStack stack) {
+        resetCharge(stack);
+        clearOvercharge(stack, 0L, false);
+    }
+
     private static boolean hasChargeState(ItemStack stack) {
         var tag = getCustomDataTag(stack);
         return tag != null
@@ -206,6 +354,98 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
 
     private static boolean isSpellchargedGreatsword(ItemStack stack) {
         return !stack.isEmpty() && stack.getItem() instanceof SpellchargedGreatsword;
+    }
+
+    private static boolean hasOverchargeState(ItemStack stack) {
+        var tag = getCustomDataTag(stack);
+        return isSpellchargedGreatsword(stack)
+                && tag != null
+                && tag.contains(TAG_OVERCHARGE_REMAINING_TICKS)
+                && tag.getInt(TAG_OVERCHARGE_REMAINING_TICKS) > 0;
+    }
+
+    private static void startOvercharge(ItemStack stack, long gameTime, int chargeLevel) {
+        var durationTicks = chargeLevel >= 3
+                ? OVERCHARGE_LEVEL_3_DURATION_TICKS
+                : OVERCHARGE_LEVEL_2_DURATION_TICKS;
+        resetCharge(stack);
+
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putInt(TAG_OVERCHARGE_REMAINING_TICKS, durationTicks);
+            tag.putInt(TAG_OVERCHARGE_MAX_TICKS, durationTicks);
+            tag.putLong(TAG_OVERCHARGE_ACTIVATED_GAME_TIME, gameTime);
+            tag.putLong(TAG_OVERCHARGE_END_GAME_TIME, gameTime + durationTicks);
+            tag.remove(TAG_OVERCHARGE_FADE_START_GAME_TIME);
+        });
+    }
+
+    private static void freezeChargeDecay(ItemStack stack, long gameTime) {
+        if (!isSpellchargedGreatsword(stack) || !hasChargeState(stack)) {
+            return;
+        }
+
+        var currentCharge = getEffectiveChargeTicks(stack, gameTime);
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putDouble(TAG_CHARGE_TICKS, currentCharge);
+            tag.putLong(TAG_LAST_CHARGE_GAME_TIME, gameTime);
+            tag.putInt(TAG_CHARGE_LEVEL, Math.max(getChargeLevel(stack), computeChargeLevel(currentCharge)));
+        });
+    }
+
+    private static void playOverchargeActivationSound(Level level, Player player) {
+        if (level.isClientSide) {
+            return;
+        }
+
+        level.playSound(
+                null,
+                player.getX(),
+                player.getY(),
+                player.getZ(),
+                SoundRegistry.SPELLCHARGE.get(),
+                SoundSource.PLAYERS,
+                1.0F,
+                1.0F
+        );
+    }
+
+    private static void clearOvercharge(ItemStack stack, long gameTime, boolean keepAuraFade) {
+        if (!isSpellchargedGreatsword(stack) || !hasOverchargeState(stack)) {
+            return;
+        }
+
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+            var wasActive = tag.contains(TAG_OVERCHARGE_REMAINING_TICKS);
+            tag.remove(TAG_OVERCHARGE_REMAINING_TICKS);
+            tag.remove(TAG_OVERCHARGE_MAX_TICKS);
+            tag.remove(TAG_OVERCHARGE_ACTIVATED_GAME_TIME);
+            tag.remove(TAG_OVERCHARGE_END_GAME_TIME);
+            if (keepAuraFade && wasActive) {
+                tag.putLong(TAG_OVERCHARGE_FADE_START_GAME_TIME, gameTime);
+            } else {
+                tag.remove(TAG_OVERCHARGE_FADE_START_GAME_TIME);
+            }
+        });
+    }
+
+    private static void cleanupExpiredAuraFade(ItemStack stack, long gameTime) {
+        var tag = getCustomDataTag(stack);
+        if (!isSpellchargedGreatsword(stack) || tag == null) {
+            return;
+        }
+
+        if (tag.contains(TAG_OVERCHARGE_FADE_START_GAME_TIME)
+                && gameTime - tag.getLong(TAG_OVERCHARGE_FADE_START_GAME_TIME) >= OVERCHARGE_AURA_FADE_TICKS) {
+            CustomData.update(DataComponents.CUSTOM_DATA, stack,
+                    data -> data.remove(TAG_OVERCHARGE_FADE_START_GAME_TIME));
+        }
+    }
+
+    private static void syncMainhandIfServer(Player player, ItemStack stack) {
+        if (player instanceof ServerPlayer serverPlayer && serverPlayer.getMainHandItem() == stack) {
+            serverPlayer.containerMenu.broadcastChanges();
+            serverPlayer.inventoryMenu.broadcastChanges();
+        }
     }
 
     private static CompoundTag getCustomDataTag(ItemStack stack) {
@@ -292,14 +532,21 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         return cache;
     }
 
-    private static ItemAttributeModifiers buildMainhandModifiers(int chargeLevel) {
-        var normalizedChargeLevel = Mth.clamp(chargeLevel, 0, 3);
+    private static ItemAttributeModifiers buildMainhandModifiers(ItemStack stack) {
+        var overcharged = isOverchargeActive(stack);
+        var normalizedChargeLevel = overcharged ? 0 : Mth.clamp(getChargeLevel(stack), 0, 3);
+        var attackDamageBonus = overcharged
+                ? OVERCHARGE_ATTACK_DAMAGE_BONUS
+                : CHARGE_ATTACK_DAMAGE_BONUSES[normalizedChargeLevel];
+        var attackSpeedBonus = overcharged
+                ? OVERCHARGE_ATTACK_SPEED_BONUS
+                : CHARGE_ATTACK_SPEED_BONUSES[normalizedChargeLevel];
         var builder = ItemAttributeModifiers.builder();
         builder.add(
                 Attributes.ATTACK_DAMAGE,
                 new AttributeModifier(
                         Item.BASE_ATTACK_DAMAGE_ID,
-                        ATTACK_DAMAGE_MODIFIER_AMOUNT + CHARGE_ATTACK_DAMAGE_BONUSES[normalizedChargeLevel],
+                        ATTACK_DAMAGE_MODIFIER_AMOUNT + attackDamageBonus,
                         AttributeModifier.Operation.ADD_VALUE
                 ),
                 EquipmentSlotGroup.MAINHAND
@@ -308,7 +555,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
                 Attributes.ATTACK_SPEED,
                 new AttributeModifier(
                         Item.BASE_ATTACK_SPEED_ID,
-                        ATTACK_SPEED_MODIFIER_AMOUNT + CHARGE_ATTACK_SPEED_BONUSES[normalizedChargeLevel],
+                        ATTACK_SPEED_MODIFIER_AMOUNT + attackSpeedBonus,
                         AttributeModifier.Operation.ADD_VALUE
                 ),
                 EquipmentSlotGroup.MAINHAND

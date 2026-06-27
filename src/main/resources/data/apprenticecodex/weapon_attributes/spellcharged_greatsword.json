@@ -1,4 +1,6 @@
 {
   "parent": "bettercombat:claymore",
-  "attack_range": 3
+  "attributes": {
+    "attack_range": 3
+  }
 }

@@ -56,7 +56,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "43";
+    private static final String PROTOCOL_VERSION = "50";
 
     private Networks() {
     }
