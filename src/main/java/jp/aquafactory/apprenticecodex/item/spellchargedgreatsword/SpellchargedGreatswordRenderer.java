@@ -44,6 +44,10 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
             ApprenticeRenderTypes.entityAdditiveGlowNoCullColorOnly("spellcharged_greatsword_normal_aura", TEXTURE);
     private static final RenderType NORMAL_AURA_GLINT_RENDER_TYPE =
             ApprenticeRenderTypes.entityAdditiveGlowNoCullColorOnly("spellcharged_greatsword_normal_aura_glint", GLINT_TEXTURE);
+    private static final RenderType EXTENDED_AURA_RENDER_TYPE =
+            ApprenticeRenderTypes.entityAdditiveGlowNoCullColorOnly("spellcharged_greatsword_extended_aura", TEXTURE);
+    private static final RenderType EXTENDED_AURA_GLINT_RENDER_TYPE =
+            ApprenticeRenderTypes.entityAdditiveGlowNoCullColorOnly("spellcharged_greatsword_extended_aura_glint", GLINT_TEXTURE);
 
     private SpecialPass specialPass = SpecialPass.NONE;
     private float normalAuraGlintUOffset = 0.0F;
@@ -72,7 +76,9 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
         }
 
         var renderState = resolveChargeRenderState(partialTick);
-        float brightness = resolveCore2Brightness(partialTick, renderState.core2MaxBrightness());
+        float brightness = renderState.pulseCore2()
+                ? resolveCore2Brightness(partialTick, renderState.core2MaxBrightness())
+                : renderState.core2MaxBrightness();
         var color = renderState.core2Color();
         renderCore2Pass(model, poseStack, bufferSource, animatable, partialTick,
                 red * color.red() * brightness, green * color.green() * brightness,
@@ -81,6 +87,10 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
             renderNormalAuraPass(model, poseStack, bufferSource, animatable, partialTick,
                     red, green, blue, alpha, renderState.normalAuraIntensity());
         }
+        if (renderState.extendedAuraIntensity() > 0.0F) {
+            renderExtendedAuraPass(model, poseStack, bufferSource, animatable, partialTick,
+                    red, green, blue, alpha, renderState.extendedAuraIntensity());
+        }
     }
 
     @Override
@@ -88,7 +98,7 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
                                   RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                   boolean isReRender, float partialTick, int packedLight, int packedOverlay,
                                   float red, float green, float blue, float alpha) {
-        if (isBoneOrChildOf(bone, EXTENDED_AURA_BONE)) {
+        if (this.specialPass == SpecialPass.NONE && isBoneOrChildOf(bone, EXTENDED_AURA_BONE)) {
             return;
         }
 
@@ -123,6 +133,7 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
         boolean targetBone = switch (this.specialPass) {
             case CORE2 -> core2Bone;
             case NORMAL_AURA, NORMAL_AURA_GLINT -> normalAuraBone;
+            case EXTENDED_AURA, EXTENDED_AURA_GLINT -> isBoneOrChildOf(bone, EXTENDED_AURA_BONE);
             case NONE -> false;
         };
         renderSpecialPassBone(
@@ -208,6 +219,52 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
         }
     }
 
+    private void renderExtendedAuraPass(BakedGeoModel model, PoseStack poseStack, MultiBufferSource bufferSource,
+                                         SpellchargedGreatsword animatable, float partialTick,
+                                         float red, float green, float blue, float alpha, float intensity) {
+        this.specialPass = SpecialPass.EXTENDED_AURA;
+        try {
+            this.reRender(
+                    model,
+                    poseStack,
+                    bufferSource,
+                    animatable,
+                    EXTENDED_AURA_RENDER_TYPE,
+                    bufferSource.getBuffer(EXTENDED_AURA_RENDER_TYPE),
+                    partialTick,
+                    LightTexture.FULL_BRIGHT,
+                    OverlayTexture.NO_OVERLAY,
+                    red * intensity,
+                    green * intensity,
+                    blue * intensity,
+                    alpha
+            );
+            float glintTime = resolveRenderTime(partialTick);
+            this.specialPass = SpecialPass.EXTENDED_AURA_GLINT;
+            this.normalAuraGlintUOffset = wrapUnit(glintTime * NORMAL_AURA_GLINT_SCROLL_U_PER_TICK);
+            this.normalAuraGlintVOffset = wrapUnit(glintTime * NORMAL_AURA_GLINT_SCROLL_V_PER_TICK);
+            this.reRender(
+                    model,
+                    poseStack,
+                    bufferSource,
+                    animatable,
+                    EXTENDED_AURA_GLINT_RENDER_TYPE,
+                    bufferSource.getBuffer(EXTENDED_AURA_GLINT_RENDER_TYPE),
+                    partialTick,
+                    LightTexture.FULL_BRIGHT,
+                    OverlayTexture.NO_OVERLAY,
+                    red * intensity * NORMAL_AURA_GLINT_INTENSITY_MULTIPLIER,
+                    green * intensity * NORMAL_AURA_GLINT_INTENSITY_MULTIPLIER,
+                    blue * intensity * NORMAL_AURA_GLINT_INTENSITY_MULTIPLIER,
+                    alpha
+            );
+        } finally {
+            this.normalAuraGlintUOffset = 0.0F;
+            this.normalAuraGlintVOffset = 0.0F;
+            this.specialPass = SpecialPass.NONE;
+        }
+    }
+
     private void renderSpecialPassBone(PoseStack poseStack, SpellchargedGreatsword animatable, GeoBone bone,
                                        boolean targetBone, RenderType renderType, MultiBufferSource bufferSource,
                                        VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight,
@@ -262,7 +319,8 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
     public void createVerticesOfQuad(GeoQuad quad, Matrix4f poseState, Vector3f normal, VertexConsumer buffer,
                                      int packedLight, int packedOverlay, float red, float green, float blue,
                                      float alpha) {
-        if (this.specialPass != SpecialPass.NORMAL_AURA_GLINT) {
+        if (this.specialPass != SpecialPass.NORMAL_AURA_GLINT
+                && this.specialPass != SpecialPass.EXTENDED_AURA_GLINT) {
             super.createVerticesOfQuad(
                     quad, poseState, normal, buffer, packedLight, packedOverlay, red, green, blue, alpha
             );
@@ -295,12 +353,23 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
 
     private ChargeRenderState resolveChargeRenderState(float partialTick) {
         if (!isHandheldPerspective(this.renderPerspective)) {
-            return new ChargeRenderState(1.0F, GlowColor.WHITE, 0.0F);
+            return new ChargeRenderState(1.0F, GlowColor.WHITE, 0.0F, 0.0F, true);
         }
 
         var stack = this.currentItemStack != null ? this.currentItemStack : net.minecraft.world.item.ItemStack.EMPTY;
+        var renderTime = resolveRenderTime(partialTick);
+        if (SpellchargedGreatsword.isOverchargeActive(stack, renderTime)) {
+            return new ChargeRenderState(
+                    SpellchargedGreatsword.getOverchargeRemainingRatio(stack, renderTime),
+                    GlowColor.fromRgb(0xFF0000),
+                    0.0F,
+                    1.0F,
+                    false
+            );
+        }
+
         var chargeProgress = Mth.clamp(
-                SpellchargedGreatsword.getEffectiveChargeTicks(stack, resolveRenderTime(partialTick))
+                SpellchargedGreatsword.getEffectiveChargeTicks(stack, renderTime)
                         / SpellchargedGreatsword.MAX_CHARGE_TICKS,
                 0.0D,
                 1.0D
@@ -310,7 +379,9 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
         return new ChargeRenderState(
                 core2MaxBrightness,
                 resolveCore2Color(chargeLevel),
-                resolveNormalAuraIntensity(chargeLevel)
+                resolveNormalAuraIntensity(chargeLevel),
+                SpellchargedGreatsword.getOverchargeAuraIntensity(stack, resolveRenderTime(partialTick)),
+                true
         );
     }
 
@@ -367,10 +438,13 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
         NONE,
         CORE2,
         NORMAL_AURA,
-        NORMAL_AURA_GLINT
+        NORMAL_AURA_GLINT,
+        EXTENDED_AURA,
+        EXTENDED_AURA_GLINT
     }
 
-    private record ChargeRenderState(float core2MaxBrightness, GlowColor core2Color, float normalAuraIntensity) {
+    private record ChargeRenderState(float core2MaxBrightness, GlowColor core2Color, float normalAuraIntensity,
+                                     float extendedAuraIntensity, boolean pulseCore2) {
     }
 
     private record GlowColor(float red, float green, float blue) {

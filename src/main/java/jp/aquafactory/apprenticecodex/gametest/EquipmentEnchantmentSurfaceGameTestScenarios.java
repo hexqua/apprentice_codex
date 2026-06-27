@@ -276,6 +276,106 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         });
     }
 
+    static void spellchargedGreatswordOverchargeModeConsumesChargeAndUsesFixedAttributes(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (SpellchargedGreatsword) ItemRegistry.SPELLCHARGED_GREATSWORD.get();
+            var level = helper.getLevel();
+
+            var levelOneStack = new ItemStack(item);
+            SpellchargedGreatsword.addCharge(levelOneStack, level.getGameTime(), 200.0D);
+            item.releaseUsing(
+                    levelOneStack,
+                    level,
+                    createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                            "spellcharged_greatsword_level_one_overcharge_test"),
+                    item.getUseDuration(levelOneStack) - SpellchargedGreatsword.OVERCHARGE_ACTIVATION_HOLD_TICKS
+            );
+            helper.assertFalse(SpellchargedGreatsword.isOverchargeActive(levelOneStack),
+                    "Spellcharged Greatsword level 1 should not enter overcharge mode");
+
+            var levelTwoStack = new ItemStack(item);
+            SpellchargedGreatsword.addCharge(levelTwoStack, level.getGameTime(), 400.0D);
+            item.releaseUsing(
+                    levelTwoStack,
+                    level,
+                    createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                            "spellcharged_greatsword_level_two_overcharge_test"),
+                    item.getUseDuration(levelTwoStack) - SpellchargedGreatsword.OVERCHARGE_ACTIVATION_HOLD_TICKS
+            );
+            helper.assertTrue(SpellchargedGreatsword.isOverchargeActive(levelTwoStack),
+                    "Spellcharged Greatsword level 2 should enter overcharge mode");
+            assertSpellchargedGreatswordChargeState(helper, levelTwoStack, level.getGameTime(), 0.0D, 0,
+                    "Spellcharged Greatsword overcharge should consume stored charge");
+            assertSpellchargedGreatswordAttackAttributes(helper, item, levelTwoStack, 4.0D, 0.1D,
+                    "Spellcharged Greatsword overcharge fixed attributes");
+
+            helper.assertFalse(SpellchargedGreatsword.isOverchargeActive(
+                            levelTwoStack,
+                            level.getGameTime() + SpellchargedGreatsword.OVERCHARGE_LEVEL_2_DURATION_TICKS
+                    ),
+                    "Spellcharged Greatsword level 2 overcharge should end after 10 seconds");
+
+            var levelThreeStack = new ItemStack(item);
+            SpellchargedGreatsword.addCharge(levelThreeStack, level.getGameTime(), 800.0D);
+            item.releaseUsing(
+                    levelThreeStack,
+                    level,
+                    createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                            "spellcharged_greatsword_level_three_overcharge_test"),
+                    item.getUseDuration(levelThreeStack) - SpellchargedGreatsword.OVERCHARGE_ACTIVATION_HOLD_TICKS
+            );
+            helper.assertTrue(SpellchargedGreatsword.isOverchargeActive(
+                            levelThreeStack,
+                            level.getGameTime() + SpellchargedGreatsword.OVERCHARGE_LEVEL_2_DURATION_TICKS
+                    ),
+                    "Spellcharged Greatsword level 3 overcharge should last longer than level 2");
+        });
+    }
+
+    static void spellchargedGreatswordOverchargeActivationPausesDecayUntilRelease(GameTestHelper helper) {
+        var item = (SpellchargedGreatsword) ItemRegistry.SPELLCHARGED_GREATSWORD.get();
+        var level = helper.getLevel();
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "spellcharged_greatsword_overcharge_release_test");
+
+        var stack = new ItemStack(item);
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        SpellchargedGreatsword.addCharge(stack, level.getGameTime() - SpellchargedGreatsword.DECAY_DELAY_TICKS - 20L,
+                500.0D);
+        var decayedCharge = SpellchargedGreatsword.getEffectiveChargeTicks(stack, level.getGameTime());
+
+        var result = item.use(level, player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.CONSUME,
+                "Spellcharged Greatsword overcharge activation use should consume interaction");
+        item.onUseTick(
+                level,
+                player,
+                stack,
+                item.getUseDuration(stack) - SpellchargedGreatsword.OVERCHARGE_ACTIVATION_HOLD_TICKS
+        );
+        helper.assertTrue(Math.abs(
+                SpellchargedGreatsword.getEffectiveChargeTicks(stack,
+                        level.getGameTime() + SpellchargedGreatsword.DECAY_DELAY_TICKS) - decayedCharge) < 1.0e-9D,
+                "Spellcharged Greatsword overcharge activation hold should pause normal charge decay"
+        );
+        helper.assertFalse(SpellchargedGreatsword.isOverchargeActive(stack),
+                "Spellcharged Greatsword should not enter overcharge before release");
+
+        item.releaseUsing(
+                stack,
+                level,
+                player,
+                item.getUseDuration(stack) - SpellchargedGreatsword.OVERCHARGE_ACTIVATION_HOLD_TICKS
+        );
+        helper.assertTrue(SpellchargedGreatsword.isOverchargeActive(stack),
+                "Spellcharged Greatsword should enter overcharge when activation hold is released");
+
+        var overchargedUse = item.use(level, player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(overchargedUse.getResult() == net.minecraft.world.InteractionResult.PASS,
+                "Spellcharged Greatsword overcharge mode should not provide a right-click function");
+        helper.succeed();
+    }
+
     static void spellchargedGreatswordChargeEventRequiresMainhand(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spell = SpellRegistry.ARCANE_BLAST.get();
