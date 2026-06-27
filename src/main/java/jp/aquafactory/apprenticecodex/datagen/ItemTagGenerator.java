@@ -96,6 +96,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get(),
                 ItemRegistry.SPELL_SIDE_EDGE.get(),
+                ItemRegistry.SPELLCHARGED_GREATSWORD.get(),
                 ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
                 ItemRegistry.SCROLLCASTER_GAUNTLET.get(),
                 ItemRegistry.ZENITH_STAFF.get(),
