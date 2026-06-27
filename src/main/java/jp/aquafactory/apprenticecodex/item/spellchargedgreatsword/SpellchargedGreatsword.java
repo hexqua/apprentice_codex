@@ -2,11 +2,14 @@ package jp.aquafactory.apprenticecodex.item.spellchargedgreatsword;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -44,9 +47,22 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     public static final double DISPLAY_ATTACK_DAMAGE = 8.0D;
     public static final double DISPLAY_ATTACK_SPEED = 1.1D;
     public static final double ENTITY_REACH_BONUS = 0.5D;
+    public static final double MAX_CHARGE_TICKS = 800.0D;
+    public static final int MAX_GAIN_TICKS = 200;
+    public static final int SHORT_CAST_THRESHOLD_TICKS = 40;
+    public static final int DECAY_DELAY_TICKS = 100;
+    public static final double DECAY_TICKS_PER_TICK = MAX_CHARGE_TICKS * 0.1D / 20.0D;
+    public static final int LEVEL_1_THRESHOLD_TICKS = 200;
+    public static final int LEVEL_2_THRESHOLD_TICKS = 400;
+    public static final int LEVEL_3_THRESHOLD_TICKS = 800;
 
     private static final double ATTACK_DAMAGE_MODIFIER_AMOUNT = DISPLAY_ATTACK_DAMAGE - 1.0D;
     private static final double ATTACK_SPEED_MODIFIER_AMOUNT = DISPLAY_ATTACK_SPEED - 4.0D;
+    private static final double[] CHARGE_ATTACK_DAMAGE_BONUSES = {0.0D, 2.0D, 5.0D, 10.0D};
+    private static final double[] CHARGE_ATTACK_SPEED_BONUSES = {0.0D, -0.1D, -0.2D, -0.4D};
+    private static final String TAG_CHARGE_TICKS = "SpellchargedGreatswordChargeTicks";
+    private static final String TAG_LAST_CHARGE_GAME_TIME = "SpellchargedGreatswordLastChargeGameTime";
+    private static final String TAG_CHARGE_LEVEL = "SpellchargedGreatswordChargeLevel";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK =
             new ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD);
@@ -65,7 +81,6 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private final Multimap<Attribute, AttributeModifier> mainhandModifiers = buildMainhandModifiers();
 
     public SpellchargedGreatsword() {
         super(SpellchargedGreatswordTier.INSTANCE, 4, (float) ATTACK_SPEED_MODIFIER_AMOUNT,
@@ -79,7 +94,125 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
             return super.getAttributeModifiers(slot, stack);
         }
 
-        return mainhandModifiers;
+        return buildMainhandModifiers(getChargeLevel(stack));
+    }
+
+    public static double computeChargeGainTicks(AbstractSpell spell, int spellLevel) {
+        if (spell == null || spell == io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()) {
+            return 0.0D;
+        }
+
+        return computeChargeGainTicks(spell.getCastTime(spellLevel), spell.getSpellCooldown());
+    }
+
+    public static double computeChargeGainTicks(int castTimeTicks, int cooldownTicks) {
+        var baseTicks = Math.min(MAX_GAIN_TICKS, Math.max(0, castTimeTicks) + Math.max(0, cooldownTicks));
+        if (baseTicks <= SHORT_CAST_THRESHOLD_TICKS) {
+            return baseTicks * 0.5D;
+        }
+        return baseTicks;
+    }
+
+    public static boolean addCharge(ItemStack stack, long gameTime, double chargeTicks) {
+        if (!isSpellchargedGreatsword(stack) || chargeTicks <= 0.0D) {
+            return false;
+        }
+
+        var currentCharge = getEffectiveChargeTicks(stack, gameTime);
+        var previousLevel = getChargeLevel(stack);
+        var nextCharge = Mth.clamp(currentCharge + chargeTicks, 0.0D, MAX_CHARGE_TICKS);
+        var nextLevel = Math.max(previousLevel, computeChargeLevel(nextCharge));
+
+        var tag = stack.getOrCreateTag();
+        tag.putDouble(TAG_CHARGE_TICKS, nextCharge);
+        tag.putLong(TAG_LAST_CHARGE_GAME_TIME, gameTime);
+        tag.putInt(TAG_CHARGE_LEVEL, nextLevel);
+        return nextLevel > previousLevel;
+    }
+
+    public static boolean refreshDecay(ItemStack stack, long gameTime) {
+        if (!isSpellchargedGreatsword(stack) || !hasChargeState(stack)) {
+            return false;
+        }
+
+        if (getEffectiveChargeTicks(stack, gameTime) > 0.0D) {
+            return false;
+        }
+
+        resetCharge(stack);
+        return true;
+    }
+
+    public static void resetCharge(ItemStack stack) {
+        if (!isSpellchargedGreatsword(stack) || !hasChargeState(stack)) {
+            return;
+        }
+
+        var tag = stack.getOrCreateTag();
+        tag.remove(TAG_CHARGE_TICKS);
+        tag.remove(TAG_LAST_CHARGE_GAME_TIME);
+        tag.remove(TAG_CHARGE_LEVEL);
+        if (tag.isEmpty()) {
+            stack.setTag(null);
+        }
+    }
+
+    public static double getEffectiveChargeTicks(ItemStack stack, long gameTime) {
+        return getEffectiveChargeTicks(stack, (double) gameTime);
+    }
+
+    public static double getEffectiveChargeTicks(ItemStack stack, double gameTime) {
+        if (!isSpellchargedGreatsword(stack) || !stack.hasTag()) {
+            return 0.0D;
+        }
+
+        var tag = stack.getOrCreateTag();
+        var storedCharge = Mth.clamp(tag.getDouble(TAG_CHARGE_TICKS), 0.0D, MAX_CHARGE_TICKS);
+        var lastChargeGameTime = tag.contains(TAG_LAST_CHARGE_GAME_TIME)
+                ? tag.getLong(TAG_LAST_CHARGE_GAME_TIME)
+                : (long) Math.floor(gameTime);
+        var decayElapsed = gameTime - lastChargeGameTime - DECAY_DELAY_TICKS;
+        if (decayElapsed <= 0.0D) {
+            return storedCharge;
+        }
+
+        return Mth.clamp(storedCharge - decayElapsed * DECAY_TICKS_PER_TICK, 0.0D, MAX_CHARGE_TICKS);
+    }
+
+    public static int getChargeLevel(ItemStack stack) {
+        if (!isSpellchargedGreatsword(stack) || !stack.hasTag()) {
+            return 0;
+        }
+
+        return Mth.clamp(stack.getOrCreateTag().getInt(TAG_CHARGE_LEVEL), 0, 3);
+    }
+
+    public static int computeChargeLevel(double chargeTicks) {
+        if (chargeTicks >= LEVEL_3_THRESHOLD_TICKS) {
+            return 3;
+        }
+        if (chargeTicks >= LEVEL_2_THRESHOLD_TICKS) {
+            return 2;
+        }
+        if (chargeTicks >= LEVEL_1_THRESHOLD_TICKS) {
+            return 1;
+        }
+        return 0;
+    }
+
+    private static boolean hasChargeState(ItemStack stack) {
+        if (!stack.hasTag()) {
+            return false;
+        }
+
+        CompoundTag tag = stack.getOrCreateTag();
+        return tag.contains(TAG_CHARGE_TICKS)
+                || tag.contains(TAG_LAST_CHARGE_GAME_TIME)
+                || tag.contains(TAG_CHARGE_LEVEL);
+    }
+
+    private static boolean isSpellchargedGreatsword(ItemStack stack) {
+        return !stack.isEmpty() && stack.getItem() instanceof SpellchargedGreatsword;
     }
 
     @Override
@@ -152,14 +285,15 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         return cache;
     }
 
-    private static Multimap<Attribute, AttributeModifier> buildMainhandModifiers() {
+    private static Multimap<Attribute, AttributeModifier> buildMainhandModifiers(int chargeLevel) {
+        var normalizedChargeLevel = Mth.clamp(chargeLevel, 0, 3);
         var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
         builder.put(
                 Attributes.ATTACK_DAMAGE,
                 new AttributeModifier(
                         Item.BASE_ATTACK_DAMAGE_UUID,
                         "Weapon modifier",
-                        ATTACK_DAMAGE_MODIFIER_AMOUNT,
+                        ATTACK_DAMAGE_MODIFIER_AMOUNT + CHARGE_ATTACK_DAMAGE_BONUSES[normalizedChargeLevel],
                         AttributeModifier.Operation.ADDITION
                 )
         );
@@ -168,7 +302,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
                 new AttributeModifier(
                         Item.BASE_ATTACK_SPEED_UUID,
                         "Weapon modifier",
-                        ATTACK_SPEED_MODIFIER_AMOUNT,
+                        ATTACK_SPEED_MODIFIER_AMOUNT + CHARGE_ATTACK_SPEED_BONUSES[normalizedChargeLevel],
                         AttributeModifier.Operation.ADDITION
                 )
         );

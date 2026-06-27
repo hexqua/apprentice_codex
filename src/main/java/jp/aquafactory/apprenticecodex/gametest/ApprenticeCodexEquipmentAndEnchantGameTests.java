@@ -1598,6 +1598,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellchargedGreatswordChargeMathDecayAndAttributes(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordChargeMathDecayAndAttributes(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellchargedGreatswordChargeEventRequiresMainhand(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordChargeEventRequiresMainhand(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellcastersFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.spellcastersFlaskKeepsExpectedEnchantmentSurfaces(helper);
     }

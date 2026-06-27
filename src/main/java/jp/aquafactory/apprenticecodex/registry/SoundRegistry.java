@@ -74,6 +74,7 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> MIRAGE = reg("mirage");
     public static final RegistryObject<SoundEvent> FULLAUTO_RIFLE = reg("fullauto_rifle");
     public static final RegistryObject<SoundEvent> SMG = reg("smg");
+    public static final RegistryObject<SoundEvent> SPELLCHARGE = reg("spellcharge");
 
     public static final RegistryObject<SoundEvent> SMASHCAST_SCEPTER_SMASH_AIR = reg("smashcast_scepter_smash_air");
     public static final RegistryObject<SoundEvent> SMASHCAST_SCEPTER_SMASH_GROUND = reg("smashcast_scepter_smash_ground");
