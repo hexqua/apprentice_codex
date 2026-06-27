@@ -199,6 +199,7 @@ import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeStats;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitStats;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
+import jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGreatsword;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
@@ -493,6 +494,54 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     stack,
                     expectedReflectcastShieldEnchantments(helper.getLevel().registryAccess(), stack),
                     "Reflectcast Shield"
+            );
+        });
+    }
+    static void spellchargedGreatswordKeepsExpectedStatsTagsAndEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (SpellchargedGreatsword) ItemRegistry.SPELLCHARGED_GREATSWORD.get();
+            var stack = new ItemStack(item);
+            helper.assertTrue(stack.getMaxDamage() == SpellchargedGreatsword.DURABILITY,
+                    "Spellcharged Greatsword durability should be " + SpellchargedGreatsword.DURABILITY
+                            + " but got " + stack.getMaxDamage());
+            helper.assertTrue(item.getEnchantmentValue(stack) == SpellchargedGreatsword.ENCHANTMENT_VALUE,
+                    "Spellcharged Greatsword enchantability should be " + SpellchargedGreatsword.ENCHANTMENT_VALUE
+                            + " but got " + item.getEnchantmentValue(stack));
+            helper.assertTrue(item instanceof io.redspace.ironsspellbooks.item.UniqueItem,
+                    "Spellcharged Greatsword should be a UniqueItem");
+
+            var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
+            assertModifierWithId(
+                    helper,
+                    modifiers.get(Attributes.ATTACK_DAMAGE),
+                    VANILLA_BASE_ATTACK_DAMAGE_MODIFIER_ID,
+                    AttributeModifier.Operation.ADD_VALUE,
+                    SpellchargedGreatsword.DISPLAY_ATTACK_DAMAGE - 1.0D,
+                    "Spellcharged Greatsword attack damage modifier should display as 8 damage"
+            );
+            assertModifierWithId(
+                    helper,
+                    modifiers.get(Attributes.ATTACK_SPEED),
+                    VANILLA_BASE_ATTACK_SPEED_MODIFIER_ID,
+                    AttributeModifier.Operation.ADD_VALUE,
+                    SpellchargedGreatsword.DISPLAY_ATTACK_SPEED - 4.0D,
+                    "Spellcharged Greatsword attack speed modifier should display as 1.1 speed"
+            );
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(Attributes.ENTITY_INTERACTION_RANGE),
+                    AttributeModifier.Operation.ADD_VALUE,
+                    SpellchargedGreatsword.ENTITY_REACH_BONUS,
+                    "Spellcharged Greatsword entity reach modifier should add 0.5 blocks"
+            );
+
+            helper.assertTrue(stack.is(MALUM_SOUL_SHATTER_CAPABLE_WEAPON),
+                    "Spellcharged Greatsword is missing malum:soul_shatter_capable_weapon");
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedSpellchargedGreatswordEnchantments(stack),
+                    "Spellcharged Greatsword"
             );
         });
     }
@@ -1360,5 +1409,14 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, recastSpell, schoolSpellPowerBonusPerHistory,
                     "Chromatic Magia Dress chestplate should ignore casts while the same spell is in Recast");
         });
+    }
+    private static Set<ResourceLocation> expectedSpellchargedGreatswordEnchantments(ItemStack stack) {
+        var expectedEnchantments = new LinkedHashSet<>(collectAllowedEnchantments(
+                new ItemStack(Items.DIAMOND_SWORD),
+                enchantment -> enchantment.value().canEnchant(new ItemStack(Items.DIAMOND_SWORD))
+        ));
+        expectedEnchantments.add(Enchantments.WISDOM.location());
+        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
+        return expectedEnchantments;
     }
 }

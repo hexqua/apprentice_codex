@@ -1553,6 +1553,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellchargedGreatswordKeepsExpectedStatsTagsAndEnchantments(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordKeepsExpectedStatsTagsAndEnchantments(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellcastersFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.spellcastersFlaskKeepsExpectedEnchantmentSurfaces(helper);
     }
