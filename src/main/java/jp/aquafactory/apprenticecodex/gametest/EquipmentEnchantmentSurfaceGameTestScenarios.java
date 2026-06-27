@@ -545,6 +545,72 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             );
         });
     }
+    static void spellchargedGreatswordChargeMathDecayAndAttributes(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (SpellchargedGreatsword) ItemRegistry.SPELLCHARGED_GREATSWORD.get();
+            var stack = new ItemStack(item);
+
+            helper.assertTrue(SpellchargedGreatsword.computeChargeGainTicks(20, 20) == 20.0D,
+                    "Spellcharged Greatsword should halve charge gain at 40 ticks or less");
+            helper.assertTrue(SpellchargedGreatsword.computeChargeGainTicks(80, 200) == 200.0D,
+                    "Spellcharged Greatsword charge gain should be capped to 200 ticks");
+
+            SpellchargedGreatsword.addCharge(stack, 0L, 200.0D);
+            assertSpellchargedGreatswordChargeState(helper, stack, 0L, 200.0D, 1,
+                    "Spellcharged Greatsword should reach level 1 at 200 charge ticks");
+            assertSpellchargedGreatswordAttackAttributes(helper, item, stack, 2.0D, -0.1D,
+                    "Spellcharged Greatsword level 1 attributes");
+
+            SpellchargedGreatsword.addCharge(stack, 0L, 200.0D);
+            assertSpellchargedGreatswordChargeState(helper, stack, 0L, 400.0D, 2,
+                    "Spellcharged Greatsword should reach level 2 at 400 charge ticks");
+            assertSpellchargedGreatswordAttackAttributes(helper, item, stack, 5.0D, -0.2D,
+                    "Spellcharged Greatsword level 2 attributes");
+
+            SpellchargedGreatsword.addCharge(stack, 0L, 400.0D);
+            assertSpellchargedGreatswordChargeState(helper, stack, 100L, 800.0D, 3,
+                    "Spellcharged Greatsword should keep full charge during the 5 second decay delay");
+            assertSpellchargedGreatswordAttackAttributes(helper, item, stack, 10.0D, -0.4D,
+                    "Spellcharged Greatsword level 3 attributes");
+
+            helper.assertTrue(Math.abs(SpellchargedGreatsword.getEffectiveChargeTicks(stack, 101L) - 796.0D) < 1.0e-9D,
+                    "Spellcharged Greatsword should decay 4 charge ticks per tick after the delay");
+            helper.assertFalse(SpellchargedGreatsword.refreshDecay(stack, 299L),
+                    "Spellcharged Greatsword should not reset before charge reaches zero");
+            helper.assertTrue(SpellchargedGreatsword.getChargeLevel(stack) == 3,
+                    "Spellcharged Greatsword decay should not lower level before charge reaches zero");
+            helper.assertTrue(SpellchargedGreatsword.refreshDecay(stack, 300L),
+                    "Spellcharged Greatsword should reset when decay reaches zero");
+            assertSpellchargedGreatswordChargeState(helper, stack, 300L, 0.0D, 0,
+                    "Spellcharged Greatsword should clear charge and level after full decay");
+        });
+    }
+
+    static void spellchargedGreatswordChargeEventRequiresMainhand(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = SpellRegistry.ARCANE_BLAST.get();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "spellcharged_greatsword_mainhand_charge_test");
+            var greatsword = new ItemStack(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, greatsword);
+
+            postSpellOnCast(player, spell, 1);
+            var chargedMainhand = player.getMainHandItem();
+            helper.assertTrue(SpellchargedGreatsword.getEffectiveChargeTicks(
+                            chargedMainhand,
+                            helper.getLevel().getGameTime()) > 0.0D,
+                    "Spellcharged Greatsword should charge from spell casts while held in mainhand");
+
+            var offhandOnly = new ItemStack(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            player.setItemInHand(InteractionHand.OFF_HAND, offhandOnly);
+            postSpellOnCast(player, spell, 1);
+            helper.assertTrue(SpellchargedGreatsword.getEffectiveChargeTicks(
+                            player.getOffhandItem(),
+                            helper.getLevel().getGameTime()) == 0.0D,
+                    "Spellcharged Greatsword should not charge from offhand-only casts");
+        });
+    }
     static void spellcastersFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> assertCategoryEnchantments(
                 helper,
@@ -552,6 +618,49 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                 item -> item instanceof SpellcastersFlask,
                 expectedFlaskEnchantments()
         ));
+    }
+
+    private static void assertSpellchargedGreatswordChargeState(
+            GameTestHelper helper,
+            ItemStack stack,
+            long gameTime,
+            double expectedChargeTicks,
+            int expectedChargeLevel,
+            String message
+    ) {
+        var actualChargeTicks = SpellchargedGreatsword.getEffectiveChargeTicks(stack, gameTime);
+        helper.assertTrue(Math.abs(actualChargeTicks - expectedChargeTicks) < 1.0e-9D,
+                message + ": expected charge " + expectedChargeTicks + " but got " + actualChargeTicks);
+        helper.assertTrue(SpellchargedGreatsword.getChargeLevel(stack) == expectedChargeLevel,
+                message + ": expected level " + expectedChargeLevel + " but got "
+                        + SpellchargedGreatsword.getChargeLevel(stack));
+    }
+
+    private static void assertSpellchargedGreatswordAttackAttributes(
+            GameTestHelper helper,
+            SpellchargedGreatsword item,
+            ItemStack stack,
+            double expectedDamageBonus,
+            double expectedSpeedBonus,
+            String message
+    ) {
+        var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
+        assertModifierWithId(
+                helper,
+                modifiers.get(Attributes.ATTACK_DAMAGE),
+                VANILLA_BASE_ATTACK_DAMAGE_MODIFIER_ID,
+                AttributeModifier.Operation.ADDITION,
+                SpellchargedGreatsword.DISPLAY_ATTACK_DAMAGE - 1.0D + expectedDamageBonus,
+                message + " attack damage"
+        );
+        assertModifierWithId(
+                helper,
+                modifiers.get(Attributes.ATTACK_SPEED),
+                VANILLA_BASE_ATTACK_SPEED_MODIFIER_ID,
+                AttributeModifier.Operation.ADDITION,
+                SpellchargedGreatsword.DISPLAY_ATTACK_SPEED - 4.0D + expectedSpeedBonus,
+                message + " attack speed"
+        );
     }
     static void alchemistsFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> assertCategoryEnchantments(
