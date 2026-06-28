@@ -232,6 +232,15 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         return nextLevel > previousLevel;
     }
 
+    public static boolean refreshChargeDecayDelay(ItemStack stack, long gameTime) {
+        if (!isSpellchargedGreatsword(stack) || isOverchargeActive(stack) || !hasChargeState(stack)) {
+            return false;
+        }
+
+        stack.getOrCreateTag().putLong(TAG_LAST_CHARGE_GAME_TIME, gameTime);
+        return true;
+    }
+
     public static boolean refreshDecay(ItemStack stack, long gameTime) {
         if (!isSpellchargedGreatsword(stack) || !hasChargeState(stack) || getEffectiveChargeTicks(stack, gameTime) > 0.0D) {
             return false;

@@ -42,12 +42,21 @@ public final class SpellchargedGreatswordChargeEvent {
 
         var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(event.getSpellId());
         var magicData = MagicData.getPlayerMagicData(player);
-        if (!shouldRecordCast(player, magicData, spell, event.getSpellLevel(), event.getCastSource())) {
+        var recordResult = shouldRecordCast(player, magicData, spell, event.getSpellLevel(), event.getCastSource());
+        if (recordResult == CastRecordResult.IGNORE) {
             return;
         }
 
-        var chargeGain = SpellchargedGreatsword.computeChargeGainTicks(spell, event.getSpellLevel());
-        var levelIncreased = SpellchargedGreatsword.addCharge(stack, player.level().getGameTime(), chargeGain);
+        var gameTime = player.level().getGameTime();
+        var levelIncreased = recordResult == CastRecordResult.ADD_CHARGE
+                && SpellchargedGreatsword.addCharge(
+                        stack,
+                        gameTime,
+                        SpellchargedGreatsword.computeChargeGainTicks(spell, event.getSpellLevel())
+                );
+        if (recordResult == CastRecordResult.REFRESH_DECAY_DELAY) {
+            SpellchargedGreatsword.refreshChargeDecayDelay(stack, gameTime);
+        }
         player.setItemSlot(EquipmentSlot.MAINHAND, stack.copy());
         player.containerMenu.broadcastChanges();
         if (levelIncreased) {
@@ -94,7 +103,7 @@ public final class SpellchargedGreatswordChargeEvent {
         RECORDED_CONTINUOUS_CASTS.remove(event.getEntity().getUUID());
     }
 
-    private static boolean shouldRecordCast(
+    private static CastRecordResult shouldRecordCast(
             ServerPlayer player,
             MagicData magicData,
             AbstractSpell spell,
@@ -102,23 +111,23 @@ public final class SpellchargedGreatswordChargeEvent {
             CastSource castSource
     ) {
         if (spell == null || spell == io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()) {
-            return false;
+            return CastRecordResult.IGNORE;
         }
 
         if (spell.getCastType() != CastType.CONTINUOUS
                 || !matchesActiveContinuousCast(magicData, spell, spellLevel, castSource)) {
-            return true;
+            return CastRecordResult.ADD_CHARGE;
         }
 
         var key = ContinuousCastKey.from(player, magicData);
         var previousKey = RECORDED_CONTINUOUS_CASTS.get(player.getUUID());
         if (key.equals(previousKey)) {
-            return false;
+            return CastRecordResult.REFRESH_DECAY_DELAY;
         }
 
         // Iron's 1.20.1 Forge は CONTINUOUS の効果 tick ごとに SpellOnCastEvent を出すため、同じ詠唱中は初回だけ蓄積する。
         RECORDED_CONTINUOUS_CASTS.put(player.getUUID(), key);
-        return true;
+        return CastRecordResult.ADD_CHARGE;
     }
 
     private static boolean matchesActiveContinuousCast(
@@ -165,5 +174,11 @@ public final class SpellchargedGreatswordChargeEvent {
                     magicData.getCastingEquipmentSlot()
             );
         }
+    }
+
+    private enum CastRecordResult {
+        IGNORE,
+        ADD_CHARGE,
+        REFRESH_DECAY_DELAY
     }
 }
