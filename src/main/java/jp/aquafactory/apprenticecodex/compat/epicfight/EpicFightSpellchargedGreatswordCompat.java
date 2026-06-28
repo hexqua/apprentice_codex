@@ -7,6 +7,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.IEventBus;
+import yesman.epicfight.api.collider.Collider;
+import yesman.epicfight.api.collider.MultiOBBCollider;
 import yesman.epicfight.api.forgeevent.WeaponCapabilityPresetRegistryEvent;
 import yesman.epicfight.gameasset.EpicFightSkills;
 import yesman.epicfight.skill.SkillContainer;
@@ -49,6 +51,10 @@ public final class EpicFightSpellchargedGreatswordCompat {
         builder.innateSkill(CapabilityItem.Styles.TWO_HAND, stack -> EpicFightSkills.SWEEPING_EDGE);
 
         return builder;
+    }
+
+    public static Collider getOverchargedWeaponCollider(Item item) {
+        return new MultiOBBCollider(3, 0.5D, 0.8D, 1.5D, 0.0D, 0.0D, -1.5D);
     }
 
     public static void tick(ServerPlayer player) {

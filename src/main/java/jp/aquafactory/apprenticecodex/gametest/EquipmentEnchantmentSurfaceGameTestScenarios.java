@@ -869,6 +869,11 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
 
                 helper.assertTrue(hasExpectedSpellchargedGreatswordEpicFightSkills(player, stack),
                         "Spellcharged Greatsword Epic Fight skills should be Sweeping Edge and Swordmaster");
+                assertSpellchargedGreatswordEpicFightOverchargedCollider(
+                        helper,
+                        item,
+                        "Spellcharged Greatsword overcharge Epic Fight collider"
+                );
                 helper.assertTrue(setEpicFightSweepingEdgeCharge(player, 0),
                         "Spellcharged Greatsword Epic Fight test could not resolve weapon innate skill container");
 
@@ -1046,6 +1051,47 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                 "jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSpellchargedGreatswordCompat"
         );
         return ((Number) compatClass.getMethod("getSweepingEdgeMaxStack").invoke(null)).intValue();
+    }
+
+    private static void assertSpellchargedGreatswordEpicFightOverchargedCollider(
+            GameTestHelper helper,
+            Item item,
+            String message
+    ) throws ReflectiveOperationException {
+        var collider = getSpellchargedGreatswordOverchargedEpicFightCollider(item);
+        helper.assertTrue(collider != null, message + " should be created from Epic Fight collider API");
+
+        var serialized = serializeEpicFightCollider(collider);
+        helper.assertTrue(serialized.getInt("number") == 3,
+                message + " should keep the Epic Fight greatsword multi collider count");
+
+        var size = serialized.getList("size", 6);
+        assertDouble(helper, size.getDouble(0), 0.5D, message + " size x");
+        assertDouble(helper, size.getDouble(1), 0.8D, message + " size y");
+        assertDouble(helper, size.getDouble(2), 1.5D, message + " size z");
+
+        var center = serialized.getList("center", 6);
+        assertDouble(helper, center.getDouble(0), 0.0D, message + " center x");
+        assertDouble(helper, center.getDouble(1), 0.0D, message + " center y");
+        assertDouble(helper, center.getDouble(2), -1.5D, message + " center z");
+    }
+
+    private static Object getSpellchargedGreatswordOverchargedEpicFightCollider(Item item)
+            throws ReflectiveOperationException {
+        var compatClass = Class.forName(
+                "jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSpellchargedGreatswordCompat"
+        );
+        return compatClass.getDeclaredMethod("getOverchargedWeaponCollider", Item.class).invoke(null, item);
+    }
+
+    private static CompoundTag serializeEpicFightCollider(Object collider) throws ReflectiveOperationException {
+        var method = collider.getClass().getMethod("serialize", CompoundTag.class);
+        return (CompoundTag) method.invoke(collider, new CompoundTag());
+    }
+
+    private static void assertDouble(GameTestHelper helper, double actualValue, double expected, String message) {
+        helper.assertTrue(Math.abs(actualValue - expected) < 1.0e-9D,
+                message + ": expected " + expected + " but got " + actualValue);
     }
 
     private static void invokeSpellchargedGreatswordEpicFightTick(Object player) throws ReflectiveOperationException {
