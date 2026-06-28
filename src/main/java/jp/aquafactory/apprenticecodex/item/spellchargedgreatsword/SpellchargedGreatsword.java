@@ -41,6 +41,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.client.GeoRenderProvider;
@@ -51,6 +52,7 @@ import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -127,7 +129,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
             return InteractionResultHolder.pass(stack);
         }
 
-        if (isOverchargeActive(stack)) {
+        if (isOverchargeActive(stack, level.getGameTime())) {
             return InteractionResultHolder.pass(stack);
         }
 
@@ -147,7 +149,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
             return;
         }
 
-        if (!isOverchargeActive(stack) && getChargeLevel(stack, level.getGameTime()) >= 2) {
+        if (!isOverchargeActive(stack, level.getGameTime()) && getChargeLevel(stack, level.getGameTime()) >= 2) {
             freezeChargeDecay(stack, level.getGameTime());
         }
     }
@@ -156,7 +158,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     public void releaseUsing(@NotNull ItemStack stack, @NotNull Level level, @NotNull LivingEntity livingEntity,
                              int timeLeft) {
         super.releaseUsing(stack, level, livingEntity, timeLeft);
-        if (!(livingEntity instanceof Player player) || isOverchargeActive(stack)) {
+        if (!(livingEntity instanceof Player player) || isOverchargeActive(stack, level.getGameTime())) {
             return;
         }
 
@@ -220,7 +222,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     }
 
     public static boolean addCharge(ItemStack stack, long gameTime, double chargeTicks) {
-        if (!isSpellchargedGreatsword(stack) || isOverchargeActive(stack) || chargeTicks <= 0.0D) {
+        if (!isSpellchargedGreatsword(stack) || isOverchargeActive(stack, gameTime) || chargeTicks <= 0.0D) {
             return false;
         }
 
@@ -238,11 +240,12 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     }
 
     public static boolean refreshChargeDecayDelay(ItemStack stack, long gameTime) {
-        if (!isSpellchargedGreatsword(stack) || isOverchargeActive(stack) || !hasChargeState(stack)) {
+        if (!isSpellchargedGreatsword(stack) || isOverchargeActive(stack, gameTime) || !hasChargeState(stack)) {
             return false;
         }
 
-        stack.getOrCreateTag().putLong(TAG_LAST_CHARGE_GAME_TIME, gameTime);
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag ->
+                tag.putLong(TAG_LAST_CHARGE_GAME_TIME, gameTime));
         return true;
     }
 
@@ -273,7 +276,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
 
     public static double getEffectiveChargeTicks(ItemStack stack, double gameTime) {
         var tag = getCustomDataTag(stack);
-        if (!isSpellchargedGreatsword(stack) || isOverchargeActive(stack) || tag == null) {
+        if (!isSpellchargedGreatsword(stack) || isOverchargeActive(stack, gameTime) || tag == null) {
             return 0.0D;
         }
 
@@ -316,6 +319,11 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     }
 
     public static boolean isOverchargeActive(ItemStack stack) {
+        var currentGameTime = resolveCurrentServerGameTime();
+        if (currentGameTime.isPresent()) {
+            return isOverchargeActive(stack, currentGameTime.getAsLong());
+        }
+
         return hasOverchargeState(stack);
     }
 
@@ -409,6 +417,15 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
                 && tag != null
                 && tag.contains(TAG_OVERCHARGE_REMAINING_TICKS)
                 && tag.getInt(TAG_OVERCHARGE_REMAINING_TICKS) > 0;
+    }
+
+    private static OptionalLong resolveCurrentServerGameTime() {
+        var server = ServerLifecycleHooks.getCurrentServer();
+        if (server == null) {
+            return OptionalLong.empty();
+        }
+
+        return OptionalLong.of(server.overworld().getGameTime());
     }
 
     private static void startOvercharge(ItemStack stack, long gameTime, int chargeLevel) {
@@ -551,7 +568,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     }
 
     public @NotNull AABB getSweepHitBox(@NotNull ItemStack stack, @NotNull Player player, @NotNull Entity target) {
-        if (!isOverchargeActive(stack)) {
+        if (!isOverchargeActive(stack, player.level().getGameTime())) {
             return super.getSweepHitBox(stack, player, target);
         }
 

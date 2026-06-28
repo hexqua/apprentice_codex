@@ -650,6 +650,15 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                             level.getGameTime() + SpellchargedGreatsword.OVERCHARGE_LEVEL_2_DURATION_TICKS
                     ),
                     "Spellcharged Greatsword level 2 overcharge should end after 10 seconds");
+            var expiredOverchargeStack = levelTwoStack.copy();
+            expiredOverchargeStack.getOrCreateTag().putLong(
+                    "SpellchargedGreatswordOverchargeEndGameTime",
+                    level.getGameTime() - 1L
+            );
+            helper.assertFalse(SpellchargedGreatsword.isOverchargeActive(expiredOverchargeStack),
+                    "Spellcharged Greatsword should not treat expired overcharge NBT as active");
+            assertSpellchargedGreatswordAttackAttributes(helper, item, expiredOverchargeStack, 0.0D, 0.0D,
+                    "Spellcharged Greatsword expired overcharge should not use overcharge attributes");
 
             var levelThreeStack = new ItemStack(item);
             var levelThreePlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
@@ -760,6 +769,15 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             assertAabbClose(helper, item.getSweepHitBox(overchargedStack, player, target),
                     target.getBoundingBox().inflate(3.0D, 0.25D, 3.0D),
                     "Spellcharged Greatsword overcharge sweep hitbox");
+            overchargedStack.getOrCreateTag().putLong(
+                    "SpellchargedGreatswordOverchargeEndGameTime",
+                    level.getGameTime() - 1L
+            );
+            helper.assertTrue(EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SWEEPING_EDGE, overchargedStack) == 1,
+                    "Expired overcharge Spellcharged Greatsword should use the normal Sweeping Edge bonus");
+            assertAabbClose(helper, item.getSweepHitBox(overchargedStack, player, target),
+                    target.getBoundingBox().inflate(1.0D, 0.25D, 1.0D),
+                    "Expired overcharge Spellcharged Greatsword should use the normal sweep hitbox");
 
             var enchantedOverchargedStack = new ItemStack(item);
             var enchantedOverchargedStackEnchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
@@ -994,6 +1012,46 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             helper.succeed();
         });
     }
+
+    static void spellchargedGreatswordRecastRefreshesDecayWithoutExtraCharge(GameTestHelper helper) {
+        var spell = SpellRegistry.ARCHER_MULTIPLE.get();
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "spellcharged_greatsword_recast_refresh_test");
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Spellcharged Greatsword recast test could not resolve magic data");
+
+        var greatsword = new ItemStack(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
+        SpellchargedGreatsword.addCharge(greatsword, helper.getLevel().getGameTime(), 400.0D);
+        player.setItemInHand(InteractionHand.MAIN_HAND, greatsword);
+        magicData.getPlayerRecasts().addRecast(new RecastInstance(
+                spell.getSpellId(),
+                1,
+                2,
+                1000,
+                CastSource.SPELLBOOK,
+                null
+        ), magicData);
+
+        helper.runAtTickTime(SpellchargedGreatsword.DECAY_DELAY_TICKS + 10, () -> {
+            var beforeRefreshTime = helper.getLevel().getGameTime();
+            helper.assertTrue(SpellchargedGreatsword.getEffectiveChargeTicks(
+                            player.getMainHandItem(),
+                            beforeRefreshTime) < 400.0D,
+                    "Spellcharged Greatsword test should reach the old decay window before the Recast event");
+
+            postSpellOnCast(player, spell, 1);
+            assertSpellchargedGreatswordChargeState(
+                    helper,
+                    player.getMainHandItem(),
+                    beforeRefreshTime,
+                    400.0D,
+                    2,
+                    "Spellcharged Greatsword Recast event should refresh decay without adding charge"
+            );
+            helper.succeed();
+        });
+    }
+
     static void spellcastersFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> assertCategoryEnchantments(
                 helper,

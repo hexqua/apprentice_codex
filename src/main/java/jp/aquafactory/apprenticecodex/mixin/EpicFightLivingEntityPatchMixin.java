@@ -75,7 +75,8 @@ public abstract class EpicFightLivingEntityPatchMixin {
         }
 
         var stack = player.getMainHandItem();
-        if (!(stack.getItem() instanceof SpellchargedGreatsword) || !SpellchargedGreatsword.isOverchargeActive(stack)) {
+        if (!(stack.getItem() instanceof SpellchargedGreatsword)
+                || !SpellchargedGreatsword.isOverchargeActive(stack, player.level().getGameTime())) {
             return;
         }
 

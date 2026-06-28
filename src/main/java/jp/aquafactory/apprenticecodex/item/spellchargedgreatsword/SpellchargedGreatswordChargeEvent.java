@@ -108,6 +108,10 @@ public final class SpellchargedGreatswordChargeEvent {
             return CastRecordResult.IGNORE;
         }
 
+        if (hasActiveRecast(magicData, spell)) {
+            return CastRecordResult.REFRESH_DECAY_DELAY;
+        }
+
         if (spell.getCastType() != CastType.CONTINUOUS
                 || !matchesActiveContinuousCast(magicData, spell, spellLevel, castSource)) {
             return CastRecordResult.ADD_CHARGE;
@@ -136,6 +140,10 @@ public final class SpellchargedGreatswordChargeEvent {
                 && Objects.equals(magicData.getCastingSpellId(), spell.getSpellId())
                 && magicData.getCastingSpellLevel() == spellLevel
                 && magicData.getCastSource() == castSource;
+    }
+
+    private static boolean hasActiveRecast(MagicData magicData, AbstractSpell spell) {
+        return magicData != null && spell != null && magicData.getPlayerRecasts().hasRecastForSpell(spell.getSpellId());
     }
 
     private static void clearStaleContinuousCast(ServerPlayer player) {
