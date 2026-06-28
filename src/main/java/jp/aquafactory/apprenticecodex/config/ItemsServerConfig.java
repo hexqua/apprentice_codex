@@ -23,6 +23,7 @@ import jp.aquafactory.apprenticecodex.config.item.ScarletThirstServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScrollcasterGauntletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellCastParryingRingServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ZenithStaffServerConfig;
@@ -54,6 +55,7 @@ final class ItemsServerConfig {
     private final ElementalBowServerConfig elementalBowConfig;
     private final ScrollcasterGauntletServerConfig scrollcasterGauntletConfig;
     private final SpellCastParryingRingServerConfig spellCastParryingRingConfig;
+    private final SpellchargedGreatswordServerConfig spellchargedGreatswordConfig;
     private final SpellStainedRunicTabletServerConfig spellStainedRunicTabletConfig;
     private final SpellThrowableCardServerConfig spellThrowableCardConfig;
     private final ArchivistsGrimoireServerConfig archivistsGrimoireConfig;
@@ -82,6 +84,7 @@ final class ItemsServerConfig {
             ElementalBowServerConfig elementalBowConfig,
             ScrollcasterGauntletServerConfig scrollcasterGauntletConfig,
             SpellCastParryingRingServerConfig spellCastParryingRingConfig,
+            SpellchargedGreatswordServerConfig spellchargedGreatswordConfig,
             SpellStainedRunicTabletServerConfig spellStainedRunicTabletConfig,
             SpellThrowableCardServerConfig spellThrowableCardConfig,
             ArchivistsGrimoireServerConfig archivistsGrimoireConfig,
@@ -109,6 +112,7 @@ final class ItemsServerConfig {
         this.elementalBowConfig = elementalBowConfig;
         this.scrollcasterGauntletConfig = scrollcasterGauntletConfig;
         this.spellCastParryingRingConfig = spellCastParryingRingConfig;
+        this.spellchargedGreatswordConfig = spellchargedGreatswordConfig;
         this.spellStainedRunicTabletConfig = spellStainedRunicTabletConfig;
         this.spellThrowableCardConfig = spellThrowableCardConfig;
         this.archivistsGrimoireConfig = archivistsGrimoireConfig;
@@ -139,6 +143,7 @@ final class ItemsServerConfig {
         var elementalBowConfig = ElementalBowServerConfig.define(builder);
         var scrollcasterGauntletConfig = ScrollcasterGauntletServerConfig.define(builder);
         var spellCastParryingRingConfig = SpellCastParryingRingServerConfig.define(builder);
+        var spellchargedGreatswordConfig = SpellchargedGreatswordServerConfig.define(builder);
         var spellStainedRunicTabletConfig = SpellStainedRunicTabletServerConfig.define(builder);
         var spellThrowableCardConfig = SpellThrowableCardServerConfig.define(builder);
         var archivistsGrimoireConfig = ArchivistsGrimoireServerConfig.define(builder);
@@ -168,6 +173,7 @@ final class ItemsServerConfig {
                 elementalBowConfig,
                 scrollcasterGauntletConfig,
                 spellCastParryingRingConfig,
+                spellchargedGreatswordConfig,
                 spellStainedRunicTabletConfig,
                 spellThrowableCardConfig,
                 archivistsGrimoireConfig,
@@ -867,8 +873,16 @@ final class ItemsServerConfig {
         return spellCastParryingRingConfig.parryWindowTicks();
     }
 
+    SpellchargedGreatswordServerConfig.Values spellchargedGreatswordConfig() {
+        return spellchargedGreatswordConfig.values();
+    }
+
     void setSpellCastParryingRingParryWindowTicksForGameTest(int value) {
         spellCastParryingRingConfig.setParryWindowTicksForGameTest(value);
+    }
+
+    void setSpellchargedGreatswordConfigForGameTest(SpellchargedGreatswordServerConfig.Values values) {
+        spellchargedGreatswordConfig.setForGameTest(values);
     }
 
     void setSpellStainedRunicTabletConfigForGameTest(SpellStainedRunicTabletServerConfig.Values values) {

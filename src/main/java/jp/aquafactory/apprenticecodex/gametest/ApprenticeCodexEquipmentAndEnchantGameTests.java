@@ -73,6 +73,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
             "apprenticecodex.magi_compressor_gadget_config";
     private static final String JUMPCAST_CHARM_CONFIG_BATCH =
             "apprenticecodex.jumpcast_charm_config";
+    private static final String SPELLCHARGED_GREATSWORD_CONFIG_BATCH =
+            "apprenticecodex.spellcharged_greatsword_config";
 
     private ApprenticeCodexEquipmentAndEnchantGameTests() {
     }
@@ -1590,6 +1592,69 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.reflectcastShieldKeepsExpectedEnchantmentSurfaces(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellchargedGreatswordKeepsExpectedStatsTagsAndEnchantments(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordKeepsExpectedStatsTagsAndEnchantments(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellchargedGreatswordChargeMathDecayAndAttributes(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordChargeMathDecayAndAttributes(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellchargedGreatswordOverchargeModeConsumesChargeAndUsesConfiguredAttributes(
+            GameTestHelper helper
+    ) {
+        EquipmentEnchantmentSurfaceGameTestScenarios
+                .spellchargedGreatswordOverchargeModeConsumesChargeAndUsesConfiguredAttributes(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = SPELLCHARGED_GREATSWORD_CONFIG_BATCH)
+    public static void spellchargedGreatswordServerConfigOverridesCombatStats(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordServerConfigOverridesCombatStats(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellchargedGreatswordOverchargeActivationPausesDecayUntilRelease(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordOverchargeActivationPausesDecayUntilRelease(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellchargedGreatswordSweepingEdgeBonusAndSweepHitbox(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordSweepingEdgeBonusAndSweepHitbox(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellchargedGreatswordBetterCombatUsesChargedWeaponAttributes(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordBetterCombatUsesChargedWeaponAttributes(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellchargedGreatswordEpicFightUsesSweepingEdgeAndOverchargeRefillsInnate(
+            GameTestHelper helper
+    ) {
+        EquipmentEnchantmentSurfaceGameTestScenarios
+                .spellchargedGreatswordEpicFightUsesSweepingEdgeAndOverchargeRefillsInnate(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellchargedGreatswordChargeEventRequiresMainhand(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordChargeEventRequiresMainhand(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 140)
+    public static void spellchargedGreatswordContinuousRecastRefreshesDecayWithoutExtraCharge(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios
+                .spellchargedGreatswordContinuousRecastRefreshesDecayWithoutExtraCharge(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 140)
+    public static void spellchargedGreatswordRecastRefreshesDecayWithoutExtraCharge(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios
+                .spellchargedGreatswordRecastRefreshesDecayWithoutExtraCharge(helper);
     }
 
     @GameTest(template = TEMPLATE)
