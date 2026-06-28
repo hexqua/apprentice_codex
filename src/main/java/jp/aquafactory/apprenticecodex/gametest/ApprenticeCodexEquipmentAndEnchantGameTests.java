@@ -1608,6 +1608,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellchargedGreatswordSweepingEdgeBonusAndSweepHitbox(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordSweepingEdgeBonusAndSweepHitbox(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellchargedGreatswordBetterCombatUsesChargedWeaponAttributes(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordBetterCombatUsesChargedWeaponAttributes(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellchargedGreatswordChargeEventRequiresMainhand(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordChargeEventRequiresMainhand(helper);
     }

@@ -45,16 +45,19 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterials;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.storage.loot.functions.EnchantRandomlyFunction;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.fml.ModList;
@@ -374,6 +377,96 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         helper.succeed();
     }
 
+    static void spellchargedGreatswordSweepingEdgeBonusAndSweepHitbox(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (SpellchargedGreatsword) ItemRegistry.SPELLCHARGED_GREATSWORD.get();
+            var level = helper.getLevel();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "spellcharged_greatsword_sweeping_bonus_test");
+            var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0));
+
+            var stack = new ItemStack(item);
+            helper.assertTrue(EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SWEEPING_EDGE, stack) == 1,
+                    "Spellcharged Greatsword should act as Sweeping Edge I without the enchantment");
+            assertAabbClose(helper, item.getSweepHitBox(stack, player, target),
+                    target.getBoundingBox().inflate(1.0D, 0.25D, 1.0D),
+                    "Spellcharged Greatsword normal sweep hitbox");
+
+            var enchantedStack = new ItemStack(item);
+            EnchantmentHelper.setEnchantments(Map.of(Enchantments.SWEEPING_EDGE, 3), enchantedStack);
+            helper.assertTrue(EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SWEEPING_EDGE, enchantedStack) == 4,
+                    "Spellcharged Greatsword should add one virtual Sweeping Edge level normally");
+
+            var overchargedStack = new ItemStack(item);
+            SpellchargedGreatsword.addCharge(overchargedStack, level.getGameTime(), 400.0D);
+            item.releaseUsing(
+                    overchargedStack,
+                    level,
+                    player,
+                    item.getUseDuration(overchargedStack) - SpellchargedGreatsword.OVERCHARGE_ACTIVATION_HOLD_TICKS
+            );
+            helper.assertTrue(SpellchargedGreatsword.isOverchargeActive(overchargedStack),
+                    "Spellcharged Greatsword test stack should enter overcharge mode");
+            helper.assertTrue(EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SWEEPING_EDGE, overchargedStack) == 3,
+                    "Overcharged Spellcharged Greatsword should act as Sweeping Edge III without the enchantment");
+            assertAabbClose(helper, item.getSweepHitBox(overchargedStack, player, target),
+                    target.getBoundingBox().inflate(3.0D, 0.25D, 3.0D),
+                    "Spellcharged Greatsword overcharge sweep hitbox");
+
+            var enchantedOverchargedStack = new ItemStack(item);
+            EnchantmentHelper.setEnchantments(Map.of(Enchantments.SWEEPING_EDGE, 3), enchantedOverchargedStack);
+            SpellchargedGreatsword.addCharge(enchantedOverchargedStack, level.getGameTime(), 400.0D);
+            item.releaseUsing(
+                    enchantedOverchargedStack,
+                    level,
+                    player,
+                    item.getUseDuration(enchantedOverchargedStack)
+                            - SpellchargedGreatsword.OVERCHARGE_ACTIVATION_HOLD_TICKS
+            );
+            helper.assertTrue(
+                    EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SWEEPING_EDGE, enchantedOverchargedStack) == 6,
+                    "Overcharged Spellcharged Greatsword should add three virtual Sweeping Edge levels"
+            );
+        });
+    }
+
+    static void spellchargedGreatswordBetterCombatUsesChargedWeaponAttributes(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded("bettercombat")) {
+                return;
+            }
+
+            try {
+                var item = (SpellchargedGreatsword) ItemRegistry.SPELLCHARGED_GREATSWORD.get();
+                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                        "spellcharged_greatsword_bettercombat_attributes_test");
+                var normalStack = new ItemStack(item);
+                var overchargedStack = new ItemStack(item);
+                SpellchargedGreatsword.addCharge(overchargedStack, helper.getLevel().getGameTime(), 400.0D);
+                item.releaseUsing(
+                        overchargedStack,
+                        helper.getLevel(),
+                        player,
+                        item.getUseDuration(overchargedStack) - SpellchargedGreatsword.OVERCHARGE_ACTIVATION_HOLD_TICKS
+                );
+
+                var weaponRegistry = Class.forName("net.bettercombat.logic.WeaponRegistry");
+                var getAttributes = weaponRegistry.getMethod("getAttributes", ItemStack.class);
+                var normalAttributes = getAttributes.invoke(null, normalStack);
+                var chargedAttributes = getAttributes.invoke(null, overchargedStack);
+
+                helper.assertTrue(readBetterCombatAttackRange(normalAttributes) == 3.0D,
+                        "Spellcharged Greatsword normal Better Combat attack range should come from the base file");
+                helper.assertTrue(readBetterCombatAttackRange(chargedAttributes) == 3.5D,
+                        "Spellcharged Greatsword overcharge Better Combat attack range should come from the charged file");
+                helper.assertTrue(readBetterCombatAttackCount(chargedAttributes) == 2,
+                        "Spellcharged Greatsword overcharge Better Combat attacks should come from the charged file");
+            } catch (ReflectiveOperationException exception) {
+                throw new IllegalStateException("Failed to inspect Better Combat weapon attributes", exception);
+            }
+        });
+    }
+
     static void spellchargedGreatswordChargeEventRequiresMainhand(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spell = SpellRegistry.ARCANE_BLAST.get();
@@ -450,6 +543,25 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                 message + " attack speed"
         );
     }
+
+    private static void assertAabbClose(GameTestHelper helper, AABB actual, AABB expected, String message) {
+        helper.assertTrue(Math.abs(actual.minX - expected.minX) < 1.0e-9D
+                        && Math.abs(actual.minY - expected.minY) < 1.0e-9D
+                        && Math.abs(actual.minZ - expected.minZ) < 1.0e-9D
+                        && Math.abs(actual.maxX - expected.maxX) < 1.0e-9D
+                        && Math.abs(actual.maxY - expected.maxY) < 1.0e-9D
+                        && Math.abs(actual.maxZ - expected.maxZ) < 1.0e-9D,
+                message + ": expected " + expected + " but got " + actual);
+    }
+
+    private static double readBetterCombatAttackRange(Object attributes) throws ReflectiveOperationException {
+        return ((Number) attributes.getClass().getMethod("attackRange").invoke(attributes)).doubleValue();
+    }
+
+    private static int readBetterCombatAttackCount(Object attributes) throws ReflectiveOperationException {
+        return ((Object[]) attributes.getClass().getMethod("attacks").invoke(attributes)).length;
+    }
+
     static void alchemistsFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> assertCategoryEnchantments(
                 helper,
