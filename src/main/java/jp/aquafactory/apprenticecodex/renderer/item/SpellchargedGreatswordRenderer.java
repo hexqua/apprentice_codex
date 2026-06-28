@@ -377,12 +377,12 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
                 1.0D
         );
         var core2MaxBrightness = (float) Mth.lerp(chargeProgress, 0.1D, 1.0D);
-        var chargeLevel = SpellchargedGreatsword.getChargeLevel(stack);
+        var chargeLevel = SpellchargedGreatsword.getChargeLevel(stack, renderTime);
         return new ChargeRenderState(
                 core2MaxBrightness,
                 resolveCore2Color(chargeLevel),
                 resolveNormalAuraIntensity(chargeLevel),
-                SpellchargedGreatsword.getOverchargeAuraIntensity(stack, resolveRenderTime(partialTick)),
+                SpellchargedGreatsword.getOverchargeAuraIntensity(stack, renderTime),
                 true
         );
     }
