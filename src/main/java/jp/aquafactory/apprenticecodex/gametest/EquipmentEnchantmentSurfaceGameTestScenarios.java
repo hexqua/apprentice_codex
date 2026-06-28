@@ -588,6 +588,18 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             SpellchargedGreatsword.addCharge(staleLevelStack, 300L, 20.0D);
             assertSpellchargedGreatswordChargeState(helper, staleLevelStack, 300L, 20.0D, 0,
                     "Spellcharged Greatsword should not restore a stale level after charge fully decays");
+
+            var inventoryTickPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "spellcharged_greatsword_inventory_decay_test");
+            var inventoryTickStack = new ItemStack(item);
+            var fullyDecayedChargeTime = helper.getLevel().getGameTime()
+                    - SpellchargedGreatsword.DECAY_DELAY_TICKS
+                    - (long) (SpellchargedGreatsword.MAX_CHARGE_TICKS / SpellchargedGreatsword.DECAY_TICKS_PER_TICK);
+            SpellchargedGreatsword.addCharge(inventoryTickStack, fullyDecayedChargeTime, 800.0D);
+            inventoryTickPlayer.getInventory().setItem(9, inventoryTickStack);
+            item.inventoryTick(inventoryTickStack, helper.getLevel(), inventoryTickPlayer, 9, false);
+            assertSpellchargedGreatswordChargeState(helper, inventoryTickStack, helper.getLevel().getGameTime(), 0.0D, 0,
+                    "Spellcharged Greatsword should clear stale charge while ticking outside the main hand");
         });
     }
 
