@@ -621,6 +621,49 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     "Spellcharged Greatsword should not charge from offhand-only casts");
         });
     }
+
+    static void spellchargedGreatswordContinuousRecastRefreshesDecayWithoutExtraCharge(GameTestHelper helper) {
+        var spell = SpellRegistry.FORCE_FIELD.get();
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "spellcharged_greatsword_continuous_refresh_test");
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Spellcharged Greatsword continuous test could not resolve magic data");
+        magicData.setSyncedData(new io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData(player));
+
+        var greatsword = new ItemStack(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
+        SpellchargedGreatsword.addCharge(greatsword, helper.getLevel().getGameTime(), 400.0D);
+        player.setItemInHand(InteractionHand.MAIN_HAND, greatsword);
+        magicData.initiateCast(spell, 1, 200, CastSource.SPELLBOOK, "gametest");
+        postSpellOnCast(player, spell, 1);
+
+        var firstChargeTime = helper.getLevel().getGameTime();
+        var chargeAfterFirstCast = SpellchargedGreatsword.getEffectiveChargeTicks(
+                player.getMainHandItem(),
+                firstChargeTime
+        );
+        helper.assertTrue(chargeAfterFirstCast >= 400.0D,
+                "Spellcharged Greatsword should keep prepared charge after the first CONTINUOUS cast event");
+        var levelAfterFirstCast = SpellchargedGreatsword.getChargeLevel(player.getMainHandItem());
+
+        helper.runAtTickTime(SpellchargedGreatsword.DECAY_DELAY_TICKS + 10, () -> {
+            var beforeRefreshTime = helper.getLevel().getGameTime();
+            helper.assertTrue(SpellchargedGreatsword.getEffectiveChargeTicks(
+                            player.getMainHandItem(),
+                            beforeRefreshTime) < chargeAfterFirstCast,
+                    "Spellcharged Greatsword test should reach the old decay window before the duplicate event");
+
+            postSpellOnCast(player, spell, 1);
+            assertSpellchargedGreatswordChargeState(
+                    helper,
+                    player.getMainHandItem(),
+                    beforeRefreshTime,
+                    chargeAfterFirstCast,
+                    levelAfterFirstCast,
+                    "Spellcharged Greatsword duplicate CONTINUOUS event should refresh decay without adding charge"
+            );
+            helper.succeed();
+        });
+    }
     static void spellcastersFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> assertCategoryEnchantments(
                 helper,
