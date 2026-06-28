@@ -81,6 +81,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SMASHCAST_SCEPTER.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get(),
+                ItemRegistry.SPELLCHARGED_GREATSWORD.get(),
                 ItemRegistry.SPELL_SIDE_EDGE.get(),
                 ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
                 ItemRegistry.SCROLLCASTER_GAUNTLET.get()
@@ -114,6 +115,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.CIRCUIT_HEAT_STAFF.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get(),
+                ItemRegistry.SPELLCHARGED_GREATSWORD.get(),
                 ItemRegistry.SPELL_SIDE_EDGE.get(),
                 ItemRegistry.SCROLLCASTER_GAUNTLET.get(),
                 ItemRegistry.ZENITH_STAFF.get()

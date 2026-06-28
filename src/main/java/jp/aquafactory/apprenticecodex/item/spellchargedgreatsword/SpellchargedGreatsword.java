@@ -3,9 +3,11 @@ package jp.aquafactory.apprenticecodex.item.spellchargedgreatsword;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
-import io.redspace.ironsspellbooks.item.UniqueItem;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.renderer.item.SpellchargedGreatswordRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -51,7 +53,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public final class SpellchargedGreatsword extends SwordItem implements GeoItem, UniqueItem {
+public final class SpellchargedGreatsword extends SwordItem implements GeoItem, IJeiInfoItem {
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.spellcharged_greatsword.desc_";
     public static final int DURABILITY = 2031;
     public static final int ENCHANTMENT_VALUE = 22;
     public static final double DISPLAY_ATTACK_DAMAGE = 8.0D;
@@ -107,6 +110,11 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         super(SpellchargedGreatswordTier.INSTANCE, 4, (float) ATTACK_SPEED_MODIFIER_AMOUNT,
                 new Item.Properties().stacksTo(1).durability(DURABILITY).rarity(Rarity.RARE).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override
@@ -620,7 +628,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
 
         @Override
         public @NotNull Ingredient getRepairIngredient() {
-            return Ingredient.EMPTY;
+            return Ingredient.of(ItemRegistry.ARCANE_INGOT.get());
         }
     }
 }
