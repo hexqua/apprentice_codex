@@ -1618,6 +1618,14 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellchargedGreatswordEpicFightUsesSweepingEdgeAndOverchargeRefillsInnate(
+            GameTestHelper helper
+    ) {
+        EquipmentEnchantmentSurfaceGameTestScenarios
+                .spellchargedGreatswordEpicFightUsesSweepingEdgeAndOverchargeRefillsInnate(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellchargedGreatswordChargeEventRequiresMainhand(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordChargeEventRequiresMainhand(helper);
     }

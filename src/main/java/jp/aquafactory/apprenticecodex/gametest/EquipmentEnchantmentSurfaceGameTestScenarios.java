@@ -467,6 +467,47 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         });
     }
 
+    static void spellchargedGreatswordEpicFightUsesSweepingEdgeAndOverchargeRefillsInnate(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(EpicFightCompat.MOD_ID)) {
+                return;
+            }
+
+            try {
+                var item = (SpellchargedGreatsword) ItemRegistry.SPELLCHARGED_GREATSWORD.get();
+                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                        "spellcharged_greatsword_epicfight_innate_test");
+                var stack = new ItemStack(item);
+                player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+                helper.assertTrue(hasExpectedSpellchargedGreatswordEpicFightSkills(player, stack),
+                        "Spellcharged Greatsword Epic Fight skills should be Sweeping Edge and Swordmaster");
+                helper.assertTrue(setEpicFightSweepingEdgeCharge(player, 0),
+                        "Spellcharged Greatsword Epic Fight test could not resolve weapon innate skill container");
+
+                SpellchargedGreatsword.addCharge(stack, helper.getLevel().getGameTime(), 400.0D);
+                item.releaseUsing(
+                        stack,
+                        helper.getLevel(),
+                        player,
+                        item.getUseDuration(stack) - SpellchargedGreatsword.OVERCHARGE_ACTIVATION_HOLD_TICKS
+                );
+                helper.assertTrue(SpellchargedGreatsword.isOverchargeActive(stack),
+                        "Spellcharged Greatsword Epic Fight test stack should enter overcharge mode");
+
+                invokeSpellchargedGreatswordEpicFightTick(player);
+
+                var expectedStack = getEpicFightSweepingEdgeMaxStack();
+                helper.assertTrue(getEpicFightSweepingEdgeCharge(player) == expectedStack,
+                        "Spellcharged Greatsword overcharge should refill Epic Fight Sweeping Edge charge to "
+                                + expectedStack);
+            } catch (ReflectiveOperationException exception) {
+                throw new IllegalStateException("Failed to inspect Spellcharged Greatsword Epic Fight capability",
+                        exception);
+            }
+        });
+    }
+
     static void spellchargedGreatswordChargeEventRequiresMainhand(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spell = SpellRegistry.ARCANE_BLAST.get();
@@ -560,6 +601,57 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
 
     private static int readBetterCombatAttackCount(Object attributes) throws ReflectiveOperationException {
         return ((Object[]) attributes.getClass().getMethod("attacks").invoke(attributes)).length;
+    }
+
+    private static boolean hasExpectedSpellchargedGreatswordEpicFightSkills(Object player, ItemStack stack)
+            throws ReflectiveOperationException {
+        var compatClass = Class.forName(
+                "jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSpellchargedGreatswordCompat"
+        );
+        return (boolean) compatClass.getMethod(
+                "hasExpectedSpellchargedGreatswordSkills",
+                net.minecraft.server.level.ServerPlayer.class,
+                ItemStack.class
+        ).invoke(null, player, stack);
+    }
+
+    private static boolean setEpicFightSweepingEdgeCharge(Object player, int stack)
+            throws ReflectiveOperationException {
+        var compatClass = Class.forName(
+                "jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSpellchargedGreatswordCompat"
+        );
+        return (boolean) compatClass.getMethod(
+                "setSweepingEdgeCharge",
+                net.minecraft.server.level.ServerPlayer.class,
+                int.class
+        ).invoke(null, player, stack);
+    }
+
+    private static int getEpicFightSweepingEdgeCharge(Object player) throws ReflectiveOperationException {
+        var compatClass = Class.forName(
+                "jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSpellchargedGreatswordCompat"
+        );
+        return ((Number) compatClass.getMethod(
+                "getSweepingEdgeCharge",
+                net.minecraft.server.level.ServerPlayer.class
+        ).invoke(null, player)).intValue();
+    }
+
+    private static int getEpicFightSweepingEdgeMaxStack() throws ReflectiveOperationException {
+        var compatClass = Class.forName(
+                "jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSpellchargedGreatswordCompat"
+        );
+        return ((Number) compatClass.getMethod("getSweepingEdgeMaxStack").invoke(null)).intValue();
+    }
+
+    private static void invokeSpellchargedGreatswordEpicFightTick(Object player) throws ReflectiveOperationException {
+        var eventClass = Class.forName(
+                "jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGreatswordEpicFightEvents"
+        );
+        eventClass.getMethod("onPlayerTick", TickEvent.PlayerTickEvent.class).invoke(
+                null,
+                new TickEvent.PlayerTickEvent(TickEvent.Phase.END, (net.minecraft.world.entity.player.Player) player)
+        );
     }
 
     static void alchemistsFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
