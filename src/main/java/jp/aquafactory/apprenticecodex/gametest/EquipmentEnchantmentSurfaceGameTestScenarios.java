@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressCastEvent;
@@ -218,12 +219,12 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     SpellchargedGreatsword.DISPLAY_ATTACK_SPEED - 4.0D,
                     "Spellcharged Greatsword attack speed modifier should display as 1.1 speed"
             );
-            assertSingleModifierAmount(
+            assertSpellchargedGreatswordEntityReach(
                     helper,
-                    modifiers.get(ForgeMod.ENTITY_REACH.get()),
-                    AttributeModifier.Operation.ADDITION,
-                    SpellchargedGreatsword.ENTITY_REACH_BONUS,
-                    "Spellcharged Greatsword entity reach modifier should add 0.5 blocks"
+                    item,
+                    stack,
+                    ApprenticeCodexServerConfig.spellchargedGreatswordConfig().normalEntityReachBonus(),
+                    "Spellcharged Greatsword entity reach modifier should match the normal server config"
             );
 
             helper.assertTrue(stack.is(MALUM_SOUL_HUNTER_WEAPON),
@@ -249,19 +250,19 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             SpellchargedGreatsword.addCharge(stack, 0L, 200.0D);
             assertSpellchargedGreatswordChargeState(helper, stack, 0L, 200.0D, 1,
                     "Spellcharged Greatsword should reach level 1 at 200 charge ticks");
-            assertSpellchargedGreatswordAttackAttributes(helper, item, stack, 2.0D, -0.1D,
+            assertSpellchargedGreatswordAttackAttributes(helper, item, stack, 2.0D, -0.0D,
                     "Spellcharged Greatsword level 1 attributes");
 
             SpellchargedGreatsword.addCharge(stack, 0L, 200.0D);
             assertSpellchargedGreatswordChargeState(helper, stack, 0L, 400.0D, 2,
                     "Spellcharged Greatsword should reach level 2 at 400 charge ticks");
-            assertSpellchargedGreatswordAttackAttributes(helper, item, stack, 5.0D, -0.2D,
+            assertSpellchargedGreatswordAttackAttributes(helper, item, stack, 4.0D, -0.2D,
                     "Spellcharged Greatsword level 2 attributes");
 
             SpellchargedGreatsword.addCharge(stack, 0L, 400.0D);
             assertSpellchargedGreatswordChargeState(helper, stack, 100L, 800.0D, 3,
                     "Spellcharged Greatsword should keep full charge during the 5 second decay delay");
-            assertSpellchargedGreatswordAttackAttributes(helper, item, stack, 10.0D, -0.4D,
+            assertSpellchargedGreatswordAttackAttributes(helper, item, stack, 8.0D, -0.5D,
                     "Spellcharged Greatsword level 3 attributes");
 
             helper.assertTrue(Math.abs(SpellchargedGreatsword.getEffectiveChargeTicks(stack, 101L) - 796.0D) < 1.0e-9D,
@@ -277,7 +278,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         });
     }
 
-    static void spellchargedGreatswordOverchargeModeConsumesChargeAndUsesFixedAttributes(GameTestHelper helper) {
+    static void spellchargedGreatswordOverchargeModeConsumesChargeAndUsesConfiguredAttributes(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (SpellchargedGreatsword) ItemRegistry.SPELLCHARGED_GREATSWORD.get();
             var level = helper.getLevel();
@@ -307,8 +308,15 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     "Spellcharged Greatsword level 2 should enter overcharge mode");
             assertSpellchargedGreatswordChargeState(helper, levelTwoStack, level.getGameTime(), 0.0D, 0,
                     "Spellcharged Greatsword overcharge should consume stored charge");
-            assertSpellchargedGreatswordAttackAttributes(helper, item, levelTwoStack, 4.0D, 0.1D,
-                    "Spellcharged Greatsword overcharge fixed attributes");
+            assertSpellchargedGreatswordAttackAttributes(helper, item, levelTwoStack, 0.0D, 0.2D,
+                    "Spellcharged Greatsword overcharge configured attributes");
+            assertSpellchargedGreatswordEntityReach(
+                    helper,
+                    item,
+                    levelTwoStack,
+                    ApprenticeCodexServerConfig.spellchargedGreatswordConfig().overchargeEntityReachBonus(),
+                    "Spellcharged Greatsword overcharge entity reach should match the server config"
+            );
 
             helper.assertFalse(SpellchargedGreatsword.isOverchargeActive(
                             levelTwoStack,
@@ -427,6 +435,65 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SWEEPING_EDGE, enchantedOverchargedStack) == 6,
                     "Overcharged Spellcharged Greatsword should add three virtual Sweeping Edge levels"
             );
+        });
+    }
+
+    static void spellchargedGreatswordServerConfigOverridesCombatStats(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (SpellchargedGreatsword) ItemRegistry.SPELLCHARGED_GREATSWORD.get();
+            var config = new SpellchargedGreatswordServerConfig.Values(
+                    11.0D,
+                    -0.11D,
+                    12.0D,
+                    -0.22D,
+                    13.0D,
+                    -0.33D,
+                    21.0D,
+                    0.44D,
+                    0.75D,
+                    1.5D,
+                    2,
+                    5
+            );
+
+            try (var ignored = ApprenticeCodexServerConfig.useSpellchargedGreatswordConfigOverrideForGameTest(config)) {
+                var levelOneStack = new ItemStack(item);
+                SpellchargedGreatsword.addCharge(levelOneStack, 0L, 200.0D);
+                assertSpellchargedGreatswordAttackAttributes(helper, item, levelOneStack, 11.0D, -0.11D,
+                        "Spellcharged Greatsword level 1 configured attributes");
+                assertSpellchargedGreatswordEntityReach(helper, item, levelOneStack, 0.75D,
+                        "Spellcharged Greatsword normal configured entity reach");
+                helper.assertTrue(EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SWEEPING_EDGE, levelOneStack) == 2,
+                        "Spellcharged Greatsword normal Sweeping Edge bonus should use server config");
+
+                var levelTwoStack = new ItemStack(item);
+                SpellchargedGreatsword.addCharge(levelTwoStack, 0L, 400.0D);
+                assertSpellchargedGreatswordAttackAttributes(helper, item, levelTwoStack, 12.0D, -0.22D,
+                        "Spellcharged Greatsword level 2 configured attributes");
+
+                var levelThreeStack = new ItemStack(item);
+                SpellchargedGreatsword.addCharge(levelThreeStack, 0L, 800.0D);
+                assertSpellchargedGreatswordAttackAttributes(helper, item, levelThreeStack, 13.0D, -0.33D,
+                        "Spellcharged Greatsword level 3 configured attributes");
+
+                var overchargedStack = new ItemStack(item);
+                SpellchargedGreatsword.addCharge(overchargedStack, helper.getLevel().getGameTime(), 400.0D);
+                item.releaseUsing(
+                        overchargedStack,
+                        helper.getLevel(),
+                        createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                                "spellcharged_greatsword_config_overcharge_test"),
+                        item.getUseDuration(overchargedStack) - SpellchargedGreatsword.OVERCHARGE_ACTIVATION_HOLD_TICKS
+                );
+                assertSpellchargedGreatswordAttackAttributes(helper, item, overchargedStack, 21.0D, 0.44D,
+                        "Spellcharged Greatsword overcharge configured attributes");
+                assertSpellchargedGreatswordEntityReach(helper, item, overchargedStack, 1.5D,
+                        "Spellcharged Greatsword overcharge configured entity reach");
+                helper.assertTrue(
+                        EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SWEEPING_EDGE, overchargedStack) == 5,
+                        "Spellcharged Greatsword overcharge Sweeping Edge bonus should use server config"
+                );
+            }
         });
     }
 
@@ -582,6 +649,23 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                 AttributeModifier.Operation.ADDITION,
                 SpellchargedGreatsword.DISPLAY_ATTACK_SPEED - 4.0D + expectedSpeedBonus,
                 message + " attack speed"
+        );
+    }
+
+    private static void assertSpellchargedGreatswordEntityReach(
+            GameTestHelper helper,
+            SpellchargedGreatsword item,
+            ItemStack stack,
+            double expectedReachBonus,
+            String message
+    ) {
+        var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
+        assertSingleModifierAmount(
+                helper,
+                modifiers.get(ForgeMod.ENTITY_REACH.get()),
+                AttributeModifier.Operation.ADDITION,
+                expectedReachBonus,
+                message
         );
     }
 
