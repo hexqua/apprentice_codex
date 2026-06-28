@@ -227,7 +227,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         }
 
         var currentCharge = getEffectiveChargeTicks(stack, gameTime);
-        var previousLevel = currentCharge > 0.0D ? getChargeLevel(stack) : 0;
+        var previousLevel = getChargeLevel(stack, gameTime);
         var nextCharge = Mth.clamp(currentCharge + chargeTicks, 0.0D, MAX_CHARGE_TICKS);
         var nextLevel = Math.max(previousLevel, computeChargeLevel(nextCharge));
 
@@ -287,16 +287,24 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     }
 
     public static int getChargeLevel(ItemStack stack) {
-        var tag = getCustomDataTag(stack);
-        if (!isSpellchargedGreatsword(stack) || isOverchargeActive(stack) || tag == null) {
+        var currentGameTime = resolveCurrentServerGameTime();
+        if (currentGameTime.isPresent()) {
+            return getChargeLevel(stack, currentGameTime.getAsLong());
+        }
+
+        if (hasOverchargeState(stack)) {
             return 0;
         }
 
-        return Mth.clamp(tag.getInt(TAG_CHARGE_LEVEL), 0, 3);
+        return getStoredChargeLevel(stack);
     }
 
     public static int getChargeLevel(ItemStack stack, long gameTime) {
-        return getEffectiveChargeTicks(stack, gameTime) > 0.0D ? getChargeLevel(stack) : 0;
+        return getChargeLevel(stack, (double) gameTime);
+    }
+
+    public static int getChargeLevel(ItemStack stack, double gameTime) {
+        return getEffectiveChargeTicks(stack, gameTime) > 0.0D ? getStoredChargeLevel(stack) : 0;
     }
 
     public static int computeChargeLevel(double chargeTicks) {
@@ -310,6 +318,23 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
             return 1;
         }
         return 0;
+    }
+
+    private static int resolveCurrentChargeLevel(ItemStack stack) {
+        if (!isSpellchargedGreatsword(stack) || getCustomDataTag(stack) == null) {
+            return 0;
+        }
+
+        var currentGameTime = resolveCurrentServerGameTime();
+        if (currentGameTime.isPresent()) {
+            return getChargeLevel(stack, currentGameTime.getAsLong());
+        }
+
+        if (hasOverchargeState(stack)) {
+            return 0;
+        }
+
+        return getStoredChargeLevel(stack);
     }
 
     public static boolean isOverchargeActive(ItemStack stack) {
@@ -456,7 +481,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
                 stack,
                 gameTime,
                 currentCharge,
-                Math.max(getChargeLevel(stack), computeChargeLevel(currentCharge))
+                Math.max(getChargeLevel(stack, gameTime), computeChargeLevel(currentCharge))
         );
         return true;
     }
@@ -619,7 +644,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
 
     private static ItemAttributeModifiers buildMainhandModifiers(ItemStack stack) {
         var overcharged = isOverchargeActive(stack);
-        var normalizedChargeLevel = overcharged ? 0 : Mth.clamp(getChargeLevel(stack), 0, 3);
+        var normalizedChargeLevel = overcharged ? 0 : resolveCurrentChargeLevel(stack);
         var config = ApprenticeCodexServerConfig.spellchargedGreatswordConfig();
         var attackDamageBonus = overcharged
                 ? config.overchargeAttackDamageBonus()
@@ -659,6 +684,15 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
             );
         }
         return builder.build();
+    }
+
+    private static int getStoredChargeLevel(ItemStack stack) {
+        var tag = getCustomDataTag(stack);
+        if (!isSpellchargedGreatsword(stack) || tag == null) {
+            return 0;
+        }
+
+        return Mth.clamp(tag.getInt(TAG_CHARGE_LEVEL), 0, 3);
     }
 
     private static double chargeAttackDamageBonus(

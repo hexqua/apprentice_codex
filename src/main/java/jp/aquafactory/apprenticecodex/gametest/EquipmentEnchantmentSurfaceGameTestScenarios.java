@@ -548,45 +548,47 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         helper.succeedIf(() -> {
             var item = (SpellchargedGreatsword) ItemRegistry.SPELLCHARGED_GREATSWORD.get();
             var stack = new ItemStack(item);
+            var gameTime = helper.getLevel().getGameTime();
 
             helper.assertTrue(SpellchargedGreatsword.computeChargeGainTicks(20, 20) == 20.0D,
                     "Spellcharged Greatsword should halve charge gain at 40 ticks or less");
             helper.assertTrue(SpellchargedGreatsword.computeChargeGainTicks(80, 200) == 200.0D,
                     "Spellcharged Greatsword charge gain should be capped to 200 ticks");
 
-            SpellchargedGreatsword.addCharge(stack, 0L, 200.0D);
-            assertSpellchargedGreatswordChargeState(helper, stack, 0L, 200.0D, 1,
+            SpellchargedGreatsword.addCharge(stack, gameTime, 200.0D);
+            assertSpellchargedGreatswordChargeState(helper, stack, gameTime, 200.0D, 1,
                     "Spellcharged Greatsword should reach level 1 at 200 charge ticks");
             assertSpellchargedGreatswordAttackAttributes(helper, item, stack, 2.0D, -0.0D,
                     "Spellcharged Greatsword level 1 attributes");
 
-            SpellchargedGreatsword.addCharge(stack, 0L, 200.0D);
-            assertSpellchargedGreatswordChargeState(helper, stack, 0L, 400.0D, 2,
+            SpellchargedGreatsword.addCharge(stack, gameTime, 200.0D);
+            assertSpellchargedGreatswordChargeState(helper, stack, gameTime, 400.0D, 2,
                     "Spellcharged Greatsword should reach level 2 at 400 charge ticks");
             assertSpellchargedGreatswordAttackAttributes(helper, item, stack, 4.0D, -0.2D,
                     "Spellcharged Greatsword level 2 attributes");
 
-            SpellchargedGreatsword.addCharge(stack, 0L, 400.0D);
-            assertSpellchargedGreatswordChargeState(helper, stack, 100L, 800.0D, 3,
+            SpellchargedGreatsword.addCharge(stack, gameTime, 400.0D);
+            assertSpellchargedGreatswordChargeState(helper, stack, gameTime + 100L, 800.0D, 3,
                     "Spellcharged Greatsword should keep full charge during the 5 second decay delay");
             assertSpellchargedGreatswordAttackAttributes(helper, item, stack, 8.0D, -0.5D,
                     "Spellcharged Greatsword level 3 attributes");
 
-            helper.assertTrue(Math.abs(SpellchargedGreatsword.getEffectiveChargeTicks(stack, 101L) - 796.0D) < 1.0e-9D,
+            helper.assertTrue(
+                    Math.abs(SpellchargedGreatsword.getEffectiveChargeTicks(stack, gameTime + 101L) - 796.0D) < 1.0e-9D,
                     "Spellcharged Greatsword should decay 4 charge ticks per tick after the delay");
-            helper.assertFalse(SpellchargedGreatsword.refreshDecay(stack, 299L),
+            helper.assertFalse(SpellchargedGreatsword.refreshDecay(stack, gameTime + 299L),
                     "Spellcharged Greatsword should not reset before charge reaches zero");
-            helper.assertTrue(SpellchargedGreatsword.getChargeLevel(stack) == 3,
+            helper.assertTrue(SpellchargedGreatsword.getChargeLevel(stack, gameTime + 299L) == 3,
                     "Spellcharged Greatsword decay should not lower level before charge reaches zero");
-            helper.assertTrue(SpellchargedGreatsword.refreshDecay(stack, 300L),
+            helper.assertTrue(SpellchargedGreatsword.refreshDecay(stack, gameTime + 300L),
                     "Spellcharged Greatsword should reset when decay reaches zero");
-            assertSpellchargedGreatswordChargeState(helper, stack, 300L, 0.0D, 0,
+            assertSpellchargedGreatswordChargeState(helper, stack, gameTime + 300L, 0.0D, 0,
                     "Spellcharged Greatsword should clear charge and level after full decay");
 
             var staleLevelStack = new ItemStack(item);
-            SpellchargedGreatsword.addCharge(staleLevelStack, 0L, 800.0D);
-            SpellchargedGreatsword.addCharge(staleLevelStack, 300L, 20.0D);
-            assertSpellchargedGreatswordChargeState(helper, staleLevelStack, 300L, 20.0D, 0,
+            SpellchargedGreatsword.addCharge(staleLevelStack, gameTime, 800.0D);
+            SpellchargedGreatsword.addCharge(staleLevelStack, gameTime + 300L, 20.0D);
+            assertSpellchargedGreatswordChargeState(helper, staleLevelStack, gameTime + 300L, 20.0D, 0,
                     "Spellcharged Greatsword should not restore a stale level after charge fully decays");
 
             var inventoryTickPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
@@ -600,6 +602,11 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             item.inventoryTick(inventoryTickStack, helper.getLevel(), inventoryTickPlayer, 9, false);
             assertSpellchargedGreatswordChargeState(helper, inventoryTickStack, helper.getLevel().getGameTime(), 0.0D, 0,
                     "Spellcharged Greatsword should clear stale charge while ticking outside the main hand");
+
+            var staleAttributeStack = new ItemStack(item);
+            SpellchargedGreatsword.addCharge(staleAttributeStack, fullyDecayedChargeTime, 800.0D);
+            assertSpellchargedGreatswordAttackAttributes(helper, item, staleAttributeStack, 0.0D, 0.0D,
+                    "Spellcharged Greatsword stale charge should not apply attack attributes before inventory sync");
         });
     }
 
@@ -651,10 +658,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     ),
                     "Spellcharged Greatsword level 2 overcharge should end after 10 seconds");
             var expiredOverchargeStack = levelTwoStack.copy();
-            expiredOverchargeStack.getOrCreateTag().putLong(
-                    "SpellchargedGreatswordOverchargeEndGameTime",
-                    level.getGameTime() - 1L
-            );
+            CustomData.update(DataComponents.CUSTOM_DATA, expiredOverchargeStack, tag ->
+                    tag.putLong("SpellchargedGreatswordOverchargeEndGameTime", level.getGameTime() - 1L));
             helper.assertFalse(SpellchargedGreatsword.isOverchargeActive(expiredOverchargeStack),
                     "Spellcharged Greatsword should not treat expired overcharge NBT as active");
             assertSpellchargedGreatswordAttackAttributes(helper, item, expiredOverchargeStack, 0.0D, 0.0D,
@@ -769,10 +774,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             assertAabbClose(helper, item.getSweepHitBox(overchargedStack, player, target),
                     target.getBoundingBox().inflate(3.0D, 0.25D, 3.0D),
                     "Spellcharged Greatsword overcharge sweep hitbox");
-            overchargedStack.getOrCreateTag().putLong(
-                    "SpellchargedGreatswordOverchargeEndGameTime",
-                    level.getGameTime() - 1L
-            );
+            CustomData.update(DataComponents.CUSTOM_DATA, overchargedStack, tag ->
+                    tag.putLong("SpellchargedGreatswordOverchargeEndGameTime", level.getGameTime() - 1L));
             helper.assertTrue(EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SWEEPING_EDGE, overchargedStack) == 1,
                     "Expired overcharge Spellcharged Greatsword should use the normal Sweeping Edge bonus");
             assertAabbClose(helper, item.getSweepHitBox(overchargedStack, player, target),
@@ -991,7 +994,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         );
         helper.assertTrue(chargeAfterFirstCast >= 400.0D,
                 "Spellcharged Greatsword should keep prepared charge after the first CONTINUOUS cast event");
-        var levelAfterFirstCast = SpellchargedGreatsword.getChargeLevel(player.getMainHandItem());
+        var levelAfterFirstCast = SpellchargedGreatsword.getChargeLevel(player.getMainHandItem(), firstChargeTime);
 
         helper.runAtTickTime(SpellchargedGreatsword.DECAY_DELAY_TICKS + 10, () -> {
             var beforeRefreshTime = helper.getLevel().getGameTime();
@@ -1076,9 +1079,9 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         var actualChargeTicks = SpellchargedGreatsword.getEffectiveChargeTicks(stack, gameTime);
         helper.assertTrue(Math.abs(actualChargeTicks - expectedChargeTicks) < 1.0e-9D,
                 message + ": expected charge " + expectedChargeTicks + " but got " + actualChargeTicks);
-        helper.assertTrue(SpellchargedGreatsword.getChargeLevel(stack) == expectedChargeLevel,
+        helper.assertTrue(SpellchargedGreatsword.getChargeLevel(stack, gameTime) == expectedChargeLevel,
                 message + ": expected level " + expectedChargeLevel + " but got "
-                        + SpellchargedGreatsword.getChargeLevel(stack));
+                        + SpellchargedGreatsword.getChargeLevel(stack, gameTime));
     }
 
     private static void assertSpellchargedGreatswordAttackAttributes(
