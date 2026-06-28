@@ -1651,6 +1651,12 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
                 .spellchargedGreatswordContinuousRecastRefreshesDecayWithoutExtraCharge(helper);
     }
 
+    @GameTest(template = TEMPLATE, timeoutTicks = 140)
+    public static void spellchargedGreatswordRecastRefreshesDecayWithoutExtraCharge(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios
+                .spellchargedGreatswordRecastRefreshesDecayWithoutExtraCharge(helper);
+    }
+
     @GameTest(template = TEMPLATE)
     public static void spellcastersFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.spellcastersFlaskKeepsExpectedEnchantmentSurfaces(helper);

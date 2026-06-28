@@ -59,7 +59,8 @@ public final class EpicFightSpellchargedGreatswordCompat {
 
     public static void tick(ServerPlayer player) {
         var stack = player.getMainHandItem();
-        if (!(stack.getItem() instanceof SpellchargedGreatsword) || !SpellchargedGreatsword.isOverchargeActive(stack)) {
+        if (!(stack.getItem() instanceof SpellchargedGreatsword)
+                || !SpellchargedGreatsword.isOverchargeActive(stack, player.level().getGameTime())) {
             return;
         }
 
