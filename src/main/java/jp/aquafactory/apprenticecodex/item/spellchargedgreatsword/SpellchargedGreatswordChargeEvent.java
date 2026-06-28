@@ -80,12 +80,6 @@ public final class SpellchargedGreatswordChargeEvent {
         }
 
         clearStaleContinuousCast(player);
-
-        var stack = player.getMainHandItem();
-        if (SpellchargedGreatsword.refreshDecay(stack, player.level().getGameTime())) {
-            player.setItemSlot(EquipmentSlot.MAINHAND, stack.copy());
-            player.containerMenu.broadcastChanges();
-        }
     }
 
     @SubscribeEvent

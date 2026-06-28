@@ -170,7 +170,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         if (elapsedTicks >= OVERCHARGE_ACTIVATION_HOLD_TICKS && chargeLevel >= 2) {
             startOvercharge(stack, level.getGameTime(), chargeLevel);
             playOverchargeActivationSound(level, player);
-            syncMainhandIfServer(player, stack);
+            syncInventoryIfServer(player);
         }
     }
 
@@ -192,14 +192,19 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
             return;
         }
 
-        cleanupExpiredAuraFade(stack, level.getGameTime());
+        var gameTime = level.getGameTime();
+        if (!level.isClientSide && refreshDecay(stack, gameTime)) {
+            syncInventoryIfServer(player);
+        }
+
+        cleanupExpiredAuraFade(stack, gameTime);
         if (!hasOverchargeState(stack)) {
             return;
         }
 
-        if (!isOverchargeActive(stack, level.getGameTime())) {
-            clearOvercharge(stack, level.getGameTime(), true);
-            syncMainhandIfServer(player, stack);
+        if (!isOverchargeActive(stack, gameTime)) {
+            clearOvercharge(stack, gameTime, true);
+            syncInventoryIfServer(player);
         }
 
     }
@@ -504,8 +509,8 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         }
     }
 
-    private static void syncMainhandIfServer(Player player, ItemStack stack) {
-        if (player instanceof ServerPlayer serverPlayer && serverPlayer.getMainHandItem() == stack) {
+    private static void syncInventoryIfServer(Player player) {
+        if (player instanceof ServerPlayer serverPlayer) {
             serverPlayer.containerMenu.broadcastChanges();
             serverPlayer.inventoryMenu.broadcastChanges();
         }
