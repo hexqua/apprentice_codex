@@ -13,10 +13,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(EnchantmentHelper.class)
 public abstract class EnchantmentHelperMixin {
     @Inject(
-            method = "getTagEnchantmentLevel",
+            method = "getItemEnchantmentLevel",
             at = @At("RETURN"),
-            cancellable = true,
-            remap = false
+            cancellable = true
     )
     private static void apprenticecodex$boostSpellchargedGreatswordSweepingEdge(
             Enchantment enchantment,
