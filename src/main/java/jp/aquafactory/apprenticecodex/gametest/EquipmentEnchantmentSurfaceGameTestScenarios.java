@@ -677,9 +677,11 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
 
         helper.runAtTickTime(SpellchargedGreatsword.DECAY_DELAY_TICKS + 10, () -> {
             var beforeRefreshTime = helper.getLevel().getGameTime();
-            helper.assertTrue(SpellchargedGreatsword.getEffectiveChargeTicks(
-                            player.getMainHandItem(),
-                            beforeRefreshTime) < chargeAfterFirstCast,
+            var chargeBeforeRefresh = SpellchargedGreatsword.getEffectiveChargeTicks(
+                    player.getMainHandItem(),
+                    beforeRefreshTime
+            );
+            helper.assertTrue(chargeBeforeRefresh < chargeAfterFirstCast,
                     "Spellcharged Greatsword test should reach the old decay window before the duplicate event");
 
             postSpellOnCast(player, spell, 1);
@@ -687,9 +689,9 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     helper,
                     player.getMainHandItem(),
                     beforeRefreshTime,
-                    chargeAfterFirstCast,
+                    chargeBeforeRefresh,
                     levelAfterFirstCast,
-                    "Spellcharged Greatsword duplicate CONTINUOUS event should refresh decay without adding charge"
+                    "Spellcharged Greatsword duplicate CONTINUOUS event should snapshot decayed charge"
             );
             helper.succeed();
         });
@@ -716,9 +718,11 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
 
         helper.runAtTickTime(SpellchargedGreatsword.DECAY_DELAY_TICKS + 10, () -> {
             var beforeRefreshTime = helper.getLevel().getGameTime();
-            helper.assertTrue(SpellchargedGreatsword.getEffectiveChargeTicks(
-                            player.getMainHandItem(),
-                            beforeRefreshTime) < 400.0D,
+            var chargeBeforeRefresh = SpellchargedGreatsword.getEffectiveChargeTicks(
+                    player.getMainHandItem(),
+                    beforeRefreshTime
+            );
+            helper.assertTrue(chargeBeforeRefresh < 400.0D,
                     "Spellcharged Greatsword test should reach the old decay window before the Recast event");
 
             postSpellOnCast(player, spell, 1);
@@ -726,9 +730,9 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     helper,
                     player.getMainHandItem(),
                     beforeRefreshTime,
-                    400.0D,
+                    chargeBeforeRefresh,
                     2,
-                    "Spellcharged Greatsword Recast event should refresh decay without adding charge"
+                    "Spellcharged Greatsword Recast event should snapshot decayed charge"
             );
             helper.succeed();
         });

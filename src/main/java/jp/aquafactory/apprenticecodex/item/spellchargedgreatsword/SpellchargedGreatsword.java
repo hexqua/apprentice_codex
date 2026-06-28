@@ -237,10 +237,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         var nextCharge = Mth.clamp(currentCharge + chargeTicks, 0.0D, MAX_CHARGE_TICKS);
         var nextLevel = Math.max(previousLevel, computeChargeLevel(nextCharge));
 
-        var tag = stack.getOrCreateTag();
-        tag.putDouble(TAG_CHARGE_TICKS, nextCharge);
-        tag.putLong(TAG_LAST_CHARGE_GAME_TIME, gameTime);
-        tag.putInt(TAG_CHARGE_LEVEL, nextLevel);
+        storeChargeState(stack, gameTime, nextCharge, nextLevel);
         return nextLevel > previousLevel;
     }
 
@@ -249,8 +246,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
             return false;
         }
 
-        stack.getOrCreateTag().putLong(TAG_LAST_CHARGE_GAME_TIME, gameTime);
-        return true;
+        return snapshotEffectiveChargeState(stack, gameTime);
     }
 
     public static boolean refreshDecay(ItemStack stack, long gameTime) {
@@ -463,11 +459,30 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
             return;
         }
 
+        snapshotEffectiveChargeState(stack, gameTime);
+    }
+
+    private static boolean snapshotEffectiveChargeState(ItemStack stack, long gameTime) {
         var currentCharge = getEffectiveChargeTicks(stack, gameTime);
+        if (currentCharge <= 0.0D) {
+            resetCharge(stack);
+            return false;
+        }
+
+        storeChargeState(
+                stack,
+                gameTime,
+                currentCharge,
+                Math.max(getChargeLevel(stack), computeChargeLevel(currentCharge))
+        );
+        return true;
+    }
+
+    private static void storeChargeState(ItemStack stack, long gameTime, double chargeTicks, int chargeLevel) {
         var tag = stack.getOrCreateTag();
-        tag.putDouble(TAG_CHARGE_TICKS, currentCharge);
+        tag.putDouble(TAG_CHARGE_TICKS, Mth.clamp(chargeTicks, 0.0D, MAX_CHARGE_TICKS));
         tag.putLong(TAG_LAST_CHARGE_GAME_TIME, gameTime);
-        tag.putInt(TAG_CHARGE_LEVEL, Math.max(getChargeLevel(stack), computeChargeLevel(currentCharge)));
+        tag.putInt(TAG_CHARGE_LEVEL, Mth.clamp(chargeLevel, 0, 3));
     }
 
     private static void playOverchargeActivationSound(Level level, Player player) {
