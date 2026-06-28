@@ -36,6 +36,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
 import org.jetbrains.annotations.NotNull;
@@ -294,6 +295,14 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         return isSpellchargedGreatsword(stack) && resolveOverchargeRemainingTicks(stack, gameTime) > 0;
     }
 
+    public static int getSweepingEdgeLevelBonus(ItemStack stack) {
+        if (!isSpellchargedGreatsword(stack)) {
+            return 0;
+        }
+
+        return isOverchargeActive(stack) ? 3 : 1;
+    }
+
     private static int resolveOverchargeRemainingTicks(ItemStack stack, double gameTime) {
         var tag = getCustomDataTag(stack);
         if (!hasOverchargeState(stack) || tag == null) {
@@ -508,6 +517,14 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     @Override
     public boolean canPerformAction(@NotNull ItemStack stack, @NotNull ItemAbility itemAbility) {
         return itemAbility == ItemAbilities.SWORD_SWEEP || super.canPerformAction(stack, itemAbility);
+    }
+
+    public @NotNull AABB getSweepHitBox(@NotNull ItemStack stack, @NotNull Player player, @NotNull Entity target) {
+        if (!isOverchargeActive(stack)) {
+            return super.getSweepHitBox(stack, player, target);
+        }
+
+        return target.getBoundingBox().inflate(3.0D, 0.25D, 3.0D);
     }
 
     @Override

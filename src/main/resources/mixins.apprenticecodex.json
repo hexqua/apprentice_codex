@@ -19,6 +19,7 @@
     "EntityRemoteOwnerCastMixin",
     "EasyMagicModEnchantmentMenuMixin",
     "EnchantmentMenuMixin",
+    "EnchantmentHelperMixin",
     "FluidStackMixin",
     "EntitySharedFlagAccessor",
     "EfisCompatPlayerAnimationEventsMixin",
