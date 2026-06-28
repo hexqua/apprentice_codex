@@ -94,7 +94,8 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
                         List.of(
                                 jp.aquafactory.apprenticecodex.registry.ItemRegistry.ELEMENTAL_BOW.get(),
                                 jp.aquafactory.apprenticecodex.registry.ItemRegistry.MANA_FORCE_BLADE.get(),
-                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.SPELL_SIDE_EDGE.get()
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.SPELL_SIDE_EDGE.get(),
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.SPELLCHARGED_GREATSWORD.get()
                         ),
                         io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get(),
                         1,

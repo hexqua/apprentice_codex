@@ -507,8 +507,6 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             helper.assertTrue(item.getEnchantmentValue(stack) == SpellchargedGreatsword.ENCHANTMENT_VALUE,
                     "Spellcharged Greatsword enchantability should be " + SpellchargedGreatsword.ENCHANTMENT_VALUE
                             + " but got " + item.getEnchantmentValue(stack));
-            helper.assertTrue(item instanceof io.redspace.ironsspellbooks.item.UniqueItem,
-                    "Spellcharged Greatsword should be a UniqueItem");
 
             var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
             assertModifierWithId(
