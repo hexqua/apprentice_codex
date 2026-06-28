@@ -582,6 +582,12 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     "Spellcharged Greatsword should reset when decay reaches zero");
             assertSpellchargedGreatswordChargeState(helper, stack, 300L, 0.0D, 0,
                     "Spellcharged Greatsword should clear charge and level after full decay");
+
+            var staleLevelStack = new ItemStack(item);
+            SpellchargedGreatsword.addCharge(staleLevelStack, 0L, 800.0D);
+            SpellchargedGreatsword.addCharge(staleLevelStack, 300L, 20.0D);
+            assertSpellchargedGreatswordChargeState(helper, staleLevelStack, 300L, 20.0D, 0,
+                    "Spellcharged Greatsword should not restore a stale level after charge fully decays");
         });
     }
 
@@ -656,6 +662,14 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         var level = helper.getLevel();
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
                 "spellcharged_greatsword_overcharge_release_test");
+
+        var staleLevelStack = new ItemStack(item);
+        player.setItemInHand(InteractionHand.MAIN_HAND, staleLevelStack);
+        SpellchargedGreatsword.addCharge(staleLevelStack,
+                level.getGameTime() - SpellchargedGreatsword.DECAY_DELAY_TICKS - 100L, 400.0D);
+        var staleResult = item.use(level, player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(staleResult.getResult() == net.minecraft.world.InteractionResult.PASS,
+                "Spellcharged Greatsword should not start overcharge activation after charge fully decays");
 
         var stack = new ItemStack(item);
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);

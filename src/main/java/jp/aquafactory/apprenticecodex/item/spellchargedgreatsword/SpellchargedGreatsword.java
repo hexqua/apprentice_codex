@@ -60,7 +60,6 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     public static final int ENCHANTMENT_VALUE = 22;
     public static final double DISPLAY_ATTACK_DAMAGE = 8.0D;
     public static final double DISPLAY_ATTACK_SPEED = 1.1D;
-    public static final double ENTITY_REACH_BONUS = 0.5D;
     public static final double MAX_CHARGE_TICKS = 800.0D;
     public static final int MAX_GAIN_TICKS = 200;
     public static final int SHORT_CAST_THRESHOLD_TICKS = 40;
@@ -124,7 +123,15 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player,
                                                            @NotNull InteractionHand usedHand) {
         var stack = player.getItemInHand(usedHand);
-        if (usedHand != InteractionHand.MAIN_HAND || isOverchargeActive(stack) || getChargeLevel(stack) < 2) {
+        if (usedHand != InteractionHand.MAIN_HAND) {
+            return InteractionResultHolder.pass(stack);
+        }
+
+        if (isOverchargeActive(stack)) {
+            return InteractionResultHolder.pass(stack);
+        }
+
+        if (getChargeLevel(stack, level.getGameTime()) < 2) {
             return InteractionResultHolder.pass(stack);
         }
 
@@ -136,7 +143,11 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     public void onUseTick(@NotNull Level level, @NotNull LivingEntity livingEntity, @NotNull ItemStack stack,
                           int remainingUseDuration) {
         super.onUseTick(level, livingEntity, stack, remainingUseDuration);
-        if (livingEntity instanceof Player && !isOverchargeActive(stack) && getChargeLevel(stack) >= 2) {
+        if (!(livingEntity instanceof Player)) {
+            return;
+        }
+
+        if (!isOverchargeActive(stack) && getChargeLevel(stack, level.getGameTime()) >= 2) {
             freezeChargeDecay(stack, level.getGameTime());
         }
     }
@@ -150,8 +161,9 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         }
 
         var elapsedTicks = getUseDuration(stack, livingEntity) - timeLeft;
-        if (elapsedTicks >= OVERCHARGE_ACTIVATION_HOLD_TICKS && getChargeLevel(stack) >= 2) {
-            startOvercharge(stack, level.getGameTime(), getChargeLevel(stack));
+        var chargeLevel = getChargeLevel(stack, level.getGameTime());
+        if (elapsedTicks >= OVERCHARGE_ACTIVATION_HOLD_TICKS && chargeLevel >= 2) {
+            startOvercharge(stack, level.getGameTime(), chargeLevel);
             playOverchargeActivationSound(level, player);
             syncMainhandIfServer(player, stack);
         }
@@ -208,7 +220,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         }
 
         var currentCharge = getEffectiveChargeTicks(stack, gameTime);
-        var previousLevel = getChargeLevel(stack);
+        var previousLevel = currentCharge > 0.0D ? getChargeLevel(stack) : 0;
         var nextCharge = Mth.clamp(currentCharge + chargeTicks, 0.0D, MAX_CHARGE_TICKS);
         var nextLevel = Math.max(previousLevel, computeChargeLevel(nextCharge));
 
@@ -270,6 +282,10 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         }
 
         return Mth.clamp(tag.getInt(TAG_CHARGE_LEVEL), 0, 3);
+    }
+
+    public static int getChargeLevel(ItemStack stack, long gameTime) {
+        return getEffectiveChargeTicks(stack, gameTime) > 0.0D ? getChargeLevel(stack) : 0;
     }
 
     public static int computeChargeLevel(double chargeTicks) {
