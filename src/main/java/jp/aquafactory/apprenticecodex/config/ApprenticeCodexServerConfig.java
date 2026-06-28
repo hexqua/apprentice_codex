@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.config;
 
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.LinearBuildServerConfig;
@@ -1021,10 +1022,22 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.spellCastParryingRingParryWindowTicks();
     }
 
+    public static SpellchargedGreatswordServerConfig.Values spellchargedGreatswordConfig() {
+        return ITEMS_CONFIG.spellchargedGreatswordConfig();
+    }
+
     public static GameTestConfigOverride useSpellCastParryingRingParryWindowTicksOverrideForGameTest(int value) {
         var previousValue = ITEMS_CONFIG.spellCastParryingRingParryWindowTicks();
         ITEMS_CONFIG.setSpellCastParryingRingParryWindowTicksForGameTest(value);
         return () -> ITEMS_CONFIG.setSpellCastParryingRingParryWindowTicksForGameTest(previousValue);
+    }
+
+    public static GameTestConfigOverride useSpellchargedGreatswordConfigOverrideForGameTest(
+            SpellchargedGreatswordServerConfig.Values values
+    ) {
+        var previousValues = ITEMS_CONFIG.spellchargedGreatswordConfig();
+        ITEMS_CONFIG.setSpellchargedGreatswordConfigForGameTest(values);
+        return () -> ITEMS_CONFIG.setSpellchargedGreatswordConfigForGameTest(previousValues);
     }
 
     public static GameTestConfigOverride useSpellStainedRunicTabletConfigOverrideForGameTest(

@@ -4,6 +4,8 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.SpellchargedGreatswordRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -74,10 +76,6 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
 
     private static final double ATTACK_DAMAGE_MODIFIER_AMOUNT = DISPLAY_ATTACK_DAMAGE - 1.0D;
     private static final double ATTACK_SPEED_MODIFIER_AMOUNT = DISPLAY_ATTACK_SPEED - 4.0D;
-    private static final double OVERCHARGE_ATTACK_DAMAGE_BONUS = 4.0D;
-    private static final double OVERCHARGE_ATTACK_SPEED_BONUS = 0.1D;
-    private static final double[] CHARGE_ATTACK_DAMAGE_BONUSES = {0.0D, 2.0D, 5.0D, 10.0D};
-    private static final double[] CHARGE_ATTACK_SPEED_BONUSES = {0.0D, -0.1D, -0.2D, -0.4D};
     private static final String TAG_CHARGE_TICKS = "SpellchargedGreatswordChargeTicks";
     private static final String TAG_LAST_CHARGE_GAME_TIME = "SpellchargedGreatswordLastChargeGameTime";
     private static final String TAG_CHARGE_LEVEL = "SpellchargedGreatswordChargeLevel";
@@ -300,7 +298,10 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
             return 0;
         }
 
-        return isOverchargeActive(stack) ? 3 : 1;
+        var config = ApprenticeCodexServerConfig.spellchargedGreatswordConfig();
+        return isOverchargeActive(stack)
+                ? config.overchargeSweepingEdgeLevelBonus()
+                : config.normalSweepingEdgeLevelBonus();
     }
 
     private static int resolveOverchargeRemainingTicks(ItemStack stack, double gameTime) {
@@ -559,12 +560,13 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     private static ItemAttributeModifiers buildMainhandModifiers(ItemStack stack) {
         var overcharged = isOverchargeActive(stack);
         var normalizedChargeLevel = overcharged ? 0 : Mth.clamp(getChargeLevel(stack), 0, 3);
+        var config = ApprenticeCodexServerConfig.spellchargedGreatswordConfig();
         var attackDamageBonus = overcharged
-                ? OVERCHARGE_ATTACK_DAMAGE_BONUS
-                : CHARGE_ATTACK_DAMAGE_BONUSES[normalizedChargeLevel];
+                ? config.overchargeAttackDamageBonus()
+                : chargeAttackDamageBonus(config, normalizedChargeLevel);
         var attackSpeedBonus = overcharged
-                ? OVERCHARGE_ATTACK_SPEED_BONUS
-                : CHARGE_ATTACK_SPEED_BONUSES[normalizedChargeLevel];
+                ? config.overchargeAttackSpeedBonus()
+                : chargeAttackSpeedBonus(config, normalizedChargeLevel);
         var builder = ItemAttributeModifiers.builder();
         builder.add(
                 Attributes.ATTACK_DAMAGE,
@@ -584,16 +586,43 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
                 ),
                 EquipmentSlotGroup.MAINHAND
         );
-        builder.add(
-                Attributes.ENTITY_INTERACTION_RANGE,
-                new AttributeModifier(
-                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcharged_greatsword_entity_reach"),
-                        ENTITY_REACH_BONUS,
-                        AttributeModifier.Operation.ADD_VALUE
-                ),
-                EquipmentSlotGroup.MAINHAND
-        );
+        var entityReachBonus = overcharged ? config.overchargeEntityReachBonus() : config.normalEntityReachBonus();
+        if (entityReachBonus != 0.0D) {
+            builder.add(
+                    Attributes.ENTITY_INTERACTION_RANGE,
+                    new AttributeModifier(
+                            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcharged_greatsword_entity_reach"),
+                            entityReachBonus,
+                            AttributeModifier.Operation.ADD_VALUE
+                    ),
+                    EquipmentSlotGroup.MAINHAND
+            );
+        }
         return builder.build();
+    }
+
+    private static double chargeAttackDamageBonus(
+            SpellchargedGreatswordServerConfig.Values config,
+            int chargeLevel
+    ) {
+        return switch (chargeLevel) {
+            case 1 -> config.chargeLevel1AttackDamageBonus();
+            case 2 -> config.chargeLevel2AttackDamageBonus();
+            case 3 -> config.chargeLevel3AttackDamageBonus();
+            default -> 0.0D;
+        };
+    }
+
+    private static double chargeAttackSpeedBonus(
+            SpellchargedGreatswordServerConfig.Values config,
+            int chargeLevel
+    ) {
+        return switch (chargeLevel) {
+            case 1 -> config.chargeLevel1AttackSpeedBonus();
+            case 2 -> config.chargeLevel2AttackSpeedBonus();
+            case 3 -> config.chargeLevel3AttackSpeedBonus();
+            default -> 0.0D;
+        };
     }
 
     private enum SpellchargedGreatswordTier implements Tier {

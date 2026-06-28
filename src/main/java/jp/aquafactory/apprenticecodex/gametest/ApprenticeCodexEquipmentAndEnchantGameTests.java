@@ -73,6 +73,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
             "apprenticecodex.magi_compressor_gadget_config";
     private static final String JUMPCAST_CHARM_CONFIG_BATCH =
             "apprenticecodex.jumpcast_charm_config";
+    private static final String SPELLCHARGED_GREATSWORD_CONFIG_BATCH =
+            "apprenticecodex.spellcharged_greatsword_config";
 
     private ApprenticeCodexEquipmentAndEnchantGameTests() {
     }
@@ -1560,6 +1562,19 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void spellchargedGreatswordChargeMathDecayAndAttributes(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordChargeMathDecayAndAttributes(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellchargedGreatswordOverchargeModeConsumesChargeAndUsesConfiguredAttributes(
+            GameTestHelper helper
+    ) {
+        EquipmentEnchantmentSurfaceGameTestScenarios
+                .spellchargedGreatswordOverchargeModeConsumesChargeAndUsesConfiguredAttributes(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = SPELLCHARGED_GREATSWORD_CONFIG_BATCH)
+    public static void spellchargedGreatswordServerConfigOverridesCombatStats(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordServerConfigOverridesCombatStats(helper);
     }
 
     @GameTest(template = TEMPLATE)
