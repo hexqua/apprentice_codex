@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter;
 
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -12,17 +13,19 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
-import net.minecraftforge.registries.RegistryObject;
 
 import java.util.List;
 
 public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiInfoItem {
     private static final float MANA_COST_DISCOUNT_MULTIPLIER = 0.5f;
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.protection_spell_supporter.desc_";
+    private static final String SPELL_HINT_KEY = "item.apprenticecodex.common.desc.spell_hint";
+    private static final String SPELL_HINT_OPEN_KEY = "item.apprenticecodex.common.desc.spell_hint_open";
     private static final List<RegistryObject<AbstractSpell>> TARGET_SPELLS = List.of(
             SpellRegistry.FORCE_FIELD,
             SpellRegistry.PHALANX_CHARGE,
@@ -50,15 +53,22 @@ public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiIn
             tooltips.add(Component.empty());
             tooltips.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
             tooltips.add(Component.literal(" ")
-                    .append(Component.translatable(getDescriptionId() + ".desc_1"))
+                    .append(Component.translatable(getDescriptionId() + ".desc"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            tooltips.add(Component.literal(" ")
-                    .append(Component.translatable(getDescriptionId() + ".desc_2"))
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            appendTargetSpellTooltips(tooltips);
+            appendTargetSpellHintOrTooltips(tooltips);
         }
 
         return tooltips;
+    }
+
+    private static void appendTargetSpellHintOrTooltips(List<Component> tooltips) {
+        if (!ImbueTooltipHelper.hasShiftDown()) {
+            tooltips.add(Component.translatable(SPELL_HINT_KEY).withStyle(ChatFormatting.DARK_GRAY));
+            return;
+        }
+
+        tooltips.add(Component.translatable(SPELL_HINT_OPEN_KEY).withStyle(ChatFormatting.GRAY));
+        appendTargetSpellTooltips(tooltips);
     }
 
     private static void appendTargetSpellTooltips(List<Component> tooltips) {
@@ -67,9 +77,9 @@ public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiIn
             if (!spell.isEnabled()) {
                 continue;
             }
-            tooltips.add(Component.literal(" - ")
+            tooltips.add(Component.literal("- ")
                     .append(spell.getDisplayName(null))
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+                    .withStyle(ChatFormatting.GRAY));
         }
     }
 
