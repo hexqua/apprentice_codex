@@ -130,6 +130,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SMASHCAST_SCEPTER.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get(),
+                ItemRegistry.SPELLCHARGED_GREATSWORD.get(),
                 ItemRegistry.SPELL_SIDE_EDGE.get(),
                 ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
                 ItemRegistry.SCROLLCASTER_GAUNTLET.get()
@@ -248,6 +249,17 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
         vanillaWeaponEnchantableTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
         vanillaDurabilityEnchantableTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
+
+        // Spellcharged Greatsword は耐久値を持つ剣型の詠唱武器として、剣系 enchant と Malum/Travel Optics 互換 tag へ通す。
+        malumMagicCapableWeaponTag.add(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
+        malumSoulShatterCapableWeaponTag.add(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
+        tomagicReversalWeaponTag.add(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
+        wisdomEnchantableTag.add(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
+        vanillaSwordEnchantableTag.add(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
+        vanillaFireAspectEnchantableTag.add(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
+        vanillaSharpWeaponEnchantableTag.add(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
+        vanillaWeaponEnchantableTag.add(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
+        vanillaDurabilityEnchantableTag.add(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
 
         // Bound Sword は一時生成アイテムだが、1.21.1 の enchantment JSON/tag 判定にも剣相当として参加させる。
         vanillaSwordEnchantableTag.add(ItemRegistry.BOUND_SWORD.get());

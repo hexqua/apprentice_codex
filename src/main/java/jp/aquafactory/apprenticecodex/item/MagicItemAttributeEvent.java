@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.event.OffhandUpgradeAttributeEvent;
+import jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGreatsword;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.neoforged.bus.api.EventPriority;
@@ -40,6 +41,12 @@ public final class MagicItemAttributeEvent {
 
         if (item instanceof AbstractRightClickMagicWeaponItem rightClickMagicWeaponItem) {
             replaceModifiers(event, rightClickMagicWeaponItem.getDefaultAttributeModifiers(stack));
+            applyMainhandUpgradeBridge(event);
+            return;
+        }
+
+        if (item instanceof SpellchargedGreatsword spellchargedGreatsword) {
+            replaceModifiers(event, spellchargedGreatsword.getDefaultAttributeModifiers(stack));
             applyMainhandUpgradeBridge(event);
         }
     }

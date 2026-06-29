@@ -620,6 +620,19 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         false)
                 .addCriterion("crafted_mana_force_blade", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.MANA_FORCE_BLADE.getId()))
                 .save(saver, advancementId("craft_mana_force_blade"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(bladed)
+                .display(ItemRegistry.SPELLCHARGED_GREATSWORD.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spellcharged_greatsword.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spellcharged_greatsword.description"),
+                        null,
+                        AdvancementType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_spellcharged_greatsword", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SPELLCHARGED_GREATSWORD.getId()))
+                .save(saver, advancementId("craft_spellcharged_greatsword"), existingFileHelper);
         
         var bow = Advancement.Builder.advancement()
                 .parent(root)

@@ -1,0 +1,30 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_crystal_bladed_staff",
+  "criteria": {
+    "crafted_spellcharged_greatsword": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:spellcharged_greatsword"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_spellcharged_greatsword.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:spellcharged_greatsword"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_spellcharged_greatsword.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_spellcharged_greatsword"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

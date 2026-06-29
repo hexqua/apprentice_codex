@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ICastData;
+import io.redspace.ironsspellbooks.capabilities.magic.TargetEntityCastData;
 import io.redspace.ironsspellbooks.config.ServerConfigs;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -84,6 +85,11 @@ public final class MulticastEchoStaffCastHelper {
         }
 
         var castingItem = magicData.getPlayerCastingItem();
+        if (!player.hasEffect(EffectRegistry.ECHO_SPELL) && !isStoredTargetCastDataStillValid(level, magicData)) {
+            PRE_CAST_CONTEXTS.remove(player.getUUID());
+            return;
+        }
+
         if (!isActiveNormalCastingSequence(magicData, castingItem, spell, spellLevel, castSource)
                 || !canStillPassPreCastConditions(spell, level, spellLevel, player, magicData)) {
             PRE_CAST_CONTEXTS.remove(player.getUUID());
@@ -158,6 +164,16 @@ public final class MulticastEchoStaffCastHelper {
                 && magicData.getPlayerCastingItem().getItem() == castingItem.getItem();
     }
 
+    private static boolean isStoredTargetCastDataStillValid(Level level, MagicData magicData) {
+        if (!(magicData.getAdditionalCastData() instanceof TargetEntityCastData targetData)
+                || !(level instanceof ServerLevel serverLevel)) {
+            return true;
+        }
+
+        var target = targetData.getTarget(serverLevel);
+        return target != null && target.isAlive() && !target.isRemoved();
+    }
+
     private static boolean canStillPassPreCastConditions(
             AbstractSpell spell,
             Level level,
@@ -167,6 +183,7 @@ public final class MulticastEchoStaffCastHelper {
     ) {
         var previousCastData = magicData.getAdditionalCastData();
         try {
+            magicData.setAdditionalCastData(null);
             return spell.checkPreCastConditions(level, spellLevel, player, magicData);
         } finally {
             clearRepeatedCastData(magicData, previousCastData);
