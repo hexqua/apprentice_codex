@@ -660,6 +660,19 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .addCriterion("crafted_focus_staffbow", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.FOCUS_STAFFBOW.getId()))
                 .save(saver, advancementId("craft_focus_staffbow"), existingFileHelper);
 
+        Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.STORAGE_STABILIZER.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_storage_stabilizer.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_storage_stabilizer.description"),
+                        null,
+                        FrameType.TASK,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_storage_stabilizer", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.STORAGE_STABILIZER.getId()))
+                .save(saver, advancementId("craft_storage_stabilizer"), existingFileHelper);
+
         var ironSwing = Advancement.Builder.advancement()
                 .parent(root)
                 .display(ItemRegistry.IRON_SWINGCAST_STAFF.get(),
