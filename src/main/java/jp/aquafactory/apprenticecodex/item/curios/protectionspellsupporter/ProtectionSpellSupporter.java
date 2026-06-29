@@ -12,6 +12,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
@@ -24,6 +26,8 @@ import java.util.List;
 public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiInfoItem {
     private static final float MANA_COST_DISCOUNT_MULTIPLIER = 0.5f;
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.protection_spell_supporter.desc_";
+    private static final String SPELL_HINT_KEY = "item.apprenticecodex.common.desc.spell_hint";
+    private static final String SPELL_HINT_OPEN_KEY = "item.apprenticecodex.common.desc.spell_hint_open";
     private static final List<DeferredHolder<AbstractSpell, AbstractSpell>> TARGET_SPELLS = List.of(
             SpellRegistry.FORCE_FIELD,
             SpellRegistry.PHALANX_CHARGE,
@@ -54,13 +58,20 @@ public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiIn
             result.add(Component.literal(" ")
                     .append(Component.translatable(getDescriptionId() + ".desc_1"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            result.add(Component.literal(" ")
-                    .append(Component.translatable(getDescriptionId() + ".desc_2"))
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            appendTargetSpellTooltips(result);
+            appendTargetSpellHintOrTooltips(result);
         }
 
         return result;
+    }
+
+    private static void appendTargetSpellHintOrTooltips(List<Component> tooltips) {
+        if (!isShiftDown()) {
+            tooltips.add(Component.translatable(SPELL_HINT_KEY).withStyle(ChatFormatting.DARK_GRAY));
+            return;
+        }
+
+        tooltips.add(Component.translatable(SPELL_HINT_OPEN_KEY).withStyle(ChatFormatting.GRAY));
+        appendTargetSpellTooltips(tooltips);
     }
 
     private static void appendTargetSpellTooltips(List<Component> tooltips) {
@@ -69,9 +80,23 @@ public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiIn
             if (!spell.isEnabled()) {
                 continue;
             }
-            tooltips.add(Component.literal(" - ")
+            tooltips.add(Component.literal("- ")
                     .append(spell.getDisplayName(null))
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+                    .withStyle(ChatFormatting.GRAY));
+        }
+    }
+
+    private static boolean isShiftDown() {
+        if (FMLEnvironment.dist != Dist.CLIENT) {
+            return false;
+        }
+
+        try {
+            var screenClass = Class.forName("net.minecraft.client.gui.screens.Screen");
+            var hasShiftDown = screenClass.getMethod("hasShiftDown");
+            return Boolean.TRUE.equals(hasShiftDown.invoke(null));
+        } catch (ReflectiveOperationException | LinkageError e) {
+            return false;
         }
     }
 

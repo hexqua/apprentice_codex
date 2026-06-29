@@ -160,6 +160,9 @@
   "item.apprenticecodex.spellgun.tooltip.ammo_none": "- 无",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "稀有及以下品质",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic": "史诗以上品质",
+
+  "item.apprenticecodex.common.desc.spell_hint": "按住 Shift 显示适用法术",
+  "item.apprenticecodex.common.desc.spell_hint_open": "适用法术：",
   "item.apprenticecodex.apprentice_desk.disabled_tooltip": "仅作为跑腿法师的工作站点方块时生效。",
   "item.apprenticecodex.spell_dispenser.creative_tooltip": "创造版",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "当前指向同维度的磁石。",
@@ -194,8 +197,6 @@
   "item.apprenticecodex.element_maiden_robe.desc": "该护甲会受到已装备法术书的影响。",
   "item.apprenticecodex.magi_agent_suit.rune_hint": "该护甲可在法术校准台调整学派。",
   "item.apprenticecodex.magi_agent_suit.school_rune": "当前已调整至“%s”学派。",
-  "item.apprenticecodex.magi_agent_suit.spell_hint": "按住 Shift 显示适用法术",
-  "item.apprenticecodex.magi_agent_suit.spell_hint_open": "适用法术：",
   "item.apprenticecodex.magi_agent_suit_hood.desc": "施法枪与杖枪的弹药有概率不被消耗。",
   "item.apprenticecodex.magi_agent_suit_coat.desc": "特定攻击法术的 SpellPower 学派加成会变为该护甲调整后的学派。",
   "item.apprenticecodex.magi_agent_suit_leggings.desc": "无效化特定攻击法术施法时的移动速度降低，并防止施法被打断。",

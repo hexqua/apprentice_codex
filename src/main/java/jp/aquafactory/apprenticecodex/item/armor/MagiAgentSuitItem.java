@@ -4,7 +4,6 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.CastType;
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.renderer.armor.MagiAgentSuitRenderer;
@@ -49,10 +48,10 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
 
     private static final String CALIBRATION_TAG = "MagiAgentSuitCalibration";
     private static final String ADJUSTMENT_ITEM_TAG = "AdjustmentItem";
-    private static final String RUNE_HINT_KEY = "item." + ApprenticeCodex.MODID + ".magi_agent_suit.rune_hint";
-    private static final String SCHOOL_RUNE_KEY = "item." + ApprenticeCodex.MODID + ".magi_agent_suit.school_rune";
-    private static final String SPELL_HINT_KEY = "item." + ApprenticeCodex.MODID + ".magi_agent_suit.spell_hint";
-    private static final String SPELL_HINT_OPEN_KEY = "item." + ApprenticeCodex.MODID + ".magi_agent_suit.spell_hint_open";
+    private static final String RUNE_HINT_KEY = "item.apprenticecodex.magi_agent_suit.rune_hint";
+    private static final String SCHOOL_RUNE_KEY = "item.apprenticecodex.magi_agent_suit.school_rune";
+    private static final String SPELL_HINT_KEY = "item.apprenticecodex.common.desc.spell_hint";
+    private static final String SPELL_HINT_OPEN_KEY = "item.apprenticecodex.common.desc.spell_hint_open";
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final ItemAttributeModifiers armorAttributeModifiers;

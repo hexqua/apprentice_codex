@@ -33,6 +33,8 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,6 +55,8 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
     private static final int CASTING_MOBILITY_EFFECT_REFRESH_TICKS = 5;
 
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.craftsmans_delight.desc_";
+    private static final String SPELL_HINT_KEY = "item.apprenticecodex.common.desc.spell_hint";
+    private static final String SPELL_HINT_OPEN_KEY = "item.apprenticecodex.common.desc.spell_hint_open";
     private static final List<DeferredHolder<AbstractSpell, AbstractSpell>> TARGET_SPELLS = List.of(
             SpellRegistry.TINY_LUMBERJACK,
             SpellRegistry.WORLD_FLATTER,
@@ -88,10 +92,7 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
             result.add(Component.literal(" ")
                     .append(Component.translatable(getDescriptionId() + ".desc_1"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            result.add(Component.literal(" ")
-                    .append(Component.translatable(getDescriptionId() + ".desc_2"))
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            appendTargetSpellTooltips(result);
+            appendTargetSpellHintOrTooltips(result);
             if (ApprenticeCodexServerConfig.craftsmansDelightCanImbueEnchantment()) {
                 result.add(Component.literal(" ")
                         .append(Component.translatable(getDescriptionId() + ".desc_enchant"))
@@ -102,23 +103,49 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
         return result;
     }
 
+    private static void appendTargetSpellHintOrTooltips(List<Component> tooltips) {
+        if (!isShiftDown()) {
+            tooltips.add(Component.translatable(SPELL_HINT_KEY).withStyle(ChatFormatting.DARK_GRAY));
+            return;
+        }
+
+        tooltips.add(Component.translatable(SPELL_HINT_OPEN_KEY).withStyle(ChatFormatting.GRAY));
+        appendTargetSpellTooltips(tooltips);
+    }
+
     private static void appendTargetSpellTooltips(List<Component> tooltips) {
         for (var spellEntry : TARGET_SPELLS) {
             var spell = spellEntry.get();
             if (!spell.isEnabled()) {
                 continue;
             }
-            tooltips.add(Component.literal(" - ")
-                    .append(spell.getDisplayName(null))
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+            appendTargetSpellTooltip(tooltips, spell);
         }
         for (var spell : CraftsmansDelightSpellSupport.getExternalTargetSpells()) {
             if (!spell.isEnabled()) {
                 continue;
             }
-            tooltips.add(Component.literal(" - ")
+            appendTargetSpellTooltip(tooltips, spell);
+        }
+    }
+
+    private static void appendTargetSpellTooltip(List<Component> tooltips, AbstractSpell spell) {
+        tooltips.add(Component.literal("- ")
                     .append(spell.getDisplayName(null))
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+                    .withStyle(ChatFormatting.GRAY));
+    }
+
+    private static boolean isShiftDown() {
+        if (FMLEnvironment.dist != Dist.CLIENT) {
+            return false;
+        }
+
+        try {
+            var screenClass = Class.forName("net.minecraft.client.gui.screens.Screen");
+            var hasShiftDown = screenClass.getMethod("hasShiftDown");
+            return Boolean.TRUE.equals(hasShiftDown.invoke(null));
+        } catch (ReflectiveOperationException | LinkageError e) {
+            return false;
         }
     }
 
