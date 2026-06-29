@@ -16,13 +16,12 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.joml.Vector4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.cache.object.GeoQuad;
 import software.bernie.geckolib.cache.object.GeoVertex;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<SpellchargedGreatsword> {
     private static final String STAR_BONE = "star";
@@ -68,10 +67,9 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
     @Override
     public void postRender(PoseStack poseStack, SpellchargedGreatsword animatable, BakedGeoModel model,
                            MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
-                           float partialTick, int packedLight, int packedOverlay, float red, float green,
-                           float blue, float alpha) {
+                           float partialTick, int packedLight, int packedOverlay, int colour) {
         super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha);
+                packedLight, packedOverlay, colour);
 
         if (isReRender) {
             return;
@@ -83,15 +81,14 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
                 : renderState.core2MaxBrightness();
         var color = renderState.core2Color();
         renderCore2Pass(model, poseStack, bufferSource, animatable, partialTick,
-                red * color.red() * brightness, green * color.green() * brightness,
-                blue * color.blue() * brightness, alpha);
+                multiplyColor(colour, color.red() * brightness, color.green() * brightness, color.blue() * brightness, 1.0F));
         if (renderState.normalAuraIntensity() > 0.0F) {
             renderNormalAuraPass(model, poseStack, bufferSource, animatable, partialTick,
-                    red, green, blue, alpha, renderState.normalAuraIntensity());
+                    colour, renderState.normalAuraIntensity());
         }
         if (renderState.extendedAuraIntensity() > 0.0F) {
             renderExtendedAuraPass(model, poseStack, bufferSource, animatable, partialTick,
-                    red, green, blue, alpha, renderState.extendedAuraIntensity());
+                    colour, renderState.extendedAuraIntensity());
         }
     }
 
@@ -99,7 +96,7 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
     public void renderRecursively(PoseStack poseStack, SpellchargedGreatsword animatable, GeoBone bone,
                                   RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                   boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                  float red, float green, float blue, float alpha) {
+                                  int colour) {
         if (this.specialPass == SpecialPass.NONE && isBoneOrChildOf(bone, EXTENDED_AURA_BONE)) {
             return;
         }
@@ -124,10 +121,7 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
                     partialTick,
                     starBone ? raiseBlockLightFloor(packedLight, STAR_MIN_BLOCK_LIGHT) : packedLight,
                     packedOverlay,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    colour
             );
             return;
         }
@@ -140,7 +134,7 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
         };
         renderSpecialPassBone(
                 poseStack, animatable, bone, targetBone, renderType, bufferSource, buffer, isReRender,
-                partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                partialTick, packedLight, packedOverlay, colour
         );
     }
 
@@ -152,7 +146,7 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
 
     private void renderCore2Pass(BakedGeoModel model, PoseStack poseStack, MultiBufferSource bufferSource,
                                  SpellchargedGreatsword animatable, float partialTick,
-                                 float red, float green, float blue, float alpha) {
+                                 int colour) {
         this.specialPass = SpecialPass.CORE2;
         try {
             this.reRender(
@@ -165,10 +159,7 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
                     partialTick,
                     LightTexture.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    colour
             );
         } finally {
             this.specialPass = SpecialPass.NONE;
@@ -177,7 +168,7 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
 
     private void renderNormalAuraPass(BakedGeoModel model, PoseStack poseStack, MultiBufferSource bufferSource,
                                       SpellchargedGreatsword animatable, float partialTick,
-                                      float red, float green, float blue, float alpha, float intensity) {
+                                      int colour, float intensity) {
         this.specialPass = SpecialPass.NORMAL_AURA;
         try {
             this.reRender(
@@ -190,10 +181,7 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
                     partialTick,
                     LightTexture.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY,
-                    red * intensity,
-                    green * intensity,
-                    blue * intensity,
-                    alpha
+                    multiplyColor(colour, intensity, intensity, intensity, 1.0F)
             );
             float glintTime = resolveRenderTime(partialTick);
             this.specialPass = SpecialPass.NORMAL_AURA_GLINT;
@@ -209,10 +197,13 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
                     partialTick,
                     LightTexture.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY,
-                    red * intensity * NORMAL_AURA_GLINT_INTENSITY_MULTIPLIER,
-                    green * intensity * NORMAL_AURA_GLINT_INTENSITY_MULTIPLIER,
-                    blue * intensity * NORMAL_AURA_GLINT_INTENSITY_MULTIPLIER,
-                    alpha
+                    multiplyColor(
+                            colour,
+                            intensity * NORMAL_AURA_GLINT_INTENSITY_MULTIPLIER,
+                            intensity * NORMAL_AURA_GLINT_INTENSITY_MULTIPLIER,
+                            intensity * NORMAL_AURA_GLINT_INTENSITY_MULTIPLIER,
+                            1.0F
+                    )
             );
         } finally {
             this.normalAuraGlintUOffset = 0.0F;
@@ -223,7 +214,7 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
 
     private void renderExtendedAuraPass(BakedGeoModel model, PoseStack poseStack, MultiBufferSource bufferSource,
                                          SpellchargedGreatsword animatable, float partialTick,
-                                         float red, float green, float blue, float alpha, float intensity) {
+                                         int colour, float intensity) {
         this.specialPass = SpecialPass.EXTENDED_AURA;
         try {
             this.reRender(
@@ -236,10 +227,7 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
                     partialTick,
                     LightTexture.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY,
-                    red * intensity,
-                    green * intensity,
-                    blue * intensity,
-                    alpha
+                    multiplyColor(colour, intensity, intensity, intensity, 1.0F)
             );
             float glintTime = resolveRenderTime(partialTick);
             this.specialPass = SpecialPass.EXTENDED_AURA_GLINT;
@@ -255,10 +243,13 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
                     partialTick,
                     LightTexture.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY,
-                    red * intensity * NORMAL_AURA_GLINT_INTENSITY_MULTIPLIER,
-                    green * intensity * NORMAL_AURA_GLINT_INTENSITY_MULTIPLIER,
-                    blue * intensity * NORMAL_AURA_GLINT_INTENSITY_MULTIPLIER,
-                    alpha
+                    multiplyColor(
+                            colour,
+                            intensity * NORMAL_AURA_GLINT_INTENSITY_MULTIPLIER,
+                            intensity * NORMAL_AURA_GLINT_INTENSITY_MULTIPLIER,
+                            intensity * NORMAL_AURA_GLINT_INTENSITY_MULTIPLIER,
+                            1.0F
+                    )
             );
         } finally {
             this.normalAuraGlintUOffset = 0.0F;
@@ -270,34 +261,34 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
     private void renderSpecialPassBone(PoseStack poseStack, SpellchargedGreatsword animatable, GeoBone bone,
                                        boolean targetBone, RenderType renderType, MultiBufferSource bufferSource,
                                        VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight,
-                                       int packedOverlay, float red, float green, float blue, float alpha) {
+                                       int packedOverlay, int colour) {
         if (targetBone) {
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         renderChildBonesOnly(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
     private void renderChildBonesOnly(PoseStack poseStack, SpellchargedGreatsword animatable, GeoBone bone,
                                       RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                       boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                      float red, float green, float blue, float alpha) {
+                                      int colour) {
         poseStack.pushPose();
 
         if (bone.isTrackingMatrices()) {
             Matrix4f poseState = new Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
         }
 
-        RenderUtils.prepMatrixForBone(poseStack, bone);
+        RenderUtil.prepMatrixForBone(poseStack, bone);
         renderChildBones(
                 poseStack,
                 animatable,
@@ -309,47 +300,30 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
                 partialTick,
                 packedLight,
                 packedOverlay,
-                red,
-                green,
-                blue,
-                alpha
+                colour
         );
         poseStack.popPose();
     }
 
     @Override
     public void createVerticesOfQuad(GeoQuad quad, Matrix4f poseState, Vector3f normal, VertexConsumer buffer,
-                                     int packedLight, int packedOverlay, float red, float green, float blue,
-                                     float alpha) {
+                                     int packedLight, int packedOverlay, int colour) {
         if (this.specialPass != SpecialPass.NORMAL_AURA_GLINT
                 && this.specialPass != SpecialPass.EXTENDED_AURA_GLINT) {
             super.createVerticesOfQuad(
-                    quad, poseState, normal, buffer, packedLight, packedOverlay, red, green, blue, alpha
+                    quad, poseState, normal, buffer, packedLight, packedOverlay, colour
             );
             return;
         }
 
         for (GeoVertex vertex : quad.vertices()) {
             Vector3f position = vertex.position();
-            Vector4f transformedPosition = poseState.transform(
-                    new Vector4f(position.x(), position.y(), position.z(), 1.0F)
-            );
-            buffer.vertex(
-                    transformedPosition.x(),
-                    transformedPosition.y(),
-                    transformedPosition.z(),
-                    red,
-                    green,
-                    blue,
-                    alpha,
-                    vertex.texU() + this.normalAuraGlintUOffset,
-                    vertex.texV() + this.normalAuraGlintVOffset,
-                    packedOverlay,
-                    packedLight,
-                    normal.x(),
-                    normal.y(),
-                    normal.z()
-            );
+            buffer.addVertex(poseState, position.x(), position.y(), position.z())
+                    .setColor(colour)
+                    .setUv(vertex.texU() + this.normalAuraGlintUOffset, vertex.texV() + this.normalAuraGlintVOffset)
+                    .setOverlay(packedOverlay)
+                    .setLight(packedLight)
+                    .setNormal(normal.x(), normal.y(), normal.z());
         }
     }
 
@@ -405,6 +379,15 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
 
     private static float wrapUnit(float value) {
         return value - Mth.floor(value);
+    }
+
+    private static int multiplyColor(int colour, float redMultiplier, float greenMultiplier, float blueMultiplier,
+                                     float alphaMultiplier) {
+        int alpha = Mth.clamp(Math.round(((colour >> 24) & 0xFF) * alphaMultiplier), 0, 255);
+        int red = Mth.clamp(Math.round(((colour >> 16) & 0xFF) * redMultiplier), 0, 255);
+        int green = Mth.clamp(Math.round(((colour >> 8) & 0xFF) * greenMultiplier), 0, 255);
+        int blue = Mth.clamp(Math.round((colour & 0xFF) * blueMultiplier), 0, 255);
+        return (alpha << 24) | (red << 16) | (green << 8) | blue;
     }
 
     private static GlowColor resolveCore2Color(int chargeLevel) {

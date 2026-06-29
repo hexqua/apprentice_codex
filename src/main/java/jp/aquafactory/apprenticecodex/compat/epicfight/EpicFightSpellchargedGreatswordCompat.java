@@ -6,11 +6,15 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.eventbus.api.IEventBus;
+import net.neoforged.bus.api.IEventBus;
 import yesman.epicfight.api.collider.Collider;
 import yesman.epicfight.api.collider.MultiOBBCollider;
-import yesman.epicfight.api.forgeevent.WeaponCapabilityPresetRegistryEvent;
-import yesman.epicfight.gameasset.EpicFightSkills;
+import yesman.epicfight.api.event.EpicFightEventHooks;
+import yesman.epicfight.api.event.types.registry.WeaponCapabilityPresetRegistryEvent;
+import yesman.epicfight.api.ex_cap.data.Moveset;
+import yesman.epicfight.api.ex_cap.managers.MovesetManager;
+import yesman.epicfight.registry.entries.EpicFightSkills;
+import yesman.epicfight.skill.Skill;
 import yesman.epicfight.skill.SkillContainer;
 import yesman.epicfight.skill.SkillSlots;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
@@ -27,28 +31,43 @@ public final class EpicFightSpellchargedGreatswordCompat {
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcharged_greatsword");
     private static final ResourceLocation GREATSWORD_PRESET_ID =
             ResourceLocation.fromNamespaceAndPath(MOD_ID, "greatsword");
+    private static final ResourceLocation GREATSWORD_TWO_HAND_MOVESET_ID =
+            ResourceLocation.fromNamespaceAndPath(MOD_ID, "greatsword_2h");
+    private static final ResourceLocation SPELLCHARGED_GREATSWORD_TWO_HAND_MOVESET_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcharged_greatsword_2h");
 
     private EpicFightSpellchargedGreatswordCompat() {
     }
 
     public static void register(IEventBus modEventBus) {
-        modEventBus.addListener(EpicFightSpellchargedGreatswordCompat::onWeaponCapabilityPresetRegistry);
-    }
-
-    private static void onWeaponCapabilityPresetRegistry(WeaponCapabilityPresetRegistryEvent event) {
-        event.getTypeEntry().put(
-                WEAPON_TYPE_ID,
-                item -> EpicFightSpellchargedGreatswordCompat.buildCapability(item, GREATSWORD_PRESET_ID)
+        MovesetManager.addMoveset(
+                SPELLCHARGED_GREATSWORD_TWO_HAND_MOVESET_ID,
+                Moveset.builder()
+                        .parent(GREATSWORD_TWO_HAND_MOVESET_ID)
+                        .setPassiveSkill(EpicFightSkills.SWORD_MASTER)
+                        .addInnateSkill((stack, playerPatch) -> sweepingEdgeSkill())
+        );
+        EpicFightEventHooks.Registry.WEAPON_CAPABILITY_PRESET.registerEvent(
+                EpicFightSpellchargedGreatswordCompat::onWeaponCapabilityPresetRegistry,
+                "apprenticecodex:spellcharged_greatsword"
         );
     }
 
-    private static CapabilityItem.Builder buildCapability(Item item, ResourceLocation basePresetId) {
-        var builder = (WeaponCapability.Builder) WeaponTypeReloadListener.getOrThrow(basePresetId.toString()).apply(item);
+    private static void onWeaponCapabilityPresetRegistry(WeaponCapabilityPresetRegistryEvent event) {
+        event.getTypeEntry().put(WEAPON_TYPE_ID, EpicFightSpellchargedGreatswordCompat::buildCapability);
+    }
 
-        builder.passiveSkill(EpicFightSkills.SWORD_MASTER);
-        // 1.20.1 の Epic Fight では MoveSet.addInnateSkill が無いため builder 経由で登録する。
-        // 1.21.1 へ移植する際は TWO_HAND の MoveSet 側へ移す。
-        builder.innateSkill(CapabilityItem.Styles.TWO_HAND, stack -> EpicFightSkills.SWEEPING_EDGE);
+    private static CapabilityItem.Builder<?> buildCapability(Item item) {
+        var greatswordFactory = WeaponTypeReloadListener.get(GREATSWORD_PRESET_ID);
+        var baseBuilder = greatswordFactory != null ? greatswordFactory.apply(item) : null;
+        var builder = baseBuilder instanceof WeaponCapability.Builder weaponBuilder
+                ? weaponBuilder
+                : WeaponCapability.builder();
+
+        builder.addMoveset(
+                CapabilityItem.Styles.TWO_HAND,
+                SPELLCHARGED_GREATSWORD_TWO_HAND_MOVESET_ID
+        );
 
         return builder;
     }
@@ -72,8 +91,8 @@ public final class EpicFightSpellchargedGreatswordCompat {
         return EpicFightCapabilities.getUnparameterizedEntityPatch(player, ServerPlayerPatch.class)
                 .map(playerPatch -> {
                     var capability = EpicFightCapabilities.getItemStackCapability(stack);
-                    return capability.getInnateSkill(playerPatch, stack) == EpicFightSkills.SWEEPING_EDGE
-                            && capability.getPassiveSkill() == EpicFightSkills.SWORD_MASTER;
+                    return capability.getInnateSkill(playerPatch, stack) == sweepingEdgeSkill()
+                            && capability.getPassiveSkill(playerPatch) == swordMasterSkill();
                 })
                 .orElse(false);
     }
@@ -84,7 +103,7 @@ public final class EpicFightSpellchargedGreatswordCompat {
             return false;
         }
 
-        skillContainer.setSkill(EpicFightSkills.SWEEPING_EDGE);
+        skillContainer.setSkill(sweepingEdgeSkill());
         skillContainer.setStack(stack);
         return true;
     }
@@ -95,7 +114,7 @@ public final class EpicFightSpellchargedGreatswordCompat {
     }
 
     public static int getSweepingEdgeMaxStack() {
-        return EpicFightSkills.SWEEPING_EDGE.getMaxStack();
+        return sweepingEdgeSkill().getMaxStack();
     }
 
     private static SkillContainer getSweepingEdgeContainer(ServerPlayer player) {
@@ -106,15 +125,24 @@ public final class EpicFightSpellchargedGreatswordCompat {
 
     private static void refillSweepingEdgeCharge(ServerPlayerPatch playerpatch) {
         var skillContainer = playerpatch.getSkill(SkillSlots.WEAPON_INNATE);
-        if (skillContainer == null || !skillContainer.hasSkill(EpicFightSkills.SWEEPING_EDGE)) {
+        var sweepingEdge = sweepingEdgeSkill();
+        if (skillContainer == null || !skillContainer.hasSkill(sweepingEdge)) {
             return;
         }
 
-        var maxStack = EpicFightSkills.SWEEPING_EDGE.getMaxStack();
+        var maxStack = sweepingEdge.getMaxStack();
         if (maxStack <= 0 || skillContainer.getStack() >= maxStack) {
             return;
         }
 
-        EpicFightSkills.SWEEPING_EDGE.setStackSynchronize(skillContainer, maxStack);
+        sweepingEdge.setStackSynchronize(skillContainer, maxStack);
+    }
+
+    private static Skill sweepingEdgeSkill() {
+        return EpicFightSkills.SWEEPING_EDGE.get();
+    }
+
+    private static Skill swordMasterSkill() {
+        return EpicFightSkills.SWORD_MASTER.get();
     }
 }

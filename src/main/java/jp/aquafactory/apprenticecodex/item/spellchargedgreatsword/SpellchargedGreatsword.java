@@ -16,6 +16,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -38,6 +39,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
@@ -643,6 +645,10 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     }
 
     private static ItemAttributeModifiers buildMainhandModifiers(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return buildBaseMainhandModifiers();
+        }
+
         var overcharged = isOverchargeActive(stack);
         var normalizedChargeLevel = overcharged ? 0 : resolveCurrentChargeLevel(stack);
         var config = ApprenticeCodexServerConfig.spellchargedGreatswordConfig();
@@ -686,6 +692,29 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         return builder.build();
     }
 
+    private static ItemAttributeModifiers buildBaseMainhandModifiers() {
+        var builder = ItemAttributeModifiers.builder();
+        builder.add(
+                Attributes.ATTACK_DAMAGE,
+                new AttributeModifier(
+                        Item.BASE_ATTACK_DAMAGE_ID,
+                        ATTACK_DAMAGE_MODIFIER_AMOUNT,
+                        AttributeModifier.Operation.ADD_VALUE
+                ),
+                EquipmentSlotGroup.MAINHAND
+        );
+        builder.add(
+                Attributes.ATTACK_SPEED,
+                new AttributeModifier(
+                        Item.BASE_ATTACK_SPEED_ID,
+                        ATTACK_SPEED_MODIFIER_AMOUNT,
+                        AttributeModifier.Operation.ADD_VALUE
+                ),
+                EquipmentSlotGroup.MAINHAND
+        );
+        return builder.build();
+    }
+
     private static int getStoredChargeLevel(ItemStack stack) {
         var tag = getCustomDataTag(stack);
         if (!isSpellchargedGreatsword(stack) || tag == null) {
@@ -723,6 +752,11 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         INSTANCE;
 
         @Override
+        public @NotNull TagKey<Block> getIncorrectBlocksForDrops() {
+            return BlockTags.INCORRECT_FOR_DIAMOND_TOOL;
+        }
+
+        @Override
         public int getUses() {
             return DURABILITY;
         }
@@ -735,11 +769,6 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         @Override
         public float getAttackDamageBonus() {
             return 3.0F;
-        }
-
-        @Override
-        public int getLevel() {
-            return 3;
         }
 
         @Override

@@ -5088,11 +5088,14 @@ public class ApprenticeCodexGameTestScenarios {
             player.removeEffect(EffectRegistry.ECHO_SPELL);
             helper.assertFalse(player.hasEffect(EffectRegistry.ECHO_SPELL),
                     "Long cast test should remove EchoSpell before the normal cast completes");
+            target.moveTo(helper.absoluteVec(new Vec3(-12.5D, 41.0D, 0.5D)));
             target.discard();
             player.setYRot(90.0F);
             player.setYHeadRot(90.0F);
             player.setYBodyRot(90.0F);
+        });
 
+        helper.runAtTickTime(3, () -> {
             finishStartedSpellCast(helper.getLevel(), player, spell, spellLevel);
 
             var magicData = MagicData.getPlayerMagicData(player);
@@ -5101,7 +5104,7 @@ public class ApprenticeCodexGameTestScenarios {
                             + magicData.getMana());
         });
 
-        helper.runAtTickTime(4, () -> {
+        helper.runAtTickTime(6, () -> {
             MulticastEchoStaffCastHelper.onPlayerTick(new PlayerTickEvent.Post(player));
             var magicData = MagicData.getPlayerMagicData(player);
             var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());

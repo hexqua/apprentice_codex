@@ -9,17 +9,14 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_spellcharged_greatsword.description"
     },
     "frame": "goal",
-    "hidden": false,
     "icon": {
-      "item": "apprenticecodex:spellcharged_greatsword",
-      "nbt": "{Damage:0}"
+      "count": 1,
+      "id": "apprenticecodex:spellcharged_greatsword"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_spellcharged_greatsword.title"
     }

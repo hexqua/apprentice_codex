@@ -232,6 +232,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.DoubleTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.contents.TranslatableContents;
@@ -539,7 +540,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             assertExactEnchantmentSurfaces(
                     helper,
                     stack,
-                    expectedSpellchargedGreatswordEnchantments(stack),
+                    expectedSpellchargedGreatswordEnchantments(helper.getLevel().registryAccess(), stack),
                     "Spellcharged Greatsword"
             );
         });
@@ -776,7 +777,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     "Spellcharged Greatsword overcharge sweep hitbox");
             CustomData.update(DataComponents.CUSTOM_DATA, overchargedStack, tag ->
                     tag.putLong("SpellchargedGreatswordOverchargeEndGameTime", level.getGameTime() - 1L));
-            helper.assertTrue(EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SWEEPING_EDGE, overchargedStack) == 1,
+            helper.assertTrue(EnchantmentHelper.getItemEnchantmentLevel(sweepingEdge, overchargedStack) == 1,
                     "Expired overcharge Spellcharged Greatsword should use the normal Sweeping Edge bonus");
             assertAabbClose(helper, item.getSweepHitBox(overchargedStack, player, target),
                     target.getBoundingBox().inflate(1.0D, 0.25D, 1.0D),
@@ -1219,8 +1220,34 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
     }
 
     private static CompoundTag serializeEpicFightCollider(Object collider) throws ReflectiveOperationException {
-        var method = collider.getClass().getMethod("serialize", CompoundTag.class);
-        return (CompoundTag) method.invoke(collider, new CompoundTag());
+        var multiColliderClass = collider.getClass().getSuperclass();
+        var colliderClass = multiColliderClass.getSuperclass();
+        var number = ((Number) readField(multiColliderClass, collider, "numberOfColliders")).intValue();
+        var center = (Vec3) readField(colliderClass, collider, "modelCenter");
+        var colliders = (List<?>) readField(multiColliderClass, collider, "colliders");
+        var firstObbCollider = colliders.getFirst();
+        var modelVertices = (Object[]) readField(firstObbCollider.getClass(), firstObbCollider, "modelVertices");
+        var size = (Vec3) modelVertices[1];
+
+        var result = new CompoundTag();
+        result.putInt("number", number);
+        result.put("center", doubleList(center.x, center.y, center.z));
+        result.put("size", doubleList(size.x, size.y, size.z));
+        return result;
+    }
+
+    private static Object readField(Class<?> owner, Object target, String name) throws ReflectiveOperationException {
+        var field = owner.getDeclaredField(name);
+        field.setAccessible(true);
+        return field.get(target);
+    }
+
+    private static ListTag doubleList(double... values) {
+        var list = new ListTag();
+        for (double value : values) {
+            list.add(DoubleTag.valueOf(value));
+        }
+        return list;
     }
 
     private static void assertDouble(GameTestHelper helper, double actualValue, double expected, String message) {
@@ -1232,9 +1259,9 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         var eventClass = Class.forName(
                 "jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGreatswordEpicFightEvents"
         );
-        eventClass.getMethod("onPlayerTick", TickEvent.PlayerTickEvent.class).invoke(
+        eventClass.getMethod("onPlayerTick", PlayerTickEvent.Post.class).invoke(
                 null,
-                new TickEvent.PlayerTickEvent(TickEvent.Phase.END, (net.minecraft.world.entity.player.Player) player)
+                new PlayerTickEvent.Post((net.minecraft.world.entity.player.Player) player)
         );
     }
 
@@ -2095,9 +2122,12 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     "Chromatic Magia Dress chestplate should ignore casts while the same spell is in Recast");
         });
     }
-    private static Set<ResourceLocation> expectedSpellchargedGreatswordEnchantments(ItemStack stack) {
+    private static Set<ResourceLocation> expectedSpellchargedGreatswordEnchantments(
+            net.minecraft.core.RegistryAccess registryAccess,
+            ItemStack stack
+    ) {
         var expectedEnchantments = new LinkedHashSet<>(collectAllowedEnchantments(
-                new ItemStack(Items.DIAMOND_SWORD),
+                registryAccess,
                 enchantment -> enchantment.value().canEnchant(new ItemStack(Items.DIAMOND_SWORD))
         ));
         expectedEnchantments.add(Enchantments.WISDOM.location());
