@@ -1,0 +1,33 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_storage_stabilizer": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:storage_stabilizer"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_storage_stabilizer.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:storage_stabilizer",
+      "nbt": "{\"irons_spellbooks:spell_container\":{data:[{id:\"irons_spellbooks:summon_ender_chest\",index:0,level:1,locked:1b}],maxSpells:1,mustEquip:0b,spellWheel:0b}}"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_storage_stabilizer.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_storage_stabilizer"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
