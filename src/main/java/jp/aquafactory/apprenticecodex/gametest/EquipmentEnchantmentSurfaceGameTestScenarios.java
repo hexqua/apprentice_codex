@@ -750,6 +750,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SWEEPING_EDGE);
             helper.assertTrue(EnchantmentHelper.getItemEnchantmentLevel(sweepingEdge, stack) == 1,
                     "Spellcharged Greatsword should act as Sweeping Edge I without the enchantment");
+            assertSpellchargedGreatswordSweepingDamageRatio(helper, stack, 0.5D,
+                    "Spellcharged Greatsword should apply Sweeping Edge I ratio without the enchantment");
             assertAabbClose(helper, item.getSweepHitBox(stack, player, target),
                     target.getBoundingBox().inflate(1.0D, 0.25D, 1.0D),
                     "Spellcharged Greatsword normal sweep hitbox");
@@ -760,6 +762,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             EnchantmentHelper.setEnchantments(enchantedStack, enchantedStackEnchantments.toImmutable());
             helper.assertTrue(EnchantmentHelper.getItemEnchantmentLevel(sweepingEdge, enchantedStack) == 4,
                     "Spellcharged Greatsword should add one virtual Sweeping Edge level normally");
+            assertSpellchargedGreatswordSweepingDamageRatio(helper, enchantedStack, 0.8D,
+                    "Spellcharged Greatsword should apply actual plus virtual Sweeping Edge ratio normally");
 
             var overchargedStack = new ItemStack(item);
             SpellchargedGreatsword.addCharge(overchargedStack, level.getGameTime(), 400.0D);
@@ -773,6 +777,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     "Spellcharged Greatsword test stack should enter overcharge mode");
             helper.assertTrue(EnchantmentHelper.getItemEnchantmentLevel(sweepingEdge, overchargedStack) == 3,
                     "Overcharged Spellcharged Greatsword should act as Sweeping Edge III without the enchantment");
+            assertSpellchargedGreatswordSweepingDamageRatio(helper, overchargedStack, 0.75D,
+                    "Overcharged Spellcharged Greatsword should apply Sweeping Edge III ratio without the enchantment");
             assertAabbClose(helper, item.getSweepHitBox(overchargedStack, player, target),
                     target.getBoundingBox().inflate(3.0D, 0.25D, 3.0D),
                     "Spellcharged Greatsword overcharge sweep hitbox");
@@ -780,6 +786,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     tag.putLong("SpellchargedGreatswordOverchargeEndGameTime", level.getGameTime() - 1L));
             helper.assertTrue(EnchantmentHelper.getItemEnchantmentLevel(sweepingEdge, overchargedStack) == 1,
                     "Expired overcharge Spellcharged Greatsword should use the normal Sweeping Edge bonus");
+            assertSpellchargedGreatswordSweepingDamageRatio(helper, overchargedStack, 0.5D,
+                    "Expired overcharge Spellcharged Greatsword should apply normal Sweeping Edge ratio");
             assertAabbClose(helper, item.getSweepHitBox(overchargedStack, player, target),
                     target.getBoundingBox().inflate(1.0D, 0.25D, 1.0D),
                     "Expired overcharge Spellcharged Greatsword should use the normal sweep hitbox");
@@ -800,6 +808,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     EnchantmentHelper.getItemEnchantmentLevel(sweepingEdge, enchantedOverchargedStack) == 6,
                     "Overcharged Spellcharged Greatsword should add three virtual Sweeping Edge levels"
             );
+            assertSpellchargedGreatswordSweepingDamageRatio(helper, enchantedOverchargedStack, 6.0D / 7.0D,
+                    "Overcharged Spellcharged Greatsword should apply actual plus virtual Sweeping Edge ratio");
         });
     }
 
@@ -1158,6 +1168,71 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                 expectedReachBonus,
                 message
         );
+    }
+
+    private static void assertSpellchargedGreatswordSweepingDamageRatio(
+            GameTestHelper helper,
+            ItemStack stack,
+            double expectedRatio,
+            String message
+    ) {
+        var actualSlotRatio = sumEffectiveModifierAmount(
+                stack,
+                EquipmentSlot.MAINHAND,
+                Attributes.SWEEPING_DAMAGE_RATIO,
+                AttributeModifier.Operation.ADD_VALUE
+        );
+        helper.assertTrue(Math.abs(actualSlotRatio - expectedRatio) < 1.0e-9D,
+                message + " for main hand slot: expected " + expectedRatio + " but got " + actualSlotRatio);
+
+        var actualMainHandGroupRatio = sumEffectiveModifierAmount(
+                stack,
+                EquipmentSlotGroup.MAINHAND,
+                Attributes.SWEEPING_DAMAGE_RATIO,
+                AttributeModifier.Operation.ADD_VALUE
+        );
+        helper.assertTrue(Math.abs(actualMainHandGroupRatio - expectedRatio) < 1.0e-9D,
+                message + " for main hand tooltip group: expected " + expectedRatio + " but got "
+                        + actualMainHandGroupRatio);
+
+        var actualAnyGroupRatio = sumEffectiveModifierAmount(
+                stack,
+                EquipmentSlotGroup.ANY,
+                Attributes.SWEEPING_DAMAGE_RATIO,
+                AttributeModifier.Operation.ADD_VALUE
+        );
+        helper.assertTrue(Math.abs(actualAnyGroupRatio) < 1.0e-9D,
+                message + " should not appear in the generic equipped tooltip group: got " + actualAnyGroupRatio);
+    }
+
+    private static double sumEffectiveModifierAmount(
+            ItemStack stack,
+            EquipmentSlot slot,
+            Holder<Attribute> attribute,
+            AttributeModifier.Operation operation
+    ) {
+        var total = new double[1];
+        stack.forEachModifier(slot, (actualAttribute, modifier) -> {
+            if (actualAttribute.equals(attribute) && modifier.operation() == operation) {
+                total[0] += modifier.amount();
+            }
+        });
+        return total[0];
+    }
+
+    private static double sumEffectiveModifierAmount(
+            ItemStack stack,
+            EquipmentSlotGroup slotGroup,
+            Holder<Attribute> attribute,
+            AttributeModifier.Operation operation
+    ) {
+        var total = new double[1];
+        stack.forEachModifier(slotGroup, (actualAttribute, modifier) -> {
+            if (actualAttribute.equals(attribute) && modifier.operation() == operation) {
+                total[0] += modifier.amount();
+            }
+        });
+        return total[0];
     }
 
     private static void assertAabbClose(GameTestHelper helper, AABB actual, AABB expected, String message) {

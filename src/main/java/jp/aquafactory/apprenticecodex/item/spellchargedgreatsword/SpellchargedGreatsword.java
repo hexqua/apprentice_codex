@@ -38,6 +38,7 @@ import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.AABB;
@@ -87,6 +88,8 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     private static final String TAG_OVERCHARGE_ACTIVATED_GAME_TIME = "SpellchargedGreatswordOverchargeActivatedGameTime";
     private static final String TAG_OVERCHARGE_END_GAME_TIME = "SpellchargedGreatswordOverchargeEndGameTime";
     private static final String TAG_OVERCHARGE_FADE_START_GAME_TIME = "SpellchargedGreatswordOverchargeFadeStartGameTime";
+    public static final ResourceLocation SWEEPING_DAMAGE_RATIO_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcharged_greatsword_sweeping_edge_bonus");
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK =
             new ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD);
@@ -362,6 +365,30 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         return isOverchargeActive(stack)
                 ? config.overchargeSweepingEdgeLevelBonus()
                 : config.normalSweepingEdgeLevelBonus();
+    }
+
+    public static double getSweepingDamageRatioModifierBonus(ItemStack stack) {
+        var bonusLevel = getSweepingEdgeLevelBonus(stack);
+        if (bonusLevel <= 0) {
+            return 0.0D;
+        }
+
+        var actualLevel = getStoredSweepingEdgeLevel(stack);
+        return sweepingDamageRatio(actualLevel + bonusLevel) - sweepingDamageRatio(actualLevel);
+    }
+
+    private static int getStoredSweepingEdgeLevel(ItemStack stack) {
+        var enchantments = stack.getOrDefault(DataComponents.ENCHANTMENTS, net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
+        for (var entry : enchantments.entrySet()) {
+            if (entry.getKey().is(Enchantments.SWEEPING_EDGE)) {
+                return entry.getIntValue();
+            }
+        }
+        return 0;
+    }
+
+    private static double sweepingDamageRatio(int level) {
+        return level <= 0 ? 0.0D : level / (double) (level + 1);
     }
 
     private static int resolveOverchargeRemainingTicks(ItemStack stack, double gameTime) {
