@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket
 import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmScrollcasterGauntletIndexPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmStorageStabilizerSpellPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
@@ -91,6 +92,11 @@ public final class Networks {
                 ClientConfirmScrollcasterGauntletIndexPacket.TYPE,
                 ClientConfirmScrollcasterGauntletIndexPacket.STREAM_CODEC,
                 ClientConfirmScrollcasterGauntletIndexPacket::handle
+        );
+        registrar.playToServer(
+                ClientConfirmStorageStabilizerSpellPacket.TYPE,
+                ClientConfirmStorageStabilizerSpellPacket.STREAM_CODEC,
+                ClientConfirmStorageStabilizerSpellPacket::handle
         );
         registrar.playToServer(
                 ClientChangeArchivistsGrimoireRowPacket.TYPE,
