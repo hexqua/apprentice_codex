@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket
 import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmScrollcasterGauntletIndexPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmStorageStabilizerSpellPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
@@ -60,7 +61,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "50";
+    private static final String PROTOCOL_VERSION = "51";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -150,6 +151,13 @@ public final class Networks {
                 ClientConfirmScrollcasterGauntletIndexPacket::encode,
                 ClientConfirmScrollcasterGauntletIndexPacket::decode,
                 ClientConfirmScrollcasterGauntletIndexPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                ClientConfirmStorageStabilizerSpellPacket.class,
+                ClientConfirmStorageStabilizerSpellPacket::encode,
+                ClientConfirmStorageStabilizerSpellPacket::decode,
+                ClientConfirmStorageStabilizerSpellPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
