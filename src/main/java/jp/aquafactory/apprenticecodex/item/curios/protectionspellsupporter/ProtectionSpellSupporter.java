@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter;
 
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -12,8 +13,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
@@ -65,7 +64,7 @@ public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiIn
     }
 
     private static void appendTargetSpellHintOrTooltips(List<Component> tooltips) {
-        if (!isShiftDown()) {
+        if (!ImbueTooltipHelper.hasShiftDown()) {
             tooltips.add(Component.translatable(SPELL_HINT_KEY).withStyle(ChatFormatting.DARK_GRAY));
             return;
         }
@@ -83,20 +82,6 @@ public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiIn
             tooltips.add(Component.literal("- ")
                     .append(spell.getDisplayName(null))
                     .withStyle(ChatFormatting.GRAY));
-        }
-    }
-
-    private static boolean isShiftDown() {
-        if (FMLEnvironment.dist != Dist.CLIENT) {
-            return false;
-        }
-
-        try {
-            var screenClass = Class.forName("net.minecraft.client.gui.screens.Screen");
-            var hasShiftDown = screenClass.getMethod("hasShiftDown");
-            return Boolean.TRUE.equals(hasShiftDown.invoke(null));
-        } catch (ReflectiveOperationException | LinkageError e) {
-            return false;
         }
     }
 

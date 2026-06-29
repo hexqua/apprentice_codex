@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.renderer.armor.MagiAgentSuitRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
@@ -30,8 +31,6 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -249,7 +248,7 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
             return;
         }
 
-        if (!isShiftDown()) {
+        if (!ImbueTooltipHelper.hasShiftDown()) {
             lines.add(Component.translatable(descriptionKey).withStyle(ChatFormatting.GRAY));
             lines.add(Component.translatable(SPELL_HINT_KEY).withStyle(ChatFormatting.DARK_GRAY));
             return;
@@ -263,20 +262,6 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
             lines.add(Component.literal("- ")
                     .append(spell.getDisplayName(null))
                     .withStyle(ChatFormatting.GRAY));
-        }
-    }
-
-    private static boolean isShiftDown() {
-        if (FMLEnvironment.dist != Dist.CLIENT) {
-            return false;
-        }
-
-        try {
-            var screenClass = Class.forName("net.minecraft.client.gui.screens.Screen");
-            var hasShiftDown = screenClass.getMethod("hasShiftDown");
-            return Boolean.TRUE.equals(hasShiftDown.invoke(null));
-        } catch (ReflectiveOperationException | LinkageError e) {
-            return false;
         }
     }
 
