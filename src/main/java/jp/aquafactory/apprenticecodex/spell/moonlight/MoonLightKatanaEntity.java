@@ -119,14 +119,22 @@ public class MoonLightKatanaEntity extends SummonWeaponEntity implements GeoEnti
     }
 
     public void setStandby() {
+        setStandby(1.0f);
+    }
+
+    public void setStandby(float castTimeSpeedScale) {
         triggerAnim("main", "standby");
-        entityData.set(ANIMATION_SPEED, 1.5f);
+        entityData.set(ANIMATION_SPEED, 1.5f * Math.max(1.0f, castTimeSpeedScale));
         entityData.set(SHOW_TRAIL, false);
         isStandby = true;
     }
 
     public boolean isStandby() {
         return isStandby;
+    }
+
+    public float getAnimationSpeedForGameTest() {
+        return entityData.get(ANIMATION_SPEED);
     }
 
     public void slash(Level level) {

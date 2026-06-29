@@ -18,6 +18,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -116,12 +117,27 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
 
     @Override
     public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull MoonLightKatanaEntity weapon) {
-        if (!weapon.isStandby() && weapon.tickCount >= STANDBY_START_DELAY_TICK) {
-            weapon.setStandby();
+        var castTimeSpeedScale = getCastTimeSpeedScale(spellLevel, playerMagicData);
+        if (!weapon.isStandby() && weapon.tickCount >= getStandbyStartDelayTick(castTimeSpeedScale)) {
+            weapon.setStandby(castTimeSpeedScale);
         }
 
         weapon.setChargingEffectActive(true);
         weapon.setFullyChargedEffect(false);
+    }
+
+    private int getStandbyStartDelayTick(float castTimeSpeedScale) {
+        return Math.max(0, Mth.ceil(STANDBY_START_DELAY_TICK / Math.max(1.0f, castTimeSpeedScale)));
+    }
+
+    private float getCastTimeSpeedScale(int spellLevel, @Nullable MagicData playerMagicData) {
+        var baseCastTime = Math.max(0, getCastTime(spellLevel));
+        if (baseCastTime <= 0 || playerMagicData == null) {
+            return 1.0f;
+        }
+
+        var actualCastTime = Math.max(1, playerMagicData.getCastDuration());
+        return Math.max(1.0f, baseCastTime / (float) actualCastTime);
     }
 
     @Override

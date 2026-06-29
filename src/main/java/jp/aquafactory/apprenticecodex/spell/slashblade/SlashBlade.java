@@ -18,7 +18,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -112,8 +111,18 @@ public class SlashBlade extends AbstractSummonWeaponSpell<SlashBladeKatanaEntity
     @Override
     public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull SlashBladeKatanaEntity weapon) {
         if (!weapon.isStandby()){
-            weapon.setStandby();
+            weapon.setStandby(getCastTimeSpeedScale(spellLevel, playerMagicData));
         }
+    }
+
+    private float getCastTimeSpeedScale(int spellLevel, @Nullable MagicData playerMagicData) {
+        var baseCastTime = Math.max(0, getCastTime(spellLevel));
+        if (baseCastTime <= 0 || playerMagicData == null) {
+            return 1.0f;
+        }
+
+        var actualCastTime = Math.max(1, playerMagicData.getCastDuration());
+        return Math.max(1.0f, baseCastTime / (float) actualCastTime);
     }
 
     @Override
