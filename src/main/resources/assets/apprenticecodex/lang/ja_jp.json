@@ -132,7 +132,7 @@
   "item.apprenticecodex.magi_agent_suit_leggings": "マギ・エージェントのスラックス",
   "item.apprenticecodex.magi_agent_suit_boots": "マギ・エージェントの革靴",
 
-  "item.apprenticecodex.spellgun.tooltip.hint": "Shiftキーで詳細を表示",
+  "item.apprenticecodex.spellgun.tooltip.hint": "ShiftまたはAltキーで詳細を表示",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "注入した魔法への特殊効果:",
   "item.apprenticecodex.spellgun.tooltip.ability_swingcast_title": "注入した魔法を振って詠唱した時:",
   "item.apprenticecodex.spellgun.tooltip.ability_smashcast_title": "注入した魔法で強打詠唱した時:",
@@ -162,7 +162,7 @@
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "レア以下",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic": "エピック以上",
 
-  "item.apprenticecodex.common.desc.spell_hint": "Shiftキーで対象の魔法を表示",
+  "item.apprenticecodex.common.desc.spell_hint": "ShiftまたはAltキーで対象の魔法を表示",
   "item.apprenticecodex.common.desc.spell_hint_open": "対象魔法:",
   "item.apprenticecodex.apprentice_desk.disabled_tooltip": "使い走り魔術師の職業ブロックとしてのみ機能する。",
   "item.apprenticecodex.spell_dispenser.creative_tooltip": "クリエイティブバージョン",

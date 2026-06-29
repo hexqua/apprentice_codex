@@ -241,7 +241,7 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
             return;
         }
 
-        if (!ImbueTooltipHelper.hasShiftDown()) {
+        if (!ImbueTooltipHelper.hasDetailsKeyDown()) {
             lines.add(Component.translatable(descriptionKey).withStyle(ChatFormatting.GRAY));
             lines.add(Component.translatable(SPELL_HINT_KEY).withStyle(ChatFormatting.DARK_GRAY));
             return;
