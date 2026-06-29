@@ -40,6 +40,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String HEAVENLY_FIST_CREATE_COMPACTING_DENYLIST_BATCH =
             "apprenticecodex.heavenly_fist_create_compacting_denylist";
     private static final String GRIND_RUNNER_ISOLATED_BATCH = "apprenticecodex.grind_runner_isolated";
+    private static final String SUMMON_WEAPON_ANIMATION_BATCH = "apprenticecodex.summon_weapon_animation";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
     }
@@ -777,5 +778,15 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = MIST_FORM_ISOLATED_BATCH)
     public static void mistFormMovementRestrictionIgnoreKeepsBlockEffects(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.mistFormMovementRestrictionIgnoreKeepsBlockEffects(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = SUMMON_WEAPON_ANIMATION_BATCH)
+    public static void slashBladeStandbyAnimationSpeedTracksReducedCastTime(GameTestHelper helper) {
+        SummonWeaponAnimationGameTestScenarios.slashBladeStandbyAnimationSpeedTracksReducedCastTime(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = SUMMON_WEAPON_ANIMATION_BATCH)
+    public static void moonLightStandbyAnimationSpeedAndDelayTrackReducedCastTime(GameTestHelper helper) {
+        SummonWeaponAnimationGameTestScenarios.moonLightStandbyAnimationSpeedAndDelayTrackReducedCastTime(helper);
     }
 }
