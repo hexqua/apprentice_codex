@@ -47,6 +47,7 @@ public final class MagicItemAttributeEvent {
 
         if (item instanceof SpellchargedGreatsword spellchargedGreatsword) {
             replaceModifiers(event, spellchargedGreatsword.getDefaultAttributeModifiers(stack));
+            applyMainhandUpgradeBridge(event);
         }
     }
 

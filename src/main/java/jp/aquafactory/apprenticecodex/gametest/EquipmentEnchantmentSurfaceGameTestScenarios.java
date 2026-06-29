@@ -534,6 +534,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     ApprenticeCodexServerConfig.spellchargedGreatswordConfig().normalEntityReachBonus(),
                     "Spellcharged Greatsword entity reach modifier should match the normal server config"
             );
+            assertUpgradeable(helper, stack, "Spellcharged Greatsword should remain upgradeable");
+            assertMainhandUpgradeBridge(helper, stack, "Spellcharged Greatsword should keep mainhand upgrade modifiers");
 
             helper.assertTrue(stack.is(MALUM_SOUL_SHATTER_CAPABLE_WEAPON),
                     "Spellcharged Greatsword is missing malum:soul_shatter_capable_weapon");
