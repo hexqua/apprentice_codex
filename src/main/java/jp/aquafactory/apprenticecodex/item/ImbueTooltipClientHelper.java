@@ -8,8 +8,8 @@ final class ImbueTooltipClientHelper {
     private ImbueTooltipClientHelper() {
     }
 
-    static boolean hasShiftDown() {
-        return Screen.hasShiftDown();
+    static boolean hasDetailsKeyDown() {
+        return Screen.hasShiftDown() || Screen.hasAltDown();
     }
 
     static Component getAttackKeyName() {

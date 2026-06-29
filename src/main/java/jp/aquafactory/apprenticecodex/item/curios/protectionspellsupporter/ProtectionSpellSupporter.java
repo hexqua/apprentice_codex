@@ -62,7 +62,7 @@ public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiIn
     }
 
     private static void appendTargetSpellHintOrTooltips(List<Component> tooltips) {
-        if (!ImbueTooltipHelper.hasShiftDown()) {
+        if (!ImbueTooltipHelper.hasDetailsKeyDown()) {
             tooltips.add(Component.translatable(SPELL_HINT_KEY).withStyle(ChatFormatting.DARK_GRAY));
             return;
         }

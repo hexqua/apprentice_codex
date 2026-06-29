@@ -132,7 +132,7 @@
   "item.apprenticecodex.magi_agent_suit_leggings": "魔导特工西裤",
   "item.apprenticecodex.magi_agent_suit_boots": "魔导特工皮鞋",
 
-  "item.apprenticecodex.spellgun.tooltip.hint": "按住Shift查看详情。",
+  "item.apprenticecodex.spellgun.tooltip.hint": "按住 Shift 或 Alt 查看详情。",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "注入法术效果：",
   "item.apprenticecodex.spellgun.tooltip.ability_swingcast_title": "挥击释放注入法术时的效果：",
   "item.apprenticecodex.spellgun.tooltip.ability_smashcast_title": "以强打释放注入法术时：",
@@ -162,7 +162,7 @@
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "稀有及以下品质",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic": "史诗以上品质",
 
-  "item.apprenticecodex.common.desc.spell_hint": "按住 Shift 显示适用法术",
+  "item.apprenticecodex.common.desc.spell_hint": "按住 Shift 或 Alt 显示适用法术",
   "item.apprenticecodex.common.desc.spell_hint_open": "适用法术：",
   "item.apprenticecodex.apprentice_desk.disabled_tooltip": "仅作为跑腿法师的工作站点方块时生效。",
   "item.apprenticecodex.spell_dispenser.creative_tooltip": "创造版",
