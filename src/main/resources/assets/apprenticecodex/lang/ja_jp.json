@@ -162,6 +162,8 @@
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "レア以下",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic": "エピック以上",
 
+  "item.apprenticecodex.common.desc.spell_hint": "Shiftキーで対象の魔法を表示",
+  "item.apprenticecodex.common.desc.spell_hint_open": "対象魔法:",
   "item.apprenticecodex.apprentice_desk.disabled_tooltip": "使い走り魔術師の職業ブロックとしてのみ機能する。",
   "item.apprenticecodex.spell_dispenser.creative_tooltip": "クリエイティブバージョン",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "この杖は現在ロードストーンを指し示している。",
@@ -196,8 +198,6 @@
   "item.apprenticecodex.element_maiden_robe.desc": "この防具は装備している魔法書の影響を受ける。",
   "item.apprenticecodex.magi_agent_suit.rune_hint": "この防具は術式調整台で系統を調整できる。",
   "item.apprenticecodex.magi_agent_suit.school_rune": "現在\"%s\"の系統に調整されている。",
-  "item.apprenticecodex.magi_agent_suit.spell_hint": "Shiftキーで対象の魔法を表示",
-  "item.apprenticecodex.magi_agent_suit.spell_hint_open": "対象魔法:",
   "item.apprenticecodex.magi_agent_suit_hood.desc": "詠唱銃と杖銃の弾薬が確率で消費されなくなる。",
   "item.apprenticecodex.magi_agent_suit_coat.desc": "特定の攻撃魔法の系統補正が防具で調整された系統へ変化する。",
   "item.apprenticecodex.magi_agent_suit_leggings.desc": "特定の攻撃魔法の詠唱による移動速度低下を無効化し、中断もされなくなる。",

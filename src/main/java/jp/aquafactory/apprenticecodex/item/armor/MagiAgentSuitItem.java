@@ -52,10 +52,10 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/magi_agent_suit.png");
     private static final String CALIBRATION_TAG = "MagiAgentSuitCalibration";
     private static final String ADJUSTMENT_TAG = "Adjustment";
-    private static final String RUNE_HINT_KEY = "item." + ApprenticeCodex.MODID + ".magi_agent_suit.rune_hint";
-    private static final String SCHOOL_RUNE_KEY = "item." + ApprenticeCodex.MODID + ".magi_agent_suit.school_rune";
-    private static final String SPELL_HINT_KEY = "item." + ApprenticeCodex.MODID + ".magi_agent_suit.spell_hint";
-    private static final String SPELL_HINT_OPEN_KEY = "item." + ApprenticeCodex.MODID + ".magi_agent_suit.spell_hint_open";
+    private static final String RUNE_HINT_KEY = "item.apprenticecodex.magi_agent_suit.rune_hint";
+    private static final String SCHOOL_RUNE_KEY = "item.apprenticecodex.magi_agent_suit.school_rune";
+    private static final String SPELL_HINT_KEY = "item.apprenticecodex.common.desc.spell_hint";
+    private static final String SPELL_HINT_OPEN_KEY = "item.apprenticecodex.common.desc.spell_hint_open";
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final Type armorType;
