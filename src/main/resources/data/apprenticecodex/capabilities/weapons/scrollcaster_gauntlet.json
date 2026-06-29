@@ -5,7 +5,7 @@
   "swing_sound": "epicfight:entity.weapon.whoosh",
   "attributes": {
     "common": {
-      "impact": 0.7
+      "impact": 1.0
     }
   }
 }
