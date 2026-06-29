@@ -114,9 +114,14 @@ public final class StorageStabilizerSelectionClientController {
             return;
         }
 
+        confirmSelection();
+        if (event.isUseItem()) {
+            // Personal Shelf はスニーク中の右クリックで搬出モードを決めるため、選択確定後の使用入力を通す。
+            return;
+        }
+
         event.setCanceled(true);
         event.setSwingHand(false);
-        confirmSelection();
     }
 
     @SubscribeEvent
