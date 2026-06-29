@@ -663,6 +663,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     tag.putLong("SpellchargedGreatswordOverchargeEndGameTime", level.getGameTime() - 1L));
             helper.assertFalse(SpellchargedGreatsword.isOverchargeActive(expiredOverchargeStack),
                     "Spellcharged Greatsword should not treat expired overcharge NBT as active");
+            item.inventoryTick(expiredOverchargeStack, level, levelTwoPlayer, 0, false);
             assertSpellchargedGreatswordAttackAttributes(helper, item, expiredOverchargeStack, 0.0D, 0.0D,
                     "Spellcharged Greatsword expired overcharge should not use overcharge attributes");
 
@@ -1093,7 +1094,37 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             double expectedSpeedBonus,
             String message
     ) {
-        var modifiers = toModifierMultimap(item.getDefaultAttributeModifiers(stack));
+        assertSpellchargedGreatswordAttackAttributeModifiers(
+                helper,
+                item.getDefaultAttributeModifiers(stack),
+                expectedDamageBonus,
+                expectedSpeedBonus,
+                message + " item defaults"
+        );
+        assertSpellchargedGreatswordAttackAttributeModifiers(
+                helper,
+                stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY),
+                expectedDamageBonus,
+                expectedSpeedBonus,
+                message + " component"
+        );
+        assertSpellchargedGreatswordAttackAttributeModifiers(
+                helper,
+                stack.getAttributeModifiers(),
+                expectedDamageBonus,
+                expectedSpeedBonus,
+                message + " stack tooltip"
+        );
+    }
+
+    private static void assertSpellchargedGreatswordAttackAttributeModifiers(
+            GameTestHelper helper,
+            ItemAttributeModifiers attributeModifiers,
+            double expectedDamageBonus,
+            double expectedSpeedBonus,
+            String message
+    ) {
+        var modifiers = toModifierMultimap(attributeModifiers);
         assertModifierWithId(
                 helper,
                 modifiers.get(Attributes.ATTACK_DAMAGE),

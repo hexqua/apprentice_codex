@@ -264,6 +264,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
             tag.remove(TAG_LAST_CHARGE_GAME_TIME);
             tag.remove(TAG_CHARGE_LEVEL);
         });
+        refreshAttributeModifiers(stack);
     }
 
     public static double getEffectiveChargeTicks(ItemStack stack, long gameTime) {
@@ -462,6 +463,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
             tag.putLong(TAG_OVERCHARGE_END_GAME_TIME, gameTime + durationTicks);
             tag.remove(TAG_OVERCHARGE_FADE_START_GAME_TIME);
         });
+        refreshAttributeModifiers(stack);
     }
 
     private static void freezeChargeDecay(ItemStack stack, long gameTime) {
@@ -494,6 +496,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
             tag.putLong(TAG_LAST_CHARGE_GAME_TIME, gameTime);
             tag.putInt(TAG_CHARGE_LEVEL, Mth.clamp(chargeLevel, 0, 3));
         });
+        refreshAttributeModifiers(stack);
     }
 
     private static void playOverchargeActivationSound(Level level, Player player) {
@@ -530,6 +533,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
                 tag.remove(TAG_OVERCHARGE_FADE_START_GAME_TIME);
             }
         });
+        refreshAttributeModifiers(stack);
     }
 
     private static void cleanupExpiredAuraFade(ItemStack stack, long gameTime) {
@@ -555,6 +559,12 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     private static CompoundTag getCustomDataTag(ItemStack stack) {
         var customData = stack.get(DataComponents.CUSTOM_DATA);
         return customData == null ? null : customData.copyTag();
+    }
+
+    private static void refreshAttributeModifiers(ItemStack stack) {
+        if (isSpellchargedGreatsword(stack)) {
+            stack.set(DataComponents.ATTRIBUTE_MODIFIERS, buildMainhandModifiers(stack));
+        }
     }
 
     @Override
