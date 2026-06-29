@@ -2,5 +2,17 @@
   "type": "epicfight:spear",
   "hit_particle": "epicfight:hit_blunt",
   "hit_sound": "epicfight:entity.hit.blunt",
-  "swing_sound": "epicfight:entity.weapon.whoosh_rod"
+  "swing_sound": "epicfight:entity.weapon.whoosh_rod",
+  "attributes": {
+    "one_hand": {
+      "armor_negation": 10.0,
+      "impact": 2.5,
+      "max_strikes": 1
+    },
+    "two_hand": {
+      "armor_negation": 10.0,
+      "impact": 1.8,
+      "max_strikes": 3
+    }
+  }
 }

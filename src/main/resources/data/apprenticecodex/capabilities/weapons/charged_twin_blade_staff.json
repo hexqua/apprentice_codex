@@ -1,3 +1,10 @@
 {
-  "type": "apprenticecodex:charged_twin_blade_staff"
+  "type": "apprenticecodex:charged_twin_blade_staff",
+  "attributes": {
+    "common": {
+      "armor_negation": 20.0,
+      "impact": 3.0,
+      "max_strikes": 3
+    }
+  }
 }
