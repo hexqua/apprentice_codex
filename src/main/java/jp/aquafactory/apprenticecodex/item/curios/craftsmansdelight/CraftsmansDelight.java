@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -31,8 +32,6 @@ import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -101,7 +100,7 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
     }
 
     private static void appendTargetSpellHintOrTooltips(List<Component> tooltips) {
-        if (!isShiftDown()) {
+        if (!ImbueTooltipHelper.hasShiftDown()) {
             tooltips.add(Component.translatable(SPELL_HINT_KEY).withStyle(ChatFormatting.DARK_GRAY));
             return;
         }
@@ -130,20 +129,6 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
         tooltips.add(Component.literal("- ")
                     .append(spell.getDisplayName(null))
                     .withStyle(ChatFormatting.GRAY));
-    }
-
-    private static boolean isShiftDown() {
-        if (FMLEnvironment.dist != Dist.CLIENT) {
-            return false;
-        }
-
-        try {
-            var screenClass = Class.forName("net.minecraft.client.gui.screens.Screen");
-            var hasShiftDown = screenClass.getMethod("hasShiftDown");
-            return Boolean.TRUE.equals(hasShiftDown.invoke(null));
-        } catch (ReflectiveOperationException | LinkageError e) {
-            return false;
-        }
     }
 
     @Override

@@ -27,7 +27,7 @@ public final class ImbueTooltipHelper {
     }
 
     public static boolean appendHintIfDetailsHidden(List<Component> lines) {
-        if (isShiftDown()) {
+        if (hasShiftDown()) {
             return false;
         }
 
@@ -134,7 +134,7 @@ public final class ImbueTooltipHelper {
                 .toPlainString();
     }
 
-    private static boolean isShiftDown() {
+    public static boolean hasShiftDown() {
         return Boolean.TRUE.equals(DistExecutor.safeCallWhenOn(
                 Dist.CLIENT,
                 () -> ImbueTooltipClientHelper::hasShiftDown
