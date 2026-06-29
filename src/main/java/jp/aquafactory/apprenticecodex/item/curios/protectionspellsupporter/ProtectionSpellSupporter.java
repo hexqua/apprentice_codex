@@ -54,7 +54,7 @@ public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiIn
             tooltips.add(Component.empty());
             tooltips.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
             tooltips.add(Component.literal(" ")
-                    .append(Component.translatable(getDescriptionId() + ".desc_1"))
+                    .append(Component.translatable(getDescriptionId() + ".desc"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
             appendTargetSpellHintOrTooltips(tooltips);
         }
