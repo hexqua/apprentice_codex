@@ -92,12 +92,12 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
             result.add(Component.literal(" ")
                     .append(Component.translatable(getDescriptionId() + ".desc_1"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            appendTargetSpellHintOrTooltips(result);
             if (ApprenticeCodexServerConfig.craftsmansDelightCanImbueEnchantment()) {
                 result.add(Component.literal(" ")
                         .append(Component.translatable(getDescriptionId() + ".desc_enchant"))
                         .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
             }
+            appendTargetSpellHintOrTooltips(result);
         }
 
         return result;
