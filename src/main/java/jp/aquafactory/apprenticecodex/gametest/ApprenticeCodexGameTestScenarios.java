@@ -102,6 +102,7 @@ import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntletCastEvent;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntletFreecastContext;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.item.StorageStabilizer;
 import jp.aquafactory.apprenticecodex.item.spellthrowablecard.AbstractSpellThrowableCardItem;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastCooldownMode;
@@ -155,6 +156,7 @@ import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.heavenlyfist.HeavenlyFistFistEntity;
 import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
+import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarStarEntity;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceBurst;
@@ -2467,6 +2469,16 @@ public class ApprenticeCodexGameTestScenarios {
                     "Scrollcaster Gauntlet right-click resolver should use the gauntlet-selected spell");
             helper.assertTrue("scrollcaster_gauntlet_selected".equals(resolvedRightClickSpell.get().resolutionPath()),
                     "Scrollcaster Gauntlet right-click resolver should expose its dedicated resolution path");
+            var storageStabilizer = new ItemStack(ItemRegistry.STORAGE_STABILIZER.get());
+            StorageStabilizer.setSelectedSpellIndex(storageStabilizer, 1);
+            player.setItemInHand(InteractionHand.MAIN_HAND, storageStabilizer);
+            var resolvedStorageStabilizerSpell = RightClickSpellResolver.resolve(player);
+            helper.assertTrue(resolvedStorageStabilizerSpell.isPresent(),
+                    "Storage Stabilizer right-click resolver should find the selected stabilizer spell");
+            helper.assertTrue(resolvedStorageStabilizerSpell.get().spellData().getSpell() == SpellRegistry.PERSONAL_SHELF.get(),
+                    "Storage Stabilizer right-click resolver should use the selected Personal Shelf spell");
+            helper.assertTrue(resolvedStorageStabilizerSpell.get().spellData().getSpell() instanceof IClientBlockTargetingSpell,
+                    "Storage Stabilizer Personal Shelf should stay eligible for client block target sync");
             var magicData = MagicData.getPlayerMagicData(player);
             helper.assertTrue(magicData != null,
                     "Scrollcaster Gauntlet cooldown test could not resolve player mana data");
