@@ -2691,11 +2691,78 @@ public class ApprenticeCodexGameTestScenarios {
                     "Storage Stabilizer right-click resolver should find the selected stabilizer spell");
             helper.assertTrue(resolvedStorageStabilizerSpell.get().spellData().getSpell() == SpellRegistry.PERSONAL_SHELF.get(),
                     "Storage Stabilizer right-click resolver should use the selected Personal Shelf spell");
+            helper.assertTrue(resolvedStorageStabilizerSpell.get().hand() == InteractionHand.MAIN_HAND,
+                    "Storage Stabilizer right-click resolver should mark the main hand");
+            helper.assertTrue("storage_stabilizer_selected".equals(resolvedStorageStabilizerSpell.get().resolutionPath()),
+                    "Storage Stabilizer right-click resolver should expose its dedicated resolution path");
             helper.assertTrue(resolvedStorageStabilizerSpell.get().spellData().getSpell() instanceof IClientBlockTargetingSpell,
                     "Storage Stabilizer Personal Shelf should stay eligible for client block target sync");
+            var inertMainHand = new ItemStack(Items.STICK);
+            player.setItemInHand(InteractionHand.MAIN_HAND, inertMainHand);
+            player.setItemInHand(InteractionHand.OFF_HAND, storageStabilizer);
+            var resolvedOffhandStorageStabilizerSpell = RightClickSpellResolver.resolve(player);
+            helper.assertTrue(resolvedOffhandStorageStabilizerSpell.isPresent(),
+                    "Storage Stabilizer right-click resolver should find the selected offhand stabilizer spell");
+            helper.assertTrue(resolvedOffhandStorageStabilizerSpell.get().spellData().getSpell() == SpellRegistry.PERSONAL_SHELF.get(),
+                    "Storage Stabilizer right-click resolver should use the offhand selected Personal Shelf spell");
+            helper.assertTrue(resolvedOffhandStorageStabilizerSpell.get().hand() == InteractionHand.OFF_HAND,
+                    "Storage Stabilizer right-click resolver should mark the offhand");
+            helper.assertTrue(resolvedOffhandStorageStabilizerSpell.get().spellData().getSpell() instanceof IClientBlockTargetingSpell,
+                    "Offhand Storage Stabilizer Personal Shelf should stay eligible for client block target sync");
+            player.setItemInHand(InteractionHand.OFF_HAND, gauntlet);
+            var resolvedOffhandGauntletSpell = RightClickSpellResolver.resolve(player);
+            helper.assertTrue(resolvedOffhandGauntletSpell.isPresent(),
+                    "Scrollcaster Gauntlet right-click resolver should find the selected offhand gauntlet spell");
+            helper.assertTrue(resolvedOffhandGauntletSpell.get().spellData().getSpell() == heal,
+                    "Scrollcaster Gauntlet right-click resolver should use the offhand gauntlet-selected spell");
+            helper.assertTrue(resolvedOffhandGauntletSpell.get().hand() == InteractionHand.OFF_HAND,
+                    "Scrollcaster Gauntlet right-click resolver should mark the offhand");
+            var offhandSpellGun = new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get());
+            ISpellContainer.createImbuedContainer(SpellRegistry.PERSONAL_SHELF.get(), 1, offhandSpellGun);
+            player.setItemInHand(InteractionHand.OFF_HAND, offhandSpellGun);
+            var resolvedOffhandSpellGunSpell = RightClickSpellResolver.resolve(player);
+            helper.assertTrue(resolvedOffhandSpellGunSpell.isPresent(),
+                    "Spellcaster Gun right-click resolver should find the offhand gun spell");
+            helper.assertTrue(resolvedOffhandSpellGunSpell.get().spellData().getSpell() == SpellRegistry.PERSONAL_SHELF.get(),
+                    "Spellcaster Gun right-click resolver should use the offhand gun spell container");
+            helper.assertTrue(resolvedOffhandSpellGunSpell.get().hand() == InteractionHand.OFF_HAND,
+                    "Spellcaster Gun right-click resolver should mark the offhand");
+            player.setItemInHand(InteractionHand.OFF_HAND, createSpellScroll(SpellRegistry.PERSONAL_SHELF.get()));
+            var resolvedOffhandScrollSpell = RightClickSpellResolver.resolve(player);
+            helper.assertTrue(resolvedOffhandScrollSpell.isPresent(),
+                    "Scroll right-click resolver should find the offhand scroll spell");
+            helper.assertTrue(resolvedOffhandScrollSpell.get().spellData().getSpell() == SpellRegistry.PERSONAL_SHELF.get(),
+                    "Scroll right-click resolver should use the offhand scroll spell container");
+            helper.assertTrue(resolvedOffhandScrollSpell.get().hand() == InteractionHand.OFF_HAND,
+                    "Scroll right-click resolver should mark the offhand");
+            var offhandStaff = new ItemStack(ItemRegistry.ZENITH_STAFF.get());
+            var mutableStaffSpells = ISpellContainer.create(1, true, false).mutableCopy();
+            mutableStaffSpells.addSpellAtIndex(SpellRegistry.PERSONAL_SHELF.get(), 1, 0, false);
+            ISpellContainer.set(offhandStaff, mutableStaffSpells.toImmutable());
+            player.setItemInHand(InteractionHand.OFF_HAND, offhandStaff);
             var magicData = MagicData.getPlayerMagicData(player);
             helper.assertTrue(magicData != null,
                     "Scrollcaster Gauntlet cooldown test could not resolve player mana data");
+            magicData.getSyncedData().setSpellSelection(new io.redspace.ironsspellbooks.gui.overlays.SpellSelection(
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND,
+                    0
+            ));
+            var resolvedOffhandCastingItemSpell = RightClickSpellResolver.resolve(player);
+            helper.assertTrue(resolvedOffhandCastingItemSpell.isPresent(),
+                    "CastingItem right-click resolver should find the selected offhand spell");
+            helper.assertTrue(resolvedOffhandCastingItemSpell.get().spellData().getSpell() == SpellRegistry.PERSONAL_SHELF.get(),
+                    "CastingItem right-click resolver should use the offhand spell selection");
+            helper.assertTrue(resolvedOffhandCastingItemSpell.get().hand() == InteractionHand.OFF_HAND,
+                    "CastingItem right-click resolver should mark the offhand");
+            player.setItemInHand(InteractionHand.MAIN_HAND, createSpellScroll(magicMissile));
+            player.setItemInHand(InteractionHand.OFF_HAND, storageStabilizer);
+            var resolvedMainHandPrioritySpell = RightClickSpellResolver.resolve(player);
+            helper.assertTrue(resolvedMainHandPrioritySpell.isPresent(),
+                    "Right-click resolver should still resolve the mainhand spell item first");
+            helper.assertTrue(resolvedMainHandPrioritySpell.get().spellData().getSpell() == magicMissile,
+                    "Right-click resolver should not prefer offhand spell sources over a mainhand spell item");
+            helper.assertTrue(resolvedMainHandPrioritySpell.get().hand() == InteractionHand.MAIN_HAND,
+                    "Right-click resolver should mark the prioritized mainhand spell");
             magicData.setPlayerCastingItem(gauntlet.copy());
             var expectedCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     heal,

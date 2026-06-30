@@ -5,17 +5,12 @@ import io.redspace.ironsspellbooks.network.casting.CastPacket;
 import io.redspace.ironsspellbooks.network.casting.QuickCastPacket;
 import io.redspace.ironsspellbooks.player.ClientInputEvents;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
-import jp.aquafactory.apprenticecodex.event.client.ClientPlacementPreviewManager;
+import jp.aquafactory.apprenticecodex.event.client.ClientBlockTargetSyncService;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientCastState;
 import jp.aquafactory.apprenticecodex.network.Networks;
-import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
-import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetCaptureSpell;
-import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
 import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidance;
 import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidanceClientController;
-import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
-import jp.aquafactory.apprenticecodex.utility.ClientBlockTargetingHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -85,7 +80,7 @@ public abstract class ClientInputEventsMixin {
         }
 
         var spellData = selectionManager.getSelectedSpellData();
-        return apprentice_codex$trySendTargetedCastPacket(spellData, -1);
+        return ClientBlockTargetSyncService.trySendForSelectedCast(spellData, -1);
     }
 
     @Unique
@@ -97,7 +92,7 @@ public abstract class ClientInputEventsMixin {
 
         var quickCastSlot = ((QuickCastPacketAccessor) quickCastPacket).apprenticecodex$getSlot();
         var spellData = selectionManager.getSpellData(quickCastSlot);
-        return apprentice_codex$trySendTargetedCastPacket(spellData, quickCastSlot);
+        return ClientBlockTargetSyncService.trySendForSelectedCast(spellData, quickCastSlot);
     }
 
     @Unique
@@ -154,44 +149,5 @@ public abstract class ClientInputEventsMixin {
     private static void apprentice_codex$rememberMirageAvoidanceDirection() {
         var input = MirageAvoidanceClientController.captureCurrentInput();
         Networks.sendToServer(ClientMirageAvoidanceCastPacket.rememberInput(input.forward(), input.strafe()));
-    }
-
-    @Unique
-    private static boolean apprentice_codex$trySendTargetedCastPacket(SpellData spellData, int quickCastSlot) {
-        if (spellData == SpellData.EMPTY) {
-            return false;
-        }
-
-        var spell = spellData.getSpell();
-        if (!(spell instanceof IClientBlockTargetingSpell targetingSpell)) {
-            return false;
-        }
-
-        var player = Minecraft.getInstance().player;
-        if (player == null) {
-            return false;
-        }
-
-        var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
-        var targetData = apprentice_codex$captureTargetData(spellData, player, spellLevel);
-        ClientPlacementPreviewManager.rememberPendingTarget(spell.getSpellResource(), targetData);
-        Networks.sendToServer(new ClientBlockTargetCastPacket(quickCastSlot, spell.getSpellResource(), targetData));
-        return true;
-    }
-
-    @Unique
-    private static BlockTargetData apprentice_codex$captureTargetData(SpellData spellData, net.minecraft.world.entity.player.Player player,
-                                                                      int spellLevel) {
-        var spell = spellData.getSpell();
-        if (spell instanceof IClientBlockTargetCaptureSpell customCaptureSpell) {
-            return customCaptureSpell.captureClientBlockTarget(player, spellLevel);
-        }
-        if (spell instanceof IClientBlockTargetingSpell targetingSpell) {
-            return ClientBlockTargetingHelper.captureOutlinedTarget(
-                    player,
-                    targetingSpell.getClientBlockTargetingRange(spellLevel, player)
-            );
-        }
-        return new BlockTargetData();
     }
 }
