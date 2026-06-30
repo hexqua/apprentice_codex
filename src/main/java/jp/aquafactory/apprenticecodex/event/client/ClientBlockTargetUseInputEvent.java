@@ -1,32 +1,15 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.network.Networks;
-import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
-import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetCaptureSpell;
-import jp.aquafactory.apprenticecodex.spell.IClientBlockHitTargetingSpell;
-import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
-import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
-import jp.aquafactory.apprenticecodex.utility.ClientBlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.RightClickSpellResolver;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import org.jetbrains.annotations.Nullable;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ClientBlockTargetUseInputEvent {
-    @Nullable
-    private static TargetSyncSignature lastSentTargetSync;
-    private static long lastSentTargetTick = Long.MIN_VALUE;
-
     private ClientBlockTargetUseInputEvent() {
     }
 
@@ -51,76 +34,6 @@ public final class ClientBlockTargetUseInputEvent {
             return;
         }
 
-        var spell = resolvedSpell.get().spellData().getSpell();
-        if (!(spell instanceof IClientBlockTargetingSpell targetingSpell)) {
-            return;
-        }
-
-        var targetData = captureTargetData(spell, player, resolvedSpell.get().spellLevel(), targetingSpell);
-        if (shouldSuppressDuplicate(player.level().getGameTime(), resolvedSpell.get().spellResource(), player.getMainHandItem(), player.getOffhandItem(), targetData)) {
-            return;
-        }
-
-        ClientPlacementPreviewManager.rememberPendingTarget(resolvedSpell.get().spellResource(), targetData);
-        Networks.sendToServer(new ClientBlockTargetCastPacket(-1, resolvedSpell.get().spellResource(), targetData, false));
-    }
-
-    private static boolean shouldSuppressDuplicate(long gameTime, ResourceLocation spellResource, ItemStack mainHand, ItemStack offHand, BlockTargetData targetData) {
-        // 同一クリックで event が複数回来る環境があるため、同 tick 同内容の sync は 1 回に潰す。
-        var signature = new TargetSyncSignature(
-                spellResource,
-                getItemId(mainHand),
-                getItemId(offHand),
-                targetData.hasTarget(),
-                targetData.getHitBlockPos(),
-                targetData.getHitFace(),
-                targetData.getPlacePos(),
-                targetData.getPlaceFacing()
-        );
-
-        if (gameTime == lastSentTargetTick && signature.equals(lastSentTargetSync)) {
-            return true;
-        }
-
-        lastSentTargetTick = gameTime;
-        lastSentTargetSync = signature;
-        return false;
-    }
-
-    @Nullable
-    private static ResourceLocation getItemId(ItemStack stack) {
-        return stack.isEmpty() ? null : BuiltInRegistries.ITEM.getKey(stack.getItem());
-    }
-
-    private static BlockTargetData captureTargetData(Object spell, net.minecraft.world.entity.player.Player player, int spellLevel,
-                                                     IClientBlockTargetingSpell targetingSpell) {
-        if (spell instanceof IClientBlockTargetCaptureSpell customCaptureSpell) {
-            return customCaptureSpell.captureClientBlockTarget(player, spellLevel);
-        }
-
-        if (spell instanceof IClientBlockHitTargetingSpell hitTargetingSpell) {
-            return ClientBlockTargetingHelper.captureOutlinedHitTarget(
-                    player,
-                    hitTargetingSpell.getClientBlockTargetingRange(spellLevel, player),
-                    hitTargetingSpell.ignoresClientBlockTargetingRange()
-            );
-        }
-
-        return ClientBlockTargetingHelper.captureOutlinedTarget(
-                player,
-                targetingSpell.getClientBlockTargetingRange(spellLevel, player)
-        );
-    }
-
-    private record TargetSyncSignature(
-            ResourceLocation spellResource,
-            @Nullable ResourceLocation mainHandItemId,
-            @Nullable ResourceLocation offHandItemId,
-            boolean hasTarget,
-            @Nullable BlockPos hitBlockPos,
-            @Nullable Direction hitFace,
-            @Nullable BlockPos placePos,
-            @Nullable Direction placeFacing
-    ) {
+        ClientBlockTargetSyncService.trySendForRightClick(resolvedSpell.get());
     }
 }
