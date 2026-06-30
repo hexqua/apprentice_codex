@@ -61,7 +61,7 @@ public final class EpicFightSpellchargedGreatswordCompat {
         var greatswordFactory = WeaponTypeReloadListener.get(GREATSWORD_PRESET_ID);
         var baseBuilder = greatswordFactory != null ? greatswordFactory.apply(item) : null;
         var builder = baseBuilder instanceof WeaponCapability.Builder weaponBuilder
-                ? weaponBuilder
+                ? weaponBuilder.copy()
                 : WeaponCapability.builder();
 
         builder.addMoveset(

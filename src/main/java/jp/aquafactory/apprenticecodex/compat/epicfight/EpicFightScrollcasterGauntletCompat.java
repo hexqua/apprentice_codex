@@ -36,7 +36,7 @@ public final class EpicFightScrollcasterGauntletCompat {
         var fistFactory = WeaponTypeReloadListener.get(FIST_PRESET_ID);
         var baseBuilder = fistFactory != null ? fistFactory.apply(item) : null;
         var builder = baseBuilder instanceof WeaponCapability.Builder weaponBuilder
-                ? weaponBuilder
+                ? weaponBuilder.copy()
                 : WeaponCapability.builder();
 
         builder.constructor(EpicFightScrollcasterGauntletCapability::new);
