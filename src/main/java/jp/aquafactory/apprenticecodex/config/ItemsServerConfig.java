@@ -226,6 +226,22 @@ final class ItemsServerConfig {
         return craftsmansDelightConfig.fortuneLevel();
     }
 
+    boolean isCraftsmansDelightGracedRainGrowthDenied(ResourceLocation entityTypeId) {
+        return craftsmansDelightConfig.isGracedRainGrowthDenied(entityTypeId);
+    }
+
+    boolean isCraftsmansDelightGracedRainBreedingCooldownDenied(ResourceLocation entityTypeId) {
+        return craftsmansDelightConfig.isGracedRainBreedingCooldownDenied(entityTypeId);
+    }
+
+    List<String> craftsmansDelightGracedRainGrowthDenylist() {
+        return craftsmansDelightConfig.gracedRainGrowthDenylist();
+    }
+
+    List<String> craftsmansDelightGracedRainBreedingCooldownDenylist() {
+        return craftsmansDelightConfig.gracedRainBreedingCooldownDenylist();
+    }
+
     double apprenticeMageRobeSpellPowerBonusPerPiece() {
         return magicArmorConfig.apprenticeMageRobeSpellPowerBonusPerPiece();
     }
@@ -680,6 +696,16 @@ final class ItemsServerConfig {
 
     void setSpellgunConfigForGameTest(SpellgunServerConfig.Values values) {
         spellgunConfig.setForGameTest(values);
+    }
+
+    void setCraftsmansDelightGracedRainDenylistsForGameTest(
+            List<String> gracedRainGrowthDenylist,
+            List<String> gracedRainBreedingCooldownDenylist
+    ) {
+        craftsmansDelightConfig.setGracedRainDenylistsForGameTest(
+                gracedRainGrowthDenylist,
+                gracedRainBreedingCooldownDenylist
+        );
     }
 
     void setMultipurposeStaffrifleSpellDenylistForGameTest(List<String> spellDenylist) {
