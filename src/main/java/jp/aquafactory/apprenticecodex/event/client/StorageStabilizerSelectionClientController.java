@@ -14,6 +14,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderGuiEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.Nullable;
@@ -104,7 +105,7 @@ public final class StorageStabilizerSelectionClientController {
         moveSelection(direction);
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onInteractionKeyMappingTriggered(InputEvent.InteractionKeyMappingTriggered event) {
         if (activeState == null || Minecraft.getInstance().screen != null) {
             return;
@@ -178,9 +179,16 @@ public final class StorageStabilizerSelectionClientController {
             return;
         }
 
+        var hand = activeState.hand();
+        var selectedIndex = activeState.selectedView().spellIndex();
+        var player = Minecraft.getInstance().player;
+        if (player != null && isValidHeldStabilizer(player, hand)) {
+            StorageStabilizer.setSelectedSpellIndex(player.getItemInHand(hand), selectedIndex);
+        }
+
         Networks.sendToServer(new ClientConfirmStorageStabilizerSpellPacket(
-                activeState.hand(),
-                activeState.selectedView().spellIndex()
+                hand,
+                selectedIndex
         ));
         clearState();
     }
