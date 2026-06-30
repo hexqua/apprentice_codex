@@ -2709,6 +2709,25 @@ public class ApprenticeCodexGameTestScenarios {
                     "Storage Stabilizer right-click resolver should mark the offhand");
             helper.assertTrue(resolvedOffhandStorageStabilizerSpell.get().spellData().getSpell() instanceof IClientBlockTargetingSpell,
                     "Offhand Storage Stabilizer Personal Shelf should stay eligible for client block target sync");
+            var emptyMainHandGauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, emptyMainHandGauntlet);
+            var resolvedOffhandStorageAfterEmptyGauntlet = RightClickSpellResolver.resolve(player);
+            helper.assertTrue(resolvedOffhandStorageAfterEmptyGauntlet.isPresent(),
+                    "Right-click resolver should find the offhand stabilizer spell after an empty mainhand gauntlet");
+            helper.assertTrue(resolvedOffhandStorageAfterEmptyGauntlet.get().spellData().getSpell() == SpellRegistry.PERSONAL_SHELF.get(),
+                    "Right-click resolver should use the offhand stabilizer spell after an empty mainhand gauntlet");
+            helper.assertTrue(resolvedOffhandStorageAfterEmptyGauntlet.get().hand() == InteractionHand.OFF_HAND,
+                    "Right-click resolver should mark the offhand after an empty mainhand gauntlet");
+            var emptyMainHandSpellGun = new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, emptyMainHandSpellGun);
+            var resolvedOffhandStorageAfterEmptySpellGun = RightClickSpellResolver.resolve(player);
+            helper.assertTrue(resolvedOffhandStorageAfterEmptySpellGun.isPresent(),
+                    "Right-click resolver should find the offhand stabilizer spell after an empty mainhand spell gun");
+            helper.assertTrue(resolvedOffhandStorageAfterEmptySpellGun.get().spellData().getSpell() == SpellRegistry.PERSONAL_SHELF.get(),
+                    "Right-click resolver should use the offhand stabilizer spell after an empty mainhand spell gun");
+            helper.assertTrue(resolvedOffhandStorageAfterEmptySpellGun.get().hand() == InteractionHand.OFF_HAND,
+                    "Right-click resolver should mark the offhand after an empty mainhand spell gun");
+            player.setItemInHand(InteractionHand.MAIN_HAND, inertMainHand);
             player.setItemInHand(InteractionHand.OFF_HAND, gauntlet);
             var resolvedOffhandGauntletSpell = RightClickSpellResolver.resolve(player);
             helper.assertTrue(resolvedOffhandGauntletSpell.isPresent(),

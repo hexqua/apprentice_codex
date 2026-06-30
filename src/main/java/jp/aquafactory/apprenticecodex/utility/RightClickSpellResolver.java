@@ -38,11 +38,9 @@ public final class RightClickSpellResolver {
             return mainHandSpell;
         }
 
-        if (shouldResolveOffhandUseItem(player, mainHandStack)) {
-            var offhandUseSpell = resolveOffhandUseItemSpell(player, offHandStack);
-            if (offhandUseSpell.isPresent()) {
-                return offhandUseSpell;
-            }
+        var offhandUseSpell = resolveOffhandUseItemSpell(player, offHandStack);
+        if (offhandUseSpell.isPresent()) {
+            return offhandUseSpell;
         }
 
         // オフハンド魔法はメインハンドの右クリック優先条件と同じ判定でのみ解放する。
@@ -117,10 +115,6 @@ public final class RightClickSpellResolver {
         }
 
         return Optional.empty();
-    }
-
-    private static boolean shouldResolveOffhandUseItem(Player player, ItemStack mainHandStack) {
-        return mainHandStack.isEmpty() || !RightClickSpellItemHelper.hasMainHandRightClickBehavior(player, mainHandStack);
     }
 
     private static boolean shouldDeferMainHandToPriorityOffhandUse(ItemStack mainHandStack, ItemStack offHandStack) {
