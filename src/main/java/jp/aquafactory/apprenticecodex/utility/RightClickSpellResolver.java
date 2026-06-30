@@ -9,9 +9,9 @@ import io.redspace.ironsspellbooks.item.Scroll;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
-import jp.aquafactory.apprenticecodex.item.RightClickSpellSourceItem;
 import jp.aquafactory.apprenticecodex.item.RightClickSpellItemHelper;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.StorageStabilizer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -28,53 +28,107 @@ public final class RightClickSpellResolver {
         var mainHandStack = player.getMainHandItem();
         var offHandStack = player.getOffhandItem();
 
-        // 先頭 spell 固定で発動するアイテムは選択 spell より先に解決する。
-        if (mainHandStack.getItem() instanceof AbstractSpellGunItem) {
-            return resolveContainerSpell(mainHandStack, player, "spell_gun");
+        var mainHandSpell = resolveMainHandSpell(player, mainHandStack);
+        if (mainHandSpell.isPresent()) {
+            return mainHandSpell;
         }
-        if (mainHandStack.getItem() instanceof Scroll) {
-            return resolveContainerSpell(mainHandStack, player, "scroll");
+
+        if (shouldResolveOffhandUseItem(player, mainHandStack)) {
+            var offhandUseSpell = resolveOffhandUseItemSpell(player, offHandStack);
+            if (offhandUseSpell.isPresent()) {
+                return offhandUseSpell;
+            }
         }
-        if (mainHandStack.getItem() instanceof ScrollcasterGauntlet) {
-            return createResolvedSpell(
-                    ScrollcasterGauntlet.getSelectedSpellData(mainHandStack),
-                    player,
-                    "scrollcaster_gauntlet_selected"
-            );
-        }
-        if (mainHandStack.getItem() instanceof RightClickSpellSourceItem rightClickSpellSourceItem) {
-            return createResolvedSpell(
-                    rightClickSpellSourceItem.getRightClickSpellData(mainHandStack, player, InteractionHand.MAIN_HAND),
-                    player,
-                    "right_click_spell_source_item"
-            );
-        }
-        // 独自右クリック武器は CastingItem 継承ではないが、右クリック時は選択 spell を使う。
-        if (mainHandStack.getItem() instanceof AbstractRightClickMagicWeaponItem) {
-            return resolveSelectionSpell(player, "right_click_magic_weapon_selection");
-        }
-        if (mainHandStack.getItem() instanceof CastingItem || RightClickSpellItemHelper.isRightClickSpellItem(mainHandStack)) {
-            return resolveSelectionSpell(player, "casting_item_selection");
-        }
+
         // オフハンド魔法はメインハンドの右クリック優先条件と同じ判定でのみ解放する。
         if (offHandStack.getItem() instanceof AbstractOffhandMagicItem
                 && !RightClickSpellItemHelper.hasMainHandRightClickBehavior(player, mainHandStack)) {
-            return resolveSelectionSpell(player, "offhand_magic_selection");
+            return resolveSelectionSpell(player, InteractionHand.OFF_HAND, "offhand_magic_selection");
         }
 
         return Optional.empty();
     }
 
-    private static Optional<ResolvedRightClickSpell> resolveSelectionSpell(Player player, String resolutionPath) {
+    private static Optional<ResolvedRightClickSpell> resolveMainHandSpell(Player player, ItemStack mainHandStack) {
+        // 先頭 spell 固定で発動するアイテムは選択 spell より先に解決する。
+        if (mainHandStack.getItem() instanceof AbstractSpellGunItem) {
+            return resolveContainerSpell(mainHandStack, player, InteractionHand.MAIN_HAND, "spell_gun");
+        }
+        if (mainHandStack.getItem() instanceof Scroll) {
+            return resolveContainerSpell(mainHandStack, player, InteractionHand.MAIN_HAND, "scroll");
+        }
+        if (mainHandStack.getItem() instanceof ScrollcasterGauntlet) {
+            return createResolvedSpell(
+                    ScrollcasterGauntlet.getSelectedSpellData(mainHandStack),
+                    player,
+                    InteractionHand.MAIN_HAND,
+                    "scrollcaster_gauntlet_selected"
+            );
+        }
+        if (mainHandStack.getItem() instanceof StorageStabilizer) {
+            return createResolvedSpell(
+                    StorageStabilizer.getSelectedSpellData(mainHandStack),
+                    player,
+                    InteractionHand.MAIN_HAND,
+                    "storage_stabilizer_selected"
+            );
+        }
+        // 独自右クリック武器は CastingItem 継承ではないが、右クリック時は選択 spell を使う。
+        if (mainHandStack.getItem() instanceof AbstractRightClickMagicWeaponItem) {
+            return resolveSelectionSpell(player, InteractionHand.MAIN_HAND, "right_click_magic_weapon_selection");
+        }
+        if (mainHandStack.getItem() instanceof CastingItem || RightClickSpellItemHelper.isRightClickSpellItem(mainHandStack)) {
+            return resolveSelectionSpell(player, InteractionHand.MAIN_HAND, "casting_item_selection");
+        }
+
+        return Optional.empty();
+    }
+
+    private static Optional<ResolvedRightClickSpell> resolveOffhandUseItemSpell(Player player, ItemStack offHandStack) {
+        if (offHandStack.getItem() instanceof AbstractSpellGunItem) {
+            return resolveContainerSpell(offHandStack, player, InteractionHand.OFF_HAND, "spell_gun");
+        }
+        if (offHandStack.getItem() instanceof Scroll) {
+            return resolveContainerSpell(offHandStack, player, InteractionHand.OFF_HAND, "scroll");
+        }
+        if (offHandStack.getItem() instanceof ScrollcasterGauntlet) {
+            return createResolvedSpell(
+                    ScrollcasterGauntlet.getSelectedSpellData(offHandStack),
+                    player,
+                    InteractionHand.OFF_HAND,
+                    "scrollcaster_gauntlet_selected"
+            );
+        }
+        if (offHandStack.getItem() instanceof StorageStabilizer) {
+            return createResolvedSpell(
+                    StorageStabilizer.getSelectedSpellData(offHandStack),
+                    player,
+                    InteractionHand.OFF_HAND,
+                    "storage_stabilizer_selected"
+            );
+        }
+        if (offHandStack.getItem() instanceof CastingItem || RightClickSpellItemHelper.isRightClickSpellItem(offHandStack)) {
+            return resolveSelectionSpell(player, InteractionHand.OFF_HAND, "casting_item_selection");
+        }
+
+        return Optional.empty();
+    }
+
+    private static boolean shouldResolveOffhandUseItem(Player player, ItemStack mainHandStack) {
+        return mainHandStack.isEmpty() || !RightClickSpellItemHelper.hasMainHandRightClickBehavior(player, mainHandStack);
+    }
+
+    private static Optional<ResolvedRightClickSpell> resolveSelectionSpell(Player player, InteractionHand hand, String resolutionPath) {
         var selectionOption = new SpellSelectionManager(player).getSelection();
         if (selectionOption == null) {
             return Optional.empty();
         }
 
-        return createResolvedSpell(selectionOption.spellData, player, resolutionPath);
+        return createResolvedSpell(selectionOption.spellData, player, hand, resolutionPath);
     }
 
-    private static Optional<ResolvedRightClickSpell> resolveContainerSpell(ItemStack stack, Player player, String resolutionPath) {
+    private static Optional<ResolvedRightClickSpell> resolveContainerSpell(ItemStack stack, Player player, InteractionHand hand,
+                                                                           String resolutionPath) {
         if (!ISpellContainer.isSpellContainer(stack)) {
             return Optional.empty();
         }
@@ -84,10 +138,11 @@ public final class RightClickSpellResolver {
             return Optional.empty();
         }
 
-        return createResolvedSpell(spellContainer.getSpellAtIndex(0), player, resolutionPath);
+        return createResolvedSpell(spellContainer.getSpellAtIndex(0), player, hand, resolutionPath);
     }
 
-    private static Optional<ResolvedRightClickSpell> createResolvedSpell(@Nullable SpellData spellData, Player player, String resolutionPath) {
+    private static Optional<ResolvedRightClickSpell> createResolvedSpell(@Nullable SpellData spellData, Player player, InteractionHand hand,
+                                                                         String resolutionPath) {
         if (spellData == null || spellData == SpellData.EMPTY) {
             return Optional.empty();
         }
@@ -100,6 +155,7 @@ public final class RightClickSpellResolver {
                 spellData,
                 spell.getSpellResource(),
                 spell.getLevelFor(spellData.getLevel(), player),
+                hand,
                 resolutionPath
         ));
     }
@@ -108,6 +164,7 @@ public final class RightClickSpellResolver {
             SpellData spellData,
             ResourceLocation spellResource,
             int spellLevel,
+            InteractionHand hand,
             String resolutionPath
     ) {
     }
