@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.item.Scroll;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.PriorityOffhandUseDeferringItem;
 import jp.aquafactory.apprenticecodex.item.RightClickSpellItemHelper;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.StorageStabilizer;
@@ -27,6 +28,10 @@ public final class RightClickSpellResolver {
     public static Optional<ResolvedRightClickSpell> resolve(Player player) {
         var mainHandStack = player.getMainHandItem();
         var offHandStack = player.getOffhandItem();
+
+        if (shouldDeferMainHandToPriorityOffhandUse(mainHandStack, offHandStack)) {
+            return resolveOffhandUseItemSpell(player, offHandStack);
+        }
 
         var mainHandSpell = resolveMainHandSpell(player, mainHandStack);
         if (mainHandSpell.isPresent()) {
@@ -116,6 +121,14 @@ public final class RightClickSpellResolver {
 
     private static boolean shouldResolveOffhandUseItem(Player player, ItemStack mainHandStack) {
         return mainHandStack.isEmpty() || !RightClickSpellItemHelper.hasMainHandRightClickBehavior(player, mainHandStack);
+    }
+
+    private static boolean shouldDeferMainHandToPriorityOffhandUse(ItemStack mainHandStack, ItemStack offHandStack) {
+        if (!RightClickSpellItemHelper.isPriorityOffhandUseItem(offHandStack)) {
+            return false;
+        }
+
+        return mainHandStack.getItem() instanceof PriorityOffhandUseDeferringItem;
     }
 
     private static Optional<ResolvedRightClickSpell> resolveSelectionSpell(Player player, InteractionHand hand, String resolutionPath) {

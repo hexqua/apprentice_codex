@@ -49,7 +49,8 @@ import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public abstract class AbstractRightClickMagicWeaponItem extends Item implements IPresetSpellContainer, NonDamageableAnvilMergeItem {
+public abstract class AbstractRightClickMagicWeaponItem extends Item
+        implements IPresetSpellContainer, NonDamageableAnvilMergeItem, PriorityOffhandUseDeferringItem {
     private static final String VANILLA_NAMESPACE = "minecraft";
     private static final String MALUM_NAMESPACE = "malum";
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
