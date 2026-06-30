@@ -336,6 +336,8 @@ public final class ItemRegistry {
             ITEMS.register("multipurpose_staffrifle", MultipurposeStaffrifle::new);
     public static final RegistryObject<Item> SCROLLCASTER_GAUNTLET =
             ITEMS.register("scrollcaster_gauntlet", ScrollcasterGauntlet::new);
+    public static final RegistryObject<Item> STORAGE_STABILIZER =
+            ITEMS.register("storage_stabilizer", StorageStabilizer::new);
     public static final RegistryObject<Item> CIRCUIT_HEAT_STAFF =
             ITEMS.register("circuit_heat_staff", CircuitHeatStaff::new);
     public static final RegistryObject<Item> CHARGED_TWIN_BLADE_STAFF =
