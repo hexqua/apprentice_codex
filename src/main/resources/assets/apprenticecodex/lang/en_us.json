@@ -132,9 +132,9 @@
   "item.apprenticecodex.magi_agent_suit_leggings": "Magi-Agent's Slacks",
   "item.apprenticecodex.magi_agent_suit_boots": "Magi-Agent's Shoes",
 
-  "item.apprenticecodex.common.desc.spell_hint": "Hold Shift to show affected spells.",
+  "item.apprenticecodex.common.desc.spell_hint": "Hold Shift or Alt to show affected spells.",
   "item.apprenticecodex.common.desc.spell_hint_open": "Affected spells:",
-  "item.apprenticecodex.spellgun.tooltip.hint": "Hold Shift for details.",
+  "item.apprenticecodex.spellgun.tooltip.hint": "Hold Shift or Alt for details.",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "Effects of imbued spell:",
   "item.apprenticecodex.spellgun.tooltip.ability_swingcast_title": "Effects when casting imbued spell with swing:",
   "item.apprenticecodex.spellgun.tooltip.ability_smashcast_title": "Effects when casting imbued spell with smash:",

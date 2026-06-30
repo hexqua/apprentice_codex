@@ -1,3 +1,10 @@
 {
-  "type": "apprenticecodex:spellcharged_greatsword"
+  "type": "apprenticecodex:spellcharged_greatsword",
+  "attributes": {
+    "common": {
+      "armor_negation": 30.0,
+      "impact": 5.0,
+      "max_strikes": 5
+    }
+  }
 }
