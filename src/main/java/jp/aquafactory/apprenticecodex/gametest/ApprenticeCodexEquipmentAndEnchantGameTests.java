@@ -11,6 +11,8 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final String MINING_SPELL_ISOLATED_BATCH = "apprenticecodex.mining_spell_isolated";
+    private static final String CRAFTSMANS_DELIGHT_GRACED_RAIN_DENYLIST_CONFIG_BATCH =
+            "apprenticecodex.craftsmans_delight_graced_rain_denylist_config";
     private static final String FOCUS_STAFFBOW_CONTINUOUS_BATCH = "apprenticecodex.focus_staffbow_continuous";
     private static final String FOCUS_STAFFBOW_ARROW_CONFIG_BATCH =
             "apprenticecodex.focus_staffbow_arrow_config";
@@ -1247,6 +1249,41 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void craftsmansDelightScrollcasterGauntletCooldownKeepsItemPolicy(GameTestHelper helper) {
         EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightScrollcasterGauntletCooldownKeepsItemPolicy(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void craftsmansDelightGracedRainAcceleratesBabyGrowth(GameTestHelper helper) {
+        CraftsmansDelightGracedRainGameTestScenarios.craftsmansDelightGracedRainAcceleratesBabyGrowth(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void craftsmansDelightGracedRainReducesBreedingCooldown(GameTestHelper helper) {
+        CraftsmansDelightGracedRainGameTestScenarios.craftsmansDelightGracedRainReducesBreedingCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void gracedRainWithoutCraftsmansDelightLeavesMobAgeUnchanged(GameTestHelper helper) {
+        CraftsmansDelightGracedRainGameTestScenarios.gracedRainWithoutCraftsmansDelightLeavesMobAgeUnchanged(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void gracedRainUndeadTargetsKeepDamageBehavior(GameTestHelper helper) {
+        CraftsmansDelightGracedRainGameTestScenarios.gracedRainUndeadTargetsKeepDamageBehavior(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CRAFTSMANS_DELIGHT_GRACED_RAIN_DENYLIST_CONFIG_BATCH)
+    public static void craftsmansDelightGracedRainGrowthDenylistBlocksOnlyGrowth(GameTestHelper helper) {
+        CraftsmansDelightGracedRainGameTestScenarios.craftsmansDelightGracedRainGrowthDenylistBlocksOnlyGrowth(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CRAFTSMANS_DELIGHT_GRACED_RAIN_DENYLIST_CONFIG_BATCH)
+    public static void craftsmansDelightGracedRainBreedingCooldownDenylistBlocksOnlyCooldown(GameTestHelper helper) {
+        CraftsmansDelightGracedRainGameTestScenarios.craftsmansDelightGracedRainBreedingCooldownDenylistBlocksOnlyCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void craftsmansDelightGracedRainDoesNotReduceAllayDuplicationCooldown(GameTestHelper helper) {
+        CraftsmansDelightGracedRainGameTestScenarios.craftsmansDelightGracedRainDoesNotReduceAllayDuplicationCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE)
