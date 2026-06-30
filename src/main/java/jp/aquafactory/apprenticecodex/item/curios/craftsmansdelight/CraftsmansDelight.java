@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -53,6 +54,8 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
     private static final int CASTING_MOBILITY_EFFECT_REFRESH_TICKS = 5;
 
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.craftsmans_delight.desc_";
+    private static final String SPELL_HINT_KEY = "item.apprenticecodex.common.desc.spell_hint";
+    private static final String SPELL_HINT_OPEN_KEY = "item.apprenticecodex.common.desc.spell_hint_open";
     private static final List<DeferredHolder<AbstractSpell, AbstractSpell>> TARGET_SPELLS = List.of(
             SpellRegistry.TINY_LUMBERJACK,
             SpellRegistry.WORLD_FLATTER,
@@ -86,20 +89,27 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
             result.add(Component.empty());
             result.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
             result.add(Component.literal(" ")
-                    .append(Component.translatable(getDescriptionId() + ".desc_1"))
+                    .append(Component.translatable(getDescriptionId() + ".desc"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            result.add(Component.literal(" ")
-                    .append(Component.translatable(getDescriptionId() + ".desc_2"))
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            appendTargetSpellTooltips(result);
             if (ApprenticeCodexServerConfig.craftsmansDelightCanImbueEnchantment()) {
                 result.add(Component.literal(" ")
                         .append(Component.translatable(getDescriptionId() + ".desc_enchant"))
                         .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
             }
+            appendTargetSpellHintOrTooltips(result);
         }
 
         return result;
+    }
+
+    private static void appendTargetSpellHintOrTooltips(List<Component> tooltips) {
+        if (!ImbueTooltipHelper.hasShiftDown()) {
+            tooltips.add(Component.translatable(SPELL_HINT_KEY).withStyle(ChatFormatting.DARK_GRAY));
+            return;
+        }
+
+        tooltips.add(Component.translatable(SPELL_HINT_OPEN_KEY).withStyle(ChatFormatting.GRAY));
+        appendTargetSpellTooltips(tooltips);
     }
 
     private static void appendTargetSpellTooltips(List<Component> tooltips) {
@@ -108,18 +118,20 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
             if (!spell.isEnabled()) {
                 continue;
             }
-            tooltips.add(Component.literal(" - ")
-                    .append(spell.getDisplayName(null))
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+            appendTargetSpellTooltip(tooltips, spell);
         }
         for (var spell : CraftsmansDelightSpellSupport.getExternalTargetSpells()) {
             if (!spell.isEnabled()) {
                 continue;
             }
-            tooltips.add(Component.literal(" - ")
-                    .append(spell.getDisplayName(null))
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+            appendTargetSpellTooltip(tooltips, spell);
         }
+    }
+
+    private static void appendTargetSpellTooltip(List<Component> tooltips, AbstractSpell spell) {
+        tooltips.add(Component.literal("- ")
+                    .append(spell.getDisplayName(null))
+                    .withStyle(ChatFormatting.GRAY));
     }
 
     @Override
