@@ -137,7 +137,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('C', Items.ENDER_CHEST)
                 .define('B', Items.BLAZE_ROD)
                 .unlockedBy(getHasName(Items.ENDER_CHEST), has(Items.ENDER_CHEST))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SCARLET_THIRST.get())
                 .pattern("VI ")

@@ -21,7 +21,22 @@
     "AB "
   ],
   "result": {
-    "item": "apprenticecodex:storage_stabilizer"
-  },
-  "show_notification": true
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [
+          {
+            "id": "irons_spellbooks:summon_ender_chest",
+            "index": 0,
+            "level": 1,
+            "locked": true
+          }
+        ],
+        "maxSpells": 1,
+        "mustEquip": false,
+        "spellWheel": false
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:storage_stabilizer"
+  }
 }
