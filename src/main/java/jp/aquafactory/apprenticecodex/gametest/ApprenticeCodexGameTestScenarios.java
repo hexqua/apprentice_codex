@@ -2727,6 +2727,23 @@ public class ApprenticeCodexGameTestScenarios {
                     "Spellcaster Gun right-click resolver should use the offhand gun spell container");
             helper.assertTrue(resolvedOffhandSpellGunSpell.get().hand() == InteractionHand.OFF_HAND,
                     "Spellcaster Gun right-click resolver should mark the offhand");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()));
+            var resolvedPriorityOffhandGunOverWeapon = RightClickSpellResolver.resolve(player);
+            helper.assertTrue(resolvedPriorityOffhandGunOverWeapon.isPresent(),
+                    "Right-click resolver should find the priority offhand gun spell over a deferring magic weapon");
+            helper.assertTrue(resolvedPriorityOffhandGunOverWeapon.get().spellData().getSpell() == SpellRegistry.PERSONAL_SHELF.get(),
+                    "Right-click resolver should use the priority offhand gun spell over a deferring magic weapon");
+            helper.assertTrue(resolvedPriorityOffhandGunOverWeapon.get().hand() == InteractionHand.OFF_HAND,
+                    "Right-click resolver should mark the priority offhand gun over a deferring magic weapon");
+            player.setItemInHand(InteractionHand.MAIN_HAND, gauntlet);
+            var resolvedPriorityOffhandGunOverGauntlet = RightClickSpellResolver.resolve(player);
+            helper.assertTrue(resolvedPriorityOffhandGunOverGauntlet.isPresent(),
+                    "Right-click resolver should find the priority offhand gun spell over a deferring gauntlet");
+            helper.assertTrue(resolvedPriorityOffhandGunOverGauntlet.get().spellData().getSpell() == SpellRegistry.PERSONAL_SHELF.get(),
+                    "Right-click resolver should use the priority offhand gun spell over a deferring gauntlet");
+            helper.assertTrue(resolvedPriorityOffhandGunOverGauntlet.get().hand() == InteractionHand.OFF_HAND,
+                    "Right-click resolver should mark the priority offhand gun over a deferring gauntlet");
+            player.setItemInHand(InteractionHand.MAIN_HAND, inertMainHand);
             player.setItemInHand(InteractionHand.OFF_HAND, createSpellScroll(SpellRegistry.PERSONAL_SHELF.get()));
             var resolvedOffhandScrollSpell = RightClickSpellResolver.resolve(player);
             helper.assertTrue(resolvedOffhandScrollSpell.isPresent(),

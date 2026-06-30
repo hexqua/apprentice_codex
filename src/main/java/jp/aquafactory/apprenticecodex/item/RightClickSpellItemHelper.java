@@ -39,6 +39,10 @@ public final class RightClickSpellItemHelper {
         return hasUseOverride(item) || hasUseOnOverride(item);
     }
 
+    public static boolean isPriorityOffhandUseItem(ItemStack stack) {
+        return OffhandUsePriorityHelper.isPriorityOffhandUseItem(stack);
+    }
+
     public static boolean isRightClickSpellItem(ItemStack stack) {
         if (stack.isEmpty()) {
             return false;
