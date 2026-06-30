@@ -1,8 +1,10 @@
 package jp.aquafactory.apprenticecodex.spell.gracedrain;
 
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
@@ -10,6 +12,7 @@ import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -19,6 +22,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -39,6 +43,7 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
     private static final float VISUAL_OVERFLOW_BLOCKS = 0.35f;
     private static final int FOLLOW_EFFECT_INTERVAL_TICKS = 10;
     private static final int SOUND_INTERVAL_TICKS = 55;
+    private static final double CRAFTSMANS_DELIGHT_AGE_REDUCTION_RATIO = 0.10D;
 
     private static final EntityDataAccessor<Integer> EFFECT_RADIUS_BLOCKS =
             SynchedEntityData.defineId(GracedRainCloudEntity.class, EntityDataSerializers.INT);
@@ -323,25 +328,64 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
         var source = createCombatDamageSource(DamageTypes.GRACED_RAIN);
         var school = SpellRegistry.GRACED_RAIN.get().getSchoolType();
         var targets = level.getEntitiesOfClass(LivingEntity.class, box, LivingEntity::isAlive);
+        var owner = getOwner();
+        var ownerLiving = owner instanceof LivingEntity living ? living : null;
+        var craftsmansDelightAgeEffectEnabled = CraftsmansDelight.isEquippedBy(ownerLiving);
 
         for (var target : targets) {
-            applyHealingEffect(target, source, school);
+            applyHealingEffect(target, source, school, craftsmansDelightAgeEffectEnabled);
         }
 
-        var owner = getOwner();
-        if (owner instanceof LivingEntity ownerLiving && ownerLiving.isAlive()
+        if (ownerLiving != null && ownerLiving.isAlive()
                 && box.intersects(ownerLiving.getBoundingBox())
                 && !targets.contains(ownerLiving)) {
-            applyHealingEffect(ownerLiving, source, school);
+            applyHealingEffect(ownerLiving, source, school, craftsmansDelightAgeEffectEnabled);
         }
     }
 
-    private void applyHealingEffect(LivingEntity target, DamageSource source, SchoolType school) {
+    private void applyHealingEffect(
+            LivingEntity target,
+            DamageSource source,
+            SchoolType school,
+            boolean craftsmansDelightAgeEffectEnabled
+    ) {
         if (target.isInvertedHealAndHarm()) {
             CombatTools.applyDamage(target, healAmount, source, school, CombatTools.KnockbackTypes.NO_KNOCKBACK);
         } else {
             target.heal(healAmount);
+            if (craftsmansDelightAgeEffectEnabled) {
+                applyCraftsmansDelightAgeEffect(target);
+            }
         }
+    }
+
+    private void applyCraftsmansDelightAgeEffect(LivingEntity target) {
+        if (target.getType() == EntityType.ALLAY || !(target instanceof AgeableMob ageable)) {
+            return;
+        }
+
+        var age = ageable.getAge();
+        if (age < 0 && !isCraftsmansDelightGracedRainGrowthDenied(ageable)) {
+            ageable.setAge(Math.min(0, age + getCraftsmansDelightAgeReductionTicks(age)));
+        } else if (age > 0 && !isCraftsmansDelightGracedRainBreedingCooldownDenied(ageable)) {
+            ageable.setAge(Math.max(0, age - getCraftsmansDelightAgeReductionTicks(age)));
+        }
+    }
+
+    private int getCraftsmansDelightAgeReductionTicks(int age) {
+        return Math.max(1, Mth.ceil(Math.abs(age) * CRAFTSMANS_DELIGHT_AGE_REDUCTION_RATIO));
+    }
+
+    private boolean isCraftsmansDelightGracedRainGrowthDenied(AgeableMob target) {
+        return ApprenticeCodexServerConfig.isCraftsmansDelightGracedRainGrowthDenied(
+                BuiltInRegistries.ENTITY_TYPE.getKey(target.getType())
+        );
+    }
+
+    private boolean isCraftsmansDelightGracedRainBreedingCooldownDenied(AgeableMob target) {
+        return ApprenticeCodexServerConfig.isCraftsmansDelightGracedRainBreedingCooldownDenied(
+                BuiltInRegistries.ENTITY_TYPE.getKey(target.getType())
+        );
     }
 
     public void setGrowthIntervalTicks(int ticks) {
