@@ -27,6 +27,7 @@ import jp.aquafactory.apprenticecodex.item.SpellCalibrationBenchItem;
 import jp.aquafactory.apprenticecodex.item.SpellDispenserItem;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.SpellcasterWorkbenchItem;
+import jp.aquafactory.apprenticecodex.item.StorageStabilizer;
 import jp.aquafactory.apprenticecodex.item.UniteLunaStaff;
 import jp.aquafactory.apprenticecodex.item.ZenithStaff;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
@@ -366,6 +367,8 @@ public final class ItemRegistry {
             ITEMS.register("multipurpose_staffrifle", MultipurposeStaffrifle::new);
     public static final DeferredHolder<Item, Item> SCROLLCASTER_GAUNTLET =
             ITEMS.register("scrollcaster_gauntlet", ScrollcasterGauntlet::new);
+    public static final DeferredHolder<Item, Item> STORAGE_STABILIZER =
+            ITEMS.register("storage_stabilizer", StorageStabilizer::new);
     public static final DeferredHolder<Item, Item> CIRCUIT_HEAT_STAFF =
             ITEMS.register("circuit_heat_staff", CircuitHeatStaff::new);
     public static final DeferredHolder<Item, Item> CHARGED_TWIN_BLADE_STAFF =

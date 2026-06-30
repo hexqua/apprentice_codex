@@ -1,0 +1,42 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "B": {
+      "item": "minecraft:blaze_rod"
+    },
+    "C": {
+      "item": "minecraft:ender_chest"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    }
+  },
+  "pattern": [
+    " MA",
+    " C ",
+    "AB "
+  ],
+  "result": {
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [
+          {
+            "id": "irons_spellbooks:summon_ender_chest",
+            "index": 0,
+            "level": 1,
+            "locked": true
+          }
+        ],
+        "maxSpells": 1,
+        "mustEquip": false,
+        "spellWheel": false
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:storage_stabilizer"
+  }
+}
