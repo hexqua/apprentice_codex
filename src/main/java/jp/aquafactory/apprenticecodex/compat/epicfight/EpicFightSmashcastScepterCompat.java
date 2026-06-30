@@ -11,8 +11,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
@@ -75,8 +73,6 @@ public final class EpicFightSmashcastScepterCompat {
     private static final IdentifierProvider SMASHCAST_SCEPTER_EVENT_ID = IdentifierProvider.constant(
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "smashcast_scepter")
     );
-    private static final ResourceLocation EPIC_FIGHT_ATTACK_SPEED_MODIFIER_ID =
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "smashcast_scepter_epicfight_attack_speed");
     private static final double DESCENDING_ATTACK_Y_VELOCITY = -0.05D;
     private static final long DESCENDING_ATTACK_CONTEXT_TICKS = 20L;
     private static final long WIND_LEAP_CONTEXT_TICKS = 120L;
@@ -110,7 +106,7 @@ public final class EpicFightSmashcastScepterCompat {
         var swordFactory = WeaponTypeReloadListener.get(SWORD_TYPE_ID);
         var baseBuilder = swordFactory != null ? swordFactory.apply(item) : null;
         var builder = baseBuilder instanceof WeaponCapability.Builder weaponBuilder
-                ? weaponBuilder
+                ? weaponBuilder.copy()
                 : WeaponCapability.builder();
 
         builder.constructor(EpicFightSmashcastScepterCapability::new);
@@ -121,16 +117,6 @@ public final class EpicFightSmashcastScepterCompat {
                 CapabilityItem.Styles.ONE_HAND,
                 SMASHCAST_SCEPTER_ONE_HAND_MOVESET_ID
         );
-        builder.addStyleAttibutes(
-                CapabilityItem.Styles.ONE_HAND,
-                Attributes.ATTACK_SPEED,
-                new AttributeModifier(
-                        EPIC_FIGHT_ATTACK_SPEED_MODIFIER_ID,
-                        1.0D,
-                        AttributeModifier.Operation.ADD_VALUE
-                )
-        );
-
         return builder;
     }
 

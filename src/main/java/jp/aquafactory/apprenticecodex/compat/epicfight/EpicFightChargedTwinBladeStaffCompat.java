@@ -36,7 +36,7 @@ public final class EpicFightChargedTwinBladeStaffCompat {
         var spearFactory = WeaponTypeReloadListener.get(SPEAR_TYPE_ID);
         var baseBuilder = spearFactory != null ? spearFactory.apply(item) : null;
         var builder = baseBuilder instanceof WeaponCapability.Builder weaponBuilder
-                ? weaponBuilder
+                ? weaponBuilder.copy()
                 : WeaponCapability.builder();
 
         builder.zoomInType(CapabilityItem.ZoomInType.USE_TICK);
