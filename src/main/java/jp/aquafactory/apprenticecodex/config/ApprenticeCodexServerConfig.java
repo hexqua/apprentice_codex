@@ -274,6 +274,14 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.craftsmansDelightFortuneLevel();
     }
 
+    public static boolean isCraftsmansDelightGracedRainGrowthDenied(ResourceLocation entityTypeId) {
+        return ITEMS_CONFIG.isCraftsmansDelightGracedRainGrowthDenied(entityTypeId);
+    }
+
+    public static boolean isCraftsmansDelightGracedRainBreedingCooldownDenied(ResourceLocation entityTypeId) {
+        return ITEMS_CONFIG.isCraftsmansDelightGracedRainBreedingCooldownDenied(entityTypeId);
+    }
+
     public static double apprenticeMageRobeSpellPowerBonusPerPiece() {
         return ITEMS_CONFIG.apprenticeMageRobeSpellPowerBonusPerPiece();
     }
@@ -762,6 +770,23 @@ public final class ApprenticeCodexServerConfig {
         var previousSpellDenylist = ITEMS_CONFIG.multipurposeStaffrifleSpellDenylist();
         ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(spellDenylist);
         return () -> ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(previousSpellDenylist);
+    }
+
+    public static GameTestConfigOverride useCraftsmansDelightGracedRainDenylistOverrideForGameTest(
+            List<String> gracedRainGrowthDenylist,
+            List<String> gracedRainBreedingCooldownDenylist
+    ) {
+        var previousGrowthDenylist = ITEMS_CONFIG.craftsmansDelightGracedRainGrowthDenylist();
+        var previousBreedingCooldownDenylist = ITEMS_CONFIG.craftsmansDelightGracedRainBreedingCooldownDenylist();
+
+        ITEMS_CONFIG.setCraftsmansDelightGracedRainDenylistsForGameTest(
+                gracedRainGrowthDenylist,
+                gracedRainBreedingCooldownDenylist
+        );
+        return () -> ITEMS_CONFIG.setCraftsmansDelightGracedRainDenylistsForGameTest(
+                previousGrowthDenylist,
+                previousBreedingCooldownDenylist
+        );
     }
 
     public static GameTestConfigOverride useSpellgunConfigOverrideForGameTest(SpellgunServerConfig.Values values) {
