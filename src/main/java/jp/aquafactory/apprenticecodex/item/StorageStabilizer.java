@@ -33,7 +33,7 @@ import net.minecraft.world.level.Level;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class StorageStabilizer extends Item implements IPresetSpellContainer, UniqueItem {
+public final class StorageStabilizer extends Item implements IPresetSpellContainer, UniqueItem, RightClickSpellSourceItem {
     private static final String SELECTED_SPELL_INDEX_TAG = "SelectedStorageSpellIndex";
     private static final int DEFAULT_SPELL_INDEX = 0;
 
@@ -90,6 +90,12 @@ public final class StorageStabilizer extends Item implements IPresetSpellContain
     @Override
     public void initializeSpellContainer(ItemStack stack) {
         refreshSelectedSpellContainer(stack);
+    }
+
+    @Override
+    public @NotNull SpellData getRightClickSpellData(@NotNull ItemStack stack, @NotNull Player player,
+                                                     @NotNull InteractionHand hand) {
+        return getSelectedSpellData(stack);
     }
 
     @Override

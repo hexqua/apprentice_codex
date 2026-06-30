@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.utility;
 
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.CastingItem;
@@ -8,9 +9,11 @@ import io.redspace.ironsspellbooks.item.Scroll;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.RightClickSpellSourceItem;
 import jp.aquafactory.apprenticecodex.item.RightClickSpellItemHelper;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +40,13 @@ public final class RightClickSpellResolver {
                     ScrollcasterGauntlet.getSelectedSpellData(mainHandStack),
                     player,
                     "scrollcaster_gauntlet_selected"
+            );
+        }
+        if (mainHandStack.getItem() instanceof RightClickSpellSourceItem rightClickSpellSourceItem) {
+            return createResolvedSpell(
+                    rightClickSpellSourceItem.getRightClickSpellData(mainHandStack, player, InteractionHand.MAIN_HAND),
+                    player,
+                    "right_click_spell_source_item"
             );
         }
         // 独自右クリック武器は CastingItem 継承ではないが、右クリック時は選択 spell を使う。
@@ -83,6 +93,9 @@ public final class RightClickSpellResolver {
         }
 
         var spell = spellData.getSpell();
+        if (spell == null || spell == SpellRegistry.none()) {
+            return Optional.empty();
+        }
         return Optional.of(new ResolvedRightClickSpell(
                 spellData,
                 spell.getSpellResource(),
