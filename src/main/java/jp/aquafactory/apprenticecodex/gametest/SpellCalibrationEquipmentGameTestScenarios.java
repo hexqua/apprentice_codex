@@ -518,6 +518,29 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                             + (actualBoundBowCooldown == null ? "none" : actualBoundBowCooldown.getCooldownRemaining())
                             + " / expected " + expectedBoundBowCooldown
             );
+            MithrilFreecastStaffCastContext.retainUntilCooldown(
+                    player.getUUID(),
+                    staff,
+                    SpellRegistry.BOUND_BOW.get(),
+                    CastSource.SPELLBOOK
+            );
+            magicData.setPlayerCastingItem(grimoire.copy());
+            var retainedRecastCooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    MagicManager.getEffectiveSpellCooldown(SpellRegistry.BOUND_BOW.get(), player, CastSource.SWORD),
+                    SpellRegistry.BOUND_BOW.get(),
+                    player,
+                    CastSource.SWORD
+            );
+            MinecraftForge.EVENT_BUS.post(retainedRecastCooldownEvent);
+            helper.assertTrue(retainedRecastCooldownEvent.getEffectiveCooldown() == expectedBoundBowCooldown,
+                    "Mithril Freecast Staff should consume retained recast cooldown source without relying on current casting item but got "
+                            + retainedRecastCooldownEvent.getEffectiveCooldown()
+                            + " / expected " + expectedBoundBowCooldown);
+            helper.assertTrue(MithrilFreecastStaffCastContext.resolveCooldownSource(
+                    player.getUUID(),
+                    grimoire,
+                    SpellRegistry.BOUND_BOW.get()
+            ).isEmpty(), "Mithril Freecast Staff should clear resolved retained recast cooldown source");
 
             var spellbookMagicMissileCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     magicMissile,

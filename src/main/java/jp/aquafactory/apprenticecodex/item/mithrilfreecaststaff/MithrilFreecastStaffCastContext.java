@@ -64,7 +64,7 @@ public final class MithrilFreecastStaffCastContext implements AutoCloseable {
             return Optional.of(entry.toCooldownSource());
         }
 
-        return Optional.empty();
+        return consumeRetainedCooldownSource(playerId, spell);
     }
 
     public static Optional<CooldownSource> resolveCooldownSource(UUID playerId, ItemStack stack, AbstractSpell spell) {
@@ -80,11 +80,20 @@ public final class MithrilFreecastStaffCastContext implements AutoCloseable {
         }
 
         entry = RESOLVED_COOLDOWN_SOURCES.get(key);
-        return entry == null ? Optional.empty() : Optional.of(entry.toCooldownSource());
+        if (entry != null) {
+            return Optional.of(entry.toCooldownSource());
+        }
+
+        return resolveRetainedCooldownSource(playerId, spell);
     }
 
     public static void clearResolvedCooldownSource(UUID playerId, ItemStack stack, AbstractSpell spell) {
         RESOLVED_COOLDOWN_SOURCES.remove(Key.of(playerId, stack, spell));
+        clearResolvedCooldownSource(playerId, spell);
+    }
+
+    public static void clearResolvedCooldownSource(UUID playerId, AbstractSpell spell) {
+        RESOLVED_COOLDOWN_SOURCES.keySet().removeIf(key -> key.matches(playerId, spell));
     }
 
     public static void clearPendingCooldownSource(UUID playerId, ItemStack stack, AbstractSpell spell) {
@@ -99,7 +108,37 @@ public final class MithrilFreecastStaffCastContext implements AutoCloseable {
         }
     }
 
-    public record CooldownSource(CastSource castSource) {
+    public record CooldownSource(CastSource castSource, Item item) {
+    }
+
+    private static Optional<CooldownSource> consumeRetainedCooldownSource(UUID playerId, AbstractSpell spell) {
+        for (var iterator = PENDING_COOLDOWN_SOURCES.entrySet().iterator(); iterator.hasNext(); ) {
+            var mapEntry = iterator.next();
+            if (mapEntry.getKey().matches(playerId, spell)) {
+                iterator.remove();
+                RESOLVED_COOLDOWN_SOURCES.put(mapEntry.getKey(), mapEntry.getValue());
+                return Optional.of(mapEntry.getValue().toCooldownSource());
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private static Optional<CooldownSource> resolveRetainedCooldownSource(UUID playerId, AbstractSpell spell) {
+        var pendingEntry = findRetainedEntry(PENDING_COOLDOWN_SOURCES, playerId, spell);
+        return pendingEntry.map(Entry::toCooldownSource).or(() -> findRetainedEntry(RESOLVED_COOLDOWN_SOURCES, playerId, spell)
+                .map(Entry::toCooldownSource));
+
+    }
+
+    private static Optional<Entry> findRetainedEntry(Map<Key, Entry> entries, UUID playerId, AbstractSpell spell) {
+        for (var mapEntry : entries.entrySet()) {
+            if (mapEntry.getKey().matches(playerId, spell)) {
+                return Optional.of(mapEntry.getValue());
+            }
+        }
+
+        return Optional.empty();
     }
 
     private static Entry createEntry(
@@ -129,13 +168,17 @@ public final class MithrilFreecastStaffCastContext implements AutoCloseable {
         }
 
         private CooldownSource toCooldownSource() {
-            return new CooldownSource(selectedCastSource);
+            return new CooldownSource(selectedCastSource, key.item());
         }
     }
 
     private record Key(UUID playerId, Item item, String spellId) {
         private static Key of(UUID playerId, ItemStack stack, AbstractSpell spell) {
             return new Key(playerId, stack.getItem(), spell.getSpellId());
+        }
+
+        private boolean matches(UUID playerId, AbstractSpell spell) {
+            return this.playerId.equals(playerId) && spellId.equals(spell.getSpellId());
         }
     }
 }

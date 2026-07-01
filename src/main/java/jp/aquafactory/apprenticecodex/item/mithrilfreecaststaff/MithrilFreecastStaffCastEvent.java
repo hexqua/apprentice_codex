@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -21,21 +22,21 @@ public final class MithrilFreecastStaffCastEvent {
         }
 
         var magicData = MagicData.getPlayerMagicData(player);
-        if (magicData == null) {
-            return;
-        }
+        var castingItem = magicData == null ? ItemStack.EMPTY : magicData.getPlayerCastingItem();
 
-        var castingItem = magicData.getPlayerCastingItem();
-        if (!(castingItem.getItem() instanceof MithrilFreecastStaff freecastStaff)) {
-            return;
-        }
-
-        var cooldownSource = MithrilFreecastStaffCastContext.consumeCooldownSource(player.getUUID(), castingItem, event.getSpell());
+        var cooldownSource = MithrilFreecastStaffCastContext.consumeCooldownSource(
+                player.getUUID(),
+                castingItem,
+                event.getSpell()
+        );
         if (cooldownSource.isEmpty()) {
             return;
         }
 
         var source = cooldownSource.get();
+        if (!(source.item() instanceof MithrilFreecastStaff freecastStaff)) {
+            return;
+        }
         event.setEffectiveCooldown(
                 freecastStaff.resolveSwingTriggeredCooldownTicks(
                         player,
@@ -52,17 +53,11 @@ public final class MithrilFreecastStaffCastEvent {
         }
 
         var magicData = MagicData.getPlayerMagicData(player);
-        if (magicData == null) {
-            return;
-        }
-
-        var castingItem = magicData.getPlayerCastingItem();
-        if (castingItem.getItem() instanceof MithrilFreecastStaff) {
-            MithrilFreecastStaffCastContext.clearResolvedCooldownSource(
-                    player.getUUID(),
-                    castingItem,
-                    event.getSpell()
-            );
-        }
+        var castingItem = magicData == null ? ItemStack.EMPTY : magicData.getPlayerCastingItem();
+        MithrilFreecastStaffCastContext.clearResolvedCooldownSource(
+                player.getUUID(),
+                castingItem,
+                event.getSpell()
+        );
     }
 }
