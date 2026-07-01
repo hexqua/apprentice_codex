@@ -47,4 +47,5 @@ public abstract class PlayerRecastsMixin {
             ((RecastInstanceAccessor) recastInstance).apprenticecodex$setRemainingTicks((int) preservedTicks);
         });
     }
+
 }

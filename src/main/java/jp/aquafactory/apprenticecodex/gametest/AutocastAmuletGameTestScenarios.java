@@ -287,8 +287,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             var expectedCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     spell,
                     player,
-                    CastSource.SWORD,
-                    getEquippedAutocastAmulet(player)
+                    CastSource.SWORD
             );
             helper.assertTrue(player.getHealth() > healthBeforeCast,
                     "Autocast Amulet creative test should still cast greater_heal with zero mana");
@@ -305,7 +304,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             helper.succeed();
         });
     }
-    static void autocastAmuletCooldownUsesHelperAmountWithoutSwordMultiplier(GameTestHelper helper) {
+    static void autocastAmuletCooldownUsesSwordMultiplier(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "autocast_amulet_cooldown_test");
             var stack = new ItemStack(ItemRegistry.AUTOCAST_AMULET.get());
@@ -317,11 +316,15 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             var expectedCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     spell,
                     player,
-                    CastSource.SWORD,
-                    stack
+                    CastSource.SWORD
+            );
+            var ironsSwordCooldown = io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
+                    spell,
+                    player,
+                    CastSource.SWORD
             );
             var cooldownEvent = new SpellCooldownAddedEvent.Pre(
-                    io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(spell, player, CastSource.SWORD),
+                    ironsSwordCooldown,
                     spell,
                     player,
                     CastSource.SWORD
@@ -330,18 +333,9 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
                     "Autocast Amulet cooldown event should use the helper cooldown amount but got "
                             + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
-
-            var swordCooldownMultiplier = io.redspace.ironsspellbooks.config.ServerConfigs.SWORDS_CD_MULTIPLIER.get().floatValue();
-            if (swordCooldownMultiplier != 1.0F) {
-                helper.assertTrue(
-                        cooldownEvent.getEffectiveCooldown() != io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
-                                spell,
-                                player,
-                                CastSource.SWORD
-                        ),
-                        "Autocast Amulet cooldown event should diverge from Iron's sword multiplier path when the config multiplier is not 1"
-                );
-            }
+            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == ironsSwordCooldown,
+                    "Autocast Amulet cooldown event should keep Iron's sword multiplier path but got "
+                            + cooldownEvent.getEffectiveCooldown() + " / expected " + ironsSwordCooldown);
         });
     }
     static void autocastAmuletLongSpellCompletesImmediately(GameTestHelper helper) {

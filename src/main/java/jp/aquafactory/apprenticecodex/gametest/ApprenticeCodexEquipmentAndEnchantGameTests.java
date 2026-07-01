@@ -607,8 +607,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void autocastAmuletCooldownUsesHelperAmountWithoutSwordMultiplier(GameTestHelper helper) {
-        AutocastAmuletGameTestScenarios.autocastAmuletCooldownUsesHelperAmountWithoutSwordMultiplier(helper);
+    public static void autocastAmuletCooldownUsesSwordMultiplier(GameTestHelper helper) {
+        AutocastAmuletGameTestScenarios.autocastAmuletCooldownUsesSwordMultiplier(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1092,8 +1092,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 140)
-    public static void chargedTwinBladeStaffContinuousThrowableCardUsesCardCooldownPolicy(GameTestHelper helper) {
-        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffContinuousThrowableCardUsesCardCooldownPolicy(helper);
+    public static void chargedTwinBladeStaffContinuousThrowableCardUsesWeaponImbueCooldown(GameTestHelper helper) {
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffContinuousThrowableCardUsesWeaponImbueCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1247,8 +1247,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void craftsmansDelightScrollcasterGauntletCooldownKeepsItemPolicy(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightScrollcasterGauntletCooldownKeepsItemPolicy(helper);
+    public static void craftsmansDelightScrollcasterGauntletCooldownUsesSwordMultiplier(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightScrollcasterGauntletCooldownUsesSwordMultiplier(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1459,6 +1459,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void mithrilFreecastStaffBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
         SpellCalibrationEquipmentGameTestScenarios.mithrilFreecastStaffBlocksArcaneAnvilImbueViaSpellValidator(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void mithrilFreecastStaffCooldownUsesSelectedSource(GameTestHelper helper) {
+        SpellCalibrationEquipmentGameTestScenarios.mithrilFreecastStaffCooldownUsesSelectedSource(helper);
     }
 
     @GameTest(template = TEMPLATE)

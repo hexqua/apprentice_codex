@@ -205,8 +205,9 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
         }
 
         var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
+        var selectedCastSource = selectionOption.getCastSource();
         try (var swingTriggeredContext = SwingcastStaffCastContext.open(player.getUUID(), stack, spell);
-             var ignored = MithrilFreecastStaffCastContext.open(player.getUUID(), stack, spell)) {
+             var ignored = MithrilFreecastStaffCastContext.open(player.getUUID(), stack, spell, selectedCastSource)) {
             var casted = spell.attemptInitiateCast(
                     stack,
                     spellLevel,
@@ -220,6 +221,12 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
                 return false;
             }
 
+            MithrilFreecastStaffCastContext.retainUntilCooldown(
+                    player.getUUID(),
+                    stack,
+                    spell,
+                    selectedCastSource
+            );
             TriggeredSpellCastHelper.applyLongCastDurationOverride(
                     player,
                     spellLevel,
@@ -238,6 +245,18 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
         var spellLevel = resolveEffectiveSpellLevel(player, spell);
         return currentEffectiveCooldown
                 + (spell.getCastType() == CastType.LONG ? spell.getEffectiveCastTime(spellLevel, player) : 0);
+    }
+
+    public int resolveSwingTriggeredCooldownTicks(
+            Player player,
+            AbstractSpell spell,
+            CastSource selectedCastSource
+    ) {
+        return resolveSwingTriggeredCooldownTicks(
+                player,
+                spell,
+                WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, selectedCastSource)
+        );
     }
 
     @Override

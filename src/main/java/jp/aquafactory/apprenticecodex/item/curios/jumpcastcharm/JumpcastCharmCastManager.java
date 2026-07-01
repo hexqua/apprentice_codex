@@ -141,8 +141,7 @@ public final class JumpcastCharmCastManager {
                 WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                         event.getSpell(),
                         player,
-                        event.getCastSource(),
-                        context.castingStack()
+                        event.getCastSource()
                 )
         );
     }

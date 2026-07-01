@@ -208,7 +208,6 @@ public final class SatelliteFollowcastAmuletCastEvent {
                     player,
                     spellData,
                     FOLLOWCAST_SOURCE,
-                    slotResult.stack(),
                     RemoteOwnerCooldownPolicy.FOLLOWCAST
             );
             return CastAttemptResult.CASTED;

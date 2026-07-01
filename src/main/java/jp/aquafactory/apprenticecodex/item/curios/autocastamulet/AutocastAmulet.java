@@ -10,7 +10,6 @@ import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
-import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownPolicyItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -32,7 +31,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, RestrictedSpellImbuableItem,
-        SpellSlotUpgradeableItem, WeaponImbueCooldownPolicyItem {
+        SpellSlotUpgradeableItem {
     public static final int MIN_SPELL_SLOTS = 1;
     public static final int MAX_SPELL_SLOTS = 3;
     public static final ResourceLocation LESSER_SPELL_SLOT_UPGRADE_ID =
@@ -311,12 +310,6 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Re
             spells.add(spellData);
         }
         return spells;
-    }
-
-    @Override
-    public boolean ignoresWeaponImbueCooldownMultiplier(ItemStack stack, @Nullable AbstractSpell spell, io.redspace.ironsspellbooks.api.spells.CastSource castSource) {
-        // Autocast Amulet は剣 Imbue 扱いの接着だけ借りるが、実時間 cooldown は武器 Imbue の短縮調整へ寄せない。
-        return castSource == io.redspace.ironsspellbooks.api.spells.CastSource.SWORD;
     }
 
     private static void cleanupAutocastTags(ItemStack stack, CompoundTag tag) {

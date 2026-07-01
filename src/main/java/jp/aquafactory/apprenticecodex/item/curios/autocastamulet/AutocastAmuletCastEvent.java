@@ -55,8 +55,7 @@ public final class AutocastAmuletCastEvent {
                 : WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                         event.getSpell(),
                         player,
-                        event.getCastSource(),
-                        castingItem
+                        event.getCastSource()
                 );
         event.setEffectiveCooldown(adjustedCooldown);
         syncCooldownNotification(player, event.getSpell().getSpellId(), adjustedCooldown);
@@ -94,7 +93,7 @@ public final class AutocastAmuletCastEvent {
         PENDING_CREATIVE_COOLDOWNS.put(player.getUUID(), new PendingCreativeCooldown(
                 event.getSpellId(),
                 event.getCastSource(),
-                WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, event.getCastSource(), castingItem)
+                WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, event.getCastSource())
         ));
     }
 

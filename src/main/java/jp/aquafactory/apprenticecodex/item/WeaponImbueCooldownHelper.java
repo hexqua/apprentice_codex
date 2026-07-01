@@ -9,8 +9,6 @@ import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDe
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightSpellSupport;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.Nullable;
 
 public final class WeaponImbueCooldownHelper {
     private WeaponImbueCooldownHelper() {
@@ -19,15 +17,11 @@ public final class WeaponImbueCooldownHelper {
     public static int getEffectiveSpellCooldown(
             AbstractSpell spell,
             Player player,
-            CastSource castSource,
-            @Nullable ItemStack castingStack
+            CastSource castSource
     ) {
         var baseCooldown = resolveLimitedBaseCooldown(spell, player);
         var playerCooldownModifier = player.getAttributeValue(AttributeRegistry.COOLDOWN_REDUCTION.get());
-        var itemCooldownModifier = castSource == CastSource.SWORD
-                && !shouldIgnoreWeaponImbueCooldownMultiplier(castingStack, spell, castSource)
-                ? ServerConfigs.SWORDS_CD_MULTIPLIER.get().floatValue()
-                : 1.0f;
+        var itemCooldownModifier = castSource == CastSource.SWORD ? ServerConfigs.SWORDS_CD_MULTIPLIER.get().floatValue() : 1.0f;
         return (int) (baseCooldown * (2 - Utils.softCapFormula(playerCooldownModifier)) * itemCooldownModifier);
     }
 
@@ -56,16 +50,5 @@ public final class WeaponImbueCooldownHelper {
             }
         }
         return selectedCooldown;
-    }
-
-    public static boolean shouldIgnoreWeaponImbueCooldownMultiplier(
-            @Nullable ItemStack stack,
-            @Nullable AbstractSpell spell,
-            CastSource castSource
-    ) {
-        return stack != null
-                && !stack.isEmpty()
-                && stack.getItem() instanceof WeaponImbueCooldownPolicyItem policyItem
-                && policyItem.ignoresWeaponImbueCooldownMultiplier(stack, spell, castSource);
     }
 }

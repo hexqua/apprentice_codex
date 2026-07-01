@@ -242,7 +242,7 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
             return spell.getSpellCooldown();
         }
 
-        return WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, castSource, ItemStack.EMPTY);
+        return WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, castSource);
     }
 
     public static void applyCastingMobility(@Nullable LivingEntity entity) {
