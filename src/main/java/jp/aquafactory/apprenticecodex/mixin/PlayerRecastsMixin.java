@@ -1,8 +1,11 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.capabilities.magic.PlayerRecasts;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager;
+import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -46,6 +49,26 @@ public abstract class PlayerRecastsMixin {
             var preservedTicks = Math.min(Integer.MAX_VALUE, (long) recastInstance.getTicksRemaining() + actualTicks);
             ((RecastInstanceAccessor) recastInstance).apprenticecodex$setRemainingTicks((int) preservedTicks);
         });
+    }
+
+    @Inject(
+            method = "removeRecast(Lio/redspace/ironsspellbooks/capabilities/magic/RecastInstance;Lio/redspace/ironsspellbooks/capabilities/magic/RecastResult;Z)V",
+            at = @At("RETURN")
+    )
+    private void apprenticecodex$clearMithrilFreecastCooldownSource(
+            RecastInstance recastInstance,
+            RecastResult recastResult,
+            boolean doSync,
+            CallbackInfo ci
+    ) {
+        if (serverPlayer == null) {
+            return;
+        }
+
+        MithrilFreecastStaffCastContext.clearPendingCooldownSource(
+                serverPlayer.getUUID(),
+                SpellRegistry.getSpell(recastInstance.getSpellId())
+        );
     }
 
 }
