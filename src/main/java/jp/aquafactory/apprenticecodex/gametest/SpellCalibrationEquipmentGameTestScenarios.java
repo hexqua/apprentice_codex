@@ -816,6 +816,62 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                                 + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
             }
 
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            var harvestMoon = SpellRegistry.HARVEST_MOON.get();
+            magicData.setPlayerCastingItem(staff.copy());
+            try (var ignored = MithrilFreecastStaffCastContext.open(
+                    player.getUUID(),
+                    staff,
+                    harvestMoon,
+                    CastSource.SPELLBOOK,
+                    ItemStack.EMPTY
+            )) {
+                var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                        MagicManager.getEffectiveSpellCooldown(harvestMoon, player, CastSource.SWORD),
+                        harvestMoon,
+                        player,
+                        CastSource.SWORD
+                );
+                NeoForge.EVENT_BUS.post(cooldownEvent);
+                var expectedCooldown = staffItem.resolveSwingTriggeredCooldownTicks(
+                        player,
+                        harvestMoon,
+                        CastSource.SPELLBOOK,
+                        ItemStack.EMPTY
+                );
+                helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
+                        "Mithril Freecast Staff should keep CraftsmansDelight on the selected SPELLBOOK cooldown but got "
+                                + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+            }
+
+            player.setItemSlot(EquipmentSlot.FEET, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()));
+            var thermalProcess = SpellRegistry.THERMAL_PROCESS.get();
+            magicData.setPlayerCastingItem(staff.copy());
+            try (var ignored = MithrilFreecastStaffCastContext.open(
+                    player.getUUID(),
+                    staff,
+                    thermalProcess,
+                    CastSource.SPELLBOOK,
+                    ItemStack.EMPTY
+            )) {
+                var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                        MagicManager.getEffectiveSpellCooldown(thermalProcess, player, CastSource.SWORD),
+                        thermalProcess,
+                        player,
+                        CastSource.SWORD
+                );
+                NeoForge.EVENT_BUS.post(cooldownEvent);
+                var expectedCooldown = staffItem.resolveSwingTriggeredCooldownTicks(
+                        player,
+                        thermalProcess,
+                        CastSource.SPELLBOOK,
+                        ItemStack.EMPTY
+                );
+                helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
+                        "Mithril Freecast Staff should keep Thermal Process on the selected SPELLBOOK cooldown with Magi boots and CraftsmansDelight but got "
+                                + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+            }
+
             helper.assertTrue(staffItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
                     "Mithril Freecast Staff should initiate the selected instant offhand spell");
             var delayedCooldownEvent = new SpellCooldownAddedEvent.Pre(

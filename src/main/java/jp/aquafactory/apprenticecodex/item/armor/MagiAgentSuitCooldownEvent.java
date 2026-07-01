@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
+import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.EventPriority;
@@ -27,15 +28,26 @@ public final class MagiAgentSuitCooldownEvent {
 
         var magicData = MagicData.getPlayerMagicData(player);
         var castingItem = magicData == null ? ItemStack.EMPTY : magicData.getPlayerCastingItem();
+        var cooldownSource = MithrilFreecastStaffCastContext.resolveCooldownSource(
+                player.getUUID(),
+                castingItem,
+                event.getSpell()
+        );
+        var castSource = cooldownSource
+                .map(MithrilFreecastStaffCastContext.CooldownSource::castSource)
+                .orElse(event.getCastSource());
+        var cooldownStack = cooldownSource
+                .map(MithrilFreecastStaffCastContext.CooldownSource::stack)
+                .orElse(castingItem);
         var bootsCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                 event.getSpell(),
                 player,
-                event.getCastSource(),
-                castingItem
+                castSource,
+                cooldownStack
         );
         var adjustedCooldown = resolveBootsAdjustedCooldown(
                 event.getEffectiveCooldown(),
-                MagicManager.getEffectiveSpellCooldown(event.getSpell(), player, event.getCastSource()),
+                MagicManager.getEffectiveSpellCooldown(event.getSpell(), player, castSource),
                 bootsCooldown
         );
         if (adjustedCooldown < event.getEffectiveCooldown()) {

@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 
@@ -43,5 +44,26 @@ public final class MithrilFreecastStaffCastEvent {
                         source.stack()
                 )
         );
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void clearResolvedCooldownSource(SpellCooldownAddedEvent.Pre event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData == null) {
+            return;
+        }
+
+        var castingItem = magicData.getPlayerCastingItem();
+        if (castingItem.getItem() instanceof MithrilFreecastStaff) {
+            MithrilFreecastStaffCastContext.clearResolvedCooldownSource(
+                    player.getUUID(),
+                    castingItem,
+                    event.getSpell()
+            );
+        }
     }
 }
