@@ -158,7 +158,8 @@ public abstract class AbstractSpellThrowableCardItem extends Item implements Res
 
     @Override
     public boolean canRemoveWorkbenchSpell(ItemStack stack, ISpellContainer spellContainer, int spellIndex, SpellData spellData) {
-        return spellData != SpellData.EMPTY;
+        // カードは作成時にスクロールを消費しないため、抽出を許すとスクロールを複製できてしまう.
+        return false;
     }
 
     public SpellData getPrimarySpellData(ItemStack stack) {

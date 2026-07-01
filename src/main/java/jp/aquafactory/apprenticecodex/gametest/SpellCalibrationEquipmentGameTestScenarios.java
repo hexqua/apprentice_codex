@@ -638,6 +638,33 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(externalSpellContainerStack, 0, magicMissileScroll),
                     "Calibration Bench server logic should reject generic external ISpellContainer items");
 
+            var invokeCard = (AbstractSpellThrowableCardItem) ItemRegistry.SPELL_INVOKE_CARD.get();
+            var imbuedInvokeCard = invokeCard.createArcaneAnvilImbueResult(
+                    new ItemStack(invokeCard),
+                    new SpellData(heal, 1)
+            );
+            var invokeCardMenu = createSpellCalibrationBenchMenuWithTarget(player, imbuedInvokeCard);
+            helper.assertFalse(SpellCalibrationImbueHelper.isSupportedTarget(imbuedInvokeCard),
+                    "Spell Invoke Card should not be supported for Calibration Bench extraction");
+            helper.assertTrue(SpellCalibrationImbueHelper.createScrollForSlot(imbuedInvokeCard, 0).isEmpty(),
+                    "Spell Invoke Card should not create a scroll through Calibration Bench extraction");
+            helper.assertTrue(invokeCardMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).remove(1).isEmpty(),
+                    "Spell Invoke Card should not allow scroll extraction from the Calibration Bench menu");
+            helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(imbuedInvokeCard, 0, magicMissileScroll),
+                    "Spell Invoke Card should not accept Calibration Bench scroll replacement");
+            assertStackHasSpell(helper, imbuedInvokeCard, heal, 1,
+                    "Blocked Calibration Bench extraction should keep the Spell Invoke Card spell");
+
+            var autonomyCard = (AbstractSpellThrowableCardItem) ItemRegistry.SPELL_AUTONOMY_CARD.get();
+            var imbuedAutonomyCard = autonomyCard.createArcaneAnvilImbueResult(
+                    new ItemStack(autonomyCard),
+                    new SpellData(heal, 1)
+            );
+            helper.assertTrue(SpellCalibrationImbueHelper.createScrollForSlot(imbuedAutonomyCard, 0).isEmpty(),
+                    "Spell Autonomy Card should not create a scroll through Calibration Bench extraction");
+            helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(imbuedAutonomyCard, 0, magicMissileScroll),
+                    "Spell Autonomy Card should not accept Calibration Bench scroll replacement");
+
             var illuminateStellarStaff = createInitializedPresetStack(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get());
             helper.assertFalse(unsupportedMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(illuminateStellarStaff),
                     "Calibration Bench should reject UniqueItem imbue targets");
