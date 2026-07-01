@@ -571,6 +571,31 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                                 + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
             }
 
+            var artisanSmash = SpellRegistry.ARTISAN_SMASH.get();
+            magicData.setPlayerCastingItem(staff.copy());
+            try (var ignored = MithrilFreecastStaffCastContext.open(
+                    player.getUUID(),
+                    staff,
+                    artisanSmash,
+                    CastSource.SPELLBOOK
+            )) {
+                var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                        MagicManager.getEffectiveSpellCooldown(artisanSmash, player, CastSource.SWORD),
+                        artisanSmash,
+                        player,
+                        CastSource.SWORD
+                );
+                MinecraftForge.EVENT_BUS.post(cooldownEvent);
+                var expectedCooldown = staffItem.resolveSwingTriggeredCooldownTicks(
+                        player,
+                        artisanSmash,
+                        CastSource.SPELLBOOK
+                );
+                helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
+                        "Mithril Freecast Staff should not re-reduce Magi boots cooldown after adding long cast time but got "
+                                + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+            }
+
             magicData.getSyncedData().setSpellSelection(new SpellSelection(SpellSelectionManager.OFFHAND, 0));
             helper.assertTrue(staffItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
                     "Mithril Freecast Staff should initiate the selected instant offhand spell");

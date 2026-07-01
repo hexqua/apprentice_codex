@@ -4,8 +4,10 @@ import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntletFreecastContext;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -33,9 +35,14 @@ public final class MagiAgentSuitCooldownEvent {
                 castingItem,
                 event.getSpell()
         );
-        var castSource = cooldownSource
-                .map(MithrilFreecastStaffCastContext.CooldownSource::castSource)
-                .orElse(event.getCastSource());
+        if (cooldownSource.isPresent()) {
+            return;
+        }
+        if (castingItem.getItem() instanceof ScrollcasterGauntlet
+                && ScrollcasterGauntletFreecastContext.matches(player.getUUID(), castingItem, event.getSpell())) {
+            return;
+        }
+        var castSource = event.getCastSource();
         var bootsCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                 event.getSpell(),
                 player,
