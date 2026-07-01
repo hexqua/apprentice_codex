@@ -873,6 +873,22 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     grimoire,
                     SpellRegistry.BOUND_BOW.get()
             ).isEmpty(), "Mithril Freecast Staff should clear resolved retained recast cooldown source");
+            MithrilFreecastStaffCastContext.retainUntilCooldown(
+                    player.getUUID(),
+                    staff,
+                    SpellRegistry.BOUND_BOW.get(),
+                    CastSource.SPELLBOOK
+            );
+            MithrilFreecastStaffCastContext.clearPendingCooldownSource(
+                    player.getUUID(),
+                    grimoire,
+                    SpellRegistry.BOUND_BOW.get()
+            );
+            helper.assertTrue(MithrilFreecastStaffCastContext.resolveCooldownSource(
+                    player.getUUID(),
+                    grimoire,
+                    SpellRegistry.BOUND_BOW.get()
+            ).isEmpty(), "Mithril Freecast Staff should clear retained pending cooldown source without relying on current casting item");
 
             var spellbookMagicMissileCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     magicMissile,

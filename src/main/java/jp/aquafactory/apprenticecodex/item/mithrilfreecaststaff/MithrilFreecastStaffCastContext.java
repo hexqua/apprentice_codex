@@ -98,7 +98,13 @@ public final class MithrilFreecastStaffCastContext implements AutoCloseable {
 
     public static void clearPendingCooldownSource(UUID playerId, ItemStack stack, AbstractSpell spell) {
         PENDING_COOLDOWN_SOURCES.remove(Key.of(playerId, stack, spell));
+        clearPendingCooldownSource(playerId, spell);
         clearResolvedCooldownSource(playerId, stack, spell);
+    }
+
+    public static void clearPendingCooldownSource(UUID playerId, AbstractSpell spell) {
+        PENDING_COOLDOWN_SOURCES.keySet().removeIf(key -> key.matches(playerId, spell));
+        clearResolvedCooldownSource(playerId, spell);
     }
 
     @Override
