@@ -1462,6 +1462,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void mithrilFreecastStaffCooldownUsesSelectedSourceAndPolicy(GameTestHelper helper) {
+        SpellCalibrationEquipmentGameTestScenarios.mithrilFreecastStaffCooldownUsesSelectedSourceAndPolicy(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowManaErrorUsesIronsSpellbooksTranslationKey(GameTestHelper helper) {
         ElementalBowGameTestScenarios.elementalBowManaErrorUsesIronsSpellbooksTranslationKey(helper);
     }
