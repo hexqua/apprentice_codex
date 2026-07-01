@@ -11,7 +11,6 @@ import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.AbstractSpellThrowableCardEntity;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
-import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownPolicyItem;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRules;
@@ -37,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AbstractSpellThrowableCardItem extends Item implements RestrictedSpellImbuableItem,
-        WeaponImbueCooldownPolicyItem, IJeiInfoItem {
+        IJeiInfoItem {
     public static final int SPELL_SLOT_COUNT = 1;
     public static final float THROW_POWER = 1.6F;
     public static final String CASTING_SLOT = "spell_throwable_card";
@@ -208,11 +207,6 @@ public abstract class AbstractSpellThrowableCardItem extends Item implements Res
     @Override
     public @Nullable String getJeiInfoGroupId() {
         return JEI_INFO_GROUP_ID;
-    }
-
-    @Override
-    public boolean ignoresWeaponImbueCooldownMultiplier(ItemStack stack, @Nullable AbstractSpell spell, CastSource castSource) {
-        return castSource == CastSource.SWORD;
     }
 
     private @Nullable Component validateThrowStart(ServerPlayer player, ItemStack stack, SpellData spellData) {
