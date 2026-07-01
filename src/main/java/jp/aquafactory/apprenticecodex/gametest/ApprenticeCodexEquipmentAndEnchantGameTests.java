@@ -607,8 +607,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void autocastAmuletCooldownUsesHelperAmountWithoutSwordMultiplier(GameTestHelper helper) {
-        AutocastAmuletGameTestScenarios.autocastAmuletCooldownUsesHelperAmountWithoutSwordMultiplier(helper);
+    public static void autocastAmuletCooldownUsesSwordMultiplier(GameTestHelper helper) {
+        AutocastAmuletGameTestScenarios.autocastAmuletCooldownUsesSwordMultiplier(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1247,8 +1247,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void craftsmansDelightScrollcasterGauntletCooldownKeepsItemPolicy(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightScrollcasterGauntletCooldownKeepsItemPolicy(helper);
+    public static void craftsmansDelightScrollcasterGauntletCooldownUsesSwordMultiplier(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightScrollcasterGauntletCooldownUsesSwordMultiplier(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1462,13 +1462,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void mithrilFreecastStaffCooldownUsesSelectedSourceAndPolicy(GameTestHelper helper) {
-        SpellCalibrationEquipmentGameTestScenarios.mithrilFreecastStaffCooldownUsesSelectedSourceAndPolicy(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void scrollcasterGauntletRecastCooldownDoesNotUsePolicy(GameTestHelper helper) {
-        SpellCalibrationEquipmentGameTestScenarios.scrollcasterGauntletRecastCooldownDoesNotUsePolicy(helper);
+    public static void mithrilFreecastStaffCooldownUsesSelectedSource(GameTestHelper helper) {
+        SpellCalibrationEquipmentGameTestScenarios.mithrilFreecastStaffCooldownUsesSelectedSource(helper);
     }
 
     @GameTest(template = TEMPLATE)

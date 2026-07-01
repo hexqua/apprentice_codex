@@ -4,12 +4,9 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
-import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
-import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownPolicyItem;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.armor.ElementMaidenRobeRenderer;
@@ -50,8 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class ElementMaidenRobeItem extends ArmorItem implements GeoItem, IPresetSpellContainer, UniqueItem,
-        WeaponImbueCooldownPolicyItem {
+public class ElementMaidenRobeItem extends ArmorItem implements GeoItem, IPresetSpellContainer, UniqueItem {
     private static final ResourceLocation ARMOR_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/element_maiden_robe.png");
     private static final String DESCRIPTION_KEY = "item." + ApprenticeCodex.MODID + ".element_maiden_robe.desc";
@@ -108,12 +104,6 @@ public class ElementMaidenRobeItem extends ArmorItem implements GeoItem, IPreset
 
         // 胴体だけを固有潜在魔法の Imbue 対象にする.
         ISpellContainer.createImbuedContainer(SpellRegistry.DIVINE_POSSESSION.get(), 1, itemStack);
-    }
-
-    @Override
-    public boolean ignoresWeaponImbueCooldownMultiplier(ItemStack stack, @Nullable AbstractSpell spell, CastSource castSource) {
-        // ローブ固有潜在魔法は武器 Imbue の短縮調整へ寄せない.
-        return castSource == CastSource.SWORD && hasImbueSlot();
     }
 
     @Override

@@ -163,7 +163,6 @@ public final class RemoteOwnerContinuousCastManager {
                         owner,
                         spellData,
                         castSource,
-                        runtime.castingStack(),
                         runtime.cooldownPolicy()
                 );
             }

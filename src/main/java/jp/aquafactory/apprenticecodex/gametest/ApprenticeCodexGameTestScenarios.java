@@ -2589,8 +2589,7 @@ public class ApprenticeCodexGameTestScenarios {
             var expectedCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     heal,
                     player,
-                    CastSource.SWORD,
-                    gauntlet
+                    CastSource.SWORD
             );
             var cooldownEvent = new SpellCooldownAddedEvent.Pre(
                     io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(heal, player, CastSource.SWORD),
@@ -2696,8 +2695,7 @@ public class ApprenticeCodexGameTestScenarios {
             var baseCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     heal,
                     player,
-                    CastSource.SWORD,
-                    gauntlet
+                    CastSource.SWORD
             );
             var normalEvent = new SpellCooldownAddedEvent.Pre(
                     io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(heal, player, CastSource.SWORD),
@@ -2707,7 +2705,7 @@ public class ApprenticeCodexGameTestScenarios {
             );
             ScrollcasterGauntletCastEvent.onSpellCooldownAdded(normalEvent);
             helper.assertTrue(normalEvent.getEffectiveCooldown() == baseCooldown,
-                    "Normal Scrollcaster Gauntlet casts should keep the base gauntlet cooldown");
+                    "Normal Scrollcaster Gauntlet casts should keep the base sword cooldown");
 
             try (var ignored = ScrollcasterGauntletFreecastContext.open(player.getUUID(), gauntlet, heal)) {
                 var freecastEvent = new SpellCooldownAddedEvent.Pre(

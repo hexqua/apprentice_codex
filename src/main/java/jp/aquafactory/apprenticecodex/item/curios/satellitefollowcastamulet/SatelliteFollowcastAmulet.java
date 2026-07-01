@@ -10,7 +10,6 @@ import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
-import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownPolicyItem;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRules;
 import net.minecraft.ChatFormatting;
@@ -36,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiInfoItem, RestrictedSpellImbuableItem,
-        SpellSlotUpgradeableItem, WeaponImbueCooldownPolicyItem {
+        SpellSlotUpgradeableItem {
     public static final int MIN_SPELL_SLOTS = 1;
     public static final int MAX_SPELL_SLOTS = 2;
     public static final ResourceLocation LESSER_SPELL_SLOT_UPGRADE_ID =
@@ -325,9 +324,4 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
         return translatedLines;
     }
 
-    @Override
-    public boolean ignoresWeaponImbueCooldownMultiplier(ItemStack stack, @Nullable AbstractSpell spell, io.redspace.ironsspellbooks.api.spells.CastSource castSource) {
-        // Followcast Amulet は剣 Imbue 扱いの接着だけ借りるが、実時間 cooldown は武器 Imbue の短縮調整へ寄せない。
-        return castSource == io.redspace.ironsspellbooks.api.spells.CastSource.SWORD;
-    }
 }
