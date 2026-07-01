@@ -503,10 +503,10 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertTrue(boundBowRecast != null,
                     "Mithril Freecast Staff silver-ring Bound Bow should create a recast before cooldown");
             magicData.getPlayerRecasts().removeRecast(boundBowRecast, RecastResult.USED_ALL_RECASTS);
-            var expectedBoundBowCooldown = MagicManager.getEffectiveSpellCooldown(
-                    SpellRegistry.BOUND_BOW.get(),
+            var expectedBoundBowCooldown = staffItem.resolveSwingTriggeredCooldownTicks(
                     player,
-                    CastSource.SWORD
+                    SpellRegistry.BOUND_BOW.get(),
+                    CastSource.SPELLBOOK
             );
             var actualBoundBowCooldown = magicData.getPlayerCooldowns()
                     .getSpellCooldowns()
@@ -514,7 +514,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertTrue(
                     actualBoundBowCooldown != null
                             && actualBoundBowCooldown.getCooldownRemaining() == expectedBoundBowCooldown,
-                    "Mithril Freecast Staff should not keep the selected source cooldown for Bound Bow recast cooldown but got "
+                    "Mithril Freecast Staff should keep the selected source cooldown for Bound Bow recast cooldown but got "
                             + (actualBoundBowCooldown == null ? "none" : actualBoundBowCooldown.getCooldownRemaining())
                             + " / expected " + expectedBoundBowCooldown
             );
