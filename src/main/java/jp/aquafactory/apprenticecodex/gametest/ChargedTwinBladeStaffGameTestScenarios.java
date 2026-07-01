@@ -1207,24 +1207,13 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
         var weaponImbueCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                 spell,
                 player,
-                CastSource.SWORD,
-                cardStack
-        );
-        var emptyStackCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
-                spell,
-                player,
-                CastSource.SWORD,
-                ItemStack.EMPTY
+                CastSource.SWORD
         );
         var spellbookCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                 spell,
                 player,
-                CastSource.SPELLBOOK,
-                cardStack
+                CastSource.SPELLBOOK
         );
-        helper.assertTrue(weaponImbueCooldown == emptyStackCooldown,
-                "Throwable Card should use the normal Weapon Imbue cooldown multiplier: "
-                        + weaponImbueCooldown + " / empty " + emptyStackCooldown);
         helper.assertTrue(spellbookCooldown > weaponImbueCooldown,
                 "Throwable Card cooldown regression needs a visible Weapon Imbue reduction: "
                         + spellbookCooldown + " / weapon " + weaponImbueCooldown);

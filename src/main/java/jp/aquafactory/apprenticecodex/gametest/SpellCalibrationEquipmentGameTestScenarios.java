@@ -734,7 +734,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
         });
     }
 
-    static void mithrilFreecastStaffCooldownUsesSelectedSourceAndPolicy(GameTestHelper helper) {
+    static void mithrilFreecastStaffCooldownUsesSelectedSource(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
                     "mithril_freecast_selected_cooldown_test");
@@ -761,15 +761,14 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             magicData.getSyncedData().setSpellSelection(new SpellSelection(SpellSelectionManager.OFFHAND, 0));
 
             var normalSwordCooldown = MagicManager.getEffectiveSpellCooldown(magicMissile, player, CastSource.SWORD);
-            var selectedPolicyCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+            var selectedSourceCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     magicMissile,
                     player,
-                    CastSource.SWORD,
-                    gauntlet
+                    CastSource.SWORD
             );
-            helper.assertTrue(selectedPolicyCooldown > normalSwordCooldown,
-                    "Scrollcaster Gauntlet policy should visibly remove the SWORD cooldown multiplier: "
-                            + selectedPolicyCooldown + " / sword " + normalSwordCooldown);
+            helper.assertTrue(selectedSourceCooldown == normalSwordCooldown,
+                    "Scrollcaster Gauntlet selected SWORD source should use the normal SWORD cooldown: "
+                            + selectedSourceCooldown + " / sword " + normalSwordCooldown);
             var selection = new SpellSelectionManager(player).getSelection();
             helper.assertTrue(selection != null && selection.spellData.getSpell() == magicMissile,
                     "Mithril Freecast Staff cooldown test should resolve the selected offhand spell");
@@ -781,8 +780,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     player.getUUID(),
                     staff,
                     magicMissile,
-                    selection.getCastSource(),
-                    selectedStack
+                    selection.getCastSource()
             )) {
                 var cooldownEvent = new SpellCooldownAddedEvent.Pre(
                         normalSwordCooldown,
@@ -791,9 +789,9 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                         CastSource.SWORD
                 );
                 MithrilFreecastStaffCastEvent.onSpellCooldownAdded(cooldownEvent);
-                helper.assertTrue(cooldownEvent.getEffectiveCooldown() == selectedPolicyCooldown,
-                        "Mithril Freecast Staff should use the selected source policy cooldown but got "
-                                + cooldownEvent.getEffectiveCooldown() + " / expected " + selectedPolicyCooldown);
+                helper.assertTrue(cooldownEvent.getEffectiveCooldown() == selectedSourceCooldown,
+                        "Mithril Freecast Staff should use the selected source cooldown but got "
+                                + cooldownEvent.getEffectiveCooldown() + " / expected " + selectedSourceCooldown);
             }
 
             var heal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
@@ -801,15 +799,13 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             var spellbookBaseCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     heal,
                     player,
-                    CastSource.SPELLBOOK,
-                    ItemStack.EMPTY
+                    CastSource.SPELLBOOK
             );
             try (var ignored = MithrilFreecastStaffCastContext.open(
                     player.getUUID(),
                     staff,
                     heal,
-                    CastSource.SPELLBOOK,
-                    ItemStack.EMPTY
+                    CastSource.SPELLBOOK
             )) {
                 var cooldownEvent = new SpellCooldownAddedEvent.Pre(
                         MagicManager.getEffectiveSpellCooldown(heal, player, CastSource.SWORD),
@@ -850,7 +846,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertTrue(
                     actualBoundBowCooldown != null
                             && actualBoundBowCooldown.getCooldownRemaining() == expectedBoundBowCooldown,
-                    "Mithril Freecast Staff should not keep the selected source policy for Bound Bow recast cooldown but got "
+                    "Mithril Freecast Staff should not keep the selected source cooldown for Bound Bow recast cooldown but got "
                             + (actualBoundBowCooldown == null ? "none" : actualBoundBowCooldown.getCooldownRemaining())
                             + " / expected " + expectedBoundBowCooldown
             );
@@ -862,8 +858,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     player.getUUID(),
                     staff,
                     harvestMoon,
-                    CastSource.SPELLBOOK,
-                    ItemStack.EMPTY
+                    CastSource.SPELLBOOK
             )) {
                 var cooldownEvent = new SpellCooldownAddedEvent.Pre(
                         MagicManager.getEffectiveSpellCooldown(harvestMoon, player, CastSource.SWORD),
@@ -875,8 +870,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                 var expectedCooldown = staffItem.resolveSwingTriggeredCooldownTicks(
                         player,
                         harvestMoon,
-                        CastSource.SPELLBOOK,
-                        ItemStack.EMPTY
+                        CastSource.SPELLBOOK
                 );
                 helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
                         "Mithril Freecast Staff should keep CraftsmansDelight on the selected SPELLBOOK cooldown but got "
@@ -890,8 +884,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     player.getUUID(),
                     staff,
                     thermalProcess,
-                    CastSource.SPELLBOOK,
-                    ItemStack.EMPTY
+                    CastSource.SPELLBOOK
             )) {
                 var cooldownEvent = new SpellCooldownAddedEvent.Pre(
                         MagicManager.getEffectiveSpellCooldown(thermalProcess, player, CastSource.SWORD),
@@ -903,8 +896,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                 var expectedCooldown = staffItem.resolveSwingTriggeredCooldownTicks(
                         player,
                         thermalProcess,
-                        CastSource.SPELLBOOK,
-                        ItemStack.EMPTY
+                        CastSource.SPELLBOOK
                 );
                 helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
                         "Mithril Freecast Staff should keep Thermal Process on the selected SPELLBOOK cooldown with Magi boots and CraftsmansDelight but got "
@@ -921,73 +913,9 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     CastSource.SWORD
             );
             MithrilFreecastStaffCastEvent.onSpellCooldownAdded(delayedCooldownEvent);
-            helper.assertTrue(delayedCooldownEvent.getEffectiveCooldown() == selectedPolicyCooldown,
-                    "Mithril Freecast Staff should keep the selected source policy until delayed cooldown but got "
-                            + delayedCooldownEvent.getEffectiveCooldown() + " / expected " + selectedPolicyCooldown);
-        });
-    }
-
-    static void scrollcasterGauntletRecastCooldownDoesNotUsePolicy(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
-                    "scrollcaster_recast_policy_bypass_test");
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null,
-                    "Scrollcaster Gauntlet recast cooldown test could not resolve player magic data");
-            magicData.setMana(1000.0F);
-
-            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-            var boundBow = (BoundBow) SpellRegistry.BOUND_BOW.get();
-            ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(boundBow));
-            ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
-            player.setItemInHand(InteractionHand.MAIN_HAND, gauntlet);
-            magicData.setPlayerCastingItem(gauntlet.copy());
-
-            var normalSwordCooldown = MagicManager.getEffectiveSpellCooldown(boundBow, player, CastSource.SWORD);
-            var selectedPolicyCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
-                    boundBow,
-                    player,
-                    CastSource.SWORD,
-                    gauntlet
-            );
-            helper.assertTrue(selectedPolicyCooldown > normalSwordCooldown,
-                    "Scrollcaster Gauntlet policy should visibly remove the SWORD cooldown multiplier: "
-                            + selectedPolicyCooldown + " / sword " + normalSwordCooldown);
-
-            BoundBowManager.activate(
-                    player,
-                    1,
-                    CastSource.SWORD,
-                    magicData,
-                    boundBow,
-                    1
-            );
-            var boundBowRecast = magicData.getPlayerRecasts().getRecastInstance(boundBow.getSpellId());
-            helper.assertTrue(boundBowRecast != null,
-                    "Scrollcaster Gauntlet recast cooldown test should create a Bound Bow recast");
-
-            magicData.getPlayerRecasts().removeRecast(boundBowRecast, RecastResult.USED_ALL_RECASTS);
-            var actualBoundBowCooldown = magicData.getPlayerCooldowns()
-                    .getSpellCooldowns()
-                    .get(boundBow.getSpellId());
-            helper.assertTrue(
-                    actualBoundBowCooldown != null
-                            && actualBoundBowCooldown.getCooldownRemaining() == normalSwordCooldown,
-                    "Scrollcaster Gauntlet should not apply its policy to recast cooldown but got "
-                            + (actualBoundBowCooldown == null ? "none" : actualBoundBowCooldown.getCooldownRemaining())
-                            + " / expected " + normalSwordCooldown
-            );
-
-            var previewEvent = new SpellCooldownAddedEvent.Pre(
-                    normalSwordCooldown,
-                    boundBow,
-                    player,
-                    CastSource.SWORD
-            );
-            ScrollcasterGauntletCastEvent.onSpellCooldownAdded(previewEvent);
-            helper.assertTrue(previewEvent.getEffectiveCooldown() == selectedPolicyCooldown,
-                    "Scrollcaster Gauntlet should still apply its policy outside recast completion but got "
-                            + previewEvent.getEffectiveCooldown() + " / expected " + selectedPolicyCooldown);
+            helper.assertTrue(delayedCooldownEvent.getEffectiveCooldown() == selectedSourceCooldown,
+                    "Mithril Freecast Staff should keep the selected source cooldown until delayed cooldown but got "
+                            + delayedCooldownEvent.getEffectiveCooldown() + " / expected " + selectedSourceCooldown);
         });
     }
 }

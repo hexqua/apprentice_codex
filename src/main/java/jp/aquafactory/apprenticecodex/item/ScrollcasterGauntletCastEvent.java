@@ -25,31 +25,25 @@ public final class ScrollcasterGauntletCastEvent {
             return;
         }
 
-        if (RecastCooldownPolicyContext.isCompletingRecast(player, event.getSpell())) {
-            // Iron's の Recast は CastSource だけを保持し、発動元 ItemStack の policy を保持しない。
-            // 装備切替やタイムアウトで結果が揺れないよう、Recast 完了時は意図的に policy を読まない。
+        var castingItem = magicData.getPlayerCastingItem();
+        if (!(castingItem.getItem() instanceof ScrollcasterGauntlet gauntlet)) {
             return;
         }
 
-        var castingItem = magicData.getPlayerCastingItem();
-        if (!(castingItem.getItem() instanceof ScrollcasterGauntlet gauntlet)) {
+        if (!ScrollcasterGauntletFreecastContext.matches(player.getUUID(), castingItem, event.getSpell())) {
             return;
         }
 
         var effectiveCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                 event.getSpell(),
                 player,
-                event.getCastSource(),
-                castingItem
+                event.getCastSource()
         );
-        if (ScrollcasterGauntletFreecastContext.matches(player.getUUID(), castingItem, event.getSpell())) {
-            effectiveCooldown = gauntlet.resolveFreecastSwingCooldownTicks(
-                    player,
-                    castingItem,
-                    event.getSpell(),
-                    effectiveCooldown
-            );
-        }
-        event.setEffectiveCooldown(effectiveCooldown);
+        event.setEffectiveCooldown(gauntlet.resolveFreecastSwingCooldownTicks(
+                player,
+                castingItem,
+                event.getSpell(),
+                effectiveCooldown
+        ));
     }
 }

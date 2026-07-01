@@ -82,7 +82,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
-        WeaponImbueCooldownPolicyItem, ItemTransformPreservingCastAnimationItem,
+        ItemTransformPreservingCastAnimationItem,
         BetterCombatOffhandDualWieldingPolicyItem, SwingTriggeredMagicItem, PriorityOffhandUseDeferringItem, IJeiInfoItem {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.scrollcaster_gauntlet.desc_";
 
@@ -157,12 +157,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     @Override
     public boolean canAttackBlock(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, Player player) {
         return !player.isCreative();
-    }
-
-    @Override
-    public boolean ignoresWeaponImbueCooldownMultiplier(ItemStack stack, @Nullable AbstractSpell spell, CastSource castSource) {
-        // 右クリック詠唱の接着は剣 Imbue 扱いを使うが、Scrollcaster Gauntlet 自体の調整は剣用 cooldown 倍率へ寄せない。
-        return castSource == CastSource.SWORD;
     }
 
     @Override

@@ -8,7 +8,6 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -29,13 +28,11 @@ public final class RemoteOwnerCooldownManager {
             ServerPlayer owner,
             SpellData spellData,
             CastSource castSource,
-            ItemStack castingStack,
             RemoteOwnerCooldownPolicy policy
     ) {
         Objects.requireNonNull(owner, "owner");
         Objects.requireNonNull(spellData, "spellData");
         Objects.requireNonNull(castSource, "castSource");
-        Objects.requireNonNull(castingStack, "castingStack");
         Objects.requireNonNull(policy, "policy");
         if (spellData == SpellData.EMPTY) {
             return;
@@ -49,7 +46,6 @@ public final class RemoteOwnerCooldownManager {
         PENDING_COOLDOWNS.put(owner.getUUID(), new PendingRemoteOwnerCooldown(
                 spell.getSpellId(),
                 castSource,
-                castingStack.copy(),
                 resolveExtraCooldownTicks(owner, spellData, policy)
         ));
         try {
@@ -80,8 +76,7 @@ public final class RemoteOwnerCooldownManager {
         event.setEffectiveCooldown(WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                 event.getSpell(),
                 player,
-                event.getCastSource(),
-                pendingCooldown.castingStack()
+                event.getCastSource()
         ) + pendingCooldown.extraCooldownTicks());
     }
 
@@ -101,6 +96,6 @@ public final class RemoteOwnerCooldownManager {
         return Math.max(0, spell.getEffectiveCastTime(spellLevel, owner));
     }
 
-    private record PendingRemoteOwnerCooldown(String spellId, CastSource castSource, ItemStack castingStack, int extraCooldownTicks) {
+    private record PendingRemoteOwnerCooldown(String spellId, CastSource castSource, int extraCooldownTicks) {
     }
 }

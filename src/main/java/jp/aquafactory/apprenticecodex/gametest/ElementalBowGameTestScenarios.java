@@ -1031,38 +1031,28 @@ final class ElementalBowGameTestScenarios {
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             ));
 
-            var expectedCooldown = (int) (fireArrow.getSpellCooldown() * (2 - Utils.softCapFormula(
-                    player.getAttributeValue(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION)
-            )));
             var helperCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     fireArrow,
                     player,
-                    CastSource.SWORD,
-                    stack
+                    CastSource.SWORD
             );
-            helper.assertTrue(helperCooldown == expectedCooldown,
-                    "Elemental Bow cooldown helper should keep player cooldown reduction but ignore sword multiplier: "
-                            + helperCooldown + " / expected " + expectedCooldown);
-
             var vanillaCooldown = io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
                     fireArrow,
                     player,
                     CastSource.SWORD
             );
-            var fallbackCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+            helper.assertTrue(helperCooldown == vanillaCooldown,
+                    "Elemental Bow cooldown helper should keep Iron's sword multiplier path: "
+                            + helperCooldown + " / expected " + vanillaCooldown);
+
+            var spellbookCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     fireArrow,
                     player,
-                    CastSource.SWORD,
-                    ItemStack.EMPTY
+                    CastSource.SPELLBOOK
             );
-            helper.assertTrue(fallbackCooldown == vanillaCooldown,
-                    "Non-opt-in cooldown helper path should match Iron's default cooldown calculation");
-
-            var swordCooldownMultiplier = io.redspace.ironsspellbooks.config.ServerConfigs.SWORDS_CD_MULTIPLIER.get().floatValue();
-            if (swordCooldownMultiplier != 1.0F) {
-                helper.assertTrue(helperCooldown != vanillaCooldown,
-                        "Elemental Bow cooldown helper should diverge from the sword multiplier path when the config multiplier is not 1");
-            }
+            helper.assertTrue(spellbookCooldown > helperCooldown,
+                    "Elemental Bow cooldown helper should still reflect the SWORD cooldown multiplier: "
+                            + helperCooldown + " / spellbook " + spellbookCooldown);
         });
     }
     static void elementalBowSuppressesElementalArrowCooldown(GameTestHelper helper) {
@@ -1080,8 +1070,7 @@ final class ElementalBowGameTestScenarios {
             var expectedStoredCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     fireArrow,
                     player,
-                    CastSource.SWORD,
-                    stack
+                    CastSource.SWORD
             );
             var cooldownEvent = new SpellCooldownAddedEvent.Pre(
                     io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(fireArrow, player, CastSource.SWORD),
@@ -1252,8 +1241,7 @@ final class ElementalBowGameTestScenarios {
         var expectedCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                 fireArrow,
                 player,
-                CastSource.SWORD,
-                stack
+                CastSource.SWORD
         );
 
         helper.assertTrue(magicData != null, "Elemental Bow overheat refresh test could not resolve player mana data");

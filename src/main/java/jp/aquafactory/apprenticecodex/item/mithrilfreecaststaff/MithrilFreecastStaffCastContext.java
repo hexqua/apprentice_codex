@@ -30,10 +30,9 @@ public final class MithrilFreecastStaffCastContext implements AutoCloseable {
             UUID playerId,
             ItemStack stack,
             AbstractSpell spell,
-            CastSource selectedCastSource,
-            ItemStack selectedStack
+            CastSource selectedCastSource
     ) {
-        var entry = createEntry(playerId, stack, spell, selectedCastSource, selectedStack);
+        var entry = createEntry(playerId, stack, spell, selectedCastSource);
         return new MithrilFreecastStaffCastContext(entry);
     }
 
@@ -41,10 +40,9 @@ public final class MithrilFreecastStaffCastContext implements AutoCloseable {
             UUID playerId,
             ItemStack stack,
             AbstractSpell spell,
-            CastSource selectedCastSource,
-            ItemStack selectedStack
+            CastSource selectedCastSource
     ) {
-        var entry = createEntry(playerId, stack, spell, selectedCastSource, selectedStack);
+        var entry = createEntry(playerId, stack, spell, selectedCastSource);
         PENDING_COOLDOWN_SOURCES.put(entry.key(), entry);
     }
 
@@ -97,26 +95,24 @@ public final class MithrilFreecastStaffCastContext implements AutoCloseable {
         }
     }
 
-    public record CooldownSource(CastSource castSource, ItemStack stack) {
+    public record CooldownSource(CastSource castSource) {
     }
 
     private static Entry createEntry(
             UUID playerId,
             ItemStack stack,
             AbstractSpell spell,
-            CastSource selectedCastSource,
-            ItemStack selectedStack
+            CastSource selectedCastSource
     ) {
         return new Entry(
                 Key.of(playerId, stack, spell),
-                selectedCastSource,
-                selectedStack.copy()
+                selectedCastSource
         );
     }
 
-    private record Entry(Key key, CastSource selectedCastSource, ItemStack selectedStack) {
+    private record Entry(Key key, CastSource selectedCastSource) {
         private CooldownSource toCooldownSource() {
-            return new CooldownSource(selectedCastSource, selectedStack.copy());
+            return new CooldownSource(selectedCastSource);
         }
     }
 

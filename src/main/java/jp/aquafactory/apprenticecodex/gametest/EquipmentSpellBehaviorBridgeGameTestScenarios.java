@@ -595,10 +595,10 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
         });
     }
 
-    static void craftsmansDelightScrollcasterGauntletCooldownKeepsItemPolicy(GameTestHelper helper) {
+    static void craftsmansDelightScrollcasterGauntletCooldownUsesSwordMultiplier(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
-                    "craftsmans_scrollcaster_cooldown_policy_test");
+                    "craftsmans_scrollcaster_sword_cooldown_test");
             equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
             var spell = SpellRegistry.HARVEST_MOON.get();
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
@@ -612,8 +612,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             var expectedCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     spell,
                     player,
-                    CastSource.SWORD,
-                    gauntlet
+                    CastSource.SWORD
             );
             helper.assertTrue(expectedCooldown < io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
                             spell,
@@ -631,7 +630,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             CraftsmansDelightCooldownReductionEvent.onSpellCooldownAdded(craftsmansFirstEvent);
             ScrollcasterGauntletCastEvent.onSpellCooldownAdded(craftsmansFirstEvent);
             helper.assertTrue(craftsmansFirstEvent.getEffectiveCooldown() == expectedCooldown,
-                    "CraftsmansDelight -> Scrollcaster Gauntlet cooldown order should keep the reduced gauntlet cooldown but got "
+                    "CraftsmansDelight -> Scrollcaster Gauntlet cooldown order should keep the reduced sword cooldown but got "
                             + craftsmansFirstEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
 
             var scrollcasterFirstEvent = new SpellCooldownAddedEvent.Pre(
@@ -643,7 +642,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             ScrollcasterGauntletCastEvent.onSpellCooldownAdded(scrollcasterFirstEvent);
             CraftsmansDelightCooldownReductionEvent.onSpellCooldownAdded(scrollcasterFirstEvent);
             helper.assertTrue(scrollcasterFirstEvent.getEffectiveCooldown() == expectedCooldown,
-                    "Scrollcaster Gauntlet -> CraftsmansDelight cooldown order should keep the reduced gauntlet cooldown but got "
+                    "Scrollcaster Gauntlet -> CraftsmansDelight cooldown order should keep the reduced sword cooldown but got "
                             + scrollcasterFirstEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
         });
     }
@@ -671,8 +670,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             var expectedCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     spell,
                     player,
-                    CastSource.SPELLBOOK,
-                    ItemStack.EMPTY
+                    CastSource.SPELLBOOK
             );
             helper.assertTrue(expectedCooldown < baseCooldown,
                     "Magi Agent Suit Boots expected cooldown should be shorter than base cooldown");
@@ -701,8 +699,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             var expectedCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     spell,
                     player,
-                    CastSource.SPELLBOOK,
-                    ItemStack.EMPTY
+                    CastSource.SPELLBOOK
             );
             var bootsOnlyCooldown = Math.max(1, spell.getSpellCooldown() / 2);
             helper.assertTrue(expectedCooldown < bootsOnlyCooldown,
@@ -728,8 +725,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             var bootsCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     spell,
                     player,
-                    CastSource.SPELLBOOK,
-                    ItemStack.EMPTY
+                    CastSource.SPELLBOOK
             );
             var extraCooldown = 37;
             var cooldownEvent = new SpellCooldownAddedEvent.Pre(

@@ -19,7 +19,6 @@ import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastS
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
-import jp.aquafactory.apprenticecodex.utility.SpellSelectionStackResolver;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -220,9 +219,8 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
 
         var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
         var selectedCastSource = selectionOption.getCastSource();
-        var selectedStack = SpellSelectionStackResolver.resolveSelectionStack(player, selectionOption.slot);
         try (var swingTriggeredContext = SwingcastStaffCastContext.open(player.getUUID(), stack, spell);
-             var ignored = MithrilFreecastStaffCastContext.open(player.getUUID(), stack, spell, selectedCastSource, selectedStack)) {
+             var ignored = MithrilFreecastStaffCastContext.open(player.getUUID(), stack, spell, selectedCastSource)) {
             var casted = spell.attemptInitiateCast(
                     stack,
                     spellLevel,
@@ -240,8 +238,7 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
                     player.getUUID(),
                     stack,
                     spell,
-                    selectedCastSource,
-                    selectedStack
+                    selectedCastSource
             );
             TriggeredSpellCastHelper.applyLongCastDurationOverride(
                     player,
@@ -266,13 +263,12 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
     public int resolveSwingTriggeredCooldownTicks(
             Player player,
             AbstractSpell spell,
-            CastSource selectedCastSource,
-            ItemStack selectedStack
+            CastSource selectedCastSource
     ) {
         return resolveSwingTriggeredCooldownTicks(
                 player,
                 spell,
-                WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, selectedCastSource, selectedStack)
+                WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, selectedCastSource)
         );
     }
 
