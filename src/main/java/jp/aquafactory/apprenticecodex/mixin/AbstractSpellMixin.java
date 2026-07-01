@@ -147,13 +147,16 @@ public abstract class AbstractSpellMixin {
                 cancelled
         );
 
-        var castingItem = playerMagicData.getPlayerCastingItem();
         //noinspection DataFlowIssue
-        MithrilFreecastStaffCastContext.clearPendingCooldownSource(
-                serverPlayer.getUUID(),
-                castingItem,
-                (AbstractSpell) (Object) this
-        );
+        var spell = (AbstractSpell) (Object) this;
+        var castingItem = playerMagicData.getPlayerCastingItem();
+        if (cancelled || !playerMagicData.getPlayerRecasts().hasRecastForSpell(spell)) {
+            MithrilFreecastStaffCastContext.clearPendingCooldownSource(
+                    serverPlayer.getUUID(),
+                    castingItem,
+                    spell
+            );
+        }
         if (castingItem.getItem() instanceof FocusStaffbow focusStaffbow) {
             focusStaffbow.triggerCastCompletionAnimation(serverPlayer, castingItem, cancelled);
         }
