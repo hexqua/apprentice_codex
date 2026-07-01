@@ -29,8 +29,10 @@ import jp.aquafactory.apprenticecodex.utility.SpellSelectionStackResolver;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.common.MinecraftForge;
 
 final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private SpellCalibrationEquipmentGameTestScenarios() {
@@ -480,6 +482,62 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                 var expectedCooldown = spellbookBaseCooldown + heal.getEffectiveCastTime(1, player);
                 helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
                         "Mithril Freecast Staff should use selected SPELLBOOK cooldown plus long cast time but got "
+                                + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+            }
+
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            var harvestMoon = SpellRegistry.HARVEST_MOON.get();
+            magicData.setPlayerCastingItem(staff.copy());
+            try (var ignored = MithrilFreecastStaffCastContext.open(
+                    player.getUUID(),
+                    staff,
+                    harvestMoon,
+                    CastSource.SPELLBOOK,
+                    ItemStack.EMPTY
+            )) {
+                var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                        MagicManager.getEffectiveSpellCooldown(harvestMoon, player, CastSource.SWORD),
+                        harvestMoon,
+                        player,
+                        CastSource.SWORD
+                );
+                MinecraftForge.EVENT_BUS.post(cooldownEvent);
+                var expectedCooldown = staffItem.resolveSwingTriggeredCooldownTicks(
+                        player,
+                        harvestMoon,
+                        CastSource.SPELLBOOK,
+                        ItemStack.EMPTY
+                );
+                helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
+                        "Mithril Freecast Staff should keep CraftsmansDelight on the selected SPELLBOOK cooldown but got "
+                                + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+            }
+
+            player.setItemSlot(EquipmentSlot.FEET, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()));
+            var thermalProcess = SpellRegistry.THERMAL_PROCESS.get();
+            magicData.setPlayerCastingItem(staff.copy());
+            try (var ignored = MithrilFreecastStaffCastContext.open(
+                    player.getUUID(),
+                    staff,
+                    thermalProcess,
+                    CastSource.SPELLBOOK,
+                    ItemStack.EMPTY
+            )) {
+                var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                        MagicManager.getEffectiveSpellCooldown(thermalProcess, player, CastSource.SWORD),
+                        thermalProcess,
+                        player,
+                        CastSource.SWORD
+                );
+                MinecraftForge.EVENT_BUS.post(cooldownEvent);
+                var expectedCooldown = staffItem.resolveSwingTriggeredCooldownTicks(
+                        player,
+                        thermalProcess,
+                        CastSource.SPELLBOOK,
+                        ItemStack.EMPTY
+                );
+                helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
+                        "Mithril Freecast Staff should keep Thermal Process on the selected SPELLBOOK cooldown with Magi boots and CraftsmansDelight but got "
                                 + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
             }
 

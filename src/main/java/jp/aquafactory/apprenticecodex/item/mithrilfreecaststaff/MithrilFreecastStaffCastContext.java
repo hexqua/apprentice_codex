@@ -14,6 +14,7 @@ import java.util.UUID;
 
 public final class MithrilFreecastStaffCastContext implements AutoCloseable {
     private static final Map<Key, Entry> PENDING_COOLDOWN_SOURCES = new HashMap<>();
+    private static final Map<Key, Entry> RESOLVED_COOLDOWN_SOURCES = new HashMap<>();
 
     @Nullable
     private static Entry activeEntry;
@@ -57,14 +58,36 @@ public final class MithrilFreecastStaffCastContext implements AutoCloseable {
 
         entry = PENDING_COOLDOWN_SOURCES.remove(key);
         if (entry != null) {
+            RESOLVED_COOLDOWN_SOURCES.put(key, entry);
             return Optional.of(entry.toCooldownSource());
         }
 
         return Optional.empty();
     }
 
+    public static Optional<CooldownSource> resolveCooldownSource(UUID playerId, ItemStack stack, AbstractSpell spell) {
+        var key = Key.of(playerId, stack, spell);
+        var entry = activeEntry;
+        if (entry != null && entry.key().equals(key)) {
+            return Optional.of(entry.toCooldownSource());
+        }
+
+        entry = PENDING_COOLDOWN_SOURCES.get(key);
+        if (entry != null) {
+            return Optional.of(entry.toCooldownSource());
+        }
+
+        entry = RESOLVED_COOLDOWN_SOURCES.get(key);
+        return entry == null ? Optional.empty() : Optional.of(entry.toCooldownSource());
+    }
+
+    public static void clearResolvedCooldownSource(UUID playerId, ItemStack stack, AbstractSpell spell) {
+        RESOLVED_COOLDOWN_SOURCES.remove(Key.of(playerId, stack, spell));
+    }
+
     public static void clearPendingCooldownSource(UUID playerId, ItemStack stack, AbstractSpell spell) {
         PENDING_COOLDOWN_SOURCES.remove(Key.of(playerId, stack, spell));
+        clearResolvedCooldownSource(playerId, stack, spell);
     }
 
     @Override
