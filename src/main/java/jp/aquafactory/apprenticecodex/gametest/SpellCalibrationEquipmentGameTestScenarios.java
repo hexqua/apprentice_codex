@@ -519,6 +519,49 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                             + " / expected " + expectedBoundBowCooldown
             );
 
+            var spellbookMagicMissileCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    magicMissile,
+                    player,
+                    CastSource.SPELLBOOK
+            );
+            helper.assertTrue(spellbookMagicMissileCooldown != normalSwordCooldown,
+                    "Mithril Freecast Staff stale pending test needs SPELLBOOK and SWORD cooldowns to differ");
+            try (var ignored = MithrilFreecastStaffCastContext.open(
+                    player.getUUID(),
+                    staff,
+                    magicMissile,
+                    CastSource.SPELLBOOK
+            )) {
+                var immediateCooldownEvent = new SpellCooldownAddedEvent.Pre(
+                        normalSwordCooldown,
+                        magicMissile,
+                        player,
+                        CastSource.SWORD
+                );
+                magicData.setPlayerCastingItem(staff.copy());
+                MithrilFreecastStaffCastEvent.onSpellCooldownAdded(immediateCooldownEvent);
+                helper.assertTrue(immediateCooldownEvent.getEffectiveCooldown() == spellbookMagicMissileCooldown,
+                        "Mithril Freecast Staff should apply selected SPELLBOOK cooldown immediately but got "
+                                + immediateCooldownEvent.getEffectiveCooldown() + " / expected " + spellbookMagicMissileCooldown);
+                MithrilFreecastStaffCastContext.retainUntilCooldown(
+                        player.getUUID(),
+                        staff,
+                        magicMissile,
+                        CastSource.SPELLBOOK
+                );
+            }
+            var stalePendingCooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    normalSwordCooldown,
+                    magicMissile,
+                    player,
+                    CastSource.SWORD
+            );
+            magicData.setPlayerCastingItem(staff.copy());
+            MithrilFreecastStaffCastEvent.onSpellCooldownAdded(stalePendingCooldownEvent);
+            helper.assertTrue(stalePendingCooldownEvent.getEffectiveCooldown() == normalSwordCooldown,
+                    "Mithril Freecast Staff should not retain stale selected source after instant cooldown but got "
+                            + stalePendingCooldownEvent.getEffectiveCooldown() + " / expected " + normalSwordCooldown);
+
             equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
             var harvestMoon = SpellRegistry.HARVEST_MOON.get();
             magicData.setPlayerCastingItem(staff.copy());
