@@ -69,7 +69,6 @@
     "ItemRendererBoundWeaponGlintMixin",
     "ItemRendererClientItemRenderContextMixin",
     "QuickCastPacketAccessor",
-    "RenderBuffersBoundSwordGlintMixin",
     "TooltipsUtilsMixin"
   ],
   "injectors": {

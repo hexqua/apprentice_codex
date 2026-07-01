@@ -773,7 +773,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertTrue(selection != null && selection.spellData.getSpell() == magicMissile,
                     "Mithril Freecast Staff cooldown test should resolve the selected offhand spell");
             var selectedStack = SpellSelectionStackResolver.resolveSelectionStack(player, selection.slot);
-            helper.assertTrue(ItemStack.isSameItemSameTags(selectedStack, gauntlet),
+            helper.assertTrue(ItemStack.isSameItemSameComponents(selectedStack, gauntlet),
                     "Mithril Freecast Staff cooldown test should resolve the selected offhand source stack");
             magicData.setPlayerCastingItem(staff.copy());
             try (var ignored = MithrilFreecastStaffCastContext.open(
@@ -822,7 +822,8 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
 
             var grimoire = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
             ArchivistsGrimoire.setUpgradeCount(grimoire, 1);
-            new ArchivistsGrimoire.ScrollInventory(grimoire).setStackInSlot(0, createSpellScroll(SpellRegistry.BOUND_BOW.get()));
+            new ArchivistsGrimoire.ScrollInventory(grimoire, helper.getLevel().registryAccess())
+                    .setStackInSlot(0, createSpellScroll(SpellRegistry.BOUND_BOW.get()));
             equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT, grimoire);
             magicData.getSyncedData().setSpellSelection(new SpellSelection(
                     io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
@@ -863,7 +864,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     player,
                     CastSource.SWORD
             );
-            MinecraftForge.EVENT_BUS.post(retainedRecastCooldownEvent);
+            NeoForge.EVENT_BUS.post(retainedRecastCooldownEvent);
             helper.assertTrue(retainedRecastCooldownEvent.getEffectiveCooldown() == expectedBoundBowCooldown,
                     "Mithril Freecast Staff should consume retained recast cooldown source without relying on current casting item but got "
                             + retainedRecastCooldownEvent.getEffectiveCooldown()
@@ -999,7 +1000,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                         player,
                         CastSource.SWORD
                 );
-                MinecraftForge.EVENT_BUS.post(cooldownEvent);
+                NeoForge.EVENT_BUS.post(cooldownEvent);
                 var expectedCooldown = staffItem.resolveSwingTriggeredCooldownTicks(
                         player,
                         artisanSmash,

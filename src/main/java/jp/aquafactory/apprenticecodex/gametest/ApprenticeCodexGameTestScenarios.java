@@ -2951,7 +2951,7 @@ public class ApprenticeCodexGameTestScenarios {
                         player,
                         CastSource.SWORD
                 );
-                MinecraftForge.EVENT_BUS.post(freecastEvent);
+                NeoForge.EVENT_BUS.post(freecastEvent);
                 var expectedCooldown = gauntletItem.resolveFreecastSwingCooldownTicks(
                         player,
                         gauntlet,
@@ -2979,7 +2979,7 @@ public class ApprenticeCodexGameTestScenarios {
                         player,
                         CastSource.SWORD
                 );
-                MinecraftForge.EVENT_BUS.post(freecastEvent);
+                NeoForge.EVENT_BUS.post(freecastEvent);
                 var expectedCooldown = gauntletItem.resolveFreecastSwingCooldownTicks(
                         player,
                         gauntlet,
