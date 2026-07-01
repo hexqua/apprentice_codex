@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.RecastCooldownPolicyContext;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
 import net.minecraft.server.level.ServerPlayer;
@@ -10,6 +11,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+
+import java.util.Optional;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class CraftsmansDelightCooldownReductionEvent {
@@ -31,17 +34,21 @@ public final class CraftsmansDelightCooldownReductionEvent {
         // GUI プレビュー系は entity == null で魔法情報を読むことがあるため、実際にクールダウンを付与する経路だけで反映する。
         var magicData = MagicData.getPlayerMagicData(player);
         var castingItem = magicData == null ? ItemStack.EMPTY : magicData.getPlayerCastingItem();
-        var cooldownSource = MithrilFreecastStaffCastContext.resolveCooldownSource(
-                player.getUUID(),
-                castingItem,
-                event.getSpell()
-        );
+        var completingRecast = RecastCooldownPolicyContext.isCompletingRecast(player, event.getSpell());
+        var cooldownSource = completingRecast
+                ? Optional.<MithrilFreecastStaffCastContext.CooldownSource>empty()
+                : MithrilFreecastStaffCastContext.resolveCooldownSource(
+                        player.getUUID(),
+                        castingItem,
+                        event.getSpell()
+                );
         var castSource = cooldownSource
                 .map(MithrilFreecastStaffCastContext.CooldownSource::castSource)
                 .orElse(event.getCastSource());
         var cooldownStack = cooldownSource
                 .map(MithrilFreecastStaffCastContext.CooldownSource::stack)
-                .orElse(castingItem);
+                .orElse(completingRecast ? ItemStack.EMPTY : castingItem);
+        // Recast 完了時は ItemStack policy を意図的に読まないが、CraftsmansDelight 自体の短縮は維持する。
         event.setEffectiveCooldown(WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                 event.getSpell(),
                 player,

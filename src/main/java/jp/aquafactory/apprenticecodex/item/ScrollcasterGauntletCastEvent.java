@@ -25,6 +25,12 @@ public final class ScrollcasterGauntletCastEvent {
             return;
         }
 
+        if (RecastCooldownPolicyContext.isCompletingRecast(player, event.getSpell())) {
+            // Iron's の Recast は CastSource だけを保持し、発動元 ItemStack の policy を保持しない。
+            // 装備切替やタイムアウトで結果が揺れないよう、Recast 完了時は意図的に policy を読まない。
+            return;
+        }
+
         var castingItem = magicData.getPlayerCastingItem();
         if (!(castingItem.getItem() instanceof ScrollcasterGauntlet gauntlet)) {
             return;
