@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.mixin;
 import io.redspace.ironsspellbooks.capabilities.magic.PlayerRecasts;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
-import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
+import jp.aquafactory.apprenticecodex.item.RecastCooldownPolicyContext;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
@@ -51,19 +51,34 @@ public abstract class PlayerRecastsMixin {
     }
 
     @Inject(
-            method = "removeRecast(Lio/redspace/ironsspellbooks/capabilities/magic/RecastInstance;Lio/redspace/ironsspellbooks/capabilities/magic/RecastResult;Z)V",
-            at = @At("RETURN")
+            method = "triggerRecastComplete(Lio/redspace/ironsspellbooks/capabilities/magic/RecastInstance;Lio/redspace/ironsspellbooks/capabilities/magic/RecastResult;)V",
+            at = @At("HEAD")
     )
-    private void apprenticecodex$clearMithrilFreecastRecastCooldownSource(
+    private void apprenticecodex$beginRecastCooldownPolicyBypass(
             RecastInstance recastInstance,
             RecastResult recastResult,
-            boolean doSync,
             CallbackInfo ci
     ) {
         if (serverPlayer == null) {
             return;
         }
 
-        MithrilFreecastStaffCastContext.clearPendingCooldownSource(serverPlayer.getUUID(), recastInstance.getSpellId());
+        RecastCooldownPolicyContext.begin(serverPlayer, recastInstance);
+    }
+
+    @Inject(
+            method = "triggerRecastComplete(Lio/redspace/ironsspellbooks/capabilities/magic/RecastInstance;Lio/redspace/ironsspellbooks/capabilities/magic/RecastResult;)V",
+            at = @At("RETURN")
+    )
+    private void apprenticecodex$endRecastCooldownPolicyBypass(
+            RecastInstance recastInstance,
+            RecastResult recastResult,
+            CallbackInfo ci
+    ) {
+        if (serverPlayer == null) {
+            return;
+        }
+
+        RecastCooldownPolicyContext.end(serverPlayer, recastInstance);
     }
 }

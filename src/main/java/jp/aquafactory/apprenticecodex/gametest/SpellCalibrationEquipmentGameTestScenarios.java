@@ -215,6 +215,8 @@ import jp.aquafactory.apprenticecodex.utility.ProcessingRecipeDenylist;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RightClickSpellResolver;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
+import jp.aquafactory.apprenticecodex.spell.boundbow.BoundBow;
+import jp.aquafactory.apprenticecodex.spell.boundbow.BoundBowManager;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import jp.aquafactory.apprenticecodex.utility.SpellSelectionStackResolver;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
@@ -837,11 +839,10 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertTrue(boundBowRecast != null,
                     "Mithril Freecast Staff silver-ring Bound Bow should create a recast before cooldown");
             magicData.getPlayerRecasts().removeRecast(boundBowRecast, RecastResult.USED_ALL_RECASTS);
-            var expectedBoundBowCooldown = staffItem.resolveSwingTriggeredCooldownTicks(
-                    player,
+            var expectedBoundBowCooldown = MagicManager.getEffectiveSpellCooldown(
                     SpellRegistry.BOUND_BOW.get(),
-                    CastSource.SPELLBOOK,
-                    grimoire
+                    player,
+                    CastSource.SWORD
             );
             var actualBoundBowCooldown = magicData.getPlayerCooldowns()
                     .getSpellCooldowns()
@@ -849,7 +850,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertTrue(
                     actualBoundBowCooldown != null
                             && actualBoundBowCooldown.getCooldownRemaining() == expectedBoundBowCooldown,
-                    "Mithril Freecast Staff should keep the selected SPELLBOOK source until Bound Bow recast cooldown but got "
+                    "Mithril Freecast Staff should not keep the selected source policy for Bound Bow recast cooldown but got "
                             + (actualBoundBowCooldown == null ? "none" : actualBoundBowCooldown.getCooldownRemaining())
                             + " / expected " + expectedBoundBowCooldown
             );
@@ -923,6 +924,70 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertTrue(delayedCooldownEvent.getEffectiveCooldown() == selectedPolicyCooldown,
                     "Mithril Freecast Staff should keep the selected source policy until delayed cooldown but got "
                             + delayedCooldownEvent.getEffectiveCooldown() + " / expected " + selectedPolicyCooldown);
+        });
+    }
+
+    static void scrollcasterGauntletRecastCooldownDoesNotUsePolicy(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "scrollcaster_recast_policy_bypass_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null,
+                    "Scrollcaster Gauntlet recast cooldown test could not resolve player magic data");
+            magicData.setMana(1000.0F);
+
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var boundBow = (BoundBow) SpellRegistry.BOUND_BOW.get();
+            ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(boundBow));
+            ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
+            player.setItemInHand(InteractionHand.MAIN_HAND, gauntlet);
+            magicData.setPlayerCastingItem(gauntlet.copy());
+
+            var normalSwordCooldown = MagicManager.getEffectiveSpellCooldown(boundBow, player, CastSource.SWORD);
+            var selectedPolicyCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    boundBow,
+                    player,
+                    CastSource.SWORD,
+                    gauntlet
+            );
+            helper.assertTrue(selectedPolicyCooldown > normalSwordCooldown,
+                    "Scrollcaster Gauntlet policy should visibly remove the SWORD cooldown multiplier: "
+                            + selectedPolicyCooldown + " / sword " + normalSwordCooldown);
+
+            BoundBowManager.activate(
+                    player,
+                    1,
+                    CastSource.SWORD,
+                    magicData,
+                    boundBow,
+                    1
+            );
+            var boundBowRecast = magicData.getPlayerRecasts().getRecastInstance(boundBow.getSpellId());
+            helper.assertTrue(boundBowRecast != null,
+                    "Scrollcaster Gauntlet recast cooldown test should create a Bound Bow recast");
+
+            magicData.getPlayerRecasts().removeRecast(boundBowRecast, RecastResult.USED_ALL_RECASTS);
+            var actualBoundBowCooldown = magicData.getPlayerCooldowns()
+                    .getSpellCooldowns()
+                    .get(boundBow.getSpellId());
+            helper.assertTrue(
+                    actualBoundBowCooldown != null
+                            && actualBoundBowCooldown.getCooldownRemaining() == normalSwordCooldown,
+                    "Scrollcaster Gauntlet should not apply its policy to recast cooldown but got "
+                            + (actualBoundBowCooldown == null ? "none" : actualBoundBowCooldown.getCooldownRemaining())
+                            + " / expected " + normalSwordCooldown
+            );
+
+            var previewEvent = new SpellCooldownAddedEvent.Pre(
+                    normalSwordCooldown,
+                    boundBow,
+                    player,
+                    CastSource.SWORD
+            );
+            ScrollcasterGauntletCastEvent.onSpellCooldownAdded(previewEvent);
+            helper.assertTrue(previewEvent.getEffectiveCooldown() == selectedPolicyCooldown,
+                    "Scrollcaster Gauntlet should still apply its policy outside recast completion but got "
+                            + previewEvent.getEffectiveCooldown() + " / expected " + selectedPolicyCooldown);
         });
     }
 }

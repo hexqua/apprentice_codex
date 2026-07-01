@@ -1557,6 +1557,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void scrollcasterGauntletRecastCooldownDoesNotUsePolicy(GameTestHelper helper) {
+        SpellCalibrationEquipmentGameTestScenarios.scrollcasterGauntletRecastCooldownDoesNotUsePolicy(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowManaErrorUsesIronsSpellbooksTranslationKey(GameTestHelper helper) {
         ElementalBowGameTestScenarios.elementalBowManaErrorUsesIronsSpellbooksTranslationKey(helper);
     }
