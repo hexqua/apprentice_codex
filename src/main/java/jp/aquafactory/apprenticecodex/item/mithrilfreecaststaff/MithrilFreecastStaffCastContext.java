@@ -90,6 +90,11 @@ public final class MithrilFreecastStaffCastContext implements AutoCloseable {
         clearResolvedCooldownSource(playerId, stack, spell);
     }
 
+    public static void clearPendingCooldownSource(UUID playerId, String spellId) {
+        PENDING_COOLDOWN_SOURCES.entrySet().removeIf(entry -> entry.getKey().matches(playerId, spellId));
+        RESOLVED_COOLDOWN_SOURCES.entrySet().removeIf(entry -> entry.getKey().matches(playerId, spellId));
+    }
+
     @Override
     public void close() {
         if (Objects.equals(activeEntry, entry)) {
@@ -123,6 +128,10 @@ public final class MithrilFreecastStaffCastContext implements AutoCloseable {
     private record Key(UUID playerId, Item item, String spellId) {
         private static Key of(UUID playerId, ItemStack stack, AbstractSpell spell) {
             return new Key(playerId, stack.getItem(), spell.getSpellId());
+        }
+
+        private boolean matches(UUID playerId, String spellId) {
+            return this.playerId.equals(playerId) && this.spellId.equals(spellId);
         }
     }
 }
