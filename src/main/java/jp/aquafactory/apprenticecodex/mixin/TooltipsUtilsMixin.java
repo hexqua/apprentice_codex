@@ -3,7 +3,6 @@ package jp.aquafactory.apprenticecodex.mixin;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
-import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import io.redspace.ironsspellbooks.util.TooltipsUtils;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import net.minecraft.client.player.LocalPlayer;
@@ -31,6 +30,6 @@ public abstract class TooltipsUtilsMixin {
             CastSource tooltipCastSource,
             LocalPlayer localPlayer
     ) {
-        return WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, castSource, stack);
+        return WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, castSource);
     }
 }

@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowStartSoundContext;
+import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffCastHelper;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
 import net.minecraft.server.level.ServerPlayer;
@@ -146,7 +147,16 @@ public abstract class AbstractSpellMixin {
                 cancelled
         );
 
+        //noinspection DataFlowIssue
+        var spell = (AbstractSpell) (Object) this;
         var castingItem = playerMagicData.getPlayerCastingItem();
+        if (cancelled || !playerMagicData.getPlayerRecasts().hasRecastForSpell(spell)) {
+            MithrilFreecastStaffCastContext.clearPendingCooldownSource(
+                    serverPlayer.getUUID(),
+                    castingItem,
+                    spell
+            );
+        }
         if (castingItem.getItem() instanceof FocusStaffbow focusStaffbow) {
             focusStaffbow.triggerCastCompletionAnimation(serverPlayer, castingItem, cancelled);
         }

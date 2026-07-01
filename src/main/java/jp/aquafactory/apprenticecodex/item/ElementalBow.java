@@ -70,7 +70,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 
 public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContainer, ArcaneAnvilImbueBlockItem,
-        WeaponImbueCooldownPolicyItem, IJeiInfoItem {
+        IJeiInfoItem {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.elemental_bow.desc_";
 
     public static final int READY_DRAW_TICKS = 20;
@@ -275,16 +275,6 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         return 10;
     }
 
-    @Override
-    public boolean ignoresWeaponImbueCooldownMultiplier(ItemStack stack, @Nullable AbstractSpell spell, CastSource castSource) {
-        // Elemental Bow の属性ショットは overheat と tooltip を独自管理しているため、
-        // 剣 Imbue 用倍率まで掛けると実時間表示と調整意図の両方がずれる。
-        return castSource == CastSource.SWORD
-                && getConfiguredSchoolId(stack) != null
-                && isElementalSpell(spell);
-    }
-
-    @Override
     public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         initializeSpellContainer(stack);
         super.appendHoverText(stack, context, lines, flag);

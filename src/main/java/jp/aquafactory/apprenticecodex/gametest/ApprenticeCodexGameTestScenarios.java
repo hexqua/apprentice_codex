@@ -2803,8 +2803,7 @@ public class ApprenticeCodexGameTestScenarios {
             var expectedCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     heal,
                     player,
-                    CastSource.SWORD,
-                    gauntlet
+                    CastSource.SWORD
             );
             var cooldownEvent = new SpellCooldownAddedEvent.Pre(
                     io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(heal, player, CastSource.SWORD),
@@ -2910,8 +2909,7 @@ public class ApprenticeCodexGameTestScenarios {
             var baseCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     heal,
                     player,
-                    CastSource.SWORD,
-                    gauntlet
+                    CastSource.SWORD
             );
             var normalEvent = new SpellCooldownAddedEvent.Pre(
                     io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(heal, player, CastSource.SWORD),
@@ -2921,7 +2919,7 @@ public class ApprenticeCodexGameTestScenarios {
             );
             ScrollcasterGauntletCastEvent.onSpellCooldownAdded(normalEvent);
             helper.assertTrue(normalEvent.getEffectiveCooldown() == baseCooldown,
-                    "Normal Scrollcaster Gauntlet casts should keep the base gauntlet cooldown");
+                    "Normal Scrollcaster Gauntlet casts should keep the base sword cooldown");
 
             try (var ignored = ScrollcasterGauntletFreecastContext.open(player.getUUID(), gauntlet, heal)) {
                 var freecastEvent = new SpellCooldownAddedEvent.Pre(
@@ -2934,6 +2932,62 @@ public class ApprenticeCodexGameTestScenarios {
                 var expectedCooldown = baseCooldown + heal.getEffectiveCastTime(1, player);
                 helper.assertTrue(freecastEvent.getEffectiveCooldown() == expectedCooldown,
                         "Scrollcaster Gauntlet freecast should extend long spell cooldown by cast time but got "
+                                + freecastEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+            }
+
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            var thermalProcess = SpellRegistry.THERMAL_PROCESS.get();
+            ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(thermalProcess));
+            magicData.setPlayerCastingItem(gauntlet.copy());
+            var craftsmansBaseCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    thermalProcess,
+                    player,
+                    CastSource.SWORD
+            );
+            try (var ignored = ScrollcasterGauntletFreecastContext.open(player.getUUID(), gauntlet, thermalProcess)) {
+                var freecastEvent = new SpellCooldownAddedEvent.Pre(
+                        io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(thermalProcess, player, CastSource.SWORD),
+                        thermalProcess,
+                        player,
+                        CastSource.SWORD
+                );
+                NeoForge.EVENT_BUS.post(freecastEvent);
+                var expectedCooldown = gauntletItem.resolveFreecastSwingCooldownTicks(
+                        player,
+                        gauntlet,
+                        thermalProcess,
+                        craftsmansBaseCooldown
+                );
+                helper.assertTrue(freecastEvent.getEffectiveCooldown() == expectedCooldown,
+                        "Scrollcaster Gauntlet freecast should keep CraftsmansDelight cooldown and long cast time but got "
+                                + freecastEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+            }
+
+            player.setItemSlot(EquipmentSlot.FEET, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()));
+            var artisanSmash = SpellRegistry.ARTISAN_SMASH.get();
+            ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(artisanSmash));
+            magicData.setPlayerCastingItem(gauntlet.copy());
+            var artisanBaseCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    artisanSmash,
+                    player,
+                    CastSource.SWORD
+            );
+            try (var ignored = ScrollcasterGauntletFreecastContext.open(player.getUUID(), gauntlet, artisanSmash)) {
+                var freecastEvent = new SpellCooldownAddedEvent.Pre(
+                        io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(artisanSmash, player, CastSource.SWORD),
+                        artisanSmash,
+                        player,
+                        CastSource.SWORD
+                );
+                NeoForge.EVENT_BUS.post(freecastEvent);
+                var expectedCooldown = gauntletItem.resolveFreecastSwingCooldownTicks(
+                        player,
+                        gauntlet,
+                        artisanSmash,
+                        artisanBaseCooldown
+                );
+                helper.assertTrue(freecastEvent.getEffectiveCooldown() == expectedCooldown,
+                        "Scrollcaster Gauntlet freecast should not re-reduce Magi boots cooldown after adding long cast time but got "
                                 + freecastEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
             }
         });

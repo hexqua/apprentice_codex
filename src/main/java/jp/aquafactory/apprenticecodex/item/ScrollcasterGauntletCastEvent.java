@@ -30,20 +30,20 @@ public final class ScrollcasterGauntletCastEvent {
             return;
         }
 
+        if (!ScrollcasterGauntletFreecastContext.matches(player.getUUID(), castingItem, event.getSpell())) {
+            return;
+        }
+
         var effectiveCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                 event.getSpell(),
                 player,
-                event.getCastSource(),
-                castingItem
+                event.getCastSource()
         );
-        if (ScrollcasterGauntletFreecastContext.matches(player.getUUID(), castingItem, event.getSpell())) {
-            effectiveCooldown = gauntlet.resolveFreecastSwingCooldownTicks(
-                    player,
-                    castingItem,
-                    event.getSpell(),
-                    effectiveCooldown
-            );
-        }
-        event.setEffectiveCooldown(effectiveCooldown);
+        event.setEffectiveCooldown(gauntlet.resolveFreecastSwingCooldownTicks(
+                player,
+                castingItem,
+                event.getSpell(),
+                effectiveCooldown
+        ));
     }
 }

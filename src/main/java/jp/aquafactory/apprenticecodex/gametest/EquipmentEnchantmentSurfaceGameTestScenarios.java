@@ -1824,39 +1824,6 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     "Element Maiden Robe chestplate should initialize Divine Possession as its imbue spell");
             var ballLightning = io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get();
             ISpellContainer.createImbuedContainer(ballLightning, 1, chestStack);
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
-                    "element_maiden_robe_cooldown_policy_test");
-            player.setItemSlot(EquipmentSlot.CHEST, chestStack);
-            var stackCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
-                    ballLightning,
-                    player,
-                    CastSource.SWORD,
-                    chestStack
-            );
-            var slotCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
-                    ballLightning,
-                    player,
-                    CastSource.SWORD,
-                    EquipmentSlot.CHEST.getName()
-            );
-            helper.assertTrue(slotCooldown == stackCooldown,
-                    "Element Maiden Robe spell wheel cooldown should resolve the chest slot stack: "
-                            + slotCooldown + " / expected " + stackCooldown);
-
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null,
-                    "Element Maiden Robe cooldown event test could not resolve player magic data");
-            magicData.setPlayerCastingItem(chestStack.copy());
-            var cooldownEvent = new SpellCooldownAddedEvent.Pre(
-                    MagicManager.getEffectiveSpellCooldown(ballLightning, player, CastSource.SWORD),
-                    ballLightning,
-                    player,
-                    CastSource.SWORD
-            );
-            jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownEvents.onSpellCooldownAdded(cooldownEvent);
-            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == stackCooldown,
-                    "Element Maiden Robe cooldown event should ignore the weapon imbue multiplier: "
-                            + cooldownEvent.getEffectiveCooldown() + " / expected " + stackCooldown);
 
             var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             chestStack.enchant(enchantmentLookup.getOrThrow(Enchantments.SURGE), 1);

@@ -1188,8 +1188,7 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
                     "RemoteOwner-only CONTINUOUS impact cast should keep Fire Breath owned by a Remote Owner anchor");
         });
     }
-
-    static void chargedTwinBladeStaffContinuousThrowableCardUsesCardCooldownPolicy(GameTestHelper helper) {
+    static void chargedTwinBladeStaffContinuousThrowableCardUsesWeaponImbueCooldown(GameTestHelper helper) {
         var level = (ServerLevel) helper.getLevel();
         var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_card_continuous_cooldown_test");
         var magicData = MagicData.getPlayerMagicData(player);
@@ -1205,21 +1204,19 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
                 AbstractSpellThrowableCardItem.CASTING_SLOT
         );
 
-        var cardPolicyCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+        var weaponImbueCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                 spell,
                 player,
-                CastSource.SWORD,
-                cardStack
+                CastSource.SWORD
         );
-        var emptyStackCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+        var spellbookCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                 spell,
                 player,
-                CastSource.SWORD,
-                ItemStack.EMPTY
+                CastSource.SPELLBOOK
         );
-        helper.assertTrue(cardPolicyCooldown > emptyStackCooldown,
-                "Throwable Card cooldown regression needs a visible policy difference: "
-                        + cardPolicyCooldown + " / empty " + emptyStackCooldown);
+        helper.assertTrue(spellbookCooldown > weaponImbueCooldown,
+                "Throwable Card cooldown regression needs a visible Weapon Imbue reduction: "
+                        + spellbookCooldown + " / weapon " + weaponImbueCooldown);
 
         helper.runAtTickTime(1, () -> helper.assertTrue(
                 jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
@@ -1233,12 +1230,12 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
             helper.assertTrue(cooldown != null,
                     "Throwable Card CONTINUOUS impact cast has not finished its cooldown yet");
             var remainingCooldown = cooldown.getCooldownRemaining();
-            helper.assertTrue(remainingCooldown > emptyStackCooldown,
-                    "Throwable Card CONTINUOUS cooldown used the empty-stack weapon imbue policy: "
-                            + remainingCooldown + " / empty " + emptyStackCooldown);
-            helper.assertTrue(remainingCooldown <= cardPolicyCooldown,
-                    "Throwable Card CONTINUOUS cooldown exceeded the card policy cooldown: "
-                            + remainingCooldown + " / card " + cardPolicyCooldown);
+            helper.assertTrue(remainingCooldown <= weaponImbueCooldown,
+                    "Throwable Card CONTINUOUS cooldown did not use the Weapon Imbue reduction: "
+                            + remainingCooldown + " / weapon " + weaponImbueCooldown);
+            helper.assertTrue(remainingCooldown < spellbookCooldown,
+                    "Throwable Card CONTINUOUS cooldown matched the non-Weapon-Imbue spellbook cooldown: "
+                            + remainingCooldown + " / spellbook " + spellbookCooldown);
         });
     }
 

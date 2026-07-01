@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.item.UpgradeData;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
@@ -18,12 +19,14 @@ import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import io.redspace.ironsspellbooks.effect.MagicMobEffect;
 import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectile;
 import io.redspace.ironsspellbooks.entity.spells.fireball.SmallMagicFireball;
 import io.redspace.ironsspellbooks.entity.spells.spectral_hammer.SpectralHammer;
 import io.redspace.ironsspellbooks.entity.spells.target_area.TargetedAreaEntity;
+import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
 import io.redspace.ironsspellbooks.spells.nature.TouchDigSpell;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -108,6 +111,7 @@ import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntletCastEvent;
+import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellListManager;
@@ -123,6 +127,8 @@ import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQ
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
+import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastEvent;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.spellthrowablecard.AbstractSpellThrowableCardItem;
@@ -209,7 +215,10 @@ import jp.aquafactory.apprenticecodex.utility.ProcessingRecipeDenylist;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RightClickSpellResolver;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
+import jp.aquafactory.apprenticecodex.spell.boundbow.BoundBow;
+import jp.aquafactory.apprenticecodex.spell.boundbow.BoundBowManager;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
+import jp.aquafactory.apprenticecodex.utility.SpellSelectionStackResolver;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -638,6 +647,33 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(externalSpellContainerStack, 0, magicMissileScroll),
                     "Calibration Bench server logic should reject generic external ISpellContainer items");
 
+            var invokeCard = (AbstractSpellThrowableCardItem) ItemRegistry.SPELL_INVOKE_CARD.get();
+            var imbuedInvokeCard = invokeCard.createArcaneAnvilImbueResult(
+                    new ItemStack(invokeCard),
+                    new SpellData(heal, 1)
+            );
+            var invokeCardMenu = createSpellCalibrationBenchMenuWithTarget(player, imbuedInvokeCard);
+            helper.assertFalse(SpellCalibrationImbueHelper.isSupportedTarget(imbuedInvokeCard),
+                    "Spell Invoke Card should not be supported for Calibration Bench extraction");
+            helper.assertTrue(SpellCalibrationImbueHelper.createScrollForSlot(imbuedInvokeCard, 0).isEmpty(),
+                    "Spell Invoke Card should not create a scroll through Calibration Bench extraction");
+            helper.assertTrue(invokeCardMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).remove(1).isEmpty(),
+                    "Spell Invoke Card should not allow scroll extraction from the Calibration Bench menu");
+            helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(imbuedInvokeCard, 0, magicMissileScroll),
+                    "Spell Invoke Card should not accept Calibration Bench scroll replacement");
+            assertStackHasSpell(helper, imbuedInvokeCard, heal, 1,
+                    "Blocked Calibration Bench extraction should keep the Spell Invoke Card spell");
+
+            var autonomyCard = (AbstractSpellThrowableCardItem) ItemRegistry.SPELL_AUTONOMY_CARD.get();
+            var imbuedAutonomyCard = autonomyCard.createArcaneAnvilImbueResult(
+                    new ItemStack(autonomyCard),
+                    new SpellData(heal, 1)
+            );
+            helper.assertTrue(SpellCalibrationImbueHelper.createScrollForSlot(imbuedAutonomyCard, 0).isEmpty(),
+                    "Spell Autonomy Card should not create a scroll through Calibration Bench extraction");
+            helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(imbuedAutonomyCard, 0, magicMissileScroll),
+                    "Spell Autonomy Card should not accept Calibration Bench scroll replacement");
+
             var illuminateStellarStaff = createInitializedPresetStack(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get());
             helper.assertFalse(unsupportedMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(illuminateStellarStaff),
                     "Calibration Bench should reject UniqueItem imbue targets");
@@ -695,6 +731,340 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
                     "Mithril Freecast Staff should reject Arcane Anvil spell imbuing"
             );
+        });
+    }
+
+    static void mithrilFreecastStaffCooldownUsesSelectedSource(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "mithril_freecast_selected_cooldown_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null,
+                    "Mithril Freecast Staff selected cooldown test could not resolve player magic data");
+            magicData.setMana(1000.0F);
+
+            var staff = new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
+            var staffItem = (MithrilFreecastStaff) staff.getItem();
+            staffItem.initializeSpellContainer(staff);
+            MithrilFreecastStaff.setCalibrationAdjustment(
+                    staff,
+                    0,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
+            );
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(magicMissile));
+            ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, staff);
+            player.setItemInHand(InteractionHand.OFF_HAND, gauntlet);
+            magicData.getSyncedData().setSpellSelection(new SpellSelection(SpellSelectionManager.OFFHAND, 0));
+
+            var normalSwordCooldown = MagicManager.getEffectiveSpellCooldown(magicMissile, player, CastSource.SWORD);
+            var selectedSourceCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    magicMissile,
+                    player,
+                    CastSource.SWORD
+            );
+            helper.assertTrue(selectedSourceCooldown == normalSwordCooldown,
+                    "Scrollcaster Gauntlet selected SWORD source should use the normal SWORD cooldown: "
+                            + selectedSourceCooldown + " / sword " + normalSwordCooldown);
+            var selection = new SpellSelectionManager(player).getSelection();
+            helper.assertTrue(selection != null && selection.spellData.getSpell() == magicMissile,
+                    "Mithril Freecast Staff cooldown test should resolve the selected offhand spell");
+            var selectedStack = SpellSelectionStackResolver.resolveSelectionStack(player, selection.slot);
+            helper.assertTrue(ItemStack.isSameItemSameComponents(selectedStack, gauntlet),
+                    "Mithril Freecast Staff cooldown test should resolve the selected offhand source stack");
+            magicData.setPlayerCastingItem(staff.copy());
+            try (var ignored = MithrilFreecastStaffCastContext.open(
+                    player.getUUID(),
+                    staff,
+                    magicMissile,
+                    selection.getCastSource()
+            )) {
+                var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                        normalSwordCooldown,
+                        magicMissile,
+                        player,
+                        CastSource.SWORD
+                );
+                MithrilFreecastStaffCastEvent.onSpellCooldownAdded(cooldownEvent);
+                helper.assertTrue(cooldownEvent.getEffectiveCooldown() == selectedSourceCooldown,
+                        "Mithril Freecast Staff should use the selected source cooldown but got "
+                                + cooldownEvent.getEffectiveCooldown() + " / expected " + selectedSourceCooldown);
+            }
+
+            var heal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+            magicData.setPlayerCastingItem(staff.copy());
+            var spellbookBaseCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    heal,
+                    player,
+                    CastSource.SPELLBOOK
+            );
+            try (var ignored = MithrilFreecastStaffCastContext.open(
+                    player.getUUID(),
+                    staff,
+                    heal,
+                    CastSource.SPELLBOOK
+            )) {
+                var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                        MagicManager.getEffectiveSpellCooldown(heal, player, CastSource.SWORD),
+                        heal,
+                        player,
+                        CastSource.SWORD
+                );
+                MithrilFreecastStaffCastEvent.onSpellCooldownAdded(cooldownEvent);
+                var expectedCooldown = spellbookBaseCooldown + heal.getEffectiveCastTime(1, player);
+                helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
+                        "Mithril Freecast Staff should use selected SPELLBOOK cooldown plus long cast time but got "
+                                + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+            }
+
+            var grimoire = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+            ArchivistsGrimoire.setUpgradeCount(grimoire, 1);
+            new ArchivistsGrimoire.ScrollInventory(grimoire, helper.getLevel().registryAccess())
+                    .setStackInSlot(0, createSpellScroll(SpellRegistry.BOUND_BOW.get()));
+            equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT, grimoire);
+            magicData.getSyncedData().setSpellSelection(new SpellSelection(
+                    io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
+                    0
+            ));
+            magicData.getPlayerCooldowns().removeCooldown(SpellRegistry.BOUND_BOW.get().getSpellId());
+            helper.assertTrue(staffItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
+                    "Mithril Freecast Staff should immediately trigger silver-ring Bound Bow from the spellbook slot");
+            var boundBowRecast = magicData.getPlayerRecasts().getRecastInstance(SpellRegistry.BOUND_BOW.get().getSpellId());
+            helper.assertTrue(boundBowRecast != null,
+                    "Mithril Freecast Staff silver-ring Bound Bow should create a recast before cooldown");
+            magicData.getPlayerRecasts().removeRecast(boundBowRecast, RecastResult.USED_ALL_RECASTS);
+            var expectedBoundBowCooldown = staffItem.resolveSwingTriggeredCooldownTicks(
+                    player,
+                    SpellRegistry.BOUND_BOW.get(),
+                    CastSource.SPELLBOOK
+            );
+            var actualBoundBowCooldown = magicData.getPlayerCooldowns()
+                    .getSpellCooldowns()
+                    .get(SpellRegistry.BOUND_BOW.get().getSpellId());
+            helper.assertTrue(
+                    actualBoundBowCooldown != null
+                            && actualBoundBowCooldown.getCooldownRemaining() == expectedBoundBowCooldown,
+                    "Mithril Freecast Staff should keep the selected source cooldown for Bound Bow recast cooldown but got "
+                            + (actualBoundBowCooldown == null ? "none" : actualBoundBowCooldown.getCooldownRemaining())
+                            + " / expected " + expectedBoundBowCooldown
+            );
+            MithrilFreecastStaffCastContext.retainUntilCooldown(
+                    player.getUUID(),
+                    staff,
+                    SpellRegistry.BOUND_BOW.get(),
+                    CastSource.SPELLBOOK
+            );
+            magicData.setPlayerCastingItem(grimoire.copy());
+            var retainedRecastCooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    MagicManager.getEffectiveSpellCooldown(SpellRegistry.BOUND_BOW.get(), player, CastSource.SWORD),
+                    SpellRegistry.BOUND_BOW.get(),
+                    player,
+                    CastSource.SWORD
+            );
+            NeoForge.EVENT_BUS.post(retainedRecastCooldownEvent);
+            helper.assertTrue(retainedRecastCooldownEvent.getEffectiveCooldown() == expectedBoundBowCooldown,
+                    "Mithril Freecast Staff should consume retained recast cooldown source without relying on current casting item but got "
+                            + retainedRecastCooldownEvent.getEffectiveCooldown()
+                            + " / expected " + expectedBoundBowCooldown);
+            helper.assertTrue(MithrilFreecastStaffCastContext.resolveCooldownSource(
+                    player.getUUID(),
+                    grimoire,
+                    SpellRegistry.BOUND_BOW.get()
+            ).isEmpty(), "Mithril Freecast Staff should clear resolved retained recast cooldown source");
+            MithrilFreecastStaffCastContext.retainUntilCooldown(
+                    player.getUUID(),
+                    staff,
+                    SpellRegistry.BOUND_BOW.get(),
+                    CastSource.SPELLBOOK
+            );
+            MithrilFreecastStaffCastContext.clearPendingCooldownSource(
+                    player.getUUID(),
+                    grimoire,
+                    SpellRegistry.BOUND_BOW.get()
+            );
+            helper.assertTrue(MithrilFreecastStaffCastContext.resolveCooldownSource(
+                    player.getUUID(),
+                    grimoire,
+                    SpellRegistry.BOUND_BOW.get()
+            ).isEmpty(), "Mithril Freecast Staff should clear retained pending cooldown source without relying on current casting item");
+            var timeoutPlayer = createEquipmentTestPlayer(helper, new BlockPos(2, 2, 0),
+                    "mithril_freecast_recast_timeout_cleanup_test");
+            var timeoutMagicData = MagicData.getPlayerMagicData(timeoutPlayer);
+            helper.assertTrue(timeoutMagicData != null,
+                    "Mithril Freecast Staff timeout cleanup test could not resolve player magic data");
+            var timeoutStaff = new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
+            MithrilFreecastStaffCastContext.retainUntilCooldown(
+                    timeoutPlayer.getUUID(),
+                    timeoutStaff,
+                    SpellRegistry.BOUND_BOW.get(),
+                    CastSource.SPELLBOOK
+            );
+            var timeoutBoundBowRecast = new RecastInstance(
+                    SpellRegistry.BOUND_BOW.get().getSpellId(),
+                    1,
+                    2,
+                    20,
+                    CastSource.SWORD,
+                    null
+            );
+            timeoutMagicData.getPlayerRecasts().forceAddRecast(timeoutBoundBowRecast);
+            timeoutMagicData.getPlayerRecasts().removeRecast(timeoutBoundBowRecast, RecastResult.TIMEOUT);
+            var swordBoundBowCooldown = MagicManager.getEffectiveSpellCooldown(SpellRegistry.BOUND_BOW.get(), timeoutPlayer, CastSource.SWORD);
+            var timeoutExpectedBoundBowCooldown = staffItem.resolveSwingTriggeredCooldownTicks(
+                    timeoutPlayer,
+                    SpellRegistry.BOUND_BOW.get(),
+                    CastSource.SPELLBOOK
+            );
+            helper.assertTrue(timeoutExpectedBoundBowCooldown != swordBoundBowCooldown,
+                    "Mithril Freecast Staff timeout cleanup test needs SPELLBOOK and SWORD cooldowns to differ");
+            timeoutMagicData.setPlayerCastingItem(new ItemStack(Items.STICK));
+            var staleTimeoutCooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    swordBoundBowCooldown,
+                    SpellRegistry.BOUND_BOW.get(),
+                    timeoutPlayer,
+                    CastSource.SWORD
+            );
+            NeoForge.EVENT_BUS.post(staleTimeoutCooldownEvent);
+            helper.assertTrue(staleTimeoutCooldownEvent.getEffectiveCooldown() == swordBoundBowCooldown,
+                    "Mithril Freecast Staff should clear retained source after recast timeout but got "
+                            + staleTimeoutCooldownEvent.getEffectiveCooldown() + " / expected " + swordBoundBowCooldown);
+
+            var spellbookMagicMissileCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    magicMissile,
+                    player,
+                    CastSource.SPELLBOOK
+            );
+            helper.assertTrue(spellbookMagicMissileCooldown != normalSwordCooldown,
+                    "Mithril Freecast Staff stale pending test needs SPELLBOOK and SWORD cooldowns to differ");
+            try (var ignored = MithrilFreecastStaffCastContext.open(
+                    player.getUUID(),
+                    staff,
+                    magicMissile,
+                    CastSource.SPELLBOOK
+            )) {
+                var immediateCooldownEvent = new SpellCooldownAddedEvent.Pre(
+                        normalSwordCooldown,
+                        magicMissile,
+                        player,
+                        CastSource.SWORD
+                );
+                magicData.setPlayerCastingItem(staff.copy());
+                MithrilFreecastStaffCastEvent.onSpellCooldownAdded(immediateCooldownEvent);
+                helper.assertTrue(immediateCooldownEvent.getEffectiveCooldown() == spellbookMagicMissileCooldown,
+                        "Mithril Freecast Staff should apply selected SPELLBOOK cooldown immediately but got "
+                                + immediateCooldownEvent.getEffectiveCooldown() + " / expected " + spellbookMagicMissileCooldown);
+                MithrilFreecastStaffCastContext.retainUntilCooldown(
+                        player.getUUID(),
+                        staff,
+                        magicMissile,
+                        CastSource.SPELLBOOK
+                );
+            }
+            var stalePendingCooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    normalSwordCooldown,
+                    magicMissile,
+                    player,
+                    CastSource.SWORD
+            );
+            magicData.setPlayerCastingItem(staff.copy());
+            MithrilFreecastStaffCastEvent.onSpellCooldownAdded(stalePendingCooldownEvent);
+            helper.assertTrue(stalePendingCooldownEvent.getEffectiveCooldown() == normalSwordCooldown,
+                    "Mithril Freecast Staff should not retain stale selected source after instant cooldown but got "
+                            + stalePendingCooldownEvent.getEffectiveCooldown() + " / expected " + normalSwordCooldown);
+
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            var harvestMoon = SpellRegistry.HARVEST_MOON.get();
+            magicData.setPlayerCastingItem(staff.copy());
+            try (var ignored = MithrilFreecastStaffCastContext.open(
+                    player.getUUID(),
+                    staff,
+                    harvestMoon,
+                    CastSource.SPELLBOOK
+            )) {
+                var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                        MagicManager.getEffectiveSpellCooldown(harvestMoon, player, CastSource.SWORD),
+                        harvestMoon,
+                        player,
+                        CastSource.SWORD
+                );
+                NeoForge.EVENT_BUS.post(cooldownEvent);
+                var expectedCooldown = staffItem.resolveSwingTriggeredCooldownTicks(
+                        player,
+                        harvestMoon,
+                        CastSource.SPELLBOOK
+                );
+                helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
+                        "Mithril Freecast Staff should keep CraftsmansDelight on the selected SPELLBOOK cooldown but got "
+                                + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+            }
+
+            player.setItemSlot(EquipmentSlot.FEET, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()));
+            var thermalProcess = SpellRegistry.THERMAL_PROCESS.get();
+            magicData.setPlayerCastingItem(staff.copy());
+            try (var ignored = MithrilFreecastStaffCastContext.open(
+                    player.getUUID(),
+                    staff,
+                    thermalProcess,
+                    CastSource.SPELLBOOK
+            )) {
+                var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                        MagicManager.getEffectiveSpellCooldown(thermalProcess, player, CastSource.SWORD),
+                        thermalProcess,
+                        player,
+                        CastSource.SWORD
+                );
+                NeoForge.EVENT_BUS.post(cooldownEvent);
+                var expectedCooldown = staffItem.resolveSwingTriggeredCooldownTicks(
+                        player,
+                        thermalProcess,
+                        CastSource.SPELLBOOK
+                );
+                helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
+                        "Mithril Freecast Staff should keep Thermal Process on the selected SPELLBOOK cooldown with Magi boots and CraftsmansDelight but got "
+                                + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+            }
+
+            var artisanSmash = SpellRegistry.ARTISAN_SMASH.get();
+            magicData.setPlayerCastingItem(staff.copy());
+            try (var ignored = MithrilFreecastStaffCastContext.open(
+                    player.getUUID(),
+                    staff,
+                    artisanSmash,
+                    CastSource.SPELLBOOK
+            )) {
+                var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                        MagicManager.getEffectiveSpellCooldown(artisanSmash, player, CastSource.SWORD),
+                        artisanSmash,
+                        player,
+                        CastSource.SWORD
+                );
+                NeoForge.EVENT_BUS.post(cooldownEvent);
+                var expectedCooldown = staffItem.resolveSwingTriggeredCooldownTicks(
+                        player,
+                        artisanSmash,
+                        CastSource.SPELLBOOK
+                );
+                helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
+                        "Mithril Freecast Staff should not re-reduce Magi boots cooldown after adding long cast time but got "
+                                + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+            }
+
+            magicData.getSyncedData().setSpellSelection(new SpellSelection(SpellSelectionManager.OFFHAND, 0));
+            helper.assertTrue(staffItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
+                    "Mithril Freecast Staff should initiate the selected instant offhand spell");
+            var delayedCooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    normalSwordCooldown,
+                    magicMissile,
+                    player,
+                    CastSource.SWORD
+            );
+            MithrilFreecastStaffCastEvent.onSpellCooldownAdded(delayedCooldownEvent);
+            helper.assertTrue(delayedCooldownEvent.getEffectiveCooldown() == selectedSourceCooldown,
+                    "Mithril Freecast Staff should keep the selected source cooldown until delayed cooldown but got "
+                            + delayedCooldownEvent.getEffectiveCooldown() + " / expected " + selectedSourceCooldown);
         });
     }
 }

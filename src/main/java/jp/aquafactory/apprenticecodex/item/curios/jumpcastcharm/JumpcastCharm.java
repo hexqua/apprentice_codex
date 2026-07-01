@@ -8,7 +8,6 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
-import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownPolicyItem;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -28,7 +27,7 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JumpcastCharm extends Item implements ICurioItem, RestrictedSpellImbuableItem, WeaponImbueCooldownPolicyItem {
+public class JumpcastCharm extends Item implements ICurioItem, RestrictedSpellImbuableItem {
     final String slotIdentifier;
 
     public JumpcastCharm() {
@@ -191,9 +190,4 @@ public class JumpcastCharm extends Item implements ICurioItem, RestrictedSpellIm
         return translatedLines;
     }
 
-    @Override
-    public boolean ignoresWeaponImbueCooldownMultiplier(ItemStack stack, @Nullable AbstractSpell spell, io.redspace.ironsspellbooks.api.spells.CastSource castSource) {
-        // 剣 Imbue 扱いの接着だけ借りるが、実時間 cooldown は武器 Imbue の短縮調整へ寄せない。
-        return castSource == io.redspace.ironsspellbooks.api.spells.CastSource.SWORD;
-    }
 }

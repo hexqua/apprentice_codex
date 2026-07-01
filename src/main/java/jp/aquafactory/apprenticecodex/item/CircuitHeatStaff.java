@@ -392,7 +392,7 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
                 remainingCooldownTicks
         );
         var plannedManaCost = baseManaCost + additionalManaCost;
-        var effectiveCooldown = Math.max(0, WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, castSource, stack));
+        var effectiveCooldown = Math.max(0, WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, castSource));
         var overheatTicks = resolveConfiguredStaffOverheatTicks((long) effectiveCooldown + remainingCooldownTicks);
 
         // cooldown だけ通常判定から外し、基礎マナ不足などの失敗条件は Iron's の判定をそのまま使う。

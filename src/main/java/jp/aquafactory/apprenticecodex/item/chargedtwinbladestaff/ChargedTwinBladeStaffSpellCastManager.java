@@ -128,7 +128,6 @@ public final class ChargedTwinBladeStaffSpellCastManager {
                 owner,
                 spellData,
                 castSource,
-                sourceStack,
                 extendLongCastCooldown
                         ? RemoteOwnerCooldownPolicy.WEAPON_IMBUE_WITH_LONG_CAST_EXTENSION
                         : RemoteOwnerCooldownPolicy.WEAPON_IMBUE
