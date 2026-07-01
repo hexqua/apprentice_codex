@@ -43,6 +43,9 @@ public final class MithrilFreecastStaffCastContext implements AutoCloseable {
             CastSource selectedCastSource
     ) {
         var entry = createEntry(playerId, stack, spell, selectedCastSource);
+        if (activeEntry != null && activeEntry.key().equals(entry.key()) && activeEntry.cooldownConsumed) {
+            return;
+        }
         PENDING_COOLDOWN_SOURCES.put(entry.key(), entry);
     }
 
@@ -50,6 +53,7 @@ public final class MithrilFreecastStaffCastContext implements AutoCloseable {
         var key = Key.of(playerId, stack, spell);
         var entry = activeEntry;
         if (entry != null && entry.key().equals(key)) {
+            entry.cooldownConsumed = true;
             PENDING_COOLDOWN_SOURCES.remove(key);
             return Optional.of(entry.toCooldownSource());
         }
@@ -110,7 +114,20 @@ public final class MithrilFreecastStaffCastContext implements AutoCloseable {
         );
     }
 
-    private record Entry(Key key, CastSource selectedCastSource) {
+    private static final class Entry {
+        private final Key key;
+        private final CastSource selectedCastSource;
+        private boolean cooldownConsumed;
+
+        private Entry(Key key, CastSource selectedCastSource) {
+            this.key = key;
+            this.selectedCastSource = selectedCastSource;
+        }
+
+        private Key key() {
+            return key;
+        }
+
         private CooldownSource toCooldownSource() {
             return new CooldownSource(selectedCastSource);
         }
