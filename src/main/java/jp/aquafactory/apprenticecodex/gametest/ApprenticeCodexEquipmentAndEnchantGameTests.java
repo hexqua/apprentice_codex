@@ -1092,8 +1092,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 140)
-    public static void chargedTwinBladeStaffContinuousThrowableCardUsesCardCooldownPolicy(GameTestHelper helper) {
-        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffContinuousThrowableCardUsesCardCooldownPolicy(helper);
+    public static void chargedTwinBladeStaffContinuousThrowableCardUsesWeaponImbueCooldown(GameTestHelper helper) {
+        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffContinuousThrowableCardUsesWeaponImbueCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE)
