@@ -29,12 +29,19 @@ public final class MithrilFreecastStaffCastEvent {
             return;
         }
 
-        if (!MithrilFreecastStaffCastContext.matches(player.getUUID(), castingItem, event.getSpell())) {
+        var cooldownSource = MithrilFreecastStaffCastContext.consumeCooldownSource(player.getUUID(), castingItem, event.getSpell());
+        if (cooldownSource.isEmpty()) {
             return;
         }
 
+        var source = cooldownSource.get();
         event.setEffectiveCooldown(
-                freecastStaff.resolveSwingTriggeredCooldownTicks(player, event.getSpell(), event.getEffectiveCooldown())
+                freecastStaff.resolveSwingTriggeredCooldownTicks(
+                        player,
+                        event.getSpell(),
+                        source.castSource(),
+                        source.stack()
+                )
         );
     }
 }

@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastS
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
+import jp.aquafactory.apprenticecodex.utility.SpellSelectionStackResolver;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -218,8 +219,10 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
         }
 
         var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
+        var selectedCastSource = selectionOption.getCastSource();
+        var selectedStack = SpellSelectionStackResolver.resolveSelectionStack(player, selectionOption.slot);
         try (var swingTriggeredContext = SwingcastStaffCastContext.open(player.getUUID(), stack, spell);
-             var ignored = MithrilFreecastStaffCastContext.open(player.getUUID(), stack, spell)) {
+             var ignored = MithrilFreecastStaffCastContext.open(player.getUUID(), stack, spell, selectedCastSource, selectedStack)) {
             var casted = spell.attemptInitiateCast(
                     stack,
                     spellLevel,
@@ -233,6 +236,13 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
                 return false;
             }
 
+            MithrilFreecastStaffCastContext.retainUntilCooldown(
+                    player.getUUID(),
+                    stack,
+                    spell,
+                    selectedCastSource,
+                    selectedStack
+            );
             TriggeredSpellCastHelper.applyLongCastDurationOverride(
                     player,
                     spellLevel,
@@ -251,6 +261,19 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
         var spellLevel = resolveEffectiveSpellLevel(player, spell);
         return currentEffectiveCooldown
                 + (spell.getCastType() == CastType.LONG ? spell.getEffectiveCastTime(spellLevel, player) : 0);
+    }
+
+    public int resolveSwingTriggeredCooldownTicks(
+            Player player,
+            AbstractSpell spell,
+            CastSource selectedCastSource,
+            ItemStack selectedStack
+    ) {
+        return resolveSwingTriggeredCooldownTicks(
+                player,
+                spell,
+                WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, selectedCastSource, selectedStack)
+        );
     }
 
     @Override
