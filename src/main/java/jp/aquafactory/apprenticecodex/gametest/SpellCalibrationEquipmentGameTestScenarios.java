@@ -7,12 +7,14 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
+import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
@@ -412,6 +414,11 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             var staff = new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
             var staffItem = (MithrilFreecastStaff) staff.getItem();
             staffItem.initializeSpellContainer(staff);
+            MithrilFreecastStaff.setCalibrationAdjustment(
+                    staff,
+                    0,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
+            );
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
             var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(magicMissile));
@@ -485,6 +492,38 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                                 + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
             }
 
+            var grimoire = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+            ArchivistsGrimoire.setUpgradeCount(grimoire, 1);
+            new ArchivistsGrimoire.ScrollInventory(grimoire).setStackInSlot(0, createSpellScroll(SpellRegistry.BOUND_BOW.get()));
+            equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT, grimoire);
+            magicData.getSyncedData().setSpellSelection(new SpellSelection(
+                    io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
+                    0
+            ));
+            magicData.getPlayerCooldowns().removeCooldown(SpellRegistry.BOUND_BOW.get().getSpellId());
+            helper.assertTrue(staffItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
+                    "Mithril Freecast Staff should immediately trigger silver-ring Bound Bow from the spellbook slot");
+            var boundBowRecast = magicData.getPlayerRecasts().getRecastInstance(SpellRegistry.BOUND_BOW.get().getSpellId());
+            helper.assertTrue(boundBowRecast != null,
+                    "Mithril Freecast Staff silver-ring Bound Bow should create a recast before cooldown");
+            magicData.getPlayerRecasts().removeRecast(boundBowRecast, RecastResult.USED_ALL_RECASTS);
+            var expectedBoundBowCooldown = staffItem.resolveSwingTriggeredCooldownTicks(
+                    player,
+                    SpellRegistry.BOUND_BOW.get(),
+                    CastSource.SPELLBOOK,
+                    grimoire
+            );
+            var actualBoundBowCooldown = magicData.getPlayerCooldowns()
+                    .getSpellCooldowns()
+                    .get(SpellRegistry.BOUND_BOW.get().getSpellId());
+            helper.assertTrue(
+                    actualBoundBowCooldown != null
+                            && actualBoundBowCooldown.getCooldownRemaining() == expectedBoundBowCooldown,
+                    "Mithril Freecast Staff should keep the selected SPELLBOOK source until Bound Bow recast cooldown but got "
+                            + (actualBoundBowCooldown == null ? "none" : actualBoundBowCooldown.getCooldownRemaining())
+                            + " / expected " + expectedBoundBowCooldown
+            );
+
             equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
             var harvestMoon = SpellRegistry.HARVEST_MOON.get();
             magicData.setPlayerCastingItem(staff.copy());
@@ -541,6 +580,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                                 + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
             }
 
+            magicData.getSyncedData().setSpellSelection(new SpellSelection(SpellSelectionManager.OFFHAND, 0));
             helper.assertTrue(staffItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
                     "Mithril Freecast Staff should initiate the selected instant offhand spell");
             var delayedCooldownEvent = new SpellCooldownAddedEvent.Pre(

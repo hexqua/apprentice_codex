@@ -149,6 +149,11 @@ public abstract class AbstractSpellMixin {
 
         var castingItem = playerMagicData.getPlayerCastingItem();
         //noinspection DataFlowIssue
+        if (playerMagicData.getPlayerRecasts().hasRecastForSpell((AbstractSpell) (Object) this)) {
+            return;
+        }
+
+        //noinspection DataFlowIssue
         MithrilFreecastStaffCastContext.clearPendingCooldownSource(
                 serverPlayer.getUUID(),
                 castingItem,
