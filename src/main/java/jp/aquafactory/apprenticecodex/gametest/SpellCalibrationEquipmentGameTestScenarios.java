@@ -890,6 +890,47 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     grimoire,
                     SpellRegistry.BOUND_BOW.get()
             ).isEmpty(), "Mithril Freecast Staff should clear retained pending cooldown source without relying on current casting item");
+            var timeoutPlayer = createEquipmentTestPlayer(helper, new BlockPos(2, 2, 0),
+                    "mithril_freecast_recast_timeout_cleanup_test");
+            var timeoutMagicData = MagicData.getPlayerMagicData(timeoutPlayer);
+            helper.assertTrue(timeoutMagicData != null,
+                    "Mithril Freecast Staff timeout cleanup test could not resolve player magic data");
+            var timeoutStaff = new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
+            MithrilFreecastStaffCastContext.retainUntilCooldown(
+                    timeoutPlayer.getUUID(),
+                    timeoutStaff,
+                    SpellRegistry.BOUND_BOW.get(),
+                    CastSource.SPELLBOOK
+            );
+            var timeoutBoundBowRecast = new RecastInstance(
+                    SpellRegistry.BOUND_BOW.get().getSpellId(),
+                    1,
+                    2,
+                    20,
+                    CastSource.SWORD,
+                    null
+            );
+            timeoutMagicData.getPlayerRecasts().forceAddRecast(timeoutBoundBowRecast);
+            timeoutMagicData.getPlayerRecasts().removeRecast(timeoutBoundBowRecast, RecastResult.TIMEOUT);
+            var swordBoundBowCooldown = MagicManager.getEffectiveSpellCooldown(SpellRegistry.BOUND_BOW.get(), timeoutPlayer, CastSource.SWORD);
+            var timeoutExpectedBoundBowCooldown = staffItem.resolveSwingTriggeredCooldownTicks(
+                    timeoutPlayer,
+                    SpellRegistry.BOUND_BOW.get(),
+                    CastSource.SPELLBOOK
+            );
+            helper.assertTrue(timeoutExpectedBoundBowCooldown != swordBoundBowCooldown,
+                    "Mithril Freecast Staff timeout cleanup test needs SPELLBOOK and SWORD cooldowns to differ");
+            timeoutMagicData.setPlayerCastingItem(new ItemStack(Items.STICK));
+            var staleTimeoutCooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    swordBoundBowCooldown,
+                    SpellRegistry.BOUND_BOW.get(),
+                    timeoutPlayer,
+                    CastSource.SWORD
+            );
+            NeoForge.EVENT_BUS.post(staleTimeoutCooldownEvent);
+            helper.assertTrue(staleTimeoutCooldownEvent.getEffectiveCooldown() == swordBoundBowCooldown,
+                    "Mithril Freecast Staff should clear retained source after recast timeout but got "
+                            + staleTimeoutCooldownEvent.getEffectiveCooldown() + " / expected " + swordBoundBowCooldown);
 
             var spellbookMagicMissileCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     magicMissile,
