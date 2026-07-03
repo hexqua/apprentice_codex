@@ -614,7 +614,7 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
 
             var spell = spellData.getSpell();
             var spellName = spell.getDisplayName(null);
-            if (hasWisdomShard && AutocastAmuletSpellProfileManager.getProfile(spell).isEmpty()) {
+            if (hasWisdomShard && AutocastAmuletSpellProfileManager.isKnownMissingProfileForClientTooltip(spell)) {
                 lines.add(Component.translatable(
                         "item." + ApprenticeCodex.MODID + ".autocast_amulet.tooltip.no_profile_line",
                         spellName

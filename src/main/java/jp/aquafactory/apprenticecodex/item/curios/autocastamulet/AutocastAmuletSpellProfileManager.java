@@ -12,23 +12,28 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraftforge.event.AddReloadListenerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class AutocastAmuletSpellProfileManager extends SimpleJsonResourceReloadListener {
     public static final String DIRECTORY = "autocast_amulet_spell_profiles";
 
     private static final Gson GSON = new GsonBuilder().create();
     private static final AutocastAmuletSpellProfileManager INSTANCE = new AutocastAmuletSpellProfileManager();
     private static volatile Map<ResourceLocation, AutocastAmuletSpellProfile> profiles = Map.of();
+    private static volatile Set<ResourceLocation> clientSyncedProfileSpellIds = null;
 
     private AutocastAmuletSpellProfileManager() {
         super(GSON, DIRECTORY);
@@ -41,6 +46,31 @@ public final class AutocastAmuletSpellProfileManager extends SimpleJsonResourceR
 
     public static Optional<AutocastAmuletSpellProfile> getProfile(AbstractSpell spell) {
         return spell == null ? Optional.empty() : Optional.ofNullable(profiles.get(spell.getSpellResource()));
+    }
+
+    public static List<ResourceLocation> createProfileSpellIdSnapshot() {
+        return profiles.keySet().stream()
+                .sorted(Comparator.comparing(ResourceLocation::toString))
+                .toList();
+    }
+
+    public static void applyClientSyncedProfileSpellIds(Collection<ResourceLocation> spellIds) {
+        clientSyncedProfileSpellIds = Set.copyOf(new LinkedHashSet<>(spellIds));
+    }
+
+    public static void clearClientSyncedProfileSpellIds() {
+        clientSyncedProfileSpellIds = null;
+    }
+
+    public static boolean isKnownMissingProfileForClientTooltip(AbstractSpell spell) {
+        if (spell == null) {
+            return false;
+        }
+
+        var spellId = spell.getSpellResource();
+        var syncedProfileSpellIds = clientSyncedProfileSpellIds;
+        // 専用サーバーでは SERVER_DATA がクライアントへ同期されないため、同期前は不明として誤表示を避ける。
+        return syncedProfileSpellIds != null && !syncedProfileSpellIds.contains(spellId);
     }
 
     public static boolean canCastWithWisdomShard(ServerPlayer player, SpellData spellData) {

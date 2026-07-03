@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletNotificationPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletProfileSpellIdsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncApprenticeDeskConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncBoundBowStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncBoundSwordStatePacket;
@@ -57,7 +58,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "50";
+    private static final String PROTOCOL_VERSION = "52";
 
     private Networks() {
     }
@@ -232,6 +233,11 @@ public final class Networks {
                 SyncAutocastAmuletNotificationPacket.TYPE,
                 SyncAutocastAmuletNotificationPacket.STREAM_CODEC,
                 SyncAutocastAmuletNotificationPacket::handle
+        );
+        registrar.playToClient(
+                SyncAutocastAmuletProfileSpellIdsPacket.TYPE,
+                SyncAutocastAmuletProfileSpellIdsPacket.STREAM_CODEC,
+                SyncAutocastAmuletProfileSpellIdsPacket::handle
         );
         registrar.playToClient(
                 SyncLinearBuildNotificationPacket.TYPE,
