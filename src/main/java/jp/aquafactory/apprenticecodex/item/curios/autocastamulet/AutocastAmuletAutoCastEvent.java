@@ -96,6 +96,10 @@ public final class AutocastAmuletAutoCastEvent {
             if (spellData == SpellData.EMPTY || !autocastAmulet.canAutoCastSpell(slotResult.stack(), spellData)) {
                 continue;
             }
+            if (AutocastAmulet.hasWisdomShardAdjustment(slotResult.stack())
+                    && !AutocastAmuletSpellProfileManager.canCastWithWisdomShard(player, spellData)) {
+                continue;
+            }
 
             var spell = spellData.getSpell();
             var spellLevel = spell.getLevelFor(spellData.getLevel(), player);

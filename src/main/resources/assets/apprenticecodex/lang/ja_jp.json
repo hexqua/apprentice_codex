@@ -22,6 +22,7 @@
   "block.apprenticecodex.spell_calibration_bench" : "術式調整台",
 
   "item.apprenticecodex.arcane_cinder": "神秘の燃え殻",
+  "item.apprenticecodex.wisdom_shard": "叡智の破片",
   "item.apprenticecodex.comfort_berries": "安楽の果実",
   "item.apprenticecodex.comfort_sandwich": "安楽ベリーサンド",
   "item.apprenticecodex.spellstained_arcane_ingot": "魔術染めの秘術のインゴット",
@@ -165,6 +166,7 @@
 
   "item.apprenticecodex.common.desc.spell_hint": "ShiftまたはAltキーで対象の魔法を表示",
   "item.apprenticecodex.common.desc.spell_hint_open": "対象魔法:",
+  "item.apprenticecodex.wisdom_shard.desc": "一部アイテムの調整用アイテムとして装着できる。",
   "item.apprenticecodex.apprentice_desk.disabled_tooltip": "使い走り魔術師の職業ブロックとしてのみ機能する。",
   "item.apprenticecodex.spell_dispenser.creative_tooltip": "クリエイティブバージョン",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "この杖は現在ロードストーンを指し示している。",

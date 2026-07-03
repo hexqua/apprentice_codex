@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.datagen.recipe.EssenceSmokerRecipeDataGene
 import jp.aquafactory.apprenticecodex.datagen.recipe.GrindRunnerRecipeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.recipe.MalumSpiritRepairRecipeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.recipe.SpellcasterWorkbenchRecipeDataGenerator;
+import jp.aquafactory.apprenticecodex.datagen.spell.AutocastAmuletSpellProfileDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.ElementalBowModeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.ScrollcasterSchoolRuneOverrideDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SchoolAffinityCatalystOverrideDataGenerator;
@@ -44,6 +45,7 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), new PoiTypeTagGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new EnchantmentTagGenerator(output, datapackProvider.getRegistryProvider(), existing));
         generator.addProvider(event.includeServer(), new SpellDispenserSpellProfileDataGenerator(output, lookupProvider, existing));
+        generator.addProvider(event.includeServer(), new AutocastAmuletSpellProfileDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new RemoteOwnerCastSpellProfileDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new MulticastEchoStaffAttackProfileDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new MulticastEchoStaffMobEffectProfileDataGenerator(output, lookupProvider, existing));

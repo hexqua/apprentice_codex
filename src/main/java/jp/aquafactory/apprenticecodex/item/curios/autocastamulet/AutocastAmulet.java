@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
@@ -255,7 +256,7 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
     }
 
     public static boolean isCalibrationAdjustmentItem(@NotNull ItemStack stack) {
-        return isCalibrationSlotUpgrade(stack) || isSilverRing(stack);
+        return isCalibrationSlotUpgrade(stack) || isSilverRing(stack) || isWisdomShard(stack);
     }
 
     public static boolean isCalibrationSlotUpgrade(@NotNull ItemStack stack) {
@@ -267,6 +268,10 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
                 && stack.getItem() == io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get();
     }
 
+    public static boolean isWisdomShard(@NotNull ItemStack stack) {
+        return !stack.isEmpty() && stack.is(ItemRegistry.WISDOM_SHARD.get());
+    }
+
     public static boolean hasSilverRingAdjustment(@NotNull ItemStack amuletStack) {
         if (!isValidCalibrationAccess(amuletStack, 0)) {
             return false;
@@ -274,6 +279,19 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
 
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
             if (isSilverRing(getCalibrationAdjustment(amuletStack, slot))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasWisdomShardAdjustment(@NotNull ItemStack amuletStack) {
+        if (!isValidCalibrationAccess(amuletStack, 0)) {
+            return false;
+        }
+
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            if (isWisdomShard(getCalibrationAdjustment(amuletStack, slot))) {
                 return true;
             }
         }

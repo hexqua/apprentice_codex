@@ -234,6 +234,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.tags.PoiTypeTags;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.item.Items;
 import net.minecraft.tags.TagKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -354,6 +356,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private AutocastAmuletGameTestScenarios() {
     }
@@ -395,6 +401,142 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             );
             helper.assertTrue(item.canAutoCastSpell(stack, apprenticeLongSpell, 1),
                     "Autocast Amulet should allow long no-recast spells with Silver Ring adjustment");
+        });
+    }
+
+    static void autocastAmuletWisdomShardIsAdjustmentOnlyProfileGate(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "autocast_amulet_wisdom_adjustment_test");
+            var stack = ((AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get()).getDefaultInstance();
+            var wisdomShard = new ItemStack(ItemRegistry.WISDOM_SHARD.get());
+            var silverRing = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get());
+            var fireRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get());
+
+            helper.assertTrue(AutocastAmulet.isCalibrationAdjustmentItem(wisdomShard),
+                    "Wisdom Shard should be accepted as an Autocast Amulet adjustment item");
+            helper.assertFalse(AutocastAmulet.isCalibrationSlotUpgrade(wisdomShard),
+                    "Wisdom Shard should not count as an Autocast Amulet slot upgrade");
+            helper.assertFalse(AutocastAmulet.isSilverRing(wisdomShard),
+                    "Wisdom Shard should not count as a Silver Ring adjustment");
+
+            AutocastAmulet.setCalibrationAdjustment(stack, 0, wisdomShard);
+
+            helper.assertTrue(AutocastAmulet.hasWisdomShardAdjustment(stack),
+                    "Autocast Amulet should detect an installed Wisdom Shard");
+            helper.assertTrue(AutocastAmulet.getEnabledSpellSlotCount(stack) == AutocastAmulet.MIN_SPELL_SLOTS,
+                    "Wisdom Shard should not increase Autocast Amulet spell slots");
+            helper.assertFalse(AutocastAmulet.hasSilverRingAdjustment(stack),
+                    "Wisdom Shard should not enable Silver Ring long-cast support");
+
+            var menuStack = ((AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get()).getDefaultInstance();
+            var menu = createSpellCalibrationBenchMenuWithTarget(player, menuStack);
+            var adjustmentSlot = menu.getSlot(SpellCalibrationBenchMenu.ADJUSTMENT_MENU_SLOT_START);
+            helper.assertTrue(adjustmentSlot.mayPlace(wisdomShard),
+                    "Spell Calibration Bench should accept Wisdom Shard for Autocast Amulet adjustments");
+            helper.assertTrue(adjustmentSlot.mayPlace(silverRing),
+                    "Spell Calibration Bench should accept Silver Ring for Autocast Amulet adjustments");
+            helper.assertFalse(adjustmentSlot.mayPlace(fireRune),
+                    "Spell Calibration Bench should reject school runes for Autocast Amulet adjustments");
+
+            var playerInventoryMenuSlot = SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START
+                    + ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOT_COUNT;
+            player.getInventory().setItem(9, wisdomShard.copy());
+            var quickMovedWisdomShard = menu.quickMoveStack(player, playerInventoryMenuSlot);
+            helper.assertTrue(quickMovedWisdomShard.is(ItemRegistry.WISDOM_SHARD.get()),
+                    "Shift-clicked Wisdom Shard should move while Autocast Amulet is the target");
+            helper.assertTrue(adjustmentSlot.getItem().is(ItemRegistry.WISDOM_SHARD.get()),
+                    "Shift-clicked Wisdom Shard should enter an Autocast Amulet adjustment slot");
+        });
+    }
+
+    static void autocastAmuletWisdomShardBlocksUnprofiledAutoCast(GameTestHelper helper) {
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "autocast_amulet_wisdom_unprofiled_test");
+
+        helper.runAtTickTime(1, () -> {
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.CHARGE_SPELL.get();
+            var stack = createAutocastAmuletStack(
+                    helper,
+                    1,
+                    new SpellData(spell, 1)
+            );
+            AutocastAmulet.setCalibrationAdjustment(stack, 0, new ItemStack(ItemRegistry.WISDOM_SHARD.get()));
+            equipNecklaceCurio(player, stack);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            magicData.getSyncedData().learnSpell(spell, false);
+            magicData.setMana(200.0F);
+
+            try (var ignored = jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
+                    .useProfilesForGameTest(Map.of())) {
+                runAutocastAmuletServerTick(player, 20);
+            }
+
+            helper.assertFalse(magicData.isCasting(),
+                    "Wisdom Shard should block auto-cast when the spell has no profile");
+            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "Wisdom Shard should not start cooldown for unprofiled blocked spells");
+            helper.succeed();
+        });
+    }
+
+    static void autocastAmuletWisdomShardProfileConditionsUseAndSemantics(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "autocast_amulet_wisdom_conditions_test");
+            var chargeSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.CHARGE_SPELL.get();
+            var fortifySpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FORTIFY_SPELL.get();
+            var chargeData = new SpellData(chargeSpell, 1);
+            var fortifyData = new SpellData(fortifySpell, 1);
+            var chargeEffectId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "charged");
+            var fortifyEffectId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "fortify");
+            var profiles = Map.of(
+                    chargeSpell.getSpellResource(),
+                    new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfile(
+                            List.of(new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletMobEffectCondition(
+                                    chargeEffectId,
+                                    60
+                            )),
+                            Optional.of(0.5F)
+                    ),
+                    fortifySpell.getSpellResource(),
+                    new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfile(
+                            List.of(new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletMobEffectCondition(
+                                    fortifyEffectId,
+                                    0
+                            )),
+                            Optional.empty()
+                    )
+            );
+
+            try (var ignored = jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
+                    .useProfilesForGameTest(profiles)) {
+                helper.assertFalse(jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
+                                .canCastWithWisdomShard(player, chargeData),
+                        "Wisdom Shard profile should require every configured condition");
+
+                player.setHealth(player.getMaxHealth() * 0.5F);
+                player.addEffect(new MobEffectInstance(
+                        io.redspace.ironsspellbooks.registries.MobEffectRegistry.CHARGED.get(),
+                        61
+                ));
+                helper.assertFalse(jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
+                                .canCastWithWisdomShard(player, chargeData),
+                        "Wisdom Shard mob effect profile should reject one tick above the threshold");
+
+                player.removeEffect(io.redspace.ironsspellbooks.registries.MobEffectRegistry.CHARGED.get());
+                player.addEffect(new MobEffectInstance(
+                        io.redspace.ironsspellbooks.registries.MobEffectRegistry.CHARGED.get(),
+                        60
+                ));
+                helper.assertTrue(jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
+                                .canCastWithWisdomShard(player, chargeData),
+                        "Wisdom Shard mob effect profile should accept exactly the configured threshold");
+
+                player.removeEffect(io.redspace.ironsspellbooks.registries.MobEffectRegistry.FORTIFY.get());
+                helper.assertTrue(jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
+                                .canCastWithWisdomShard(player, fortifyData),
+                        "Wisdom Shard mob effect profile should treat missing effects as 0 ticks");
+            }
         });
     }
 

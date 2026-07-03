@@ -29,6 +29,7 @@ import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.SpellcasterWorkbenchItem;
 import jp.aquafactory.apprenticecodex.item.StorageStabilizer;
 import jp.aquafactory.apprenticecodex.item.UniteLunaStaff;
+import jp.aquafactory.apprenticecodex.item.WisdomShardItem;
 import jp.aquafactory.apprenticecodex.item.ZenithStaff;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
@@ -147,6 +148,7 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
     public static final DeferredHolder<Item, Item> ARTISAN_SMASH_LAUNCHER = simple("artisan_smash_launcher");
     public static final DeferredHolder<Item, Item> ARCANE_CINDER = ITEMS.register("arcane_cinder", ArcaneCinderItem::new);
+    public static final DeferredHolder<Item, Item> WISDOM_SHARD = ITEMS.register("wisdom_shard", WisdomShardItem::new);
     public static final DeferredHolder<Item, Item> COMFORT_BERRIES =
             ITEMS.register("comfort_berries", () -> new ItemNameBlockItem(
                     BlockRegistry.COMFORT_BERRY_BUSH.get(),

@@ -22,6 +22,7 @@
   "block.apprenticecodex.spell_calibration_bench" : "Spell Calibration Bench",
 
   "item.apprenticecodex.arcane_cinder": "Arcane Cinder",
+  "item.apprenticecodex.wisdom_shard": "Shard of Wisdom",
   "item.apprenticecodex.comfort_berries": "Comfort Berries",
   "item.apprenticecodex.comfort_sandwich": "Comfort Sandwich",
   "item.apprenticecodex.spellstained_arcane_ingot": "Spell-stained Arcane Ingot",
@@ -164,6 +165,7 @@
   "item.apprenticecodex.spellgun.tooltip.ammo_none": "- None",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "Rare and below",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic": "Above Epic",
+  "item.apprenticecodex.wisdom_shard.desc": "Can be installed as an adjustment item for some equipment.",
   "item.apprenticecodex.apprentice_desk.disabled_tooltip": "Only functional as a job site block for an Errand Mage.",
   "item.apprenticecodex.spell_dispenser.creative_tooltip": "Creative version",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "Currently pointing at the lodestone.",

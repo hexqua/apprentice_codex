@@ -488,7 +488,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
                 || isEnchantmentBook(stack)
                 || isRecoveryRune(stack)
                 || isFreecastStaff(stack)
-                || isSilverRing(stack);
+                || isSilverRing(stack)
+                || AutocastAmulet.isWisdomShard(stack);
     }
 
     static boolean isSchoolRune(@NotNull ItemStack stack) {
@@ -749,7 +750,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            if (!hasStoredCalibrationTarget() || !isAdjustmentItem(stack)) {
+            if (!hasStoredCalibrationTarget()) {
                 return false;
             }
 
