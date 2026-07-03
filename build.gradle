@@ -23,7 +23,6 @@ def gameTestServerWorldDir = layout.projectDirectory.dir("run/${gameTestServerWo
 def requiredOptionalModsProperty = 'apprenticecodex.requiredOptionalMods'
 
 def optionalRuntimeModuleConfigurations = [
-        farmers_delight: 'farmersDelightRuntimeOnly',
         create         : 'createRuntimeOnly',
         botania        : 'botaniaRuntimeOnly',
         puzzles_lib    : 'puzzlesLibRuntimeOnly',
@@ -35,17 +34,20 @@ def optionalRuntimeModuleConfigurations = [
         malum          : 'malumRuntimeOnly',
 ]
 
+def clientRuntimeModuleConfigurations = [
+        moonlight_lib: 'moonlightLibClientRuntimeOnly',
+        target_dummy : 'targetDummyClientRuntimeOnly',
+]
+
 def optionalRuntimeProfileModules = [
-        compat              : ['farmers_delight', 'create', 'botania', 'lodestone', 'malum'],
+        compat              : ['create', 'botania', 'lodestone', 'malum'],
         easy_magic          : ['puzzles_lib', 'easy_magic'],
         better_combat       : ['cloth_config', 'better_combat'],
         epic_fight          : ['epic_fight'],
-        compat_easy_better  : ['farmers_delight', 'create', 'botania', 'lodestone', 'malum', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
+        compat_easy_better  : ['create', 'botania', 'lodestone', 'malum', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
 ]
 
 def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
-        farmersdelight: ['farmers_delight'],
-        farmer        : ['farmers_delight'],
         puzzleslib    : ['puzzles_lib'],
         easymagic     : ['puzzles_lib', 'easy_magic'],
         bettercombat  : ['cloth_config', 'better_combat'],
@@ -57,14 +59,13 @@ def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
 ]
 
 def optionalRuntimeRequiredModIds = [
-        compat        : 'farmersdelight,create,botania,lodestone,malum',
+        compat        : 'create,botania,lodestone,malum',
         easy_magic    : 'puzzleslib,easymagic',
         better_combat : 'cloth_config,bettercombat',
         epic_fight    : 'epicfight',
 ]
 
 def optionalRuntimeModuleModIds = [
-        farmers_delight: 'farmersdelight',
         create         : 'create',
         botania        : 'botania',
         puzzles_lib    : 'puzzleslib',
@@ -74,6 +75,11 @@ def optionalRuntimeModuleModIds = [
         epic_fight     : 'epicfight',
         lodestone      : 'lodestone',
         malum          : 'malum',
+]
+
+def clientRuntimeModuleModIds = [
+        moonlight_lib: 'moonlight',
+        target_dummy : 'dummmmmmy',
 ]
 
 def expandOptionalRuntimeModules = { Collection<String> selectors ->
@@ -87,14 +93,26 @@ def expandOptionalRuntimeModules = { Collection<String> selectors ->
     }.unique()
 }
 
-def optionalRuntimeModClassesTokenForModules = { Collection<String> modules ->
+def modClassesTokenForModules = { Map<String, String> configurationNames, Map<String, String> modIds, Collection<String> modules ->
     { ->
-        modules.findAll { module -> module != 'farmers_delight' }.collectMany { module ->
-            def modId = optionalRuntimeModuleModIds[module]
-            configurations.named(optionalRuntimeModuleConfigurations[module]).get().files.collect { file ->
+        modules.collectMany { module ->
+            def modId = modIds[module]
+            configurations.named(configurationNames[module]).get().files.collect { file ->
                 "${modId}%%${file.absolutePath}"
             }
         }.join(File.pathSeparator)
+    }
+}
+
+def optionalRuntimeModClassesTokenForModules = { Collection<String> modules ->
+    modClassesTokenForModules(optionalRuntimeModuleConfigurations, optionalRuntimeModuleModIds, modules)
+}
+
+def clientRuntimeModClassesTokenForModules = { Collection<String> modules ->
+    { ->
+        def clientRuntimeModClasses = modClassesTokenForModules(clientRuntimeModuleConfigurations, clientRuntimeModuleModIds, clientRuntimeModuleConfigurations.keySet())()
+        def optionalRuntimeModClasses = optionalRuntimeModClassesTokenForModules(modules)()
+        [clientRuntimeModClasses, optionalRuntimeModClasses].findAll { !it.isEmpty() }.join(File.pathSeparator)
     }
 }
 
@@ -119,6 +137,8 @@ minecraft {
 
         client {
             property 'forge.enabledGameTestNamespaces', mod_id
+            lazyToken 'client_runtime_mod_classes', clientRuntimeModClassesTokenForModules([])
+            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{client_runtime_mod_classes}"
         }
 
         server {
@@ -134,36 +154,36 @@ minecraft {
         clientCompat {
             parent null, 'client'
             taskName 'runClientCompat'
-            lazyToken 'optional_mod_classes', optionalRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['compat']))
-            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{optional_mod_classes}"
+            lazyToken 'client_runtime_mod_classes', clientRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['compat']))
+            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{client_runtime_mod_classes}"
         }
 
         clientEasyMagic {
             parent null, 'client'
             taskName 'runClientEasyMagic'
-            lazyToken 'optional_mod_classes', optionalRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['easy_magic']))
-            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{optional_mod_classes}"
+            lazyToken 'client_runtime_mod_classes', clientRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['easy_magic']))
+            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{client_runtime_mod_classes}"
         }
 
         clientBetterCombat {
             parent null, 'client'
             taskName 'runClientBetterCombat'
-            lazyToken 'optional_mod_classes', optionalRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['better_combat']))
-            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{optional_mod_classes}"
+            lazyToken 'client_runtime_mod_classes', clientRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['better_combat']))
+            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{client_runtime_mod_classes}"
         }
 
         clientEpicFight {
             parent null, 'client'
             taskName 'runClientEpicFight'
-            lazyToken 'optional_mod_classes', optionalRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['epic_fight']))
-            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{optional_mod_classes}"
+            lazyToken 'client_runtime_mod_classes', clientRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['epic_fight']))
+            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{client_runtime_mod_classes}"
         }
 
         clientCompatEasyBetter {
             parent null, 'client'
             taskName 'runClientCompatEasyBetter'
-            lazyToken 'optional_mod_classes', optionalRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['compat_easy_better']))
-            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{optional_mod_classes}"
+            lazyToken 'client_runtime_mod_classes', clientRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['compat_easy_better']))
+            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{client_runtime_mod_classes}"
         }
 
         gameTestServerCompat {
@@ -215,6 +235,13 @@ configurations {
             transitive = true
         }
     }
+    clientRuntimeModuleConfigurations.values().each { configurationName ->
+        create(configurationName) {
+            canBeConsumed = false
+            canBeResolved = true
+            transitive = true
+        }
+    }
 }
 
 tasks.register('cleanGameTestServerWorld', Delete) {
@@ -231,8 +258,8 @@ def devRuntimeMods = providers.gradleProperty('devRuntimeMods').orNull
 if (devRuntimeMods != null && !devRuntimeMods.trim().isEmpty()) {
     def devRuntimeModules = expandOptionalRuntimeModules(devRuntimeMods.split(',').collect { it.trim() }.findAll { !it.isEmpty() })
     minecraft.runs.named('client').configure {
-        lazyToken 'optional_mod_classes', optionalRuntimeModClassesTokenForModules(devRuntimeModules)
-        environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{optional_mod_classes}"
+        lazyToken 'client_runtime_mod_classes', clientRuntimeModClassesTokenForModules(devRuntimeModules)
+        environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{client_runtime_mod_classes}"
     }
 }
 
@@ -319,8 +346,7 @@ dependencies {
     add(optionalRuntimeModuleConfigurations.easy_magic, fg.deobf("maven.modrinth:easy-magic:W2xPEG9I"))
 
     // Farmer's Delight.
-    // HarvestMoon の互換回帰を既存の標準 GameTest で検証するため、開発環境では読み込む.
-    add(optionalRuntimeModuleConfigurations.farmers_delight, fg.deobf("maven.modrinth:farmers-delight:bCtijHxU"))
+    // HarvestMoon の互換回帰を既存の標準 GameTest で検証するため、Jade と同様に開発環境では常時読み込む.
     runtimeOnly fg.deobf("maven.modrinth:farmers-delight:bCtijHxU")
 
     // Better Combat.
@@ -355,6 +381,12 @@ dependencies {
     // 1.20.1 Forge の最新版を固定し、開発環境では JEI 同様に常時読み込む.
     compileOnly fg.deobf("maven.modrinth:jade:LecuGude")
     runtimeOnly fg.deobf("maven.modrinth:jade:LecuGude")
+
+    // MmmMmmMmmMmm (Target Dummy).
+    // 手動の火力・挙動確認用なのでコードから参照せず、runClient 系にだけ読み込む.
+    // 2.0.11 以降は dev 環境用 refmap が欠け、ForgeGradle の runClient で mixin 解決に失敗するため 2.0.9 に固定する.
+    add(clientRuntimeModuleConfigurations.moonlight_lib, fg.deobf("maven.modrinth:moonlight:43kjMXMx"))
+    add(clientRuntimeModuleConfigurations.target_dummy, fg.deobf("maven.modrinth:Adega8YN:zAahRq2q"))
 
     // Patchouli.
     compileOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}:api")
