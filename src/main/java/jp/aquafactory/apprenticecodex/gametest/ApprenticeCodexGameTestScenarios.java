@@ -117,7 +117,6 @@ import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntletCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
-import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellListManager;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightCooldownReductionEvent;
@@ -12466,8 +12465,12 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static ItemStack createSpellScroll(AbstractSpell spell) {
+        return createSpellScroll(spell, 1);
+    }
+
+    static ItemStack createSpellScroll(AbstractSpell spell, int level) {
         var stack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
-        ISpellContainer.createScrollContainer(spell, 1, stack);
+        ISpellContainer.createScrollContainer(spell, level, stack);
         return stack;
     }
 
@@ -12974,25 +12977,25 @@ public class ApprenticeCodexGameTestScenarios {
 
     static ItemStack createAutocastAmuletStack(GameTestHelper helper, int spellSlotCount, SpellData... spells) {
         var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
-        var upgradeItem = (SpellSlotUpgradeItem) io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get();
         var stack = item.getDefaultInstance();
-
-        while (true) {
-            var spellContainer = ISpellContainer.get(stack);
-            helper.assertTrue(spellContainer != null, "Autocast Amulet setup lost its spell container");
-            if (spellContainer != null && spellContainer.getMaxSpellCount() >= spellSlotCount) {
-                break;
-            }
-
-            stack = item.createSpellSlotUpgradeResult(stack, upgradeItem);
-            helper.assertFalse(stack.isEmpty(),
-                    "Failed to prepare Autocast Amulet with " + spellSlotCount + " spell slots");
+        for (var slot = 0; slot < spellSlotCount - AutocastAmulet.MIN_SPELL_SLOTS; ++slot) {
+            AutocastAmulet.setCalibrationAdjustment(
+                    stack,
+                    slot,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
+            );
         }
 
-        for (var spellData : spells) {
-            stack = item.createArcaneAnvilImbueResult(stack, spellData);
-            helper.assertFalse(stack.isEmpty(),
-                    "Failed to imbue Autocast Amulet with " + spellData.getSpell().getSpellResource());
+        helper.assertFalse(ISpellContainer.isSpellContainer(stack),
+                "Autocast Amulet setup should not expose Iron's SpellContainer");
+        helper.assertTrue(AutocastAmulet.getEnabledSpellSlotCount(stack) == spellSlotCount,
+                "Failed to prepare Autocast Amulet with " + spellSlotCount + " enabled spell slots");
+
+        for (var slot = 0; slot < spells.length; ++slot) {
+            var spellData = spells[slot];
+            helper.assertTrue(item.canImbueSpell(spellData),
+                    "Autocast Amulet rejected setup spell " + spellData.getSpell().getSpellResource());
+            AutocastAmulet.setCalibrationScroll(stack, slot, createSpellScroll(spellData.getSpell(), spellData.getLevel()));
         }
 
         return stack;

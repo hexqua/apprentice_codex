@@ -114,7 +114,6 @@ import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntletCastEvent;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
-import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellListManager;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightCooldownReductionEvent;
@@ -416,19 +415,35 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             var emptyAmuletMenu = createSpellCalibrationBenchMenuWithTarget(player, emptyAmulet);
             helper.assertTrue(emptyAmuletMenu.hasCalibrationTarget(),
                     "Empty Autocast Amulet should be accepted by Spell Calibration Bench");
+            helper.assertTrue(emptyAmuletMenu.hasAutocastAmulet(),
+                    "Autocast Amulet should be treated as a stored adjustment target");
+            helper.assertTrue(emptyAmuletMenu.isAdjustmentSlotEnabled(0),
+                    "Autocast Amulet should expose adjustment slots");
             helper.assertFalse(emptyAmuletMenu.getImbueRestrictionTooltipLines().isEmpty(),
                     "Autocast Amulet should expose Calibration Bench spell restriction tooltip lines");
             helper.assertTrue(emptyAmuletMenu.getScrollItem(0).isEmpty(),
                     "Empty Autocast Amulet should not expose a scroll");
 
-            var imbuedAmulet = autocastAmulet.createArcaneAnvilImbueResult(
-                    new ItemStack(autocastAmulet),
-                    new SpellData(SpellRegistry.SENSE_EVIL.get(), 1)
-            );
+            var imbuedAmulet = new ItemStack(autocastAmulet);
+            AutocastAmulet.setCalibrationScroll(imbuedAmulet, 0, createSpellScroll(SpellRegistry.SENSE_EVIL.get()));
             var imbuedAmuletMenu = createSpellCalibrationBenchMenuWithTarget(player, imbuedAmulet);
             helper.assertTrue(imbuedAmuletMenu.getScrollItem(0)
                             .is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
                     "Imbued Autocast Amulet should expose a removable scroll");
+            var longAmulet = new ItemStack(autocastAmulet);
+            autocastAmulet.initializeSpellContainer(longAmulet);
+            var longAmuletMenu = createSpellCalibrationBenchMenuWithTarget(player, longAmulet);
+            helper.assertTrue(longAmuletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START)
+                            .mayPlace(createSpellScroll(SpellRegistry.MANTIS_LEAP.get())),
+                    "Autocast Amulet should accept long scrolls even before Silver Ring adjustment");
+            longAmuletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START)
+                    .set(createSpellScroll(SpellRegistry.MANTIS_LEAP.get()));
+            helper.assertTrue(longAmuletMenu.shouldRenderMismatchCastConditionWarning(0),
+                    "Autocast Amulet should warn that long spells cannot auto-cast before Silver Ring adjustment");
+            longAmuletMenu.getSlot(SpellCalibrationBenchMenu.ADJUSTMENT_MENU_SLOT_START)
+                    .set(new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()));
+            helper.assertFalse(longAmuletMenu.shouldRenderMismatchCastConditionWarning(0),
+                    "Autocast Amulet should clear the long spell warning after Silver Ring adjustment");
 
             var manaForceBlade = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
             var emptyBlade = new ItemStack(manaForceBlade);
@@ -588,43 +603,44 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_calibration_imbue_test");
             var autocastAmulet = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
-            var upgradeItem = (SpellSlotUpgradeItem) io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get();
             var senseEvil = SpellRegistry.SENSE_EVIL.get();
+            var mageLight = SpellRegistry.MAGE_LIGHT.get();
             var heal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
 
             var emptyAmulet = new ItemStack(autocastAmulet);
             autocastAmulet.initializeSpellContainer(emptyAmulet);
             var emptyAmuletMenu = createSpellCalibrationBenchMenuWithTarget(player, emptyAmulet);
-            emptyAmuletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(createSpellScroll(heal));
-            assertStackHasSpell(helper, emptyAmulet, heal, 1,
-                    "Calibration-imbued Autocast Amulet should contain heal");
+            emptyAmuletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(createSpellScroll(mageLight));
+            assertAutocastSpellData(helper, emptyAmulet, 0, mageLight, 1,
+                    "Calibration-imbued Autocast Amulet should contain mage_light");
 
-            var twoSlotAmulet = autocastAmulet.createSpellSlotUpgradeResult(new ItemStack(autocastAmulet), upgradeItem);
-            twoSlotAmulet = autocastAmulet.createArcaneAnvilImbueResult(twoSlotAmulet, new SpellData(senseEvil, 1));
+            var twoSlotAmulet = new ItemStack(autocastAmulet);
+            autocastAmulet.initializeSpellContainer(twoSlotAmulet);
+            AutocastAmulet.setCalibrationAdjustment(
+                    twoSlotAmulet,
+                    0,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
+            );
+            AutocastAmulet.setCalibrationScroll(twoSlotAmulet, 0, createSpellScroll(senseEvil));
             var twoSlotAmuletMenu = createSpellCalibrationBenchMenuWithTarget(player, twoSlotAmulet);
-            twoSlotAmuletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START + 1).set(createSpellScroll(heal));
-            var twoSlotContainer = ISpellContainer.get(twoSlotAmulet);
-            helper.assertTrue(twoSlotContainer != null && twoSlotContainer.getActiveSpellCount() == 2,
+            twoSlotAmuletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START + 1).set(createSpellScroll(mageLight));
+            helper.assertTrue(AutocastAmulet.getImbuedSpells(twoSlotAmulet).size() == 2,
                     "Calibration imbue should add a second Autocast Amulet spell");
-            assertStackHasSpell(helper, twoSlotAmulet, senseEvil, 1,
+            assertAutocastSpellData(helper, twoSlotAmulet, 0, senseEvil, 1,
                     "Calibration imbue should keep the existing Autocast Amulet spell");
-            assertStackHasSpell(helper, twoSlotAmulet, heal, 1,
-                    "Calibration imbue should add heal to the empty Autocast Amulet slot");
+            assertAutocastSpellData(helper, twoSlotAmulet, 1, mageLight, 1,
+                    "Calibration imbue should add mage_light to the empty Autocast Amulet slot");
 
             var removedScroll = twoSlotAmuletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).remove(1);
             helper.assertTrue(removedScroll.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
                     "Calibration Bench should return a scroll when removing an Autocast Amulet spell");
             twoSlotAmuletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).onTake(player, removedScroll);
-            var afterRemovalContainer = ISpellContainer.get(twoSlotAmulet);
-            helper.assertTrue(afterRemovalContainer != null
-                            && afterRemovalContainer.getSpellAtIndex(0) == SpellData.EMPTY
-                            && afterRemovalContainer.getSpellAtIndex(1) != SpellData.EMPTY,
+            helper.assertTrue(AutocastAmulet.getSpellDataAt(twoSlotAmulet, 0) == SpellData.EMPTY
+                            && AutocastAmulet.getSpellDataAt(twoSlotAmulet, 1) != SpellData.EMPTY,
                     "Calibration Bench should not compact spell slots while removing a scroll");
             createSpellCalibrationBenchMenuWithTarget(player, twoSlotAmulet);
-            var afterReinsertContainer = ISpellContainer.get(twoSlotAmulet);
-            helper.assertTrue(afterReinsertContainer != null
-                            && afterReinsertContainer.getSpellAtIndex(0) == SpellData.EMPTY
-                            && afterReinsertContainer.getSpellAtIndex(1) != SpellData.EMPTY,
+            helper.assertTrue(AutocastAmulet.getSpellDataAt(twoSlotAmulet, 0) == SpellData.EMPTY
+                            && AutocastAmulet.getSpellDataAt(twoSlotAmulet, 1) != SpellData.EMPTY,
                     "Calibration Bench should preserve empty spell slots when opening an existing target");
 
             var manaForceBlade = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
@@ -698,7 +714,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
 
             var disallowedSpellMenu = createSpellCalibrationBenchMenuWithTarget(player, new ItemStack(autocastAmulet));
             helper.assertFalse(disallowedSpellMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START)
-                            .mayPlace(magicMissileScroll.copy()),
+                            .mayPlace(createSpellScroll(SpellRegistry.MANA_CHARGE.get())),
                     "Calibration Bench should not accept a spell rejected by the target item");
 
             var spellAmplifier = new ItemStack(ItemRegistry.IRON_SPELL_AMPLIFIER.get());
@@ -1066,5 +1082,20 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     "Mithril Freecast Staff should keep the selected source cooldown until delayed cooldown but got "
                             + delayedCooldownEvent.getEffectiveCooldown() + " / expected " + selectedSourceCooldown);
         });
+    }
+
+    private static void assertAutocastSpellData(
+            GameTestHelper helper,
+            ItemStack stack,
+            int slot,
+            AbstractSpell expectedSpell,
+            int expectedLevel,
+            String message
+    ) {
+        var spellData = AutocastAmulet.getSpellDataAt(stack, slot);
+        helper.assertTrue(spellData != SpellData.EMPTY
+                        && spellData.getSpell() == expectedSpell
+                        && spellData.getLevel() == expectedLevel,
+                message + ": got " + (spellData == SpellData.EMPTY ? "empty" : spellData.getSpell().getSpellResource()));
     }
 }
