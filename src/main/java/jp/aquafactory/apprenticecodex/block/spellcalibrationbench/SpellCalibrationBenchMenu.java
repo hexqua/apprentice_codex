@@ -269,7 +269,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             return ((RevolvercastStaff) getGauntletStack().getItem()).getImbueRestrictionTooltipLines(getGauntletStack());
         }
         if (hasAutocastAmulet()) {
-            return ((AutocastAmulet) getGauntletStack().getItem()).getImbueRestrictionTooltipLines();
+            return ((AutocastAmulet) getGauntletStack().getItem()).getImbueRestrictionTooltipLines(getGauntletStack());
         }
         if (!hasOperationalImbueTarget()) {
             return List.of();
