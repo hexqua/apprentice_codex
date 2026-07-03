@@ -139,7 +139,7 @@ public final class AutocastAmuletCastEvent {
     }
 
     private static void syncCooldownNotification(ServerPlayer player, String spellId, int cooldownTicks) {
-        if (cooldownTicks <= 0) {
+        if (!AutocastAmuletNotificationController.shouldShowCooldownNotification(cooldownTicks)) {
             return;
         }
 
