@@ -22,6 +22,7 @@
   "block.apprenticecodex.spell_calibration_bench": "法术校准台",
 
   "item.apprenticecodex.arcane_cinder": "奥术余烬",
+  "item.apprenticecodex.wisdom_shard": "智慧碎片",
   "item.apprenticecodex.comfort_berries": "舒心浆果",
   "item.apprenticecodex.comfort_sandwich": "舒适三明治",
   "item.apprenticecodex.spellstained_arcane_ingot": "染法奥术锭",
@@ -165,6 +166,7 @@
 
   "item.apprenticecodex.common.desc.spell_hint": "按住 Shift 或 Alt 显示适用法术",
   "item.apprenticecodex.common.desc.spell_hint_open": "适用法术：",
+  "item.apprenticecodex.wisdom_shard.desc": "可作为部分装备的调整用物品安装。",
   "item.apprenticecodex.apprentice_desk.disabled_tooltip": "仅作为跑腿法师的工作站点方块时生效。",
   "item.apprenticecodex.spell_dispenser.creative_tooltip": "创造版",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "当前指向同维度的磁石。",

@@ -349,12 +349,13 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
             appendSilverRingHint(lines);
             return List.copyOf(lines);
         }
-        lines.add(SLOT_UPGRADE_GROUP);
-        appendTaggedItemHintLines(
-                lines,
-                TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES,
-                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
-        );
+        if (menu.hasAutocastAmulet()) {
+            appendSlotUpgradeHints(lines);
+            appendSilverRingHint(lines);
+            appendWisdomShardHint(lines);
+            return List.copyOf(lines);
+        }
+        appendSlotUpgradeHints(lines);
         if (menu.hasGauntlet()) {
             lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_enchantment_books"));
             appendTaggedItemHintLines(
@@ -379,10 +380,26 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
         return List.copyOf(lines);
     }
 
+    private static void appendSlotUpgradeHints(List<Component> lines) {
+        lines.add(SLOT_UPGRADE_GROUP);
+        appendTaggedItemHintLines(
+                lines,
+                TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES,
+                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
+        );
+    }
+
     private static void appendSilverRingHint(List<Component> lines) {
         lines.add(Component.translatable(
                 "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_single_specific_item",
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()).getHoverName()
+        ));
+    }
+
+    private static void appendWisdomShardHint(List<Component> lines) {
+        lines.add(Component.translatable(
+                "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_single_specific_item",
+                new ItemStack(ItemRegistry.WISDOM_SHARD.get()).getHoverName()
         ));
     }
 
