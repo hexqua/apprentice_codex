@@ -1,43 +1,48 @@
 package jp.aquafactory.apprenticecodex.item.curios.autocastamulet;
 
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.compat.Curios;
-import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
-import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
-import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
+import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.ArrayList;
 
-public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, RestrictedSpellImbuableItem,
-        SpellSlotUpgradeableItem {
+public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, ArcaneAnvilImbueBlockItem {
     public static final int MIN_SPELL_SLOTS = 1;
-    public static final int MAX_SPELL_SLOTS = 3;
-    public static final ResourceLocation LESSER_SPELL_SLOT_UPGRADE_ID =
-            ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "lesser_spell_slot_upgrade");
+    public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
+    public static final int MAX_SPELL_SLOTS = MIN_SPELL_SLOTS + CALIBRATION_ADJUSTMENT_SLOT_COUNT;
 
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.autocast_amulet.desc_";
+    private static final String CALIBRATION_TAG = "SpellCalibration";
+    private static final String ADJUSTMENTS_TAG = "Adjustments";
+    private static final String SCROLLS_TAG = "Scrolls";
+    private static final String SLOT_TAG = "Slot";
+    private static final String ITEM_TAG = "Item";
     private static final String RETRY_SEQUENCE_TICK_TAG = ApprenticeCodex.MODID + ":autocast_retry_sequence_tick";
     private static final String RETRY_SKIP_SLOT_TAG = ApprenticeCodex.MODID + ":autocast_retry_skip_slot";
     public static final int ERROR_RETRY_DELAY_TICKS = 60;
@@ -93,146 +98,52 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Re
         return JEI_INFO_KEY_PREFIX;
     }
 
-    @Override
     public boolean canImbueSpell(SpellData spellData) {
         return spellData != SpellData.EMPTY && canImbueSpell(spellData.getSpell(), spellData.getLevel());
     }
 
-    @Override
     public boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel) {
         return spell != null
                 && spell != io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()
-                && AutocastAmuletSpellListManager.isAllowlisted(spell);
+                && (spell.getCastType() == CastType.INSTANT || spell.getCastType() == CastType.LONG)
+                && spell.getRecastCount(spellLevel, null) <= 0;
     }
 
-    @Override
-    public void normalizeImbuedSpellContainer(ItemStack stack) {
-        if (stack == null || stack.isEmpty()) {
-            return;
-        }
-
-        initializeSpellContainer(stack);
-        var current = ISpellContainer.get(stack);
-        if (current == null) {
-            return;
-        }
-
-        var maxSpellCount = clampSpellSlotCount(current.getMaxSpellCount());
-        var normalized = ISpellContainer.create(maxSpellCount, false, false).mutableCopy();
-        for (var index = 0; index < current.getMaxSpellCount() && normalized.getActiveSpellCount() < maxSpellCount; ++index) {
-            var spellData = current.getSpellAtIndex(index);
-            if (spellData == SpellData.EMPTY || !canImbueSpell(spellData)) {
-                continue;
-            }
-
-            normalized.addSpellAtIndex(
-                    spellData.getSpell(),
-                    spellData.getLevel(),
-                    normalized.getActiveSpellCount(),
-                    false
-            );
-        }
-
-        ISpellContainer.set(stack, normalized.toImmutable());
+    public boolean canAutoCastSpell(ItemStack stack, SpellData spellData) {
+        return spellData != SpellData.EMPTY && canAutoCastSpell(stack, spellData.getSpell(), spellData.getLevel());
     }
 
-    @Override
-    public ItemStack createArcaneAnvilImbueResult(ItemStack baseStack, SpellData spellData) {
-        var resultStack = baseStack.copy();
-        initializeSpellContainer(resultStack);
-        var current = ISpellContainer.get(resultStack);
-        if (current == null) {
-            return ItemStack.EMPTY;
-        }
-
-        var mutable = current.mutableCopy();
-        var targetIndex = mutable.getNextAvailableIndex();
-        if (targetIndex < 0) {
-            targetIndex = 0;
-        }
-        mutable.removeSpellAtIndex(targetIndex);
-        mutable.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), targetIndex, false);
-        ISpellContainer.set(resultStack, mutable.toImmutable());
-        normalizeImbuedSpellContainer(resultStack);
-        return resultStack;
+    public boolean canAutoCastSpell(ItemStack stack, @Nullable AbstractSpell spell, int spellLevel) {
+        return spell != null
+                && spell != io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()
+                && getSupportedCastTypes(stack).contains(SpellGunCastType.from(spell.getCastType()))
+                && spell.getRecastCount(spellLevel, null) <= 0;
     }
 
-    @Override
-    public int getWorkbenchSpellExtractionIndex(ItemStack stack, ISpellContainer spellContainer) {
-        for (var index = spellContainer.getMaxSpellCount() - 1; index >= 0; --index) {
-            if (spellContainer.getSpellAtIndex(index) != SpellData.EMPTY) {
-                return index;
-            }
-        }
-        return 0;
-    }
-
-    @Override
-    public boolean canRemoveWorkbenchSpell(ItemStack stack, ISpellContainer spellContainer, int spellIndex, SpellData spellData) {
-        return spellData != SpellData.EMPTY;
-    }
-
-    @Override
     public List<Component> getImbueRestrictionTooltipLines() {
-        return List.of(ImbueTooltipHelper.translatableGray(
-                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_by_allowlist"
-        ));
-    }
-
-    @Override
-    public ItemStack createSpellSlotUpgradeResult(ItemStack baseStack, SpellSlotUpgradeItem upgradeItem) {
-        if (!isSupportedSpellSlotUpgrade(upgradeItem)) {
-            return ItemStack.EMPTY;
-        }
-
-        var resultStack = baseStack.copy();
-        initializeSpellContainer(resultStack);
-        var current = ISpellContainer.get(resultStack);
-        if (current == null) {
-            return ItemStack.EMPTY;
-        }
-        if (current.getMaxSpellCount() >= MAX_SPELL_SLOTS) {
-            return ItemStack.EMPTY;
-        }
-
-        var mutable = current.mutableCopy();
-        mutable.setMaxSpellCount(Math.min(MAX_SPELL_SLOTS, current.getMaxSpellCount() + 1));
-        ISpellContainer.set(resultStack, mutable.toImmutable());
-        normalizeImbuedSpellContainer(resultStack);
-        return resultStack;
+        var translatedLines = new ArrayList<>(
+                ImbueTooltipHelper.collectCastTypeRestrictionLines(
+                        EnumSet.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG)
+                )
+        );
+        ImbueTooltipHelper.appendNoRecastRestrictionLine(translatedLines, true);
+        return translatedLines;
     }
 
     public void initializeSpellContainer(ItemStack stack) {
         if (stack == null || stack.isEmpty()) {
             return;
         }
-        if (ISpellContainer.isSpellContainer(stack)) {
-            return;
-        }
 
-        ISpellContainer.set(stack, ISpellContainer.create(MIN_SPELL_SLOTS, false, false));
+        convertLegacySpellContainer(stack);
     }
 
     public static int clampSpellSlotCount(int spellSlotCount) {
         return Math.max(MIN_SPELL_SLOTS, Math.min(MAX_SPELL_SLOTS, spellSlotCount));
     }
 
-    public static double getManaMultiplier(int activeSpellCount) {
-        if (activeSpellCount <= 1) {
-            return 1.0D;
-        }
-
-        var base = 1.0D + (activeSpellCount - 1) * 0.2D;
-        return base * base;
-    }
-
-    public static int getScaledManaCost(AbstractSpell spell, int spellLevel, int activeSpellCount) {
-        var baseManaCost = spell.getManaCost(spellLevel);
-        if (baseManaCost <= 0) {
-            return 0;
-        }
-
-        return Math.max(1, (int) Math.round(baseManaCost * getManaMultiplier(activeSpellCount)));
+    public static int getStoredSpellSlotCount() {
+        return MIN_SPELL_SLOTS + CALIBRATION_ADJUSTMENT_SLOT_COUNT;
     }
 
     public static void scheduleRetrySequence(ItemStack stack, long currentTick, int spellIndex) {
@@ -276,11 +187,6 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Re
         return tag == null || !tag.contains(RETRY_SKIP_SLOT_TAG) ? -1 : tag.getInt(RETRY_SKIP_SLOT_TAG);
     }
 
-    public static boolean isSupportedSpellSlotUpgrade(SpellSlotUpgradeItem upgradeItem) {
-        var itemId = ForgeRegistries.ITEMS.getKey(upgradeItem);
-        return LESSER_SPELL_SLOT_UPGRADE_ID.equals(itemId);
-    }
-
     public static Component createInsufficientManaMessage(AbstractSpell spell, Player player, int requiredMana) {
         return Component.translatable(
                         "ui.apprenticecodex.autocast_amulet.insufficient_mana",
@@ -292,17 +198,12 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Re
 
     public static List<SpellData> getImbuedSpells(ItemStack stack) {
         var spells = new ArrayList<SpellData>();
-        if (!ISpellContainer.isSpellContainer(stack)) {
+        if (!isValidStoredSpellAccess(stack, 0)) {
             return spells;
         }
 
-        var spellContainer = ISpellContainer.get(stack);
-        if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
-            return spells;
-        }
-
-        for (var index = 0; index < spellContainer.getMaxSpellCount(); ++index) {
-            var spellData = spellContainer.getSpellAtIndex(index);
+        for (var index = 0; index < getStoredSpellSlotCount(); ++index) {
+            var spellData = getSpellDataAt(stack, index);
             if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
                 continue;
             }
@@ -310,6 +211,255 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Re
             spells.add(spellData);
         }
         return spells;
+    }
+
+    public static @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack amuletStack, int slot) {
+        return getCalibrationItem(amuletStack, slot);
+    }
+
+    public static void setCalibrationAdjustment(@NotNull ItemStack amuletStack, int slot, @NotNull ItemStack stack) {
+        setCalibrationItem(amuletStack, slot, stack);
+    }
+
+    public static @NotNull ItemStack getCalibrationScroll(@NotNull ItemStack amuletStack, int slot) {
+        return getCalibrationItem(amuletStack, SCROLLS_TAG, slot, getStoredSpellSlotCount());
+    }
+
+    public static void setCalibrationScroll(@NotNull ItemStack amuletStack, int slot, @NotNull ItemStack stack) {
+        setCalibrationItem(amuletStack, SCROLLS_TAG, slot, getStoredSpellSlotCount(), stack);
+    }
+
+    public static int getEnabledSpellSlotCount(@NotNull ItemStack amuletStack) {
+        if (!isValidCalibrationAccess(amuletStack, 0)) {
+            return 0;
+        }
+
+        var upgradeCount = 0;
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            if (isCalibrationSlotUpgrade(getCalibrationAdjustment(amuletStack, slot))) {
+                ++upgradeCount;
+            }
+        }
+        return clampSpellSlotCount(MIN_SPELL_SLOTS + upgradeCount);
+    }
+
+    public static boolean isCalibrationAdjustmentItem(@NotNull ItemStack stack) {
+        return isCalibrationSlotUpgrade(stack) || isSilverRing(stack);
+    }
+
+    public static boolean isCalibrationSlotUpgrade(@NotNull ItemStack stack) {
+        return !stack.isEmpty() && stack.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES);
+    }
+
+    public static boolean isSilverRing(@NotNull ItemStack stack) {
+        return !stack.isEmpty()
+                && stack.getItem() == io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get();
+    }
+
+    public static boolean hasSilverRingAdjustment(@NotNull ItemStack amuletStack) {
+        if (!isValidCalibrationAccess(amuletStack, 0)) {
+            return false;
+        }
+
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            if (isSilverRing(getCalibrationAdjustment(amuletStack, slot))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isCastableConfiguredSpell(@NotNull ItemStack amuletStack, @NotNull SpellData spellData) {
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            return false;
+        }
+        return ((AutocastAmulet) amuletStack.getItem()).canAutoCastSpell(amuletStack, spellData);
+    }
+
+    public static boolean isEnabledSpellSlot(@NotNull ItemStack amuletStack, int slot) {
+        return isValidStoredSpellAccess(amuletStack, slot) && slot < getEnabledSpellSlotCount(amuletStack);
+    }
+
+    public static boolean isMismatchedCastConditionAt(@NotNull ItemStack amuletStack, int slot) {
+        if (!isValidStoredSpellAccess(amuletStack, slot)) {
+            return false;
+        }
+
+        var spellData = getSpellDataAt(amuletStack, slot);
+        return spellData != SpellData.EMPTY
+                && spellData.getSpell() != null
+                && !isCastableConfiguredSpell(amuletStack, spellData);
+    }
+
+    public static @NotNull SpellData getSpellDataAt(@NotNull ItemStack amuletStack, int slot) {
+        if (!isValidStoredSpellAccess(amuletStack, slot)) {
+            return SpellData.EMPTY;
+        }
+
+        return getScrollSpellData(getCalibrationScroll(amuletStack, slot));
+    }
+
+    private static EnumSet<SpellGunCastType> getSupportedCastTypes(@NotNull ItemStack stack) {
+        return hasSilverRingAdjustment(stack)
+                ? EnumSet.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG)
+                : EnumSet.of(SpellGunCastType.INSTANT);
+    }
+
+    private static void convertLegacySpellContainer(@NotNull ItemStack amuletStack) {
+        var spellContainer = ISpellContainer.get(amuletStack);
+        if (spellContainer == null) {
+            return;
+        }
+
+        var legacyExtraSlots = clampSpellSlotCount(spellContainer.getMaxSpellCount()) - MIN_SPELL_SLOTS;
+        repairLegacySlotUpgradeAdjustments(amuletStack, legacyExtraSlots);
+        for (var slot = 0; slot < spellContainer.getMaxSpellCount() && slot < getStoredSpellSlotCount(); ++slot) {
+            var spellData = spellContainer.getSpellAtIndex(slot);
+            if (spellData == SpellData.EMPTY
+                    || spellData.getSpell() == null
+                    || !((AutocastAmulet) amuletStack.getItem()).canImbueSpell(spellData)) {
+                continue;
+            }
+            setCalibrationScroll(amuletStack, slot, createScroll(spellData));
+        }
+        ISpellContainer.remove(amuletStack);
+    }
+
+    private static void repairLegacySlotUpgradeAdjustments(@NotNull ItemStack amuletStack, int legacyExtraSlots) {
+        if (legacyExtraSlots <= 0) {
+            return;
+        }
+
+        var existingUpgradeCount = 0;
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            if (isCalibrationSlotUpgrade(getCalibrationAdjustment(amuletStack, slot))) {
+                ++existingUpgradeCount;
+            }
+        }
+
+        var missingUpgradeCount = Math.min(CALIBRATION_ADJUSTMENT_SLOT_COUNT, legacyExtraSlots) - existingUpgradeCount;
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT && missingUpgradeCount > 0; ++slot) {
+            if (!getCalibrationAdjustment(amuletStack, slot).isEmpty()) {
+                continue;
+            }
+            setCalibrationItem(
+                    amuletStack,
+                    slot,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
+            );
+            --missingUpgradeCount;
+        }
+    }
+
+    private static @NotNull ItemStack getCalibrationItem(@NotNull ItemStack amuletStack, int slot) {
+        return getCalibrationItem(amuletStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
+    }
+
+    private static @NotNull ItemStack getCalibrationItem(@NotNull ItemStack amuletStack, String listName, int slot, int slotCount) {
+        if (!isValidCalibrationAccess(amuletStack, slot, slotCount)) {
+            return ItemStack.EMPTY;
+        }
+
+        var calibrationTag = amuletStack.getTagElement(CALIBRATION_TAG);
+        if (calibrationTag == null || !calibrationTag.contains(listName, Tag.TAG_LIST)) {
+            return ItemStack.EMPTY;
+        }
+
+        var list = calibrationTag.getList(listName, Tag.TAG_COMPOUND);
+        for (var index = 0; index < list.size(); ++index) {
+            var entry = list.getCompound(index);
+            if (entry.getInt(SLOT_TAG) != slot || !entry.contains(ITEM_TAG, Tag.TAG_COMPOUND)) {
+                continue;
+            }
+            return ItemStack.of(entry.getCompound(ITEM_TAG));
+        }
+        return ItemStack.EMPTY;
+    }
+
+    private static void setCalibrationItem(@NotNull ItemStack amuletStack, int slot, @NotNull ItemStack stack) {
+        setCalibrationItem(amuletStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, stack);
+    }
+
+    private static void setCalibrationItem(@NotNull ItemStack amuletStack, String listName, int slot, int slotCount,
+                                           @NotNull ItemStack stack) {
+        if (!isValidCalibrationAccess(amuletStack, slot, slotCount)) {
+            return;
+        }
+
+        var calibrationTag = amuletStack.getOrCreateTagElement(CALIBRATION_TAG);
+        var list = calibrationTag.contains(listName, Tag.TAG_LIST)
+                ? calibrationTag.getList(listName, Tag.TAG_COMPOUND)
+                : new ListTag();
+        removeCalibrationItem(list, slot);
+
+        if (!stack.isEmpty()) {
+            var storedStack = stack.copy();
+            storedStack.setCount(1);
+            var entry = new CompoundTag();
+            entry.putInt(SLOT_TAG, slot);
+            entry.put(ITEM_TAG, storedStack.save(new CompoundTag()));
+            list.add(entry);
+        }
+
+        if (list.isEmpty()) {
+            calibrationTag.remove(listName);
+        } else {
+            calibrationTag.put(listName, list);
+        }
+        if (calibrationTag.isEmpty()) {
+            amuletStack.removeTagKey(CALIBRATION_TAG);
+        }
+    }
+
+    private static void removeCalibrationItem(ListTag list, int slot) {
+        for (var index = list.size() - 1; index >= 0; --index) {
+            if (list.getCompound(index).getInt(SLOT_TAG) == slot) {
+                list.remove(index);
+            }
+        }
+    }
+
+    private static boolean isValidCalibrationAccess(@NotNull ItemStack amuletStack, int slot) {
+        return isValidCalibrationAccess(amuletStack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
+    }
+
+    private static boolean isValidCalibrationAccess(@NotNull ItemStack amuletStack, int slot, int slotCount) {
+        return !amuletStack.isEmpty()
+                && amuletStack.getItem() instanceof AutocastAmulet
+                && slot >= 0
+                && slot < slotCount;
+    }
+
+    private static boolean isValidStoredSpellAccess(@NotNull ItemStack amuletStack, int slot) {
+        return !amuletStack.isEmpty()
+                && amuletStack.getItem() instanceof AutocastAmulet
+                && slot >= 0
+                && slot < getStoredSpellSlotCount();
+    }
+
+    private static @NotNull ItemStack createScroll(@NotNull SpellData spellData) {
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            return ItemStack.EMPTY;
+        }
+
+        var scrollStack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+        ISpellContainer.createScrollContainer(spellData.getSpell(), spellData.getLevel(), scrollStack);
+        return scrollStack;
+    }
+
+    private static @NotNull SpellData getScrollSpellData(@NotNull ItemStack scrollStack) {
+        if (scrollStack.isEmpty()) {
+            return SpellData.EMPTY;
+        }
+
+        var scrollContainer = ISpellContainer.get(scrollStack);
+        if (scrollContainer == null || scrollContainer.getActiveSpellCount() != 1) {
+            return SpellData.EMPTY;
+        }
+
+        var spellData = scrollContainer.getSpellAtIndex(0);
+        //noinspection ConstantValue
+        return spellData == null ? SpellData.EMPTY : spellData;
     }
 
     private static void cleanupAutocastTags(ItemStack stack, CompoundTag tag) {

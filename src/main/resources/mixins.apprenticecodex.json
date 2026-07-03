@@ -52,7 +52,6 @@
     "ArcaneAnvilJeiRecipeMixin",
     "BetterCombatItemInHandLayerMixin",
     "BetterCombatItemInHandRendererMixin",
-    "ClientPlayerEventsAutocastAmuletTooltipMixin",
     "ClientPlayerEventsCastingMoveSpeedMixin",
     "ClientPlayerRecastsMixin",
     "ClientInputEventsMixin",

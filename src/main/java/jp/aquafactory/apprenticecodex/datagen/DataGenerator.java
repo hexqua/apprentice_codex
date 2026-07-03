@@ -5,7 +5,6 @@ import jp.aquafactory.apprenticecodex.datagen.recipe.EssenceSmokerRecipeDataGene
 import jp.aquafactory.apprenticecodex.datagen.recipe.GrindRunnerRecipeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.recipe.SpellcasterWorkbenchRecipeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.ElementalBowModeDataGenerator;
-import jp.aquafactory.apprenticecodex.datagen.spell.AutocastAmuletSpellListDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.ScrollcasterSchoolRuneOverrideDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SchoolAffinityCatalystOverrideDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SchoolAffinitySelectionPolicyDataGenerator;
@@ -44,7 +43,6 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), new MulticastEchoStaffAttackProfileDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new MulticastEchoStaffMobEffectProfileDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new SpellGunSpellListDataGenerator(output, existing));
-        generator.addProvider(event.includeServer(), new AutocastAmuletSpellListDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new ElementalBowModeDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new SearchBeaconTargetDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new ScrollcasterSchoolRuneOverrideDataGenerator(output, existing));
