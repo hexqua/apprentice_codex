@@ -146,7 +146,7 @@ public class ArcaneBeamEntity extends Entity implements TraceableEntity {
         var blockHit = level.clip(new ClipContext(
                 position(),
                 position().add(getLookAngle().scale(maxLength)),
-                ClipContext.Block.OUTLINE,
+                ClipContext.Block.COLLIDER,
                 ClipContext.Fluid.NONE,
                 this
         ));

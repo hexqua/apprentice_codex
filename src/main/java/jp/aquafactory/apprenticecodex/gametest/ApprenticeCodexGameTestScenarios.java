@@ -146,6 +146,7 @@ import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWings;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsManager;
 import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
+import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetCollectionMode;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
@@ -179,6 +180,7 @@ import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldProjectileE
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldShieldEntity;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
+import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxChargeBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxCounterSpellEvent;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
 import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
@@ -8730,6 +8732,27 @@ public class ApprenticeCodexGameTestScenarios {
     static void assertHealthUnchanged(GameTestHelper helper, net.minecraft.world.entity.LivingEntity target, float expectedHealth, String message) {
         helper.assertTrue(Math.abs(target.getHealth() - expectedHealth) < 0.001F,
                 message + ": expected=" + expectedHealth + ", actual=" + target.getHealth());
+    }
+
+    static void beamLengthIgnoresNoCollisionGrass(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            helper.setBlock(new BlockPos(2, 3, 1), Blocks.SHORT_GRASS);
+            helper.setBlock(new BlockPos(4, 3, 1), Blocks.STONE);
+
+            var start = helper.absoluteVec(new Vec3(0.5D, 3.5D, 1.5D));
+            var arcaneBeam = new ArcaneBeamEntity(EntityRegistry.ARCANE_BEAM.get(), level);
+            arcaneBeam.moveTo(start.x, start.y, start.z, -90.0F, 0.0F);
+            arcaneBeam.updateLength(8.0F, level);
+            helper.assertTrue(Math.abs(arcaneBeam.getLength() - 3.5D) < 0.01D,
+                    "Arcane Beam should ignore grass collision and stop at stone: " + arcaneBeam.getLength());
+
+            var phalanxBeam = new PhalanxChargeBeamEntity(EntityRegistry.PHALANX_CHARGE_BEAM.get(), level);
+            phalanxBeam.moveTo(start.x, start.y, start.z, -90.0F, 0.0F);
+            phalanxBeam.setup(level, 8.0F, 0.15F, 1.0F);
+            helper.assertTrue(Math.abs(phalanxBeam.getLength() - 3.5D) < 0.01D,
+                    "Phalanx Charge beam should ignore grass collision and stop at stone: " + phalanxBeam.getLength());
+        });
     }
 
     static void spawnCounterspellTestEntity(GameTestHelper helper, net.minecraft.world.entity.Entity entity, Vec3 localPos) {
