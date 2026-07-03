@@ -28,6 +28,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.DistExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.SlotContext;
@@ -93,12 +95,7 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
         var result = new ArrayList<>(tooltips);
         result.add(Component.empty());
         result.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
-        result.add(Component.literal(" ")
-                .append(Component.translatable(getDescriptionId() + ".desc_1"))
-                .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-        result.add(Component.literal(" ")
-                .append(Component.translatable(getDescriptionId() + ".desc_2"))
-                .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+        appendAutocastTooltip(stack, result);
         return result;
     }
 
@@ -130,12 +127,23 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
     }
 
     public List<Component> getImbueRestrictionTooltipLines() {
+        return getImbueRestrictionTooltipLines(ItemStack.EMPTY);
+    }
+
+    public List<Component> getImbueRestrictionTooltipLines(ItemStack stack) {
         var translatedLines = new ArrayList<>(
                 ImbueTooltipHelper.collectCastTypeRestrictionLines(
-                        EnumSet.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG)
+                        stack.isEmpty()
+                                ? EnumSet.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG)
+                                : getSupportedCastTypes(stack)
                 )
         );
         ImbueTooltipHelper.appendNoRecastRestrictionLine(translatedLines, true);
+        if (!stack.isEmpty() && hasWisdomShardAdjustment(stack)) {
+            translatedLines.add(ImbueTooltipHelper.translatableGray(
+                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_by_profile"
+            ));
+        }
         return translatedLines;
     }
 
@@ -541,4 +549,101 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
         return spellData == null ? SpellData.EMPTY : spellData;
     }
 
+    private static void appendAutocastTooltip(ItemStack stack, List<Component> lines) {
+        lines.add(Component.literal(" ")
+                .append(Component.translatable("item." + ApprenticeCodex.MODID + ".autocast_amulet.desc"))
+                .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+        lines.add(Component.literal(" ")
+                .append(Component.translatable("item." + ApprenticeCodex.MODID + ".autocast_amulet."
+                        + (hasWisdomShardAdjustment(stack) ? "desc_wisdom" : "desc_default")))
+                .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+
+        ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
+        if (!ImbueTooltipHelper.hasDetailsKeyDown()) {
+            lines.add(Component.translatable("item." + ApprenticeCodex.MODID + ".spellgun.tooltip.hint")
+                    .withStyle(ChatFormatting.YELLOW));
+            appendAutocastSpellStatusTooltip(stack, lines);
+            return;
+        }
+
+        ImbueTooltipHelper.appendTooltipSection(
+                lines,
+                collectAutocastAbilityTooltipSection(stack),
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_autocast_title",
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_none"
+        );
+        ImbueTooltipHelper.appendTooltipSection(
+                lines,
+                collectAutocastRestrictTooltipSection(stack),
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_autocast_title",
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_none"
+        );
+
+        ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
+        appendAutocastSpellStatusTooltip(stack, lines);
+    }
+
+    private static List<Component> collectAutocastAbilityTooltipSection(ItemStack stack) {
+        var translatedLines = new ArrayList<Component>();
+        if (hasSilverRingAdjustment(stack)) {
+            translatedLines.add(ImbueTooltipHelper.translatableGray(
+                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant"
+            ));
+            translatedLines.add(ImbueTooltipHelper.translatableGray(
+                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_extend_cooldown"
+            ));
+        }
+        return translatedLines;
+    }
+
+    private static List<Component> collectAutocastRestrictTooltipSection(ItemStack stack) {
+        return ((AutocastAmulet) stack.getItem()).getImbueRestrictionTooltipLines(stack);
+    }
+
+    private static void appendAutocastSpellStatusTooltip(ItemStack stack, List<Component> lines) {
+        var hasWisdomShard = hasWisdomShardAdjustment(stack);
+        for (var index = 0; index < getStoredSpellSlotCount(); ++index) {
+            if (!isEnabledSpellSlot(stack, index)) {
+                continue;
+            }
+
+            var spellData = getSpellDataAt(stack, index);
+            if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+                continue;
+            }
+
+            var spell = spellData.getSpell();
+            var spellName = spell.getDisplayName(null);
+            if (hasWisdomShard && AutocastAmuletSpellProfileManager.getProfile(spell).isEmpty()) {
+                lines.add(Component.translatable(
+                        "item." + ApprenticeCodex.MODID + ".autocast_amulet.tooltip.no_profile_line",
+                        spellName
+                ).withStyle(ChatFormatting.GRAY));
+                continue;
+            }
+
+            var remainingCooldownSeconds = getClientRemainingCooldownSeconds(spell.getSpellId());
+            if (remainingCooldownSeconds > 0) {
+                lines.add(Component.translatable(
+                        "item." + ApprenticeCodex.MODID + ".autocast_amulet.tooltip.cooldown_line",
+                        spellName,
+                        remainingCooldownSeconds
+                ).withStyle(ChatFormatting.GRAY));
+                continue;
+            }
+
+            lines.add(Component.translatable(
+                    "item." + ApprenticeCodex.MODID + ".autocast_amulet.tooltip.ready_line",
+                    spellName
+            ).withStyle(ChatFormatting.GRAY));
+        }
+    }
+
+    private static int getClientRemainingCooldownSeconds(String spellId) {
+        var result = DistExecutor.unsafeCallWhenOn(
+                Dist.CLIENT,
+                () -> () -> AutocastAmuletClientTooltip.getRemainingCooldownSeconds(spellId)
+        );
+        return result == null ? 0 : result;
+    }
 }
