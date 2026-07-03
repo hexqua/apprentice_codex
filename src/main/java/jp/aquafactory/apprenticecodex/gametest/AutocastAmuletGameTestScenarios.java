@@ -932,6 +932,31 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             }
         });
     }
+
+    static void autocastAmuletNotificationControllerSkipsCooldownsUnderFiveSeconds(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var controller = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
+            var spellId = ResourceLocation.fromNamespaceAndPath("apprenticecodex", "arcane_blast");
+            var icon = ResourceLocation.fromNamespaceAndPath("apprenticecodex", "textures/spells/arcane_blast.png");
+
+            controller.queueCooldownCast(0L, spellId, icon, 99);
+
+            helper.assertTrue(controller.getActiveNotification() == null,
+                    "Autocast Amulet cooldowns under 5 seconds should not create a cast notification");
+            helper.assertTrue(controller.getPendingQueueSize() == 0,
+                    "Autocast Amulet cooldowns under 5 seconds should not queue a cast notification");
+            helper.assertTrue(controller.getScheduledNotifications().isEmpty(),
+                    "Autocast Amulet cooldowns under 5 seconds should not schedule threshold notifications");
+
+            controller.queueCooldownCast(1L, spellId, icon, 100);
+            var active = controller.getActiveNotification();
+            helper.assertTrue(active != null
+                            && active.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.CAST
+                            && active.displaySeconds() == 5,
+                    "Autocast Amulet cooldowns of 5 seconds should still create a cast notification");
+        });
+    }
+
     static void autocastAmuletNotificationControllerQueuesInOrderAndKeepsDelayedLabel(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var controller = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
