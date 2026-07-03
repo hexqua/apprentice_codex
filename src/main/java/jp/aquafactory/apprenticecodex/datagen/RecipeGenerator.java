@@ -132,7 +132,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .requires(io.redspace.ironsspellbooks.registries.ItemRegistry.DIVINE_SOULSHARD.get())
                 .requires(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
                 .requires(ItemRegistry.ARCANE_CINDER.get())
-                .unlockedBy(getHasName(ItemRegistry.WISDOM_SHARD.get()), has(ItemRegistry.WISDOM_SHARD.get()))
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.DIVINE_SOULSHARD.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.DIVINE_SOULSHARD.get()))
                 .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.STORAGE_STABILIZER.get())
