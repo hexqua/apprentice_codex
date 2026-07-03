@@ -562,6 +562,7 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
         if (!ImbueTooltipHelper.hasDetailsKeyDown()) {
             lines.add(Component.translatable("item." + ApprenticeCodex.MODID + ".spellgun.tooltip.hint")
                     .withStyle(ChatFormatting.YELLOW));
+            ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
             appendAutocastSpellStatusTooltip(stack, lines);
             return;
         }
@@ -614,28 +615,34 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
 
             var spell = spellData.getSpell();
             var spellName = spell.getDisplayName(null);
+            Component status;
             if (hasWisdomShard && AutocastAmuletSpellProfileManager.isKnownMissingProfileForClientTooltip(spell)) {
-                lines.add(Component.translatable(
-                        "item." + ApprenticeCodex.MODID + ".autocast_amulet.tooltip.no_profile_line",
-                        spellName
-                ).withStyle(ChatFormatting.GRAY));
-                continue;
-            }
-
-            var remainingCooldownSeconds = getClientRemainingCooldownSeconds(spell.getSpellId());
-            if (remainingCooldownSeconds > 0) {
-                lines.add(Component.translatable(
-                        "item." + ApprenticeCodex.MODID + ".autocast_amulet.tooltip.cooldown_line",
-                        spellName,
-                        remainingCooldownSeconds
-                ).withStyle(ChatFormatting.GRAY));
-                continue;
+                status = Component.translatable(
+                        "item." + ApprenticeCodex.MODID + ".autocast_amulet.tooltip.no_profile"
+                ).withStyle(ChatFormatting.YELLOW);
+            } else if (!isCastableConfiguredSpell(stack, spellData)) {
+                status = Component.translatable(
+                        "item." + ApprenticeCodex.MODID + ".autocast_amulet.tooltip.invalid_long"
+                ).withStyle(ChatFormatting.RED);
+            } else {
+                var remainingCooldownSeconds = getClientRemainingCooldownSeconds(spell.getSpellId());
+                if (remainingCooldownSeconds > 0) {
+                    status = Component.translatable(
+                            "item." + ApprenticeCodex.MODID + ".autocast_amulet.tooltip.cooldown",
+                            remainingCooldownSeconds
+                    ).withStyle(ChatFormatting.DARK_AQUA);
+                } else {
+                    status = Component.translatable(
+                            "item." + ApprenticeCodex.MODID + ".autocast_amulet.tooltip.ready"
+                    ).withStyle(ChatFormatting.AQUA);
+                }
             }
 
             lines.add(Component.translatable(
-                    "item." + ApprenticeCodex.MODID + ".autocast_amulet.tooltip.ready_line",
-                    spellName
-            ).withStyle(ChatFormatting.GRAY));
+                    "item." + ApprenticeCodex.MODID + ".autocast_amulet.tooltip.spell_line",
+                    spellName,
+                    status
+            ));
         }
     }
 
