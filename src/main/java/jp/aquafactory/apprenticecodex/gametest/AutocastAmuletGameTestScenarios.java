@@ -791,7 +791,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
 
             runAutocastAmuletServerTick(player, 20);
             var cooldownInstance = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
-            var expectedCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+            var expectedCooldown = expectedAutocastCooldownWithoutSwordMultiplier(
                     spell,
                     player,
                     CastSource.SWORD
@@ -805,13 +805,14 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
                     "Autocast Amulet creative cast should still add spell cooldown");
             helper.assertTrue(cooldownInstance != null && cooldownInstance.getSpellCooldown() == expectedCooldown,
-                    "Autocast Amulet creative cast should store the helper cooldown amount but got "
+                    "Autocast Amulet creative cast should store the cooldown without the sword multiplier but got "
                             + (cooldownInstance == null ? "null" : cooldownInstance.getSpellCooldown())
                             + " / expected " + expectedCooldown);
             helper.succeed();
         });
     }
-    static void autocastAmuletCooldownUsesSwordMultiplier(GameTestHelper helper) {
+
+    static void autocastAmuletCooldownIgnoresSwordMultiplier(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "autocast_amulet_cooldown_test");
             var stack = new ItemStack(ItemRegistry.AUTOCAST_AMULET.get());
@@ -820,7 +821,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             helper.assertTrue(magicData != null, "Autocast Amulet cooldown test could not resolve player mana data");
             magicData.setPlayerCastingItem(stack.copy());
 
-            var expectedCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+            var expectedCooldown = expectedAutocastCooldownWithoutSwordMultiplier(
                     spell,
                     player,
                     CastSource.SWORD
@@ -838,11 +839,10 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             );
             jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletCastEvent.onSpellCooldownAdded(cooldownEvent);
             helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
-                    "Autocast Amulet cooldown event should use the helper cooldown amount but got "
+                    "Autocast Amulet cooldown event should ignore the sword cooldown multiplier but got "
                             + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
-            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == ironsSwordCooldown,
-                    "Autocast Amulet cooldown event should keep Iron's sword multiplier path but got "
-                            + cooldownEvent.getEffectiveCooldown() + " / expected " + ironsSwordCooldown);
+            helper.assertTrue(cooldownEvent.getEffectiveCooldown() != ironsSwordCooldown,
+                    "Autocast Amulet cooldown event should differ from Iron's sword multiplier path");
         });
     }
     static void autocastAmuletLongSpellCompletesImmediately(GameTestHelper helper) {
@@ -1025,5 +1025,26 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
                         && spellData.getSpell() == expectedSpell
                         && spellData.getLevel() == expectedLevel,
                 message + ": got " + (spellData == SpellData.EMPTY ? "empty" : spellData.getSpell().getSpellResource()));
+    }
+
+    private static int expectedAutocastCooldownWithoutSwordMultiplier(
+            AbstractSpell spell,
+            net.minecraft.world.entity.player.Player player,
+            CastSource castSource
+    ) {
+        var cooldownTicks = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                spell,
+                player,
+                castSource
+        );
+        if (cooldownTicks <= 0 || castSource != CastSource.SWORD) {
+            return cooldownTicks;
+        }
+
+        var swordCooldownMultiplier = io.redspace.ironsspellbooks.config.ServerConfigs.SWORDS_CD_MULTIPLIER.get();
+        if (swordCooldownMultiplier <= 0.0D) {
+            return cooldownTicks;
+        }
+        return Math.max(0, (int) (cooldownTicks * (1.0D / swordCooldownMultiplier)));
     }
 }
