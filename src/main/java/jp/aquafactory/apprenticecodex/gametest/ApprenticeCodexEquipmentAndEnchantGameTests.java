@@ -627,8 +627,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void autocastAmuletCooldownUsesSwordMultiplier(GameTestHelper helper) {
-        AutocastAmuletGameTestScenarios.autocastAmuletCooldownUsesSwordMultiplier(helper);
+    public static void autocastAmuletCooldownIgnoresSwordMultiplier(GameTestHelper helper) {
+        AutocastAmuletGameTestScenarios.autocastAmuletCooldownIgnoresSwordMultiplier(helper);
     }
 
     @GameTest(template = TEMPLATE)
