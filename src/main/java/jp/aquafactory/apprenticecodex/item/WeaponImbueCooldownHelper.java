@@ -25,6 +25,18 @@ public final class WeaponImbueCooldownHelper {
         return (int) (baseCooldown * (2 - Utils.softCapFormula(playerCooldownModifier)) * itemCooldownModifier);
     }
 
+    public static int getEffectiveSpellCooldownWithoutSwordMultiplier(
+            AbstractSpell spell,
+            Player player,
+            CastSource castSource
+    ) {
+        return getEffectiveSpellCooldown(
+                spell,
+                player,
+                castSource == CastSource.SWORD ? CastSource.SPELLBOOK : castSource
+        );
+    }
+
     private static int resolveLimitedBaseCooldown(AbstractSpell spell, Player player) {
         var baseCooldown = Math.max(0, spell.getSpellCooldown());
         if (baseCooldown == 0) {

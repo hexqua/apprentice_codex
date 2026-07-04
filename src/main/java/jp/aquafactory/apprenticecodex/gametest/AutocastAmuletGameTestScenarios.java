@@ -508,6 +508,33 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
                             + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
             helper.assertTrue(cooldownEvent.getEffectiveCooldown() != ironsSwordCooldown,
                     "Autocast Amulet cooldown event should differ from Iron's sword multiplier path");
+
+            var originalSwordCooldownMultiplier = io.redspace.ironsspellbooks.config.ServerConfigs.SWORDS_CD_MULTIPLIER.get();
+            try {
+                io.redspace.ironsspellbooks.config.ServerConfigs.SWORDS_CD_MULTIPLIER.set(0.0D);
+                var zeroMultiplierSwordCooldown = io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
+                        spell,
+                        player,
+                        CastSource.SWORD
+                );
+                var zeroMultiplierCooldownEvent = new SpellCooldownAddedEvent.Pre(
+                        zeroMultiplierSwordCooldown,
+                        spell,
+                        player,
+                        CastSource.SWORD
+                );
+                jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletCastEvent.onSpellCooldownAdded(
+                        zeroMultiplierCooldownEvent
+                );
+                helper.assertTrue(zeroMultiplierSwordCooldown == 0,
+                        "Iron's sword cooldown should be zero with a zero sword multiplier but got "
+                                + zeroMultiplierSwordCooldown);
+                helper.assertTrue(zeroMultiplierCooldownEvent.getEffectiveCooldown() == expectedCooldown,
+                        "Autocast Amulet cooldown event should restore cooldown even with a zero sword multiplier but got "
+                                + zeroMultiplierCooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+            } finally {
+                io.redspace.ironsspellbooks.config.ServerConfigs.SWORDS_CD_MULTIPLIER.set(originalSwordCooldownMultiplier);
+            }
         });
     }
     static void autocastAmuletLongSpellCompletesImmediately(GameTestHelper helper) {
@@ -722,19 +749,10 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             net.minecraft.world.entity.player.Player player,
             CastSource castSource
     ) {
-        var cooldownTicks = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+        return jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldownWithoutSwordMultiplier(
                 spell,
                 player,
                 castSource
         );
-        if (cooldownTicks <= 0 || castSource != CastSource.SWORD) {
-            return cooldownTicks;
-        }
-
-        var swordCooldownMultiplier = io.redspace.ironsspellbooks.config.ServerConfigs.SWORDS_CD_MULTIPLIER.get();
-        if (swordCooldownMultiplier <= 0.0D) {
-            return cooldownTicks;
-        }
-        return Math.max(0, (int) (cooldownTicks * (1.0D / swordCooldownMultiplier)));
     }
 }
