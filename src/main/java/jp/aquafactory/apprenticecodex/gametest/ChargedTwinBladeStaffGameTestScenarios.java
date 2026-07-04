@@ -879,37 +879,48 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
         });
     }
     static void chargedTwinBladeStaffCreativeImpactCastUsesRemoteOwnerProfileWithZeroMana(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = (ServerLevel) helper.getLevel();
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_creative_remote_owner_profile_test");
-            player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(magicData != null, "Charged Twin Blade Staff creative RemoteOwner profile test could not resolve player mana data");
-            magicData.setMana(0.0F);
-            var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
-            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "magic_missile"),
-                    1,
-                    CastSource.SWORD.name(),
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-            );
+        var level = (ServerLevel) helper.getLevel();
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_creative_remote_owner_profile_test");
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Charged Twin Blade Staff creative RemoteOwner profile test could not resolve player mana data");
+        magicData.setMana(0.0F);
+        var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
+        var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
+                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "magic_missile"),
+                1,
+                CastSource.SWORD.name(),
+                io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+        );
+        var spawnedProjectiles = new ArrayList<io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile>();
+        java.util.function.Consumer<EntityJoinLevelEvent> projectileListener = event -> {
+            if (event.getLevel() == level
+                    && event.getEntity() instanceof io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile projectile
+                    && projectile.position().distanceToSqr(impactPos) <= 144.0D) {
+                spawnedProjectiles.add(projectile);
+            }
+        };
 
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                            level,
-                            player,
-                            new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
-                            payload,
-                            impactPos,
-                            new Vec3(0.0D, 0.0D, 1.0D)
-                    ),
-                    "Charged Twin Blade Staff creative impact cast should use RemoteOwner profile with zero mana"
-            );
-            var projectiles = level.getEntitiesOfClass(
-                    io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
-                    new AABB(impactPos, impactPos).inflate(12.0D)
-            );
-            helper.assertTrue(!projectiles.isEmpty(),
+        helper.runAtTickTime(1, () -> {
+            NeoForge.EVENT_BUS.addListener(projectileListener);
+            try {
+                helper.assertTrue(
+                        jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                                level,
+                                player,
+                                new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
+                                payload,
+                                impactPos,
+                                new Vec3(0.0D, 0.0D, 1.0D)
+                        ),
+                        "Charged Twin Blade Staff creative impact cast should use RemoteOwner profile with zero mana"
+                );
+            } finally {
+                NeoForge.EVENT_BUS.unregister(projectileListener);
+            }
+        });
+        helper.succeedWhen(() -> {
+            helper.assertTrue(!spawnedProjectiles.isEmpty(),
                     "Charged Twin Blade Staff creative RemoteOwner profile should spawn Magic Missile projectiles");
             helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
                     "Charged Twin Blade Staff creative RemoteOwner profile should leave mana at zero but got " + magicData.getMana());
