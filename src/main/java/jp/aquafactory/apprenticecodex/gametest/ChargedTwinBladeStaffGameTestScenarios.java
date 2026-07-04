@@ -900,25 +900,30 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
                 spawnedProjectiles.add(projectile);
             }
         };
-        NeoForge.EVENT_BUS.addListener(projectileListener);
 
-        helper.runAtTickTime(1, () -> helper.assertTrue(
-                jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                        level,
-                        player,
-                        new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
-                        payload,
-                        impactPos,
-                        new Vec3(0.0D, 0.0D, 1.0D)
-                ),
-                "Charged Twin Blade Staff creative impact cast should use RemoteOwner profile with zero mana"
-        ));
+        helper.runAtTickTime(1, () -> {
+            NeoForge.EVENT_BUS.addListener(projectileListener);
+            try {
+                helper.assertTrue(
+                        jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                                level,
+                                player,
+                                new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
+                                payload,
+                                impactPos,
+                                new Vec3(0.0D, 0.0D, 1.0D)
+                        ),
+                        "Charged Twin Blade Staff creative impact cast should use RemoteOwner profile with zero mana"
+                );
+            } finally {
+                NeoForge.EVENT_BUS.unregister(projectileListener);
+            }
+        });
         helper.succeedWhen(() -> {
             helper.assertTrue(!spawnedProjectiles.isEmpty(),
                     "Charged Twin Blade Staff creative RemoteOwner profile should spawn Magic Missile projectiles");
             helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
                     "Charged Twin Blade Staff creative RemoteOwner profile should leave mana at zero but got " + magicData.getMana());
-            NeoForge.EVENT_BUS.unregister(projectileListener);
         });
     }
     static void chargedTwinBladeStaffCreativeImpactCastUsesStaffProfileWithZeroMana(GameTestHelper helper) {
