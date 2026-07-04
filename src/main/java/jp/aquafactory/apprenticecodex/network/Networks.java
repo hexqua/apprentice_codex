@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletNotificationPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletProfileSpellIdsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncApprenticeDeskConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncBoundBowStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncBoundSwordStatePacket;
@@ -61,7 +62,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "51";
+    private static final String PROTOCOL_VERSION = "52";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -356,6 +357,13 @@ public final class Networks {
                 SyncAutocastAmuletNotificationPacket::encode,
                 SyncAutocastAmuletNotificationPacket::decode,
                 SyncAutocastAmuletNotificationPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncAutocastAmuletProfileSpellIdsPacket.class,
+                SyncAutocastAmuletProfileSpellIdsPacket::encode,
+                SyncAutocastAmuletProfileSpellIdsPacket::decode,
+                SyncAutocastAmuletProfileSpellIdsPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

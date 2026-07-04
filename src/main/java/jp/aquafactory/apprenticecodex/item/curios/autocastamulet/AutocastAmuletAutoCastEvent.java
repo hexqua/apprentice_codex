@@ -4,7 +4,6 @@ import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
-import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.network.casting.OnCastStartedPacket;
@@ -64,7 +63,6 @@ public final class AutocastAmuletAutoCastEvent {
             }
 
             autocastAmulet.initializeSpellContainer(stack);
-            autocastAmulet.normalizeImbuedSpellContainer(stack);
             if (AutocastAmulet.isRetrySequenceCoolingDown(stack, player.tickCount)) {
                 continue;
             }
@@ -84,20 +82,22 @@ public final class AutocastAmuletAutoCastEvent {
             AutocastAmulet autocastAmulet,
             int skippedSlotIndex
     ) {
-        var spellContainer = ISpellContainer.get(slotResult.stack());
-        if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
+        if (AutocastAmulet.getImbuedSpells(slotResult.stack()).isEmpty()) {
             return SequenceResult.NONE;
         }
 
-        var activeSpellCount = spellContainer.getActiveSpellCount();
         var castingSlot = String.format("%s_%s", Curios.NECKLACE_SLOT, slotResult.slotContext().index());
-        for (var index = 0; index < spellContainer.getMaxSpellCount(); ++index) {
-            if (index == skippedSlotIndex) {
+        for (var index = 0; index < AutocastAmulet.getStoredSpellSlotCount(); ++index) {
+            if (index == skippedSlotIndex || !AutocastAmulet.isEnabledSpellSlot(slotResult.stack(), index)) {
                 continue;
             }
 
-            var spellData = spellContainer.getSpellAtIndex(index);
-            if (spellData == SpellData.EMPTY || !autocastAmulet.canImbueSpell(spellData)) {
+            var spellData = AutocastAmulet.getSpellDataAt(slotResult.stack(), index);
+            if (spellData == SpellData.EMPTY || !autocastAmulet.canAutoCastSpell(slotResult.stack(), spellData)) {
+                continue;
+            }
+            if (AutocastAmulet.hasWisdomShardAdjustment(slotResult.stack())
+                    && !AutocastAmuletSpellProfileManager.canCastWithWisdomShard(player, spellData)) {
                 continue;
             }
 
@@ -112,8 +112,8 @@ public final class AutocastAmuletAutoCastEvent {
                 continue;
             }
 
-            var scaledManaCost = AutocastAmulet.getScaledManaCost(spell, spellLevel, activeSpellCount);
-            if (!player.isCreative() && scaledManaCost > magicData.getMana()) {
+            var manaCost = spell.getManaCost(spellLevel);
+            if (!player.isCreative() && manaCost > magicData.getMana()) {
                 Networks.sendToPlayer(player, new SyncAutocastAmuletNotificationPacket(
                         SyncAutocastAmuletNotificationPacket.NotificationType.MANA_LOW,
                         spell.getSpellId(),
@@ -139,7 +139,7 @@ public final class AutocastAmuletAutoCastEvent {
                 return SequenceResult.BLOCKED;
             }
 
-            if (!beginAutoCast(player, magicData, slotResult.stack(), spellData, spellLevel, castingSlot, scaledManaCost)) {
+            if (!beginAutoCast(player, magicData, slotResult.stack(), spellData, spellLevel, castingSlot, manaCost)) {
                 magicData.resetAdditionalCastData();
                 continue;
             }
@@ -190,7 +190,7 @@ public final class AutocastAmuletAutoCastEvent {
                     spellLevel
             ));
 
-            if (spell.getCastType() == CastType.LONG) {
+            if (spell.getCastType() == CastType.LONG && AutocastAmulet.hasSilverRingAdjustment(castingStack)) {
                 TriggeredSpellCastHelper.applyLongCastDurationOverride(player, spellLevel, spell, magicData, castingSlot, 0);
             }
             return true;

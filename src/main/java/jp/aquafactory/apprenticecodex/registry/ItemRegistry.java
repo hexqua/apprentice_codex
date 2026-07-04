@@ -117,6 +117,7 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
     public static final RegistryObject<Item> ARTISAN_SMASH_LAUNCHER = simple("artisan_smash_launcher");
     public static final RegistryObject<Item> ARCANE_CINDER = ITEMS.register("arcane_cinder", ArcaneCinderItem::new);
+    public static final RegistryObject<Item> WISDOM_SHARD = ITEMS.register("wisdom_shard", WisdomShardItem::new);
 
     public static final RegistryObject<Item> COMFORT_BERRIES =
             ITEMS.register("comfort_berries", () -> new ItemNameBlockItem(

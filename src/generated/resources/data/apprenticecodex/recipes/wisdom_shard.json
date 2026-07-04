@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "irons_spellbooks:divine_soulshard"
+    },
+    {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    {
+      "item": "apprenticecodex:arcane_cinder"
+    }
+  ],
+  "result": {
+    "item": "apprenticecodex:wisdom_shard"
+  }
+}

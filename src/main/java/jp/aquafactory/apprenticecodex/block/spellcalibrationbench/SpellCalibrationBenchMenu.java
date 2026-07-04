@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
@@ -169,8 +170,16 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         return isMagiAgentSuit(getGauntletStack());
     }
 
+    public boolean hasAutocastAmulet() {
+        return isAutocastAmulet(getGauntletStack());
+    }
+
     public boolean hasStoredCalibrationTarget() {
-        return hasGauntlet() || hasRevolvercastStaff() || hasMithrilFreecastStaff() || hasMagiAgentSuit();
+        return hasGauntlet()
+                || hasRevolvercastStaff()
+                || hasMithrilFreecastStaff()
+                || hasMagiAgentSuit()
+                || hasAutocastAmulet();
     }
 
     public boolean hasCalibrationTarget() {
@@ -192,6 +201,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         if (hasMithrilFreecastStaff()) {
             return 0;
         }
+        if (hasAutocastAmulet()) {
+            return AutocastAmulet.getEnabledSpellSlotCount(getGauntletStack());
+        }
         return SpellCalibrationImbueHelper.getSpellSlotCount(getGauntletStack());
     }
 
@@ -205,6 +217,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         }
         if (hasMagiAgentSuit()) {
             return slot < MagiAgentSuitItem.CALIBRATION_ADJUSTMENT_SLOT_COUNT;
+        }
+        if (hasAutocastAmulet()) {
+            return slot < AutocastAmulet.CALIBRATION_ADJUSTMENT_SLOT_COUNT;
         }
         return slot < ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT;
     }
@@ -238,6 +253,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         if (hasRevolvercastStaff()) {
             return RevolvercastStaff.isMismatchedCastConditionScroll(getGauntletStack(), slot);
         }
+        if (hasAutocastAmulet()) {
+            return AutocastAmulet.isMismatchedCastConditionAt(getGauntletStack(), slot);
+        }
         return hasOperationalImbueTarget()
                 && SpellCalibrationImbueHelper.isMismatchedCastConditionAt(getGauntletStack(), slot);
     }
@@ -249,6 +267,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     public @NotNull List<Component> getImbueRestrictionTooltipLines() {
         if (hasRevolvercastStaff()) {
             return ((RevolvercastStaff) getGauntletStack().getItem()).getImbueRestrictionTooltipLines(getGauntletStack());
+        }
+        if (hasAutocastAmulet()) {
+            return ((AutocastAmulet) getGauntletStack().getItem()).getImbueRestrictionTooltipLines(getGauntletStack());
         }
         if (!hasOperationalImbueTarget()) {
             return List.of();
@@ -288,6 +309,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         if (hasMagiAgentSuit()) {
             return MagiAgentSuitItem.getCalibrationAdjustment(getGauntletStack(), slot);
         }
+        if (hasAutocastAmulet()) {
+            return AutocastAmulet.getCalibrationAdjustment(getGauntletStack(), slot);
+        }
         return ItemStack.EMPTY;
     }
 
@@ -308,6 +332,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             MithrilFreecastStaff.setCalibrationAdjustment(getGauntletStack(), slot, storedStack);
         } else if (hasMagiAgentSuit()) {
             MagiAgentSuitItem.setCalibrationAdjustment(getGauntletStack(), slot, storedStack);
+        } else if (hasAutocastAmulet()) {
+            AutocastAmulet.setCalibrationAdjustment(getGauntletStack(), slot, storedStack);
         }
     }
 
@@ -317,6 +343,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         }
         if (hasRevolvercastStaff()) {
             return RevolvercastStaff.getCalibrationScroll(getGauntletStack(), slot);
+        }
+        if (hasAutocastAmulet()) {
+            return AutocastAmulet.getCalibrationScroll(getGauntletStack(), slot);
         }
         return hasOperationalImbueTarget()
                 ? SpellCalibrationImbueHelper.createScrollForSlot(getGauntletStack(), slot)
@@ -336,6 +365,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             MithrilFreecastStaff.refreshResolvedCalibrationSchool(gauntletStack);
         } else if (hasMagiAgentSuit()) {
             SpellCalibrationImbueHelper.prepareTarget(gauntletStack);
+        } else if (hasAutocastAmulet()) {
+            ((AutocastAmulet) gauntletStack.getItem()).initializeSpellContainer(gauntletStack);
         } else if (!gauntletStack.isEmpty()) {
             SpellCalibrationImbueHelper.prepareTarget(gauntletStack);
         }
@@ -361,6 +392,15 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
                 storedStack.setCount(1);
             }
             RevolvercastStaff.setCalibrationScroll(getGauntletStack(), slot, storedStack);
+            return;
+        }
+
+        if (hasAutocastAmulet()) {
+            var storedStack = stack.copy();
+            if (!storedStack.isEmpty()) {
+                storedStack.setCount(1);
+            }
+            AutocastAmulet.setCalibrationScroll(getGauntletStack(), slot, storedStack);
             return;
         }
 
@@ -445,7 +485,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
                 || isEnchantmentBook(stack)
                 || isRecoveryRune(stack)
                 || isFreecastStaff(stack)
-                || isSilverRing(stack);
+                || isSilverRing(stack)
+                || AutocastAmulet.isWisdomShard(stack);
     }
 
     static boolean isSchoolRune(@NotNull ItemStack stack) {
@@ -492,15 +533,20 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         return !stack.isEmpty() && stack.getItem() instanceof MagiAgentSuitItem;
     }
 
+    private static boolean isAutocastAmulet(@NotNull ItemStack stack) {
+        return !stack.isEmpty() && stack.getItem() instanceof AutocastAmulet;
+    }
+
     private static boolean isCalibrationTarget(@NotNull ItemStack stack) {
         return isScrollcasterGauntlet(stack) || isRevolvercastStaff(stack)
                 || isMithrilFreecastStaff(stack)
                 || isMagiAgentSuit(stack)
+                || isAutocastAmulet(stack)
                 || SpellCalibrationImbueHelper.isVisibleImbueTarget(stack);
     }
 
     private boolean hasStoredScrollTarget() {
-        return hasGauntlet() || hasRevolvercastStaff();
+        return hasGauntlet() || hasRevolvercastStaff() || hasAutocastAmulet();
     }
 
     private boolean hasMagiAgentSuitImbueTarget() {
@@ -701,7 +747,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            if (!hasStoredCalibrationTarget() || !isAdjustmentItem(stack)) {
+            if (!hasStoredCalibrationTarget()) {
                 return false;
             }
 
@@ -730,6 +776,10 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             if (hasMagiAgentSuit()) {
                 return MagiAgentSuitItem.isCalibrationAdjustmentItem(stack)
                         && !hasSchoolRuneAdjustmentExcept(calibrationSlot);
+            }
+            if (hasAutocastAmulet()) {
+                return AutocastAmulet.isCalibrationAdjustmentItem(stack)
+                        && (!isSilverRing(stack) || !hasSilverRingAdjustmentExcept(calibrationSlot));
             }
             return false;
         }
@@ -768,6 +818,12 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
                 return spellData != SpellData.EMPTY
                         && spellData.getSpell() != null
                         && RevolvercastStaff.canSwingCastSpell(spellData.getSpell(), true);
+            }
+            if (hasAutocastAmulet()) {
+                var spellData = getScrollSpellData(stack);
+                return spellData != SpellData.EMPTY
+                        && spellData.getSpell() != null
+                        && ((AutocastAmulet) getGauntletStack().getItem()).canImbueSpell(spellData);
             }
             return hasGauntlet() || SpellCalibrationImbueHelper.canPlaceScrollAt(getGauntletStack(), calibrationSlot, stack);
         }
