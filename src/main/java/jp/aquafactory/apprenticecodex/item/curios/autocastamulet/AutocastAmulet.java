@@ -29,7 +29,7 @@ import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.DistExecutor;
+import net.neoforged.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.SlotContext;
@@ -647,10 +647,9 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
     }
 
     private static int getClientRemainingCooldownSeconds(String spellId) {
-        var result = DistExecutor.unsafeCallWhenOn(
-                Dist.CLIENT,
-                () -> () -> AutocastAmuletClientTooltip.getRemainingCooldownSeconds(spellId)
-        );
-        return result == null ? 0 : result;
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            return AutocastAmuletClientTooltip.getRemainingCooldownSeconds(spellId);
+        }
+        return 0;
     }
 }

@@ -2,10 +2,11 @@ package jp.aquafactory.apprenticecodex.item.curios.autocastamulet;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.effect.MobEffect;
-import net.minecraftforge.registries.ForgeRegistries;
 
 public record AutocastAmuletMobEffectCondition(
         ResourceLocation effect,
@@ -21,15 +22,15 @@ public record AutocastAmuletMobEffectCondition(
     );
 
     public boolean matches(LivingEntity entity) {
-        var mobEffect = ForgeRegistries.MOB_EFFECTS.getValue(effect);
+        var mobEffect = BuiltInRegistries.MOB_EFFECT.get(effect);
         if (mobEffect == null) {
             return false;
         }
 
-        return getRemainingTicks(entity, mobEffect) <= remainingTicksAtMost;
+        return getRemainingTicks(entity, BuiltInRegistries.MOB_EFFECT.wrapAsHolder(mobEffect)) <= remainingTicksAtMost;
     }
 
-    private static int getRemainingTicks(LivingEntity entity, MobEffect mobEffect) {
+    private static int getRemainingTicks(LivingEntity entity, Holder<MobEffect> mobEffect) {
         var effectInstance = entity.getEffect(mobEffect);
         return effectInstance == null ? 0 : effectInstance.getDuration();
     }

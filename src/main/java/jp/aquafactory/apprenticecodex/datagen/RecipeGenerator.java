@@ -133,7 +133,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .requires(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
                 .requires(ItemRegistry.ARCANE_CINDER.get())
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.DIVINE_SOULSHARD.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.DIVINE_SOULSHARD.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.STORAGE_STABILIZER.get())
                 .pattern(" MA")

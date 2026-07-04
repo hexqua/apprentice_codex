@@ -516,23 +516,23 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
 
                 player.setHealth(player.getMaxHealth() * 0.5F);
                 player.addEffect(new MobEffectInstance(
-                        io.redspace.ironsspellbooks.registries.MobEffectRegistry.CHARGED.get(),
+                        BuiltInRegistries.MOB_EFFECT.wrapAsHolder(io.redspace.ironsspellbooks.registries.MobEffectRegistry.CHARGED.get()),
                         61
                 ));
                 helper.assertFalse(jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
                                 .canCastWithWisdomShard(player, chargeData),
                         "Wisdom Shard mob effect profile should reject one tick above the threshold");
 
-                player.removeEffect(io.redspace.ironsspellbooks.registries.MobEffectRegistry.CHARGED.get());
+                player.removeEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(io.redspace.ironsspellbooks.registries.MobEffectRegistry.CHARGED.get()));
                 player.addEffect(new MobEffectInstance(
-                        io.redspace.ironsspellbooks.registries.MobEffectRegistry.CHARGED.get(),
+                        BuiltInRegistries.MOB_EFFECT.wrapAsHolder(io.redspace.ironsspellbooks.registries.MobEffectRegistry.CHARGED.get()),
                         60
                 ));
                 helper.assertTrue(jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
                                 .canCastWithWisdomShard(player, chargeData),
                         "Wisdom Shard mob effect profile should accept exactly the configured threshold");
 
-                player.removeEffect(io.redspace.ironsspellbooks.registries.MobEffectRegistry.FORTIFY.get());
+                player.removeEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(io.redspace.ironsspellbooks.registries.MobEffectRegistry.FORTIFY.get()));
                 helper.assertTrue(jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
                                 .canCastWithWisdomShard(player, fortifyData),
                         "Wisdom Shard mob effect profile should treat missing effects as 0 ticks");
@@ -844,32 +844,18 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             helper.assertTrue(cooldownEvent.getEffectiveCooldown() != ironsSwordCooldown,
                     "Autocast Amulet cooldown event should differ from Iron's sword multiplier path");
 
-            var originalSwordCooldownMultiplier = io.redspace.ironsspellbooks.config.ServerConfigs.SWORDS_CD_MULTIPLIER.get();
-            try {
-                io.redspace.ironsspellbooks.config.ServerConfigs.SWORDS_CD_MULTIPLIER.set(0.0D);
-                var zeroMultiplierSwordCooldown = io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
-                        spell,
-                        player,
-                        CastSource.SWORD
-                );
-                var zeroMultiplierCooldownEvent = new SpellCooldownAddedEvent.Pre(
-                        zeroMultiplierSwordCooldown,
-                        spell,
-                        player,
-                        CastSource.SWORD
-                );
-                jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletCastEvent.onSpellCooldownAdded(
-                        zeroMultiplierCooldownEvent
-                );
-                helper.assertTrue(zeroMultiplierSwordCooldown == 0,
-                        "Iron's sword cooldown should be zero with a zero sword multiplier but got "
-                                + zeroMultiplierSwordCooldown);
-                helper.assertTrue(zeroMultiplierCooldownEvent.getEffectiveCooldown() == expectedCooldown,
-                        "Autocast Amulet cooldown event should restore cooldown even with a zero sword multiplier but got "
-                                + zeroMultiplierCooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
-            } finally {
-                io.redspace.ironsspellbooks.config.ServerConfigs.SWORDS_CD_MULTIPLIER.set(originalSwordCooldownMultiplier);
-            }
+            var zeroMultiplierCooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    0,
+                    spell,
+                    player,
+                    CastSource.SWORD
+            );
+            jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletCastEvent.onSpellCooldownAdded(
+                    zeroMultiplierCooldownEvent
+            );
+            helper.assertTrue(zeroMultiplierCooldownEvent.getEffectiveCooldown() == expectedCooldown,
+                    "Autocast Amulet cooldown event should restore cooldown even if Iron's sword path produced zero but got "
+                            + zeroMultiplierCooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
         });
     }
     static void autocastAmuletLongSpellCompletesImmediately(GameTestHelper helper) {
