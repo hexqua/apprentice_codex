@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +32,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 
 final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private ChargedTwinBladeStaffGameTestScenarios() {
@@ -539,23 +541,33 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
                     io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
                     io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
             );
+            var spawnedProjectiles = new ArrayList<io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile>();
+            java.util.function.Consumer<EntityJoinLevelEvent> projectileListener = event -> {
+                if (event.getLevel() == level
+                        && event.getEntity() instanceof io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile projectile
+                        && projectile.position().distanceToSqr(impactPos) <= 144.0D) {
+                    spawnedProjectiles.add(projectile);
+                }
+            };
 
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                            level,
-                            player,
-                            new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
-                            payload,
-                            impactPos,
-                            new Vec3(0.0D, 0.0D, 1.0D)
-                    ),
-                    "Charged Twin Blade Staff creative impact cast should use RemoteOwner profile with zero mana"
-            );
-            var projectiles = level.getEntitiesOfClass(
-                    io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
-                    new AABB(impactPos, impactPos).inflate(12.0D)
-            );
-            helper.assertTrue(!projectiles.isEmpty(),
+            MinecraftForge.EVENT_BUS.addListener(projectileListener);
+            try {
+                helper.assertTrue(
+                        jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                                level,
+                                player,
+                                new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
+                                payload,
+                                impactPos,
+                                new Vec3(0.0D, 0.0D, 1.0D)
+                        ),
+                        "Charged Twin Blade Staff creative impact cast should use RemoteOwner profile with zero mana"
+                );
+            } finally {
+                MinecraftForge.EVENT_BUS.unregister(projectileListener);
+            }
+
+            helper.assertTrue(!spawnedProjectiles.isEmpty(),
                     "Charged Twin Blade Staff creative RemoteOwner profile should spawn Magic Missile projectiles");
             helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
                     "Charged Twin Blade Staff creative RemoteOwner profile should leave mana at zero but got " + magicData.getMana());
