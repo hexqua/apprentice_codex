@@ -112,7 +112,6 @@ import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitCooldownEvent;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
-import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellListManager;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightCooldownReductionEvent;

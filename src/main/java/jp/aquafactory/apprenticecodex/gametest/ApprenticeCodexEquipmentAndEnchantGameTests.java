@@ -582,8 +582,28 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void autocastAmuletSpellSlotUpgradeStopsAtThreeAndKeepsOrder(GameTestHelper helper) {
-        AutocastAmuletGameTestScenarios.autocastAmuletSpellSlotUpgradeStopsAtThreeAndKeepsOrder(helper);
+    public static void autocastAmuletWisdomShardIsAdjustmentOnlyProfileGate(GameTestHelper helper) {
+        AutocastAmuletGameTestScenarios.autocastAmuletWisdomShardIsAdjustmentOnlyProfileGate(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletWisdomShardBlocksUnprofiledAutoCast(GameTestHelper helper) {
+        AutocastAmuletGameTestScenarios.autocastAmuletWisdomShardBlocksUnprofiledAutoCast(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletWisdomShardProfileConditionsUseAndSemantics(GameTestHelper helper) {
+        AutocastAmuletGameTestScenarios.autocastAmuletWisdomShardProfileConditionsUseAndSemantics(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletSpellSlotUpgradeEnablesFourSlotsAndKeepsOrder(GameTestHelper helper) {
+        AutocastAmuletGameTestScenarios.autocastAmuletSpellSlotUpgradeEnablesFourSlotsAndKeepsOrder(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletKeepsDisabledSlotSpellsAfterRemovingUpgrade(GameTestHelper helper) {
+        AutocastAmuletGameTestScenarios.autocastAmuletKeepsDisabledSlotSpellsAfterRemovingUpgrade(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -607,8 +627,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void autocastAmuletCooldownUsesSwordMultiplier(GameTestHelper helper) {
-        AutocastAmuletGameTestScenarios.autocastAmuletCooldownUsesSwordMultiplier(helper);
+    public static void autocastAmuletCooldownIgnoresSwordMultiplier(GameTestHelper helper) {
+        AutocastAmuletGameTestScenarios.autocastAmuletCooldownIgnoresSwordMultiplier(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -624,6 +644,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void autocastAmuletNotificationControllerSkipsUnreachedThresholds(GameTestHelper helper) {
         AutocastAmuletGameTestScenarios.autocastAmuletNotificationControllerSkipsUnreachedThresholds(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletNotificationControllerSkipsCooldownsUnderFiveSeconds(GameTestHelper helper) {
+        AutocastAmuletGameTestScenarios.autocastAmuletNotificationControllerSkipsCooldownsUnderFiveSeconds(helper);
     }
 
     @GameTest(template = TEMPLATE)

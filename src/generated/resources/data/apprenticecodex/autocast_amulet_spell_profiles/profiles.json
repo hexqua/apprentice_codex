@@ -1,0 +1,181 @@
+{
+  "values": [
+    {
+      "profile": {
+        "mob_effects": [
+          {
+            "effect": "irons_spellbooks:heartstop",
+            "remaining_ticks_at_most": 0
+          }
+        ]
+      },
+      "spell": "irons_spellbooks:heartstop"
+    },
+    {
+      "profile": {
+        "mob_effects": [
+          {
+            "effect": "irons_spellbooks:abyssal_shroud",
+            "remaining_ticks_at_most": 0
+          }
+        ]
+      },
+      "spell": "irons_spellbooks:abyssal_shroud"
+    },
+    {
+      "profile": {
+        "mob_effects": [
+          {
+            "effect": "irons_spellbooks:planar_sight",
+            "remaining_ticks_at_most": 20
+          }
+        ]
+      },
+      "spell": "irons_spellbooks:planar_sight"
+    },
+    {
+      "profile": {
+        "mob_effects": [
+          {
+            "effect": "irons_spellbooks:planar_sight",
+            "remaining_ticks_at_most": 20
+          }
+        ]
+      },
+      "spell": "irons_spellbooks:planar_sight"
+    },
+    {
+      "profile": {
+        "mob_effects": [
+          {
+            "effect": "irons_spellbooks:echoing_strikes",
+            "remaining_ticks_at_most": 0
+          }
+        ]
+      },
+      "spell": "irons_spellbooks:echoing_strikes"
+    },
+    {
+      "profile": {
+        "mob_effects": [
+          {
+            "effect": "irons_spellbooks:evasion",
+            "remaining_ticks_at_most": 0
+          }
+        ]
+      },
+      "spell": "irons_spellbooks:evasion"
+    },
+    {
+      "profile": {
+        "mob_effects": [
+          {
+            "effect": "irons_spellbooks:true_invisibility",
+            "remaining_ticks_at_most": 10
+          }
+        ]
+      },
+      "spell": "irons_spellbooks:invisibility"
+    },
+    {
+      "profile": {
+        "mob_effects": [
+          {
+            "effect": "irons_spellbooks:angel_wings",
+            "remaining_ticks_at_most": 20
+          }
+        ]
+      },
+      "spell": "irons_spellbooks:angel_wing"
+    },
+    {
+      "profile": {
+        "mob_effects": [
+          {
+            "effect": "irons_spellbooks:fortify",
+            "remaining_ticks_at_most": 0
+          }
+        ]
+      },
+      "spell": "irons_spellbooks:fortify"
+    },
+    {
+      "profile": {
+        "mob_effects": [
+          {
+            "effect": "irons_spellbooks:hastened",
+            "remaining_ticks_at_most": 20
+          }
+        ]
+      },
+      "spell": "irons_spellbooks:haste"
+    },
+    {
+      "profile": {
+        "mob_effects": [
+          {
+            "effect": "irons_spellbooks:charged",
+            "remaining_ticks_at_most": 20
+          }
+        ]
+      },
+      "spell": "irons_spellbooks:charge"
+    },
+    {
+      "profile": {
+        "mob_effects": [
+          {
+            "effect": "irons_spellbooks:thunderstorm",
+            "remaining_ticks_at_most": 0
+          }
+        ]
+      },
+      "spell": "irons_spellbooks:thunderstorm"
+    },
+    {
+      "profile": {
+        "mob_effects": [
+          {
+            "effect": "irons_spellbooks:gluttony",
+            "remaining_ticks_at_most": 0
+          }
+        ]
+      },
+      "spell": "irons_spellbooks:gluttony"
+    },
+    {
+      "profile": {
+        "mob_effects": [
+          {
+            "effect": "irons_spellbooks:oakskin",
+            "remaining_ticks_at_most": 0
+          }
+        ]
+      },
+      "spell": "irons_spellbooks:oakskin"
+    },
+    {
+      "profile": {
+        "mob_effects": [
+          {
+            "effect": "irons_spellbooks:spider_aspect",
+            "remaining_ticks_at_most": 0
+          }
+        ]
+      },
+      "spell": "irons_spellbooks:spider_aspect"
+    },
+    {
+      "profile": {
+        "health_ratio_at_most": 0.5
+      },
+      "spell": "irons_spellbooks:heal"
+    },
+    {
+      "profile": {
+        "health_ratio_at_most": 0.2
+      },
+      "spell": "irons_spellbooks:greater_heal"
+    }
+  ]
+}

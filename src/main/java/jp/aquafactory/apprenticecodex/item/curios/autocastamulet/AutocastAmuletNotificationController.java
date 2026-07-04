@@ -12,6 +12,7 @@ import java.util.List;
 public final class AutocastAmuletNotificationController {
     public static final int DISPLAY_DURATION_TICKS = 30;
     public static final int FADE_OUT_TICKS = 10;
+    public static final int MIN_COOLDOWN_NOTIFICATION_TICKS = 5 * 20;
     private static final int[] THRESHOLD_SECONDS = {60, 30, 10};
     private static final String MANA_LOW_LABEL = "MP!";
 
@@ -24,7 +25,7 @@ public final class AutocastAmuletNotificationController {
 
     public void queueCooldownCast(long currentTick, ResourceLocation spellId, ResourceLocation spellIcon, int cooldownTicks) {
         var normalizedCooldown = Math.max(0, cooldownTicks);
-        if (normalizedCooldown <= 0) {
+        if (!shouldShowCooldownNotification(normalizedCooldown)) {
             return;
         }
 
@@ -153,6 +154,10 @@ public final class AutocastAmuletNotificationController {
             return 0;
         }
         return (int) Math.ceil(cooldownTicks / 20.0F);
+    }
+
+    public static boolean shouldShowCooldownNotification(int cooldownTicks) {
+        return cooldownTicks >= MIN_COOLDOWN_NOTIFICATION_TICKS;
     }
 
     private static String formatSecondsLabel(int seconds) {

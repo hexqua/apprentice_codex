@@ -110,7 +110,6 @@ import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntletCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
-import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellListManager;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightCooldownReductionEvent;
@@ -235,6 +234,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.tags.PoiTypeTags;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.item.Items;
 import net.minecraft.tags.TagKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -355,6 +356,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private AutocastAmuletGameTestScenarios() {
     }
@@ -362,33 +367,176 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
         helper.succeedIf(() -> {
             var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
             var stack = item.getDefaultInstance();
-            var spellContainer = ISpellContainer.get(stack);
             var apprenticeSpell = SpellRegistry.SENSE_EVIL.get();
-            var ironsHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+            var apprenticeLongSpell = SpellRegistry.MANTIS_LEAP.get();
+            var continuousSpell = SpellRegistry.MANA_CHARGE.get();
             var necklaceTag = TagKey.create(
                     Registries.ITEM,
                     ResourceLocation.fromNamespaceAndPath("curios", io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT)
             );
 
-            helper.assertTrue(spellContainer != null, "Autocast Amulet default spell container is null");
-            helper.assertTrue(spellContainer != null && spellContainer.getMaxSpellCount() == 1,
-                    "Autocast Amulet default slot count mismatch: " + (spellContainer == null ? -1 : spellContainer.getMaxSpellCount()));
-            helper.assertTrue(spellContainer != null && !spellContainer.isSpellWheel(),
-                    "Autocast Amulet should stay hidden from the spell wheel");
+            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
+                    "Autocast Amulet should not expose Iron's SpellContainer by default");
+            helper.assertTrue(jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(
+                            stack,
+                            createSpellScroll(apprenticeSpell)
+                    ),
+                    "Autocast Amulet should not be handled as an Arcane Anvil imbue target");
+            helper.assertTrue(AutocastAmulet.getEnabledSpellSlotCount(stack) == AutocastAmulet.MIN_SPELL_SLOTS,
+                    "Autocast Amulet should start with one enabled spell slot");
             helper.assertTrue(stack.is(necklaceTag),
                     "Autocast Amulet should be tagged as curios:necklace");
             helper.assertTrue(item.canImbueSpell(apprenticeSpell, 1),
-                    "Autocast Amulet should allow sense_evil by default");
-            helper.assertTrue(item.canImbueSpell(ironsHeal, 1),
-                    "Autocast Amulet should allow Iron's heal by default");
-            helper.assertFalse(item.canImbueSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1),
-                    "Autocast Amulet should reject non-allowlisted spells");
-            helper.assertTrue(AutocastAmuletSpellListManager.getAllowlist().contains(apprenticeSpell.getSpellResource()),
-                    "Autocast Amulet allowlist should contain sense_evil");
-            helper.assertTrue(AutocastAmuletSpellListManager.getAllowlist().contains(ironsHeal.getSpellResource()),
-                    "Autocast Amulet allowlist should contain Iron's heal");
-            helper.assertTrue(AutocastAmuletSpellListManager.getAllowlist().size() == 19,
-                    "Autocast Amulet default allowlist size mismatch: " + AutocastAmuletSpellListManager.getAllowlist().size());
+                    "Autocast Amulet should allow instant no-recast spells by default");
+            helper.assertTrue(item.canImbueSpell(apprenticeLongSpell, 1),
+                    "Autocast Amulet should allow long no-recast spells to be imbued");
+            helper.assertFalse(item.canImbueSpell(continuousSpell, 1),
+                    "Autocast Amulet should reject continuous spells");
+            helper.assertFalse(item.canAutoCastSpell(stack, apprenticeLongSpell, 1),
+                    "Autocast Amulet should not auto-cast long spells without Silver Ring adjustment");
+            AutocastAmulet.setCalibrationAdjustment(
+                    stack,
+                    0,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
+            );
+            helper.assertTrue(item.canAutoCastSpell(stack, apprenticeLongSpell, 1),
+                    "Autocast Amulet should allow long no-recast spells with Silver Ring adjustment");
+        });
+    }
+
+    static void autocastAmuletWisdomShardIsAdjustmentOnlyProfileGate(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "autocast_amulet_wisdom_adjustment_test");
+            var stack = ((AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get()).getDefaultInstance();
+            var wisdomShard = new ItemStack(ItemRegistry.WISDOM_SHARD.get());
+            var silverRing = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get());
+            var fireRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get());
+
+            helper.assertTrue(AutocastAmulet.isCalibrationAdjustmentItem(wisdomShard),
+                    "Wisdom Shard should be accepted as an Autocast Amulet adjustment item");
+            helper.assertFalse(AutocastAmulet.isCalibrationSlotUpgrade(wisdomShard),
+                    "Wisdom Shard should not count as an Autocast Amulet slot upgrade");
+            helper.assertFalse(AutocastAmulet.isSilverRing(wisdomShard),
+                    "Wisdom Shard should not count as a Silver Ring adjustment");
+
+            AutocastAmulet.setCalibrationAdjustment(stack, 0, wisdomShard);
+
+            helper.assertTrue(AutocastAmulet.hasWisdomShardAdjustment(stack),
+                    "Autocast Amulet should detect an installed Wisdom Shard");
+            helper.assertTrue(AutocastAmulet.getEnabledSpellSlotCount(stack) == AutocastAmulet.MIN_SPELL_SLOTS,
+                    "Wisdom Shard should not increase Autocast Amulet spell slots");
+            helper.assertFalse(AutocastAmulet.hasSilverRingAdjustment(stack),
+                    "Wisdom Shard should not enable Silver Ring long-cast support");
+
+            var menuStack = ((AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get()).getDefaultInstance();
+            var menu = createSpellCalibrationBenchMenuWithTarget(player, menuStack);
+            var adjustmentSlot = menu.getSlot(SpellCalibrationBenchMenu.ADJUSTMENT_MENU_SLOT_START);
+            helper.assertTrue(adjustmentSlot.mayPlace(wisdomShard),
+                    "Spell Calibration Bench should accept Wisdom Shard for Autocast Amulet adjustments");
+            helper.assertTrue(adjustmentSlot.mayPlace(silverRing),
+                    "Spell Calibration Bench should accept Silver Ring for Autocast Amulet adjustments");
+            helper.assertFalse(adjustmentSlot.mayPlace(fireRune),
+                    "Spell Calibration Bench should reject school runes for Autocast Amulet adjustments");
+
+            var playerInventoryMenuSlot = SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START
+                    + ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOT_COUNT;
+            player.getInventory().setItem(9, wisdomShard.copy());
+            var quickMovedWisdomShard = menu.quickMoveStack(player, playerInventoryMenuSlot);
+            helper.assertTrue(quickMovedWisdomShard.is(ItemRegistry.WISDOM_SHARD.get()),
+                    "Shift-clicked Wisdom Shard should move while Autocast Amulet is the target");
+            helper.assertTrue(adjustmentSlot.getItem().is(ItemRegistry.WISDOM_SHARD.get()),
+                    "Shift-clicked Wisdom Shard should enter an Autocast Amulet adjustment slot");
+        });
+    }
+
+    static void autocastAmuletWisdomShardBlocksUnprofiledAutoCast(GameTestHelper helper) {
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "autocast_amulet_wisdom_unprofiled_test");
+
+        helper.runAtTickTime(1, () -> {
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.CHARGE_SPELL.get();
+            var stack = createAutocastAmuletStack(
+                    helper,
+                    1,
+                    new SpellData(spell, 1)
+            );
+            AutocastAmulet.setCalibrationAdjustment(stack, 0, new ItemStack(ItemRegistry.WISDOM_SHARD.get()));
+            equipNecklaceCurio(player, stack);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            magicData.getSyncedData().learnSpell(spell, false);
+            magicData.setMana(200.0F);
+
+            try (var ignored = jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
+                    .useProfilesForGameTest(Map.of())) {
+                runAutocastAmuletServerTick(player, 20);
+            }
+
+            helper.assertFalse(magicData.isCasting(),
+                    "Wisdom Shard should block auto-cast when the spell has no profile");
+            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "Wisdom Shard should not start cooldown for unprofiled blocked spells");
+            helper.succeed();
+        });
+    }
+
+    static void autocastAmuletWisdomShardProfileConditionsUseAndSemantics(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "autocast_amulet_wisdom_conditions_test");
+            var chargeSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.CHARGE_SPELL.get();
+            var fortifySpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FORTIFY_SPELL.get();
+            var chargeData = new SpellData(chargeSpell, 1);
+            var fortifyData = new SpellData(fortifySpell, 1);
+            var chargeEffectId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "charged");
+            var fortifyEffectId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "fortify");
+            var profiles = Map.of(
+                    chargeSpell.getSpellResource(),
+                    new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfile(
+                            List.of(new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletMobEffectCondition(
+                                    chargeEffectId,
+                                    60
+                            )),
+                            Optional.of(0.5F)
+                    ),
+                    fortifySpell.getSpellResource(),
+                    new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfile(
+                            List.of(new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletMobEffectCondition(
+                                    fortifyEffectId,
+                                    0
+                            )),
+                            Optional.empty()
+                    )
+            );
+
+            try (var ignored = jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
+                    .useProfilesForGameTest(profiles)) {
+                helper.assertFalse(jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
+                                .canCastWithWisdomShard(player, chargeData),
+                        "Wisdom Shard profile should require every configured condition");
+
+                player.setHealth(player.getMaxHealth() * 0.5F);
+                player.addEffect(new MobEffectInstance(
+                        BuiltInRegistries.MOB_EFFECT.wrapAsHolder(io.redspace.ironsspellbooks.registries.MobEffectRegistry.CHARGED.get()),
+                        61
+                ));
+                helper.assertFalse(jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
+                                .canCastWithWisdomShard(player, chargeData),
+                        "Wisdom Shard mob effect profile should reject one tick above the threshold");
+
+                player.removeEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(io.redspace.ironsspellbooks.registries.MobEffectRegistry.CHARGED.get()));
+                player.addEffect(new MobEffectInstance(
+                        BuiltInRegistries.MOB_EFFECT.wrapAsHolder(io.redspace.ironsspellbooks.registries.MobEffectRegistry.CHARGED.get()),
+                        60
+                ));
+                helper.assertTrue(jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
+                                .canCastWithWisdomShard(player, chargeData),
+                        "Wisdom Shard mob effect profile should accept exactly the configured threshold");
+
+                player.removeEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(io.redspace.ironsspellbooks.registries.MobEffectRegistry.FORTIFY.get()));
+                helper.assertTrue(jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
+                                .canCastWithWisdomShard(player, fortifyData),
+                        "Wisdom Shard mob effect profile should treat missing effects as 0 ticks");
+            }
         });
     }
 
@@ -397,118 +545,137 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
             var stack = item.getDefaultInstance();
             var apprenticeSpell = SpellRegistry.SENSE_EVIL.get();
-            var ironsHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
-            var ironsGreaterHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
+            var mageLight = SpellRegistry.MAGE_LIGHT.get();
+            var remoteEye = SpellRegistry.REMOTE_EYE.get();
             var mutable = ISpellContainer.create(5, false, false).mutableCopy();
 
             helper.assertTrue(mutable.addSpellAtIndex(apprenticeSpell, 1, 0, false),
-                    "Failed to prepare allowlisted sense_evil for Autocast Amulet normalization test");
-            helper.assertTrue(mutable.addSpellAtIndex(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1, 1, false),
-                    "Failed to prepare blocked magic_missile for Autocast Amulet normalization test");
-            helper.assertTrue(mutable.addSpellAtIndex(ironsHeal, 1, 2, false),
-                    "Failed to prepare allowlisted heal for Autocast Amulet normalization test");
-            helper.assertTrue(mutable.addSpellAtIndex(ironsGreaterHeal, 1, 3, false),
-                    "Failed to prepare allowlisted greater_heal for Autocast Amulet normalization test");
+                    "Failed to prepare sense_evil for Autocast Amulet normalization test");
+            helper.assertTrue(mutable.addSpellAtIndex(mageLight, 1, 1, false),
+                    "Failed to prepare mage_light for Autocast Amulet normalization test");
+            helper.assertTrue(mutable.addSpellAtIndex(remoteEye, 1, 2, false),
+                    "Failed to prepare remote_eye for Autocast Amulet normalization test");
+            helper.assertTrue(mutable.addSpellAtIndex(SpellRegistry.MANA_CHARGE.get(), 1, 3, false),
+                    "Failed to prepare blocked mana_charge for Autocast Amulet normalization test");
             ISpellContainer.set(stack, mutable.toImmutable());
 
-            item.normalizeImbuedSpellContainer(stack);
+            item.initializeSpellContainer(stack);
 
-            var normalized = ISpellContainer.get(stack);
-            helper.assertTrue(normalized != null, "Autocast Amulet normalized spell container is null");
-            helper.assertTrue(normalized != null && normalized.getMaxSpellCount() == 3,
-                    "Autocast Amulet normalization should clamp slot count to 3 but got " + (normalized == null ? -1 : normalized.getMaxSpellCount()));
-            helper.assertTrue(normalized != null && normalized.getActiveSpellCount() == 3,
-                    "Autocast Amulet normalization should keep only 3 allowlisted spells but got " + (normalized == null ? -1 : normalized.getActiveSpellCount()));
-            assertSpellData(helper, normalized, 0, apprenticeSpell, 1, false,
-                    "Autocast Amulet normalization should preserve the first allowlisted spell");
-            assertSpellData(helper, normalized, 1, ironsHeal, 1, false,
-                    "Autocast Amulet normalization should compact later allowlisted spells");
-            assertSpellData(helper, normalized, 2, ironsGreaterHeal, 1, false,
-                    "Autocast Amulet normalization should preserve allowlisted order after filtering");
-
-            helper.assertTrue(Math.abs(AutocastAmulet.getManaMultiplier(1) - 1.0D) < 1.0e-9D,
-                    "Autocast Amulet single-spell mana multiplier regression");
-            helper.assertTrue(Math.abs(AutocastAmulet.getManaMultiplier(2) - 1.44D) < 1.0e-9D,
-                    "Autocast Amulet two-spell mana multiplier regression");
-            helper.assertTrue(Math.abs(AutocastAmulet.getManaMultiplier(3) - 1.96D) < 1.0e-9D,
-                    "Autocast Amulet three-spell mana multiplier regression");
-            helper.assertTrue(AutocastAmulet.getScaledManaCost(ironsHeal, 1, 3) == 59,
-                    "Autocast Amulet scaled mana cost should round heal to 59 at 3 active spells");
+            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
+                    "Autocast Amulet legacy conversion should remove Iron's SpellContainer");
+            assertAutocastSpellData(helper, stack, 0, apprenticeSpell, 1,
+                    "Autocast Amulet conversion should preserve the first valid spell");
+            assertAutocastSpellData(helper, stack, 1, mageLight, 1,
+                    "Autocast Amulet conversion should preserve the second valid spell");
+            assertAutocastSpellData(helper, stack, 2, remoteEye, 1,
+                    "Autocast Amulet conversion should preserve the third valid spell");
+            helper.assertTrue(AutocastAmulet.getSpellDataAt(stack, 3) == SpellData.EMPTY,
+                    "Autocast Amulet conversion should drop blocked spells");
         });
     }
-    static void autocastAmuletSpellSlotUpgradeStopsAtThreeAndKeepsOrder(GameTestHelper helper) {
+    static void autocastAmuletSpellSlotUpgradeEnablesFourSlotsAndKeepsOrder(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
-            var upgradeItem = (SpellSlotUpgradeItem) io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get();
             var apprenticeSpell = SpellRegistry.SENSE_EVIL.get();
-            var ironsHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
-            var ironsGreaterHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
+            var mageLight = SpellRegistry.MAGE_LIGHT.get();
+            var remoteEye = SpellRegistry.REMOTE_EYE.get();
+            var charge = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "charge")
+            );
             var stack = createAutocastAmuletStack(
                     helper,
                     1,
                     new SpellData(apprenticeSpell, 1)
             );
 
-            stack = item.createSpellSlotUpgradeResult(stack, upgradeItem);
-            helper.assertFalse(stack.isEmpty(), "Autocast Amulet should accept the first lesser spell slot upgrade");
-            stack = item.createArcaneAnvilImbueResult(stack, new SpellData(ironsHeal, 1));
-            stack = item.createSpellSlotUpgradeResult(stack, upgradeItem);
-            helper.assertFalse(stack.isEmpty(), "Autocast Amulet should accept the second lesser spell slot upgrade");
-            stack = item.createArcaneAnvilImbueResult(stack, new SpellData(ironsGreaterHeal, 1));
+            AutocastAmulet.setCalibrationAdjustment(
+                    stack,
+                    0,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
+            );
+            AutocastAmulet.setCalibrationScroll(stack, 1, createSpellScroll(mageLight));
+            AutocastAmulet.setCalibrationAdjustment(
+                    stack,
+                    1,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
+            );
+            AutocastAmulet.setCalibrationScroll(stack, 2, createSpellScroll(remoteEye));
+            AutocastAmulet.setCalibrationAdjustment(
+                    stack,
+                    2,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
+            );
+            AutocastAmulet.setCalibrationScroll(stack, 3, createSpellScroll(charge));
 
-            var spellContainer = ISpellContainer.get(stack);
-            helper.assertTrue(spellContainer != null, "Autocast Amulet upgraded spell container is null");
-            helper.assertTrue(spellContainer != null && spellContainer.getMaxSpellCount() == 3,
-                    "Autocast Amulet spell slot upgrade should stop at 3 slots");
-            assertSpellData(helper, spellContainer, 0, apprenticeSpell, 1, false,
+            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
+                    "Autocast Amulet spell storage should not expose Iron's SpellContainer");
+            helper.assertTrue(AutocastAmulet.getEnabledSpellSlotCount(stack) == 4,
+                    "Autocast Amulet spell slot upgrade should enable 4 slots");
+            assertAutocastSpellData(helper, stack, 0, apprenticeSpell, 1,
                     "Autocast Amulet slot upgrade should preserve the first spell");
-            assertSpellData(helper, spellContainer, 1, ironsHeal, 1, false,
+            assertAutocastSpellData(helper, stack, 1, mageLight, 1,
                     "Autocast Amulet slot upgrade should preserve the second spell");
-            assertSpellData(helper, spellContainer, 2, ironsGreaterHeal, 1, false,
+            assertAutocastSpellData(helper, stack, 2, remoteEye, 1,
                     "Autocast Amulet slot upgrade should append the third spell at the tail");
-            helper.assertTrue(item.createSpellSlotUpgradeResult(stack, upgradeItem).isEmpty(),
-                    "Autocast Amulet should reject a fourth spell slot upgrade");
+            assertAutocastSpellData(helper, stack, 3, charge, 1,
+                    "Autocast Amulet slot upgrade should append the fourth spell at the tail");
+        });
+    }
+
+    static void autocastAmuletKeepsDisabledSlotSpellsAfterRemovingUpgrade(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
+            var apprenticeSpell = SpellRegistry.SENSE_EVIL.get();
+            var mageLight = SpellRegistry.MAGE_LIGHT.get();
+            var remoteEye = SpellRegistry.REMOTE_EYE.get();
+            var stack = createAutocastAmuletStack(
+                    helper,
+                    3,
+                    new SpellData(apprenticeSpell, 1),
+                    new SpellData(mageLight, 1),
+                    new SpellData(remoteEye, 1)
+            );
+
+            AutocastAmulet.setCalibrationAdjustment(stack, 1, ItemStack.EMPTY);
+            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
+                    "Autocast Amulet should keep scroll storage outside Iron's SpellContainer after removing an upgrade");
+            helper.assertTrue(AutocastAmulet.getEnabledSpellSlotCount(stack) == 2,
+                    "Autocast Amulet should disable the removed upgrade slot");
+            assertAutocastSpellData(helper, stack, 0, apprenticeSpell, 1,
+                    "Autocast Amulet should keep the first enabled spell");
+            assertAutocastSpellData(helper, stack, 1, mageLight, 1,
+                    "Autocast Amulet should keep the second enabled spell");
+            assertAutocastSpellData(helper, stack, 2, remoteEye, 1,
+                    "Autocast Amulet should keep the spell stored in the disabled slot");
+            helper.assertFalse(AutocastAmulet.isEnabledSpellSlot(stack, 2),
+                    "Autocast Amulet should treat the stored third spell as disabled after removing an upgrade");
         });
     }
     static void autocastAmuletWorkbenchExtractionUsesLastSpellAndKeepsSlotCount(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
             var apprenticeSpell = SpellRegistry.SENSE_EVIL.get();
-            var ironsHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
-            var ironsGreaterHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
+            var mageLight = SpellRegistry.MAGE_LIGHT.get();
+            var remoteEye = SpellRegistry.REMOTE_EYE.get();
             var stack = createAutocastAmuletStack(
                     helper,
                     3,
                     new SpellData(apprenticeSpell, 1),
-                    new SpellData(ironsHeal, 1),
-                    new SpellData(ironsGreaterHeal, 1)
+                    new SpellData(mageLight, 1),
+                    new SpellData(remoteEye, 1)
             );
-            var spellContainer = ISpellContainer.get(stack);
+            var removedScroll = AutocastAmulet.getCalibrationScroll(stack, 2);
+            helper.assertTrue(removedScroll.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
+                    "Autocast Amulet should expose its stored tail scroll");
+            AutocastAmulet.setCalibrationScroll(stack, 2, ItemStack.EMPTY);
 
-            helper.assertTrue(spellContainer != null, "Autocast Amulet workbench extraction spell container is null");
-            var extractionIndex = item.getWorkbenchSpellExtractionIndex(stack, spellContainer);
-            helper.assertTrue(extractionIndex == 2,
-                    "Autocast Amulet workbench extraction should target the last filled slot but got " + extractionIndex);
-            helper.assertTrue(item.canRemoveWorkbenchSpell(stack, spellContainer, extractionIndex, spellContainer.getSpellAtIndex(extractionIndex)),
-                    "Autocast Amulet should allow removing its tail spell in Spellcaster Workbench");
-
-            var mutable = spellContainer.mutableCopy();
-            helper.assertTrue(mutable.removeSpellAtIndex(extractionIndex),
-                    "Autocast Amulet tail spell should be removable from the mutable container");
-            ISpellContainer.set(stack, mutable.toImmutable());
-            item.normalizeImbuedSpellContainer(stack);
-
-            var remaining = ISpellContainer.get(stack);
-            helper.assertTrue(remaining != null, "Autocast Amulet remaining spell container is null after extraction");
-            helper.assertTrue(remaining != null && remaining.getMaxSpellCount() == 3,
-                    "Autocast Amulet should preserve max slot count after extraction");
-            helper.assertTrue(remaining != null && remaining.getActiveSpellCount() == 2,
-                    "Autocast Amulet should keep the first two spells after tail extraction");
-            assertSpellData(helper, remaining, 0, apprenticeSpell, 1, false,
+            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
+                    "Autocast Amulet should still not expose Iron's SpellContainer after scroll extraction");
+            assertAutocastSpellData(helper, stack, 0, apprenticeSpell, 1,
                     "Autocast Amulet should keep the first spell after tail extraction");
-            assertSpellData(helper, remaining, 1, ironsHeal, 1, false,
+            assertAutocastSpellData(helper, stack, 1, mageLight, 1,
                     "Autocast Amulet should keep the second spell after tail extraction");
-            helper.assertTrue(remaining != null && remaining.getSpellAtIndex(2) == SpellData.EMPTY,
+            helper.assertTrue(AutocastAmulet.getSpellDataAt(stack, 2) == SpellData.EMPTY,
                     "Autocast Amulet should clear only the tail spell slot after extraction");
         });
     }
@@ -546,12 +713,12 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
         var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "autocast_amulet_mana_retry_test");
 
         helper.runAtTickTime(1, () -> {
-            var expensiveSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
+            var expensiveSpell = SpellRegistry.SENSE_EVIL.get();
             var fallbackSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(
                     ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "charge")
             );
-            var expensiveCost = AutocastAmulet.getScaledManaCost(expensiveSpell, 1, 2);
-            var fallbackCost = AutocastAmulet.getScaledManaCost(fallbackSpell, 1, 2);
+            var expensiveCost = expensiveSpell.getManaCost(1);
+            var fallbackCost = fallbackSpell.getManaCost(1);
             helper.assertTrue(expensiveCost > fallbackCost,
                     "Autocast Amulet mana retry test requires the first spell to cost more mana than the fallback spell");
 
@@ -606,11 +773,14 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
         helper.runAtTickTime(1, () -> {
             player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
             var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
-            var stack = createAutocastAmuletStack(
-                    helper,
-                    1,
-                    new SpellData(spell, 1)
+            var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
+            var stack = item.getDefaultInstance();
+            AutocastAmulet.setCalibrationAdjustment(
+                    stack,
+                    0,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
             );
+            AutocastAmulet.setCalibrationScroll(stack, 0, createSpellScroll(spell));
             equipNecklaceCurio(player, stack);
 
             var magicData = MagicData.getPlayerMagicData(player);
@@ -621,11 +791,11 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
 
             runAutocastAmuletServerTick(player, 20);
             var cooldownInstance = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
-            var expectedCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+            var expectedCooldown = expectedAutocastCooldownWithoutSwordMultiplier(
                     spell,
                     player,
                     CastSource.SWORD
-            );
+            ) + spell.getEffectiveCastTime(1, player);
             helper.assertTrue(player.getHealth() > healthBeforeCast,
                     "Autocast Amulet creative test should still cast greater_heal with zero mana");
             helper.assertFalse(magicData.isCasting(),
@@ -635,13 +805,14 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
                     "Autocast Amulet creative cast should still add spell cooldown");
             helper.assertTrue(cooldownInstance != null && cooldownInstance.getSpellCooldown() == expectedCooldown,
-                    "Autocast Amulet creative cast should store the helper cooldown amount but got "
+                    "Autocast Amulet creative cast should store the cooldown without the sword multiplier but got "
                             + (cooldownInstance == null ? "null" : cooldownInstance.getSpellCooldown())
                             + " / expected " + expectedCooldown);
             helper.succeed();
         });
     }
-    static void autocastAmuletCooldownUsesSwordMultiplier(GameTestHelper helper) {
+
+    static void autocastAmuletCooldownIgnoresSwordMultiplier(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "autocast_amulet_cooldown_test");
             var stack = new ItemStack(ItemRegistry.AUTOCAST_AMULET.get());
@@ -650,7 +821,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             helper.assertTrue(magicData != null, "Autocast Amulet cooldown test could not resolve player mana data");
             magicData.setPlayerCastingItem(stack.copy());
 
-            var expectedCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+            var expectedCooldown = expectedAutocastCooldownWithoutSwordMultiplier(
                     spell,
                     player,
                     CastSource.SWORD
@@ -668,11 +839,23 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             );
             jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletCastEvent.onSpellCooldownAdded(cooldownEvent);
             helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
-                    "Autocast Amulet cooldown event should use the helper cooldown amount but got "
+                    "Autocast Amulet cooldown event should ignore the sword cooldown multiplier but got "
                             + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
-            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == ironsSwordCooldown,
-                    "Autocast Amulet cooldown event should keep Iron's sword multiplier path but got "
-                            + cooldownEvent.getEffectiveCooldown() + " / expected " + ironsSwordCooldown);
+            helper.assertTrue(cooldownEvent.getEffectiveCooldown() != ironsSwordCooldown,
+                    "Autocast Amulet cooldown event should differ from Iron's sword multiplier path");
+
+            var zeroMultiplierCooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    0,
+                    spell,
+                    player,
+                    CastSource.SWORD
+            );
+            jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletCastEvent.onSpellCooldownAdded(
+                    zeroMultiplierCooldownEvent
+            );
+            helper.assertTrue(zeroMultiplierCooldownEvent.getEffectiveCooldown() == expectedCooldown,
+                    "Autocast Amulet cooldown event should restore cooldown even if Iron's sword path produced zero but got "
+                            + zeroMultiplierCooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
         });
     }
     static void autocastAmuletLongSpellCompletesImmediately(GameTestHelper helper) {
@@ -680,11 +863,14 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
 
         helper.runAtTickTime(1, () -> {
             var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
-            var stack = createAutocastAmuletStack(
-                    helper,
-                    1,
-                    new SpellData(spell, 1)
+            var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
+            var stack = item.getDefaultInstance();
+            AutocastAmulet.setCalibrationAdjustment(
+                    stack,
+                    0,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
             );
+            AutocastAmulet.setCalibrationScroll(stack, 0, createSpellScroll(spell));
             var magicData = MagicData.getPlayerMagicData(player);
             magicData.getSyncedData().learnSpell(spell, false);
             magicData.setMana(300.0F);
@@ -698,7 +884,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
                             new SpellData(spell, 1),
                             1,
                             "necklace_0",
-                            AutocastAmulet.getScaledManaCost(spell, 1, 1)
+                            spell.getManaCost(1)
                     ),
                     "Autocast Amulet should start greater_heal from the auto-cast path");
             helper.assertTrue(player.getHealth() > healthBeforeCast,
@@ -759,6 +945,31 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             }
         });
     }
+
+    static void autocastAmuletNotificationControllerSkipsCooldownsUnderFiveSeconds(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var controller = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
+            var spellId = ResourceLocation.fromNamespaceAndPath("apprenticecodex", "arcane_blast");
+            var icon = ResourceLocation.fromNamespaceAndPath("apprenticecodex", "textures/spells/arcane_blast.png");
+
+            controller.queueCooldownCast(0L, spellId, icon, 99);
+
+            helper.assertTrue(controller.getActiveNotification() == null,
+                    "Autocast Amulet cooldowns under 5 seconds should not create a cast notification");
+            helper.assertTrue(controller.getPendingQueueSize() == 0,
+                    "Autocast Amulet cooldowns under 5 seconds should not queue a cast notification");
+            helper.assertTrue(controller.getScheduledNotifications().isEmpty(),
+                    "Autocast Amulet cooldowns under 5 seconds should not schedule threshold notifications");
+
+            controller.queueCooldownCast(1L, spellId, icon, 100);
+            var active = controller.getActiveNotification();
+            helper.assertTrue(active != null
+                            && active.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.CAST
+                            && active.displaySeconds() == 5,
+                    "Autocast Amulet cooldowns of 5 seconds should still create a cast notification");
+        });
+    }
+
     static void autocastAmuletNotificationControllerQueuesInOrderAndKeepsDelayedLabel(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var controller = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
@@ -837,5 +1048,32 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
                             && "9".equals(queuedLinear.displayText()),
                     "Linear Build remaining notification should show the latest queued value after earlier notifications finish");
         });
+    }
+
+    private static void assertAutocastSpellData(
+            GameTestHelper helper,
+            ItemStack stack,
+            int slot,
+            AbstractSpell expectedSpell,
+            int expectedLevel,
+            String message
+    ) {
+        var spellData = AutocastAmulet.getSpellDataAt(stack, slot);
+        helper.assertTrue(spellData != SpellData.EMPTY
+                        && spellData.getSpell() == expectedSpell
+                        && spellData.getLevel() == expectedLevel,
+                message + ": got " + (spellData == SpellData.EMPTY ? "empty" : spellData.getSpell().getSpellResource()));
+    }
+
+    private static int expectedAutocastCooldownWithoutSwordMultiplier(
+            AbstractSpell spell,
+            net.minecraft.world.entity.player.Player player,
+            CastSource castSource
+    ) {
+        return jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldownWithoutSwordMultiplier(
+                spell,
+                player,
+                castSource
+        );
     }
 }

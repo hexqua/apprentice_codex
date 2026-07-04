@@ -112,7 +112,6 @@ import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntletCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
-import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellListManager;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightCooldownReductionEvent;
