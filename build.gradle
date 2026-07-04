@@ -70,7 +70,6 @@ def gameTestServerWorldDir = layout.projectDirectory.dir("run/${gameTestServerWo
 def requiredOptionalModsProperty = 'apprenticecodex.requiredOptionalMods'
 
 def optionalRuntimeModuleConfigurations = [
-        farmers_delight: 'farmersDelightRuntimeOnly',
         create         : 'createRuntimeOnly',
         puzzles_lib    : 'puzzlesLibRuntimeOnly',
         easy_magic     : 'easyMagicRuntimeOnly',
@@ -81,17 +80,20 @@ def optionalRuntimeModuleConfigurations = [
         malum          : 'malumRuntimeOnly',
 ]
 
+def clientRuntimeModuleConfigurations = [
+        moonlight_lib: 'moonlightLibClientRuntimeOnly',
+        target_dummy : 'targetDummyClientRuntimeOnly',
+]
+
 def optionalRuntimeProfileModules = [
-        compat            : ['farmers_delight', 'create', 'lodestone', 'malum'],
+        compat            : ['create', 'lodestone', 'malum'],
         easy_magic        : ['puzzles_lib', 'easy_magic'],
         better_combat     : ['cloth_config', 'better_combat'],
         epic_fight        : ['epic_fight'],
-        compat_easy_better: ['farmers_delight', 'create', 'lodestone', 'malum', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
+        compat_easy_better: ['create', 'lodestone', 'malum', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
 ]
 
 def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
-        farmersdelight: ['farmers_delight'],
-        farmer        : ['farmers_delight'],
         puzzleslib    : ['puzzles_lib'],
         easymagic     : ['puzzles_lib', 'easy_magic'],
         bettercombat  : ['cloth_config', 'better_combat'],
@@ -102,7 +104,7 @@ def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
 ]
 
 def optionalRuntimeRequiredModIds = [
-        compat       : 'farmersdelight,create,lodestone,malum',
+        compat       : 'create,lodestone,malum',
         easy_magic   : 'puzzleslib,easymagic',
         better_combat: 'cloth_config,bettercombat',
         epic_fight   : 'epicfight',
@@ -119,15 +121,23 @@ def expandOptionalRuntimeModules = { Collection<String> selectors ->
     }.unique()
 }
 
-def extendRunJavaClasspath = { String runName, Collection<String> modules ->
+def extendRunJavaClasspath = { String runName, Map<String, String> moduleConfigurations, Collection<String> modules ->
     def runTaskName = "run${runName.capitalize()}"
     tasks.named(runTaskName).configure { task ->
         def runtimeConfigurations = modules.collect { module ->
-            configurations.named(optionalRuntimeModuleConfigurations[module])
+            configurations.named(moduleConfigurations[module])
         }
         task.getClasspathProvider().from runtimeConfigurations
         task.classpath runtimeConfigurations
     }
+}
+
+def extendRunJavaClasspathWithOptionalRuntimeModules = { String runName, Collection<String> modules ->
+    extendRunJavaClasspath(runName, optionalRuntimeModuleConfigurations, modules)
+}
+
+def extendRunJavaClasspathWithClientRuntimeModules = { String runName ->
+    extendRunJavaClasspath(runName, clientRuntimeModuleConfigurations, clientRuntimeModuleConfigurations.keySet())
 }
 
 neoForge {
@@ -248,22 +258,33 @@ configurations {
             transitive = true
         }
     }
+    clientRuntimeModuleConfigurations.values().each { configurationName ->
+        create(configurationName) {
+            canBeConsumed = false
+            canBeResolved = true
+            transitive = true
+        }
+    }
 }
 
-extendRunJavaClasspath('clientCompat', expandOptionalRuntimeModules(['compat']))
-extendRunJavaClasspath('clientEasyMagic', expandOptionalRuntimeModules(['easy_magic']))
-extendRunJavaClasspath('clientBetterCombat', expandOptionalRuntimeModules(['better_combat']))
-extendRunJavaClasspath('clientEpicFight', expandOptionalRuntimeModules(['epic_fight']))
-extendRunJavaClasspath('clientCompatEasyBetter', expandOptionalRuntimeModules(['compat_easy_better']))
-extendRunJavaClasspath('gameTestServerCompat', expandOptionalRuntimeModules(['compat']))
-extendRunJavaClasspath('gameTestServerEasyMagic', expandOptionalRuntimeModules(['easy_magic']))
-extendRunJavaClasspath('gameTestServerBetterCombat', expandOptionalRuntimeModules(['better_combat']))
-extendRunJavaClasspath('gameTestServerEpicFight', expandOptionalRuntimeModules(['epic_fight']))
+['client', 'clientCompat', 'clientEasyMagic', 'clientBetterCombat', 'clientEpicFight', 'clientCompatEasyBetter'].each {
+    extendRunJavaClasspathWithClientRuntimeModules(it)
+}
+
+extendRunJavaClasspathWithOptionalRuntimeModules('clientCompat', expandOptionalRuntimeModules(['compat']))
+extendRunJavaClasspathWithOptionalRuntimeModules('clientEasyMagic', expandOptionalRuntimeModules(['easy_magic']))
+extendRunJavaClasspathWithOptionalRuntimeModules('clientBetterCombat', expandOptionalRuntimeModules(['better_combat']))
+extendRunJavaClasspathWithOptionalRuntimeModules('clientEpicFight', expandOptionalRuntimeModules(['epic_fight']))
+extendRunJavaClasspathWithOptionalRuntimeModules('clientCompatEasyBetter', expandOptionalRuntimeModules(['compat_easy_better']))
+extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerCompat', expandOptionalRuntimeModules(['compat']))
+extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerEasyMagic', expandOptionalRuntimeModules(['easy_magic']))
+extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerBetterCombat', expandOptionalRuntimeModules(['better_combat']))
+extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerEpicFight', expandOptionalRuntimeModules(['epic_fight']))
 
 def devRuntimeMods = providers.gradleProperty('devRuntimeMods').orNull
 if (devRuntimeMods != null && !devRuntimeMods.trim().isEmpty()) {
     def devRuntimeModules = expandOptionalRuntimeModules(devRuntimeMods.split(',').collect { it.trim() }.findAll { !it.isEmpty() })
-    extendRunJavaClasspath('client', devRuntimeModules)
+    extendRunJavaClasspathWithOptionalRuntimeModules('client', devRuntimeModules)
 }
 
 dependencies {
@@ -294,7 +315,7 @@ dependencies {
     add(optionalRuntimeModuleConfigurations.easy_magic, "maven.modrinth:easy-magic:v21.1.4-1.21.1-NeoForge")
 
     // Farmer's Delight.
-    // HarvestMoon の互換回帰を既存の標準 GameTest で検証するため、開発環境では読み込む.
+    // HarvestMoon の互換回帰を既存の標準 GameTest で検証するため、Jade と同様に開発環境では常時読み込む.
     runtimeOnly "maven.modrinth:farmers-delight:cYqC3svy"
 
     // Better Combat.
@@ -330,6 +351,11 @@ dependencies {
     // mods.toml 側で使う表示用バージョン文字列だけを gradle.properties に持つ。
     compileOnly "maven.modrinth:jade:yd8FKCmx"
     runtimeOnly "maven.modrinth:jade:yd8FKCmx"
+
+    // MmmMmmMmmMmm (Target Dummy).
+    // 手動の火力・挙動確認用なのでコードから参照せず、runClient 系にだけ読み込む.
+    add(clientRuntimeModuleConfigurations.moonlight_lib, "maven.modrinth:moonlight:JtfVx8PK")
+    add(clientRuntimeModuleConfigurations.target_dummy, "maven.modrinth:Adega8YN:nnQq1ivl")
 
     // Patchouli.
     compileOnly "vazkii.patchouli:Patchouli:${patchouli_version}:api"
