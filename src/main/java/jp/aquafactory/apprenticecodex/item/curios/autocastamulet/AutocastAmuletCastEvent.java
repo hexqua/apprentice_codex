@@ -157,8 +157,9 @@ public final class AutocastAmuletCastEvent {
             MagicData magicData,
             net.minecraft.world.item.ItemStack castingItem
     ) {
-        var cooldownTicks = removeSwordCooldownMultiplier(
-                WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, castSource),
+        var cooldownTicks = WeaponImbueCooldownHelper.getEffectiveSpellCooldownWithoutSwordMultiplier(
+                spell,
+                player,
                 castSource
         );
         if (spell.getCastType() != CastType.LONG || !AutocastAmulet.hasSilverRingAdjustment(castingItem)) {
@@ -167,18 +168,6 @@ public final class AutocastAmuletCastEvent {
 
         var spellLevel = magicData.getCastingSpellLevel() > 0 ? magicData.getCastingSpellLevel() : 1;
         return cooldownTicks + spell.getEffectiveCastTime(spellLevel, player);
-    }
-
-    private static int removeSwordCooldownMultiplier(int cooldownTicks, CastSource castSource) {
-        if (cooldownTicks <= 0 || castSource != CastSource.SWORD) {
-            return cooldownTicks;
-        }
-
-        var swordCooldownMultiplier = ServerConfigs.SWORDS_CD_MULTIPLIER.get();
-        if (swordCooldownMultiplier <= 0.0D) {
-            return cooldownTicks;
-        }
-        return Math.max(0, (int) (cooldownTicks * (1.0D / swordCooldownMultiplier)));
     }
 
     private record PendingCreativeCooldown(String spellId, CastSource castSource, int cooldownTicks) {
