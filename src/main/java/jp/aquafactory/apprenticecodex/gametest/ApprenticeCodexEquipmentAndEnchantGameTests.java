@@ -717,6 +717,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void manaForceBladeAppliesSurgeAndAttunementAttributes(GameTestHelper helper) {
+        ManaForceBladeGameTestScenarios.manaForceBladeAppliesSurgeAndAttunementAttributes(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void manaForceBladeAttackManaCostIsOncePerTick(GameTestHelper helper) {
         ManaForceBladeGameTestScenarios.manaForceBladeAttackManaCostIsOncePerTick(helper);
     }
