@@ -20,6 +20,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String REMOTE_EYE_ISOLATED_BATCH = "apprenticecodex.remote_eye_isolated";
     private static final String MIRAGE_AVOIDANCE_ISOLATED_BATCH = "apprenticecodex.mirage_avoidance_isolated";
     private static final String HARVEST_MOON_ISOLATED_BATCH = "apprenticecodex.harvest_moon_isolated";
+    private static final String AUTO_TURRET_ISOLATED_BATCH = "apprenticecodex.auto_turret_isolated";
     private static final String AUTO_MAGNET_ISOLATED_BATCH = "apprenticecodex.auto_magnet_isolated";
     private static final String EARTH_FORGE_ISOLATED_BATCH = "apprenticecodex.earth_forge_isolated";
     private static final String LINEAR_BUILD_ISOLATED_BATCH = "apprenticecodex.linear_build_isolated";
@@ -269,6 +270,26 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = HARVEST_MOON_ISOLATED_BATCH)
     public static void harvestMoonHarvestsKelpColumnBeyondInitialYSlice(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.harvestMoonHarvestsKelpColumnBeyondInitialYSlice(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_TURRET_ISOLATED_BATCH)
+    public static void autoTurretRestockConsumesManaAndRestoresAmmo(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autoTurretRestockConsumesManaAndRestoresAmmo(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_TURRET_ISOLATED_BATCH)
+    public static void autoTurretRestockFullAmmoDoesNotSpendMana(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autoTurretRestockFullAmmoDoesNotSpendMana(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_TURRET_ISOLATED_BATCH)
+    public static void autoTurretRestockInsufficientManaDoesNotRestoreAmmo(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autoTurretRestockInsufficientManaDoesNotRestoreAmmo(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_TURRET_ISOLATED_BATCH, timeoutTicks = 180)
+    public static void autoTurretAmmoDepletionKeepsAliveAndRestockClearsDiscardDelay(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autoTurretAmmoDepletionKeepsAliveAndRestockClearsDiscardDelay(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)

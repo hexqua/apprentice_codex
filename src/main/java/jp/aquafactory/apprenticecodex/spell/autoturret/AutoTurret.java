@@ -62,7 +62,8 @@ public class AutoTurret extends AbstractSpell implements IClientBlockTargetingSp
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
                 Component.translatable("ui.irons_spellbooks.projectile_count", getProjectileCount(spellLevel, caster)),
-                Component.translatable("ui.irons_spellbooks.hp", getTurretHealth(spellLevel, caster))
+                Component.translatable("ui.irons_spellbooks.hp", getTurretHealth(spellLevel, caster)),
+                Component.translatable("ui.apprenticecodex.auto_turret.restock_mana_cost", getRestockManaCost(spellLevel))
         );
     }
 
@@ -77,6 +78,10 @@ public class AutoTurret extends AbstractSpell implements IClientBlockTargetingSp
 
     private int getTurretHealth(int spellLevel, LivingEntity entity) {
         return 10 + Math.round(5 * getSpellPower(spellLevel, entity) / 100.0f);
+    }
+
+    public int getRestockManaCost(int spellLevel) {
+        return getManaCost(spellLevel) / 4;
     }
 
     private double getTargetingRange() {
@@ -167,11 +172,12 @@ public class AutoTurret extends AbstractSpell implements IClientBlockTargetingSp
             if (placement.isEmpty() || hasNearbyTurret(level, placement.get())) {
                 sendCantPlaceMessage(entity);
             } else {
+                var projectileCount = getProjectileCount(spellLevel, entity);
                 var turret = new AutoTurretEntity(EntityRegistry.AUTO_TURRET.get(), serverLevel);
                 turret.setOwner(entity);
                 turret.setAnchorPos(placement.get().blockPos());
                 turret.setDamage(getDamage(spellLevel, entity));
-                turret.setRestBulletCount(getProjectileCount(spellLevel, entity));
+                turret.setRestockData(projectileCount, getRestockManaCost(spellLevel));
                 turret.setTurretMaxHealth(getTurretHealth(spellLevel, entity));
                 turret.moveTo(placement.get().center().x, placement.get().center().y, placement.get().center().z, entity.getYRot(), 0.0f);
                 turret.setYRot(entity.getYRot());
