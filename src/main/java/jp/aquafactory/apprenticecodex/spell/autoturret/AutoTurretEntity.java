@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.spell.autoturret;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.network.SyncManaPacket;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -18,6 +20,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -320,6 +323,9 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
         }
 
         magicData.setMana(Math.max(0.0F, magicData.getMana() - restockManaCost));
+        if (player instanceof ServerPlayer serverPlayer) {
+            PacketDistributor.sendToPlayer(serverPlayer, new SyncManaPacket(magicData));
+        }
         setRestBulletCountSynced(initialBulletCount);
         discardDelayTick = -1;
         sendRestockMessage(player, "ui.apprenticecodex.auto_turret.restock_complete", ChatFormatting.GREEN);
