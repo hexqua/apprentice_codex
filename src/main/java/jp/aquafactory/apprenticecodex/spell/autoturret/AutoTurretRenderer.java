@@ -48,7 +48,7 @@ public class AutoTurretRenderer extends GeoEntityRenderer<AutoTurretEntity> {
 
         // bone 行列ではなく、root 回転とアンカー位置を明示的に積んで描画姿勢を確定させる.
         poseStack.translate(0.0f, MODEL_RENDER_Y_OFFSET + SPRITE_ANCHOR_Y, 0.0f);
-        poseStack.mulPose(Axis.XP.rotationDegrees(entity.getAimPitch()));
+        poseStack.mulPose(Axis.XP.rotationDegrees(-entity.getAimPitch()));
         poseStack.mulPose(Axis.XP.rotationDegrees(-90.0f));
         poseStack.mulPose(Axis.ZP.rotationDegrees(-45.0f));
 
