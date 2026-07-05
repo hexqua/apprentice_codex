@@ -45,6 +45,12 @@ public final class MagicItemAttributeEvent {
             return;
         }
 
+        if (item instanceof ManaForceBlade manaForceBlade) {
+            replaceModifiers(event, manaForceBlade.getDefaultAttributeModifiers(stack));
+            applyMainhandUpgradeBridge(event);
+            return;
+        }
+
         if (item instanceof SpellchargedGreatsword spellchargedGreatsword) {
             replaceModifiers(event, spellchargedGreatsword.getDefaultAttributeModifiers(stack));
             applyMainhandUpgradeBridge(event);

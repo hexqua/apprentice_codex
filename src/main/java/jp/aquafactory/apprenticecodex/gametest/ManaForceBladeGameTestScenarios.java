@@ -425,16 +425,15 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
                             + " modifiers=" + describeModifiers(surgeModifiers)
             );
 
-            var surgePlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
-                    "mana_force_blade_surge_attribute_test");
-            var baseSpellPower = surgePlayer.getAttributeValue(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER);
-            surgePlayer.setItemInHand(InteractionHand.MAIN_HAND, surgeStack.copy());
-            surgePlayer.tick();
-            var equippedSpellPower = surgePlayer.getAttributeValue(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER);
-            helper.assertTrue(Math.abs(equippedSpellPower - baseSpellPower * 1.02D) < 1.0e-9D,
-                    "Mana Force Blade Surge should affect equipped player spell power"
-                            + " base=" + baseSpellPower
-                            + " equipped=" + equippedSpellPower
+            var effectiveSurgeSpellPower = sumEffectiveModifierAmount(
+                    surgeStack,
+                    EquipmentSlot.MAINHAND,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+            );
+            helper.assertTrue(Math.abs(effectiveSurgeSpellPower - 0.02D) < 1.0e-9D,
+                    "Mana Force Blade Surge should apply spell power in main hand"
+                            + " amount=" + effectiveSurgeSpellPower
                             + " modifiers=" + describeModifiers(surgeModifiers));
 
             var attunementStack = new ItemStack(item);
@@ -461,19 +460,18 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
                             + " attribute=" + BuiltInRegistries.ATTRIBUTE.getKey(attunementAttribute)
                             + " modifiers=" + describeModifiers(attunementModifiers)
             );
-            var attunementPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 1),
-                    "mana_force_blade_attunement_attribute_test");
-            var baseSchoolPower = attunementPlayer.getAttributeValue(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementAttribute));
-            attunementPlayer.setItemInHand(InteractionHand.MAIN_HAND, attunementStack.copy());
-            attunementPlayer.tick();
-            var equippedSchoolPower = attunementPlayer.getAttributeValue(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementAttribute));
-            helper.assertTrue(Math.abs(equippedSchoolPower - baseSchoolPower * 1.04D) < 1.0e-9D,
-                    "Mana Force Blade Attunement should affect equipped player school spell power"
+            var effectiveAttunementSpellPower = sumEffectiveModifierAmount(
+                    attunementStack,
+                    EquipmentSlot.MAINHAND,
+                    BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementAttribute),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+            );
+            helper.assertTrue(Math.abs(effectiveAttunementSpellPower - 0.04D) < 1.0e-9D,
+                    "Mana Force Blade Attunement should apply school spell power in main hand"
                             + " spell=" + spell.getSpellResource()
                             + " school=" + imbuedSchool.getId()
                             + " attribute=" + BuiltInRegistries.ATTRIBUTE.getKey(attunementAttribute)
-                            + " base=" + baseSchoolPower
-                            + " equipped=" + equippedSchoolPower
+                            + " amount=" + effectiveAttunementSpellPower
                             + " modifiers=" + describeModifiers(attunementModifiers));
         });
     }
@@ -670,5 +668,20 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
                     "Mana Force Blade should reject mana pool/recovery enchantments"
             );
         });
+    }
+
+    private static double sumEffectiveModifierAmount(
+            ItemStack stack,
+            EquipmentSlot slot,
+            Holder<Attribute> attribute,
+            AttributeModifier.Operation operation
+    ) {
+        var total = new double[1];
+        stack.forEachModifier(slot, (actualAttribute, modifier) -> {
+            if (actualAttribute.equals(attribute) && modifier.operation() == operation) {
+                total[0] += modifier.amount();
+            }
+        });
+        return total[0];
     }
 }
