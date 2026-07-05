@@ -47,13 +47,13 @@ public class AutoTurret extends AbstractSpell implements IClientBlockTargetingSp
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.EVOCATION_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(2)
+            .setCooldownSeconds(12)
             .build();
 
     public AutoTurret() {
         baseSpellPower = 100;
         spellPowerPerLevel = 40;
-        baseManaCost = 70;
+        baseManaCost = 80;
         manaCostPerLevel = 20;
         castTime = 40;
     }
@@ -63,7 +63,7 @@ public class AutoTurret extends AbstractSpell implements IClientBlockTargetingSp
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
                 Component.translatable("ui.irons_spellbooks.projectile_count", getProjectileCount(spellLevel, caster)),
-                Component.translatable("ui.irons_spellbooks.hp", getTurretHealth(spellLevel, caster)),
+                Component.translatable("ui.irons_spellbooks.hp", getTurretHealth(spellLevel)),
                 Component.translatable("ui.apprenticecodex.auto_turret.restock_mana_cost", getRestockManaCost(spellLevel))
         );
     }
@@ -74,11 +74,11 @@ public class AutoTurret extends AbstractSpell implements IClientBlockTargetingSp
     }
 
     private int getProjectileCount(int spellLevel, LivingEntity entity) {
-        return Math.round(12 * getSpellPower(spellLevel, entity) / 100.0f);
+        return 8 + Math.round(8 * getSpellPower(spellLevel, entity) / 100.0f);
     }
 
-    private int getTurretHealth(int spellLevel, LivingEntity entity) {
-        return 10 + Math.round(5 * getSpellPower(spellLevel, entity) / 100.0f);
+    private int getTurretHealth(int spellLevel) {
+        return 20 + (spellLevel - 1) * 10;
     }
 
     public int getRestockManaCost(int spellLevel) {
@@ -179,7 +179,7 @@ public class AutoTurret extends AbstractSpell implements IClientBlockTargetingSp
                 turret.setAnchorPos(placement.get().blockPos());
                 turret.setDamage(getDamage(spellLevel, entity));
                 turret.setRestockData(projectileCount, getRestockManaCost(spellLevel));
-                turret.setTurretMaxHealth(getTurretHealth(spellLevel, entity));
+                turret.setTurretMaxHealth(getTurretHealth(spellLevel));
                 turret.moveTo(placement.get().center().x, placement.get().center().y, placement.get().center().z, entity.getYRot(), 0.0f);
                 turret.setYRot(entity.getYRot());
                 turret.setYHeadRot(entity.getYRot());
