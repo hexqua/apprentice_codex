@@ -46,6 +46,7 @@ import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.UUID;
 
 public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
@@ -72,6 +73,12 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
             SynchedEntityData.defineId(AutoTurretEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> AIM_PITCH =
             SynchedEntityData.defineId(AutoTurretEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Optional<UUID>> OWNER_UUID =
+            SynchedEntityData.defineId(AutoTurretEntity.class, EntityDataSerializers.OPTIONAL_UUID);
+    private static final EntityDataAccessor<Integer> REST_BULLET_COUNT =
+            SynchedEntityData.defineId(AutoTurretEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> INITIAL_BULLET_COUNT =
+            SynchedEntityData.defineId(AutoTurretEntity.class, EntityDataSerializers.INT);
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private UUID ownerUuid;
@@ -129,6 +136,9 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
         builder.define(HIT_POSITION_Y, 0.0f);
         builder.define(HIT_POSITION_Z, 0.0f);
         builder.define(AIM_PITCH, 0.0f);
+        builder.define(OWNER_UUID, Optional.empty());
+        builder.define(REST_BULLET_COUNT, 0);
+        builder.define(INITIAL_BULLET_COUNT, 0);
     }
 
     @Override
@@ -269,7 +279,7 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
                 currentChargeTick = 0;
                 currentCoolDownTick = COOLDOWN_TICK;
                 if (restBulletCount > 0) {
-                    --restBulletCount;
+                    setRestBulletCountSynced(restBulletCount - 1);
                 }
                 if (restBulletCount <= 0) {
                     discardDelayTick = DISCARD_DELAY_TICK;
@@ -310,7 +320,7 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
         }
 
         magicData.setMana(Math.max(0.0F, magicData.getMana() - restockManaCost));
-        restBulletCount = initialBulletCount;
+        setRestBulletCountSynced(initialBulletCount);
         discardDelayTick = -1;
         sendRestockMessage(player, "ui.apprenticecodex.auto_turret.restock_complete", ChatFormatting.GREEN);
         if (level() instanceof ServerLevel serverLevel) {
@@ -388,6 +398,7 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
     public void setOwner(LivingEntity owner) {
         ownerUuid = owner.getUUID();
         cachedOwner = owner;
+        entityData.set(OWNER_UUID, Optional.of(ownerUuid));
     }
 
     public LivingEntity getOwner() {
@@ -413,18 +424,36 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
     }
 
     public void setRestBulletCount(int count) {
-        restBulletCount = Math.max(0, count);
-        initialBulletCount = Math.max(initialBulletCount, restBulletCount);
+        setRestBulletCountSynced(Math.max(0, count));
+        setInitialBulletCountSynced(Math.max(initialBulletCount, restBulletCount));
     }
 
     public int getRestBulletCount() {
-        return restBulletCount;
+        return level().isClientSide ? entityData.get(REST_BULLET_COUNT) : restBulletCount;
     }
 
     public void setRestockData(int initialBulletCount, int restockManaCost) {
-        this.initialBulletCount = Math.max(0, initialBulletCount);
+        setInitialBulletCountSynced(Math.max(0, initialBulletCount));
         this.restockManaCost = Math.max(0, restockManaCost);
-        restBulletCount = this.initialBulletCount;
+        setRestBulletCountSynced(this.initialBulletCount);
+    }
+
+    public int getInitialBulletCount() {
+        return level().isClientSide ? entityData.get(INITIAL_BULLET_COUNT) : initialBulletCount;
+    }
+
+    public Optional<UUID> getOwnerUuidForRendering() {
+        return entityData.get(OWNER_UUID);
+    }
+
+    private void setRestBulletCountSynced(int count) {
+        restBulletCount = Math.max(0, count);
+        entityData.set(REST_BULLET_COUNT, restBulletCount);
+    }
+
+    private void setInitialBulletCountSynced(int count) {
+        initialBulletCount = Math.max(0, count);
+        entityData.set(INITIAL_BULLET_COUNT, initialBulletCount);
     }
 
     public @Nullable String getOwnerName() {
