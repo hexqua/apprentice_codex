@@ -187,11 +187,15 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
             return;
         }
 
-        setNoGravity(true);
-        setDeltaMovement(Vec3.ZERO);
-        var anchorCenter = getAnchorCenter();
-        if (position().distanceToSqr(anchorCenter) > 0.0001) {
-            setPos(anchorCenter.x, anchorCenter.y, anchorCenter.z);
+        if (AutoTurretPlacementHelper.hasSupportBelow(level(), anchorPos)) {
+            setNoGravity(true);
+            setDeltaMovement(Vec3.ZERO);
+            var anchorCenter = getAnchorCenter();
+            if (position().distanceToSqr(anchorCenter) > 0.0001) {
+                setPos(anchorCenter.x, anchorCenter.y, anchorCenter.z);
+            }
+        } else {
+            setNoGravity(false);
         }
 
         if (discardDelayTick >= 0) {
@@ -445,7 +449,11 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
     }
 
     private Vec3 getAnchorCenter() {
-        return new Vec3(anchorPos.getX() + 0.5, anchorPos.getY(), anchorPos.getZ() + 0.5);
+        return new Vec3(
+                anchorPos.getX() + 0.5,
+                AutoTurretPlacementHelper.getSupportTopY(level(), anchorPos),
+                anchorPos.getZ() + 0.5
+        );
     }
 
     @Override

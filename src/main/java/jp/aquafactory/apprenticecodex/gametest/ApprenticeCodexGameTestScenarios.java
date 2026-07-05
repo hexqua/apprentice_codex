@@ -135,6 +135,7 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
+import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurret;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretEntity;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetCollectionMode;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
@@ -6625,6 +6626,59 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void autoTurretCanBePlacedOnSupportedSlab(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "auto_turret_slab_test");
+            var anchorPos = new BlockPos(0, 2, 0);
+            helper.setBlock(anchorPos.below(), Blocks.STONE_SLAB.defaultBlockState()
+                    .setValue(SlabBlock.TYPE, SlabType.BOTTOM));
+
+            castAutoTurret(helper, owner, 1, anchorPos);
+
+            var turret = getSingleLivingAutoTurret(helper, owner);
+            var expectedY = helper.absolutePos(anchorPos).below().getY() + 0.5D;
+            helper.assertTrue(Math.abs(turret.getY() - expectedY) < 0.01D,
+                    "AutoTurret should sit on the slab support top: " + turret.getY());
+        });
+    }
+
+    static void autoTurretCanBePlacedOnSupportedStairs(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "auto_turret_stairs_test");
+            var anchorPos = new BlockPos(0, 2, 0);
+            helper.setBlock(anchorPos.below(), Blocks.STONE_STAIRS.defaultBlockState()
+                    .setValue(StairBlock.FACING, Direction.NORTH)
+                    .setValue(StairBlock.HALF, Half.BOTTOM)
+                    .setValue(StairBlock.SHAPE, StairsShape.STRAIGHT));
+
+            castAutoTurret(helper, owner, 1, anchorPos);
+
+            var turret = getSingleLivingAutoTurret(helper, owner);
+            var expectedY = helper.absolutePos(anchorPos).getY();
+            helper.assertTrue(Math.abs(turret.getY() - expectedY) < 0.01D,
+                    "AutoTurret should accept a normal stair as support: " + turret.getY());
+        });
+    }
+
+    static void autoTurretFallsWhenSupportRemoved(GameTestHelper helper) {
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 6, 0), "auto_turret_fall_test");
+        var anchorPos = new BlockPos(0, 6, 0);
+        helper.setBlock(anchorPos.below(), Blocks.STONE);
+        helper.getLevel().addFreshEntity(owner);
+        castAutoTurret(helper, owner, 1, anchorPos);
+        var turret = getSingleLivingAutoTurret(helper, owner);
+        var initialY = turret.getY();
+
+        helper.runAtTickTime(1, () -> helper.setBlock(anchorPos.below(), Blocks.AIR));
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(turret.isAlive() && !turret.isRemoved(),
+                    "AutoTurret should remain alive while falling after support removal");
+            helper.assertTrue(turret.getY() < initialY - 0.05D,
+                    "AutoTurret should fall below its anchored position after support removal: " + turret.getY());
+        });
+    }
+
     static void autoTurretRestockConsumesManaAndRestoresAmmo(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "auto_turret_restock_test");
@@ -6730,6 +6784,34 @@ public class ApprenticeCodexGameTestScenarios {
         turret.moveTo(center.x, center.y, center.z, 0.0F, 0.0F);
         level.addFreshEntity(turret);
         return turret;
+    }
+
+    private static void castAutoTurret(GameTestHelper helper, FakePlayer player, int spellLevel, BlockPos anchorPos) {
+        var spell = (AutoTurret) SpellRegistry.AUTO_TURRET.get();
+        var castData = new AutoTurret.AutoTurretCastData();
+        var absoluteAnchorPos = helper.absolutePos(anchorPos);
+        var tag = new CompoundTag();
+        tag.putInt("PositionX", absoluteAnchorPos.getX());
+        tag.putInt("PositionY", absoluteAnchorPos.getY());
+        tag.putInt("PositionZ", absoluteAnchorPos.getZ());
+        castData.deserializeNBT(tag);
+        var magicData = MagicData.getPlayerMagicData(player);
+        magicData.setAdditionalCastData(castData);
+        spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, magicData);
+    }
+
+    private static AutoTurretEntity getSingleLivingAutoTurret(GameTestHelper helper, FakePlayer owner) {
+        var turrets = new java.util.ArrayList<AutoTurretEntity>();
+        for (var entity : helper.getLevel().getAllEntities()) {
+            if (entity instanceof AutoTurretEntity turret
+                    && turret.isAlive()
+                    && turret.getOwner() != null
+                    && owner.getUUID().equals(turret.getOwner().getUUID())) {
+                turrets.add(turret);
+            }
+        }
+        helper.assertTrue(turrets.size() == 1, "Expected exactly one living AutoTurret but found " + turrets.size());
+        return turrets.get(0);
     }
 
     static void autoMagnetCollectsItemsWithoutSolegnoliaBlock(GameTestHelper helper) {
