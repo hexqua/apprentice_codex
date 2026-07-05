@@ -84,7 +84,6 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
             SynchedEntityData.defineId(AutoTurretEntity.class, EntityDataSerializers.INT);
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private UUID ownerUuid;
     private LivingEntity cachedOwner;
     private BlockPos anchorPos = BlockPos.ZERO;
     private float damage;
@@ -337,7 +336,7 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
     }
 
     private boolean isOwner(Player player) {
-        return ownerUuid != null && ownerUuid.equals(player.getUUID());
+        return getOwnerUuid().filter(player.getUUID()::equals).isPresent();
     }
 
     private static void sendRestockMessage(Player player, String key, ChatFormatting formatting) {
@@ -402,17 +401,17 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
     }
 
     public void setOwner(LivingEntity owner) {
-        ownerUuid = owner.getUUID();
         cachedOwner = owner;
-        entityData.set(OWNER_UUID, Optional.of(ownerUuid));
+        entityData.set(OWNER_UUID, Optional.of(owner.getUUID()));
     }
 
     public LivingEntity getOwner() {
         if (cachedOwner != null && !cachedOwner.isRemoved()) {
             return cachedOwner;
         }
-        if (ownerUuid != null && level() instanceof ServerLevel serverLevel) {
-            var entity = serverLevel.getEntity(ownerUuid);
+        var ownerUuid = getOwnerUuid();
+        if (ownerUuid.isPresent() && level() instanceof ServerLevel serverLevel) {
+            var entity = serverLevel.getEntity(ownerUuid.get());
             if (entity instanceof LivingEntity livingEntity) {
                 cachedOwner = livingEntity;
                 return livingEntity;
@@ -449,6 +448,10 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
     }
 
     public Optional<UUID> getOwnerUuidForRendering() {
+        return getOwnerUuid();
+    }
+
+    private Optional<UUID> getOwnerUuid() {
         return entityData.get(OWNER_UUID);
     }
 
