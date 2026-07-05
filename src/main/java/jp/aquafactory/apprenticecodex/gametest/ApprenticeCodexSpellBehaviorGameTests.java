@@ -308,6 +308,21 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = AUTO_TURRET_ISOLATED_BATCH)
+    public static void autoTurretCanBePlacedOnSupportedSlab(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autoTurretCanBePlacedOnSupportedSlab(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_TURRET_ISOLATED_BATCH)
+    public static void autoTurretCanBePlacedOnSupportedStairs(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autoTurretCanBePlacedOnSupportedStairs(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_TURRET_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void autoTurretFallsWhenSupportRemoved(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autoTurretFallsWhenSupportRemoved(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_TURRET_ISOLATED_BATCH)
     public static void autoTurretRestockFullAmmoDoesNotSpendMana(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.autoTurretRestockFullAmmoDoesNotSpendMana(helper);
     }
