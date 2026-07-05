@@ -727,7 +727,7 @@
   "spell.apprenticecodex.deep_sensor.guide": "一定時間、深淵のもの特有の音に関する知覚を得る。",
   "spell.apprenticecodex.long_stride.guide": "詠唱中、速く歩くことができ、多少の段差なら乗り越えられるようになる。",
   "spell.apprenticecodex.spectral_wing.guide": "魔力の翼で空中へ打ち上がり、そのまま滑空する。飛行中に再使用すると視線方向へ激しく加速する。地上か水面へ降りると翼は消える。",
-  "spell.apprenticecodex.auto_turret.guide": "自動で近くの敵を攻撃するクロスボウを召喚する。弾を撃ち切るか耐久力が無くなると消滅する。",
+  "spell.apprenticecodex.auto_turret.guide": "自動で近くの敵を攻撃するクロスボウを召喚する。弾を撃ち切ってしばらくするか、耐久力が無くなると消滅する。消滅前であればクロスボウを右クリックすることでマナを少量消費して弾を最大まで補充できる。",
   "spell.apprenticecodex.illuminate_stellar.guide": "星照らしの杖固有の潜在魔法。振るうことで瞬く星を散らし、害意を持つ存在へと飛翔する。",
   "spell.apprenticecodex.unite_luna.guide": "月結びの杖固有の潜在魔法。振るうことで朧う月を作り出し、阻む存在を消し飛ばす。魔力を打ち消そうとすると、その力を利用して威力を増大させる。",
   "spell.apprenticecodex.demicreator_wings.guide": "現在位置へ半創造の核を置き、その範囲内だけクリエイティブ飛行できるようになる。再使用するか、時間切れになるか、範囲外へ出ると翼は失われる。",
@@ -803,6 +803,7 @@
   "ui.apprenticecodex.inscribe_ice.notched_frozen_damage": "魔力炸裂時のダメージ: %s",
   "ui.apprenticecodex.anchor_blink.anchor_distance": "アンカー成立距離: %sブロック",
   "ui.apprenticecodex.mana_mending.repair_per_second": "アイテムの修繕速度: %s/秒",
+  "ui.apprenticecodex.auto_turret.restock_mana_cost": "矢の再補充に必要なマナ: %d",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.too_far": "遠すぎる！",
@@ -884,6 +885,9 @@
   "ui.apprenticecodex.mana_mending.invalid_mending": "%1$sは修繕することができない...",
   "ui.apprenticecodex.mana_mending.invalid_by_deny_list": "%1$sはこの魔法による修繕を許可されていない！",
   "ui.apprenticecodex.mana_mending.repair_finished_bonus": "%1$sの修繕が完了し、新品同様になった！",
+  "ui.apprenticecodex.auto_turret.restock_not_need": "このクロスボウは矢が最大まで溜まっている...",
+  "ui.apprenticecodex.auto_turret.restock_complete": "クロスボウの矢を補充した！",
+  "ui.apprenticecodex.auto_turret.insufficient_mana": "補充するためのマナが足りない！",
 
   "ui.apprenticecodex.swingcast.cannot_swing_cast": "%sは打撃詠唱できない！",
   "ui.apprenticecodex.jumpcast.cannot_long_cast": "%sは跳躍詠唱できない！",

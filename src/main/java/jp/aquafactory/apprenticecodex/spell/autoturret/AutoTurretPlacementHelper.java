@@ -94,15 +94,13 @@ final class AutoTurretPlacementHelper {
             return Optional.empty();
         }
 
-        var supportPos = placementPos.below();
-        var supportState = level.getBlockState(supportPos);
-        if (!supportState.isFaceSturdy(level, supportPos, Direction.UP)) {
+        if (!hasSupportBelow(level, placementPos)) {
             return Optional.empty();
         }
 
         var center = new Vec3(
                 placementPos.getX() + 0.5,
-                placementPos.getY(),
+                getSupportTopY(level, placementPos),
                 placementPos.getZ() + 0.5
         );
         var placementBox = AutoTurretEntity.makePlacementAabb(center);
@@ -111,6 +109,19 @@ final class AutoTurretPlacementHelper {
         }
 
         return Optional.of(new PlacementResult(placementPos.immutable(), center, placementBox));
+    }
+
+    static boolean hasSupportBelow(Level level, BlockPos placementPos) {
+        return !level.getBlockState(placementPos.below()).getCollisionShape(level, placementPos.below()).isEmpty();
+    }
+
+    static double getSupportTopY(Level level, BlockPos placementPos) {
+        var supportPos = placementPos.below();
+        var supportShape = level.getBlockState(supportPos).getCollisionShape(level, supportPos);
+        if (supportShape.isEmpty()) {
+            return placementPos.getY();
+        }
+        return supportPos.getY() + supportShape.max(Direction.Axis.Y);
     }
 
     private static Optional<BlockHitResult> raycastTargetBlock(Level level, LivingEntity entity, double range) {

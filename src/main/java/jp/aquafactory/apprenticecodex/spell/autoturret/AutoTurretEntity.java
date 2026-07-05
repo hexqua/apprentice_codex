@@ -1,22 +1,30 @@
 package jp.aquafactory.apprenticecodex.spell.autoturret;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.network.SyncManaPacket;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
-import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -25,6 +33,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.AABB;
@@ -40,6 +49,7 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.UUID;
 
 public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
@@ -51,7 +61,7 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
     private static final int KEEP_LOCK_ON_TICK_FOR_CHANGE_TARGET = 60;
     private static final int KEEP_LOCK_ON_TICK_IN_LOST_LOR = 20;
     private static final int KEEP_FIRE_CONTINUE_TICK = 40;
-    private static final int DISCARD_DELAY_TICK = 10;
+    private static final int DISCARD_DELAY_TICK = 100;
     private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
 
     private static final EntityDataAccessor<Integer> CHARGE_STAGE =
@@ -66,13 +76,20 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
             SynchedEntityData.defineId(AutoTurretEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> AIM_PITCH =
             SynchedEntityData.defineId(AutoTurretEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Optional<UUID>> OWNER_UUID =
+            SynchedEntityData.defineId(AutoTurretEntity.class, EntityDataSerializers.OPTIONAL_UUID);
+    private static final EntityDataAccessor<Integer> REST_BULLET_COUNT =
+            SynchedEntityData.defineId(AutoTurretEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> INITIAL_BULLET_COUNT =
+            SynchedEntityData.defineId(AutoTurretEntity.class, EntityDataSerializers.INT);
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private UUID ownerUuid;
     private LivingEntity cachedOwner;
     private BlockPos anchorPos = BlockPos.ZERO;
     private float damage;
     private int restBulletCount;
+    private int initialBulletCount;
+    private int restockManaCost;
     private int currentChargeTick;
     private int currentCoolDownTick;
     private int currentLockOnTick;
@@ -121,6 +138,9 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
         entityData.define(HIT_POSITION_Y, 0.0f);
         entityData.define(HIT_POSITION_Z, 0.0f);
         entityData.define(AIM_PITCH, 0.0f);
+        entityData.define(OWNER_UUID, Optional.empty());
+        entityData.define(REST_BULLET_COUNT, 0);
+        entityData.define(INITIAL_BULLET_COUNT, 0);
     }
 
     @Override
@@ -179,11 +199,15 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
             return;
         }
 
-        setNoGravity(true);
-        setDeltaMovement(Vec3.ZERO);
-        var anchorCenter = getAnchorCenter();
-        if (position().distanceToSqr(anchorCenter) > 0.0001) {
-            setPos(anchorCenter.x, anchorCenter.y, anchorCenter.z);
+        if (AutoTurretPlacementHelper.hasSupportBelow(level(), anchorPos)) {
+            setNoGravity(true);
+            setDeltaMovement(Vec3.ZERO);
+            var anchorCenter = getAnchorCenter();
+            if (position().distanceToSqr(anchorCenter) > 0.0001) {
+                setPos(anchorCenter.x, anchorCenter.y, anchorCenter.z);
+            }
+        } else {
+            setNoGravity(false);
         }
 
         if (discardDelayTick >= 0) {
@@ -257,7 +281,7 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
                 currentChargeTick = 0;
                 currentCoolDownTick = COOLDOWN_TICK;
                 if (restBulletCount > 0) {
-                    --restBulletCount;
+                    setRestBulletCountSynced(restBulletCount - 1);
                 }
                 if (restBulletCount <= 0) {
                     discardDelayTick = DISCARD_DELAY_TICK;
@@ -270,6 +294,53 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
 
     private void playCrossbowLoadingEnd(ServerLevel level) {
         AudioTools.playSoundFromEntity(level, this, SoundEvents.CROSSBOW_LOADING_END, SoundSource.PLAYERS, 1.0f, 1.0f, 0.0f);
+    }
+
+    @Override
+    public @NotNull InteractionResult mobInteract(@NotNull Player player, @NotNull InteractionHand hand) {
+        if (hand != InteractionHand.MAIN_HAND) {
+            return InteractionResult.PASS;
+        }
+
+        if (!isOwner(player)) {
+            return InteractionResult.PASS;
+        }
+
+        if (level().isClientSide) {
+            return InteractionResult.SUCCESS;
+        }
+
+        if (restBulletCount >= initialBulletCount) {
+            sendRestockMessage(player, "ui.apprenticecodex.auto_turret.restock_not_need", ChatFormatting.YELLOW);
+            return InteractionResult.CONSUME;
+        }
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData == null || magicData.getMana() + 1.0e-4F < restockManaCost) {
+            sendRestockMessage(player, "ui.apprenticecodex.auto_turret.insufficient_mana", ChatFormatting.RED);
+            return InteractionResult.CONSUME;
+        }
+
+        magicData.setMana(Math.max(0.0F, magicData.getMana() - restockManaCost));
+        if (player instanceof ServerPlayer serverPlayer) {
+            PacketDistributor.sendToPlayer(serverPlayer, new SyncManaPacket(magicData));
+        }
+        setRestBulletCountSynced(initialBulletCount);
+        discardDelayTick = -1;
+        sendRestockMessage(player, "ui.apprenticecodex.auto_turret.restock_complete", ChatFormatting.GREEN);
+        if (level() instanceof ServerLevel serverLevel) {
+            AudioTools.playSoundFromEntity(serverLevel, this, SoundRegistry.VANILLA_HOLD_WEAPON.get(), SoundSource.PLAYERS, 0.7f, 1.15f);
+            serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER, getX(), getY() + 0.9D, getZ(), 18, 0.35D, 0.45D, 0.35D, 0.08D);
+        }
+        return InteractionResult.CONSUME;
+    }
+
+    private boolean isOwner(Player player) {
+        return getOwnerUuid().filter(player.getUUID()::equals).isPresent();
+    }
+
+    private static void sendRestockMessage(Player player, String key, ChatFormatting formatting) {
+        player.displayClientMessage(Component.translatable(key).withStyle(formatting), true);
     }
 
     private void fire(Entity target, ServerLevel level, LivingEntity owner) {
@@ -330,16 +401,17 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
     }
 
     public void setOwner(LivingEntity owner) {
-        ownerUuid = owner.getUUID();
         cachedOwner = owner;
+        entityData.set(OWNER_UUID, Optional.of(owner.getUUID()));
     }
 
     public LivingEntity getOwner() {
         if (cachedOwner != null && !cachedOwner.isRemoved()) {
             return cachedOwner;
         }
-        if (ownerUuid != null && level() instanceof ServerLevel serverLevel) {
-            var entity = serverLevel.getEntity(ownerUuid);
+        var ownerUuid = getOwnerUuid();
+        if (ownerUuid.isPresent() && level() instanceof ServerLevel serverLevel) {
+            var entity = serverLevel.getEntity(ownerUuid.get());
             if (entity instanceof LivingEntity livingEntity) {
                 cachedOwner = livingEntity;
                 return livingEntity;
@@ -357,11 +429,40 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
     }
 
     public void setRestBulletCount(int count) {
-        restBulletCount = Math.max(0, count);
+        setRestBulletCountSynced(Math.max(0, count));
+        setInitialBulletCountSynced(Math.max(initialBulletCount, restBulletCount));
     }
 
     public int getRestBulletCount() {
-        return restBulletCount;
+        return level().isClientSide ? entityData.get(REST_BULLET_COUNT) : restBulletCount;
+    }
+
+    public void setRestockData(int initialBulletCount, int restockManaCost) {
+        setInitialBulletCountSynced(Math.max(0, initialBulletCount));
+        this.restockManaCost = Math.max(0, restockManaCost);
+        setRestBulletCountSynced(this.initialBulletCount);
+    }
+
+    public int getInitialBulletCount() {
+        return level().isClientSide ? entityData.get(INITIAL_BULLET_COUNT) : initialBulletCount;
+    }
+
+    public Optional<UUID> getOwnerUuidForRendering() {
+        return getOwnerUuid();
+    }
+
+    private Optional<UUID> getOwnerUuid() {
+        return entityData.get(OWNER_UUID);
+    }
+
+    private void setRestBulletCountSynced(int count) {
+        restBulletCount = Math.max(0, count);
+        entityData.set(REST_BULLET_COUNT, restBulletCount);
+    }
+
+    private void setInitialBulletCountSynced(int count) {
+        initialBulletCount = Math.max(0, count);
+        entityData.set(INITIAL_BULLET_COUNT, initialBulletCount);
     }
 
     public @Nullable String getOwnerName() {
@@ -386,7 +487,11 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
     }
 
     private Vec3 getAnchorCenter() {
-        return new Vec3(anchorPos.getX() + 0.5, anchorPos.getY(), anchorPos.getZ() + 0.5);
+        return new Vec3(
+                anchorPos.getX() + 0.5,
+                AutoTurretPlacementHelper.getSupportTopY(level(), anchorPos),
+                anchorPos.getZ() + 0.5
+        );
     }
 
     @Override
