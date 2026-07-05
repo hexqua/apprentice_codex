@@ -408,6 +408,74 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
         });
     }
 
+    static void manaForceBladeAppliesSurgeAndAttunementAttributes(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+
+            var surgeStack = new ItemStack(item);
+            item.initializeSpellContainer(surgeStack);
+            surgeStack.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SURGE), 1);
+            var surgeModifiers = toModifierMultimap(surgeStack.getAttributeModifiers());
+            assertSingleModifierAmount(
+                    helper,
+                    surgeModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                    0.02D,
+                    "Mana Force Blade Surge should add spell power"
+                            + " modifiers=" + describeModifiers(surgeModifiers)
+            );
+
+            var effectiveSurgeSpellPower = sumEffectiveModifierAmount(
+                    surgeStack,
+                    EquipmentSlot.MAINHAND,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+            );
+            helper.assertTrue(Math.abs(effectiveSurgeSpellPower - 0.02D) < 1.0e-9D,
+                    "Mana Force Blade Surge should apply spell power in main hand"
+                            + " amount=" + effectiveSurgeSpellPower
+                            + " modifiers=" + describeModifiers(surgeModifiers));
+
+            var attunementStack = new ItemStack(item);
+            item.initializeSpellContainer(attunementStack);
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get();
+            setSingleUnlockedSpell(helper, attunementStack, spell, 1);
+            attunementStack.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.ATTUNEMENT), 1);
+            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(attunementStack);
+            helper.assertTrue(imbuedSchool != null,
+                    "Mana Force Blade Attunement test could not resolve the imbued spell school");
+            var attunementAttribute = jp.aquafactory.apprenticecodex.utility.MagicTools
+                    .resolveSchoolPowerAttribute(imbuedSchool);
+            helper.assertTrue(attunementAttribute != null,
+                    "Mana Force Blade Attunement test could not resolve the spell power attribute: " + imbuedSchool.getId());
+            var attunementModifiers = toModifierMultimap(attunementStack.getAttributeModifiers());
+            assertSingleModifierAmount(
+                    helper,
+                    attunementModifiers.get(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementAttribute)),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                    0.04D,
+                    "Mana Force Blade Attunement should add imbued school spell power"
+                            + " spell=" + spell.getSpellResource()
+                            + " school=" + imbuedSchool.getId()
+                            + " attribute=" + BuiltInRegistries.ATTRIBUTE.getKey(attunementAttribute)
+                            + " modifiers=" + describeModifiers(attunementModifiers)
+            );
+            var effectiveAttunementSpellPower = sumEffectiveModifierAmount(
+                    attunementStack,
+                    EquipmentSlot.MAINHAND,
+                    BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementAttribute),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+            );
+            helper.assertTrue(Math.abs(effectiveAttunementSpellPower - 0.04D) < 1.0e-9D,
+                    "Mana Force Blade Attunement should apply school spell power in main hand"
+                            + " spell=" + spell.getSpellResource()
+                            + " school=" + imbuedSchool.getId()
+                            + " attribute=" + BuiltInRegistries.ATTRIBUTE.getKey(attunementAttribute)
+                            + " amount=" + effectiveAttunementSpellPower
+                            + " modifiers=" + describeModifiers(attunementModifiers));
+        });
+    }
+
     static void manaForceBladeAttackManaCostIsOncePerTick(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
@@ -600,5 +668,20 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
                     "Mana Force Blade should reject mana pool/recovery enchantments"
             );
         });
+    }
+
+    private static double sumEffectiveModifierAmount(
+            ItemStack stack,
+            EquipmentSlot slot,
+            Holder<Attribute> attribute,
+            AttributeModifier.Operation operation
+    ) {
+        var total = new double[1];
+        stack.forEachModifier(slot, (actualAttribute, modifier) -> {
+            if (actualAttribute.equals(attribute) && modifier.operation() == operation) {
+                total[0] += modifier.amount();
+            }
+        });
+        return total[0];
     }
 }
