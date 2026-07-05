@@ -41,6 +41,6 @@ public class AutoTurretModel extends GeoModel<AutoTurretEntity> {
 
         var initial = crossbow.getInitialSnapshot();
         float baseRotX = initial == null ? 0.0f : initial.getRotX();
-        crossbow.setRotX(baseRotX + animatable.getAimPitch() * Mth.DEG_TO_RAD);
+        crossbow.setRotX(baseRotX - animatable.getAimPitch() * Mth.DEG_TO_RAD);
     }
 }
