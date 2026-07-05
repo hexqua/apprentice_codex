@@ -303,12 +303,12 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
             return InteractionResult.PASS;
         }
 
-        if (level().isClientSide) {
-            return InteractionResult.SUCCESS;
-        }
-
         if (!isOwner(player)) {
             return InteractionResult.PASS;
+        }
+
+        if (level().isClientSide) {
+            return InteractionResult.SUCCESS;
         }
 
         if (restBulletCount >= initialBulletCount) {
