@@ -52,6 +52,7 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> DUAL_ACROBAT = register("dual_acrobat");
     public static final ResourceKey<DamageType> ARTISAN_SMASH = register("artisan_smash");
     public static final ResourceKey<DamageType> ANCHOR_BLINK = register("anchor_blink");
+    public static final ResourceKey<DamageType> TOTEM_OF_PERMAFROST = register("totem_of_permafrost");
 
     public static final ResourceKey<DamageType> HAUNTED_BONUS = register("haunted_bonus");
     public static final ResourceKey<DamageType> MANA_FORCE_BLADE = register("mana_force_blade");
@@ -111,6 +112,7 @@ public final class DamageTypes {
         context.register(DUAL_ACROBAT, createTemplate(DUAL_ACROBAT));
         context.register(ARTISAN_SMASH, createTemplate(ARTISAN_SMASH));
         context.register(ANCHOR_BLINK, createTemplate(ANCHOR_BLINK));
+        context.register(TOTEM_OF_PERMAFROST, createTemplate(TOTEM_OF_PERMAFROST));
 
         context.register(HAUNTED_BONUS, createTemplate(HAUNTED_BONUS));
         context.register(MANA_FORCE_BLADE, createTemplate(MANA_FORCE_BLADE));

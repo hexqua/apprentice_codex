@@ -531,6 +531,7 @@
   "entity.apprenticecodex.artisan_smash_launcher": "マジックランチャー",
   "entity.apprenticecodex.artisan_smash_shell": "炸裂弾",
   "entity.apprenticecodex.anchor_blink_dagger": "アンカーダガー",
+  "entity.apprenticecodex.totem_of_permafrost_totem": "永久凍土のトーテム",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "使い走り魔術師",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "使い走り魔術師",
@@ -684,6 +685,7 @@
   "spell.apprenticecodex.anchor_blink": "アンカーブリンク",
   "spell.apprenticecodex.linear_build": "リニアビルド",
   "spell.apprenticecodex.mana_mending": "マナ修繕",
+  "spell.apprenticecodex.totem_of_permafrost": "永久凍土のトーテム",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -755,6 +757,7 @@
   "spell.apprenticecodex.anchor_blink.guide": "詠唱補助の逆刃の固有の潜在魔法。オフハンドに持っているダガーを前方に投擲して攻撃する。何かに刺さった時点でジャンプキーを押している、または刺さってから3秒以内にジャンプすると、刺さった場所へ転移する。ダガーを投擲する都合上、エッジダンサーの効果が終了する。",
   "spell.apprenticecodex.linear_build.guide": "視線の先から自分の座標の軸と交差する直前までの間に手持ちのブロックを設置する。ブロックをどちらの手にも持っていない時は使用できず、視線先のブロックが方向などを持っている場合は極力それを真似て設置しようとする。使用するブロックはオフハンドのものが優先され、消費は手持ち以外から優先的に消費する。自分に紐づいているパーソナルシェルフやエンダーチェスト、近くにある自分の工具箱やペット、装備しているバックパックや持っているシュルカーボックス、バンドルからも取り寄せる事ができる。",
   "spell.apprenticecodex.mana_mending.guide": "自分のマナを手元のアイテムに流し込んで修繕を行う。利き手とオフハンドの両方にアイテムを持っている場合、オフハンドが優先される。損傷しているアイテムを直接持っていない場合は使用できない。",
+  "spell.apprenticecodex.totem_of_permafrost.guide": "氷の魔力が強力に込められたトーテムを召喚して設置し、短時間ではあるがトーテムの周囲を冷気で攻撃する。冷気は対象の動きを制限しようとする。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -1018,6 +1021,7 @@
   "death.attack.apprenticecodex.dual_acrobat": "%1$sはジャックポットを引き当ててしまった",
   "death.attack.apprenticecodex.artisan_smash": "%1$sは匠によって大改造された",
   "death.attack.apprenticecodex.anchor_blink": "%1$sは%2$sによって狩られた",
+  "death.attack.apprenticecodex.totem_of_permafrost": "%1$sの体は歴史に刻まれた",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",
