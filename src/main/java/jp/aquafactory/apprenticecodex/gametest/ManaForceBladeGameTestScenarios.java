@@ -186,6 +186,7 @@ import jp.aquafactory.apprenticecodex.registry.CreativeTabRegistry;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeConfigState;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeGuardLogic;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.LootConditionRegistry;
@@ -476,6 +477,91 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
         });
     }
 
+    static void manaForceBladeSharpnessTooltipDamageScalesWithImbue(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "mana_force_blade_sharpness_tooltip_test");
+            var sharpness = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                    .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SHARPNESS);
+
+            var baseStack = new ItemStack(item);
+            item.initializeSpellContainer(baseStack);
+            var baseTooltipDamage = resolveManaForceBladeAttackDamageTooltip(helper, player, baseStack);
+
+            var sharpnessStack = new ItemStack(item);
+            item.initializeSpellContainer(sharpnessStack);
+            sharpnessStack.enchant(sharpness, 1);
+            var sharpnessTooltipDamage = resolveManaForceBladeAttackDamageTooltip(helper, player, sharpnessStack);
+            var expectedSharpnessDamage = ManaForceBlade.resolveBladeAttackDamage(sharpnessStack);
+            helper.assertTrue(Math.abs(sharpnessTooltipDamage - expectedSharpnessDamage) < 1.0e-4F,
+                    "Mana Force Blade Sharpness tooltip should include unconditional damage enchantment"
+                            + " expected=" + expectedSharpnessDamage
+                            + " actual=" + sharpnessTooltipDamage
+                            + " lines=" + describeTooltipLines(sharpnessStack, player));
+            helper.assertTrue(sharpnessTooltipDamage >= baseTooltipDamage + 1.0F,
+                    "Mana Force Blade Sharpness I should add at least +1 attack damage in tooltip"
+                            + " base=" + baseTooltipDamage
+                            + " sharpness=" + sharpnessTooltipDamage);
+
+            var spellPower = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER);
+            helper.assertTrue(spellPower != null,
+                    "Mana Force Blade Sharpness tooltip test could not resolve spell power attribute");
+            if (spellPower != null) {
+                spellPower.setBaseValue(1.5D);
+            }
+
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get();
+            var imbuedBaseStack = new ItemStack(item);
+            item.initializeSpellContainer(imbuedBaseStack);
+            setSingleUnlockedSpell(helper, imbuedBaseStack, spell, 1);
+
+            var imbuedSharpnessStack = new ItemStack(item);
+            item.initializeSpellContainer(imbuedSharpnessStack);
+            setSingleUnlockedSpell(helper, imbuedSharpnessStack, spell, 1);
+            imbuedSharpnessStack.enchant(sharpness, 1);
+
+            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(imbuedSharpnessStack);
+            helper.assertTrue(imbuedSchool != null,
+                    "Mana Force Blade Sharpness tooltip test could not resolve imbued school");
+            var schoolPowerAttribute = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+            helper.assertTrue(schoolPowerAttribute != null,
+                    "Mana Force Blade Sharpness tooltip test could not resolve school power attribute");
+            var schoolPower = schoolPowerAttribute == null
+                    ? null
+                    : player.getAttribute(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(schoolPowerAttribute));
+            helper.assertTrue(schoolPower != null,
+                    "Mana Force Blade Sharpness tooltip test could not resolve player school power instance");
+            if (schoolPower != null) {
+                schoolPower.setBaseValue(1.2D);
+            }
+
+            var imbuedBaseTooltipDamage = resolveManaForceBladeAttackDamageTooltip(helper, player, imbuedBaseStack);
+            var imbuedSharpnessTooltipDamage = resolveManaForceBladeAttackDamageTooltip(helper, player, imbuedSharpnessStack);
+            var expectedImbuedSharpnessDamage = ManaForceBlade.resolveFinalAttackDamage(
+                    player,
+                    imbuedSharpnessStack,
+                    ManaForceBladeConfigState.imbueDamageMultiplierScale()
+            );
+            helper.assertTrue(Math.abs(imbuedSharpnessTooltipDamage - expectedImbuedSharpnessDamage) < 1.0e-4F,
+                    "Mana Force Blade imbued Sharpness tooltip should keep Sharpness inside the damage multiplier"
+                            + " expected=" + expectedImbuedSharpnessDamage
+                            + " actual=" + imbuedSharpnessTooltipDamage
+                            + " lines=" + describeTooltipLines(imbuedSharpnessStack, player));
+
+            var damageMultiplier = ManaForceBlade.resolveDamageMultiplier(
+                    player,
+                    imbuedSharpnessStack,
+                    ManaForceBladeConfigState.imbueDamageMultiplierScale()
+            );
+            helper.assertTrue(Math.abs((imbuedSharpnessTooltipDamage - imbuedBaseTooltipDamage) - damageMultiplier) < 1.0e-4F,
+                    "Mana Force Blade imbued tooltip should scale Sharpness I by the imbued damage multiplier"
+                            + " base=" + imbuedBaseTooltipDamage
+                            + " sharpness=" + imbuedSharpnessTooltipDamage
+                            + " multiplier=" + damageMultiplier);
+        });
+    }
+
     static void manaForceBladeAttackManaCostIsOncePerTick(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
@@ -683,5 +769,75 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
             }
         });
         return total[0];
+    }
+
+    private static float resolveManaForceBladeAttackDamageTooltip(
+            GameTestHelper helper,
+            Player player,
+            ItemStack stack
+    ) {
+        var tooltipLines = stack.getTooltipLines(Item.TooltipContext.of(helper.getLevel()), player, TooltipFlag.Default.NORMAL);
+        for (var line : tooltipLines) {
+            var translatableContents = findFirstTranslatableContents(line);
+            if (translatableContents == null || !isAttackDamageTooltipLine(translatableContents)) {
+                continue;
+            }
+
+            var damage = parseTooltipNumber(translatableContents.getArgs()[0]);
+            helper.assertTrue(damage != null,
+                    "Mana Force Blade attack damage tooltip should expose a numeric damage value"
+                            + " line=" + line
+                            + " lines=" + tooltipLines);
+            return damage;
+        }
+
+        helper.assertTrue(false,
+                "Mana Force Blade tooltip should contain a mainhand attack damage line"
+                        + " lines=" + tooltipLines);
+        return 0.0F;
+    }
+
+    @Nullable
+    private static TranslatableContents findFirstTranslatableContents(Component component) {
+        if (component.getContents() instanceof TranslatableContents translatableContents) {
+            return translatableContents;
+        }
+
+        for (var sibling : component.getSiblings()) {
+            var translatableContents = findFirstTranslatableContents(sibling);
+            if (translatableContents != null) {
+                return translatableContents;
+            }
+        }
+        return null;
+    }
+
+    private static boolean isAttackDamageTooltipLine(TranslatableContents translatableContents) {
+        if (!"attribute.modifier.equals.0".equals(translatableContents.getKey())) {
+            return false;
+        }
+
+        var args = translatableContents.getArgs();
+        if (args.length < 2 || !(args[1] instanceof Component attributeName)) {
+            return false;
+        }
+        return attributeName.getContents() instanceof TranslatableContents attributeNameContents
+                && Attributes.ATTACK_DAMAGE.value().getDescriptionId().equals(attributeNameContents.getKey());
+    }
+
+    @Nullable
+    private static Float parseTooltipNumber(Object value) {
+        var text = value instanceof Component component ? component.getString() : String.valueOf(value);
+        try {
+            return Float.parseFloat(text.replace(",", ""));
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
+    }
+
+    private static String describeTooltipLines(ItemStack stack, Player player) {
+        return stack.getTooltipLines(Item.TooltipContext.EMPTY, player, TooltipFlag.Default.NORMAL).stream()
+                .map(Component::getString)
+                .collect(Collectors.joining(" | "));
     }
 }
