@@ -618,6 +618,18 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
             var sourceStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
             var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
             var forward = new Vec3(0.0D, 0.0D, 1.0D);
+            var spawnedInstantProjectiles = new ArrayList<io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile>();
+            var spawnedLongProjectiles = new ArrayList<CompoundPhialProjectileEntity>();
+            java.util.function.Consumer<EntityJoinLevelEvent> projectileListener = event -> {
+                if (event.getLevel() != level || event.getEntity().position().distanceToSqr(impactPos) > 144.0D) {
+                    return;
+                }
+                if (event.getEntity() instanceof io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile projectile) {
+                    spawnedInstantProjectiles.add(projectile);
+                } else if (event.getEntity() instanceof CompoundPhialProjectileEntity projectile) {
+                    spawnedLongProjectiles.add(projectile);
+                }
+            };
 
             var instantPayload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
                     ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "magic_missile"),
@@ -625,34 +637,38 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
                     CastSource.SWORD.name(),
                     io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
             );
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                            level, player, sourceStack, instantPayload, impactPos, forward
-                    ),
-                    "Charged Twin Blade Staff impact manager failed to cast an INSTANT payload"
-            );
-            var instantProjectiles = level.getEntitiesOfClass(
-                    io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
-                    new AABB(impactPos, impactPos).inflate(12.0D)
-            );
-            helper.assertTrue(!instantProjectiles.isEmpty(),
-                    "Charged Twin Blade Staff INSTANT impact cast did not spawn Magic Missile projectiles");
+            NeoForge.EVENT_BUS.addListener(projectileListener);
+            try {
+                helper.assertTrue(
+                        jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                                level, player, sourceStack, instantPayload, impactPos, forward
+                        ),
+                        "Charged Twin Blade Staff impact manager failed to cast an INSTANT payload"
+                );
+                helper.assertTrue(!spawnedInstantProjectiles.isEmpty(),
+                        "Charged Twin Blade Staff INSTANT impact cast did not spawn Magic Missile projectiles");
+                helper.assertTrue(spawnedInstantProjectiles.stream()
+                                .anyMatch(projectile -> projectile.position().distanceTo(impactPos) < 2.0D),
+                        "Charged Twin Blade Staff INSTANT impact cast spawned Magic Missile away from the impact point: "
+                                + spawnedInstantProjectiles.stream().map(projectile -> projectile.position().toString()).toList());
 
-            var longPayload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                    ResourceLocation.fromNamespaceAndPath("apprenticecodex", "compound_phial"),
-                    1,
-                    CastSource.SWORD.name(),
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
-            );
-            helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
-                            level, player, sourceStack, longPayload, impactPos, forward
-                    ),
-                    "Charged Twin Blade Staff impact manager failed to cast a LONG payload"
-            );
-            var longProjectiles = level.getEntitiesOfClass(CompoundPhialProjectileEntity.class, new AABB(impactPos, impactPos).inflate(12.0D));
-            helper.assertTrue(!longProjectiles.isEmpty(),
-                    "Charged Twin Blade Staff LONG impact cast did not spawn Compound Phial projectiles");
+                var longPayload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
+                        ResourceLocation.fromNamespaceAndPath("apprenticecodex", "compound_phial"),
+                        1,
+                        CastSource.SWORD.name(),
+                        io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+                );
+                helper.assertTrue(
+                        jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                                level, player, sourceStack, longPayload, impactPos, forward
+                        ),
+                        "Charged Twin Blade Staff impact manager failed to cast a LONG payload"
+                );
+                helper.assertTrue(!spawnedLongProjectiles.isEmpty(),
+                        "Charged Twin Blade Staff LONG impact cast did not spawn Compound Phial projectiles");
+            } finally {
+                NeoForge.EVENT_BUS.unregister(projectileListener);
+            }
         });
     }
 
@@ -914,6 +930,8 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
                         ),
                         "Charged Twin Blade Staff creative impact cast should use RemoteOwner profile with zero mana"
                 );
+                helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                        "Charged Twin Blade Staff creative RemoteOwner profile should leave mana at zero but got " + magicData.getMana());
             } finally {
                 NeoForge.EVENT_BUS.unregister(projectileListener);
             }
@@ -921,8 +939,6 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
         helper.succeedWhen(() -> {
             helper.assertTrue(!spawnedProjectiles.isEmpty(),
                     "Charged Twin Blade Staff creative RemoteOwner profile should spawn Magic Missile projectiles");
-            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
-                    "Charged Twin Blade Staff creative RemoteOwner profile should leave mana at zero but got " + magicData.getMana());
         });
     }
     static void chargedTwinBladeStaffCreativeImpactCastUsesStaffProfileWithZeroMana(GameTestHelper helper) {

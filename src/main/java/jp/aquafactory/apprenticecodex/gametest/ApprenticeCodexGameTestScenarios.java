@@ -9541,6 +9541,9 @@ public class ApprenticeCodexGameTestScenarios {
 
             helper.getLevel().setBlock(cooldownWalker.blockPosition(), Blocks.AIR.defaultBlockState(), 3);
             placeAbsoluteFluidTestBasin(helper.getLevel(), cooldownWalker.blockPosition().below(), Blocks.WATER.defaultBlockState());
+            // ここでは再接触ではなく、20 tick 経過後に液体立ちが再有効化されることだけを検証する。
+            var cooldownSafePos = Vec3.atBottomCenterOf(cooldownWalker.blockPosition().above(2));
+            cooldownWalker.setPos(cooldownSafePos.x, cooldownSafePos.y, cooldownSafePos.z);
             cooldownWalker.tickCount = 120;
             helper.assertFalse(jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.canStandOnFluid(cooldownWalker),
                     "Mist Form should keep liquid standing disabled for 20 ticks after leaving liquid");
