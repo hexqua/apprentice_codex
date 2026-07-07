@@ -5,6 +5,8 @@ import net.minecraftforge.common.ForgeConfigSpec;
 public final class AbsorptionAmplifyAmuletServerConfig {
     private final ForgeConfigSpec.DoubleValue baseAbsorptionTarget;
     private final ForgeConfigSpec.IntValue recoveryDelayTicks;
+    private Double baseAbsorptionTargetOverride;
+    private Integer recoveryDelayTicksOverride;
 
     private AbsorptionAmplifyAmuletServerConfig(
             ForgeConfigSpec.DoubleValue baseAbsorptionTarget,
@@ -27,10 +29,17 @@ public final class AbsorptionAmplifyAmuletServerConfig {
     }
 
     public float baseAbsorptionTarget() {
-        return baseAbsorptionTarget.get().floatValue();
+        return (baseAbsorptionTargetOverride == null
+                ? baseAbsorptionTarget.get()
+                : baseAbsorptionTargetOverride).floatValue();
     }
 
     public int recoveryDelayTicks() {
-        return recoveryDelayTicks.get();
+        return recoveryDelayTicksOverride == null ? recoveryDelayTicks.get() : recoveryDelayTicksOverride;
+    }
+
+    public void setForGameTest(double baseAbsorptionTarget, int recoveryDelayTicks) {
+        this.baseAbsorptionTargetOverride = baseAbsorptionTarget;
+        this.recoveryDelayTicksOverride = recoveryDelayTicks;
     }
 }

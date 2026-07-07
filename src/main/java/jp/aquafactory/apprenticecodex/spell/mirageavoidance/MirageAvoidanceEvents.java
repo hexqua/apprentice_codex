@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.MirageAvoidanceState;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.utility.PersistentGameTimeSanitizer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
@@ -58,6 +59,7 @@ public final class MirageAvoidanceEvents {
 
         var level = player.level();
         var state = spellData.get(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE);
+        sanitizePersistentGameTimes(spellData, player, state);
         if (!isActive(level, state)) {
             resetInactiveState(spellData, player, state);
             return;
@@ -146,9 +148,49 @@ public final class MirageAvoidanceEvents {
         return state.activeUntilGameTime > level.getGameTime();
     }
 
+    private static void sanitizePersistentGameTimes(CodexSpellData spellData, Player player, MirageAvoidanceState state) {
+        var gameTime = player.level().getGameTime();
+        var sanitizedStartGameTime = state.startGameTime > 0L
+                ? PersistentGameTimeSanitizer.clampFutureStart(gameTime, state.startGameTime)
+                : state.startGameTime;
+        var sanitizedActiveUntilGameTime = PersistentGameTimeSanitizer.repairPersistedFutureUntil(
+                gameTime,
+                state.activeUntilGameTime,
+                EFFECT_DURATION_TICKS
+        );
+        var sanitizedInvulnerableUntilGameTime = PersistentGameTimeSanitizer.repairPersistedFutureUntil(
+                gameTime,
+                state.invulnerableUntilGameTime,
+                INVULNERABLE_TICKS
+        );
+        if (sanitizedStartGameTime == state.startGameTime
+                && sanitizedActiveUntilGameTime == state.activeUntilGameTime
+                && sanitizedInvulnerableUntilGameTime == state.invulnerableUntilGameTime) {
+            return;
+        }
+
+        spellData.edit(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE, s -> {
+            s.startGameTime = sanitizedStartGameTime;
+            s.activeUntilGameTime = sanitizedActiveUntilGameTime;
+            s.invulnerableUntilGameTime = sanitizedInvulnerableUntilGameTime;
+        });
+        state.startGameTime = sanitizedStartGameTime;
+        state.activeUntilGameTime = sanitizedActiveUntilGameTime;
+        state.invulnerableUntilGameTime = sanitizedInvulnerableUntilGameTime;
+        if (!player.level().isClientSide && player instanceof ServerPlayer serverPlayer) {
+            MirageAvoidanceSync.syncToClient(serverPlayer, spellData.get(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE));
+        }
+    }
+
     public static boolean isInputLocked(Player player) {
         var spellData = Capabilities.getSpellDataOrNull(player);
-        return spellData != null && isActive(player.level(), spellData.get(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE));
+        if (spellData == null) {
+            return false;
+        }
+
+        var state = spellData.get(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE);
+        sanitizePersistentGameTimes(spellData, player, state);
+        return isActive(player.level(), state);
     }
 
     public static boolean rejectServerInputCastIfLocked(ServerPlayer player) {

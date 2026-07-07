@@ -5,7 +5,7 @@ import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FeatherRushState;
-import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingEntity;
+import jp.aquafactory.apprenticecodex.utility.PersistentGameTimeSanitizer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent;
@@ -35,6 +35,7 @@ public final class FeatherRushGravityControlEvent {
         }
 
         var state = spellData.get(CodexSpellStateTypeRegister.FEATHER_RUSH_STATE);
+        sanitizePersistentGameTimes(spellData, level, state);
         if (!isActive(level, state)) {
             deactivate(spellData, player, state);
             return;
@@ -67,6 +68,20 @@ public final class FeatherRushGravityControlEvent {
 
     private static boolean isActive(Level level, FeatherRushState state) {
         return state.activeUntilGameTime >= level.getGameTime();
+    }
+
+    private static void sanitizePersistentGameTimes(CodexSpellData spellData, Level level, FeatherRushState state) {
+        var sanitizedActiveUntilGameTime = PersistentGameTimeSanitizer.repairPersistedFutureUntil(
+                level.getGameTime(),
+                state.activeUntilGameTime,
+                FeatherRush.ACTIVE_TICK_GRACE
+        );
+        if (sanitizedActiveUntilGameTime == state.activeUntilGameTime) {
+            return;
+        }
+
+        spellData.edit(CodexSpellStateTypeRegister.FEATHER_RUSH_STATE, s -> s.activeUntilGameTime = sanitizedActiveUntilGameTime);
+        state.activeUntilGameTime = sanitizedActiveUntilGameTime;
     }
 
     private static boolean isWingValid(Level level, Player player, int wingEntityId) {

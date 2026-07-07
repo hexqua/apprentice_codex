@@ -69,6 +69,22 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
         });
     }
 
+    static void autocastAmuletDeletesPersistedFutureRetryTick(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = ((AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get()).getDefaultInstance();
+            var tag = stack.getOrCreateTag();
+            tag.putLong("apprenticecodex:autocast_retry_sequence_tick", 72000L);
+            tag.putInt("apprenticecodex:autocast_retry_skip_slot", 2);
+
+            helper.assertFalse(AutocastAmulet.isRetrySequenceCoolingDown(stack, 0L),
+                    "Autocast Amulet should delete impossible future retry sequence ticks");
+            helper.assertTrue(AutocastAmulet.getRetrySequenceTick(stack) == -1L,
+                    "Autocast Amulet retry sequence tick should be removed after sanitizing");
+            helper.assertTrue(AutocastAmulet.getRetrySkipSlot(stack) == -1,
+                    "Autocast Amulet retry skip slot should be removed together with the retry tick");
+        });
+    }
+
     static void autocastAmuletWisdomShardIsAdjustmentOnlyProfileGate(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),

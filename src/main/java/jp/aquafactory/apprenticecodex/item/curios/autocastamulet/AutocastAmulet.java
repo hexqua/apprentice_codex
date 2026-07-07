@@ -162,6 +162,7 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
     }
 
     public static boolean isRetrySequenceCoolingDown(ItemStack stack, long currentTick) {
+        sanitizeRetrySequence(stack, currentTick);
         var tag = stack.getTag();
         if (tag == null || !tag.contains(RETRY_SEQUENCE_TICK_TAG)) {
             return false;
@@ -170,6 +171,7 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
     }
 
     public static int consumeReadyRetrySkipSlot(ItemStack stack, long currentTick) {
+        sanitizeRetrySequence(stack, currentTick);
         var tag = stack.getTag();
         if (tag == null || !tag.contains(RETRY_SEQUENCE_TICK_TAG)) {
             return -1;
@@ -194,6 +196,21 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
     public static int getRetrySkipSlot(ItemStack stack) {
         var tag = stack.getTag();
         return tag == null || !tag.contains(RETRY_SKIP_SLOT_TAG) ? -1 : tag.getInt(RETRY_SKIP_SLOT_TAG);
+    }
+
+    private static void sanitizeRetrySequence(ItemStack stack, long currentTick) {
+        var tag = stack.getTag();
+        if (tag == null || !tag.contains(RETRY_SEQUENCE_TICK_TAG, Tag.TAG_LONG)) {
+            return;
+        }
+
+        if (tag.getLong(RETRY_SEQUENCE_TICK_TAG) <= currentTick + ERROR_RETRY_DELAY_TICKS) {
+            return;
+        }
+
+        tag.remove(RETRY_SEQUENCE_TICK_TAG);
+        tag.remove(RETRY_SKIP_SLOT_TAG);
+        cleanupAutocastTags(stack, tag);
     }
 
     public static Component createInsufficientManaMessage(AbstractSpell spell, Player player, int requiredMana) {

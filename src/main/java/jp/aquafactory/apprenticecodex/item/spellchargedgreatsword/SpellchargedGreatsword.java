@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.SpellchargedGreatswordRenderer;
+import jp.aquafactory.apprenticecodex.utility.PersistentGameTimeSanitizer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -195,6 +196,9 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         }
 
         var gameTime = level.getGameTime();
+        if (!level.isClientSide && sanitizePersistentGameTimes(stack, gameTime)) {
+            syncInventoryIfServer(player);
+        }
         if (!level.isClientSide && refreshDecay(stack, gameTime)) {
             syncInventoryIfServer(player);
         }
@@ -422,6 +426,66 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         clearOvercharge(stack, 0L, false);
     }
 
+    public static boolean sanitizePersistentGameTimes(ItemStack stack, long gameTime) {
+        if (!isSpellchargedGreatsword(stack) || !stack.hasTag()) {
+            return false;
+        }
+
+        var tag = stack.getOrCreateTag();
+        var changed = false;
+        if (tag.contains(TAG_LAST_CHARGE_GAME_TIME)) {
+            var sanitizedLastChargeGameTime = PersistentGameTimeSanitizer.clampFutureStart(
+                    gameTime,
+                    tag.getLong(TAG_LAST_CHARGE_GAME_TIME)
+            );
+            if (sanitizedLastChargeGameTime != tag.getLong(TAG_LAST_CHARGE_GAME_TIME)) {
+                tag.putLong(TAG_LAST_CHARGE_GAME_TIME, sanitizedLastChargeGameTime);
+                changed = true;
+            }
+        }
+
+        if (tag.contains(TAG_OVERCHARGE_ACTIVATED_GAME_TIME)) {
+            var sanitizedActivatedGameTime = PersistentGameTimeSanitizer.clampFutureStart(
+                    gameTime,
+                    tag.getLong(TAG_OVERCHARGE_ACTIVATED_GAME_TIME)
+            );
+            if (sanitizedActivatedGameTime != tag.getLong(TAG_OVERCHARGE_ACTIVATED_GAME_TIME)) {
+                tag.putLong(TAG_OVERCHARGE_ACTIVATED_GAME_TIME, sanitizedActivatedGameTime);
+                changed = true;
+            }
+        }
+
+        if (tag.contains(TAG_OVERCHARGE_END_GAME_TIME)) {
+            var repairMaxTicks = resolveStoredOverchargeRepairMaxTicks(tag);
+            var sanitizedEndGameTime = PersistentGameTimeSanitizer.repairPersistedFutureUntil(
+                    gameTime,
+                    tag.getLong(TAG_OVERCHARGE_END_GAME_TIME),
+                    repairMaxTicks
+            );
+            if (sanitizedEndGameTime != tag.getLong(TAG_OVERCHARGE_END_GAME_TIME)) {
+                var remainingTicks = Math.max(0, (int)(sanitizedEndGameTime - gameTime));
+                tag.putLong(TAG_OVERCHARGE_END_GAME_TIME, sanitizedEndGameTime);
+                tag.putInt(TAG_OVERCHARGE_REMAINING_TICKS, remainingTicks);
+                tag.putInt(TAG_OVERCHARGE_MAX_TICKS, Math.max(1, repairMaxTicks));
+                changed = true;
+            }
+        }
+
+        if (tag.contains(TAG_OVERCHARGE_FADE_START_GAME_TIME)) {
+            var sanitizedFadeStartGameTime = PersistentGameTimeSanitizer.clampFutureStart(
+                    gameTime,
+                    tag.getLong(TAG_OVERCHARGE_FADE_START_GAME_TIME)
+            );
+            if (sanitizedFadeStartGameTime != tag.getLong(TAG_OVERCHARGE_FADE_START_GAME_TIME)) {
+                tag.putLong(TAG_OVERCHARGE_FADE_START_GAME_TIME, sanitizedFadeStartGameTime);
+                changed = true;
+            }
+        }
+
+        cleanupEmptyTag(stack);
+        return changed;
+    }
+
     private static boolean hasChargeState(ItemStack stack) {
         if (!stack.hasTag()) {
             return false;
@@ -431,6 +495,13 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         return tag.contains(TAG_CHARGE_TICKS)
                 || tag.contains(TAG_LAST_CHARGE_GAME_TIME)
                 || tag.contains(TAG_CHARGE_LEVEL);
+    }
+
+    private static int resolveStoredOverchargeRepairMaxTicks(CompoundTag tag) {
+        var storedMaxTicks = Math.max(0, tag.getInt(TAG_OVERCHARGE_MAX_TICKS));
+        return storedMaxTicks > 0
+                ? Math.min(storedMaxTicks, OVERCHARGE_LEVEL_3_DURATION_TICKS)
+                : OVERCHARGE_LEVEL_3_DURATION_TICKS;
     }
 
     private static boolean isSpellchargedGreatsword(ItemStack stack) {
