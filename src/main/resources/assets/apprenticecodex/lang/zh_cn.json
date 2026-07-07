@@ -747,7 +747,7 @@
   "spell.apprenticecodex.lethal_assault.guide": "召唤一把魔法步枪进行短点射。一轮射击后会自毁，但其设计正是专门适应这种使用方式。",
   "spell.apprenticecodex.dual_acrobat.guide": "召唤两把魔法冲锋枪，使其在周围旋转来装填弹药。释放后会根据装填量向前方乱射。",
   "spell.apprenticecodex.artisan_smash.guide": "召唤一把魔法榴弹发射器，射出爆裂弹，在命中地点大范围爆炸。爆风不会破坏物品或地形，但也会击中自己。",
-  "spell.apprenticecodex.totem_of_permafrost.guide": "召唤并放置一个强烈注入冰之魔力的图腾，短时间内以寒气攻击图腾周围。寒气会试图限制目标行动。",
+  "spell.apprenticecodex.totem_of_permafrost.guide": "召唤并放置一个强烈注入冰之魔力的图腾，短时间内以寒气攻击图腾周围。寒气会试图限制目标行动。装备高级召唤师护符时，手动解除图腾不会触发冷却。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "爆头伤害倍率：%d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "潜行伤害倍率：%d%%",
