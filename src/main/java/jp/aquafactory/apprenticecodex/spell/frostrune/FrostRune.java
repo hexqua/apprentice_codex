@@ -48,8 +48,8 @@ public class FrostRune extends AbstractSpell implements jp.aquafactory.apprentic
     public FrostRune() {
         baseSpellPower = 1200;
         spellPowerPerLevel = 200;
-        baseManaCost = 80;
-        manaCostPerLevel = 15;
+        baseManaCost = 50;
+        manaCostPerLevel = 10;
         castTime = 20;
     }
 
