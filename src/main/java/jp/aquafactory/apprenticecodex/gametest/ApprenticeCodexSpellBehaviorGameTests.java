@@ -21,6 +21,8 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String MIRAGE_AVOIDANCE_ISOLATED_BATCH = "apprenticecodex.mirage_avoidance_isolated";
     private static final String HARVEST_MOON_ISOLATED_BATCH = "apprenticecodex.harvest_moon_isolated";
     private static final String AUTO_TURRET_ISOLATED_BATCH = "apprenticecodex.auto_turret_isolated";
+    private static final String TOTEM_OF_PERMAFROST_ISOLATED_BATCH = "apprenticecodex.totem_of_permafrost_isolated";
+    private static final String TOTEM_OF_PERMAFROST_PULSE_BATCH = "apprenticecodex.totem_of_permafrost_pulse";
     private static final String AUTO_MAGNET_ISOLATED_BATCH = "apprenticecodex.auto_magnet_isolated";
     private static final String EARTH_FORGE_ISOLATED_BATCH = "apprenticecodex.earth_forge_isolated";
     private static final String LINEAR_BUILD_ISOLATED_BATCH = "apprenticecodex.linear_build_isolated";
@@ -335,6 +337,41 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = AUTO_TURRET_ISOLATED_BATCH, timeoutTicks = 180)
     public static void autoTurretAmmoDepletionKeepsAliveAndRestockClearsDiscardDelay(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.autoTurretAmmoDepletionKeepsAliveAndRestockClearsDiscardDelay(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = TOTEM_OF_PERMAFROST_ISOLATED_BATCH)
+    public static void totemOfPermafrostCanBePlacedOnSupportedSlab(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.totemOfPermafrostCanBePlacedOnSupportedSlab(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = TOTEM_OF_PERMAFROST_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void totemOfPermafrostFallsWhenSupportRemoved(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.totemOfPermafrostFallsWhenSupportRemoved(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = TOTEM_OF_PERMAFROST_ISOLATED_BATCH)
+    public static void totemOfPermafrostInvalidPlacementCreatesNoRecast(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.totemOfPermafrostInvalidPlacementCreatesNoRecast(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = TOTEM_OF_PERMAFROST_ISOLATED_BATCH)
+    public static void totemOfPermafrostRecastRemovesPlacedTotem(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.totemOfPermafrostRecastRemovesPlacedTotem(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = TOTEM_OF_PERMAFROST_ISOLATED_BATCH)
+    public static void totemOfPermafrostMissingTotemRecastIsNoop(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.totemOfPermafrostMissingTotemRecastIsNoop(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = TOTEM_OF_PERMAFROST_ISOLATED_BATCH)
+    public static void totemOfPermafrostTimeoutRemovesPlacedTotem(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.totemOfPermafrostTimeoutRemovesPlacedTotem(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = TOTEM_OF_PERMAFROST_PULSE_BATCH, timeoutTicks = 40)
+    public static void totemOfPermafrostPulseHitsVisibleCombatTargetsOnly(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.totemOfPermafrostPulseHitsVisibleCombatTargetsOnly(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = GRIND_RUNNER_ISOLATED_BATCH)

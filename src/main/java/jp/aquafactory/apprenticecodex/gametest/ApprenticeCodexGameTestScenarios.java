@@ -191,6 +191,8 @@ import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManag
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackBlockClassifier;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackJob;
+import jp.aquafactory.apprenticecodex.spell.totemofpermafrost.TotemOfPermafrost;
+import jp.aquafactory.apprenticecodex.spell.totemofpermafrost.TotemOfPermafrostTotemEntity;
 import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonEntity;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillEntity;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
@@ -7372,6 +7374,226 @@ public class ApprenticeCodexGameTestScenarios {
         }
         helper.assertTrue(turrets.size() == 1, "Expected exactly one living AutoTurret but found " + turrets.size());
         return turrets.get(0);
+    }
+
+    static void totemOfPermafrostCanBePlacedOnSupportedSlab(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "totem_permafrost_slab_test");
+            owner.setYRot(45.0F);
+            var anchorPos = new BlockPos(0, 2, 0);
+            helper.setBlock(anchorPos.below(), Blocks.STONE_SLAB.defaultBlockState()
+                    .setValue(SlabBlock.TYPE, SlabType.BOTTOM));
+
+            castTotemOfPermafrost(helper, owner, 1, anchorPos);
+
+            var totem = getSingleLivingTotemOfPermafrost(helper, owner);
+            var expectedY = helper.absolutePos(anchorPos).below().getY() + 0.5D;
+            helper.assertTrue(Math.abs(totem.getY() - expectedY) < 0.01D,
+                    "TotemOfPermafrost should sit on the slab support top: " + totem.getY());
+            helper.assertTrue(Mth.degreesDifferenceAbs(totem.getYRot(), owner.getYRot() + 180.0F) < 0.01F,
+                    "TotemOfPermafrost should face back toward the caster: " + totem.getYRot());
+        });
+    }
+
+    static void totemOfPermafrostFallsWhenSupportRemoved(GameTestHelper helper) {
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 6, 0), "totem_permafrost_fall_test");
+        var anchorPos = new BlockPos(0, 6, 0);
+        helper.setBlock(anchorPos.below(), Blocks.STONE);
+        helper.getLevel().addFreshEntity(owner);
+        castTotemOfPermafrost(helper, owner, 1, anchorPos);
+        var totem = getSingleLivingTotemOfPermafrost(helper, owner);
+        var initialY = totem.getY();
+
+        helper.runAtTickTime(1, () -> helper.setBlock(anchorPos.below(), Blocks.AIR));
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(totem.isAlive() && !totem.isRemoved(),
+                    "TotemOfPermafrost should remain alive while falling after support removal");
+            helper.assertTrue(totem.getY() < initialY - 0.05D,
+                    "TotemOfPermafrost should fall below its anchored position after support removal: " + totem.getY());
+        });
+    }
+
+    static void totemOfPermafrostInvalidPlacementCreatesNoRecast(GameTestHelper helper) {
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 10, 0), "totem_permafrost_invalid_test");
+        owner.setXRot(-90.0F);
+        var magicData = MagicData.getPlayerMagicData(owner);
+        var anchorPos = new BlockPos(0, 5, 0);
+        helper.setBlock(anchorPos.below(), Blocks.AIR);
+
+        castTotemOfPermafrost(helper, owner, 1, anchorPos);
+
+        helper.assertTrue(getOwnedTotemOfPermafrost(helper, owner).isEmpty(),
+                "TotemOfPermafrost should not spawn without support");
+        helper.assertTrue(!magicData.getPlayerRecasts().hasRecastForSpell(SpellRegistry.TOTEM_OF_PERMAFROST.get()),
+                "TotemOfPermafrost should not create recast data when placement fails");
+        helper.succeed();
+    }
+
+    static void totemOfPermafrostRecastRemovesPlacedTotem(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "totem_permafrost_recast_remove_test");
+            var anchorPos = new BlockPos(0, 2, 0);
+            helper.setBlock(anchorPos.below(), Blocks.STONE);
+            castTotemOfPermafrost(helper, owner, 1, anchorPos);
+            var magicData = MagicData.getPlayerMagicData(owner);
+            helper.assertTrue(magicData.getPlayerRecasts().hasRecastForSpell(SpellRegistry.TOTEM_OF_PERMAFROST.get()),
+                    "TotemOfPermafrost should create recast data after placement");
+
+            ((TotemOfPermafrost) SpellRegistry.TOTEM_OF_PERMAFROST.get())
+                    .onCast(helper.getLevel(), 1, owner, CastSource.SPELLBOOK, magicData);
+
+            helper.assertTrue(getOwnedTotemOfPermafrost(helper, owner).isEmpty(),
+                    "TotemOfPermafrost recast should remove the placed totem");
+        });
+    }
+
+    static void totemOfPermafrostMissingTotemRecastIsNoop(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "totem_permafrost_missing_recast_test");
+            var anchorPos = new BlockPos(0, 2, 0);
+            helper.setBlock(anchorPos.below(), Blocks.STONE);
+            castTotemOfPermafrost(helper, owner, 1, anchorPos);
+            var totem = getSingleLivingTotemOfPermafrost(helper, owner);
+            totem.discard();
+
+            var magicData = MagicData.getPlayerMagicData(owner);
+            ((TotemOfPermafrost) SpellRegistry.TOTEM_OF_PERMAFROST.get())
+                    .onCast(helper.getLevel(), 1, owner, CastSource.SPELLBOOK, magicData);
+
+            helper.assertTrue(getOwnedTotemOfPermafrost(helper, owner).isEmpty(),
+                    "TotemOfPermafrost missing recast should not recreate or require the old totem");
+        });
+    }
+
+    static void totemOfPermafrostTimeoutRemovesPlacedTotem(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "totem_permafrost_timeout_test");
+            var anchorPos = new BlockPos(0, 2, 0);
+            helper.setBlock(anchorPos.below(), Blocks.STONE);
+            castTotemOfPermafrost(helper, owner, 1, anchorPos);
+
+            var magicData = MagicData.getPlayerMagicData(owner);
+            var recast = magicData.getPlayerRecasts().getRecastInstance(SpellRegistry.TOTEM_OF_PERMAFROST.get().getSpellId());
+            helper.assertTrue(recast != null, "TotemOfPermafrost should have active recast data before timeout");
+
+            magicData.getPlayerRecasts().removeRecast(recast, io.redspace.ironsspellbooks.capabilities.magic.RecastResult.TIMEOUT);
+
+            helper.assertTrue(getOwnedTotemOfPermafrost(helper, owner).isEmpty(),
+                    "TotemOfPermafrost timeout should remove the placed totem");
+        });
+    }
+
+    static void totemOfPermafrostPulseHitsVisibleCombatTargetsOnly(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, -3), "totem_permafrost_pulse_test");
+        var anchorPos = new BlockPos(0, 2, 0);
+        helper.setBlock(anchorPos.below(), Blocks.STONE);
+        level.addFreshEntity(owner);
+
+        var totem = createTotemOfPermafrostTestEntity(level, owner, helper.absolutePos(anchorPos), 100.0F, 2);
+        var visibleTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0));
+        var blockedTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 1));
+        var outsideTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(6, 2, 0));
+        visibleTarget.setNoAi(true);
+        blockedTarget.setNoAi(true);
+        outsideTarget.setNoAi(true);
+        helper.setBlock(new BlockPos(2, 2, 1), Blocks.STONE);
+        helper.setBlock(new BlockPos(2, 3, 1), Blocks.STONE);
+
+        var visibleHealth = visibleTarget.getHealth();
+        var blockedHealth = blockedTarget.getHealth();
+        var outsideHealth = outsideTarget.getHealth();
+
+        helper.runAtTickTime(1, () -> {
+            pulseTotemOfPermafrostForGameTest(helper, totem, owner);
+
+            helper.assertTrue(!totem.isRemoved(), "TotemOfPermafrost test totem should still exist before pulse assertions");
+            helper.assertTrue(visibleTarget.getHealth() < visibleHealth,
+                    "TotemOfPermafrost pulse should damage a visible target");
+            helper.assertTrue(visibleTarget.getTicksFrozen() >= 40,
+                    "TotemOfPermafrost pulse should increase frozen ticks after successful damage");
+            var slowness = visibleTarget.getEffect(MobEffects.MOVEMENT_SLOWDOWN);
+            helper.assertTrue(slowness != null && slowness.getAmplifier() == 2,
+                    "TotemOfPermafrost pulse should apply configured slowness after successful damage");
+            helper.assertTrue(Math.abs(blockedTarget.getHealth() - blockedHealth) < 1.0E-4F,
+                    "TotemOfPermafrost pulse should not damage blocked targets");
+            helper.assertTrue(blockedTarget.getEffect(MobEffects.MOVEMENT_SLOWDOWN) == null,
+                    "TotemOfPermafrost pulse should not slow blocked targets");
+            helper.assertTrue(Math.abs(outsideTarget.getHealth() - outsideHealth) < 1.0E-4F,
+                    "TotemOfPermafrost pulse should not damage targets outside the AABB");
+            helper.succeed();
+        });
+    }
+
+    private static void pulseTotemOfPermafrostForGameTest(
+            GameTestHelper helper,
+            TotemOfPermafrostTotemEntity totem,
+            FakePlayer owner
+    ) {
+        try {
+            var method = TotemOfPermafrostTotemEntity.class.getDeclaredMethod(
+                    "pulse",
+                    ServerLevel.class,
+                    net.minecraft.world.entity.LivingEntity.class
+            );
+            method.setAccessible(true);
+            method.invoke(totem, helper.getLevel(), owner);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Failed to invoke TotemOfPermafrost pulse for GameTest", exception);
+        }
+    }
+
+    private static TotemOfPermafrostTotemEntity createTotemOfPermafrostTestEntity(
+            ServerLevel level,
+            FakePlayer owner,
+            BlockPos absoluteAnchorPos,
+            float damage,
+            int slownessAmplifier
+    ) {
+        var center = Vec3.atBottomCenterOf(absoluteAnchorPos);
+        var totem = new TotemOfPermafrostTotemEntity(EntityRegistry.TOTEM_OF_PERMAFROST_TOTEM.get(), level);
+        totem.setOwner(owner);
+        totem.setAnchorPos(absoluteAnchorPos);
+        totem.setDamage(damage);
+        totem.setSlownessAmplifier(slownessAmplifier);
+        totem.setRadius(3.0D);
+        totem.moveTo(center.x, center.y, center.z, 0.0F, 0.0F);
+        level.addFreshEntity(totem);
+        return totem;
+    }
+
+    private static void castTotemOfPermafrost(GameTestHelper helper, FakePlayer player, int spellLevel, BlockPos anchorPos) {
+        var spell = (TotemOfPermafrost) SpellRegistry.TOTEM_OF_PERMAFROST.get();
+        var castData = new TotemOfPermafrost.TotemOfPermafrostCastData();
+        var absoluteAnchorPos = helper.absolutePos(anchorPos);
+        var tag = new CompoundTag();
+        tag.putInt("PositionX", absoluteAnchorPos.getX());
+        tag.putInt("PositionY", absoluteAnchorPos.getY());
+        tag.putInt("PositionZ", absoluteAnchorPos.getZ());
+        castData.deserializeNBT(helper.getLevel().registryAccess(), tag);
+        var magicData = MagicData.getPlayerMagicData(player);
+        magicData.setAdditionalCastData(castData);
+        spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, magicData);
+    }
+
+    private static java.util.List<TotemOfPermafrostTotemEntity> getOwnedTotemOfPermafrost(GameTestHelper helper, FakePlayer owner) {
+        var totems = new java.util.ArrayList<TotemOfPermafrostTotemEntity>();
+        for (var entity : helper.getLevel().getAllEntities()) {
+            if (entity instanceof TotemOfPermafrostTotemEntity totem
+                    && totem.isAlive()
+                    && totem.getOwner() != null
+                    && owner.getUUID().equals(totem.getOwner().getUUID())) {
+                totems.add(totem);
+            }
+        }
+        return totems;
+    }
+
+    private static TotemOfPermafrostTotemEntity getSingleLivingTotemOfPermafrost(GameTestHelper helper, FakePlayer owner) {
+        var totems = getOwnedTotemOfPermafrost(helper, owner);
+        helper.assertTrue(totems.size() == 1, "Expected exactly one living TotemOfPermafrost but found " + totems.size());
+        return totems.get(0);
     }
 
     static void mysticShieldBlocksFrontDamageAndLimitsSameSourceAccumulation(GameTestHelper helper) {

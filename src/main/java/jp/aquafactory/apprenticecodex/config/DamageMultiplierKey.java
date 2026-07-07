@@ -41,6 +41,7 @@ public enum DamageMultiplierKey {
     DUAL_ACROBAT("dualAcrobat"),
     ARTISAN_SMASH("artisanSmash"),
     ANCHOR_BLINK("anchorBlink"),
+    TOTEM_OF_PERMAFROST("totemOfPermafrost"),
     ;
 
     private final String configKey;

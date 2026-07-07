@@ -69,6 +69,7 @@ import jp.aquafactory.apprenticecodex.spell.tamerspocket.TamersPocket;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcess;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjack;
 import jp.aquafactory.apprenticecodex.spell.tirovolley.TiroVolley;
+import jp.aquafactory.apprenticecodex.spell.totemofpermafrost.TotemOfPermafrost;
 import jp.aquafactory.apprenticecodex.spell.treasuredivination.TreasureDivination;
 import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLuna;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatter;
@@ -149,6 +150,7 @@ public final class SpellRegistry {
     // 氷.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> FROST_RUNE = reg("frost_rune", FrostRune::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> INSCRIBE_ICE = reg("inscribe_ice", InscribeIce::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> TOTEM_OF_PERMAFROST = reg("totem_of_permafrost", TotemOfPermafrost::new);
 
     // 雷.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> SKY_EDGE = reg("sky_edge", SkyEdge::new);
