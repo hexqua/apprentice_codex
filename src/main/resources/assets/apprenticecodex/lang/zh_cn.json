@@ -535,6 +535,7 @@
   "entity.apprenticecodex.dual_acrobat_smg": "魔法冲锋枪",
   "entity.apprenticecodex.artisan_smash_launcher": "魔法发射器",
   "entity.apprenticecodex.artisan_smash_shell": "爆裂弹",
+  "entity.apprenticecodex.totem_of_permafrost_totem": "永久冻土图腾",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "跑腿法师",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "跑腿法师",
@@ -687,6 +688,7 @@
   "spell.apprenticecodex.lethal_assault": "致命突袭",
   "spell.apprenticecodex.dual_acrobat": "双枪杂技",
   "spell.apprenticecodex.artisan_smash": "匠艺轰击",
+  "spell.apprenticecodex.totem_of_permafrost": "永久冻土图腾",
 
   "spell.apprenticecodex.sky_edge.guide": "召唤一把武器朝你的视线方向发射。该法术有蓄力时间，且不造成击退，但可以无视目标的无敌帧。",
   "spell.apprenticecodex.archer_multiple.guide": "召唤一把跟随你的魔法弓，持续射击直至弹药耗尽，优先攻击你锁定的目标或附近的敌人。",
@@ -758,6 +760,7 @@
   "spell.apprenticecodex.lethal_assault.guide": "召唤一把魔法步枪进行短点射。一轮射击后会自毁，但其设计正是专门适应这种使用方式。",
   "spell.apprenticecodex.dual_acrobat.guide": "召唤两把魔法冲锋枪，使其在周围旋转来装填弹药。释放后会根据装填量向前方乱射。",
   "spell.apprenticecodex.artisan_smash.guide": "召唤一把魔法榴弹发射器，射出爆裂弹，在命中地点大范围爆炸。爆风不会破坏物品或地形，但也会击中自己。",
+  "spell.apprenticecodex.totem_of_permafrost.guide": "召唤并放置一个强烈注入冰之魔力的图腾，短时间内以寒气攻击图腾周围。寒气会试图限制目标行动。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "爆头伤害倍率：%d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "潜行伤害倍率：%d%%",
@@ -1021,6 +1024,7 @@
   "death.attack.apprenticecodex.lethal_assault": "%1$s 没能叫来医疗兵。",
   "death.attack.apprenticecodex.dual_acrobat": "%1$s 抽中了头奖。",
   "death.attack.apprenticecodex.artisan_smash": "%1$s 被匠人彻底大改造了。",
+  "death.attack.apprenticecodex.totem_of_permafrost": "%1$s 的身体被铭刻进了历史。",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "学徒法典",
   "advancements.apprenticecodex.apprentice_codex.root.description": "踏上学徒法师的修行之路。",
