@@ -9,6 +9,8 @@ import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -85,5 +87,17 @@ public final class MultipurposeStaffrifleCastEvent {
         }
 
         MultipurposeStaffrifleCastContext.clearExpiredPending(player.getUUID(), player.level().getGameTime());
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            MultipurposeStaffrifleRateLimiter.clear(player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onServerStopping(ServerStoppingEvent event) {
+        MultipurposeStaffrifleRateLimiter.clearAll();
     }
 }
