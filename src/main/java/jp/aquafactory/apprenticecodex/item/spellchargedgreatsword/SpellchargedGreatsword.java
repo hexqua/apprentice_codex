@@ -135,11 +135,15 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
             return InteractionResultHolder.pass(stack);
         }
 
-        if (isOverchargeActive(stack, level.getGameTime())) {
+        var gameTime = level.getGameTime();
+        if (sanitizePersistentGameTimes(stack, gameTime) && !level.isClientSide) {
+            syncInventoryIfServer(player);
+        }
+        if (isOverchargeActive(stack, gameTime)) {
             return InteractionResultHolder.pass(stack);
         }
 
-        if (getChargeLevel(stack, level.getGameTime()) < 2) {
+        if (getChargeLevel(stack, gameTime) < 2) {
             return InteractionResultHolder.pass(stack);
         }
 
@@ -196,7 +200,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         }
 
         var gameTime = level.getGameTime();
-        if (!level.isClientSide && sanitizePersistentGameTimes(stack, gameTime)) {
+        if (sanitizePersistentGameTimes(stack, gameTime) && !level.isClientSide) {
             syncInventoryIfServer(player);
         }
         if (!level.isClientSide && refreshDecay(stack, gameTime)) {

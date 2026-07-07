@@ -251,14 +251,14 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
         }
 
         var expireGameTime = tag.getLong(OVERHEAT_EXPIRE_GAME_TIME_TAG);
-        if (!level.isClientSide) {
-            var sanitizedExpireGameTime = PersistentGameTimeSanitizer.repairPersistedFutureUntil(
-                    level.getGameTime(),
-                    expireGameTime,
-                    resolveStoredStaffOverheatRepairMaxTicks(tag)
-            );
-            if (sanitizedExpireGameTime != expireGameTime) {
-                expireGameTime = sanitizedExpireGameTime;
+        var sanitizedExpireGameTime = PersistentGameTimeSanitizer.repairPersistedFutureUntil(
+                level.getGameTime(),
+                expireGameTime,
+                resolveStoredStaffOverheatRepairMaxTicks(tag)
+        );
+        if (sanitizedExpireGameTime != expireGameTime) {
+            expireGameTime = sanitizedExpireGameTime;
+            if (!level.isClientSide) {
                 CustomData.update(
                         DataComponents.CUSTOM_DATA,
                         stack,
