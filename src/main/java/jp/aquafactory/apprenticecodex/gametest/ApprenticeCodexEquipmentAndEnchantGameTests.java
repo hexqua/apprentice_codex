@@ -1830,6 +1830,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void multipurposeStaffrifleRateLimitIgnoresLegacyPersistentNbt(GameTestHelper helper) {
+        MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleRateLimitIgnoresLegacyPersistentNbt(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void multipurposeStaffrifleUsesDedicatedAmmoAndCasingReturnPolicy(GameTestHelper helper) {
         MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleUsesDedicatedAmmoAndCasingReturnPolicy(helper);
     }
