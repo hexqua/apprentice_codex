@@ -22,8 +22,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -44,6 +44,7 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.neoforged.fml.ModList;
@@ -319,7 +320,20 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
     }
 
     public static float resolveBladeAttackDamage(ItemStack stack) {
-        return DISPLAY_ATTACK_DAMAGE;
+        return resolveBladeAttackDamage(stack, DISPLAY_ATTACK_DAMAGE);
+    }
+
+    private static float resolveBladeAttackDamage(ItemStack stack, float baseDamage) {
+        var damage = baseDamage;
+        for (var entry : EnchantmentHelper.getEnchantmentsForCrafting(stack).entrySet()) {
+            var enchantmentLevel = entry.getIntValue();
+            for (var effect : entry.getKey().value().getEffects(EnchantmentEffectComponents.DAMAGE)) {
+                if (effect.requirements().isEmpty()) {
+                    damage = effect.effect().process(enchantmentLevel, RandomSource.create(0L), damage);
+                }
+            }
+        }
+        return damage;
     }
 
     public static float resolveBladeAttackManaCost(ItemStack stack) {

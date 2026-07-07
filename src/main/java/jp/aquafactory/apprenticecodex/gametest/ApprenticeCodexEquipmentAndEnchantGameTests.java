@@ -722,6 +722,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void manaForceBladeSharpnessTooltipDamageScalesWithImbue(GameTestHelper helper) {
+        ManaForceBladeGameTestScenarios.manaForceBladeSharpnessTooltipDamageScalesWithImbue(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void manaForceBladeAttackManaCostIsOncePerTick(GameTestHelper helper) {
         ManaForceBladeGameTestScenarios.manaForceBladeAttackManaCostIsOncePerTick(helper);
     }
