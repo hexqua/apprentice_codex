@@ -216,10 +216,30 @@ public class TotemOfPermafrost extends AbstractSpell implements IClientBlockTarg
     }
 
     @Override
+    public void castSpell(Level world, int spellLevel, ServerPlayer serverPlayer, CastSource castSource,
+                          boolean triggerCooldown) {
+        var magicData = MagicData.getPlayerMagicData(serverPlayer);
+        var wasTotemOfPermafrostRecast = magicData.getPlayerRecasts().hasRecastForSpell(this);
+        super.castSpell(world, spellLevel, serverPlayer, castSource, triggerCooldown);
+        if (wasTotemOfPermafrostRecast && hasGreaterConjurersTalisman(serverPlayer)
+                && magicData.getPlayerCooldowns().removeCooldown(getSpellId())) {
+            magicData.getPlayerCooldowns().syncToPlayer(serverPlayer);
+        }
+    }
+
+    @Override
     public void onRecastFinished(ServerPlayer serverPlayer, RecastInstance recastInstance, RecastResult recastResult,
                                  ICastDataSerializable castDataSerializable) {
         removeStoredTotem(serverPlayer.serverLevel(), castDataSerializable);
+        if (hasGreaterConjurersTalisman(serverPlayer)) {
+            return;
+        }
         super.onRecastFinished(serverPlayer, recastInstance, recastResult, castDataSerializable);
+    }
+
+    private static boolean hasGreaterConjurersTalisman(ServerPlayer serverPlayer) {
+        return io.redspace.ironsspellbooks.registries.ItemRegistry.GREATER_CONJURERS_TALISMAN.get()
+                .isEquippedBy(serverPlayer);
     }
 
     private Optional<PlacementHelper.PlacementResult> restorePlacement(Level level, MagicData playerMagicData) {
