@@ -49,6 +49,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncSatelliteFollowcastAmul
 import jp.aquafactory.apprenticecodex.network.packet.SyncSmashcastScepterReadyStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncTamersPocketCountPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncZenithStaffConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.TotemOfPermafrostPulsePacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -62,7 +63,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "52";
+    private static final String PROTOCOL_VERSION = "53";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -306,6 +307,14 @@ public final class Networks {
                 HeavenlyFistPulsePacket::encode,
                 HeavenlyFistPulsePacket::decode,
                 HeavenlyFistPulsePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                TotemOfPermafrostPulsePacket.class,
+                TotemOfPermafrostPulsePacket::encode,
+                TotemOfPermafrostPulsePacket::decode,
+                TotemOfPermafrostPulsePacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
         CHANNEL.registerMessage(
