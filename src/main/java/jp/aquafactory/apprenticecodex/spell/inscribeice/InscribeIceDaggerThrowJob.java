@@ -119,7 +119,11 @@ public class InscribeIceDaggerThrowJob {
         var random = level.random;
         var projectile = new InscribeIceDaggerEntity(EntityRegistry.INSCRIBE_ICE_DAGGER.get(), level, caster);
         var direction = InscribeIce.calculateProjectileDirection(forward, right, projectileCount, arcDegrees, index);
-        direction = addDirectionJitter(direction, right, up, random);
+
+        // 中央以外はブレを追加(中央は狙ったとおりに出ないとストレスが強めなため)
+        if (!isCenterProjectile(projectileCount, index)) {
+            direction = addDirectionJitter(direction, right, up, random);
+        }
         var spawnPosition = basePosition
                 .add(right.scale(centered(random) * RIGHT_POSITION_JITTER))
                 .add(up.scale(centered(random) * UP_POSITION_JITTER))
@@ -131,6 +135,10 @@ public class InscribeIceDaggerThrowJob {
         projectile.setBurstDamage(burstDamage);
         projectile.setProjectileVelocity(direction, speed);
         level.addFreshEntity(projectile);
+    }
+
+    private static boolean isCenterProjectile(int projectileCount, int index) {
+        return index == projectileCount / 2;
     }
 
     private boolean isCasterValid(ServerLevel level) {

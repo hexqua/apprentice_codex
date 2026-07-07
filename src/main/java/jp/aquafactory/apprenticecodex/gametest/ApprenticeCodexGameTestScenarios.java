@@ -9223,8 +9223,23 @@ public class ApprenticeCodexGameTestScenarios {
                     "Inscribe Ice should include the caster's right side of the fan");
             helper.assertTrue(sorted.get(sorted.size() - 1).getDeltaMovement().x < -0.01D,
                     "Inscribe Ice should include the caster's left side of the fan");
+            assertInscribeIceCenterDaggerLaunchesForward(helper, player, sorted);
             helper.succeed();
         });
+    }
+
+    static void assertInscribeIceCenterDaggerLaunchesForward(GameTestHelper helper, LivingEntity caster,
+                                                             List<InscribeIceDaggerEntity> projectiles) {
+        var centerProjectile = projectiles.stream()
+                .min(Comparator.comparingDouble(projectile -> Math.abs(projectile.getDeltaMovement().x)))
+                .orElseThrow();
+        var movement = centerProjectile.getDeltaMovement();
+        var expectedForward = caster.getLookAngle().normalize();
+        var actualForward = movement.normalize();
+        helper.assertTrue(Math.abs(movement.x) < 1.0E-6D,
+                "Inscribe Ice center dagger should not receive yaw jitter: " + movement);
+        helper.assertTrue(actualForward.dot(expectedForward) > 0.999D,
+                "Inscribe Ice center dagger should follow the caster's exact look direction: " + movement);
     }
 
     static void assertInscribeIceDaggerLaunch(GameTestHelper helper, InscribeIceDaggerEntity projectile) {
