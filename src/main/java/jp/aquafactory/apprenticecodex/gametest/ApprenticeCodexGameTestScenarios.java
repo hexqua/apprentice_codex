@@ -55,7 +55,6 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Mira
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.RemoteEyeState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat;
-import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
@@ -6951,7 +6950,7 @@ public class ApprenticeCodexGameTestScenarios {
                 state.anchorPitch = player.getXRot();
             }));
 
-            RemoteEyeBodyControlEvent.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            RemoteEyeBodyControlEvent.onPlayerTick(new PlayerTickEvent.Post(player));
 
             var state = getRemoteEyeState(player);
             helper.assertTrue(state.activeUntilGameTime == activeUntilGameTime,
@@ -6976,7 +6975,7 @@ public class ApprenticeCodexGameTestScenarios {
                 state.anchorPitch = player.getXRot();
             }));
 
-            RemoteEyeBodyControlEvent.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            RemoteEyeBodyControlEvent.onPlayerTick(new PlayerTickEvent.Post(player));
 
             var state = getRemoteEyeState(player);
             helper.assertTrue(state.activeUntilGameTime == expectedActiveUntilGameTime,
@@ -10386,7 +10385,6 @@ public class ApprenticeCodexGameTestScenarios {
 
     static void tickEquippedAbsorptionAmplifyAmulet(FakePlayer player) {
         var slotResult = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
-                .resolve()
                 .flatMap(inventory -> inventory.findFirstCurio(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get()))
                 .orElseThrow(() -> new IllegalStateException("Missing equipped Absorption Amplify Amulet for GameTest"));
         if (slotResult.stack().getItem() instanceof AbsorptionAmplifyAmulet amulet) {
@@ -10426,15 +10424,19 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static RemoteEyeState getRemoteEyeState(Player player) {
-        return player.getCapability(Capabilities.SPELL_DATA)
-                .map(data -> data.get(CodexSpellStateTypeRegister.REMOTE_EYE_STATE))
-                .orElseThrow(() -> new IllegalStateException("Missing spell data for RemoteEye GameTest"));
+        var spellData = Capabilities.getSpellDataOrNull(player);
+        if (spellData == null) {
+            throw new IllegalStateException("Missing spell data for RemoteEye GameTest");
+        }
+        return spellData.get(CodexSpellStateTypeRegister.REMOTE_EYE_STATE);
     }
 
     static AbsorptionAmplifyAmuletState getAbsorptionAmplifyAmuletState(Player player) {
-        return player.getCapability(Capabilities.SPELL_DATA)
-                .map(data -> data.get(CodexSpellStateTypeRegister.ABSORPTION_AMPLIFY_AMULET_STATE))
-                .orElseThrow(() -> new IllegalStateException("Missing spell data for Absorption Amplify Amulet GameTest"));
+        var spellData = Capabilities.getSpellDataOrNull(player);
+        if (spellData == null) {
+            throw new IllegalStateException("Missing spell data for Absorption Amplify Amulet GameTest");
+        }
+        return spellData.get(CodexSpellStateTypeRegister.ABSORPTION_AMPLIFY_AMULET_STATE);
     }
 
     static void invokeTouchDigDestroyBlock(TouchDigSpell spell, Level level, BlockPos pos, Player player) {

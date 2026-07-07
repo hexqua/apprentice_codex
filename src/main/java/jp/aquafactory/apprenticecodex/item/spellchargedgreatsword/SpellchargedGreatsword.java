@@ -516,7 +516,6 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
             var sanitizedTag = tag.copy();
             CustomData.update(DataComponents.CUSTOM_DATA, stack, data -> data.merge(sanitizedTag));
         }
-        cleanupEmptyTag(stack);
         return changed;
     }
 
