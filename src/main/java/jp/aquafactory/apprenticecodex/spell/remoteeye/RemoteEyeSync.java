@@ -12,6 +12,7 @@ public final class RemoteEyeSync {
     public static void syncToClient(ServerPlayer player, RemoteEyeState state) {
         Networks.sendToPlayer(player, new SyncRemoteEyeStatePacket(
                 state.activeUntilGameTime,
+                state.activeDurationTicks,
                 state.anchorX,
                 state.anchorY,
                 state.anchorZ,
