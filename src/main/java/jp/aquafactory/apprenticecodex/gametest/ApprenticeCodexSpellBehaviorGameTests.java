@@ -369,6 +369,21 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.totemOfPermafrostTimeoutRemovesPlacedTotem(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = TOTEM_OF_PERMAFROST_ISOLATED_BATCH)
+    public static void totemOfPermafrostGreaterConjurersTalismanSkipsTimeoutCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.totemOfPermafrostGreaterConjurersTalismanSkipsTimeoutCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = TOTEM_OF_PERMAFROST_ISOLATED_BATCH)
+    public static void totemOfPermafrostGreaterConjurersTalismanSkipsManualRecastCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.totemOfPermafrostGreaterConjurersTalismanSkipsManualRecastCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = TOTEM_OF_PERMAFROST_ISOLATED_BATCH)
+    public static void totemOfPermafrostPulseUsesSummonDamageAttribute(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.totemOfPermafrostPulseUsesSummonDamageAttribute(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = TOTEM_OF_PERMAFROST_PULSE_BATCH, timeoutTicks = 40)
     public static void totemOfPermafrostPulseHitsVisibleCombatTargetsOnly(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.totemOfPermafrostPulseHitsVisibleCombatTargetsOnly(helper);

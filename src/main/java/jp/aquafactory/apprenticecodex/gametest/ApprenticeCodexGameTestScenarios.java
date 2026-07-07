@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.item.UpgradeData;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
@@ -443,6 +444,8 @@ public class ApprenticeCodexGameTestScenarios {
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "casting_movespeed_dynamic_test_external");
     static final ResourceLocation ZENITH_STAFF_SCHOOL_POWER_TEST_MODIFIER_ID =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "zenith_staff_school_power_test");
+    static final ResourceLocation TOTEM_OF_PERMAFROST_SUMMON_DAMAGE_TEST_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "totem_of_permafrost_summon_damage_test");
     static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
     static final ResourceLocation MALUM_HAUNTED =
@@ -7484,6 +7487,86 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void totemOfPermafrostGreaterConjurersTalismanSkipsTimeoutCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "totem_permafrost_talisman_timeout_test");
+            equipGreaterConjurersTalisman(owner);
+            var anchorPos = new BlockPos(0, 2, 0);
+            helper.setBlock(anchorPos.below(), Blocks.STONE);
+            castTotemOfPermafrost(helper, owner, 1, anchorPos);
+
+            var spell = SpellRegistry.TOTEM_OF_PERMAFROST.get();
+            var magicData = MagicData.getPlayerMagicData(owner);
+            var recast = magicData.getPlayerRecasts().getRecastInstance(spell.getSpellId());
+            helper.assertTrue(recast != null, "TotemOfPermafrost should have active recast data before talisman timeout");
+
+            magicData.getPlayerRecasts().removeRecast(recast, io.redspace.ironsspellbooks.capabilities.magic.RecastResult.TIMEOUT);
+
+            helper.assertTrue(getOwnedTotemOfPermafrost(helper, owner).isEmpty(),
+                    "TotemOfPermafrost talisman timeout should still remove the placed totem");
+            helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(spell),
+                    "TotemOfPermafrost talisman timeout should remove the active recast");
+            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "Greater Conjurer's Talisman should suppress TotemOfPermafrost cooldown when the recast ends by timeout");
+        });
+    }
+
+    static void totemOfPermafrostGreaterConjurersTalismanSkipsManualRecastCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "totem_permafrost_talisman_manual_test");
+            equipGreaterConjurersTalisman(owner);
+            var anchorPos = new BlockPos(0, 2, 0);
+            helper.setBlock(anchorPos.below(), Blocks.STONE);
+            castTotemOfPermafrost(helper, owner, 1, anchorPos);
+
+            var spell = (TotemOfPermafrost) SpellRegistry.TOTEM_OF_PERMAFROST.get();
+            var magicData = MagicData.getPlayerMagicData(owner);
+            spell.castSpell(helper.getLevel(), 1, owner, CastSource.SPELLBOOK, true);
+
+            helper.assertTrue(getOwnedTotemOfPermafrost(helper, owner).isEmpty(),
+                    "TotemOfPermafrost manual recast with talisman should remove the placed totem");
+            helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(spell),
+                    "TotemOfPermafrost manual recast with talisman should remove the active recast");
+            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "Greater Conjurer's Talisman should suppress TotemOfPermafrost cooldown after manual recast");
+        });
+    }
+
+    static void totemOfPermafrostPulseUsesSummonDamageAttribute(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, -3), "totem_permafrost_summon_damage_test");
+        level.addFreshEntity(owner);
+        var anchorPos = new BlockPos(0, 2, 0);
+        helper.setBlock(anchorPos.below(), Blocks.STONE);
+
+        var baseDamageTotem = createTotemOfPermafrostTestEntity(level, owner, helper.absolutePos(anchorPos), 4.0F, 0);
+        var baseTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0));
+        baseTarget.setNoAi(true);
+        var baseTargetHealth = baseTarget.getHealth();
+        pulseTotemOfPermafrostForGameTest(helper, baseDamageTotem, owner);
+        var baseDamage = baseTargetHealth - baseTarget.getHealth();
+        baseDamageTotem.discard();
+        baseTarget.discard();
+
+        owner.getAttribute(AttributeRegistry.SUMMON_DAMAGE).addTransientModifier(new AttributeModifier(
+                TOTEM_OF_PERMAFROST_SUMMON_DAMAGE_TEST_MODIFIER_ID,
+                0.5D,
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+        ));
+
+        var boostedDamageTotem = createTotemOfPermafrostTestEntity(level, owner, helper.absolutePos(anchorPos), 4.0F, 0);
+        var boostedTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0));
+        boostedTarget.setNoAi(true);
+        var boostedTargetHealth = boostedTarget.getHealth();
+        pulseTotemOfPermafrostForGameTest(helper, boostedDamageTotem, owner);
+        var boostedDamage = boostedTargetHealth - boostedTarget.getHealth();
+
+        helper.assertTrue(baseDamage > 0.0F, "TotemOfPermafrost pulse should damage the baseline target");
+        helper.assertTrue(boostedDamage > baseDamage + 0.1F,
+                "TotemOfPermafrost pulse should scale with Summon Damage: " + boostedDamage + " <= " + baseDamage);
+        helper.succeed();
+    }
+
     static void totemOfPermafrostPulseHitsVisibleCombatTargetsOnly(GameTestHelper helper) {
         var level = helper.getLevel();
         var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, -3), "totem_permafrost_pulse_test");
@@ -9223,8 +9306,23 @@ public class ApprenticeCodexGameTestScenarios {
                     "Inscribe Ice should include the caster's right side of the fan");
             helper.assertTrue(sorted.get(sorted.size() - 1).getDeltaMovement().x < -0.01D,
                     "Inscribe Ice should include the caster's left side of the fan");
+            assertInscribeIceCenterDaggerLaunchesForward(helper, player, sorted);
             helper.succeed();
         });
+    }
+
+    static void assertInscribeIceCenterDaggerLaunchesForward(GameTestHelper helper, LivingEntity caster,
+                                                             List<InscribeIceDaggerEntity> projectiles) {
+        var centerProjectile = projectiles.stream()
+                .min(Comparator.comparingDouble(projectile -> Math.abs(projectile.getDeltaMovement().x)))
+                .orElseThrow();
+        var movement = centerProjectile.getDeltaMovement();
+        var expectedForward = caster.getLookAngle().normalize();
+        var actualForward = movement.normalize();
+        helper.assertTrue(Math.abs(movement.x) < 1.0E-6D,
+                "Inscribe Ice center dagger should not receive yaw jitter: " + movement);
+        helper.assertTrue(actualForward.dot(expectedForward) > 0.999D,
+                "Inscribe Ice center dagger should follow the caster's exact look direction: " + movement);
     }
 
     static void assertInscribeIceDaggerLaunch(GameTestHelper helper, InscribeIceDaggerEntity projectile) {
