@@ -6855,17 +6855,19 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static void totemOfPermafrostInvalidPlacementCreatesNoRecast(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "totem_permafrost_invalid_test");
-            var magicData = MagicData.getPlayerMagicData(owner);
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 10, 0), "totem_permafrost_invalid_test");
+        owner.setXRot(-90.0F);
+        var magicData = MagicData.getPlayerMagicData(owner);
+        var anchorPos = new BlockPos(0, 5, 0);
+        helper.setBlock(anchorPos.below(), Blocks.AIR);
 
-            castTotemOfPermafrost(helper, owner, 1, new BlockPos(0, 2, 0));
+        castTotemOfPermafrost(helper, owner, 1, anchorPos);
 
-            helper.assertTrue(getOwnedTotemOfPermafrost(helper, owner).isEmpty(),
-                    "TotemOfPermafrost should not spawn without support");
-            helper.assertTrue(!magicData.getPlayerRecasts().hasRecastForSpell(SpellRegistry.TOTEM_OF_PERMAFROST.get()),
-                    "TotemOfPermafrost should not create recast data when placement fails");
-        });
+        helper.assertTrue(getOwnedTotemOfPermafrost(helper, owner).isEmpty(),
+                "TotemOfPermafrost should not spawn without support");
+        helper.assertTrue(!magicData.getPlayerRecasts().hasRecastForSpell(SpellRegistry.TOTEM_OF_PERMAFROST.get()),
+                "TotemOfPermafrost should not create recast data when placement fails");
+        helper.succeed();
     }
 
     static void totemOfPermafrostRecastRemovesPlacedTotem(GameTestHelper helper) {
@@ -6929,7 +6931,7 @@ public class ApprenticeCodexGameTestScenarios {
         helper.setBlock(anchorPos.below(), Blocks.STONE);
         level.addFreshEntity(owner);
 
-        var totem = createTotemOfPermafrostTestEntity(helper, owner, anchorPos, 100.0F, 2);
+        var totem = createTotemOfPermafrostTestEntity(level, owner, helper.absolutePos(anchorPos), 100.0F, 2);
         var visibleTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0));
         var blockedTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 1));
         var outsideTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(6, 2, 0));
@@ -6943,7 +6945,9 @@ public class ApprenticeCodexGameTestScenarios {
         var blockedHealth = blockedTarget.getHealth();
         var outsideHealth = outsideTarget.getHealth();
 
-        helper.runAtTickTime(16, () -> {
+        helper.runAtTickTime(1, () -> {
+            pulseTotemOfPermafrostForGameTest(helper, totem, owner);
+
             helper.assertTrue(!totem.isRemoved(), "TotemOfPermafrost test totem should still exist before pulse assertions");
             helper.assertTrue(visibleTarget.getHealth() < visibleHealth,
                     "TotemOfPermafrost pulse should damage a visible target");
@@ -6962,15 +6966,31 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    private static TotemOfPermafrostTotemEntity createTotemOfPermafrostTestEntity(
+    private static void pulseTotemOfPermafrostForGameTest(
             GameTestHelper helper,
+            TotemOfPermafrostTotemEntity totem,
+            FakePlayer owner
+    ) {
+        try {
+            var method = TotemOfPermafrostTotemEntity.class.getDeclaredMethod(
+                    "pulse",
+                    ServerLevel.class,
+                    net.minecraft.world.entity.LivingEntity.class
+            );
+            method.setAccessible(true);
+            method.invoke(totem, helper.getLevel(), owner);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Failed to invoke TotemOfPermafrost pulse for GameTest", exception);
+        }
+    }
+
+    private static TotemOfPermafrostTotemEntity createTotemOfPermafrostTestEntity(
+            ServerLevel level,
             FakePlayer owner,
-            BlockPos localAnchorPos,
+            BlockPos absoluteAnchorPos,
             float damage,
             int slownessAmplifier
     ) {
-        var level = helper.getLevel();
-        var absoluteAnchorPos = helper.absolutePos(localAnchorPos);
         var center = Vec3.atBottomCenterOf(absoluteAnchorPos);
         var totem = new TotemOfPermafrostTotemEntity(EntityRegistry.TOTEM_OF_PERMAFROST_TOTEM.get(), level);
         totem.setOwner(owner);
