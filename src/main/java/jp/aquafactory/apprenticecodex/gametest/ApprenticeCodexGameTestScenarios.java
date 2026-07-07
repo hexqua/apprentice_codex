@@ -7823,6 +7823,7 @@ public class ApprenticeCodexGameTestScenarios {
         magicData.setSyncedData(new SyncedSpellData(player));
         magicData.setMana(1000.0f);
         magicData.getPlayerCooldowns().removeCooldown(spell.getSpellId());
+        magicData.getSyncedData();
         magicData.initiateCast(
                 spell,
                 spellLevel,
