@@ -39,7 +39,7 @@ public class InscribeIce extends AbstractSpell {
     public InscribeIce() {
         baseSpellPower = 100;
         spellPowerPerLevel = 30;
-        baseManaCost = 50;
+        baseManaCost = 30;
         manaCostPerLevel = 15;
         castTime = 0;
     }
