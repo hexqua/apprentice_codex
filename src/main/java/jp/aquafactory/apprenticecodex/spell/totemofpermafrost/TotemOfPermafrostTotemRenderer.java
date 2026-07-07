@@ -32,7 +32,7 @@ public class TotemOfPermafrostTotemRenderer extends GeoEntityRenderer<TotemOfPer
     @Override
     public void renderRecursively(PoseStack poseStack, TotemOfPermafrostTotemEntity animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                                  int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                                  int packedLight, int packedOverlay, int colour) {
         if (isBoneOrChildOf(bone, ICE_BONE)) {
             var glow = Mth.clamp(iceGlowStrength, 0.0f, 1.0f);
             if (glow <= 0.0f) {
@@ -43,14 +43,14 @@ public class TotemOfPermafrostTotemRenderer extends GeoEntityRenderer<TotemOfPer
             super.renderRecursively(
                     poseStack, animatable, bone, emissiveRenderType, bufferSource, bufferSource.getBuffer(emissiveRenderType),
                     isReRender, partialTick, LightTexture.FULL_BRIGHT, packedOverlay,
-                    red * glow, green * glow, blue * glow, alpha * glow
+                    scaleColour(colour, glow, glow)
             );
             return;
         }
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
@@ -62,5 +62,17 @@ public class TotemOfPermafrostTotemRenderer extends GeoEntityRenderer<TotemOfPer
         }
 
         return false;
+    }
+
+    private static int scaleColour(int colour, float brightness, float alphaMultiplier) {
+        var safeBrightness = Math.max(0.0f, brightness);
+        var alpha = Math.round(((colour >>> 24) & 0xFF) * Mth.clamp(alphaMultiplier, 0.0f, 1.0f));
+        var red = Math.round(((colour >>> 16) & 0xFF) * safeBrightness);
+        var green = Math.round(((colour >>> 8) & 0xFF) * safeBrightness);
+        var blue = Math.round((colour & 0xFF) * safeBrightness);
+        return (Mth.clamp(alpha, 0, 255) << 24)
+                | (Mth.clamp(red, 0, 255) << 16)
+                | (Mth.clamp(green, 0, 255) << 8)
+                | Mth.clamp(blue, 0, 255);
     }
 }

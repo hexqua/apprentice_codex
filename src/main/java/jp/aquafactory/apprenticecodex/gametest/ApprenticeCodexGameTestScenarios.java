@@ -7571,7 +7571,7 @@ public class ApprenticeCodexGameTestScenarios {
         tag.putInt("PositionX", absoluteAnchorPos.getX());
         tag.putInt("PositionY", absoluteAnchorPos.getY());
         tag.putInt("PositionZ", absoluteAnchorPos.getZ());
-        castData.deserializeNBT(tag);
+        castData.deserializeNBT(helper.getLevel().registryAccess(), tag);
         var magicData = MagicData.getPlayerMagicData(player);
         magicData.setAdditionalCastData(castData);
         spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, magicData);
