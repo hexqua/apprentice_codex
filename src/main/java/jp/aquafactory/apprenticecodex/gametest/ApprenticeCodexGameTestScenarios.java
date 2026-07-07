@@ -7363,6 +7363,7 @@ public class ApprenticeCodexGameTestScenarios {
         var magicData = MagicData.getPlayerMagicData(player);
         magicData.setMana(1000.0f);
         magicData.getPlayerCooldowns().removeCooldown(spell.getSpellId());
+        magicData.getSyncedData();
         magicData.initiateCast(
                 spell,
                 spellLevel,
