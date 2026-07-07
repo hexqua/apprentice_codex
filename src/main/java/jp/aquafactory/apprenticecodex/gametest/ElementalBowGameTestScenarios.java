@@ -573,6 +573,34 @@ final class ElementalBowGameTestScenarios {
 
         helper.runAtTickTime(43, helper::succeed);
     }
+
+    static void elementalBowClampsPersistedFutureOverheat(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_future_overheat_test");
+
+        helper.runAtTickTime(1, () -> {
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    40
+            );
+            var schoolTag = player.getPersistentData()
+                    .getCompound("ApprenticeCodexElementalBowOverheat")
+                    .getCompound(SchoolRegistry.FIRE_RESOURCE.toString());
+            schoolTag.putLong("ExpireGameTime", player.level().getGameTime() + 72000L);
+
+            var state = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE
+            );
+
+            helper.assertTrue(state.expireGameTime() <= player.level().getGameTime() + 40L,
+                    "Elemental Bow stored overheat should be clamped to the last applied duration");
+            helper.assertTrue(schoolTag.getLong("ExpireGameTime") == state.expireGameTime(),
+                    "Elemental Bow persistent overheat NBT should be rewritten after clamping");
+            helper.succeed();
+        });
+    }
+
     static void elementalBowKeepsCurrentEmptySpecialSelectionOnlyWhileSelected(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_empty_selection_test");

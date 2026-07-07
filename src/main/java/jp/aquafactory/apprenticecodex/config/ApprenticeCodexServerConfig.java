@@ -20,6 +20,7 @@ public final class ApprenticeCodexServerConfig {
     }
 
     public static final ModConfigSpec SPEC;
+    private static final ModConfigSpec.IntValue SAVED_ABSOLUTE_TICK_CLAMP_MAX_TICKS;
     private static final DamageMultiplierServerConfig DAMAGE_MULTIPLIER_CONFIG;
     private static final BlocksServerConfig BLOCKS_CONFIG;
     private static final ItemsServerConfig ITEMS_CONFIG;
@@ -29,6 +30,11 @@ public final class ApprenticeCodexServerConfig {
     private static final ProcessingServerConfig PROCESSING_CONFIG;
     static {
         var builder = new ModConfigSpec.Builder();
+        builder.push("Compatibility");
+        SAVED_ABSOLUTE_TICK_CLAMP_MAX_TICKS = builder
+                .comment("Maximum ticks kept when repairing persisted absolute game-time values that are far in the future.")
+                .defineInRange("savedAbsoluteTickClampMaxTicks", 20 * 60 * 5, 0, Integer.MAX_VALUE);
+        builder.pop();
         DAMAGE_MULTIPLIER_CONFIG = DamageMultiplierServerConfig.define(builder, DamageMultiplierKey.values());
         BLOCKS_CONFIG = BlocksServerConfig.define(builder);
         ITEMS_CONFIG = ItemsServerConfig.define(builder);
@@ -40,6 +46,10 @@ public final class ApprenticeCodexServerConfig {
     }
 
     private ApprenticeCodexServerConfig() {
+    }
+
+    public static int savedAbsoluteTickClampMaxTicks() {
+        return SAVED_ABSOLUTE_TICK_CLAMP_MAX_TICKS.get();
     }
 
     public static float damageMultiplier(DamageMultiplierKey key) {
@@ -243,6 +253,20 @@ public final class ApprenticeCodexServerConfig {
 
     public static float absorptionAmplifyAmuletBaseAbsorptionTarget() {
         return ITEMS_CONFIG.absorptionAmplifyAmuletBaseAbsorptionTarget();
+    }
+
+    public static GameTestConfigOverride useAbsorptionAmplifyAmuletConfigOverrideForGameTest(
+            double baseAbsorptionTarget,
+            int recoveryDelayTicks
+    ) {
+        var previousBaseAbsorptionTarget = ITEMS_CONFIG.absorptionAmplifyAmuletBaseAbsorptionTarget();
+        var previousRecoveryDelayTicks = ITEMS_CONFIG.absorptionAmplifyAmuletRecoveryDelayTicks();
+
+        ITEMS_CONFIG.setAbsorptionAmplifyAmuletConfigForGameTest(baseAbsorptionTarget, recoveryDelayTicks);
+        return () -> ITEMS_CONFIG.setAbsorptionAmplifyAmuletConfigForGameTest(
+                previousBaseAbsorptionTarget,
+                previousRecoveryDelayTicks
+        );
     }
 
     public static float scarletThirstDrainHealth() {

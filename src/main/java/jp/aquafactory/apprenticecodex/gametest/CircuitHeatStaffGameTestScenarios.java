@@ -428,6 +428,46 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
         });
     }
 
+    static void circuitHeatStaffClampsPersistedFutureItemOverheat(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var stack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+            CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putLong(
+                    "CircuitHeatStaffOverheatExpireGameTime",
+                    level.getGameTime() + 72000L
+            ));
+
+            var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(stack, level);
+            var tag = stack.get(DataComponents.CUSTOM_DATA).copyTag();
+
+            helper.assertTrue(remainingTicks <= ApprenticeCodexServerConfig.savedAbsoluteTickClampMaxTicks(),
+                    "Circuit Heat Staff future item overheat should be clamped to the repair limit");
+            helper.assertTrue(tag.getLong("CircuitHeatStaffOverheatExpireGameTime")
+                            <= level.getGameTime() + ApprenticeCodexServerConfig.savedAbsoluteTickClampMaxTicks(),
+                    "Circuit Heat Staff item NBT should be rewritten after clamping");
+        });
+    }
+
+    static void circuitHeatStaffKeepsStoredLongItemOverheatDuration(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var stack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+            var longOverheatTicks = (int) Math.min(
+                    (long) ApprenticeCodexServerConfig.savedAbsoluteTickClampMaxTicks() + 1200L,
+                    Integer.MAX_VALUE
+            );
+
+            CircuitHeatStaff.startStaffOverheat(stack, level, longOverheatTicks);
+            var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(stack, level);
+
+            helper.assertTrue(remainingTicks == longOverheatTicks,
+                    "Circuit Heat Staff item overheat should keep stored long duration: " + remainingTicks);
+            var tag = stack.get(DataComponents.CUSTOM_DATA).copyTag();
+            helper.assertTrue(tag.getInt("CircuitHeatStaffOverheatDurationTicks") == longOverheatTicks,
+                    "Circuit Heat Staff item overheat should store the applied duration");
+        });
+    }
+
     static void circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var baseManaCost = 100;

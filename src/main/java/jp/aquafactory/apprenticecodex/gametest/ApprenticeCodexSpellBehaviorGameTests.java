@@ -264,6 +264,16 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.remoteEyeDimensionDenylistOverridesAllowlist(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = REMOTE_EYE_ISOLATED_BATCH)
+    public static void remoteEyeSanitizerKeepsStoredLongDuration(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.remoteEyeSanitizerKeepsStoredLongDuration(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = REMOTE_EYE_ISOLATED_BATCH)
+    public static void remoteEyeSanitizerUsesLegacyFallbackWhenDurationMissing(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.remoteEyeSanitizerUsesLegacyFallbackWhenDurationMissing(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = MIRAGE_AVOIDANCE_ISOLATED_BATCH)
     public static void mirageAvoidanceUsesFifteenTickInvulnerabilityAndActiveRecastLock(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.mirageAvoidanceUsesFifteenTickInvulnerabilityAndActiveRecastLock(helper);

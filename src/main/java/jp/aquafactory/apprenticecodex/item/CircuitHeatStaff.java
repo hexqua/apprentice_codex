@@ -23,9 +23,11 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffConfigState;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffCoolingHandler;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager;
+import jp.aquafactory.apprenticecodex.utility.PersistentGameTimeSanitizer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -67,6 +69,7 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
     private static final String FRAME_CONTROLLER = "frame";
     private static final String COG_CONTROLLER = "cog";
     private static final String OVERHEAT_EXPIRE_GAME_TIME_TAG = "CircuitHeatStaffOverheatExpireGameTime";
+    private static final String OVERHEAT_DURATION_TICKS_TAG = "CircuitHeatStaffOverheatDurationTicks";
     private static final String VANILLA_NAMESPACE = "minecraft";
     private static final Set<ResourceLocation> ALLOWED_APPRENTICE_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom")
@@ -246,9 +249,30 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
         if (!tag.contains(OVERHEAT_EXPIRE_GAME_TIME_TAG, Tag.TAG_LONG)) {
             return 0;
         }
-        var remainingTicks = (int)Math.max(0L, tag.getLong(OVERHEAT_EXPIRE_GAME_TIME_TAG) - level.getGameTime());
+
+        var expireGameTime = tag.getLong(OVERHEAT_EXPIRE_GAME_TIME_TAG);
+        if (!level.isClientSide) {
+            var sanitizedExpireGameTime = PersistentGameTimeSanitizer.repairPersistedFutureUntil(
+                    level.getGameTime(),
+                    expireGameTime,
+                    resolveStoredStaffOverheatRepairMaxTicks(tag)
+            );
+            if (sanitizedExpireGameTime != expireGameTime) {
+                expireGameTime = sanitizedExpireGameTime;
+                CustomData.update(
+                        DataComponents.CUSTOM_DATA,
+                        stack,
+                        data -> data.putLong(OVERHEAT_EXPIRE_GAME_TIME_TAG, sanitizedExpireGameTime)
+                );
+            }
+        }
+
+        var remainingTicks = (int)Math.max(0L, expireGameTime - level.getGameTime());
         if (remainingTicks <= 0 && !level.isClientSide) {
-            CustomData.update(DataComponents.CUSTOM_DATA, stack, data -> data.remove(OVERHEAT_EXPIRE_GAME_TIME_TAG));
+            CustomData.update(DataComponents.CUSTOM_DATA, stack, data -> {
+                data.remove(OVERHEAT_EXPIRE_GAME_TIME_TAG);
+                data.remove(OVERHEAT_DURATION_TICKS_TAG);
+            });
         }
         return remainingTicks;
     }
@@ -261,10 +285,13 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
         CustomData.update(
                 DataComponents.CUSTOM_DATA,
                 stack,
-                tag -> tag.putLong(
-                        OVERHEAT_EXPIRE_GAME_TIME_TAG,
-                        level.getGameTime() + cooldownTicks
-                )
+                tag -> {
+                    tag.putLong(
+                            OVERHEAT_EXPIRE_GAME_TIME_TAG,
+                            level.getGameTime() + cooldownTicks
+                    );
+                    tag.putInt(OVERHEAT_DURATION_TICKS_TAG, cooldownTicks);
+                }
         );
     }
 
@@ -275,7 +302,10 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
 
         var remainingTicks = getStaffOverheatRemainingTicks(stack, level);
         if (remainingTicks <= reductionTicks) {
-            CustomData.update(DataComponents.CUSTOM_DATA, stack, data -> data.remove(OVERHEAT_EXPIRE_GAME_TIME_TAG));
+            CustomData.update(DataComponents.CUSTOM_DATA, stack, data -> {
+                data.remove(OVERHEAT_EXPIRE_GAME_TIME_TAG);
+                data.remove(OVERHEAT_DURATION_TICKS_TAG);
+            });
             return 0;
         }
 
@@ -283,7 +313,10 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
         CustomData.update(
                 DataComponents.CUSTOM_DATA,
                 stack,
-                tag -> tag.putLong(OVERHEAT_EXPIRE_GAME_TIME_TAG, level.getGameTime() + reducedTicks)
+                tag -> {
+                    tag.putLong(OVERHEAT_EXPIRE_GAME_TIME_TAG, level.getGameTime() + reducedTicks);
+                    tag.putInt(OVERHEAT_DURATION_TICKS_TAG, reducedTicks);
+                }
         );
         return reducedTicks;
     }
@@ -456,6 +489,16 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
         }
 
         return (int) Math.min(overheatTicks, Integer.MAX_VALUE);
+    }
+
+    private static int resolveStoredStaffOverheatRepairMaxTicks(CompoundTag tag) {
+        var storedDurationTicks = Math.max(0, tag.getInt(OVERHEAT_DURATION_TICKS_TAG));
+        if (storedDurationTicks > 0) {
+            return storedDurationTicks;
+        }
+
+        var capTicks = ApprenticeCodexServerConfig.circuitHeatStaffOverheatDurationCapTicks();
+        return Math.max(capTicks, 0);
     }
 
     private static boolean isDurabilityTargetEnchantment(Holder<Enchantment> enchantment) {

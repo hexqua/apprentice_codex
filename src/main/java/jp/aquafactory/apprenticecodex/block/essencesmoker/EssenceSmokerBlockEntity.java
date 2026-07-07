@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.recipe.essencesmoker.EssenceSmokerRecipe;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.PersistentGameTimeSanitizer;
 import jp.aquafactory.apprenticecodex.utility.ProcessingRecipeDenylist;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -114,6 +115,9 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
             return 0L;
         }
 
+        if (!level.isClientSide) {
+            sanitizeProcessFinishGameTime(level.getGameTime());
+        }
         return Math.max(0L, processFinishGameTime - level.getGameTime());
     }
 
@@ -508,6 +512,7 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
             return;
         }
 
+        blockEntity.sanitizeProcessFinishGameTime(serverLevel.getGameTime());
         if (serverLevel.getGameTime() < blockEntity.processFinishGameTime) {
             return;
         }
@@ -528,6 +533,22 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
         setCatalystInternal(ItemStack.EMPTY);
         playCompletionSound();
         markUpdated();
+    }
+
+    private void sanitizeProcessFinishGameTime(long gameTime) {
+        if (!processing || processFinishGameTime < 0L) {
+            return;
+        }
+
+        var sanitizedFinishGameTime = PersistentGameTimeSanitizer.repairPersistedFutureUntil(
+                gameTime,
+                processFinishGameTime,
+                PROCESS_DURATION_TICKS
+        );
+        if (sanitizedFinishGameTime != processFinishGameTime) {
+            processFinishGameTime = sanitizedFinishGameTime;
+            markUpdated();
+        }
     }
 
     private void transformMaterialsToResults() {

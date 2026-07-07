@@ -49,8 +49,13 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserVariant
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.AbsorptionAmplifyAmuletState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.MirageAvoidanceState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.RemoteEyeState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
@@ -85,6 +90,16 @@ import jp.aquafactory.apprenticecodex.item.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffCastEvent;
 import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffRightClickItemEvent;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
+import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
+import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightCooldownReductionEvent;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightManaCostDiscountEvent;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightSpellSupport;
+import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
+import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
 import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
@@ -185,6 +200,8 @@ import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBloc
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxChargeBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxCounterSpellEvent;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
+import jp.aquafactory.apprenticecodex.spell.remoteeye.RemoteEye;
+import jp.aquafactory.apprenticecodex.spell.remoteeye.RemoteEyeBodyControlEvent;
 import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
@@ -6917,6 +6934,90 @@ public class ApprenticeCodexGameTestScenarios {
         helper.succeed();
     }
 
+    static void remoteEyeSanitizerKeepsStoredLongDuration(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "remote_eye_long_duration_repair_test");
+            var activeUntilGameTime = level.getGameTime() + 1200L;
+
+            Capabilities.withSpellData(player, data -> data.edit(CodexSpellStateTypeRegister.REMOTE_EYE_STATE, state -> {
+                state.activeUntilGameTime = activeUntilGameTime;
+                state.activeDurationTicks = 1200L;
+                state.anchorX = player.getX();
+                state.anchorY = player.getY();
+                state.anchorZ = player.getZ();
+                state.anchorYaw = player.getYRot();
+                state.anchorPitch = player.getXRot();
+            }));
+
+            RemoteEyeBodyControlEvent.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+
+            var state = getRemoteEyeState(player);
+            helper.assertTrue(state.activeUntilGameTime == activeUntilGameTime,
+                    "RemoteEye sanitizer should not clamp active state below the stored cast duration");
+        });
+    }
+
+    static void remoteEyeSanitizerUsesLegacyFallbackWhenDurationMissing(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "remote_eye_legacy_duration_repair_test");
+            var expectedActiveUntilGameTime = level.getGameTime() + RemoteEye.PERSISTED_STATE_REPAIR_MAX_ACTIVE_TICKS;
+
+            Capabilities.withSpellData(player, data -> data.edit(CodexSpellStateTypeRegister.REMOTE_EYE_STATE, state -> {
+                state.activeUntilGameTime = expectedActiveUntilGameTime + 1200L;
+                state.activeDurationTicks = 0L;
+                state.anchorX = player.getX();
+                state.anchorY = player.getY();
+                state.anchorZ = player.getZ();
+                state.anchorYaw = player.getYRot();
+                state.anchorPitch = player.getXRot();
+            }));
+
+            RemoteEyeBodyControlEvent.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+
+            var state = getRemoteEyeState(player);
+            helper.assertTrue(state.activeUntilGameTime == expectedActiveUntilGameTime,
+                    "RemoteEye legacy state should still use the 30 second persisted repair fallback");
+        });
+    }
+
+    static void absorptionAmplifyAmuletZeroRecoveryDelayRepairsResumeToCurrentTick(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "absorption_zero_delay_repair_test");
+
+            try (var ignored = ApprenticeCodexServerConfig.useAbsorptionAmplifyAmuletConfigOverrideForGameTest(8.0D, 0)) {
+                equipNecklaceCurio(player, new ItemStack(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get()));
+                player.setAbsorptionAmount(0.0F);
+
+                Capabilities.withSpellData(player, data -> data.edit(
+                        CodexSpellStateTypeRegister.ABSORPTION_AMPLIFY_AMULET_STATE,
+                        state -> {
+                            state.initialized = true;
+                            state.recoveryResumeGameTime = level.getGameTime()
+                                    + ApprenticeCodexServerConfig.savedAbsoluteTickClampMaxTicks()
+                                    + 1200L;
+                            state.nextRecoveryGameTime = level.getGameTime();
+                            state.nextProcGameTime = level.getGameTime();
+                            state.lastKnownAbsorption = 0.0F;
+                        }
+                ));
+
+                tickEquippedAbsorptionAmplifyAmulet(player);
+
+                var state = getAbsorptionAmplifyAmuletState(player);
+                helper.assertTrue(state.recoveryResumeGameTime == level.getGameTime(),
+                        "AbsorptionAmplifyAmulet zero recovery delay should repair resume time to the current tick");
+                helper.assertTrue(player.getAbsorptionAmount() == 1.0F,
+                        "AbsorptionAmplifyAmulet should recover immediately after zero-delay repair");
+            }
+        });
+    }
+
     static void mirageAvoidanceUsesFifteenTickInvulnerabilityAndActiveRecastLock(GameTestHelper helper) {
         var level = helper.getLevel();
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mirage_avoidance_window_test");
@@ -10283,6 +10384,16 @@ public class ApprenticeCodexGameTestScenarios {
         equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, necklaceStack);
     }
 
+    static void tickEquippedAbsorptionAmplifyAmulet(FakePlayer player) {
+        var slotResult = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+                .resolve()
+                .flatMap(inventory -> inventory.findFirstCurio(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get()))
+                .orElseThrow(() -> new IllegalStateException("Missing equipped Absorption Amplify Amulet for GameTest"));
+        if (slotResult.stack().getItem() instanceof AbsorptionAmplifyAmulet amulet) {
+            amulet.curioTick(slotResult.slotContext(), slotResult.stack());
+        }
+    }
+
     static FakePlayer createTrackedEquipmentTestPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = createEquipmentTestPlayer(helper, pos, profileName);
         helper.getLevel().addFreshEntity(player);
@@ -10312,6 +10423,18 @@ public class ApprenticeCodexGameTestScenarios {
             throw new IllegalStateException("Missing spell data for MirageAvoidance GameTest");
         }
         return spellData.get(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE);
+    }
+
+    static RemoteEyeState getRemoteEyeState(Player player) {
+        return player.getCapability(Capabilities.SPELL_DATA)
+                .map(data -> data.get(CodexSpellStateTypeRegister.REMOTE_EYE_STATE))
+                .orElseThrow(() -> new IllegalStateException("Missing spell data for RemoteEye GameTest"));
+    }
+
+    static AbsorptionAmplifyAmuletState getAbsorptionAmplifyAmuletState(Player player) {
+        return player.getCapability(Capabilities.SPELL_DATA)
+                .map(data -> data.get(CodexSpellStateTypeRegister.ABSORPTION_AMPLIFY_AMULET_STATE))
+                .orElseThrow(() -> new IllegalStateException("Missing spell data for Absorption Amplify Amulet GameTest"));
     }
 
     static void invokeTouchDigDestroyBlock(TouchDigSpell spell, Level level, BlockPos pos, Player player) {

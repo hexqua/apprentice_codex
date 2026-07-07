@@ -738,6 +738,36 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         helper.succeed();
     }
 
+    static void spellchargedGreatswordClampsPersistedFutureOvercharge(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var gameTime = helper.getLevel().getGameTime();
+            var stack = new ItemStack(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
+            CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+                tag.putDouble("SpellchargedGreatswordChargeTicks", 400.0D);
+                tag.putLong("SpellchargedGreatswordLastChargeGameTime", gameTime + 72000L);
+                tag.putInt("SpellchargedGreatswordChargeLevel", 2);
+                tag.putInt("SpellchargedGreatswordOverchargeRemainingTicks", 72000);
+                tag.putInt("SpellchargedGreatswordOverchargeMaxTicks", SpellchargedGreatsword.OVERCHARGE_LEVEL_3_DURATION_TICKS);
+                tag.putLong("SpellchargedGreatswordOverchargeActivatedGameTime", gameTime + 72000L);
+                tag.putLong("SpellchargedGreatswordOverchargeEndGameTime", gameTime + 72000L);
+                tag.putLong("SpellchargedGreatswordOverchargeFadeStartGameTime", gameTime + 72000L);
+            });
+
+            helper.assertTrue(SpellchargedGreatsword.sanitizePersistentGameTimes(stack, gameTime),
+                    "Spellcharged Greatsword sanitizer should rewrite future persisted game times");
+            var tag = stack.get(DataComponents.CUSTOM_DATA).copyTag();
+            helper.assertTrue(tag.getLong("SpellchargedGreatswordLastChargeGameTime") <= gameTime,
+                    "Spellcharged Greatsword future last charge time should be clamped to now");
+            helper.assertTrue(tag.getLong("SpellchargedGreatswordOverchargeActivatedGameTime") <= gameTime,
+                    "Spellcharged Greatsword future overcharge activation time should be clamped to now");
+            helper.assertTrue(tag.getLong("SpellchargedGreatswordOverchargeEndGameTime")
+                            <= gameTime + SpellchargedGreatsword.OVERCHARGE_LEVEL_3_DURATION_TICKS,
+                    "Spellcharged Greatsword future overcharge end time should be clamped to max overcharge duration");
+            helper.assertTrue(tag.getLong("SpellchargedGreatswordOverchargeFadeStartGameTime") <= gameTime,
+                    "Spellcharged Greatsword future fade start time should be clamped to now");
+        });
+    }
+
     static void spellchargedGreatswordSweepingEdgeBonusAndSweepHitbox(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (SpellchargedGreatsword) ItemRegistry.SPELLCHARGED_GREATSWORD.get();

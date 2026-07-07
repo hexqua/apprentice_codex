@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.Optional;
 
 public class RemoteEye extends AbstractSpell {
+    // activeDurationTicks が無い旧保存データを補修するための既定上限.
+    public static final int PERSISTED_STATE_REPAIR_MAX_ACTIVE_TICKS = 20 * 30;
+
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "remote_eye");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -88,6 +91,7 @@ public class RemoteEye extends AbstractSpell {
         Capabilities.withSpellData(entity, data -> {
             data.edit(CodexSpellStateTypeRegister.REMOTE_EYE_STATE, state -> {
                 state.activeUntilGameTime = level.getGameTime() + duration;
+                state.activeDurationTicks = duration;
                 state.anchorX = entity.getX();
                 state.anchorY = entity.getY();
                 state.anchorZ = entity.getZ();
