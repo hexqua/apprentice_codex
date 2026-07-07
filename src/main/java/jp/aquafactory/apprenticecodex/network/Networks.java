@@ -48,6 +48,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncSatelliteFollowcastAmul
 import jp.aquafactory.apprenticecodex.network.packet.SyncSmashcastScepterReadyStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncTamersPocketCountPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncZenithStaffConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.TotemOfPermafrostPulsePacket;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -58,7 +59,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "52";
+    private static final String PROTOCOL_VERSION = "53";
 
     private Networks() {
     }
@@ -198,6 +199,11 @@ public final class Networks {
                 HeavenlyFistPulsePacket.TYPE,
                 HeavenlyFistPulsePacket.STREAM_CODEC,
                 HeavenlyFistPulsePacket::handle
+        );
+        registrar.playToClient(
+                TotemOfPermafrostPulsePacket.TYPE,
+                TotemOfPermafrostPulsePacket.STREAM_CODEC,
+                TotemOfPermafrostPulsePacket::handle
         );
         registrar.playToClient(
                 ManaSiphonOrbEffectPacket.TYPE,

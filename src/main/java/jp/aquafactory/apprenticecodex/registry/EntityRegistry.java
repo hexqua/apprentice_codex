@@ -53,6 +53,7 @@ import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrowerEntity;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawEntity;
 import jp.aquafactory.apprenticecodex.spell.tirovolley.TiroVolleyMusketEntity;
+import jp.aquafactory.apprenticecodex.spell.totemofpermafrost.TotemOfPermafrostTotemEntity;
 import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonEntity;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillEntity;
 import net.minecraft.core.registries.Registries;
@@ -219,6 +220,10 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<AutoTurretEntity>> AUTO_TURRET =
             regLiving("auto_turret", AutoTurretEntity::new, AutoTurretEntity.WIDTH, AutoTurretEntity.HEIGHT, 32);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<TotemOfPermafrostTotemEntity>> TOTEM_OF_PERMAFROST_TOTEM =
+            regLiving("totem_of_permafrost_totem", TotemOfPermafrostTotemEntity::new,
+                    TotemOfPermafrostTotemEntity.WIDTH, TotemOfPermafrostTotemEntity.HEIGHT, 32);
 
     public static final DeferredHolder<EntityType<?>, EntityType<CompanionTrunkEntity>> COMPANION_TRUNK =
             regLiving("companion_trunk", CompanionTrunkEntity::new, CompanionTrunkEntity.WIDTH, CompanionTrunkEntity.HEIGHT, 32);
