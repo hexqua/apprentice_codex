@@ -167,9 +167,11 @@ public final class MulticastEchoStaffCastHelper {
     ) {
         var previousCastData = magicData.getAdditionalCastData();
         try {
+            // 長詠唱開始時のターゲット情報を再利用すると、完了時点で無効になった対象にもMulticastが続く。
+            magicData.setAdditionalCastData(null);
             return spell.checkPreCastConditions(level, spellLevel, player, magicData);
         } finally {
-            clearRepeatedCastData(magicData, previousCastData);
+            restoreCastData(magicData, previousCastData);
         }
     }
 
@@ -404,6 +406,14 @@ public final class MulticastEchoStaffCastHelper {
         }
 
         if (currentCastData != null) {
+            currentCastData.reset();
+        }
+        magicData.setAdditionalCastData(previousCastData);
+    }
+
+    private static void restoreCastData(MagicData magicData, @Nullable ICastData previousCastData) {
+        var currentCastData = magicData.getAdditionalCastData();
+        if (currentCastData != null && currentCastData != previousCastData) {
             currentCastData.reset();
         }
         magicData.setAdditionalCastData(previousCastData);

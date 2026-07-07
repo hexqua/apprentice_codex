@@ -13,14 +13,16 @@ import java.util.function.Supplier;
 
 public class SyncRemoteEyeStatePacket {
     private final long activeUntilGameTime;
+    private final long activeDurationTicks;
     private final double anchorX;
     private final double anchorY;
     private final double anchorZ;
     private final float anchorYaw;
     private final float anchorPitch;
 
-    public SyncRemoteEyeStatePacket(long activeUntilGameTime, double anchorX, double anchorY, double anchorZ, float anchorYaw, float anchorPitch) {
+    public SyncRemoteEyeStatePacket(long activeUntilGameTime, long activeDurationTicks, double anchorX, double anchorY, double anchorZ, float anchorYaw, float anchorPitch) {
         this.activeUntilGameTime = activeUntilGameTime;
+        this.activeDurationTicks = activeDurationTicks;
         this.anchorX = anchorX;
         this.anchorY = anchorY;
         this.anchorZ = anchorZ;
@@ -30,6 +32,7 @@ public class SyncRemoteEyeStatePacket {
 
     public static void encode(SyncRemoteEyeStatePacket packet, FriendlyByteBuf buffer) {
         buffer.writeLong(packet.activeUntilGameTime);
+        buffer.writeLong(packet.activeDurationTicks);
         buffer.writeDouble(packet.anchorX);
         buffer.writeDouble(packet.anchorY);
         buffer.writeDouble(packet.anchorZ);
@@ -39,6 +42,7 @@ public class SyncRemoteEyeStatePacket {
 
     public static SyncRemoteEyeStatePacket decode(FriendlyByteBuf buffer) {
         return new SyncRemoteEyeStatePacket(
+                buffer.readLong(),
                 buffer.readLong(),
                 buffer.readDouble(),
                 buffer.readDouble(),
@@ -71,6 +75,7 @@ public class SyncRemoteEyeStatePacket {
             player.getCapability(Capabilities.SPELL_DATA).ifPresent(data ->
                     data.edit(CodexSpellStateTypeRegister.REMOTE_EYE_STATE, state -> {
                         state.activeUntilGameTime = packet.activeUntilGameTime;
+                        state.activeDurationTicks = packet.activeDurationTicks;
                         state.anchorX = packet.anchorX;
                         state.anchorY = packet.anchorY;
                         state.anchorZ = packet.anchorZ;

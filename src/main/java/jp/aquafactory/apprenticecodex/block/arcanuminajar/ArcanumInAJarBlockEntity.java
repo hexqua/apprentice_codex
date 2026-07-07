@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.PersistentGameTimeSanitizer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -142,6 +143,7 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         super.onLoad();
         if (level != null && !level.isClientSide) {
             migrateLegacyState(level.getGameTime());
+            sanitizePersistentGameTimes(level.getGameTime());
             if (shouldProcess() && progressStartGameTime < 0L) {
                 progressStartGameTime = level.getGameTime();
             }
@@ -197,6 +199,7 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         }
 
         blockEntity.migrateLegacyState(serverLevel.getGameTime());
+        blockEntity.sanitizePersistentGameTimes(serverLevel.getGameTime());
         blockEntity.updateProduction(serverLevel.getGameTime());
 
         if (!blockEntity.dispensing) {
@@ -261,6 +264,35 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         AudioTools.playSoundFromPosition(level, worldPosition.getCenter(), SoundRegistry.VANILLA_JAR_CLOSE.get(), SoundSource.BLOCKS);
         setChanged();
         syncToClient();
+    }
+
+    private void sanitizePersistentGameTimes(long gameTime) {
+        var changed = false;
+        if (progressStartGameTime >= 0L) {
+            var sanitizedProgressStartGameTime = PersistentGameTimeSanitizer.clampFutureStart(gameTime, progressStartGameTime);
+            if (sanitizedProgressStartGameTime != progressStartGameTime) {
+                progressStartGameTime = sanitizedProgressStartGameTime;
+                changed = true;
+            }
+        }
+
+        if (nextReleaseGameTime >= 0L) {
+            var releaseDelayTicks = Math.max(INITIAL_RELEASE_DELAY_TICKS, REPEAT_RELEASE_DELAY_TICKS);
+            var sanitizedNextReleaseGameTime = PersistentGameTimeSanitizer.repairPersistedFutureUntil(
+                    gameTime,
+                    nextReleaseGameTime,
+                    releaseDelayTicks
+            );
+            if (sanitizedNextReleaseGameTime != nextReleaseGameTime) {
+                nextReleaseGameTime = sanitizedNextReleaseGameTime;
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            setChanged();
+            syncToClient();
+        }
     }
 
     private boolean spawnArcaneEssence(ServerLevel serverLevel, int count) {

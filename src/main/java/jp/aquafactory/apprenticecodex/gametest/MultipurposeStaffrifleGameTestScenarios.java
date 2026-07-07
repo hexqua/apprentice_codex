@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleRateLimiter;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
@@ -26,8 +27,12 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 
 final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameTestScenarios {
+    private static final String LEGACY_NEXT_SPECIAL_CAST_TICK_TAG =
+            "ApprenticeCodexMultipurposeStaffrifleNextSpecialCastTick";
+
     private MultipurposeStaffrifleGameTestScenarios() {
     }
 
@@ -141,6 +146,28 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
                     "Multipurpose Staffrifle should subtract the default 30 seconds from long cooldowns");
         });
     }
+
+    static void multipurposeStaffrifleRateLimitIgnoresLegacyPersistentNbt(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_staffrifle_rate_limit_test");
+            MultipurposeStaffrifleRateLimiter.clear(player);
+            try {
+                player.getPersistentData().putLong(LEGACY_NEXT_SPECIAL_CAST_TICK_TAG, Long.MAX_VALUE);
+
+                helper.assertTrue(MultipurposeStaffrifleRateLimiter.canAttemptSpecialCast(player),
+                        "Multipurpose Staffrifle should ignore legacy persistent next-cast NBT");
+                helper.assertFalse(MultipurposeStaffrifleRateLimiter.canAttemptSpecialCast(player),
+                        "Multipurpose Staffrifle should still rate-limit repeated same-tick attempts");
+
+                MultipurposeStaffrifleCastEvent.onPlayerLoggedOut(new PlayerEvent.PlayerLoggedOutEvent(player));
+                helper.assertTrue(MultipurposeStaffrifleRateLimiter.canAttemptSpecialCast(player),
+                        "Multipurpose Staffrifle rate limit should be cleared on logout");
+            } finally {
+                MultipurposeStaffrifleRateLimiter.clear(player);
+            }
+        });
+    }
+
     static void multipurposeStaffrifleUsesDedicatedAmmoAndCasingReturnPolicy(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());

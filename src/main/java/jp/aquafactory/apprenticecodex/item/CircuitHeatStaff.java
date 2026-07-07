@@ -23,8 +23,10 @@ import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffConf
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffCoolingHandler;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager;
 import jp.aquafactory.apprenticecodex.renderer.item.CircuitHeatStaffRenderer;
+import jp.aquafactory.apprenticecodex.utility.PersistentGameTimeSanitizer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -67,6 +69,7 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
     private static final String FRAME_CONTROLLER = "frame";
     private static final String COG_CONTROLLER = "cog";
     private static final String OVERHEAT_EXPIRE_GAME_TIME_TAG = "CircuitHeatStaffOverheatExpireGameTime";
+    private static final String OVERHEAT_DURATION_TICKS_TAG = "CircuitHeatStaffOverheatDurationTicks";
     private static final String VANILLA_NAMESPACE = "minecraft";
     private static final String MALUM_NAMESPACE = "malum";
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
@@ -256,9 +259,21 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
             return 0;
         }
 
-        var remainingTicks = (int)Math.max(0L, tag.getLong(OVERHEAT_EXPIRE_GAME_TIME_TAG) - level.getGameTime());
+        var expireGameTime = tag.getLong(OVERHEAT_EXPIRE_GAME_TIME_TAG);
+        var sanitizedExpireGameTime = PersistentGameTimeSanitizer.repairPersistedFutureUntil(
+                level.getGameTime(),
+                expireGameTime,
+                resolveStoredStaffOverheatRepairMaxTicks(tag)
+        );
+        if (sanitizedExpireGameTime != expireGameTime) {
+            expireGameTime = sanitizedExpireGameTime;
+            tag.putLong(OVERHEAT_EXPIRE_GAME_TIME_TAG, expireGameTime);
+        }
+
+        var remainingTicks = (int)Math.max(0L, expireGameTime - level.getGameTime());
         if (remainingTicks <= 0 && !level.isClientSide) {
             tag.remove(OVERHEAT_EXPIRE_GAME_TIME_TAG);
+            tag.remove(OVERHEAT_DURATION_TICKS_TAG);
         }
         return remainingTicks;
     }
@@ -268,10 +283,12 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
             return;
         }
 
-        stack.getOrCreateTag().putLong(
+        var tag = stack.getOrCreateTag();
+        tag.putLong(
                 OVERHEAT_EXPIRE_GAME_TIME_TAG,
                 level.getGameTime() + cooldownTicks
         );
+        tag.putInt(OVERHEAT_DURATION_TICKS_TAG, cooldownTicks);
     }
 
     public static int reduceStaffOverheatTicks(ItemStack stack, Level level, int reductionTicks) {
@@ -287,11 +304,13 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
         var remainingTicks = getStaffOverheatRemainingTicks(stack, level);
         if (remainingTicks <= reductionTicks) {
             tag.remove(OVERHEAT_EXPIRE_GAME_TIME_TAG);
+            tag.remove(OVERHEAT_DURATION_TICKS_TAG);
             return 0;
         }
 
         var reducedTicks = remainingTicks - reductionTicks;
         tag.putLong(OVERHEAT_EXPIRE_GAME_TIME_TAG, level.getGameTime() + reducedTicks);
+        tag.putInt(OVERHEAT_DURATION_TICKS_TAG, reducedTicks);
         return reducedTicks;
     }
 
@@ -452,6 +471,16 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
         }
 
         return (int) Math.min(overheatTicks, Integer.MAX_VALUE);
+    }
+
+    private static int resolveStoredStaffOverheatRepairMaxTicks(CompoundTag tag) {
+        var storedDurationTicks = Math.max(0, tag.getInt(OVERHEAT_DURATION_TICKS_TAG));
+        if (storedDurationTicks > 0) {
+            return storedDurationTicks;
+        }
+
+        var capTicks = ApprenticeCodexServerConfig.circuitHeatStaffOverheatDurationCapTicks();
+        return Math.max(capTicks, 0);
     }
 
     private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {

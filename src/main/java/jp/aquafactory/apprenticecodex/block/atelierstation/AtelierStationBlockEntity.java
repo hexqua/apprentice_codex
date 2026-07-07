@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.utility.AlchemistCauldronFluidTools;
+import jp.aquafactory.apprenticecodex.utility.PersistentGameTimeSanitizer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -213,6 +214,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
         }
 
         var changed = false;
+        changed |= blockEntity.sanitizeFlaskSupplyCooldown(serverLevel.getGameTime());
         if (blockEntity.shouldRunCollectionTick(serverLevel)
                 && blockEntity.hasAnyFilterConfigured()
                 && blockEntity.storedFluidAmount < MAX_STORED_FLUID_AMOUNT) {
@@ -544,6 +546,20 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
 
     private boolean isFlaskSupplyCoolingDown(long gameTime) {
         return gameTime < flaskSupplyCooldownUntilGameTime;
+    }
+
+    private boolean sanitizeFlaskSupplyCooldown(long gameTime) {
+        var sanitizedCooldownUntil = PersistentGameTimeSanitizer.repairPersistedFutureUntil(
+                gameTime,
+                flaskSupplyCooldownUntilGameTime,
+                FLASK_SUPPLY_COOLDOWN_TICKS
+        );
+        if (sanitizedCooldownUntil == flaskSupplyCooldownUntilGameTime) {
+            return false;
+        }
+
+        flaskSupplyCooldownUntilGameTime = sanitizedCooldownUntil;
+        return true;
     }
 
     // 搬入直後は中身キューブの表示時間を優先し、全てのフラスコ供給を 20tick 停止する。

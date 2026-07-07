@@ -194,6 +194,10 @@ final class ItemsServerConfig {
         return absorptionAmplifyAmuletConfig.baseAbsorptionTarget();
     }
 
+    void setAbsorptionAmplifyAmuletConfigForGameTest(double baseAbsorptionTarget, int recoveryDelayTicks) {
+        absorptionAmplifyAmuletConfig.setForGameTest(baseAbsorptionTarget, recoveryDelayTicks);
+    }
+
     float scarletThirstRequiredHealth() {
         return scarletThirstConfig.requiredHealth();
     }

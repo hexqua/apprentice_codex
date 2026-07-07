@@ -5,6 +5,7 @@ import net.minecraft.nbt.CompoundTag;
 
 public class RemoteEyeState implements ICodexSpellState {
     public long activeUntilGameTime;
+    public long activeDurationTicks;
     public double anchorX;
     public double anchorY;
     public double anchorZ;
@@ -13,6 +14,7 @@ public class RemoteEyeState implements ICodexSpellState {
 
     public void reset() {
         activeUntilGameTime = 0L;
+        activeDurationTicks = 0L;
         anchorX = 0.0;
         anchorY = 0.0;
         anchorZ = 0.0;
@@ -24,6 +26,7 @@ public class RemoteEyeState implements ICodexSpellState {
     public CompoundTag save() {
         var tag = new CompoundTag();
         tag.putLong("activeUntilGameTime", activeUntilGameTime);
+        tag.putLong("activeDurationTicks", activeDurationTicks);
         tag.putDouble("anchorX", anchorX);
         tag.putDouble("anchorY", anchorY);
         tag.putDouble("anchorZ", anchorZ);
@@ -35,6 +38,7 @@ public class RemoteEyeState implements ICodexSpellState {
     @Override
     public void load(CompoundTag tag) {
         activeUntilGameTime = tag.getLong("activeUntilGameTime");
+        activeDurationTicks = tag.getLong("activeDurationTicks");
         anchorX = tag.getDouble("anchorX");
         anchorY = tag.getDouble("anchorY");
         anchorZ = tag.getDouble("anchorZ");
