@@ -73,6 +73,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
             "apprenticecodex.mana_thruster_config";
     private static final String MAGI_COMPRESSOR_GADGET_CONFIG_BATCH =
             "apprenticecodex.magi_compressor_gadget_config";
+    private static final String ABSORPTION_AMPLIFY_AMULET_CONFIG_BATCH =
+            "apprenticecodex.absorption_amplify_amulet_config";
     private static final String JUMPCAST_CHARM_CONFIG_BATCH =
             "apprenticecodex.jumpcast_charm_config";
     private static final String SPELLCHARGED_GREATSWORD_CONFIG_BATCH =
@@ -544,6 +546,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void magiCompressorGadgetRejectsEnchantments(GameTestHelper helper) {
         MagiCompressorGadgetGameTestScenarios.magiCompressorGadgetRejectsEnchantments(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ABSORPTION_AMPLIFY_AMULET_CONFIG_BATCH)
+    public static void absorptionAmplifyAmuletZeroRecoveryDelayRepairsResumeToCurrentTick(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.absorptionAmplifyAmuletZeroRecoveryDelayRepairsResumeToCurrentTick(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1830,6 +1837,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void multipurposeStaffrifleRateLimitIgnoresLegacyPersistentNbt(GameTestHelper helper) {
+        MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleRateLimitIgnoresLegacyPersistentNbt(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void multipurposeStaffrifleUsesDedicatedAmmoAndCasingReturnPolicy(GameTestHelper helper) {
         MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleUsesDedicatedAmmoAndCasingReturnPolicy(helper);
     }
@@ -2019,4 +2031,28 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         SwingcastStaffGameTestScenarios.manaSlashCatalystDamageUsesApplicableSlotGroups(helper);
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletDeletesPersistedFutureRetryTick(GameTestHelper helper) {
+        AutocastAmuletGameTestScenarios.autocastAmuletDeletesPersistedFutureRetryTick(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowClampsPersistedFutureOverheat(GameTestHelper helper) {
+        ElementalBowGameTestScenarios.elementalBowClampsPersistedFutureOverheat(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellchargedGreatswordClampsPersistedFutureOvercharge(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordClampsPersistedFutureOvercharge(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void circuitHeatStaffClampsPersistedFutureItemOverheat(GameTestHelper helper) {
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffClampsPersistedFutureItemOverheat(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void circuitHeatStaffKeepsStoredLongItemOverheatDuration(GameTestHelper helper) {
+        CircuitHeatStaffGameTestScenarios.circuitHeatStaffKeepsStoredLongItemOverheatDuration(helper);
+    }
 }

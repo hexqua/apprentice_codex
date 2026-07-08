@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.RemoteEyeState;
+import jp.aquafactory.apprenticecodex.utility.PersistentGameTimeSanitizer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -31,6 +32,7 @@ public final class RemoteEyeBodyControlEvent {
         }
 
         var state = spellData.get(CodexSpellStateTypeRegister.REMOTE_EYE_STATE);
+        sanitizePersistentGameTimes(spellData, player, state);
         if (!isActive(level.getGameTime(), state)) {
             deactivate(spellData, player, state);
             return;
@@ -47,6 +49,27 @@ public final class RemoteEyeBodyControlEvent {
 
     private static boolean isActive(long gameTime, RemoteEyeState state) {
         return state.activeUntilGameTime > gameTime;
+    }
+
+    private static void sanitizePersistentGameTimes(CodexSpellData spellData, Player player, RemoteEyeState state) {
+        var gameTime = player.level().getGameTime();
+        var repairMaxActiveTicks = state.activeDurationTicks > 0L
+                ? state.activeDurationTicks
+                : RemoteEye.PERSISTED_STATE_REPAIR_MAX_ACTIVE_TICKS;
+        var sanitizedActiveUntilGameTime = PersistentGameTimeSanitizer.repairPersistedFutureUntil(
+                gameTime,
+                state.activeUntilGameTime,
+                repairMaxActiveTicks
+        );
+        if (sanitizedActiveUntilGameTime == state.activeUntilGameTime) {
+            return;
+        }
+
+        spellData.edit(CodexSpellStateTypeRegister.REMOTE_EYE_STATE, s -> s.activeUntilGameTime = sanitizedActiveUntilGameTime);
+        state.activeUntilGameTime = sanitizedActiveUntilGameTime;
+        if (!player.level().isClientSide && player instanceof ServerPlayer serverPlayer) {
+            RemoteEyeSync.syncToClient(serverPlayer, spellData.get(CodexSpellStateTypeRegister.REMOTE_EYE_STATE));
+        }
     }
 
     private static void anchorBody(Player player, RemoteEyeState state) {

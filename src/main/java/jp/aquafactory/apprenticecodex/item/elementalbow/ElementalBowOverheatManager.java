@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.elementalbow;
 
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.utility.PersistentGameTimeSanitizer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
@@ -134,7 +135,7 @@ public final class ElementalBowOverheatManager {
         }
 
         var schoolTag = rootTag.getCompound(schoolId.toString());
-        var expireGameTime = schoolTag.getLong(EXPIRE_GAME_TIME_TAG);
+        var expireGameTime = sanitizeExpireGameTime(player, schoolTag, true);
         var chainDepth = Math.max(0, schoolTag.getInt(CHAIN_DEPTH_TAG));
         if (chainDepth == 0 || expireGameTime <= player.level().getGameTime()) {
             rootTag.remove(schoolId.toString());
@@ -239,7 +240,7 @@ public final class ElementalBowOverheatManager {
             }
 
             var schoolTag = rootTag.getCompound(schoolKey);
-            var expireGameTime = schoolTag.getLong(EXPIRE_GAME_TIME_TAG);
+            var expireGameTime = sanitizeExpireGameTime(player, schoolTag, false);
             var chainDepth = Math.max(0, schoolTag.getInt(CHAIN_DEPTH_TAG));
             if (chainDepth == 0 || expireGameTime <= gameTime) {
                 rootTag.remove(schoolKey);
@@ -364,6 +365,32 @@ public final class ElementalBowOverheatManager {
             // player persistentData は自動同期されないため、描画用の overheat 状態は明示的に client へ送る。
             ElementalBowOverheatSync.syncToClient(serverPlayer);
         }
+    }
+
+    private static long sanitizeExpireGameTime(Player player, CompoundTag schoolTag, boolean sync) {
+        var expireGameTime = schoolTag.getLong(EXPIRE_GAME_TIME_TAG);
+        var sanitizedExpireGameTime = PersistentGameTimeSanitizer.repairPersistedFutureUntil(
+                player.level().getGameTime(),
+                expireGameTime,
+                resolveStoredOverheatRepairMaxTicks(schoolTag)
+        );
+        if (sanitizedExpireGameTime != expireGameTime) {
+            schoolTag.putLong(EXPIRE_GAME_TIME_TAG, sanitizedExpireGameTime);
+            if (sync) {
+                syncToClientIfNeeded(player);
+            }
+        }
+        return sanitizedExpireGameTime;
+    }
+
+    private static int resolveStoredOverheatRepairMaxTicks(CompoundTag schoolTag) {
+        var lastAppliedCooldownTicks = Math.max(0, schoolTag.getInt(LAST_APPLIED_COOLDOWN_TICKS_TAG));
+        if (lastAppliedCooldownTicks > 0) {
+            return lastAppliedCooldownTicks;
+        }
+
+        var capTicks = ApprenticeCodexServerConfig.elementalBowOverheatDurationCapTicks();
+        return Math.max(capTicks, 0);
     }
 
     public record OverheatState(int chainDepth, long expireGameTime) {

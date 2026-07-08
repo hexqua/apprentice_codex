@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
 import jp.aquafactory.apprenticecodex.spell.forcefield.ForceFieldDefenseEvent;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.PersistentGameTimeSanitizer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -73,6 +74,7 @@ final class AbsorptionAmplifyAmuletLogic {
 
         withState(player, state -> {
             var gameTime = player.level().getGameTime();
+            sanitizePersistentGameTimes(state, gameTime);
 
             if (!state.initialized) {
                 state.initialized = true;
@@ -130,6 +132,7 @@ final class AbsorptionAmplifyAmuletLogic {
             var currentAbsorption = player.getAbsorptionAmount();
             if (currentAbsorption < state.lastKnownAbsorption) {
                 var gameTime = player.level().getGameTime();
+                sanitizePersistentGameTimes(state, gameTime);
                 scheduleRecovery(state, gameTime);
                 KnockbackControlEvent.markIgnoreNextKnockback(player);
 
@@ -203,6 +206,24 @@ final class AbsorptionAmplifyAmuletLogic {
         var recoveryDelayTicks = ApprenticeCodexServerConfig.absorptionAmplifyAmuletRecoveryDelayTicks();
         state.recoveryResumeGameTime = gameTime + recoveryDelayTicks;
         state.nextRecoveryGameTime = state.recoveryResumeGameTime;
+    }
+
+    private static void sanitizePersistentGameTimes(AbsorptionAmplifyAmuletState state, long gameTime) {
+        state.recoveryResumeGameTime = PersistentGameTimeSanitizer.repairPersistedFutureUntilWithKnownMax(
+                gameTime,
+                state.recoveryResumeGameTime,
+                ApprenticeCodexServerConfig.absorptionAmplifyAmuletRecoveryDelayTicks()
+        );
+        state.nextRecoveryGameTime = PersistentGameTimeSanitizer.repairPersistedFutureUntil(
+                gameTime,
+                state.nextRecoveryGameTime,
+                RECOVERY_INTERVAL_TICKS
+        );
+        state.nextProcGameTime = PersistentGameTimeSanitizer.repairPersistedFutureUntil(
+                gameTime,
+                state.nextProcGameTime,
+                PROC_COOLDOWN_TICKS
+        );
     }
 
     private static void resetState(ServerPlayer player) {

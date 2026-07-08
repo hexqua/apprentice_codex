@@ -45,7 +45,7 @@ public class FeatherRush extends AbstractSummonWeaponSpell<FeatherRushWingEntity
     private static final float RPM_AT_LOW_POWER = 300.0f;
     private static final float RPM_AT_HIGH_POWER = 900.0f;
     private static final float TICKS_PER_MINUTE = 1200.0f;
-    private static final long ACTIVE_TICK_GRACE = 2L;
+    public static final long ACTIVE_TICK_GRACE = 2L;
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "feather_rush");
 
