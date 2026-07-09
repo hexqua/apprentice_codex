@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWork
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
+import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmulet;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
@@ -256,8 +257,37 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     player,
                     new ItemStack(ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get())
             );
+            helper.assertTrue(satelliteFollowcastMenu.hasSatelliteFollowcastAmulet(),
+                    "Satellite Followcast Amulet should be treated as a stored adjustment target");
+            helper.assertTrue(satelliteFollowcastMenu.isAdjustmentSlotEnabled(0),
+                    "Satellite Followcast Amulet should expose adjustment slots");
             helper.assertFalse(satelliteFollowcastMenu.getImbueRestrictionTooltipLines().isEmpty(),
                     "Satellite Followcast Amulet should expose Calibration Bench spell restriction tooltip lines");
+            helper.assertTrue(satelliteFollowcastMenu.getEnabledScrollSlotCount() == SatelliteFollowcastAmulet.MIN_SPELL_SLOTS,
+                    "Satellite Followcast Amulet should start with one enabled scroll slot");
+            helper.assertTrue(satelliteFollowcastMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START)
+                            .mayPlace(createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get())),
+                    "Satellite Followcast Amulet should accept profiled continuous scrolls even before Silver Ring adjustment");
+            satelliteFollowcastMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START)
+                    .set(createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get()));
+            helper.assertTrue(satelliteFollowcastMenu.shouldRenderMismatchCastConditionWarning(0),
+                    "Satellite Followcast Amulet should warn that continuous spells cannot followcast before Silver Ring adjustment");
+            satelliteFollowcastMenu.getSlot(SpellCalibrationBenchMenu.ADJUSTMENT_MENU_SLOT_START)
+                    .set(new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()));
+            helper.assertFalse(satelliteFollowcastMenu.shouldRenderMismatchCastConditionWarning(0),
+                    "Satellite Followcast Amulet should clear the continuous spell warning after Silver Ring adjustment");
+
+            var fourSlotSatellite = new ItemStack(ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get());
+            for (var slot = 0; slot < SatelliteFollowcastAmulet.CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+                SatelliteFollowcastAmulet.setCalibrationAdjustment(
+                        fourSlotSatellite,
+                        slot,
+                        new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
+                );
+            }
+            var fourSlotSatelliteMenu = createSpellCalibrationBenchMenuWithTarget(player, fourSlotSatellite);
+            helper.assertTrue(fourSlotSatelliteMenu.getEnabledScrollSlotCount() == SatelliteFollowcastAmulet.MAX_SPELL_SLOTS,
+                    "Satellite Followcast Amulet should expose four scroll slots after three slot upgrades");
 
             var smashcastMenu = createSpellCalibrationBenchMenuWithTarget(
                     player,
@@ -313,6 +343,31 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertTrue(AutocastAmulet.getSpellDataAt(twoSlotAmulet, 0) == SpellData.EMPTY
                             && AutocastAmulet.getSpellDataAt(twoSlotAmulet, 1) != SpellData.EMPTY,
                     "Calibration Bench should preserve empty spell slots when opening an existing target");
+
+            var satelliteAmulet = new ItemStack(ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get());
+            var satelliteMenu = createSpellCalibrationBenchMenuWithTarget(player, satelliteAmulet);
+            satelliteMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(createSpellScroll(mageLight));
+            assertSatelliteSpellData(helper, satelliteAmulet, 0, mageLight, 1,
+                    "Calibration-imbued Satellite Followcast Amulet should contain mage_light");
+
+            SatelliteFollowcastAmulet.setCalibrationAdjustment(
+                    satelliteAmulet,
+                    0,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
+            );
+            var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var twoSlotSatelliteMenu = createSpellCalibrationBenchMenuWithTarget(player, satelliteAmulet);
+            twoSlotSatelliteMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START + 1)
+                    .set(createSpellScroll(magicMissile));
+            helper.assertTrue(SatelliteFollowcastAmulet.getImbuedSpells(satelliteAmulet).size() == 2,
+                    "Calibration imbue should add a second Satellite Followcast Amulet spell");
+            var removedSatelliteScroll = twoSlotSatelliteMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).remove(1);
+            helper.assertTrue(removedSatelliteScroll.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
+                    "Calibration Bench should return a scroll when removing a Satellite Followcast Amulet spell");
+            twoSlotSatelliteMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).onTake(player, removedSatelliteScroll);
+            helper.assertTrue(SatelliteFollowcastAmulet.getSpellDataAt(satelliteAmulet, 0) == SpellData.EMPTY
+                            && SatelliteFollowcastAmulet.getSpellDataAt(satelliteAmulet, 1) != SpellData.EMPTY,
+                    "Calibration Bench should not compact Satellite Followcast Amulet slots while removing a scroll");
 
             var manaForceBlade = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
             var unsupportedMenu = new SpellCalibrationBenchMenu(0, player.getInventory());
@@ -765,6 +820,21 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             String message
     ) {
         var spellData = AutocastAmulet.getSpellDataAt(stack, slot);
+        helper.assertTrue(spellData != SpellData.EMPTY
+                        && spellData.getSpell() == expectedSpell
+                        && spellData.getLevel() == expectedLevel,
+                message + ": got " + (spellData == SpellData.EMPTY ? "empty" : spellData.getSpell().getSpellResource()));
+    }
+
+    private static void assertSatelliteSpellData(
+            GameTestHelper helper,
+            ItemStack stack,
+            int slot,
+            AbstractSpell expectedSpell,
+            int expectedLevel,
+            String message
+    ) {
+        var spellData = SatelliteFollowcastAmulet.getSpellDataAt(stack, slot);
         helper.assertTrue(spellData != SpellData.EMPTY
                         && spellData.getSpell() == expectedSpell
                         && spellData.getLevel() == expectedLevel,

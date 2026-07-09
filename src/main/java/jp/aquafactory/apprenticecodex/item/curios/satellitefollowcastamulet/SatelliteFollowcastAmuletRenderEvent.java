@@ -3,7 +3,6 @@ package jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -113,18 +112,18 @@ public final class SatelliteFollowcastAmuletRenderEvent {
             String slotIdentifier,
             int curiosSlotIndex
     ) {
-        if (!ISpellContainer.isSpellContainer(stack)) {
+        if (!(stack.getItem() instanceof SatelliteFollowcastAmulet amulet)) {
             return;
         }
 
-        var spellContainer = ISpellContainer.get(stack);
-        if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
+        amulet.initializeSpellContainer(stack);
+        var maxSpellSlots = SatelliteFollowcastAmulet.getEnabledSpellSlotCount(stack);
+        if (maxSpellSlots <= 0 || SatelliteFollowcastAmulet.getImbuedSpells(stack).isEmpty()) {
             return;
         }
 
-        var maxSpellSlots = SatelliteFollowcastAmulet.clampSpellSlotCount(spellContainer.getMaxSpellCount());
         for (var slotIndex = 0; slotIndex < maxSpellSlots; ++slotIndex) {
-            var spellData = spellContainer.getSpellAtIndex(slotIndex);
+            var spellData = SatelliteFollowcastAmulet.getSpellDataAt(stack, slotIndex);
             if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
                 continue;
             }
