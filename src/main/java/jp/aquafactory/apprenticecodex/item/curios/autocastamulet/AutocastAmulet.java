@@ -574,28 +574,28 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
             Component status;
             if (hasWisdomShard && AutocastAmuletSpellProfileManager.isKnownMissingProfileForClientTooltip(spell)) {
                 status = Component.translatable(
-                        "item." + ApprenticeCodex.MODID + ".autocast_amulet.tooltip.no_profile"
+                        "item.apprenticecodex.common.imbue_tooltip.no_autocast_profile"
                 ).withStyle(ChatFormatting.YELLOW);
             } else if (!isCastableConfiguredSpell(stack, spellData)) {
                 status = Component.translatable(
-                        "item." + ApprenticeCodex.MODID + ".autocast_amulet.tooltip.invalid_long"
+                        "item.apprenticecodex.common.imbue_tooltip.invalid"
                 ).withStyle(ChatFormatting.RED);
             } else {
                 var remainingCooldownSeconds = getClientRemainingCooldownSeconds(spell.getSpellId());
                 if (remainingCooldownSeconds > 0) {
                     status = Component.translatable(
-                            "item." + ApprenticeCodex.MODID + ".autocast_amulet.tooltip.cooldown",
+                            "item.apprenticecodex.common.imbue_tooltip.cooldown",
                             remainingCooldownSeconds
                     ).withStyle(ChatFormatting.DARK_AQUA);
                 } else {
                     status = Component.translatable(
-                            "item." + ApprenticeCodex.MODID + ".autocast_amulet.tooltip.ready"
+                            "item.apprenticecodex.common.imbue_tooltip.ready"
                     ).withStyle(ChatFormatting.AQUA);
                 }
             }
 
             lines.add(Component.translatable(
-                    "item." + ApprenticeCodex.MODID + ".autocast_amulet.tooltip.spell_line",
+                    "item.apprenticecodex.common.imbue_tooltip.spell_line",
                     spellName,
                     status
             ));

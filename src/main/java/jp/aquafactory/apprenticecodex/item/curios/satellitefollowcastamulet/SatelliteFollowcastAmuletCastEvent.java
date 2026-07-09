@@ -4,7 +4,6 @@ import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
-import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.config.ServerConfigs;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -69,7 +68,6 @@ public final class SatelliteFollowcastAmuletCastEvent {
             }
 
             amulet.initializeSpellContainer(stack);
-            amulet.normalizeImbuedSpellContainer(stack);
 
             var result = tryFollowcast(level, player, magicData, slotResult, amulet, reservedOriginalManaCost);
             if (result == CastAttemptResult.NONE) {
@@ -88,17 +86,16 @@ public final class SatelliteFollowcastAmuletCastEvent {
             int reservedOriginalManaCost
     ) {
         var stack = slotResult.stack();
-        var spellContainer = ISpellContainer.get(stack);
-        if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
+        var maxSpellSlots = SatelliteFollowcastAmulet.getEnabledSpellSlotCount(stack);
+        if (maxSpellSlots <= 0 || SatelliteFollowcastAmulet.getImbuedSpells(stack).isEmpty()) {
             return CastAttemptResult.NONE;
         }
 
-        var maxSpellSlots = SatelliteFollowcastAmulet.clampSpellSlotCount(spellContainer.getMaxSpellCount());
         var startIndex = SatelliteFollowcastAmulet.advanceAndGetSearchStartIndex(stack, maxSpellSlots);
         for (var offset = 0; offset < maxSpellSlots; ++offset) {
             var slotIndex = (startIndex + offset) % maxSpellSlots;
-            var spellData = spellContainer.getSpellAtIndex(slotIndex);
-            if (spellData == SpellData.EMPTY || !amulet.canImbueSpell(spellData)) {
+            var spellData = SatelliteFollowcastAmulet.getSpellDataAt(stack, slotIndex);
+            if (spellData == SpellData.EMPTY || !amulet.canFollowcastSpell(stack, spellData)) {
                 continue;
             }
             if (ApprenticeCodexServerConfig.isSatelliteFollowcastAmuletSpellDenied(spellData.getSpell().getSpellResource())) {

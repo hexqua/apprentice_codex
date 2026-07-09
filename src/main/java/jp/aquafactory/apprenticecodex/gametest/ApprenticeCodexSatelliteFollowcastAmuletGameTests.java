@@ -7,7 +7,6 @@ import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectile;
-import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -118,19 +117,38 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void satelliteFollowcastAmuletLesserUpgradeStopsAtTwoSlots(GameTestHelper helper) {
+    public static void satelliteFollowcastAmuletCalibrationUpgradesEnableFourSlotsAndConvertLegacy(GameTestHelper helper) {
         var amulet = (SatelliteFollowcastAmulet) ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get();
         var stack = new ItemStack(amulet);
         amulet.initializeSpellContainer(stack);
 
-        var upgradeItem = (SpellSlotUpgradeItem) io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get();
-        var upgraded = amulet.createSpellSlotUpgradeResult(stack, upgradeItem);
-        helper.assertFalse(upgraded.isEmpty(), "Satellite Followcast Amulet should accept the first lesser slot upgrade.");
-        helper.assertTrue(ISpellContainer.get(upgraded).getMaxSpellCount() == SatelliteFollowcastAmulet.MAX_SPELL_SLOTS,
-                "Satellite Followcast Amulet should upgrade to exactly two spell slots.");
+        var upgradeStack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get());
+        for (var slot = 0; slot < SatelliteFollowcastAmulet.CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            SatelliteFollowcastAmulet.setCalibrationAdjustment(stack, slot, upgradeStack);
+        }
+        helper.assertTrue(SatelliteFollowcastAmulet.getEnabledSpellSlotCount(stack) == SatelliteFollowcastAmulet.MAX_SPELL_SLOTS,
+                "Satellite Followcast Amulet calibration upgrades should enable four spell slots.");
+        helper.assertFalse(stack.getItem() instanceof jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem,
+                "Satellite Followcast Amulet should not be upgraded by Arcane Anvil slot upgrades anymore.");
 
-        var rejected = amulet.createSpellSlotUpgradeResult(upgraded, upgradeItem);
-        helper.assertTrue(rejected.isEmpty(), "Satellite Followcast Amulet should reject upgrades beyond two spell slots.");
+        var legacyStack = new ItemStack(amulet);
+        var legacySpells = ISpellContainer.create(2, false, false).mutableCopy();
+        legacySpells.addSpellAtIndex(SpellRegistry.MAGE_LIGHT.get(), 1, 0, false);
+        legacySpells.addSpellAtIndex(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1, 1, false);
+        ISpellContainer.set(legacyStack, legacySpells.toImmutable());
+        amulet.initializeSpellContainer(legacyStack);
+
+        helper.assertFalse(ISpellContainer.isSpellContainer(legacyStack),
+                "Satellite Followcast Amulet legacy conversion should remove Iron's SpellContainer.");
+        helper.assertTrue(SatelliteFollowcastAmulet.getEnabledSpellSlotCount(legacyStack) == 2,
+                "Satellite Followcast Amulet legacy two-slot item should convert to one calibration upgrade.");
+        helper.assertTrue(SatelliteFollowcastAmulet.isCalibrationSlotUpgrade(
+                        SatelliteFollowcastAmulet.getCalibrationAdjustment(legacyStack, 0)),
+                "Satellite Followcast Amulet legacy two-slot item should gain a slot upgrade adjustment.");
+        assertSatelliteSpellData(helper, legacyStack, 0, SpellRegistry.MAGE_LIGHT.get(), 1,
+                "Satellite Followcast Amulet legacy conversion should preserve the first spell.");
+        assertSatelliteSpellData(helper, legacyStack, 1, io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1,
+                "Satellite Followcast Amulet legacy conversion should preserve the second spell.");
 
         helper.succeed();
     }
@@ -203,12 +221,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         magicData.getSyncedData().learnSpell(unaffordableSpell, false);
         magicData.getSyncedData().learnSpell(fallbackSpell, false);
 
-        var amulet = (SatelliteFollowcastAmulet) ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get();
-        var amuletStack = new ItemStack(amulet);
-        var spells = ISpellContainer.create(SatelliteFollowcastAmulet.MAX_SPELL_SLOTS, false, false).mutableCopy();
-        spells.addSpellAtIndex(unaffordableSpell, 1, 0, false);
-        spells.addSpellAtIndex(fallbackSpell, 1, 1, false);
-        ISpellContainer.set(amuletStack, spells.toImmutable());
+        var amuletStack = createAmuletStack(unaffordableSpell, fallbackSpell);
         equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, amuletStack);
 
         SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell));
@@ -307,17 +320,11 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         helper.assertTrue(magicData != null, "Satellite Followcast Amulet continuous test could not resolve player mana data.");
         magicData.setMana(200.0F);
 
-        var amulet = (SatelliteFollowcastAmulet) ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get();
-        var amuletStack = new ItemStack(amulet);
         var fireBreath = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
         var mageLight = SpellRegistry.MAGE_LIGHT.get();
+        var amuletStack = createAmuletStack(fireBreath, mageLight);
         magicData.getSyncedData().learnSpell(fireBreath, false);
         magicData.getSyncedData().learnSpell(mageLight, false);
-
-        var spells = ISpellContainer.create(SatelliteFollowcastAmulet.MAX_SPELL_SLOTS, false, false).mutableCopy();
-        spells.addSpellAtIndex(fireBreath, 1, 0, false);
-        spells.addSpellAtIndex(mageLight, 1, 1, false);
-        ISpellContainer.set(amuletStack, spells.toImmutable());
         equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, amuletStack);
 
         helper.runAtTickTime(1, () -> {
@@ -344,7 +351,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
             var searchCenter = SatelliteFollowcastAmulet.getCrystalPosition(
                     player,
                     0,
-                    SatelliteFollowcastAmulet.MAX_SPELL_SLOTS,
+                    SatelliteFollowcastAmulet.getEnabledSpellSlotCount(amuletStack),
                     0.0F
             );
             var projectiles = level.getEntitiesOfClass(FireBreathProjectile.class, new AABB(searchCenter, searchCenter).inflate(16.0D));
@@ -566,12 +573,64 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
     }
 
     private static ItemStack createAmuletStack(io.redspace.ironsspellbooks.api.spells.AbstractSpell spell) {
+        return createAmuletStack(new io.redspace.ironsspellbooks.api.spells.AbstractSpell[]{spell});
+    }
+
+    private static ItemStack createAmuletStack(io.redspace.ironsspellbooks.api.spells.AbstractSpell... spells) {
         var amulet = (SatelliteFollowcastAmulet) ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get();
         var amuletStack = new ItemStack(amulet);
-        var spells = ISpellContainer.create(SatelliteFollowcastAmulet.MIN_SPELL_SLOTS, false, false).mutableCopy();
-        spells.addSpellAtIndex(spell, 1, 0, false);
-        ISpellContainer.set(amuletStack, spells.toImmutable());
+        for (var slot = 1; slot < spells.length && slot <= SatelliteFollowcastAmulet.CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            SatelliteFollowcastAmulet.setCalibrationAdjustment(
+                    amuletStack,
+                    slot - 1,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
+            );
+        }
+        var needsSilverRing = false;
+        for (var slot = 0; slot < spells.length && slot < SatelliteFollowcastAmulet.getStoredSpellSlotCount(); ++slot) {
+            var spell = spells[slot];
+            if (spell.getCastType() != io.redspace.ironsspellbooks.api.spells.CastType.INSTANT) {
+                needsSilverRing = true;
+            }
+            SatelliteFollowcastAmulet.setCalibrationScroll(amuletStack, slot, createSpellScroll(spell));
+        }
+        if (needsSilverRing) {
+            for (var slot = 0; slot < SatelliteFollowcastAmulet.CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+                if (!SatelliteFollowcastAmulet.getCalibrationAdjustment(amuletStack, slot).isEmpty()) {
+                    continue;
+                }
+                SatelliteFollowcastAmulet.setCalibrationAdjustment(
+                        amuletStack,
+                        slot,
+                        new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
+                );
+                break;
+            }
+        }
         return amuletStack;
+    }
+
+    private static ItemStack createSpellScroll(io.redspace.ironsspellbooks.api.spells.AbstractSpell spell) {
+        var scrollStack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+        ISpellContainer.createScrollContainer(spell, 1, scrollStack);
+        return scrollStack;
+    }
+
+    private static void assertSatelliteSpellData(
+            GameTestHelper helper,
+            ItemStack stack,
+            int slot,
+            io.redspace.ironsspellbooks.api.spells.AbstractSpell expectedSpell,
+            int expectedLevel,
+            String message
+    ) {
+        var spellData = SatelliteFollowcastAmulet.getSpellDataAt(stack, slot);
+        helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY
+                        && spellData.getSpell() == expectedSpell
+                        && spellData.getLevel() == expectedLevel,
+                message + ": got " + (spellData == io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY
+                        ? "empty"
+                        : spellData.getSpell().getSpellResource()));
     }
 
     private static FakePlayer createTrackedEquipmentTestPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
