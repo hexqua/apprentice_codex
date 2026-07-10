@@ -26,6 +26,7 @@ import jp.aquafactory.apprenticecodex.spell.echocast.EchoCast;
 import jp.aquafactory.apprenticecodex.spell.edgedancer.EdgeDancer;
 import jp.aquafactory.apprenticecodex.spell.extract.Extract;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRush;
+import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseer;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatter;
 import jp.aquafactory.apprenticecodex.spell.forcefield.ForceField;
 import jp.aquafactory.apprenticecodex.spell.frostrune.FrostRune;
@@ -57,6 +58,7 @@ import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJack;
 import jp.aquafactory.apprenticecodex.spell.remoteeye.RemoteEye;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeacon;
 import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
+import jp.aquafactory.apprenticecodex.spell.servantgaze.ServantGaze;
 import jp.aquafactory.apprenticecodex.spell.shock.Shock;
 import jp.aquafactory.apprenticecodex.spell.silentassassin.SilentAssassin;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBlade;
@@ -129,6 +131,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> LETHAL_ASSAULT = reg("lethal_assault", LethalAssault::new);
     public static final RegistryObject<AbstractSpell> EDGE_DANCER = reg("edge_dancer", EdgeDancer::new);
     public static final RegistryObject<AbstractSpell> LINEAR_BUILD = reg("linear_build", LinearBuild::new);
+    public static final RegistryObject<AbstractSpell> SERVANT_GAZE = reg("servant_gaze", ServantGaze::new);
 
     // 炎.
     public static final RegistryObject<AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);
@@ -161,6 +164,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> FLY_SWATTER = reg("fly_swatter", FlySwatter::new);
     public static final RegistryObject<AbstractSpell> SHOCK = reg("shock", Shock::new);
     public static final RegistryObject<AbstractSpell> DUAL_ACROBAT = reg("dual_acrobat", DualAcrobat::new);
+    public static final RegistryObject<AbstractSpell> FIELD_OVERSEER = reg("field_overseer", FieldOverseer::new);
 
     // 自然.
     public static final RegistryObject<AbstractSpell> COMPOUND_PHIAL = reg("compound_phial", CompoundPhial::new);
