@@ -534,6 +534,8 @@
   "entity.apprenticecodex.artisan_smash_shell": "炸裂弾",
   "entity.apprenticecodex.anchor_blink_dagger": "アンカーダガー",
   "entity.apprenticecodex.totem_of_permafrost_totem": "永久凍土のトーテム",
+  "entity.apprenticecodex.field_overseer_staff": "監視者の杖",
+  "entity.apprenticecodex.servant_gaze_staff": "従者の杖",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "使い走り魔術師",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "使い走り魔術師",
@@ -601,6 +603,8 @@
   "config.jade.plugin_apprenticecodex.archer_multiple": "アーチャーオプションの弓",
   "config.jade.plugin_apprenticecodex.auto_turret": "オートタレット",
   "config.jade.plugin_apprenticecodex.search_beacon": "サーチビーコン",
+  "config.jade.plugin_apprenticecodex.field_overseer": "フィールドオーバーシアー",
+  "config.jade.plugin_apprenticecodex.servant_gaze": "サーヴァントゲイズ",
 
   "jade.apprenticecodex.none": "無し",
   "jade.apprenticecodex.item_count": "%1$dx %2$s",
@@ -613,6 +617,7 @@
   "jade.apprenticecodex.healing_bloom.next_fruit": "次に実るまで: %1$d秒",
   "jade.apprenticecodex.remaining_ammo": "残り弾数: %1$d",
   "jade.apprenticecodex.search_beacon.targets": "探索対象: %1$s",
+  "jade.apprenticecodex.remaining_mana": "マナ: %1$d",
 
   "skill.apprenticecodex.wind_leap": "ウィンドリープ",
   "skill.apprenticecodex.wind_leap.tooltip": "強打を行えるほど高く跳躍し、着地寸前に殴打を行う。この跳躍自体が落下を保護することはない。",
@@ -688,6 +693,8 @@
   "spell.apprenticecodex.linear_build": "リニアビルド",
   "spell.apprenticecodex.mana_mending": "マナ修繕",
   "spell.apprenticecodex.totem_of_permafrost": "永久凍土のトーテム",
+  "spell.apprenticecodex.field_overseer": "フィールドオーバーシアー",
+  "spell.apprenticecodex.servant_gaze": "サーヴァントゲイズ",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -760,6 +767,8 @@
   "spell.apprenticecodex.linear_build.guide": "視線の先から自分の座標の軸と交差する直前までの間に手持ちのブロックを設置する。ブロックをどちらの手にも持っていない時は使用できず、視線先のブロックが方向などを持っている場合は極力それを真似て設置しようとする。使用するブロックはオフハンドのものが優先され、消費は手持ち以外から優先的に消費する。自分に紐づいているパーソナルシェルフやエンダーチェスト、近くにある自分の工具箱やペット、装備しているバックパックや持っているシュルカーボックス、バンドルからも取り寄せる事ができる。",
   "spell.apprenticecodex.mana_mending.guide": "自分のマナを手元のアイテムに流し込んで修繕を行う。利き手とオフハンドの両方にアイテムを持っている場合、オフハンドが優先される。損傷しているアイテムを直接持っていない場合は使用できない。",
   "spell.apprenticecodex.totem_of_permafrost.guide": "氷の魔力が強力に込められたトーテムを召喚して設置し、短時間ではあるがトーテムの周囲を冷気で攻撃する。冷気は対象の動きを制限しようとする。大魔術師のお守りを装備していると手動でトーテムを消してもクールダウンが発生しない。",
+  "spell.apprenticecodex.field_overseer.guide": "近くの敵に雷の魔力を叩きつける自律型の杖を召喚して周囲を監視させる。攻撃時に杖に蓄えているマナを消費する。杖へのマナ供給はある程度近づけば自動で行われる。",
+  "spell.apprenticecodex.servant_gaze.guide": "近くの敵に純粋な魔力の弾を射出する追従型の杖を召喚する。攻撃時に術者のマナを消費する。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -805,6 +814,8 @@
   "ui.apprenticecodex.anchor_blink.anchor_distance": "アンカー成立距離: %sブロック",
   "ui.apprenticecodex.mana_mending.repair_per_second": "アイテムの修繕速度: %s/秒",
   "ui.apprenticecodex.auto_turret.restock_mana_cost": "矢の再補充に必要なマナ: %d",
+  "ui.apprenticecodex.staff_turret_spell.shot_mana_cost": "攻撃時の消費マナ: %d",
+  "ui.apprenticecodex.field_overseer.mana_storage": "杖が保持できるマナ: %d",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.too_far": "遠すぎる！",
@@ -1024,6 +1035,8 @@
   "death.attack.apprenticecodex.artisan_smash": "%1$sは匠によって大改造された",
   "death.attack.apprenticecodex.anchor_blink": "%1$sは%2$sによって狩られた",
   "death.attack.apprenticecodex.totem_of_permafrost": "%1$sの体は歴史に刻まれた",
+  "death.attack.apprenticecodex.field_overseer": "%1$sは裁かれた",
+  "death.attack.apprenticecodex.servant_gaze": "%1$sは勝ち上がれなかった",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",
