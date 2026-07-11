@@ -6964,6 +6964,56 @@ public class ApprenticeCodexGameTestScenarios {
         helper.succeed();
     }
 
+    static void fieldOverseerUsesDurationBoundPersistencePolicy(GameTestHelper helper) {
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, -2), "field_overseer_persistence_test");
+        var anchorPos = helper.absolutePos(new BlockPos(0, 2, 0));
+        helper.setBlock(new BlockPos(0, 1, 0), Blocks.STONE);
+        var staff = createFieldOverseerTestEntity(helper, owner, anchorPos, 100.0F, 40);
+
+        helper.assertTrue(staff.shouldBeSaved(),
+                "FieldOverseer staff should survive chunk save and reload during its summon duration");
+        helper.assertFalse(staff.removeWhenFarAway(Double.MAX_VALUE),
+                "FieldOverseer staff should not despawn when the owner moves far away");
+        helper.succeed();
+    }
+
+    static void fieldOverseerRecastRemovesPlacedStaff(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, -2), "field_overseer_recast_remove_test");
+            var anchorPos = new BlockPos(0, 2, 0);
+            helper.setBlock(anchorPos.below(), Blocks.STONE);
+            var staff = createDurationBoundFieldOverseer(
+                    helper, owner, 1, anchorPos, ((FieldOverseer) SpellRegistry.FIELD_OVERSEER.get()).getDuration());
+            var magicData = MagicData.getPlayerMagicData(owner);
+            helper.assertTrue(magicData.getPlayerRecasts().hasRecastForSpell(SpellRegistry.FIELD_OVERSEER.get()),
+                    "FieldOverseer should create recast data after placement");
+
+            ((FieldOverseer) SpellRegistry.FIELD_OVERSEER.get())
+                    .castSpell(helper.getLevel(), 1, owner, CastSource.SPELLBOOK, true);
+
+            helper.assertTrue(staff.isRemoved(),
+                    "FieldOverseer manual recast should remove the placed staff");
+            helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(SpellRegistry.FIELD_OVERSEER.get()),
+                    "FieldOverseer manual recast should consume the active recast");
+        });
+    }
+
+    static void fieldOverseerTimeoutRemovesPlacedStaff(GameTestHelper helper) {
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, -2), "field_overseer_timeout_test");
+        var anchorPos = new BlockPos(0, 2, 0);
+        helper.setBlock(anchorPos.below(), Blocks.STONE);
+        var staff = createDurationBoundFieldOverseer(helper, owner, 1, anchorPos, 1);
+        var magicData = MagicData.getPlayerMagicData(owner);
+        helper.assertTrue(magicData.getPlayerRecasts().hasRecastForSpell(SpellRegistry.FIELD_OVERSEER.get()),
+                "FieldOverseer should have active recast data before timeout");
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(staff.isRemoved(), "FieldOverseer timeout should remove the placed staff");
+            helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(SpellRegistry.FIELD_OVERSEER.get()),
+                    "FieldOverseer timeout should consume the active recast");
+        });
+    }
+
     static void fieldOverseerPrioritizesHealthAndTransfersMana(GameTestHelper helper) {
         var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, -2), "field_overseer_attack_test");
         var ownerMagicData = MagicData.getPlayerMagicData(owner);
@@ -7012,6 +7062,22 @@ public class ApprenticeCodexGameTestScenarios {
         staff.moveTo(center.x, center.y, center.z, 0.0F, 0.0F);
         level.addFreshEntity(staff);
         io.redspace.ironsspellbooks.capabilities.magic.SummonManager.setOwner(staff, owner);
+        return staff;
+    }
+
+    private static FieldOverseerStaffEntity createDurationBoundFieldOverseer(
+            GameTestHelper helper, FakePlayer owner, int spellLevel, BlockPos anchorPos, int duration) {
+        helper.getLevel().addFreshEntity(owner);
+        var staff = createFieldOverseerTestEntity(
+                helper, owner, helper.absolutePos(anchorPos), 100.0F, 40);
+        var castData = new FieldOverseer.FieldOverseerCastData();
+        var spell = (FieldOverseer) SpellRegistry.FIELD_OVERSEER.get();
+        io.redspace.ironsspellbooks.capabilities.magic.SummonManager.initSummon(
+                owner, staff, duration, castData);
+        var magicData = MagicData.getPlayerMagicData(owner);
+        magicData.getPlayerRecasts().addRecast(new RecastInstance(
+                spell.getSpellId(), spellLevel, spell.getRecastCount(spellLevel, owner),
+                duration, CastSource.SPELLBOOK, castData), magicData);
         return staff;
     }
 
