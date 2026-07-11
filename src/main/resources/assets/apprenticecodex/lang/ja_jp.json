@@ -768,7 +768,7 @@
   "spell.apprenticecodex.mana_mending.guide": "自分のマナを手元のアイテムに流し込んで修繕を行う。利き手とオフハンドの両方にアイテムを持っている場合、オフハンドが優先される。損傷しているアイテムを直接持っていない場合は使用できない。",
   "spell.apprenticecodex.totem_of_permafrost.guide": "氷の魔力が強力に込められたトーテムを召喚して設置し、短時間ではあるがトーテムの周囲を冷気で攻撃する。冷気は対象の動きを制限しようとする。大魔術師のお守りを装備していると手動でトーテムを消してもクールダウンが発生しない。",
   "spell.apprenticecodex.field_overseer.guide": "近くの敵に雷の魔力を叩きつける自律型の杖を召喚して周囲を監視させる。杖は体力の高い敵を優先的に対象に取る。召喚時の術者の最大マナがそのまま杖が保持できるマナの上限となり、攻撃時に杖に蓄えているマナを消費する。杖へのマナ供給はある程度近づけば自動で行われる。",
-  "spell.apprenticecodex.servant_gaze.guide": "近くの敵に純粋な魔力の弾を射出する追従型の杖を召喚する。杖は体力の高い敵を優先的に対象に取る。攻撃時に術者のマナを消費する。",
+  "spell.apprenticecodex.servant_gaze.guide": "近くの敵に純粋な魔力の弾を射出する追従型の杖を召喚する。杖は体力の高い敵を優先的に対象に取る。杖の維持に時間制限は存在しないが、代わりに攻撃時に術者のマナを消費する。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",

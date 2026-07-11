@@ -86,6 +86,8 @@ import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingRenderer;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherRenderer;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseerStaffRenderer;
+import jp.aquafactory.apprenticecodex.spell.servantgaze.ServantGazeProjectileRenderer;
+import jp.aquafactory.apprenticecodex.spell.servantgaze.ServantGazeStaffRenderer;
 import jp.aquafactory.apprenticecodex.spell.frostrune.FrostRuneTrapBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudRenderer;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelRenderer;
@@ -661,6 +663,8 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.AUTO_MAGNET_FAMILIAR.get(), AutoMagnetFamiliarRenderer::new);
         event.registerEntityRenderer(EntityRegistry.AUTO_TURRET.get(), AutoTurretRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FIELD_OVERSEER_STAFF.get(), FieldOverseerStaffRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.SERVANT_GAZE_STAFF.get(), ServantGazeStaffRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.SERVANT_GAZE_PROJECTILE.get(), ServantGazeProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.TOTEM_OF_PERMAFROST_TOTEM.get(), TotemOfPermafrostTotemRenderer::new);
         event.registerEntityRenderer(EntityRegistry.COMPANION_TRUNK.get(), CompanionTrunkRenderer::new);
         event.registerEntityRenderer(EntityRegistry.HEALING_BLOOM.get(), HealingBloomRenderer::new);
