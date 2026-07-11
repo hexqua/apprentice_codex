@@ -56,16 +56,45 @@ public final class ServantGazeManager {
     }
 
     public static void ensureActive(ServerPlayer player) {
+        maintainActive(player, false);
+    }
+
+    public static void reconcileActive(ServerPlayer player) {
+        maintainActive(player, true);
+    }
+
+    private static void maintainActive(ServerPlayer player, boolean reconcile) {
         var data = Capabilities.getSpellDataOrNull(player);
         if (data == null) return;
         var state = data.get(CodexSpellStateTypeRegister.SERVANT_GAZE_STATE);
         if (!state.active || !player.isAlive()) return;
-        var staff = normalize(player, state.getStaffUuid(), state.spellLevel, state.damage,
-                state.radius, state.attackManaCost, true);
+        var staff = reconcile ? null : resolveManagedStaff(player, state.getStaffUuid());
+        if (staff == null) {
+            staff = normalize(player, state.getStaffUuid(), state.spellLevel, state.damage,
+                    state.radius, state.attackManaCost, true);
+        } else {
+            staff.configure(state.spellLevel, state.damage, state.radius, state.attackManaCost);
+        }
         var uuid = staff == null ? null : staff.getUUID();
         if (!java.util.Objects.equals(uuid, state.getStaffUuid())) {
             data.edit(CodexSpellStateTypeRegister.SERVANT_GAZE_STATE, value -> value.setStaffUuid(uuid));
         }
+    }
+
+    private static @Nullable ServantGazeStaffEntity resolveManagedStaff(ServerPlayer player,
+                                                                         @Nullable UUID managedUuid) {
+        if (managedUuid == null) return null;
+        var entity = player.serverLevel().getEntity(managedUuid);
+        return entity instanceof ServantGazeStaffEntity staff && isValidForOwner(staff, player)
+                ? staff
+                : null;
+    }
+
+    private static boolean isValidForOwner(@Nullable ServantGazeStaffEntity staff, ServerPlayer player) {
+        return staff != null
+                && !staff.isRemoved()
+                && staff.level() == player.level()
+                && staff.getOwner() == player;
     }
 
     private static @Nullable ServantGazeStaffEntity normalize(ServerPlayer player, @Nullable UUID managedUuid,
@@ -92,7 +121,7 @@ public final class ServantGazeManager {
             player.serverLevel().addFreshEntity(primary);
             owned.add(primary);
         }
-        discardOwned(player, primary);
+        discardOwned(owned, primary);
         if (primary != null) primary.configure(spellLevel, damage, radius, manaCost);
         return primary;
     }
@@ -109,6 +138,11 @@ public final class ServantGazeManager {
     }
 
     private static void discardOwned(ServerPlayer player, @Nullable ServantGazeStaffEntity keep) {
-        for (var staff : findOwned(player)) if (staff != keep) staff.discard();
+        discardOwned(findOwned(player), keep);
+    }
+
+    private static void discardOwned(ArrayList<ServantGazeStaffEntity> owned,
+                                     @Nullable ServantGazeStaffEntity keep) {
+        for (var staff : owned) if (staff != keep) staff.discard();
     }
 }
