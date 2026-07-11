@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretEntity;
+import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseerStaffEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconEntity;
 import net.minecraft.resources.ResourceLocation;
@@ -26,6 +27,7 @@ public final class ApprenticeCodexJadePlugin implements IWailaPlugin {
     public static final ResourceLocation HEALING_BLOOM_UID = id("healing_bloom");
     public static final ResourceLocation ARCHER_MULTIPLE_UID = id("archer_multiple");
     public static final ResourceLocation AUTO_TURRET_UID = id("auto_turret");
+    public static final ResourceLocation FIELD_OVERSEER_UID = id("field_overseer");
     public static final ResourceLocation SEARCH_BEACON_UID = id("search_beacon");
 
     private static ResourceLocation id(String path) {
@@ -38,6 +40,7 @@ public final class ApprenticeCodexJadePlugin implements IWailaPlugin {
         registration.registerEntityDataProvider(HealingBloomJadeProvider.INSTANCE, HealingBloomEntity.class);
         registration.registerEntityDataProvider(ArcherMultipleJadeProvider.INSTANCE, ArcherMultipleBowEntity.class);
         registration.registerEntityDataProvider(AutoTurretJadeProvider.INSTANCE, AutoTurretEntity.class);
+        registration.registerEntityDataProvider(FieldOverseerJadeProvider.INSTANCE, FieldOverseerStaffEntity.class);
         registration.registerEntityDataProvider(SearchBeaconJadeProvider.INSTANCE, SearchBeaconEntity.class);
     }
 
@@ -50,8 +53,10 @@ public final class ApprenticeCodexJadePlugin implements IWailaPlugin {
         registration.registerEntityComponent(HealingBloomJadeProvider.INSTANCE, HealingBloomEntity.class);
         registration.registerEntityComponent(ArcherMultipleJadeProvider.INSTANCE, ArcherMultipleBowEntity.class);
         registration.registerEntityComponent(AutoTurretJadeProvider.INSTANCE, AutoTurretEntity.class);
+        registration.registerEntityComponent(FieldOverseerJadeProvider.INSTANCE, FieldOverseerStaffEntity.class);
         registration.registerEntityComponent(SearchBeaconJadeProvider.INSTANCE, SearchBeaconEntity.class);
         registration.hideTarget(EntityRegistry.MYSTIC_SHIELD_SHIELD.get());
         registration.hideTarget(EntityRegistry.DUAL_ACROBAT_SMG.get());
+        registration.hideTarget(EntityRegistry.SERVANT_GAZE_STAFF.get());
     }
 }

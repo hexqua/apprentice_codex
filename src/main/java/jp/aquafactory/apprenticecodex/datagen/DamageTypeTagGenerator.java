@@ -96,7 +96,9 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 DUAL_ACROBAT,
                 ARTISAN_SMASH,
                 ANCHOR_BLINK,
-                TOTEM_OF_PERMAFROST
+                TOTEM_OF_PERMAFROST,
+                FIELD_OVERSEER,
+                SERVANT_GAZE
         );
 
         // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
@@ -183,7 +185,9 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 DUAL_ACROBAT,
                 ARTISAN_SMASH,
                 ANCHOR_BLINK,
-                TOTEM_OF_PERMAFROST
+                TOTEM_OF_PERMAFROST,
+                FIELD_OVERSEER,
+                SERVANT_GAZE
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.
@@ -200,7 +204,9 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 HEALING_BLOOM,
                 AUTO_TURRET,
                 TIRO_VOLLEY,
-                TOTEM_OF_PERMAFROST
+                TOTEM_OF_PERMAFROST,
+                FIELD_OVERSEER,
+                SERVANT_GAZE
         );
 
         // MAGIC_DAMAGE: Magic Proficiencyでダメージが伸びる(Malum限定)

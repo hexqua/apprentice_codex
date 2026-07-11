@@ -537,6 +537,8 @@
   "entity.apprenticecodex.artisan_smash_launcher": "Magic Launcher",
   "entity.apprenticecodex.artisan_smash_shell": "Explosive Shell",
   "entity.apprenticecodex.totem_of_permafrost_totem": "Totem of Permafrost",
+  "entity.apprenticecodex.field_overseer_staff": "Field Overseer Staff",
+  "entity.apprenticecodex.servant_gaze_staff": "Servant Gaze Staff",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "Errand Mage",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "Errand Mage",
@@ -602,6 +604,8 @@
   "config.jade.plugin_apprenticecodex.archer_multiple": "Archer Multiple Bow",
   "config.jade.plugin_apprenticecodex.auto_turret": "Auto Turret",
   "config.jade.plugin_apprenticecodex.search_beacon": "Search Beacon",
+  "config.jade.plugin_apprenticecodex.field_overseer": "Field Overseer",
+  "config.jade.plugin_apprenticecodex.servant_gaze": "Servant Gaze",
   "jade.apprenticecodex.none": "None",
   "jade.apprenticecodex.item_count": "%1$dx %2$s",
   "jade.apprenticecodex.arcanum_in_a_jar.redstone": "Redstone: %1$d",
@@ -613,6 +617,7 @@
   "jade.apprenticecodex.healing_bloom.next_fruit": "Next fruit in: %1$d s",
   "jade.apprenticecodex.remaining_ammo": "Remaining ammo: %1$d",
   "jade.apprenticecodex.search_beacon.targets": "Targets: %1$s",
+  "jade.apprenticecodex.remaining_mana": "Mana: %1$d/%2$d",
 
   "skill.apprenticecodex.wind_leap": "Wind Leap",
   "skill.apprenticecodex.wind_leap.tooltip": "Leap high enough to prepare a smash, then strike just before landing. The leap itself does not protect you from falling.",
@@ -687,6 +692,8 @@
   "spell.apprenticecodex.dual_acrobat": "Dual Acrobat",
   "spell.apprenticecodex.artisan_smash": "Artisan Smash",
   "spell.apprenticecodex.totem_of_permafrost": "Totem of Permafrost",
+  "spell.apprenticecodex.field_overseer": "Field Overseer",
+  "spell.apprenticecodex.servant_gaze": "Servant Gaze",
 
   "spell.apprenticecodex.sky_edge.guide": "Summons a weapon that fires toward your line of sight. It has a wind-up and deals no knockback, but it can ignore the target's invulnerability frames.",
   "spell.apprenticecodex.archer_multiple.guide": "Summons a magical bow that follows you and keeps firing until it runs out of shots, prioritizing your chosen target or nearby enemies.",
@@ -759,6 +766,8 @@
   "spell.apprenticecodex.dual_acrobat.guide": "Summons two magical SMGs and charges ammo by spinning them around you. Release to spray fire forward based on the charge.",
   "spell.apprenticecodex.artisan_smash.guide": "Summons a magical grenade launcher and fires an explosive shell, blasting a wide area where it lands. The blast does not destroy items or terrain, but it can hit you.",
   "spell.apprenticecodex.totem_of_permafrost.guide": "Summons and places a totem strongly imbued with ice magic, attacking the area around it with cold for a short time. The chill attempts to restrict targets' movement. While wearing the Greater Conjurer's Talisman, manually dismissing the totem does not trigger cooldown.",
+  "spell.apprenticecodex.field_overseer.guide": "Summons an autonomous staff to watch over the area, striking nearby enemies with lightning magic. The staff prioritizes enemies with higher health. The caster's maximum mana at the time of summoning becomes the staff's mana capacity, and it consumes its stored mana when attacking. Move close enough to replenish the staff's mana automatically.",
+  "spell.apprenticecodex.servant_gaze.guide": "Summons a staff that follows you and fires projectiles of pure magic at nearby enemies. The staff prioritizes enemies with higher health. It has no time limit, but consumes the caster's mana when attacking.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "Sneak Damage Multiplier: %d%%",
@@ -805,6 +814,7 @@
   "ui.apprenticecodex.inscribe_ice.notched_frozen_damage": "Magic Burst Damage: %s",
   "ui.apprenticecodex.anchor_blink.anchor_distance": "Anchoring range: %s blocks",
   "ui.apprenticecodex.auto_turret.restock_mana_cost": "Mana required to restock arrows: %d",
+  "ui.apprenticecodex.staff_turret_spell.shot_mana_cost": "Mana cost per attack: %d",
   "ui.apprenticecodex.too_far": "Too far!",
   "ui.apprenticecodex.cant_place": "Can't place here",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
@@ -1021,6 +1031,8 @@
   "death.attack.apprenticecodex.dual_acrobat": "%1$s hit the jackpot",
   "death.attack.apprenticecodex.artisan_smash": "%1$s was dramatically remodeled by a master artisan",
   "death.attack.apprenticecodex.totem_of_permafrost": "%1$s was etched into history",
+  "death.attack.apprenticecodex.field_overseer": "%1$s was judged",
+  "death.attack.apprenticecodex.servant_gaze": "%1$s failed to prevail",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "Apprentice's Codex",
   "advancements.apprenticecodex.apprentice_codex.root.description": "Decide to walk the path of an apprentice mage.",

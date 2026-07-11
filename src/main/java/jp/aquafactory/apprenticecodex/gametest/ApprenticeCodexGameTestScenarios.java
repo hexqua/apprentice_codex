@@ -155,6 +155,8 @@ import jp.aquafactory.apprenticecodex.spell.dualacrobat.DualAcrobatCounterSpellE
 import jp.aquafactory.apprenticecodex.spell.dualacrobat.DualAcrobatSmgEntity;
 import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
 import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseer;
+import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseerStaffEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
@@ -220,6 +222,7 @@ import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.PoiTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
@@ -302,6 +305,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.SimpleContainer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
+import io.netty.buffer.Unpooled;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.GrindstoneEvent;
 import net.minecraftforge.event.level.BlockEvent;
@@ -6906,6 +6910,175 @@ public class ApprenticeCodexGameTestScenarios {
         }
         helper.assertTrue(turrets.size() == 1, "Expected exactly one living AutoTurret but found " + turrets.size());
         return turrets.get(0);
+    }
+
+    static void fieldOverseerFallsWhenSupportRemoved(GameTestHelper helper) {
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, -2), "field_overseer_fall_test");
+        var anchorPos = helper.absolutePos(new BlockPos(0, 2, 0));
+        helper.setBlock(new BlockPos(0, 1, 0), Blocks.STONE);
+        var staff = createFieldOverseerTestEntity(helper, owner, anchorPos, 100.0F, 40);
+        var initialY = staff.getY();
+
+        helper.runAtTickTime(5, () -> helper.setBlock(new BlockPos(0, 1, 0), Blocks.AIR));
+        helper.succeedWhen(() -> {
+            helper.assertTrue(staff.isAlive() && !staff.isRemoved(),
+                    "FieldOverseer staff should remain alive after losing support");
+            helper.assertTrue(staff.getY() < initialY - 0.05D,
+                    "FieldOverseer staff should fall after losing support: " + staff.getY());
+        });
+    }
+
+    static void fieldOverseerCastDataRoundTripsPlacementAndSummons(GameTestHelper helper) {
+        var source = new FieldOverseer.FieldOverseerCastData();
+        var expectedPosition = helper.absolutePos(new BlockPos(1, 2, 3));
+        var sourceTag = new CompoundTag();
+        sourceTag.putLong("Position", expectedPosition.asLong());
+        source.deserializeNBT(sourceTag);
+
+        var marker = helper.spawn(EntityType.ARMOR_STAND, new BlockPos(0, 2, 0));
+        source.add(marker);
+        var buffer = new FriendlyByteBuf(Unpooled.buffer());
+        source.writeToBuffer(buffer);
+
+        var restored = new FieldOverseer.FieldOverseerCastData();
+        restored.readFromBuffer(buffer);
+        var restoredTag = restored.serializeNBT();
+        helper.assertTrue(restoredTag.getLong("Position") == expectedPosition.asLong(),
+                "FieldOverseer cast data should preserve placement through network serialization");
+        helper.assertTrue(restored.getSummons().contains(marker.getUUID()),
+                "FieldOverseer cast data should preserve summons through network serialization");
+        helper.succeed();
+    }
+
+    static void fieldOverseerIgnoresOwnerDamage(GameTestHelper helper) {
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, -2), "field_overseer_owner_damage_test");
+        var anchorPos = helper.absolutePos(new BlockPos(0, 2, 0));
+        helper.setBlock(new BlockPos(0, 1, 0), Blocks.STONE);
+        var staff = createFieldOverseerTestEntity(helper, owner, anchorPos, 100.0F, 40);
+        var initialHealth = staff.getHealth();
+
+        var damaged = staff.hurt(owner.damageSources().playerAttack(owner), 5.0F);
+        helper.assertFalse(damaged, "FieldOverseer staff should reject owner damage");
+        helper.assertTrue(Math.abs(staff.getHealth() - initialHealth) < 0.0001F,
+                "FieldOverseer staff health changed after owner damage");
+        helper.succeed();
+    }
+
+    static void fieldOverseerUsesDurationBoundPersistencePolicy(GameTestHelper helper) {
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, -2), "field_overseer_persistence_test");
+        var anchorPos = helper.absolutePos(new BlockPos(0, 2, 0));
+        helper.setBlock(new BlockPos(0, 1, 0), Blocks.STONE);
+        var staff = createFieldOverseerTestEntity(helper, owner, anchorPos, 100.0F, 40);
+
+        helper.assertTrue(staff.shouldBeSaved(),
+                "FieldOverseer staff should survive chunk save and reload during its summon duration");
+        helper.assertFalse(staff.removeWhenFarAway(Double.MAX_VALUE),
+                "FieldOverseer staff should not despawn when the owner moves far away");
+        helper.succeed();
+    }
+
+    static void fieldOverseerRecastRemovesPlacedStaff(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, -2), "field_overseer_recast_remove_test");
+            var anchorPos = new BlockPos(0, 2, 0);
+            helper.setBlock(anchorPos.below(), Blocks.STONE);
+            var staff = createDurationBoundFieldOverseer(
+                    helper, owner, 1, anchorPos, ((FieldOverseer) SpellRegistry.FIELD_OVERSEER.get()).getDuration());
+            var magicData = MagicData.getPlayerMagicData(owner);
+            helper.assertTrue(magicData.getPlayerRecasts().hasRecastForSpell(SpellRegistry.FIELD_OVERSEER.get()),
+                    "FieldOverseer should create recast data after placement");
+
+            ((FieldOverseer) SpellRegistry.FIELD_OVERSEER.get())
+                    .castSpell(helper.getLevel(), 1, owner, CastSource.SPELLBOOK, true);
+
+            helper.assertTrue(staff.isRemoved(),
+                    "FieldOverseer manual recast should remove the placed staff");
+            helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(SpellRegistry.FIELD_OVERSEER.get()),
+                    "FieldOverseer manual recast should consume the active recast");
+        });
+    }
+
+    static void fieldOverseerTimeoutRemovesPlacedStaff(GameTestHelper helper) {
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, -2), "field_overseer_timeout_test");
+        var anchorPos = new BlockPos(0, 2, 0);
+        helper.setBlock(anchorPos.below(), Blocks.STONE);
+        var staff = createDurationBoundFieldOverseer(helper, owner, 1, anchorPos, 1);
+        var magicData = MagicData.getPlayerMagicData(owner);
+        helper.assertTrue(magicData.getPlayerRecasts().hasRecastForSpell(SpellRegistry.FIELD_OVERSEER.get()),
+                "FieldOverseer should have active recast data before timeout");
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(staff.isRemoved(), "FieldOverseer timeout should remove the placed staff");
+            helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(SpellRegistry.FIELD_OVERSEER.get()),
+                    "FieldOverseer timeout should consume the active recast");
+        });
+    }
+
+    static void fieldOverseerPrioritizesHealthAndTransfersMana(GameTestHelper helper) {
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, -2), "field_overseer_attack_test");
+        var ownerMagicData = MagicData.getPlayerMagicData(owner);
+        ownerMagicData.setMana(75.0F);
+        var anchorPos = helper.absolutePos(new BlockPos(0, 2, 0));
+        helper.setBlock(new BlockPos(0, 1, 0), Blocks.STONE);
+        var staff = createFieldOverseerTestEntity(helper, owner, anchorPos, 100.0F, 40);
+
+        var highHealthTarget = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(3, 2, 0));
+        var mediumHealthTarget = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(0, 2, 3));
+        var lowHealthTarget = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(-3, 2, 0));
+        highHealthTarget.setHealth(20.0F);
+        mediumHealthTarget.setHealth(10.0F);
+        lowHealthTarget.setHealth(5.0F);
+
+        helper.runAtTickTime(52, () -> {
+            helper.assertTrue(highHealthTarget.getHealth() < 20.0F,
+                    "FieldOverseer should strike the highest-current-health target first");
+            helper.assertTrue(Math.abs(mediumHealthTarget.getHealth() - 10.0F) < 0.0001F,
+                    "FieldOverseer second strike should wait three ticks");
+            helper.assertTrue(Math.abs(lowHealthTarget.getHealth() - 5.0F) < 0.0001F,
+                    "FieldOverseer should not strike the lower-health target before its sequence turn");
+        });
+        helper.runAtTickTime(58, () -> {
+            helper.assertTrue(mediumHealthTarget.getHealth() < 10.0F,
+                    "FieldOverseer should perform the second strike three ticks after the first");
+        });
+        helper.runAtTickTime(62, () -> {
+            helper.assertTrue(lowHealthTarget.getHealth() < 5.0F,
+                    "FieldOverseer should perform the third strike six ticks after the first");
+            helper.assertTrue(Math.abs(staff.getCurrentMana() - 100.0F) < 0.0001F,
+                    "FieldOverseer should receive two 20 mana transfers after spending one attack cost");
+            helper.assertTrue(Math.abs(ownerMagicData.getMana() - 35.0F) < 0.0001F,
+                    "FieldOverseer should drain the same amount from the owner: " + ownerMagicData.getMana());
+            helper.succeed();
+        });
+    }
+
+    private static FieldOverseerStaffEntity createFieldOverseerTestEntity(
+            GameTestHelper helper, FakePlayer owner, BlockPos anchorPos, float maxMana, int attackManaCost) {
+        var level = helper.getLevel();
+        var center = Vec3.atBottomCenterOf(anchorPos);
+        var staff = new FieldOverseerStaffEntity(EntityRegistry.FIELD_OVERSEER_STAFF.get(), level);
+        staff.setOwner(owner);
+        staff.configure(anchorPos, 4.0F, 24.0D, attackManaCost, maxMana, 20);
+        staff.moveTo(center.x, center.y, center.z, 0.0F, 0.0F);
+        level.addFreshEntity(staff);
+        io.redspace.ironsspellbooks.capabilities.magic.SummonManager.setOwner(staff, owner);
+        return staff;
+    }
+
+    private static FieldOverseerStaffEntity createDurationBoundFieldOverseer(
+            GameTestHelper helper, FakePlayer owner, int spellLevel, BlockPos anchorPos, int duration) {
+        helper.getLevel().addFreshEntity(owner);
+        var staff = createFieldOverseerTestEntity(
+                helper, owner, helper.absolutePos(anchorPos), 100.0F, 40);
+        var castData = new FieldOverseer.FieldOverseerCastData();
+        var spell = (FieldOverseer) SpellRegistry.FIELD_OVERSEER.get();
+        io.redspace.ironsspellbooks.capabilities.magic.SummonManager.initSummon(
+                owner, staff, duration, castData);
+        var magicData = MagicData.getPlayerMagicData(owner);
+        magicData.getPlayerRecasts().addRecast(new RecastInstance(
+                spell.getSpellId(), spellLevel, spell.getRecastCount(spellLevel, owner),
+                duration, CastSource.SPELLBOOK, castData), magicData);
+        return staff;
     }
 
     static void totemOfPermafrostCanBePlacedOnSupportedSlab(GameTestHelper helper) {
