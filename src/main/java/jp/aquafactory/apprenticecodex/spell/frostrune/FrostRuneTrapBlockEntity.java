@@ -322,7 +322,7 @@ public class FrostRuneTrapBlockEntity extends BlockEntity implements GeoBlockEnt
             return false;
         }
         var resolved = CombatTools.resolutePartEntity(entity);
-        return resolved == owner || CombatTools.isValidCombatTarget(resolved, owner);
+        return CombatTools.isValidCombatTarget(resolved, owner);
     }
 
     private DamageSource createDamageSource(ServerLevel serverLevel, @Nullable Entity owner) {

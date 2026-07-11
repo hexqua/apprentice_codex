@@ -732,7 +732,7 @@
   "spell.apprenticecodex.force_field.guide": "部署一个无形力场，抵挡来自任意方向的敌人攻击。击退目标时会消耗大量魔力，但也可反弹特定法术。这是对异界长寿种族所用魔法的模仿。",
   "spell.apprenticecodex.precision_jack.guide": "召唤一把魔法匕首，劈砍你的目标。可获得远超平常的掉落物，但需要旋转足够次数才能激活。",
   "spell.apprenticecodex.auto_magnet.guide": "召唤一个魔法磁石跟随你。磁石会收集附近的物品和经验球，并转移给你。背包满时停止收集物品。普通模式下，潜行会暂时停止收集；潜行施法可切换为反转模式，使其仅在潜行时收集。",
-  "spell.apprenticecodex.grind_runner.guide": "召唤一个奥术转轮，研磨你前方的目标。不仅可以研磨生物，还能处理特定物品。释放魔力即可发射转轮。当齿轮法则生效时（安装Create模组），研磨物品会视为经过破碎轮或石磨处理。",
+  "spell.apprenticecodex.grind_runner.guide": "召唤一个奥术转轮，研磨你前方的目标。不仅可以研磨生物，还能处理特定物品。释放魔力即可发射转轮并碾过沿途的目标。发射后的转轮也会将你自己卷入攻击。当齿轮法则生效时（安装Create模组），研磨物品会视为经过破碎轮或石磨处理。",
   "spell.apprenticecodex.remote_eye.guide": "分离你的视野，在一定时间内自由移动视角。无法穿透墙壁，效果期间你处于无防备状态。",
   "spell.apprenticecodex.sense_evil.guide": "探测附近的邪恶生物，并在你的视野中高亮标记。即使没有清晰视线也能感知，还能探测生成这些邪恶生物的装置。",
   "spell.apprenticecodex.deep_sensor.guide": "一段时间内，提升对深渊独特声响的感知能力。",

@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -20,6 +21,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.MoverType;
@@ -144,6 +146,11 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
     }
 
     @Override
+    protected boolean canHitEntity(@NotNull Entity target) {
+        return super.canHitEntity(target) && CombatTools.isValidCombatTarget(target, getOwner());
+    }
+
+    @Override
     protected void onHitEntity(@NotNull EntityHitResult hitResult) {
         super.onHitEntity(hitResult);
         if (level().isClientSide) {
@@ -159,7 +166,11 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
                 hitEntity instanceof LivingEntity livingEntity ? livingEntity.getMobType() : MobType.UNDEFINED
         );
 
-        if (hitEntity.hurt(damageSource, damage) && hitEntity instanceof LivingEntity livingTarget) {
+        var protectedTarget = CombatTools.isProtectedCombatTarget(
+                CombatTools.resolutePartEntity(hitEntity), owner,
+                CombatTools.CombatTargetPolicy.PROTECT_SELF_AND_ALLIES
+        );
+        if (!protectedTarget && hitEntity.hurt(damageSource, damage) && hitEntity instanceof LivingEntity livingTarget) {
             if (owner instanceof LivingEntity livingOwner) {
                 EnchantmentHelper.doPostHurtEffects(livingTarget, livingOwner);
                 EnchantmentHelper.doPostDamageEffects(livingOwner, livingTarget);

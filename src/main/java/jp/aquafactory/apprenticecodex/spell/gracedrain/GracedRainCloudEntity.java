@@ -350,7 +350,8 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
             boolean craftsmansDelightAgeEffectEnabled
     ) {
         if (target.isInvertedHealAndHarm()) {
-            CombatTools.applyDamage(target, healAmount, source, school, CombatTools.KnockbackTypes.NO_KNOCKBACK);
+            CombatTools.applyDamage(target, healAmount, source, school, CombatTools.KnockbackTypes.NO_KNOCKBACK,
+                    CombatTools.CombatTargetPolicy.ALLOW_SELF_PROTECT_ALLIES);
         } else {
             target.heal(healAmount);
             if (craftsmansDelightAgeEffectEnabled) {

@@ -213,6 +213,7 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
         // 判定.
         var aabb = new AABB(position, position).inflate(radius);
         var r2 = radius * radius;
+        var owner = CombatOwnerResolver.resolveCombatOwner(level, getOwner(), combatOwnerUuid);
         var targets = level.getEntitiesOfClass(Entity.class, aabb, e -> {
             if (!e.isAlive()) {
                 return false;
@@ -223,11 +224,9 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
                 return false;
             }
 
-            // 自爆をさせるため、自分自身は判定に含められるようにする.
-            return CombatTools.isValidCombatTarget(e, null);
+            return CombatTools.isValidCombatTarget(e, owner);
         });
 
-        var owner = CombatOwnerResolver.resolveCombatOwner(level, getOwner(), combatOwnerUuid);
         var source = CombatOwnerResolver.createDamageSource(level, this, getOwner(), combatOwnerUuid, DamageTypes.FLY_SWATTER);
         for (var e : targets) {
             var dist2 = e.distanceToSqr(position);
@@ -249,11 +248,12 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
             }
 
             var finalDamage = (float)(damage * scale);
-            CombatTools.applyDamage(e, finalDamage, source, SpellRegistry.FLY_SWATTER.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+            var damaged = CombatTools.applyDamage(e, finalDamage, source,
+                    SpellRegistry.FLY_SWATTER.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
 
             // 爆風で吹き飛ばす.
             var dir = e.position().subtract(position);
-            if (dir.lengthSqr() > 1.0e-6) {
+            if (damaged && dir.lengthSqr() > 1.0e-6) {
                 dir = dir.normalize();
                 e.push(dir.x * EXPLOSION_KNOCKBACK * scale, EXPLOSION_KNOCKBACK_UP * scale, dir.z * EXPLOSION_KNOCKBACK * scale);
             }

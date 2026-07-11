@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.utility;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.entity.mobs.IMagicSummon;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
@@ -15,7 +16,10 @@ import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.entity.PartEntity;
 import net.minecraftforge.fml.ModList;
@@ -32,6 +36,21 @@ public final class CombatTools {
     public enum KnockbackTypes {
         DEFAULT,
         NO_KNOCKBACK,
+    }
+
+    public enum CombatTargetPolicy {
+        PROTECT_SELF_AND_ALLIES(false),
+        ALLOW_SELF_PROTECT_ALLIES(true);
+
+        private final boolean allowsSelfDamage;
+
+        CombatTargetPolicy(boolean allowsSelfDamage) {
+            this.allowsSelfDamage = allowsSelfDamage;
+        }
+
+        public boolean allowsSelfDamage() {
+            return allowsSelfDamage;
+        }
     }
 
     private static volatile long lastEpicFightCompatLogMs = 0L;
@@ -76,21 +95,38 @@ public final class CombatTools {
     }
 
     public static boolean isValidCombatTarget(Entity target, @Nullable Entity owner) {
-        if (target == owner) return false;
+        return isValidCombatTarget(target, owner, CombatTargetPolicy.PROTECT_SELF_AND_ALLIES);
+    }
+
+    public static boolean isValidCombatTarget(Entity target, @Nullable Entity owner, CombatTargetPolicy policy) {
+        var resolvedTarget = resolutePartEntity(target);
+        var combatOwner = resolveCombatActor(owner);
+
+        if (resolvedTarget == combatOwner && !policy.allowsSelfDamage()) return false;
 
         // 例外的に対象にする特殊エンティティを指定.
-        if (target instanceof EndCrystal) return true;
-
-        // エンダードラゴン系の解決は内部で行う.
-        var resolvedTarget = resolutePartEntity(target);
+        if (resolvedTarget instanceof EndCrystal) return true;
 
         // 基本的にはLivingEntityのみを対象.
-        return resolvedTarget instanceof LivingEntity;
+        return resolvedTarget instanceof LivingEntity && !isProtectedCombatTarget(resolvedTarget, combatOwner, policy);
     }
 
     @SuppressWarnings("UnusedReturnValue")
     public static boolean applyDamage(Entity target, float baseAmount, DamageSource source, SchoolType magicSchool,
                                       KnockbackTypes type) {
+        return applyDamage(target, baseAmount, source, magicSchool, type, CombatTargetPolicy.PROTECT_SELF_AND_ALLIES);
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    public static boolean applyDamage(Entity target, float baseAmount, DamageSource source, SchoolType magicSchool,
+                                      KnockbackTypes type, CombatTargetPolicy policy) {
+        var resolvedTarget = resolutePartEntity(target);
+        var combatOwner = resolveDamageOwner(source);
+        if (isProtectedCombatTarget(resolvedTarget, combatOwner, policy)) {
+            return false;
+        }
+
+        target = resolvedTarget;
         if (target instanceof LivingEntity livingTarget) {
             var multicastAdjustment = MulticastEchoStaffAttackHandler.adjustCombatDamage(target, baseAmount, source);
             baseAmount = multicastAdjustment.baseAmount();
@@ -132,6 +168,87 @@ public final class CombatTools {
             baseAmount = multicastAdjustment.baseAmount();
             return target.hurt(source, baseAmount);
         }
+    }
+
+    public static boolean isProtectedCombatTarget(Entity target, @Nullable Entity owner, CombatTargetPolicy policy) {
+        if (owner == null) {
+            return false;
+        }
+
+        if (target == owner) {
+            return !policy.allowsSelfDamage();
+        }
+
+        // 同じroot vehicleに属する車両本体と全同乗者を保護し、複数席のMOD車両にも対応する.
+        if (owner.getRootVehicle() == target.getRootVehicle()) {
+            return true;
+        }
+
+        if (isOwnedBy(target, owner)) {
+            return true;
+        }
+
+        if (owner instanceof Player playerOwner && target instanceof Player playerTarget
+                && !playerOwner.canHarmPlayer(playerTarget)) {
+            return true;
+        }
+
+        var ownerTeam = owner.getTeam();
+        var targetTeam = target.getTeam();
+        var scoreboardAllied = ownerTeam != null && ownerTeam.isAlliedTo(targetTeam);
+        if (scoreboardAllied) {
+            return !ownerTeam.isAllowFriendlyFire();
+        }
+
+        // scoreboard teamは上でfriendly fire設定を確定済み。ここでは所有・勢力由来のoverrideだけを拾う.
+        return owner.isAlliedTo(target) || target.isAlliedTo(owner);
+    }
+
+    private static boolean isOwnedBy(Entity target, Entity owner) {
+        if (target instanceof OwnableEntity ownable) {
+            var ownerUuid = ownable.getOwnerUUID();
+            if (ownerUuid != null && ownerUuid.equals(owner.getUUID())) {
+                return true;
+            }
+        }
+
+        if (target instanceof IMagicSummon summon) {
+            var summoner = summon.getSummoner();
+            if (summoner != null && summoner.getUUID().equals(owner.getUUID())) {
+                return true;
+            }
+        }
+
+        return target instanceof CombatOwnerUuidSource source
+                && source.getCombatOwnerUuid() != null
+                && source.getCombatOwnerUuid().equals(owner.getUUID());
+    }
+
+    private static @Nullable Entity resolveDamageOwner(DamageSource source) {
+        return resolveCombatActor(source.getEntity());
+    }
+
+    private static @Nullable Entity resolveCombatActor(@Nullable Entity entity) {
+        if (entity == null) {
+            return null;
+        }
+
+        if (entity instanceof CombatOwnerUuidSource source && source.getCombatOwnerUuid() != null) {
+            if (entity.level() instanceof ServerLevel serverLevel) {
+                return serverLevel.getPlayerByUUID(source.getCombatOwnerUuid());
+            }
+            return null;
+        }
+
+        if (entity instanceof IMagicSummon summon) {
+            return resolveCombatActor(summon.getSummoner());
+        }
+
+        if (entity instanceof Projectile projectile) {
+            return resolveCombatActor(projectile.getOwner());
+        }
+
+        return entity;
     }
 
     private static boolean isEpicFightLikeEnvironment() {
