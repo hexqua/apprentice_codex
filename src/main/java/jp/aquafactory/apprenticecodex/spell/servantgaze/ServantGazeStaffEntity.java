@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.spell.servantgaze;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
+import io.redspace.ironsspellbooks.network.SyncManaPacket;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.entity.PersistentSummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
@@ -113,6 +115,7 @@ public class ServantGazeStaffEntity extends PersistentSummonWeaponEntity impleme
             pendingTargets.add(target.getEyePosition());
         }
         if (!pendingTargets.isEmpty()) {
+            PacketDistributor.sendToPlayer(owner, new SyncManaPacket(magicData));
             attackSetTick = 0;
             entityData.set(SHOOTING, true);
         }
