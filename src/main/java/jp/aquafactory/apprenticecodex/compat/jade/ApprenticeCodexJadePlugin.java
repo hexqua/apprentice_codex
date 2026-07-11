@@ -57,5 +57,6 @@ public final class ApprenticeCodexJadePlugin implements IWailaPlugin {
         registration.registerEntityComponent(SearchBeaconJadeProvider.INSTANCE, SearchBeaconEntity.class);
         registration.hideTarget(EntityRegistry.MYSTIC_SHIELD_SHIELD.get());
         registration.hideTarget(EntityRegistry.DUAL_ACROBAT_SMG.get());
+        registration.hideTarget(EntityRegistry.SERVANT_GAZE_STAFF.get());
     }
 }

@@ -48,6 +48,8 @@ import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunEntity;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconEntity;
+import jp.aquafactory.apprenticecodex.spell.servantgaze.ServantGazeProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.servantgaze.ServantGazeStaffEntity;
 import jp.aquafactory.apprenticecodex.spell.shock.ShockBoltEntity;
 import jp.aquafactory.apprenticecodex.spell.silentassassin.SilentAssassinRifleEntity;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
@@ -303,6 +305,12 @@ public final class EntityRegistry {
     public static final RegistryObject<EntityType<FieldOverseerStaffEntity>> FIELD_OVERSEER_STAFF =
             regLiving("field_overseer_staff", FieldOverseerStaffEntity::new,
                     FieldOverseerStaffEntity.WIDTH, FieldOverseerStaffEntity.HEIGHT, 32);
+
+    public static final RegistryObject<EntityType<ServantGazeStaffEntity>> SERVANT_GAZE_STAFF =
+            regWeapon("servant_gaze_staff", ServantGazeStaffEntity::new, 1);
+
+    public static final RegistryObject<EntityType<ServantGazeProjectileEntity>> SERVANT_GAZE_PROJECTILE =
+            regProjectile("servant_gaze_projectile", ServantGazeProjectileEntity::new, 128, 1);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);
