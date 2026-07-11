@@ -434,6 +434,16 @@ public class FieldOverseerStaffEntity extends PathfinderMob implements GeoEntity
     }
 
     @Override
+    public boolean shouldBeSaved() {
+        return true;
+    }
+
+    @Override
+    public boolean removeWhenFarAway(double distanceToClosestPlayer) {
+        return false;
+    }
+
+    @Override
     public void addAdditionalSaveData(@NotNull CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putLong("AnchorPos", anchorPos.asLong());
