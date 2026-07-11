@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.spell.companiontrunk;
 
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.utility.CombatOwnerUuidSource;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -59,7 +60,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Container {
+public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Container, CombatOwnerUuidSource {
     public static final float WIDTH = 0.95f;
     public static final float HEIGHT = 1.1f;
 
@@ -440,6 +441,11 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
     }
 
     public @Nullable UUID getOwnerUuid() {
+        return ownerUuid;
+    }
+
+    @Override
+    public @Nullable UUID getCombatOwnerUuid() {
         return ownerUuid;
     }
 

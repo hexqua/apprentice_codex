@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.PlacementHelper;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.CombatOwnerUuidSource;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.core.BlockPos;
@@ -44,7 +45,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.Optional;
 import java.util.UUID;
 
-public class TotemOfPermafrostTotemEntity extends PathfinderMob implements GeoEntity {
+public class TotemOfPermafrostTotemEntity extends PathfinderMob implements GeoEntity, CombatOwnerUuidSource {
     public static final float WIDTH = 0.8f;
     public static final float HEIGHT = 0.9f;
     private static final int FIRST_PULSE_TICK = 10;
@@ -216,6 +217,11 @@ public class TotemOfPermafrostTotemEntity extends PathfinderMob implements GeoEn
             }
         }
         return null;
+    }
+
+    @Override
+    public @Nullable UUID getCombatOwnerUuid() {
+        return entityData.get(OWNER_UUID).orElse(null);
     }
 
     public void setAnchorPos(BlockPos anchorPos) {

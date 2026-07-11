@@ -1021,8 +1021,12 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         var level = level();
         var source = createCombatDamageSource(DamageTypes.GRIND_RUNNER);
         var includeOwner = state == WheelState.LAUNCHED;
+        var policy = includeOwner
+                ? CombatTools.CombatTargetPolicy.ALLOW_SELF_PROTECT_ALLIES
+                : CombatTools.CombatTargetPolicy.PROTECT_SELF_AND_ALLIES;
         for (var target : resolveDamageTargets(owner, includeOwner)) {
-            CombatTools.applyDamage(target, damageAmount, source, SpellRegistry.GRIND_RUNNER.get().getSchoolType(), knockbackType);
+            CombatTools.applyDamage(target, damageAmount, source, SpellRegistry.GRIND_RUNNER.get().getSchoolType(),
+                    knockbackType, policy);
         }
     }
 
@@ -1036,7 +1040,9 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
                 end,
                 DAMAGE_SIDE_RADIUS,
                 DAMAGE_SAMPLE_STEP,
-                e -> (includeOwner && e == owner) || CombatTools.isValidCombatTarget(e, owner)
+                e -> CombatTools.isValidCombatTarget(e, owner, includeOwner
+                        ? CombatTools.CombatTargetPolicy.ALLOW_SELF_PROTECT_ALLIES
+                        : CombatTools.CombatTargetPolicy.PROTECT_SELF_AND_ALLIES)
         );
 
         var targets = new LinkedHashSet<LivingEntity>();
@@ -1049,7 +1055,9 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
                 continue;
             }
 
-            if (livingTarget == owner || CombatTools.isValidCombatTarget(livingTarget, owner)) {
+            if (CombatTools.isValidCombatTarget(livingTarget, owner, includeOwner
+                    ? CombatTools.CombatTargetPolicy.ALLOW_SELF_PROTECT_ALLIES
+                    : CombatTools.CombatTargetPolicy.PROTECT_SELF_AND_ALLIES)) {
                 targets.add(livingTarget);
             }
         }

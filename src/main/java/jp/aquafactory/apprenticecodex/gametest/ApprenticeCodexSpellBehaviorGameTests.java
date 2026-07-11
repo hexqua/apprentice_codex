@@ -47,8 +47,24 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String GRIND_RUNNER_ISOLATED_BATCH = "apprenticecodex.grind_runner_isolated";
     private static final String BEAM_OCCLUSION_ISOLATED_BATCH = "apprenticecodex.beam_occlusion_isolated";
     private static final String SUMMON_WEAPON_ANIMATION_BATCH = "apprenticecodex.summon_weapon_animation";
+    private static final String COMBAT_TARGET_POLICY_BATCH = "apprenticecodex.combat_target_policy";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
+    }
+
+    @GameTest(template = TEMPLATE, batch = COMBAT_TARGET_POLICY_BATCH)
+    public static void combatTargetPolicySeparatesSelfDamageFromAllyProtection(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.combatTargetPolicySeparatesSelfDamageFromAllyProtection(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = COMBAT_TARGET_POLICY_BATCH)
+    public static void combatTargetPolicyRespectsTeamFriendlyFireAndPvp(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.combatTargetPolicyRespectsTeamFriendlyFireAndPvp(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = COMBAT_TARGET_POLICY_BATCH)
+    public static void combatTargetPolicyProtectsWholeVehicleAndOwnedEntities(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.combatTargetPolicyProtectsWholeVehicleAndOwnedEntities(helper);
     }
 
     @GameTest(template = TEMPLATE)

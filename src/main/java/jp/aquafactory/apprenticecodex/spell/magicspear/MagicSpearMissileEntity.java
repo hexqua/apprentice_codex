@@ -402,13 +402,12 @@ public class MagicSpearMissileEntity extends Projectile implements GeoEntity, An
 
         for (var rawTarget : level().getEntities(this, area, Entity::isAlive)) {
             var target = CombatTools.resolutePartEntity(rawTarget);
-            if (!(target instanceof LivingEntity) || !CombatTools.isValidCombatTarget(target, null) || !damagedIds.add(target.getId())) {
+            if (!(target instanceof LivingEntity) || !CombatTools.isValidCombatTarget(target, owner) || !damagedIds.add(target.getId())) {
                 continue;
             }
-            var finalDamage = target == owner ? damage * 0.5f : damage;
             CombatTools.applyDamage(
                     target,
-                    finalDamage,
+                    damage,
                     source,
                     SpellRegistry.MAGIC_SPEAR.get().getSchoolType(),
                     CombatTools.KnockbackTypes.DEFAULT
