@@ -21,12 +21,15 @@ public final class ServantGazeEvents {
 
     @SubscribeEvent
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player) ServantGazeManager.ensureActive(player);
+        if (event.getEntity() instanceof ServerPlayer player) {
+            // 通常 tick では UUID から直接解決し、ライフサイクル境界だけ全ディメンションの重複を整理する。
+            ServantGazeManager.reconcileActive(player);
+        }
     }
 
     @SubscribeEvent
     public static void onDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player) ServantGazeManager.ensureActive(player);
+        if (event.getEntity() instanceof ServerPlayer player) ServantGazeManager.reconcileActive(player);
     }
 
     @SubscribeEvent

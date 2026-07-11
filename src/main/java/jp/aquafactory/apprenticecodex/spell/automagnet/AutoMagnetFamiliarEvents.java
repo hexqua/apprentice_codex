@@ -23,14 +23,15 @@ public final class AutoMagnetFamiliarEvents {
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer serverPlayer) {
-            AutoMagnetFamiliarManager.ensureActive(serverPlayer);
+            // 通常 tick では UUID から直接解決し、ライフサイクル境界だけ全ディメンションの重複を整理する。
+            AutoMagnetFamiliarManager.reconcileActive(serverPlayer);
         }
     }
 
     @SubscribeEvent
     public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.getEntity() instanceof ServerPlayer serverPlayer) {
-            AutoMagnetFamiliarManager.ensureActive(serverPlayer);
+            AutoMagnetFamiliarManager.reconcileActive(serverPlayer);
         }
     }
 

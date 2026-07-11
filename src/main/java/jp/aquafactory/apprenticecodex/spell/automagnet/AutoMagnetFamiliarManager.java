@@ -96,6 +96,14 @@ public final class AutoMagnetFamiliarManager {
     }
 
     public static void ensureActive(ServerPlayer player) {
+        maintainActive(player, false);
+    }
+
+    public static void reconcileActive(ServerPlayer player) {
+        maintainActive(player, true);
+    }
+
+    private static void maintainActive(ServerPlayer player, boolean reconcile) {
         var spellData = Capabilities.getSpellDataOrNull(player);
         if (spellData == null) {
             return;
@@ -109,7 +117,13 @@ public final class AutoMagnetFamiliarManager {
         var fixedRange = state.range > 0.0 ? state.range : DEFAULT_RANGE;
         var fixedCollectMana = Math.max(0.0, state.collectMana);
         var collectionMode = state.getCollectionMode();
-        var spawned = normalizeOwnedFamiliars(player, state.getFamiliarUuid(), fixedRange, fixedCollectMana, collectionMode, true);
+        var spawned = reconcile ? null : resolveManagedFamiliar(player, state.getFamiliarUuid());
+        if (spawned == null) {
+            spawned = normalizeOwnedFamiliars(
+                    player, state.getFamiliarUuid(), fixedRange, fixedCollectMana, collectionMode, true);
+        } else {
+            spawned.configureCollection(fixedRange, fixedCollectMana, collectionMode);
+        }
         var spawnedUuid = spawned != null ? spawned.getUUID() : null;
         if (state.range == fixedRange
                 && state.collectMana == fixedCollectMana
@@ -124,6 +138,17 @@ public final class AutoMagnetFamiliarManager {
             s.setCollectionMode(collectionMode);
             s.setFamiliarUuid(spawnedUuid);
         });
+    }
+
+    private static @Nullable AutoMagnetFamiliarEntity resolveManagedFamiliar(ServerPlayer player,
+                                                                              @Nullable UUID managedUuid) {
+        if (managedUuid == null) {
+            return null;
+        }
+        var entity = player.serverLevel().getEntity(managedUuid);
+        return entity instanceof AutoMagnetFamiliarEntity familiar && isValidForOwner(familiar, player)
+                ? familiar
+                : null;
     }
 
     private static AutoMagnetFamiliarEntity spawn(ServerPlayer player, double range, double collectMana,
