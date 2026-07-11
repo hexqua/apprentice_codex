@@ -21,6 +21,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String MIRAGE_AVOIDANCE_ISOLATED_BATCH = "apprenticecodex.mirage_avoidance_isolated";
     private static final String HARVEST_MOON_ISOLATED_BATCH = "apprenticecodex.harvest_moon_isolated";
     private static final String AUTO_TURRET_ISOLATED_BATCH = "apprenticecodex.auto_turret_isolated";
+    private static final String FIELD_OVERSEER_ISOLATED_BATCH = "apprenticecodex.field_overseer_isolated";
     private static final String TOTEM_OF_PERMAFROST_ISOLATED_BATCH = "apprenticecodex.totem_of_permafrost_isolated";
     private static final String TOTEM_OF_PERMAFROST_PULSE_BATCH = "apprenticecodex.totem_of_permafrost_pulse";
     private static final String AUTO_MAGNET_ISOLATED_BATCH = "apprenticecodex.auto_magnet_isolated";
@@ -317,6 +318,26 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = AUTO_TURRET_ISOLATED_BATCH, timeoutTicks = 180)
     public static void autoTurretAmmoDepletionKeepsAliveAndRestockClearsDiscardDelay(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.autoTurretAmmoDepletionKeepsAliveAndRestockClearsDiscardDelay(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FIELD_OVERSEER_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void fieldOverseerFallsWhenSupportRemoved(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.fieldOverseerFallsWhenSupportRemoved(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FIELD_OVERSEER_ISOLATED_BATCH)
+    public static void fieldOverseerCastDataRoundTripsPlacementAndSummons(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.fieldOverseerCastDataRoundTripsPlacementAndSummons(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FIELD_OVERSEER_ISOLATED_BATCH)
+    public static void fieldOverseerIgnoresOwnerDamage(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.fieldOverseerIgnoresOwnerDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FIELD_OVERSEER_ISOLATED_BATCH, timeoutTicks = 100)
+    public static void fieldOverseerPrioritizesHealthAndTransfersMana(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.fieldOverseerPrioritizesHealthAndTransfersMana(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = TOTEM_OF_PERMAFROST_ISOLATED_BATCH)
