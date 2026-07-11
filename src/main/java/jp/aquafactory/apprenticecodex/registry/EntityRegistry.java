@@ -25,6 +25,7 @@ import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushProjectileEnt
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseerStaffEntity;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudEntity;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
@@ -296,6 +297,11 @@ public final class EntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<RemoteOwnerCastAnchorEntity>> REMOTE_OWNER_CAST_ANCHOR =
             reg("remote_owner_cast_anchor", RemoteOwnerCastAnchorEntity::new, MobCategory.MISC,
                     0.6f, 1.8f, 32, 1, false);
+
+    // 既存ワールドの数値IDをずらさないため、新規エンティティは常に既存登録の末尾へ追加する.
+    public static final DeferredHolder<EntityType<?>, EntityType<FieldOverseerStaffEntity>> FIELD_OVERSEER_STAFF =
+            regLiving("field_overseer_staff", FieldOverseerStaffEntity::new,
+                    FieldOverseerStaffEntity.WIDTH, FieldOverseerStaffEntity.HEIGHT, 32);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

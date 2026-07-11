@@ -57,6 +57,9 @@ public final class ClientPlacementPreviewManager {
         if (spell.getCastType() != CastType.LONG || !(spell instanceof IClientPlacementPreviewSpell previewSpell)) {
             return;
         }
+        if (ClientMagicData.getRecasts().hasRecastForSpell(spell)) {
+            return;
+        }
 
         var level = player.level();
         var targetData = consumePendingTarget(spell.getSpellResource())
