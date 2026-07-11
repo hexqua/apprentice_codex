@@ -269,20 +269,22 @@ public class ArtisanSmashShellEntity extends ThrowableProjectile implements Anti
 
     private void applyBlastDamage(Vec3 center) {
         var source = CombatOwnerResolver.createDamageSource(level(), this, getOwner(), combatOwnerUuid, DamageTypes.ARTISAN_SMASH);
+        var combatOwner = CombatOwnerResolver.resolveCombatOwner(level(), getOwner(), combatOwnerUuid);
+        var policy = CombatTools.CombatTargetPolicy.ALLOW_SELF_PROTECT_ALLIES;
         var school = SpellRegistry.ARTISAN_SMASH.get().getSchoolType();
         var area = new AABB(center, center).inflate(splashRadius);
         var damagedIds = new HashSet<Integer>();
 
         for (var rawTarget : level().getEntities(this, area, Entity::isAlive)) {
             var target = CombatTools.resolutePartEntity(rawTarget);
-            if (!CombatTools.isValidCombatTarget(target, null) || !damagedIds.add(target.getId())) {
+            if (!CombatTools.isValidCombatTarget(target, combatOwner, policy) || !damagedIds.add(target.getId())) {
                 continue;
             }
             if (isBlockedByWall(center, target)) {
                 continue;
             }
 
-            CombatTools.applyDamage(target, damage, source, school, CombatTools.KnockbackTypes.DEFAULT);
+            CombatTools.applyDamage(target, damage, source, school, CombatTools.KnockbackTypes.DEFAULT, policy);
         }
     }
 

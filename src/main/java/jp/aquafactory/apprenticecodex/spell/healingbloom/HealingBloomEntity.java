@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.CombatOwnerUuidSource;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.UndeadTools;
 import net.minecraft.ChatFormatting;
@@ -59,7 +60,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.UUID;
 
-public class HealingBloomEntity extends PathfinderMob implements GeoEntity, AntiMagicSusceptible {
+public class HealingBloomEntity extends PathfinderMob implements GeoEntity, AntiMagicSusceptible, CombatOwnerUuidSource {
     public static final float WIDTH = 0.85f;
     public static final float HEIGHT = 1.8f;
     private static final int ACTIVATION_DELAY_TICK = 40;
@@ -227,7 +228,9 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity, Anti
             var source = owner != null
                     ? CombatTools.getDamageSource(level, this, owner, DamageTypes.HEALING_BLOOM)
                     : CombatTools.getDamageSource(level, this, DamageTypes.HEALING_BLOOM);
-            CombatTools.applyDamage(target, finalDamage, source, SpellRegistry.HEALING_BLOOM.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+            CombatTools.applyDamage(target, finalDamage, source, SpellRegistry.HEALING_BLOOM.get().getSchoolType(),
+                    CombatTools.KnockbackTypes.NO_KNOCKBACK,
+                    CombatTools.CombatTargetPolicy.ALLOW_SELF_PROTECT_ALLIES);
         }
     }
 
@@ -295,6 +298,11 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity, Anti
     }
 
     public @Nullable UUID getOwnerUuid() {
+        return ownerUuid;
+    }
+
+    @Override
+    public @Nullable UUID getCombatOwnerUuid() {
         return ownerUuid;
     }
 

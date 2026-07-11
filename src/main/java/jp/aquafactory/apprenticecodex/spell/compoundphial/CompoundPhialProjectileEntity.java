@@ -166,7 +166,9 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile implement
 
         // 一応広めに判定を取る.
         var box = new AABB(position(), position()).inflate(splashRadius * 2);
-        var entities = level.getEntitiesOfClass(Entity.class, box, e -> CombatTools.isValidCombatTarget(e, null) && e.isAlive());
+        var policy = CombatTools.CombatTargetPolicy.ALLOW_SELF_PROTECT_ALLIES;
+        var entities = level.getEntitiesOfClass(Entity.class, box,
+                e -> CombatTools.isValidCombatTarget(e, owner, policy) && e.isAlive());
         var damagedTargets = new HashSet<Entity>();
 
         for(var target : entities){
@@ -176,7 +178,9 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile implement
                 var scale = getSplashDamageScale(distance);
                 var source = CombatTools.getDamageSource(level(), this, owner, DamageTypes.COMPOUND_PHIAL);
                 if (damagedTargets.add(resolvedTarget)) {
-                    CombatTools.applyDamage(resolvedTarget, damage * scale, source, SpellRegistry.COMPOUND_PHIAL.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+                    CombatTools.applyDamage(resolvedTarget, damage * scale, source,
+                            SpellRegistry.COMPOUND_PHIAL.get().getSchoolType(),
+                            CombatTools.KnockbackTypes.NO_KNOCKBACK, policy);
                 }
             }
         }

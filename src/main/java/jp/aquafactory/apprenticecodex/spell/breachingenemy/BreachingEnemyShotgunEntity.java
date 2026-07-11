@@ -190,9 +190,10 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
 
             var finalDamage = damage * entry.getValue();
             var source = createCombatDamageSource(DamageTypes.BREACHING_ENEMY);
-            CombatTools.applyDamage(entity, finalDamage, source, SpellRegistry.BREACHING_ENEMY.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+            var damaged = CombatTools.applyDamage(entity, finalDamage, source,
+                    SpellRegistry.BREACHING_ENEMY.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
 
-            if (entity instanceof LivingEntity livingEntity){
+            if (damaged && entity instanceof LivingEntity livingEntity){
                 var knockbackDir = livingEntity.position().subtract(position()).normalize().scale(-1);
                 livingEntity.knockback(entry.getValue() * 0.25, knockbackDir.x, knockbackDir.z);
             }
