@@ -72,6 +72,11 @@ public final class EntityRegistry {
     public static final DeferredRegister<EntityType<?>> ENTITIES =
             DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, ApprenticeCodex.MODID);
 
+    private enum FireBehaviors {
+        IMMUNE,
+        VULNERABLE
+    }
+
     // ベース.
     private static <T extends net.minecraft.world.entity.Entity> RegistryObject<EntityType<T>> reg(
             String id,
@@ -80,7 +85,8 @@ public final class EntityRegistry {
             float w, float h,
             int trackingRange,
             int updateInterval,
-            boolean velocityUpdates
+            boolean velocityUpdates,
+            FireBehaviors fireBehavior
     ) {
         return ENTITIES.register(id, () -> {
             var b = EntityType.Builder.of(factory, category)
@@ -88,7 +94,12 @@ public final class EntityRegistry {
                     .clientTrackingRange(trackingRange)
                     .updateInterval(updateInterval);
 
-            if (velocityUpdates) b.setShouldReceiveVelocityUpdates(true);
+            if (velocityUpdates) {
+                b.setShouldReceiveVelocityUpdates(true);
+            }
+            if (fireBehavior == FireBehaviors.IMMUNE) {
+                b.fireImmune();
+            }
             return b.build(id);
         });
     }
@@ -101,7 +112,7 @@ public final class EntityRegistry {
         return reg(id, factory, MobCategory.MISC,
                 0.25f, 0.25f,
                 trackingRange, updateInterval,
-                true);
+                true, FireBehaviors.IMMUNE);
     }
 
     private static <T extends net.minecraft.world.entity.Entity> RegistryObject<EntityType<T>> regWeapon(
@@ -111,7 +122,7 @@ public final class EntityRegistry {
         return reg(id, factory, MobCategory.MISC,
                 0.5f, 0.5f,
                 32, updateInterval,
-                false);
+                false, FireBehaviors.IMMUNE);
     }
 
     private static <T extends net.minecraft.world.entity.Entity> RegistryObject<EntityType<T>> regLiving(
@@ -119,9 +130,13 @@ public final class EntityRegistry {
             EntityType.EntityFactory<T> factory,
             float width,
             float height,
-            int trackingRange
+            int trackingRange,
+            FireBehaviors fireBehavior
     ) {
-        return reg(id, factory, MobCategory.MISC, width, height, trackingRange, 1, false);
+        return reg(id, factory, MobCategory.MISC,
+                width, height,
+                trackingRange, 1,
+                false, fireBehavior);
     }
 
     // 既存ワールドの数値IDをずらさないため、新規エンティティは常に既存登録の末尾へ追加する.
@@ -214,7 +229,7 @@ public final class EntityRegistry {
 
     public static final RegistryObject<EntityType<DemicreatorWingsCoreEntity>> DEMICREATOR_WINGS_CORE =
             reg("demicreator_wings_core", DemicreatorWingsCoreEntity::new, MobCategory.MISC,
-                    0.2f, 0.2f, 64, 1, false);
+                    0.2f, 0.2f, 64, 1, false, FireBehaviors.IMMUNE);
 
     public static final RegistryObject<EntityType<DemicreatorWingsWingEntity>> DEMICREATOR_WINGS_WING =
             regWeapon("demicreator_wings_wing", DemicreatorWingsWingEntity::new, 1);
@@ -223,21 +238,21 @@ public final class EntityRegistry {
             regWeapon("auto_magnet_familiar", AutoMagnetFamiliarEntity::new, 1);
 
     public static final RegistryObject<EntityType<AutoTurretEntity>> AUTO_TURRET =
-            regLiving("auto_turret", AutoTurretEntity::new, AutoTurretEntity.WIDTH, AutoTurretEntity.HEIGHT, 32);
+            regLiving("auto_turret", AutoTurretEntity::new, AutoTurretEntity.WIDTH, AutoTurretEntity.HEIGHT, 32, FireBehaviors.VULNERABLE);
 
     public static final RegistryObject<EntityType<TotemOfPermafrostTotemEntity>> TOTEM_OF_PERMAFROST_TOTEM =
             regLiving("totem_of_permafrost_totem", TotemOfPermafrostTotemEntity::new,
-                    TotemOfPermafrostTotemEntity.WIDTH, TotemOfPermafrostTotemEntity.HEIGHT, 32);
+                    TotemOfPermafrostTotemEntity.WIDTH, TotemOfPermafrostTotemEntity.HEIGHT, 32, FireBehaviors.IMMUNE);
 
     public static final RegistryObject<EntityType<CompanionTrunkEntity>> COMPANION_TRUNK =
-            regLiving("companion_trunk", CompanionTrunkEntity::new, CompanionTrunkEntity.WIDTH, CompanionTrunkEntity.HEIGHT, 32);
+            regLiving("companion_trunk", CompanionTrunkEntity::new, CompanionTrunkEntity.WIDTH, CompanionTrunkEntity.HEIGHT, 32, FireBehaviors.IMMUNE);
 
     public static final RegistryObject<EntityType<HealingBloomEntity>> HEALING_BLOOM =
-            regLiving("healing_bloom", HealingBloomEntity::new, HealingBloomEntity.WIDTH, HealingBloomEntity.HEIGHT, 32);
+            regLiving("healing_bloom", HealingBloomEntity::new, HealingBloomEntity.WIDTH, HealingBloomEntity.HEIGHT, 32, FireBehaviors.VULNERABLE);
 
     public static final RegistryObject<EntityType<HeavenlyFistFistEntity>> HEAVENLY_FIST_FIST =
             reg("heavenly_fist_fist", HeavenlyFistFistEntity::new, MobCategory.MISC,
-                    0.1f, 0.1f, 64, 1, false);
+                    0.1f, 0.1f, 64, 1, false, FireBehaviors.IMMUNE);
 
     public static final RegistryObject<EntityType<IlluminateStellarStarEntity>> ILLUMINATE_STELLAR_STAR =
             regProjectile("illuminate_stellar_star", IlluminateStellarStarEntity::new, 96, 1);
@@ -253,7 +268,7 @@ public final class EntityRegistry {
 
     public static final RegistryObject<EntityType<MysticShieldShieldEntity>> MYSTIC_SHIELD_SHIELD =
             reg("mystic_shield_shield", MysticShieldShieldEntity::new, MobCategory.MISC,
-                    0.2f, 0.2f, 96, 1, false);
+                    0.2f, 0.2f, 96, 1, false, FireBehaviors.IMMUNE);
 
     public static final RegistryObject<EntityType<FeatherRushProjectileEntity>> FEATHER_RUSH_PROJECTILE =
             regProjectile("feather_rush_projectile", FeatherRushProjectileEntity::new, 96, 1);
@@ -292,19 +307,19 @@ public final class EntityRegistry {
             regProjectile("phalanx_charge_beam", PhalanxChargeBeamEntity::new, 64, 1);
 
     public static final RegistryObject<EntityType<SearchBeaconEntity>> SEARCH_BEACON =
-            regLiving("search_beacon", SearchBeaconEntity::new, SearchBeaconEntity.WIDTH, SearchBeaconEntity.HEIGHT, 32);
+            regLiving("search_beacon", SearchBeaconEntity::new, SearchBeaconEntity.WIDTH, SearchBeaconEntity.HEIGHT, 32, FireBehaviors.IMMUNE);
 
     public static final RegistryObject<EntityType<SpellDispenserAnchorEntity>> SPELL_DISPENSER_ANCHOR =
             reg("spell_dispenser_anchor", SpellDispenserAnchorEntity::new, MobCategory.MISC,
-                    0.6f, 1.8f, 32, 1, false);
+                    0.6f, 1.8f, 32, 1, false, FireBehaviors.IMMUNE);
 
     public static final RegistryObject<EntityType<RemoteOwnerCastAnchorEntity>> REMOTE_OWNER_CAST_ANCHOR =
             reg("remote_owner_cast_anchor", RemoteOwnerCastAnchorEntity::new, MobCategory.MISC,
-                    0.6f, 1.8f, 32, 1, false);
+                    0.6f, 1.8f, 32, 1, false, FireBehaviors.IMMUNE);
 
     public static final RegistryObject<EntityType<FieldOverseerStaffEntity>> FIELD_OVERSEER_STAFF =
             regLiving("field_overseer_staff", FieldOverseerStaffEntity::new,
-                    FieldOverseerStaffEntity.WIDTH, FieldOverseerStaffEntity.HEIGHT, 32);
+                    FieldOverseerStaffEntity.WIDTH, FieldOverseerStaffEntity.HEIGHT, 32, FireBehaviors.VULNERABLE);
 
     public static final RegistryObject<EntityType<ServantGazeStaffEntity>> SERVANT_GAZE_STAFF =
             regWeapon("servant_gaze_staff", ServantGazeStaffEntity::new, 1);
