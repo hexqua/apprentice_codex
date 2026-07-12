@@ -59,7 +59,6 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem implements GeoIt
 
     private static final String CALIBRATION_TAG = "BulwarkGreatshieldCalibration";
     private static final String ADJUSTMENT_TAG = "Adjustment";
-    private static final String LAST_DURABILITY_COST_TICK_TAG = "ApprenticeCodexBulwarkGreatshieldLastDurabilityCostTick";
     private static final UUID GENERIC_RESIST_MODIFIER_ID = UUID.fromString("bd2b8a1f-b1a5-49ee-9370-4d2ab9385994");
     private static final UUID SCHOOL_RESIST_MODIFIER_ID = UUID.fromString("886ced13-4a4f-4623-9cbb-8900f65c52ac");
     private static final ItemStack SHIELD_ENCHANTMENT_PROBE = new ItemStack(Items.SHIELD);
@@ -244,18 +243,6 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem implements GeoIt
             }
         }
         return CastSource.SWORD;
-    }
-
-    public static boolean isDurabilityConsumptionSuppressed(ItemStack stack, long gameTime) {
-        var tag = stack.getTag();
-        return tag != null && tag.contains(LAST_DURABILITY_COST_TICK_TAG)
-                && gameTime - tag.getLong(LAST_DURABILITY_COST_TICK_TAG) <= DURABILITY_SUPPRESSION_TICKS;
-    }
-
-    public static void rememberDurabilityConsumed(ItemStack stack, long gameTime) {
-        if (!stack.isEmpty()) {
-            stack.getOrCreateTag().putLong(LAST_DURABILITY_COST_TICK_TAG, gameTime);
-        }
     }
 
     public static void recoverManaAfterBlock(ServerPlayer player) {

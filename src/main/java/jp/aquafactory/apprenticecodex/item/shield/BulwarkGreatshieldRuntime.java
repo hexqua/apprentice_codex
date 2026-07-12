@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class BulwarkGreatshieldRuntime {
     private static final int CONTINUOUS_CAST_INTERVAL_TICKS = 10;
     private static final Map<UUID, UseState> USE_STATES = new ConcurrentHashMap<>();
+    private static final Map<UUID, Long> NEXT_DURABILITY_CONSUMPTION_TICKS = new ConcurrentHashMap<>();
     private static final Map<UUID, Long> NEXT_MANA_RECOVERY_TICKS = new ConcurrentHashMap<>();
 
     private BulwarkGreatshieldRuntime() {
@@ -134,8 +135,21 @@ public final class BulwarkGreatshieldRuntime {
         return true;
     }
 
+    public static boolean isDurabilityConsumptionSuppressed(ServerPlayer player, long gameTime) {
+        return gameTime < NEXT_DURABILITY_CONSUMPTION_TICKS.getOrDefault(player.getUUID(), 0L);
+    }
+
+    public static void rememberDurabilityConsumed(ServerPlayer player, long gameTime) {
+        // Iron's Spells は耐久値以外の ItemStack NBT 更新を装備変更として扱い、CONTINUOUS を中断する。
+        NEXT_DURABILITY_CONSUMPTION_TICKS.put(
+                player.getUUID(),
+                gameTime + BulwarkGreatshield.DURABILITY_SUPPRESSION_TICKS + 1L
+        );
+    }
+
     public static void clear(ServerPlayer player) {
         USE_STATES.remove(player.getUUID());
+        NEXT_DURABILITY_CONSUMPTION_TICKS.remove(player.getUUID());
         NEXT_MANA_RECOVERY_TICKS.remove(player.getUUID());
     }
 
@@ -149,6 +163,7 @@ public final class BulwarkGreatshieldRuntime {
     @SubscribeEvent
     public static void onServerStopped(ServerStoppedEvent event) {
         USE_STATES.clear();
+        NEXT_DURABILITY_CONSUMPTION_TICKS.clear();
         NEXT_MANA_RECOVERY_TICKS.clear();
     }
 

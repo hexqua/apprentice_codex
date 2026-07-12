@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
@@ -104,15 +105,19 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
 
     static void bulwarkGreatshieldDurabilityAndManaRateLimitsStayMemoryOnly(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.BULWARK_GREATSHIELD.get());
-            BulwarkGreatshield.rememberDurabilityConsumed(stack, 100L);
-            helper.assertTrue(BulwarkGreatshield.isDurabilityConsumptionSuppressed(stack, 120L),
-                    "Bulwark durability should be suppressed for 20 ticks");
-            helper.assertFalse(BulwarkGreatshield.isDurabilityConsumptionSuppressed(stack, 121L),
-                    "Bulwark durability suppression should expire after 20 ticks");
-
             var player = BowGameTestSupport.createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
-                    "bulwark_greatshield_mana_rate_test");
+                    "bulwark_greatshield_rate_limit_test");
+            var stack = new ItemStack(ItemRegistry.BULWARK_GREATSHIELD.get());
+            var beforeDurabilityConsumption = stack.copy();
+            stack.setDamageValue(1);
+            BulwarkGreatshieldRuntime.rememberDurabilityConsumed(player, 100L);
+            helper.assertTrue(BulwarkGreatshieldRuntime.isDurabilityConsumptionSuppressed(player, 120L),
+                    "Bulwark durability should be suppressed for 20 ticks");
+            helper.assertFalse(BulwarkGreatshieldRuntime.isDurabilityConsumptionSuppressed(player, 121L),
+                    "Bulwark durability suppression should expire after 20 ticks");
+            helper.assertTrue(Utils.isSameItemSameComponentsIgnoreDurability(beforeDurabilityConsumption, stack),
+                    "Bulwark durability rate limit must not add NBT that interrupts continuous casts");
+
             var magicData = MagicData.getPlayerMagicData(player);
             helper.assertTrue(magicData != null, "Bulwark mana recovery test requires MagicData");
             magicData.setMana(0.0F);

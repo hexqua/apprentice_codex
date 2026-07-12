@@ -163,7 +163,7 @@ public final class ImbueShieldBlockCastEvent {
             InteractionHand usedHand
     ) {
         var now = player.level().getGameTime();
-        if (originalBlockedDamage < 3.0F || BulwarkGreatshield.isDurabilityConsumptionSuppressed(shieldStack, now)) {
+        if (originalBlockedDamage < 3.0F || BulwarkGreatshieldRuntime.isDurabilityConsumptionSuppressed(player, now)) {
             return;
         }
 
@@ -182,7 +182,7 @@ public final class ImbueShieldBlockCastEvent {
         }
         // hurtAndBreak 内の Unbreaking が消費を打ち消した場合は抑止時間を開始しない。
         if (shieldStack.isEmpty() || shieldStack.getDamageValue() > beforeDamage || shieldStack.getCount() < beforeCount) {
-            BulwarkGreatshield.rememberDurabilityConsumed(shieldStack, now);
+            BulwarkGreatshieldRuntime.rememberDurabilityConsumed(player, now);
         }
     }
 
