@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.item;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeEvents;
+import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
+import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshieldRuntime;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -32,15 +34,36 @@ public final class ImbueShieldBlockCastEvent {
         }
 
         var shieldStack = player.getUseItem();
+        if (shieldStack.getItem() instanceof BulwarkGreatshield) {
+            return;
+        }
         if (shieldStack.getItem() instanceof ReflectcastShield) {
             return;
         }
 
-        if (!(shieldStack.getItem() instanceof AbstractImbueShieldItem imbueShieldItem)) {
+        if (!(shieldStack.getItem() instanceof AbstractImbueShieldItem imbueShieldItem)
+                || !imbueShieldItem.supportsBlockTriggeredImbuedSpell()) {
             return;
         }
 
         imbueShieldItem.tryTriggerImbuedSpellOnBlock(player, shieldStack, player.getUsedItemHand());
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void onBulwarkGreatshieldBlock(ShieldBlockEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || player.level().isClientSide
+                || event.getBlockedDamage() <= 0.0F || !player.isUsingItem()) {
+            return;
+        }
+        var shieldStack = player.getUseItem();
+        if (!(shieldStack.getItem() instanceof BulwarkGreatshield)) {
+            return;
+        }
+
+        event.setShieldTakesDamage(false);
+        applyBulwarkDurability(event.getOriginalBlockedDamage(), player, shieldStack, player.getUsedItemHand());
+        BulwarkGreatshieldRuntime.tryRecoverMana(player);
+        jp.aquafactory.apprenticecodex.event.KnockbackControlEvent.markIgnoreKnockbackThisTick(player);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -107,6 +130,36 @@ public final class ImbueShieldBlockCastEvent {
 
     private static EquipmentSlot resolveEquipmentSlot(InteractionHand usedHand) {
         return usedHand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
+    }
+
+    private static void applyBulwarkDurability(
+            float originalBlockedDamage,
+            ServerPlayer player,
+            ItemStack shieldStack,
+            InteractionHand usedHand
+    ) {
+        var now = player.level().getGameTime();
+        if (originalBlockedDamage < 3.0F || BulwarkGreatshield.isDurabilityConsumptionSuppressed(shieldStack, now)) {
+            return;
+        }
+
+        var beforeDamage = shieldStack.getDamageValue();
+        var beforeCount = shieldStack.getCount();
+        shieldStack.hurtAndBreak(1, player, brokenPlayer -> {
+            brokenPlayer.broadcastBreakEvent(usedHand);
+            ForgeEventFactory.onPlayerDestroyItem(player, shieldStack, usedHand);
+            if (player.getUseItem() == shieldStack) {
+                player.stopUsingItem();
+            }
+        });
+        if (shieldStack.isEmpty()) {
+            player.setItemSlot(resolveEquipmentSlot(usedHand), ItemStack.EMPTY);
+            player.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + player.level().random.nextFloat() * 0.4F);
+        }
+        // hurtAndBreak 内の Unbreaking が消費を打ち消した場合は抑止時間を開始しない。
+        if (shieldStack.isEmpty() || shieldStack.getDamageValue() > beforeDamage || shieldStack.getCount() < beforeCount) {
+            BulwarkGreatshield.rememberDurabilityConsumed(shieldStack, now);
+        }
     }
 
     private static Vec3 resolveReflectcastEffectPosition(ServerPlayer player, ShieldBlockEvent event) {

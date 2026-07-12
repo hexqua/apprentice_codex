@@ -47,15 +47,14 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
             return;
         }
 
-        if (repairPresetSpellContainerStateIfNeeded(itemStack)) {
-            return;
-        }
+        repairPresetSpellContainerStateIfNeeded(itemStack);
 
         if (ISpellContainer.isSpellContainer(itemStack)) {
+            normalizeHiddenSpellContainer(itemStack);
             return;
         }
 
-        ISpellContainer.set(itemStack, ISpellContainer.create(1, true, false));
+        ISpellContainer.set(itemStack, ISpellContainer.create(1, false, false));
     }
 
     public final boolean repairPresetSpellContainerStateIfNeeded(ItemStack itemStack) {
@@ -63,7 +62,7 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
             return false;
         }
 
-        return PresetSpellContainerStateHelper.restoreIfNeeded(itemStack, 1, true, false, this::canImbueSpell);
+        return PresetSpellContainerStateHelper.restoreIfNeeded(itemStack, 1, false, false, this::canImbueSpell);
     }
 
     @Override
@@ -137,13 +136,29 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand usedHand) {
         var result = super.use(level, player, usedHand);
         var usingStack = player.getItemInHand(usedHand);
-        primeImmediateShieldBlock(player, usingStack);
+        if (shouldPrimeImmediateShieldBlock()) {
+            primeImmediateShieldBlock(player, usingStack);
+        }
 
-        if (!level.isClientSide) {
+        if (!level.isClientSide && supportsBlockTriggeredImbuedSpell()) {
             markTriggerWindowStart(player, usedHand);
         }
 
         return result;
+    }
+
+    /**
+     * 既存の Imbue 盾は即時防御を仕様としているが、通常の盾準備時間を使う派生盾は false を返す。
+     */
+    protected boolean shouldPrimeImmediateShieldBlock() {
+        return true;
+    }
+
+    /**
+     * ブロック成功直後に魔法を発動しない派生盾が、共通イベントから除外されるための拡張点。
+     */
+    public boolean supportsBlockTriggeredImbuedSpell() {
+        return true;
     }
 
     @Override
@@ -167,6 +182,21 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
             PresetSpellContainerStateHelper.rememberOverridden(stack, spellData);
         } else {
             PresetSpellContainerStateHelper.clearRememberedState(stack);
+        }
+        ISpellContainer.set(stack, normalized.toImmutable());
+    }
+
+    private void normalizeHiddenSpellContainer(ItemStack stack) {
+        var current = ISpellContainer.get(stack);
+        if (current == null || !current.isSpellWheel() && !current.mustEquip()) {
+            return;
+        }
+
+        var normalized = ISpellContainer.create(1, false, false).mutableCopy();
+        var spellData = current.getActiveSpellCount() > 0 ? current.getSpellAtIndex(0) : SpellData.EMPTY;
+        if (spellData != SpellData.EMPTY && canImbueSpell(spellData)) {
+            // 既存スタックのホイール公開フラグだけを直し、Workbench で設定した魔法と抽出可否は維持する。
+            normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, !spellData.canRemove());
         }
         ISpellContainer.set(stack, normalized.toImmutable());
     }
@@ -338,13 +368,13 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
 
         ImbueTooltipHelper.appendTooltipSection(
                 lines,
-                collectImbueShieldAbilityTooltipSection(),
+                getImbueShieldAbilityTooltipSection(),
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_title",
                 null
         );
         ImbueTooltipHelper.appendTooltipSection(
                 lines,
-                collectRestrictTooltipSection(),
+                getImbueShieldRestrictionTooltipSection(),
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_title",
                 null
         );
@@ -368,8 +398,16 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
         return translatedLines;
     }
 
+    protected List<Component> getImbueShieldAbilityTooltipSection() {
+        return collectImbueShieldAbilityTooltipSection();
+    }
+
+    protected List<Component> getImbueShieldRestrictionTooltipSection() {
+        return collectRestrictTooltipSection();
+    }
+
     @Override
     public List<Component> getImbueRestrictionTooltipLines() {
-        return collectRestrictTooltipSection();
+        return getImbueShieldRestrictionTooltipSection();
     }
 }
