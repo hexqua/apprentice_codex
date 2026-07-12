@@ -52,6 +52,11 @@ public class ParrycastBucklerRenderer extends GeoItemRenderer<ParrycastBuckler> 
     }
 
     @Override
+    public long getInstanceId(ParrycastBuckler animatable) {
+        return ParrycastBuckler.resolveClientAnimationInstanceId(this.currentItemStack);
+    }
+
+    @Override
     public RenderType getRenderType(ParrycastBuckler animatable, ResourceLocation texture,
                                     MultiBufferSource bufferSource, float partialTick) {
         return DEFAULT_RENDER_TYPE;

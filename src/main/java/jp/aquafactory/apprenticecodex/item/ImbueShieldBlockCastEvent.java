@@ -68,8 +68,8 @@ public final class ImbueShieldBlockCastEvent {
         var perfectGuard = buckler.handlePerfectGuard(player, stack, hand);
         event.setShieldTakesDamage(false);
         applyParrycastBucklerDurability(event.getOriginalBlockedDamage(), player, stack, hand, perfectGuard);
-        if (!perfectGuard && player.isUsingItem() && player.getUseItem() == stack) {
-            player.stopUsingItem();
+        if (!perfectGuard) {
+            buckler.finishFailedGuard(player, stack);
         }
     }
 

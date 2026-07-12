@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientComp
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightClientCompat;
 import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBuiltinTemplateSupport;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticle;
 import jp.aquafactory.apprenticecodex.particle.AdditiveRhombusParticle;
 import jp.aquafactory.apprenticecodex.particle.ImpactTremorBlockParticle;
@@ -162,7 +163,14 @@ public final class ClientModBusEvents {
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.PARRYCAST_BUCKLER.get(),
                 ResourceLocation.withDefaultNamespace("blocking"),
-                (stack, level, living, seed) -> living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F
+                (stack, level, living, seed) -> {
+                    var using = living != null && living.isUsingItem() && living.getUseItem() == stack;
+                    if (living != null) {
+                        // ItemStack の NBT を描画状態に使うと装備同期が使用の再開始を誘発するため、描画時の実状態だけを保持する。
+                        ParrycastBuckler.observeClientUseAnimation(stack, living, using, living.level().getGameTime());
+                    }
+                    return using ? 1.0F : 0.0F;
+                }
         ));
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.BULWARK_GREATSHIELD.get(),
