@@ -156,6 +156,7 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
         }
         var spellData = getPrimarySpellData(targetStack);
         return spellData != SpellData.EMPTY
+                && spellData != null
                 && spellData.getSpell() != null
                 && !canUseConfiguredSpell(targetStack, spellData.getSpell(), spellData.getLevel());
     }
