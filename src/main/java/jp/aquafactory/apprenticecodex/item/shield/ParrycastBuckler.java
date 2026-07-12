@@ -59,10 +59,13 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.HashSet;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
 public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem {
@@ -79,8 +82,10 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
     private static final String LAST_DURABILITY_TICK_TAG = "ApprenticeCodexParrycastBucklerDurabilityTick";
     private static final String GRACE_TICK_TAG = "ApprenticeCodexParrycastBucklerGraceTick";
     private static final String GRACE_USES_TAG = "ApprenticeCodexParrycastBucklerGraceUses";
-    private static final String ANIMATION_STATE_TAG = "ApprenticeCodexParrycastBucklerAnimationState";
-    private static final String ANIMATION_REMOVE_START_TAG = "ApprenticeCodexParrycastBucklerRemoveStart";
+    private static final int REMOVE_ANIMATION_TICKS = 10;
+    private static final Map<ItemStack, ClientAnimationState> CLIENT_ANIMATION_STATES = new WeakHashMap<>();
+    private static final Map<LivingEntity, EnumMap<InteractionHand, ClientAnimationState>> CLIENT_ANIMATION_OWNERS = new WeakHashMap<>();
+    private static long nextClientAnimationInstanceId = Long.MIN_VALUE;
     private static final ItemStack SHIELD_ENCHANTMENT_PROBE = new ItemStack(Items.SHIELD);
     private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation DEPLOY = RawAnimation.begin().thenPlayAndHold("deploy");
@@ -101,8 +106,6 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand hand) {
         var result = super.use(level, player, hand);
         if (result.getResult().consumesAction()) {
-            var stack = player.getItemInHand(hand);
-            stack.getOrCreateTag().putInt(ANIMATION_STATE_TAG, 1);
             if (!level.isClientSide) {
                 var tag = player.getPersistentData();
                 tag.putLong(USE_START_TICK_TAG, level.getGameTime());
@@ -114,27 +117,74 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
 
     @Override
     public void releaseUsing(@NotNull ItemStack stack, @NotNull Level level, @NotNull LivingEntity entity, int timeLeft) {
-        stack.getOrCreateTag().putInt(ANIMATION_STATE_TAG, 2);
-        stack.getOrCreateTag().putLong(ANIMATION_REMOVE_START_TAG, level.getGameTime());
         if (!level.isClientSide && entity instanceof Player player && !consumeReleaseGrace(stack, level)) {
-            var ticks = ApprenticeCodexServerConfig.parrycastBucklerReleaseCooldownTicks();
-            if (ticks > 0 && !player.getCooldowns().isOnCooldown(this)) {
-                player.getCooldowns().addCooldown(this, ticks);
-            }
+            applyReleaseCooldown(player);
         }
         super.releaseUsing(stack, level, entity, timeLeft);
     }
 
-    @Override
-    public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull net.minecraft.world.entity.Entity entity,
-                              int slotId, boolean isSelected) {
-        super.inventoryTick(stack, level, entity, slotId, isSelected);
-        var tag = stack.getTag();
-        if (tag != null && tag.getInt(ANIMATION_STATE_TAG) == 2
-                && level.getGameTime() - tag.getLong(ANIMATION_REMOVE_START_TAG) >= 10) {
-            tag.putInt(ANIMATION_STATE_TAG, 0);
-            tag.remove(ANIMATION_REMOVE_START_TAG);
+    public void finishFailedGuard(ServerPlayer player, ItemStack stack) {
+        if (!player.isUsingItem() || player.getUseItem() != stack) {
+            return;
         }
+        // 使用キーを押し続けていても次tickの自動再使用を拒否できるよう、停止通知より先に同期する。
+        applyReleaseCooldown(player);
+        player.stopUsingItem();
+    }
+
+    private void applyReleaseCooldown(Player player) {
+        var ticks = ApprenticeCodexServerConfig.parrycastBucklerReleaseCooldownTicks();
+        if (ticks > 0 && !player.getCooldowns().isOnCooldown(this)) {
+            player.getCooldowns().addCooldown(this, ticks);
+        }
+    }
+
+    public static synchronized void observeClientUseAnimation(ItemStack stack, LivingEntity living, boolean using, long gameTime) {
+        var hand = resolveRenderedHand(stack, living);
+        if (hand == null) {
+            return;
+        }
+        var handStates = CLIENT_ANIMATION_OWNERS.computeIfAbsent(living, ignored -> new EnumMap<>(InteractionHand.class));
+        var state = handStates.computeIfAbsent(hand,
+                ignored -> new ClientAnimationState(nextClientAnimationInstanceId++, using, gameTime));
+        CLIENT_ANIMATION_STATES.put(stack, state);
+        if (state.using && !using) {
+            state.removeStartTick = gameTime;
+        }
+        state.using = using;
+        if (!using && gameTime - state.removeStartTick >= REMOVE_ANIMATION_TICKS) {
+            state.removeStartTick = Long.MIN_VALUE;
+        }
+    }
+
+    public static synchronized long resolveClientAnimationInstanceId(ItemStack stack) {
+        var state = CLIENT_ANIMATION_STATES.get(stack);
+        return state != null ? state.instanceId : Long.MIN_VALUE + Integer.toUnsignedLong(System.identityHashCode(stack));
+    }
+
+    private static synchronized int resolveClientAnimationState(ItemStack stack) {
+        var state = CLIENT_ANIMATION_STATES.get(stack);
+        if (state == null) {
+            return 0;
+        }
+        if (state.using) {
+            return 1;
+        }
+        return state.removeStartTick != Long.MIN_VALUE ? 2 : 0;
+    }
+
+    private static @Nullable InteractionHand resolveRenderedHand(ItemStack stack, LivingEntity living) {
+        if (living.getMainHandItem() == stack) {
+            return InteractionHand.MAIN_HAND;
+        }
+        if (living.getOffhandItem() == stack) {
+            return InteractionHand.OFF_HAND;
+        }
+        return usingSameStack(living, stack) ? living.getUsedItemHand() : null;
+    }
+
+    private static boolean usingSameStack(LivingEntity living, ItemStack stack) {
+        return living.isUsingItem() && living.getUseItem() == stack;
     }
 
     @Override
@@ -387,10 +437,22 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
     public void registerControllers(AnimatableManager.ControllerRegistrar registrar) {
         registrar.add(new AnimationController<>(this, "main", 0, state -> {
             var stack = state.getData(DataTickets.ITEMSTACK);
-            int animationState = stack == null ? 0 : stack.getOrCreateTag().getInt(ANIMATION_STATE_TAG);
+            int animationState = stack == null ? 0 : resolveClientAnimationState(stack);
             state.setAnimation(animationState == 1 ? DEPLOY : animationState == 2 ? REMOVE_IDLE : IDLE);
             return PlayState.CONTINUE;
         }));
+    }
+
+    private static final class ClientAnimationState {
+        private final long instanceId;
+        private boolean using;
+        private long removeStartTick;
+
+        private ClientAnimationState(long instanceId, boolean using, long gameTime) {
+            this.instanceId = instanceId;
+            this.using = using;
+            this.removeStartTick = using ? Long.MIN_VALUE : gameTime - REMOVE_ANIMATION_TICKS;
+        }
     }
 
     @Override public AnimatableInstanceCache getAnimatableInstanceCache() { return cache; }
