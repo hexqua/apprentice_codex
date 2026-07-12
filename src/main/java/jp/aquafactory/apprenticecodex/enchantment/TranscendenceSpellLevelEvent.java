@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.AbstractSpellSideEdgeItem;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeMirror;
+import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -63,6 +64,7 @@ public final class TranscendenceSpellLevelEvent {
                 (isOffhandSlot && (item instanceof AbstractOffhandMagicItem || item instanceof SpellSideEdgeMirror))
                         || item instanceof AbstractSpellGunItem
                         || item instanceof AlchemistsFlask
+                        || item instanceof ParrycastBuckler
                         || (!isOffhandSlot && (item instanceof AbstractRightClickMagicWeaponItem
                                 || item instanceof AbstractSpellSideEdgeItem
                                 || item instanceof ScrollcasterGauntlet));

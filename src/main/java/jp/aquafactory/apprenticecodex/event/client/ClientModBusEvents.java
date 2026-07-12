@@ -160,6 +160,11 @@ public final class ClientModBusEvents {
                 (stack, level, living, seed) -> living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0f : 0.0f
         ));
         event.enqueueWork(() -> ItemProperties.register(
+                ItemRegistry.PARRYCAST_BUCKLER.get(),
+                ResourceLocation.withDefaultNamespace("blocking"),
+                (stack, level, living, seed) -> living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F
+        ));
+        event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.BULWARK_GREATSHIELD.get(),
                 ResourceLocation.withDefaultNamespace("blocking"),
                 (stack, level, living, seed) -> living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F

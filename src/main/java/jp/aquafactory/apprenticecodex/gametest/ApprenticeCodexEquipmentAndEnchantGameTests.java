@@ -279,6 +279,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void parrycastBucklerKeepsCoreContract(GameTestHelper helper) {
+        ParrycastBucklerGameTestScenarios.parrycastBucklerKeepsCoreContract(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void parrycastBucklerSupportsThreeAdjustmentsAndSchoolDeduplication(GameTestHelper helper) {
+        ParrycastBucklerGameTestScenarios.parrycastBucklerSupportsThreeAdjustmentsAndSchoolDeduplication(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void parrycastBucklerKeepsPerfectGuardWindowAndDurabilityRateLimit(GameTestHelper helper) {
+        ParrycastBucklerGameTestScenarios.parrycastBucklerKeepsPerfectGuardWindowAndDurabilityRateLimit(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellgunServerConfigDefaultsMatchCurrentHardcodedValues(GameTestHelper helper) {
         EquipmentSpellGunGameTestScenarios.spellgunServerConfigDefaultsMatchCurrentHardcodedValues(helper);
     }

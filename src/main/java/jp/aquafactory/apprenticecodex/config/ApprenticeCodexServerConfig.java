@@ -410,6 +410,22 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.manaForceBladePerfectGuardReleaseCooldownGraceUses();
     }
 
+    public static int parrycastBucklerReleaseCooldownTicks() {
+        return ITEMS_CONFIG.parrycastBucklerReleaseCooldownTicks();
+    }
+
+    public static int parrycastBucklerPerfectGuardTicks() {
+        return ITEMS_CONFIG.parrycastBucklerPerfectGuardTicks();
+    }
+
+    public static int parrycastBucklerPerfectGuardReleaseCooldownGraceTicks() {
+        return ITEMS_CONFIG.parrycastBucklerPerfectGuardReleaseCooldownGraceTicks();
+    }
+
+    public static int parrycastBucklerPerfectGuardReleaseCooldownGraceUses() {
+        return ITEMS_CONFIG.parrycastBucklerPerfectGuardReleaseCooldownGraceUses();
+    }
+
     public static float manaShieldCharmManaPerDamage() {
         return ITEMS_CONFIG.manaShieldCharmManaPerDamage();
     }

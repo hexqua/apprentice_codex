@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeEvents;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshieldRuntime;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
+import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
@@ -40,6 +41,9 @@ public final class ImbueShieldBlockCastEvent {
         if (shieldStack.getItem() instanceof ReflectcastShield) {
             return;
         }
+        if (shieldStack.getItem() instanceof ParrycastBuckler) {
+            return;
+        }
 
         if (!(shieldStack.getItem() instanceof AbstractImbueShieldItem imbueShieldItem)
                 || !imbueShieldItem.supportsBlockTriggeredImbuedSpell()) {
@@ -47,6 +51,26 @@ public final class ImbueShieldBlockCastEvent {
         }
 
         imbueShieldItem.tryTriggerImbuedSpellOnBlock(player, shieldStack, player.getUsedItemHand());
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void onParrycastBucklerBlock(ShieldBlockEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || player.level().isClientSide
+                || event.getBlockedDamage() <= 0.0F || !player.isUsingItem()) {
+            return;
+        }
+        var stack = player.getUseItem();
+        if (!(stack.getItem() instanceof ParrycastBuckler buckler)) {
+            return;
+        }
+
+        var hand = player.getUsedItemHand();
+        var perfectGuard = buckler.handlePerfectGuard(player, stack, hand);
+        event.setShieldTakesDamage(false);
+        applyParrycastBucklerDurability(event.getOriginalBlockedDamage(), player, stack, hand, perfectGuard);
+        if (!perfectGuard && player.isUsingItem() && player.getUseItem() == stack) {
+            player.stopUsingItem();
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
@@ -159,6 +183,33 @@ public final class ImbueShieldBlockCastEvent {
         // hurtAndBreak 内の Unbreaking が消費を打ち消した場合は抑止時間を開始しない。
         if (shieldStack.isEmpty() || shieldStack.getDamageValue() > beforeDamage || shieldStack.getCount() < beforeCount) {
             BulwarkGreatshield.rememberDurabilityConsumed(shieldStack, now);
+        }
+    }
+
+    private static void applyParrycastBucklerDurability(
+            float originalBlockedDamage,
+            ServerPlayer player,
+            ItemStack stack,
+            InteractionHand hand,
+            boolean perfectGuard
+    ) {
+        var now = player.level().getGameTime();
+        var cost = ParrycastBuckler.resolveDurabilityCost(originalBlockedDamage, perfectGuard);
+        if (cost <= 0 || ParrycastBuckler.isDurabilitySuppressed(stack, now)) {
+            return;
+        }
+        var beforeDamage = stack.getDamageValue();
+        var beforeCount = stack.getCount();
+        stack.hurtAndBreak(cost, player, brokenPlayer -> {
+            brokenPlayer.broadcastBreakEvent(hand);
+            ForgeEventFactory.onPlayerDestroyItem(player, stack, hand);
+            if (player.getUseItem() == stack) player.stopUsingItem();
+        });
+        if (stack.isEmpty()) {
+            player.setItemSlot(resolveEquipmentSlot(hand), ItemStack.EMPTY);
+            player.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + player.level().random.nextFloat() * 0.4F);
+        } else if (stack.getDamageValue() > beforeDamage || stack.getCount() < beforeCount) {
+            ParrycastBuckler.rememberDurabilityConsumed(stack, now);
         }
     }
 

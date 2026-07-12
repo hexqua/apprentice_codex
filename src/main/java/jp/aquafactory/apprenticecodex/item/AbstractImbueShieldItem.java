@@ -87,7 +87,7 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
     @Override
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, level, lines, flag);
-        appendImbueTargetSpellTooltip(lines);
+        appendImbueTargetSpellTooltip(stack, lines);
     }
 
     @Override
@@ -359,7 +359,7 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
         return TRIGGER_WINDOW_CASTED_TAG_PREFIX + usedHand.name().toLowerCase(Locale.ROOT);
     }
 
-    private void appendImbueTargetSpellTooltip(List<Component> lines) {
+    private void appendImbueTargetSpellTooltip(ItemStack stack, List<Component> lines) {
         appendAlwaysVisibleImbueTooltip(lines);
         ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
         if (ImbueTooltipHelper.appendHintIfDetailsHidden(lines)) {
@@ -368,13 +368,13 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
 
         ImbueTooltipHelper.appendTooltipSection(
                 lines,
-                getImbueShieldAbilityTooltipSection(),
+                getImbueShieldAbilityTooltipSection(stack),
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_title",
                 null
         );
         ImbueTooltipHelper.appendTooltipSection(
                 lines,
-                getImbueShieldRestrictionTooltipSection(),
+                getImbueShieldRestrictionTooltipSection(stack),
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_title",
                 null
         );
@@ -402,8 +402,16 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
         return collectImbueShieldAbilityTooltipSection();
     }
 
+    protected List<Component> getImbueShieldAbilityTooltipSection(ItemStack stack) {
+        return getImbueShieldAbilityTooltipSection();
+    }
+
     protected List<Component> getImbueShieldRestrictionTooltipSection() {
         return collectRestrictTooltipSection();
+    }
+
+    protected List<Component> getImbueShieldRestrictionTooltipSection(ItemStack stack) {
+        return getImbueShieldRestrictionTooltipSection();
     }
 
     @Override
