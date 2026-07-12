@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.renderer.item;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import jp.aquafactory.apprenticecodex.item.ImbuedSpellCoreClientEffectState;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffClientEffectState;
 import jp.aquafactory.apprenticecodex.model.SwingcastStaffModel;
@@ -30,7 +31,7 @@ public class SwingcastStaffRenderer extends GeoItemRenderer<AbstractSwingcastSta
         var currentStack = this.currentItemStack != null ? this.currentItemStack : ItemStack.EMPTY;
 
         if (isBoneOrChildOf(bone, STAFF_CORE_BONE)) {
-            var coreState = SwingcastStaffClientEffectState.resolveCore(currentStack, partialTick);
+            var coreState = ImbuedSpellCoreClientEffectState.resolve(currentStack, partialTick);
             var emissiveRenderType = RenderType.entityTranslucent(getTextureLocation(animatable));
             super.renderRecursively(
                     poseStack, animatable, bone, emissiveRenderType, bufferSource, bufferSource.getBuffer(emissiveRenderType),

@@ -2,9 +2,9 @@ package jp.aquafactory.apprenticecodex.renderer.item;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import jp.aquafactory.apprenticecodex.item.ImbuedSpellCoreClientEffectState;
 import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffClientEffectState;
-import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffClientEffectState;
 import jp.aquafactory.apprenticecodex.model.RevolvercastStaffModel;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import net.minecraft.client.renderer.LightTexture;
@@ -31,8 +31,8 @@ public final class RevolvercastStaffRenderer extends GeoItemRenderer<Revolvercas
     private String specialPassBoneName;
     private RevolvercastStaffClientEffectState.ColorRenderState starState =
             RevolvercastStaffClientEffectState.ColorRenderState.hidden();
-    private SwingcastStaffClientEffectState.CoreRenderState coreState =
-            new SwingcastStaffClientEffectState.CoreRenderState(0.0F, 0.0F, 0.0F, 0.0F);
+    private ImbuedSpellCoreClientEffectState.CoreRenderState coreState =
+            new ImbuedSpellCoreClientEffectState.CoreRenderState(0.0F, 0.0F, 0.0F, 0.0F);
     private RevolvercastStaffClientEffectState.ColorRenderState orbState =
             RevolvercastStaffClientEffectState.ColorRenderState.hidden();
     private final RevolvercastStaffClientEffectState.ColorRenderState[] cylinderStates =
@@ -62,7 +62,7 @@ public final class RevolvercastStaffRenderer extends GeoItemRenderer<Revolvercas
 
         var currentStack = this.currentItemStack != null ? this.currentItemStack : ItemStack.EMPTY;
         this.starState = RevolvercastStaffClientEffectState.resolveStar(partialTick);
-        this.coreState = SwingcastStaffClientEffectState.resolveCore(currentStack, partialTick);
+        this.coreState = ImbuedSpellCoreClientEffectState.resolve(currentStack, partialTick);
         this.orbState = RevolvercastStaffClientEffectState.resolveOrb(currentStack, partialTick);
         for (var index = 0; index < cylinderStates.length; ++index) {
             this.cylinderStates[index] = RevolvercastStaffClientEffectState.resolveCylinder(
@@ -159,7 +159,7 @@ public final class RevolvercastStaffRenderer extends GeoItemRenderer<Revolvercas
         this.specialPass = SpecialPass.NONE;
         this.specialPassBoneName = null;
         this.starState = RevolvercastStaffClientEffectState.ColorRenderState.hidden();
-        this.coreState = new SwingcastStaffClientEffectState.CoreRenderState(0.0F, 0.0F, 0.0F, 0.0F);
+        this.coreState = new ImbuedSpellCoreClientEffectState.CoreRenderState(0.0F, 0.0F, 0.0F, 0.0F);
         this.orbState = RevolvercastStaffClientEffectState.ColorRenderState.hidden();
         Arrays.fill(cylinderStates, RevolvercastStaffClientEffectState.ColorRenderState.hidden());
     }
