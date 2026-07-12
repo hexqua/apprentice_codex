@@ -356,6 +356,11 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
             appendWisdomShardHint(lines);
             return List.copyOf(lines);
         }
+        if (menu.hasBulwarkGreatshield()) {
+            lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_runes"));
+            appendWisdomShardHint(lines);
+            return List.copyOf(lines);
+        }
         appendSlotUpgradeHints(lines);
         if (menu.hasGauntlet()) {
             lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_enchantment_books"));

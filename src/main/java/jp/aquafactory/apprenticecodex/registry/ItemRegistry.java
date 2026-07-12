@@ -69,6 +69,7 @@ import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.offhand.SilverSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeSheathItem;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
+import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
 import jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGreatsword;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdge;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeMirror;
@@ -411,4 +412,6 @@ public final class ItemRegistry {
             ITEMS.register("elemental_bow", ElementalBow::new);
     public static final DeferredHolder<Item, Item> REFLECTCAST_SHIELD =
             ITEMS.register("reflectcast_shield", ReflectcastShield::new);
+    public static final RegistryObject<Item> BULWARK_GREATSHIELD =
+            ITEMS.register("bulwark_greatshield", BulwarkGreatshield::new);
 }

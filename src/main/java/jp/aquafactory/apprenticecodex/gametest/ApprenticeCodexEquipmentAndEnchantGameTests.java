@@ -264,6 +264,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void bulwarkGreatshieldKeepsCoreItemAndEnchantmentContract(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.bulwarkGreatshieldKeepsCoreItemAndEnchantmentContract(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void bulwarkGreatshieldCalibrationSupportsOneRuneOrWisdomShard(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.bulwarkGreatshieldCalibrationSupportsOneRuneOrWisdomShard(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void bulwarkGreatshieldDurabilityAndManaRateLimitsStayMemoryOnly(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.bulwarkGreatshieldDurabilityAndManaRateLimitsStayMemoryOnly(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellgunServerConfigDefaultsMatchCurrentHardcodedValues(GameTestHelper helper) {
         EquipmentSpellGunGameTestScenarios.spellgunServerConfigDefaultsMatchCurrentHardcodedValues(helper);
     }
