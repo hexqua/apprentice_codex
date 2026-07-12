@@ -64,6 +64,7 @@
     "EpicFightPatchedItemInHandLayerMixin",
     "KeyboardHandlerMixin",
     "LocalPlayerSpellcasterQuiverMixin",
+    "LocalPlayerParrycastBucklerMixin",
     "MouseHandlerMixin",
     "MinecraftMixin",
     "EntityMixin",

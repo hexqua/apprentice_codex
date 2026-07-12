@@ -115,5 +115,13 @@
         1.49
       ]
     }
-  }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "blocking": 1
+      },
+      "model": "apprenticecodex:item/parrycast_buckler_blocking"
+    }
+  ]
 }

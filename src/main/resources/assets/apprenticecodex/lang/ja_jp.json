@@ -906,6 +906,7 @@
 
   "ui.apprenticecodex.swingcast.cannot_swing_cast": "%sは打撃詠唱できない！",
   "ui.apprenticecodex.jumpcast.cannot_long_cast": "%sは跳躍詠唱できない！",
+  "ui.apprenticecodex.parrycast.cannot_long_cast": "%sは弾き詠唱できない！",
   "ui.apprenticecodex.elemental_bow.mode_switched": "射撃モードを%sに設定",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "オーバーヒートで消費マナが%sに増加している！",
   "ui.apprenticecodex.elemental_bow.overheat_insufficient_mana": "オーバーヒートで消費マナが%sに増加していて今のマナでは足りない！",
