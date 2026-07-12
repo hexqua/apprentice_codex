@@ -724,15 +724,6 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
         return super.hurt(source, amount);
     }
 
-    @Override
-    public boolean fireImmune() {
-        return true;
-    }
-
-    @Override
-    public void lavaHurt() {
-    }
-
     private boolean isOwnerDamageSource(DamageSource source) {
         var owner = getOwner();
         if (owner == null) {
