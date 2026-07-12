@@ -6761,22 +6761,28 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
     static void companionTrunkIgnoresFireAndRescuesFromVoid(GameTestHelper helper) {
-        var player = createCompanionTrunkPlayer(helper, new BlockPos(0, 2, 0));
-        var trunk = createCompanionTrunk(helper, player, new BlockPos(0, 2, 0));
+        var trunkPos = new BlockPos(0, 2, 0);
+        helper.setBlock(trunkPos, Blocks.LAVA);
+        var player = createCompanionTrunkPlayer(helper, new BlockPos(1, 2, 0));
+        var trunk = createCompanionTrunk(helper, player, trunkPos);
         trunk.setCompanionMaxHealth(10.0f);
+        var initialHealth = trunk.getHealth();
 
-        helper.assertFalse(trunk.hurt(helper.getLevel().damageSources().lava(), 4.0f),
-                "Companion Trunk should ignore lava damage");
-        trunk.igniteForSeconds(5.0f);
-
-        helper.runAtTickTime(1, () -> {
+        helper.runAtTickTime(2, () -> {
+            helper.assertTrue(trunk.isInLava(),
+                    "Companion Trunk should be touching lava during the fire immunity test");
+            helper.assertTrue(Math.abs(trunk.getHealth() - initialHealth) < 0.0001f,
+                    "Companion Trunk should ignore environmental lava damage");
+            helper.assertFalse(trunk.isOnFire(),
+                    "Companion Trunk should not appear ignited while touching lava");
+            helper.assertTrue(trunk.getRemainingFireTicks() <= 0,
+                    "Companion Trunk should not gain fire ticks from touching lava");
             var belowWorld = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, -2, 0)));
             trunk.moveTo(belowWorld.x, belowWorld.y, belowWorld.z, 0.0f, 0.0f);
         });
 
         helper.succeedWhen(() -> {
             helper.assertTrue(trunk.isAlive(), "Companion Trunk should survive lava and void rescue");
-            helper.assertTrue(trunk.getRemainingFireTicks() <= 0, "Companion Trunk should not stay ignited");
             helper.assertTrue(Math.abs(trunk.blockPosition().getX() - player.blockPosition().getX()) <= 2
                             && Math.abs(trunk.blockPosition().getZ() - player.blockPosition().getZ()) <= 2,
                     "Companion Trunk should return near its owner after falling below the world");
