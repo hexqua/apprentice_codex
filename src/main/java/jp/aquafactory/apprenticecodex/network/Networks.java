@@ -43,6 +43,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncMirageAvoidanceStatePac
 import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncReflectcastShieldEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSchoolAffinityAssignmentsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSatelliteFollowcastAmuletStatePacket;
@@ -63,7 +64,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "54";
+    private static final String PROTOCOL_VERSION = "55";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -429,6 +430,14 @@ public final class Networks {
                 AtelierStationFluidEffectPacket::encode,
                 AtelierStationFluidEffectPacket::decode,
                 AtelierStationFluidEffectPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncReflectcastShieldEffectPacket.class,
+                SyncReflectcastShieldEffectPacket::encode,
+                SyncReflectcastShieldEffectPacket::decode,
+                SyncReflectcastShieldEffectPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
     }
 
