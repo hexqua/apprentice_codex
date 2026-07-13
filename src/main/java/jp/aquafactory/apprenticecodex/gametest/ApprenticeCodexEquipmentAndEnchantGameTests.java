@@ -289,6 +289,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void continuousShieldCastDurationsProgressMonotonically(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.continuousShieldCastDurationsProgressMonotonically(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void continuousShieldDeathClearsRuntimeWithNormalCooldown(GameTestHelper helper) {
         BulwarkGreatshieldGameTestScenarios.continuousShieldDeathClearsRuntimeWithNormalCooldown(helper);
     }

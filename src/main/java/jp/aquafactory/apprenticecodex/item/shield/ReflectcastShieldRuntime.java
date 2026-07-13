@@ -11,6 +11,7 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
+import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
 import jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor;
 import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
 import jp.aquafactory.apprenticecodex.network.Networks;
@@ -262,8 +263,9 @@ public final class ReflectcastShieldRuntime {
         if (!canStartCast(player, spell, spellLevel, castSource, magicData)) {
             return false;
         }
-        var activeCast = new ContinuousCast(spell, spellLevel, castSource, slot, now);
-        magicData.initiateCast(spell, spellLevel, CONTINUOUS_CAST_INTERVAL_TICKS, castSource, slot);
+        var castDuration = ContinuousCastDurationSimulation.normalizeCastDuration(spell.getCastTime(spellLevel));
+        var activeCast = new ContinuousCast(spell, spellLevel, castSource, slot, castDuration, now);
+        magicData.initiateCast(spell, spellLevel, castDuration, castSource, slot);
         magicData.setPlayerCastingItem(stack);
         syncMagicDataSimulation(magicData, activeCast, stack, 0L);
         spell.onServerPreCast(player.level(), spellLevel, player, magicData);
@@ -365,9 +367,9 @@ public final class ReflectcastShieldRuntime {
     ) {
         var accessor = (MagicDataAccessor) magicData;
         accessor.apprenticecodex$setCastingSpellLevel(activeCast.spellLevel());
-        accessor.apprenticecodex$setCastDuration(CONTINUOUS_CAST_INTERVAL_TICKS);
+        accessor.apprenticecodex$setCastDuration(activeCast.castDuration());
         accessor.apprenticecodex$setCastDurationRemaining(
-                CONTINUOUS_CAST_INTERVAL_TICKS - (int) (elapsedTicks % CONTINUOUS_CAST_INTERVAL_TICKS)
+                ContinuousCastDurationSimulation.computeRemaining(activeCast.castDuration(), elapsedTicks)
         );
         accessor.apprenticecodex$setCastSource(activeCast.castSource());
         accessor.apprenticecodex$setCastType(CastType.CONTINUOUS);
@@ -391,6 +393,7 @@ public final class ReflectcastShieldRuntime {
             int spellLevel,
             CastSource castSource,
             String slot,
+            int castDuration,
             long startedAt
     ) {
     }

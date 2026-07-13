@@ -82,6 +82,7 @@ import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffRightClickItemEvent;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
@@ -600,10 +601,19 @@ final class FocusStaffbowGameTestScenarios {
                     "Focus Staffbow continuous cast should stay active past the spell's normal duration cap");
             helper.assertTrue(magicData.isCasting(),
                     "Focus Staffbow continuous cast should keep Iron's casting state active past the normal duration cap");
+            var continuousState = spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
+            var elapsedTicks = continuousState.getElapsedTicks(player.level().getGameTime());
+            var expectedRemaining = ContinuousCastDurationSimulation.computeRemaining(
+                    continuousState.requiredCastTicks, elapsedTicks
+            );
+            helper.assertTrue(magicData.getCastDuration() == continuousState.requiredCastTicks,
+                    "Focus Staffbow continuous cast should expose the spell's base cast duration");
+            helper.assertTrue(magicData.getCastDurationRemaining() == expectedRemaining,
+                    "Focus Staffbow continuous cast remaining duration should decrease monotonically: "
+                            + magicData.getCastDurationRemaining() + " expected " + expectedRemaining);
             helper.assertTrue(magicData.getCastDurationRemaining() < 10,
                     "Focus Staffbow continuous cast should have passed Iron's normal remaining-duration stop window: " + magicData.getCastDurationRemaining());
             helper.assertTrue(spellPowerAttribute != null, "Focus Staffbow continuous midpoint test could not resolve spell power attribute");
-            var continuousState = spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
             var expectedMultiplier = jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(
                     continuousState.getElapsedTicks(player.level().getGameTime())
             );

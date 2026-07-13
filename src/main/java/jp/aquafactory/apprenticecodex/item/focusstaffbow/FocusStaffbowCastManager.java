@@ -22,6 +22,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
+import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
 import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
@@ -402,7 +403,7 @@ public final class FocusStaffbowCastManager {
         // CONTINUOUS は詠唱時間短縮 Attribute が逆効果になるため、
         // FocusStaffbow 側では spell 本来の castTime だけを標準詠唱可能時間として扱う。
         var standardCastTicks = Math.max(spell.getCastTime(spellLevel), 0);
-        var requiredCastTicks = FocusStaffbowChargeLogic.normalizeContinuousRequiredCastTicks(standardCastTicks);
+        var requiredCastTicks = ContinuousCastDurationSimulation.normalizeCastDuration(standardCastTicks);
 
         var magicData = MagicData.getPlayerMagicData(player);
         if (!validateCastStart(player, spell, spellLevel, castSource, magicData)) {
@@ -998,7 +999,7 @@ public final class FocusStaffbowCastManager {
         accessor.apprenticecodex$setCastingSpellLevel(spellLevel);
         accessor.apprenticecodex$setCastDuration(requiredCastTicks);
         accessor.apprenticecodex$setCastDurationRemaining(
-                FocusStaffbowChargeLogic.computeContinuousCastDurationRemaining(elapsedTicks, requiredCastTicks)
+                ContinuousCastDurationSimulation.computeRemaining(requiredCastTicks, elapsedTicks)
         );
         accessor.apprenticecodex$setCastSource(castSource);
         accessor.apprenticecodex$setCastType(spell.getCastType());

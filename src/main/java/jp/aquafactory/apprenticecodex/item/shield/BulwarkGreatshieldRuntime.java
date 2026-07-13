@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
+import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
 import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -62,10 +63,18 @@ public final class BulwarkGreatshieldRuntime {
             return;
         }
         var slot = hand == InteractionHand.OFF_HAND ? SpellSelectionManager.OFFHAND : SpellSelectionManager.MAINHAND;
-        var activeCast = new ContinuousCast(spell, level, castSource, slot, player.level().getGameTime());
+        var castDuration = ContinuousCastDurationSimulation.normalizeCastDuration(spell.getCastTime(level));
+        var activeCast = new ContinuousCast(
+                spell,
+                level,
+                castSource,
+                slot,
+                castDuration,
+                player.level().getGameTime()
+        );
 
         // 通常の attemptInitiateCast は盾使用を解除して詠唱モーションへ移るため、必要な魔法状態だけ構築する。
-        magicData.initiateCast(spell, level, CONTINUOUS_CAST_INTERVAL_TICKS, castSource, slot);
+        magicData.initiateCast(spell, level, castDuration, castSource, slot);
         magicData.setPlayerCastingItem(stack);
         syncMagicDataSimulation(magicData, activeCast, stack, 0L);
         spell.onServerPreCast(player.level(), level, player, magicData);
@@ -257,9 +266,9 @@ public final class BulwarkGreatshieldRuntime {
     ) {
         var accessor = (MagicDataAccessor) magicData;
         accessor.apprenticecodex$setCastingSpellLevel(activeCast.spellLevel());
-        accessor.apprenticecodex$setCastDuration(CONTINUOUS_CAST_INTERVAL_TICKS);
+        accessor.apprenticecodex$setCastDuration(activeCast.castDuration());
         accessor.apprenticecodex$setCastDurationRemaining(
-                CONTINUOUS_CAST_INTERVAL_TICKS - (int) (elapsedTicks % CONTINUOUS_CAST_INTERVAL_TICKS)
+                ContinuousCastDurationSimulation.computeRemaining(activeCast.castDuration(), elapsedTicks)
         );
         accessor.apprenticecodex$setCastSource(activeCast.castSource());
         accessor.apprenticecodex$setCastType(CastType.CONTINUOUS);
@@ -286,6 +295,7 @@ public final class BulwarkGreatshieldRuntime {
             int spellLevel,
             CastSource castSource,
             String slot,
+            int castDuration,
             long startedAt
     ) {
     }
