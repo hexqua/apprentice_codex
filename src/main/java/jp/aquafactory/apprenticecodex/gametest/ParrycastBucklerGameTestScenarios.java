@@ -1,9 +1,15 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.MagicHelper;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.ImbueShieldBlockCastEvent;
+import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -15,6 +21,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -140,6 +147,99 @@ final class ParrycastBucklerGameTestScenarios {
                     "Stopping use should not persist animation state in the item stack");
             helper.succeed();
         });
+    }
+
+    static void parrycastWisdomOnlyReducesAllCooldownsWhenSelectedSpellIsCoolingDown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var otherSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+
+            var ready = createWisdomParryContext(
+                    helper,
+                    new BlockPos(0, 2, 0),
+                    "parrycast_wisdom_ready_test",
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get()
+            );
+            MagicHelper.MAGIC_MANAGER.addCooldown(ready.player(), otherSpell, ready.castSource());
+            int readyOtherBefore = cooldownRemaining(ready.magicData(), otherSpell);
+            triggerPerfectGuard(ready);
+            helper.assertTrue(cooldownRemaining(ready.magicData(), otherSpell) == readyOtherBefore,
+                    "Wisdom should not reduce other cooldowns while the selected spell is ready");
+
+            var invalid = createWisdomParryContext(
+                    helper,
+                    new BlockPos(2, 2, 0),
+                    "parrycast_wisdom_invalid_test",
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get()
+            );
+            MagicHelper.MAGIC_MANAGER.addCooldown(invalid.player(), otherSpell, invalid.castSource());
+            int invalidOtherBefore = cooldownRemaining(invalid.magicData(), otherSpell);
+            triggerPerfectGuard(invalid);
+            helper.assertTrue(cooldownRemaining(invalid.magicData(), otherSpell) == invalidOtherBefore,
+                    "Wisdom should not reduce other cooldowns when the selected spell cannot be used");
+
+            var coolingDown = createWisdomParryContext(
+                    helper,
+                    new BlockPos(4, 2, 0),
+                    "parrycast_wisdom_cooldown_test",
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get()
+            );
+            MagicHelper.MAGIC_MANAGER.addCooldown(
+                    coolingDown.player(), coolingDown.selectedSpell(), coolingDown.castSource()
+            );
+            MagicHelper.MAGIC_MANAGER.addCooldown(coolingDown.player(), otherSpell, coolingDown.castSource());
+            int selectedBefore = cooldownRemaining(coolingDown.magicData(), coolingDown.selectedSpell());
+            int otherBefore = cooldownRemaining(coolingDown.magicData(), otherSpell);
+            triggerPerfectGuard(coolingDown);
+            helper.assertTrue(cooldownRemaining(coolingDown.magicData(), coolingDown.selectedSpell()) < selectedBefore,
+                    "Wisdom should reduce the selected spell cooldown while it is active");
+            helper.assertTrue(cooldownRemaining(coolingDown.magicData(), otherSpell) < otherBefore,
+                    "Wisdom should reduce all cooldowns when the selected spell is cooling down");
+        });
+    }
+
+    private static WisdomParryContext createWisdomParryContext(
+            GameTestHelper helper,
+            BlockPos position,
+            String name,
+            AbstractSpell selectedSpell
+    ) {
+        var player = BowGameTestSupport.createEquipmentTestPlayer(helper, position, name);
+        var buckler = new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get());
+        ParrycastBuckler.setCalibrationAdjustment(buckler, 0, new ItemStack(ItemRegistry.WISDOM_SHARD.get()));
+        var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, BowGameTestSupport.createSpellScroll(selectedSpell));
+        ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
+        player.setItemInHand(InteractionHand.MAIN_HAND, buckler);
+        player.setItemInHand(InteractionHand.OFF_HAND, gauntlet);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Wisdom Parrycast test requires MagicData");
+        magicData.setMana(1000.0F);
+        magicData.getSyncedData().setSpellSelection(new SpellSelection(SpellSelectionManager.OFFHAND, 0));
+        var selection = new SpellSelectionManager(player).getSelection();
+        helper.assertTrue(selection != null && selection.spellData.getSpell() == selectedSpell,
+                "Wisdom Parrycast test should resolve the selected offhand spell");
+        return new WisdomParryContext(player, buckler, magicData, selectedSpell, selection.getCastSource());
+    }
+
+    private static void triggerPerfectGuard(WisdomParryContext context) {
+        context.buckler().getItem().use(context.player().level(), context.player(), InteractionHand.MAIN_HAND);
+        ((ParrycastBuckler) context.buckler().getItem()).handlePerfectGuard(
+                context.player(), context.buckler(), InteractionHand.MAIN_HAND
+        );
+    }
+
+    private static int cooldownRemaining(MagicData magicData, AbstractSpell spell) {
+        var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
+        return cooldown == null ? 0 : cooldown.getCooldownRemaining();
+    }
+
+    private record WisdomParryContext(
+            ServerPlayer player,
+            ItemStack buckler,
+            MagicData magicData,
+            AbstractSpell selectedSpell,
+            io.redspace.ironsspellbooks.api.spells.CastSource castSource
+    ) {
     }
 
     private static void assertFirstRestrictionKey(GameTestHelper helper, java.util.List<net.minecraft.network.chat.Component> lines,
