@@ -124,6 +124,7 @@ import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime;
 import jp.aquafactory.apprenticecodex.item.spellthrowablecard.AbstractSpellThrowableCardItem;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
@@ -433,32 +434,39 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
     static void reflectcastShieldDurabilityRulesMatchGuardTuning(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
+            var beforeRuntimeState = stack.copy();
             helper.assertTrue(stack.getMaxDamage() == ReflectcastShield.DURABILITY,
                     "Reflectcast Shield durability should be " + ReflectcastShield.DURABILITY + " but got " + stack.getMaxDamage());
-            helper.assertTrue(ReflectcastShield.resolveBlockedDurabilityCost(2.9F, true) == 0,
-                    "Reflectcast Shield should keep sub-threshold successful guard durability at zero");
-            helper.assertTrue(ReflectcastShield.resolveBlockedDurabilityCost(3.0F, true) == 1,
-                    "Reflectcast Shield should clamp successful guard durability to one");
-            helper.assertTrue(ReflectcastShield.resolveBlockedDurabilityCost(12.75F, true) == 1,
-                    "Reflectcast Shield should keep high-damage successful guard durability at one");
-            helper.assertTrue(ReflectcastShield.resolveBlockedDurabilityCost(3.0F, false) == 4,
-                    "Reflectcast Shield should keep vanilla shield durability cost when the spell cannot trigger");
-            helper.assertTrue(ReflectcastShield.resolveBlockedDurabilityCost(12.75F, false) == 13,
-                    "Reflectcast Shield should keep vanilla high-damage durability cost when the spell cannot trigger");
+            helper.assertTrue(ReflectcastShield.resolveBlockedDurabilityCost(2.9F) == 0,
+                    "Reflectcast Shield should keep sub-threshold guard durability at zero");
+            helper.assertTrue(ReflectcastShield.resolveBlockedDurabilityCost(3.0F) == 4,
+                    "Reflectcast Shield should use vanilla shield durability cost");
+            helper.assertTrue(ReflectcastShield.resolveBlockedDurabilityCost(12.75F) == 13,
+                    "Reflectcast Shield should use vanilla high-damage durability cost");
 
-            helper.assertFalse(ReflectcastShield.isDurabilityConsumptionSuppressed(stack, 100L),
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "reflectcast_shield_durability_runtime_test");
+            ReflectcastShieldRuntime.clear(player);
+            helper.assertFalse(ReflectcastShieldRuntime.isDurabilityConsumptionSuppressed(player, 100L),
                     "Reflectcast Shield should not suppress durability before a cost is recorded");
-            ReflectcastShield.rememberDurabilityConsumed(stack, 100L);
-            var customData = stack.get(DataComponents.CUSTOM_DATA);
-            helper.assertTrue(customData != null,
-                    "Reflectcast Shield should record the durability suppression tick in custom data");
-            var tag = customData.copyTag();
-            helper.assertTrue(ReflectcastShield.isDurabilityConsumptionSuppressed(tag, 100L),
+            ReflectcastShieldRuntime.rememberDurabilityConsumed(player, 100L);
+            helper.assertTrue(ReflectcastShieldRuntime.isDurabilityConsumptionSuppressed(player, 100L),
                     "Reflectcast Shield should suppress durability on the recorded tick");
-            helper.assertTrue(ReflectcastShield.isDurabilityConsumptionSuppressed(tag, 110L),
+            helper.assertTrue(ReflectcastShieldRuntime.isDurabilityConsumptionSuppressed(player, 110L),
                     "Reflectcast Shield should suppress durability through the ten tick window");
-            helper.assertFalse(ReflectcastShield.isDurabilityConsumptionSuppressed(tag, 111L),
+            helper.assertFalse(ReflectcastShieldRuntime.isDurabilityConsumptionSuppressed(player, 111L),
                     "Reflectcast Shield should allow durability after the ten tick window");
+            helper.assertTrue(Utils.isSameItemSameComponentsIgnoreDurability(beforeRuntimeState, stack),
+                    "Reflectcast Shield durability runtime should not write item NBT");
+            ReflectcastShieldRuntime.clear(player);
+            ReflectcastShieldRuntime.rememberSpellTriggered(player, 200L);
+            helper.assertTrue(ReflectcastShieldRuntime.isSpellTriggerSuppressed(player, 209L),
+                    "Reflectcast Shield should suppress repeated spell triggers for nine following ticks");
+            helper.assertFalse(ReflectcastShieldRuntime.isSpellTriggerSuppressed(player, 210L),
+                    "Reflectcast Shield should allow another spell trigger on tick ten");
+            ReflectcastShieldRuntime.clear(player);
+            helper.assertFalse(ReflectcastShieldRuntime.isSpellTriggerSuppressed(player, 200L),
+                    "Reflectcast Shield trigger suppression should clear with its non-persistent runtime");
         });
     }
     static void diamondAndNetheriteSpellAmplifierExposeNewAttributeBonuses(GameTestHelper helper) {

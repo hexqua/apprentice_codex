@@ -11704,7 +11704,10 @@ public class ApprenticeCodexGameTestScenarios {
                 registryAccess,
                 enchantment -> enchantment.value().canEnchant(new ItemStack(Items.SHIELD))
         );
-        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
+        expectedEnchantments.addAll(registryIdSet(
+                EnchantmentRegistry.TRANSCENDENCE,
+                EnchantmentRegistry.WISDOM
+        ));
         return expectedEnchantments;
     }
 

@@ -18,6 +18,7 @@ import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
 import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
@@ -192,6 +193,10 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         return getGauntletStack().getItem() instanceof ParrycastBuckler;
     }
 
+    public boolean hasReflectcastShield() {
+        return getGauntletStack().getItem() instanceof ReflectcastShield;
+    }
+
     public boolean hasStoredCalibrationTarget() {
         return hasGauntlet()
                 || hasRevolvercastStaff()
@@ -200,7 +205,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
                 || hasAutocastAmulet()
                 || hasSatelliteFollowcastAmulet()
                 || hasBulwarkGreatshield()
-                || hasParrycastBuckler();
+                || hasParrycastBuckler()
+                || hasReflectcastShield();
     }
 
     public boolean hasCalibrationTarget() {
@@ -209,7 +215,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
     public boolean hasOperationalImbueTarget() {
         return hasMagiAgentSuitImbueTarget()
-                || hasBulwarkGreatshield() || hasParrycastBuckler()
+                || hasBulwarkGreatshield() || hasParrycastBuckler() || hasReflectcastShield()
                 || !hasStoredCalibrationTarget() && SpellCalibrationImbueHelper.isSupportedTarget(getGauntletStack());
     }
 
@@ -255,6 +261,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         if (hasParrycastBuckler()) {
             return slot < ParrycastBuckler.CALIBRATION_ADJUSTMENT_SLOT_COUNT;
         }
+        if (hasReflectcastShield()) {
+            return slot < ReflectcastShield.CALIBRATION_ADJUSTMENT_SLOT_COUNT;
+        }
         return slot < ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT;
     }
 
@@ -291,6 +300,10 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             return ((ParrycastBuckler) getGauntletStack().getItem())
                     .isMismatchedCastConditionAt(getGauntletStack(), slot);
         }
+        if (hasReflectcastShield()) {
+            return ((ReflectcastShield) getGauntletStack().getItem())
+                    .isMismatchedCastConditionAt(getGauntletStack(), slot);
+        }
         if (hasAutocastAmulet()) {
             return AutocastAmulet.isMismatchedCastConditionAt(getGauntletStack(), slot);
         }
@@ -311,6 +324,10 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         }
         if (hasParrycastBuckler()) {
             return ((ParrycastBuckler) getGauntletStack().getItem())
+                    .getImbueRestrictionTooltipLines(getGauntletStack());
+        }
+        if (hasReflectcastShield()) {
+            return ((ReflectcastShield) getGauntletStack().getItem())
                     .getImbueRestrictionTooltipLines(getGauntletStack());
         }
         if (hasAutocastAmulet()) {
@@ -369,6 +386,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         if (hasParrycastBuckler()) {
             return ParrycastBuckler.getCalibrationAdjustment(getGauntletStack(), slot);
         }
+        if (hasReflectcastShield()) {
+            return ReflectcastShield.getCalibrationAdjustment(getGauntletStack(), slot);
+        }
         return ItemStack.EMPTY;
     }
 
@@ -397,6 +417,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             BulwarkGreatshield.setCalibrationAdjustment(getGauntletStack(), slot, storedStack);
         } else if (hasParrycastBuckler()) {
             ParrycastBuckler.setCalibrationAdjustment(getGauntletStack(), slot, storedStack);
+        } else if (hasReflectcastShield()) {
+            ReflectcastShield.setCalibrationAdjustment(getGauntletStack(), slot, storedStack);
         }
     }
 
@@ -626,6 +648,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
                 || isSatelliteFollowcastAmulet(stack)
                 || stack.getItem() instanceof BulwarkGreatshield
                 || stack.getItem() instanceof ParrycastBuckler
+                || stack.getItem() instanceof ReflectcastShield
                 || SpellCalibrationImbueHelper.isVisibleImbueTarget(stack);
     }
 
@@ -874,6 +897,10 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             }
             if (hasParrycastBuckler()) {
                 return ParrycastBuckler.isCalibrationAdjustmentItem(stack);
+            }
+            if (hasReflectcastShield()) {
+                return ReflectcastShield.isCalibrationAdjustmentItem(stack)
+                        && (!isSilverRing(stack) || !hasSilverRingAdjustmentExcept(calibrationSlot));
             }
             return false;
         }
