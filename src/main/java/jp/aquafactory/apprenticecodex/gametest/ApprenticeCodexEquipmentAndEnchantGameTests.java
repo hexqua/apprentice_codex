@@ -289,6 +289,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void continuousShieldDeathClearsRuntimeWithNormalCooldown(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.continuousShieldDeathClearsRuntimeWithNormalCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void parrycastBucklerKeepsCoreContract(GameTestHelper helper) {
         ParrycastBucklerGameTestScenarios.parrycastBucklerKeepsCoreContract(helper);
     }
@@ -301,6 +306,12 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void parrycastBucklerKeepsPerfectGuardWindowAndDurabilityRateLimit(GameTestHelper helper) {
         ParrycastBucklerGameTestScenarios.parrycastBucklerKeepsPerfectGuardWindowAndDurabilityRateLimit(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void parrycastWisdomOnlyReducesAllCooldownsWhenSelectedSpellIsCoolingDown(GameTestHelper helper) {
+        ParrycastBucklerGameTestScenarios
+                .parrycastWisdomOnlyReducesAllCooldownsWhenSelectedSpellIsCoolingDown(helper);
     }
 
     @GameTest(template = TEMPLATE)

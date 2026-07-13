@@ -339,7 +339,6 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
         var selected = hasWisdomShard(stack) ? new SpellSelectionManager(player).getSelection() : null;
         SpellData spellData = selected != null ? selected.spellData : getPrimarySpellData(stack);
         CastSource castSource = selected != null ? selected.getCastSource() : CastSource.SWORD;
-        if (hasWisdomShard(stack)) reduceAllCooldowns(player, magicData);
         if (spellData == null || spellData == SpellData.EMPTY) return;
         var spell = spellData.getSpell();
         int level = spell.getLevelFor(spellData.getLevel(), player);
@@ -350,7 +349,11 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
         }
         var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
         if (cooldown != null) {
-            if (!hasWisdomShard(stack)) reduceCooldown(player, magicData, cooldown);
+            if (hasWisdomShard(stack)) {
+                reduceAllCooldowns(player, magicData);
+            } else {
+                reduceCooldown(player, magicData, cooldown);
+            }
             return;
         }
         float borrowed = Math.max(0F, spell.getManaCost(level) - magicData.getMana());

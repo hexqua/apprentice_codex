@@ -29,6 +29,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.BlockEvent;
 
@@ -330,6 +332,71 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
                     "Reflectcast logout should clear the persisted casting state");
             helper.succeed();
         });
+    }
+
+    static void continuousShieldDeathClearsRuntimeWithNormalCooldown(GameTestHelper helper) {
+        var spell = SpellRegistry.FIRE_BREATH_SPELL.get();
+        var bulwarkPlayer = BowGameTestSupport.createEquipmentTestPlayer(
+                helper, new BlockPos(0, 2, 0), "bulwark_continuous_death_test"
+        );
+        var bulwarkStack = createContinuousCastShieldStack(ItemRegistry.BULWARK_GREATSHIELD.get());
+        bulwarkPlayer.setItemInHand(InteractionHand.OFF_HAND, bulwarkStack);
+        bulwarkStack.getItem().use(helper.getLevel(), bulwarkPlayer, InteractionHand.OFF_HAND);
+        var bulwarkMagicData = MagicData.getPlayerMagicData(bulwarkPlayer);
+        helper.assertTrue(bulwarkMagicData != null, "Bulwark death cleanup test requires MagicData");
+        bulwarkMagicData.setMana(1000.0F);
+        BulwarkGreatshieldRuntime.tryStartContinuousCast(
+                bulwarkPlayer, bulwarkStack, InteractionHand.OFF_HAND
+        );
+        helper.assertTrue(bulwarkMagicData.isCasting(), "Bulwark death cleanup should start from an active cast");
+        MinecraftForge.EVENT_BUS.post(new LivingDeathEvent(
+                bulwarkPlayer, helper.getLevel().damageSources().generic()
+        ));
+        helper.assertFalse(bulwarkMagicData.isCasting(), "Bulwark death should end its simulated casting state");
+        helper.assertTrue(bulwarkMagicData.getPlayerCooldowns().getSpellCooldowns().containsKey(spell.getSpellId()),
+                "Bulwark death should retain Iron's normal continuous spell cooldown");
+
+        bulwarkMagicData.getPlayerCooldowns().clearCooldowns();
+        bulwarkStack.getItem().use(helper.getLevel(), bulwarkPlayer, InteractionHand.OFF_HAND);
+        BulwarkGreatshieldRuntime.tryStartContinuousCast(
+                bulwarkPlayer, bulwarkStack, InteractionHand.OFF_HAND
+        );
+        helper.assertTrue(bulwarkMagicData.isCasting(),
+                "Bulwark should start a fresh continuous cast after death cleanup");
+        BulwarkGreatshieldRuntime.finishUse(bulwarkPlayer);
+
+        var reflectcastPlayer = BowGameTestSupport.createEquipmentTestPlayer(
+                helper, new BlockPos(2, 2, 0), "reflectcast_continuous_death_test"
+        );
+        var reflectcastStack = createContinuousCastShieldStack(ItemRegistry.REFLECTCAST_SHIELD.get());
+        ReflectcastShield.setCalibrationAdjustment(
+                reflectcastStack,
+                0,
+                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
+        );
+        reflectcastPlayer.setItemInHand(InteractionHand.OFF_HAND, reflectcastStack);
+        reflectcastStack.getItem().use(helper.getLevel(), reflectcastPlayer, InteractionHand.OFF_HAND);
+        var reflectcastMagicData = MagicData.getPlayerMagicData(reflectcastPlayer);
+        helper.assertTrue(reflectcastMagicData != null, "Reflectcast death cleanup test requires MagicData");
+        reflectcastMagicData.setMana(1000.0F);
+        helper.assertTrue(ReflectcastShieldRuntime.tryTriggerSpell(
+                        reflectcastPlayer, reflectcastStack, InteractionHand.OFF_HAND),
+                "Reflectcast death cleanup should start from an active cast");
+        MinecraftForge.EVENT_BUS.post(new LivingDeathEvent(
+                reflectcastPlayer, helper.getLevel().damageSources().generic()
+        ));
+        helper.assertFalse(reflectcastMagicData.isCasting(),
+                "Reflectcast death should end its simulated casting state");
+        helper.assertTrue(reflectcastMagicData.getPlayerCooldowns().getSpellCooldowns().containsKey(spell.getSpellId()),
+                "Reflectcast death should retain Iron's normal continuous spell cooldown");
+
+        reflectcastMagicData.getPlayerCooldowns().clearCooldowns();
+        reflectcastStack.getItem().use(helper.getLevel(), reflectcastPlayer, InteractionHand.OFF_HAND);
+        helper.assertTrue(ReflectcastShieldRuntime.tryTriggerSpell(
+                        reflectcastPlayer, reflectcastStack, InteractionHand.OFF_HAND),
+                "Reflectcast should start a fresh continuous cast after death cleanup");
+        ReflectcastShieldRuntime.finishUse(reflectcastPlayer);
+        helper.succeed();
     }
 
     private static ItemStack createContinuousCastShieldStack(net.minecraft.world.item.Item shieldItem) {
