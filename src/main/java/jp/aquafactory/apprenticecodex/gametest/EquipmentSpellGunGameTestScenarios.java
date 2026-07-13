@@ -19,8 +19,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraftforge.common.MinecraftForge;
 
+import java.util.ArrayList;
 import java.util.List;
 
 final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestScenarios {
@@ -96,6 +98,16 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
             var item = (jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield) stack.getItem();
+            var defaultTooltipLines = new ArrayList<Component>();
+            item.appendHoverText(stack, helper.getLevel(), defaultTooltipLines, TooltipFlag.Default.NORMAL);
+            helper.assertTrue(containsTranslatableKey(defaultTooltipLines,
+                            "item.apprenticecodex.reflectcast_shield.cast_default"),
+                    "Reflectcast Shield should show the imbued-spell cast tooltip by default");
+            helper.assertFalse(containsTranslatableKey(defaultTooltipLines,
+                            "item.apprenticecodex.reflectcast_shield." + "hint")
+                            || containsTranslatableKey(defaultTooltipLines,
+                            "item.apprenticecodex.reflectcast_shield.cast_" + "hint"),
+                    "Reflectcast Shield should not show removed legacy tooltip keys");
             var defaultAbilityLines = collectReflectcastAbilityTooltipLines(helper, item, stack);
             helper.assertTrue(containsTranslatableKey(defaultAbilityLines,
                             "item.apprenticecodex.spellgun.tooltip.ability_none"),
@@ -124,6 +136,14 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                     "Reflectcast Shield should store Silver Ring calibration");
             helper.assertTrue(jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.hasWisdomShard(stack),
                     "Reflectcast Shield should store Wisdom Shard calibration alongside Silver Ring");
+            var wisdomTooltipLines = new ArrayList<Component>();
+            item.appendHoverText(stack, helper.getLevel(), wisdomTooltipLines, TooltipFlag.Default.NORMAL);
+            helper.assertTrue(containsTranslatableKey(wisdomTooltipLines,
+                            "item.apprenticecodex.reflectcast_shield.cast_wisdom"),
+                    "Wisdom Shard should switch Reflectcast Shield to the selected-spell cast tooltip");
+            helper.assertFalse(containsTranslatableKey(wisdomTooltipLines,
+                            "item.apprenticecodex.reflectcast_shield.cast_default"),
+                    "Wisdom Shard should hide Reflectcast Shield's imbued-spell cast tooltip");
             var silverAbilityLines = collectReflectcastAbilityTooltipLines(helper, item, stack);
             helper.assertTrue(containsTranslatableKey(silverAbilityLines,
                             "item.apprenticecodex.spellgun.tooltip.ability_long_to_instant")

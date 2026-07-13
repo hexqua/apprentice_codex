@@ -13,13 +13,17 @@ import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraftforge.event.entity.living.ShieldBlockEvent;
+
+import java.util.ArrayList;
 
 final class ParrycastBucklerGameTestScenarios {
     private ParrycastBucklerGameTestScenarios() {}
@@ -28,6 +32,12 @@ final class ParrycastBucklerGameTestScenarios {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get());
             var item = (ParrycastBuckler) stack.getItem();
+            var tooltipLines = new ArrayList<Component>();
+            item.appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+            assertTooltipKeyAt(helper, tooltipLines, 0,
+                    "item.apprenticecodex.parrycast_buckler.desc");
+            assertTooltipKeyAt(helper, tooltipLines, 1,
+                    "item.apprenticecodex.parrycast_buckler.cast_default");
             helper.assertTrue(stack.getMaxDamage() == 1561, "Parrycast Buckler durability should be 1561");
             helper.assertTrue(item.getEnchantmentValue(stack) == 22, "Parrycast Buckler enchantment value should be 22");
             helper.assertTrue(item.canApplyAtEnchantingTable(stack, Enchantments.UNBREAKING), "Parrycast should accept shield enchantments");
@@ -72,6 +82,12 @@ final class ParrycastBucklerGameTestScenarios {
             ParrycastBuckler.setCalibrationAdjustment(stack, 1, fireRune);
             ParrycastBuckler.setCalibrationAdjustment(stack, 2, new ItemStack(ItemRegistry.WISDOM_SHARD.get()));
             helper.assertTrue(ParrycastBuckler.hasWisdomShard(stack), "Wisdom Shard should be stored");
+            var tooltipLines = new ArrayList<Component>();
+            stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+            assertTooltipKeyAt(helper, tooltipLines, 0,
+                    "item.apprenticecodex.parrycast_buckler.desc");
+            assertTooltipKeyAt(helper, tooltipLines, 1,
+                    "item.apprenticecodex.parrycast_buckler.cast_wisdom");
             var school = ScrollcasterSchoolRuneResolver.resolveSchool(fireRune).orElse(null);
             var power = MagicTools.resolveSchoolPowerAttribute(school);
             long matching = stack.getAttributeModifiers(EquipmentSlot.OFFHAND).get(power).stream()
@@ -126,5 +142,14 @@ final class ParrycastBucklerGameTestScenarios {
         var contents = lines.get(0).getContents();
         helper.assertTrue(contents instanceof TranslatableContents translatable && expectedKey.equals(translatable.getKey()),
                 "Unexpected Parrycast restriction tooltip: " + lines.get(0));
+    }
+
+    private static void assertTooltipKeyAt(GameTestHelper helper, java.util.List<Component> lines, int index,
+                                           String expectedKey) {
+        helper.assertTrue(lines.size() > index, "Parrycast tooltip line is missing at index " + index);
+        var contents = lines.get(index).getContents();
+        helper.assertTrue(contents instanceof TranslatableContents translatable
+                        && expectedKey.equals(translatable.getKey()),
+                "Unexpected Parrycast tooltip at index " + index + ": " + lines.get(index));
     }
 }

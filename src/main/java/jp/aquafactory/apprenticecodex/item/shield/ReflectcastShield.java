@@ -70,9 +70,10 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
     }
 
     @Override
-    protected void appendAlwaysVisibleImbueTooltip(List<Component> lines) {
-        lines.add(ImbueTooltipHelper.translatableGray("item." + ApprenticeCodex.MODID + ".reflectcast_shield.hint"));
-        lines.add(ImbueTooltipHelper.translatableGray("item." + ApprenticeCodex.MODID + ".reflectcast_shield.cast_hint"));
+    protected void appendAlwaysVisibleImbueTooltip(ItemStack stack, List<Component> lines) {
+        var castTooltip = hasWisdomShard(stack) ? "cast_wisdom" : "cast_default";
+        lines.add(ImbueTooltipHelper.translatableGray(
+                "item." + ApprenticeCodex.MODID + ".reflectcast_shield." + castTooltip));
     }
 
     @Override
