@@ -11,6 +11,9 @@ import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
 import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
+import net.minecraft.network.chat.ComponentContents;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
@@ -29,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Mod.EventBusSubscriber
 public final class BulwarkGreatshieldRuntime {
     private static final int CONTINUOUS_CAST_INTERVAL_TICKS = 10;
+    private static final String COOLDOWN_CAST_ERROR_KEY = "ui.irons_spellbooks.cast_error_cooldown";
     private static final Map<UUID, UseState> USE_STATES = new ConcurrentHashMap<>();
     private static final Map<UUID, Long> NEXT_DURABILITY_CONSUMPTION_TICKS = new ConcurrentHashMap<>();
     private static final Map<UUID, Long> NEXT_MANA_RECOVERY_TICKS = new ConcurrentHashMap<>();
@@ -207,7 +211,12 @@ public final class BulwarkGreatshieldRuntime {
             CastSource castSource,
             MagicData magicData
     ) {
-        return spell.canBeCastedBy(spellLevel, castSource, magicData, player).isSuccess()
+        var castResult = spell.canBeCastedBy(spellLevel, castSource, magicData, player);
+        if (castResult.message != null && !isCooldownCastError(castResult.message.getContents())) {
+            // 構え直すたびに出るクールダウン警告だけは抑え、マナ不足など解消が必要な失敗理由は通知する。
+            player.connection.send(new ClientboundSetActionBarTextPacket(castResult.message));
+        }
+        return castResult.isSuccess()
                 && spell.checkPreCastConditions(player.level(), spellLevel, player, magicData)
                 && !MinecraftForge.EVENT_BUS.post(new SpellPreCastEvent(
                         player,
@@ -216,6 +225,11 @@ public final class BulwarkGreatshieldRuntime {
                         spell.getSchoolType(),
                         castSource
                 ));
+    }
+
+    private static boolean isCooldownCastError(ComponentContents contents) {
+        return contents instanceof TranslatableContents translatable
+                && COOLDOWN_CAST_ERROR_KEY.equals(translatable.getKey());
     }
 
     private static boolean castPulse(ServerPlayer player, ContinuousCast activeCast, MagicData magicData) {
