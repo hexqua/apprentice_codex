@@ -274,6 +274,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void imbueShieldsApplyTranscendenceAndWisdomEffects(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.imbueShieldsApplyTranscendenceAndWisdomEffects(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void bulwarkGreatshieldDurabilityAndManaRateLimitsStayMemoryOnly(GameTestHelper helper) {
         BulwarkGreatshieldGameTestScenarios.bulwarkGreatshieldDurabilityAndManaRateLimitsStayMemoryOnly(helper);
     }

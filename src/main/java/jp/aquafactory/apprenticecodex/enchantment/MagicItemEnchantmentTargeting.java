@@ -19,7 +19,9 @@ import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.AbstractSpellSideEdgeItem;
+import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
 import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import net.minecraft.world.item.Item;
 
 final class MagicItemEnchantmentTargeting {
@@ -88,6 +90,8 @@ final class MagicItemEnchantmentTargeting {
                 || item instanceof ChromaticMagiaDressItem
                 || item instanceof ElementMaidenRobeItem
                 || item instanceof OffhandMagicCompatibleItem
+                || item instanceof BulwarkGreatshield
+                || item instanceof ReflectcastShield
                 || item instanceof ParrycastBuckler;
     }
 
@@ -102,6 +106,8 @@ final class MagicItemEnchantmentTargeting {
                 || item instanceof ScrollcasterGauntlet
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof AlchemistsFlask
+                || item instanceof BulwarkGreatshield
+                || item instanceof ReflectcastShield
                 || item instanceof ParrycastBuckler;
     }
 

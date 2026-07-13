@@ -1,11 +1,14 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import io.redspace.ironsspellbooks.api.events.ModifySpellLevelEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceSpellLevelEvent;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshieldRuntime;
@@ -23,6 +26,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraftforge.event.level.BlockEvent;
 
 import java.util.ArrayList;
 
@@ -124,6 +129,56 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
             assertTooltipKeyAt(helper, tooltipLines, 1,
                     "item.apprenticecodex.bulwark_greatshield.cast_wisdom");
         });
+    }
+
+    static void imbueShieldsApplyTranscendenceAndWisdomEffects(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = BowGameTestSupport.createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "imbue_shield_enchantment_effect_test");
+            assertImbueShieldEnchantmentEffects(
+                    helper,
+                    player,
+                    new ItemStack(ItemRegistry.BULWARK_GREATSHIELD.get()),
+                    "Bulwark Greatshield"
+            );
+            assertImbueShieldEnchantmentEffects(
+                    helper,
+                    player,
+                    new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get()),
+                    "Reflectcast Shield"
+            );
+        });
+    }
+
+    private static void assertImbueShieldEnchantmentEffects(
+            GameTestHelper helper,
+            net.minecraft.server.level.ServerPlayer player,
+            ItemStack stack,
+            String itemName
+    ) {
+        var spell = SpellRegistry.FIRE_BREATH_SPELL.get();
+        var spellContainer = ISpellContainer.create(1, false, false).mutableCopy();
+        spellContainer.addSpellAtIndex(spell, 1, 0, false);
+        ISpellContainer.set(stack, spellContainer.toImmutable());
+        stack.enchant(EnchantmentRegistry.TRANSCENDENCE.get(), 1);
+        stack.enchant(EnchantmentRegistry.WISDOM.get(), 1);
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+        var spellLevelEvent = new ModifySpellLevelEvent(spell, player, 1, 1);
+        TranscendenceSpellLevelEvent.onModifySpellLevel(spellLevelEvent);
+        helper.assertTrue(spellLevelEvent.getLevel() == 2,
+                itemName + " Transcendence should increase the imbued spell level from 1 to 2");
+
+        var experienceEvent = new BlockEvent.BreakEvent(
+                helper.getLevel(),
+                new BlockPos(5, 2, 0),
+                Blocks.STONE.defaultBlockState(),
+                player
+        );
+        experienceEvent.setExpToDrop(5);
+        WisdomExperienceDropEvent.onBlockBreak(experienceEvent);
+        helper.assertTrue(experienceEvent.getExpToDrop() == 6,
+                itemName + " Wisdom should increase block experience from 5 to 6");
     }
 
     private static void assertTooltipKeyAt(GameTestHelper helper, java.util.List<Component> lines, int index,
