@@ -259,8 +259,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void reflectcastShieldAbilityTooltipShowsManaBypass(GameTestHelper helper) {
-        EquipmentSpellGunGameTestScenarios.reflectcastShieldAbilityTooltipShowsManaBypass(helper);
+    public static void reflectcastShieldCastRestrictionsFollowCalibration(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.reflectcastShieldCastRestrictionsFollowCalibration(helper);
     }
 
     @GameTest(template = TEMPLATE)

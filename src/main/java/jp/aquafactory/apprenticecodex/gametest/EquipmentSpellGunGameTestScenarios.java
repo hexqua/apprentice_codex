@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
@@ -7,7 +8,7 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
-import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
+import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -91,19 +92,109 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             );
         });
     }
-    static void reflectcastShieldAbilityTooltipShowsManaBypass(GameTestHelper helper) {
+    static void reflectcastShieldCastRestrictionsFollowCalibration(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var lines = collectImbueShieldAbilityTooltipLines(helper);
-            helper.assertTrue(containsTranslatableKey(
-                            lines,
-                            "item.apprenticecodex.spellgun.tooltip.ability_no_mana"
-                    ),
-                    "Reflectcast Shield should show no-mana ability tooltip");
-            helper.assertTrue(containsTranslatableKey(
-                            lines,
-                            "item.apprenticecodex.spellgun.tooltip.ability_long_to_instant"
-                    ),
-                    "Reflectcast Shield should show instant LONG cast ability tooltip");
+            var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
+            var item = (jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield) stack.getItem();
+            var defaultAbilityLines = collectReflectcastAbilityTooltipLines(helper, item, stack);
+            helper.assertTrue(containsTranslatableKey(defaultAbilityLines,
+                            "item.apprenticecodex.spellgun.tooltip.ability_none"),
+                    "Reflectcast Shield should show the empty ability line without Silver Ring");
+            var defaultRestrictionLines = item.getImbueRestrictionTooltipLines(stack);
+            helper.assertTrue(defaultRestrictionLines.size() == 2
+                            && containsTranslatableKey(defaultRestrictionLines,
+                            "item.apprenticecodex.spellgun.tooltip.restrict_restrict_instant_only")
+                            && containsTranslatableKey(defaultRestrictionLines,
+                            "item.apprenticecodex.spellgun.tooltip.restrict_restrict_no_recast"),
+                    "Reflectcast Shield should show instant-only and no-recast restrictions without Silver Ring");
+            helper.assertFalse(item.supportsManaBypass(SpellRegistry.SENSE_EVIL.get()),
+                    "Reflectcast Shield should consume normal spell mana");
+            helper.assertTrue(item.canUseConfiguredSpell(stack, SpellRegistry.SENSE_EVIL.get(), 1),
+                    "Reflectcast Shield should use instant spells without calibration");
+            helper.assertFalse(item.canUseConfiguredSpell(stack, SpellRegistry.MANTIS_LEAP.get(), 1),
+                    "Reflectcast Shield should require Silver Ring for long spells");
+            helper.assertFalse(item.canUseConfiguredSpell(stack,
+                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get(), 1),
+                    "Reflectcast Shield should require Silver Ring for continuous spells");
+            jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.setCalibrationAdjustment(
+                    stack, 0, new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()));
+            jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.setCalibrationAdjustment(
+                    stack, 1, new ItemStack(ItemRegistry.WISDOM_SHARD.get()));
+            helper.assertTrue(jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.hasSilverRing(stack),
+                    "Reflectcast Shield should store Silver Ring calibration");
+            helper.assertTrue(jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.hasWisdomShard(stack),
+                    "Reflectcast Shield should store Wisdom Shard calibration alongside Silver Ring");
+            var silverAbilityLines = collectReflectcastAbilityTooltipLines(helper, item, stack);
+            helper.assertTrue(containsTranslatableKey(silverAbilityLines,
+                            "item.apprenticecodex.spellgun.tooltip.ability_long_to_instant")
+                            && containsTranslatableKey(silverAbilityLines,
+                            "item.apprenticecodex.spellgun.tooltip.ability_hold_continuous")
+                            && containsTranslatableKey(silverAbilityLines,
+                            "item.apprenticecodex.spellgun.tooltip.ability_extend_cooldown"),
+                    "Silver Ring should show all Reflectcast Shield ability lines");
+            var silverRestrictionLines = item.getImbueRestrictionTooltipLines(stack);
+            helper.assertTrue(silverRestrictionLines.size() == 1
+                            && containsTranslatableKey(silverRestrictionLines,
+                            "item.apprenticecodex.spellgun.tooltip.restrict_restrict_no_recast"),
+                    "Silver Ring should leave only the no-recast restriction");
+            helper.assertTrue(item.canUseConfiguredSpell(stack, SpellRegistry.MANTIS_LEAP.get(), 1),
+                    "Silver Ring should allow long spells");
+            helper.assertTrue(item.canUseConfiguredSpell(stack,
+                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get(), 1),
+                    "Silver Ring should allow continuous spells");
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "reflectcast_shield_calibration_test");
+            var menu = new SpellCalibrationBenchMenu(0, player.getInventory());
+            menu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).set(stack);
+            for (var slot = 0; slot < 3; slot++) {
+                helper.assertTrue(menu.isAdjustmentSlotEnabled(slot),
+                        "Reflectcast Shield adjustment slot should be enabled: " + slot);
+            }
+
+            var castStack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
+            jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.setCalibrationAdjustment(
+                    castStack, 0, new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()));
+            var castContainer = ISpellContainer.create(1, false, false).mutableCopy();
+            castContainer.addSpellAtIndex(
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get(), 1, 0, false);
+            ISpellContainer.set(castStack, castContainer.toImmutable());
+            player.setItemInHand(InteractionHand.OFF_HAND, castStack);
+            castStack.getItem().use(helper.getLevel(), player, InteractionHand.OFF_HAND);
+            helper.assertTrue(player.getUseItemRemainingTicks() == castStack.getUseDuration(),
+                    "Reflectcast Shield should keep vanilla shield block preparation time");
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Reflectcast Shield continuous cast requires MagicData");
+            magicData.setMana(1000.0F);
+            var longSpell = SpellRegistry.MANTIS_LEAP.get();
+            var baseCooldown = 80;
+            magicData.setPlayerCastingItem(castStack);
+            var longCooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    baseCooldown, longSpell, player, CastSource.SWORD
+            );
+            jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime
+                    .onSpellCooldownAdded(longCooldownEvent);
+            helper.assertTrue(longCooldownEvent.getEffectiveCooldown()
+                            == baseCooldown + longSpell.getEffectiveCastTime(1, player),
+                    "Reflectcast Shield should extend LONG cooldown by its effective cast time");
+            magicData.setPlayerCastingItem(ItemStack.EMPTY);
+            var manaBeforeCast = magicData.getMana();
+            helper.assertTrue(jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime.tryTriggerSpell(
+                            player, castStack, InteractionHand.OFF_HAND),
+                    "A valid block trigger should start Reflectcast continuous casting immediately");
+            helper.assertTrue(jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime
+                            .shouldBypassMagicManager(magicData),
+                    "Reflectcast continuous casting should bypass Iron's standard cast tick");
+            helper.assertTrue(magicData.getMana() < manaBeforeCast,
+                    "Reflectcast continuous casting should consume normal spell mana");
+            helper.assertFalse(jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime.tryTriggerSpell(
+                            player, castStack, InteractionHand.OFF_HAND),
+                    "Additional blocks should not restart an active continuous cast");
+            jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime.finishUse(player);
+            helper.assertFalse(magicData.isCasting(),
+                    "Releasing Reflectcast Shield should clear its continuous casting state");
+            player.stopUsingItem();
+            jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime.clear(player);
         });
     }
 
@@ -270,22 +361,27 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private static List<Component> collectImbueShieldAbilityTooltipLines(GameTestHelper helper) {
-        try {
-            var method = AbstractImbueShieldItem.class.getDeclaredMethod("collectImbueShieldAbilityTooltipSection");
-            method.setAccessible(true);
-            return (List<Component>) method.invoke(null);
-        } catch (ReflectiveOperationException exception) {
-            helper.fail("Reflectcast Shield ability tooltip reflection failed: " + exception);
-            return List.of();
-        }
-    }
-
     private static boolean containsTranslatableKey(List<Component> lines, String key) {
         return lines.stream().anyMatch(component ->
                 component.getContents() instanceof TranslatableContents contents && key.equals(contents.getKey())
         );
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Component> collectReflectcastAbilityTooltipLines(
+            GameTestHelper helper,
+            jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield item,
+            ItemStack stack
+    ) {
+        try {
+            var method = jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.class
+                    .getDeclaredMethod("getImbueShieldAbilityTooltipSection", ItemStack.class);
+            method.setAccessible(true);
+            return (List<Component>) method.invoke(item, stack);
+        } catch (ReflectiveOperationException exception) {
+            helper.fail("Reflectcast Shield ability tooltip reflection failed: " + exception);
+            return List.of();
+        }
     }
     static void goldSpellcasterGunImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
         helper.succeedIf(() -> {

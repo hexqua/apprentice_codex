@@ -183,8 +183,12 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
     static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
-            helper.assertTrue(stack.is(MALUM_SOUL_HUNTER_WEAPON),
-                    "Reflectcast Shield is missing malum:soul_hunter_weapon");
+            var item = (jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield) stack.getItem();
+            helper.assertTrue(item.getEnchantmentValue(stack)
+                            == jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.ENCHANTMENT_VALUE,
+                    "Reflectcast Shield enchantment value should be 22");
+            helper.assertFalse(stack.is(MALUM_SOUL_HUNTER_WEAPON),
+                    "Reflectcast Shield should stay outside malum:soul_hunter_weapon");
             assertExactEnchantmentSurfaces(
                     helper,
                     stack,

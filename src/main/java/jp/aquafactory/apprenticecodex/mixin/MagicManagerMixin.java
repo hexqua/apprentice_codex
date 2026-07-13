@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshieldRuntime;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -22,6 +23,7 @@ public abstract class MagicManagerMixin {
     private boolean apprentice_codex$skipManagedContinuousInMagicManager(MagicData magicData) {
         return magicData.getSyncedData().isCasting()
                 && !FocusStaffbowCastManager.shouldBypassMagicManager(magicData)
-                && !BulwarkGreatshieldRuntime.shouldBypassMagicManager(magicData);
+                && !BulwarkGreatshieldRuntime.shouldBypassMagicManager(magicData)
+                && !ReflectcastShieldRuntime.shouldBypassMagicManager(magicData);
     }
 }

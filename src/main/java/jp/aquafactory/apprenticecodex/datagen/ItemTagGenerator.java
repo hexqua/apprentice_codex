@@ -100,10 +100,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SPELLCHARGED_GREATSWORD.get(),
                 ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
                 ItemRegistry.SCROLLCASTER_GAUNTLET.get(),
-                ItemRegistry.ZENITH_STAFF.get(),
-                // Malum の soul_hunter_weapon 実発動判定は main hand を見るため、
-                // offhand 専用品はタグ対象から外し、main hand で攻撃成立する盾だけ明示的に残す。
-                ItemRegistry.REFLECTCAST_SHIELD.get()
+                ItemRegistry.ZENITH_STAFF.get()
         );
 
         var tomagicReversalWeaponTag = tag(TOMAGIC_REVERSAL_WEAPON);

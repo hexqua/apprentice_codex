@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeEvents;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshieldRuntime;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime;
 import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -101,16 +102,16 @@ public final class ImbueShieldBlockCastEvent {
         }
 
         var shieldStack = player.getUseItem();
-        if (!(shieldStack.getItem() instanceof ReflectcastShield reflectcastShield)) {
+        if (!(shieldStack.getItem() instanceof ReflectcastShield)) {
             return;
         }
 
         var usedHand = player.getUsedItemHand();
-        var spellTriggered = reflectcastShield.tryTriggerImbuedSpellOnBlock(player, shieldStack, usedHand);
+        var spellTriggered = ReflectcastShieldRuntime.tryTriggerSpell(player, shieldStack, usedHand);
 
         // 1.20.1 Forge は ShieldBlockEvent 後にバニラ耐久を削るため、ReflectcastShield だけ手動消費に差し替える。
         event.setShieldTakesDamage(false);
-        applyReflectcastShieldDurability(event, player, shieldStack, usedHand, spellTriggered);
+        applyReflectcastShieldDurability(event, player, shieldStack, usedHand);
         if (spellTriggered) {
             ManaForceBladeEvents.playBlueGuardEffect(player, resolveReflectcastEffectPosition(player, event), 16);
         }
@@ -120,15 +121,11 @@ public final class ImbueShieldBlockCastEvent {
             ShieldBlockEvent event,
             ServerPlayer player,
             ItemStack shieldStack,
-            InteractionHand usedHand,
-            boolean spellTriggered
+            InteractionHand usedHand
     ) {
         var now = player.level().getGameTime();
-        var durabilityCost = ReflectcastShield.resolveBlockedDurabilityCost(
-                event.getOriginalBlockedDamage(),
-                spellTriggered
-        );
-        if (durabilityCost <= 0 || ReflectcastShield.isDurabilityConsumptionSuppressed(shieldStack, now)) {
+        var durabilityCost = ReflectcastShield.resolveBlockedDurabilityCost(event.getOriginalBlockedDamage());
+        if (durabilityCost <= 0 || ReflectcastShieldRuntime.isDurabilityConsumptionSuppressed(player, now)) {
             return;
         }
 
@@ -148,7 +145,7 @@ public final class ImbueShieldBlockCastEvent {
         }
 
         if (shieldStack.isEmpty() || shieldStack.getDamageValue() > beforeDamage || shieldStack.getCount() < beforeCount) {
-            ReflectcastShield.rememberDurabilityConsumed(shieldStack, now);
+            ReflectcastShieldRuntime.rememberDurabilityConsumed(player, now);
         }
     }
 
