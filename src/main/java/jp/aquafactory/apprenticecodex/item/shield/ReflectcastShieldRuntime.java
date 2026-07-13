@@ -239,7 +239,7 @@ public final class ReflectcastShieldRuntime {
         spell.onServerPreCast(player.level(), spellLevel, player, magicData);
         ACTIVE_CONTINUOUS_CASTS.put(player.getUUID(), activeCast);
         if (castPulse(player, activeCast, magicData)) {
-            sendEffectStart(player, stack, hand);
+            sendEffectStart(player, stack, hand, spell);
             return true;
         }
         stopActiveCast(player, activeCast, magicData, true);
@@ -247,7 +247,12 @@ public final class ReflectcastShieldRuntime {
         return false;
     }
 
-    private static void sendEffectStart(ServerPlayer player, ItemStack stack, InteractionHand hand) {
+    private static void sendEffectStart(
+            ServerPlayer player,
+            ItemStack stack,
+            InteractionHand hand,
+            AbstractSpell castSpell
+    ) {
         var spellContainer = ISpellContainer.get(stack);
         if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
             return;
@@ -255,6 +260,10 @@ public final class ReflectcastShieldRuntime {
         var imbuedSpell = spellContainer.getSpellAtIndex(0);
         if (imbuedSpell == io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY
                 || imbuedSpell.getSpell() == null) {
+            return;
+        }
+        // 盾の明滅は注入魔法のクールダウン通知専用なので、Wisdom Shard で別魔法を選択した場合は演出しない。
+        if (!imbuedSpell.getSpell().getSpellId().equals(castSpell.getSpellId())) {
             return;
         }
         Networks.sendToPlayer(player, new SyncReflectcastShieldEffectPacket(
