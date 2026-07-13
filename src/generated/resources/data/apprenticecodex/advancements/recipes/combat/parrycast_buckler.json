@@ -15,7 +15,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "apprenticecodex:spell_cast_parrying_ring"
+        "recipe": "apprenticecodex:parrycast_buckler"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -28,7 +28,7 @@
   ],
   "rewards": {
     "recipes": [
-      "apprenticecodex:spell_cast_parrying_ring"
+      "apprenticecodex:parrycast_buckler"
     ]
   },
   "sends_telemetry_event": false

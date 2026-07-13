@@ -13,11 +13,11 @@
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_reflectcast_shield.description"
     },
-    "frame": "goal",
+    "frame": "task",
     "hidden": false,
     "icon": {
       "item": "apprenticecodex:reflectcast_shield",
-      "nbt": "{Damage:0,\"irons_spellbooks:spell_container\":{data:[],maxSpells:1,mustEquip:0b,spellWheel:1b}}"
+      "nbt": "{Damage:0,\"irons_spellbooks:spell_container\":{data:[],maxSpells:1,mustEquip:0b,spellWheel:0b}}"
     },
     "show_toast": true,
     "title": {

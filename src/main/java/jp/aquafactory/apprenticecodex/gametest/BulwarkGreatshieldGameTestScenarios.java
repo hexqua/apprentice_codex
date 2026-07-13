@@ -20,6 +20,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantments;
 
@@ -43,6 +44,11 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
                     "Bulwark Greatshield durability should be 2031");
             helper.assertTrue(item.getEnchantmentValue(stack) == BulwarkGreatshield.ENCHANTMENT_VALUE,
                     "Bulwark Greatshield enchantment value should be 15");
+            helper.assertTrue(item.isValidRepairItem(stack,
+                            new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())),
+                    "Bulwark Greatshield should repair with arcane ingot");
+            helper.assertFalse(item.isValidRepairItem(stack, new ItemStack(Items.DIAMOND)),
+                    "Bulwark Greatshield should not repair with diamond");
             helper.assertTrue(item.canApplyAtEnchantingTable(stack, Enchantments.UNBREAKING),
                     "Bulwark Greatshield should accept shield durability enchantments");
             helper.assertTrue(item.canApplyAtEnchantingTable(stack, EnchantmentRegistry.TRANSCENDENCE.get()),

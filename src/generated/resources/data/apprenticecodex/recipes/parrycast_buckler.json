@@ -5,23 +5,23 @@
     "A": {
       "item": "apprenticecodex:spellstained_arcane_ingot"
     },
-    "D": {
-      "item": "minecraft:diamond"
+    "M": {
+      "item": "irons_spellbooks:mithril_ingot"
     },
-    "G": {
-      "item": "minecraft:glass_pane"
+    "N": {
+      "item": "minecraft:netherite_ingot"
     },
     "S": {
       "item": "minecraft:shield"
     }
   },
   "pattern": [
-    "AGA",
-    "DSD",
-    "AGA"
+    " N ",
+    "MSM",
+    " A "
   ],
   "result": {
-    "item": "apprenticecodex:reflectcast_shield"
+    "item": "apprenticecodex:parrycast_buckler"
   },
   "show_notification": true
 }

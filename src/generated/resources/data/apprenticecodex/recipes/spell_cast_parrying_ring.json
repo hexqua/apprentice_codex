@@ -12,7 +12,7 @@
       "item": "irons_spellbooks:protection_rune"
     },
     "S": {
-      "item": "apprenticecodex:reflectcast_shield"
+      "item": "minecraft:shield"
     }
   },
   "pattern": [
