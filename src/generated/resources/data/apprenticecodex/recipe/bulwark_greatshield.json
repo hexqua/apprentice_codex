@@ -2,26 +2,26 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "I": {
-      "item": "irons_spellbooks:arcane_ingot"
+    "A": {
+      "item": "apprenticecodex:spellstained_arcane_ingot"
     },
     "M": {
       "item": "irons_spellbooks:mithril_scrap"
     },
-    "R": {
-      "item": "irons_spellbooks:protection_rune"
+    "N": {
+      "item": "minecraft:netherite_ingot"
     },
     "S": {
       "item": "minecraft:shield"
     }
   },
   "pattern": [
-    "SIR",
-    "IMI",
-    " I "
+    "NMN",
+    "NSN",
+    "NAN"
   ],
   "result": {
-    "count": 1,
-    "id": "apprenticecodex:spell_cast_parrying_ring"
-  }
+    "item": "apprenticecodex:bulwark_greatshield"
+  },
+  "show_notification": true
 }

@@ -19,6 +19,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraftforge.event.entity.living.ShieldBlockEvent;
@@ -40,6 +41,11 @@ final class ParrycastBucklerGameTestScenarios {
                     "item.apprenticecodex.parrycast_buckler.cast_default");
             helper.assertTrue(stack.getMaxDamage() == 1561, "Parrycast Buckler durability should be 1561");
             helper.assertTrue(item.getEnchantmentValue(stack) == 22, "Parrycast Buckler enchantment value should be 22");
+            helper.assertTrue(item.isValidRepairItem(stack,
+                            new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())),
+                    "Parrycast Buckler should repair with arcane ingot");
+            helper.assertFalse(item.isValidRepairItem(stack, new ItemStack(Items.DIAMOND)),
+                    "Parrycast Buckler should not repair with diamond");
             helper.assertTrue(item.canApplyAtEnchantingTable(stack, Enchantments.UNBREAKING), "Parrycast should accept shield enchantments");
             helper.assertTrue(item.canApplyAtEnchantingTable(stack, EnchantmentRegistry.TENSE.get()), "Parrycast should accept Tense");
             helper.assertTrue(item.canApplyAtEnchantingTable(stack, EnchantmentRegistry.ALACRITY.get()), "Parrycast should accept Alacrity");

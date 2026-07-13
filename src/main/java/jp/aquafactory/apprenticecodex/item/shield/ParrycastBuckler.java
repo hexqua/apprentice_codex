@@ -260,6 +260,11 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
     public int getEnchantmentValue(ItemStack stack) { return ENCHANTMENT_VALUE; }
 
     @Override
+    public boolean isValidRepairItem(@NotNull ItemStack toRepair, @NotNull ItemStack repair) {
+        return repair.is(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get());
+    }
+
+    @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
         return enchantment.canApplyAtEnchantingTable(SHIELD_ENCHANTMENT_PROBE)
                 || enchantment == EnchantmentRegistry.TENSE.get()
