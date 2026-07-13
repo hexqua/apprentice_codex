@@ -12,6 +12,8 @@ import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshieldRuntime;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -27,6 +29,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.BlockEvent;
 
 import java.util.ArrayList;
@@ -246,5 +249,94 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
             player.stopUsingItem();
             BulwarkGreatshieldRuntime.clear(player);
         });
+    }
+
+    static void continuousShieldCastCleanupPreservesUseAndClearsLogoutState(GameTestHelper helper) {
+        var bulwarkPlayer = BowGameTestSupport.createEquipmentTestPlayer(
+                helper, new BlockPos(0, 2, 0), "bulwark_continuous_cleanup_test"
+        );
+        var bulwarkStack = createContinuousCastShieldStack(ItemRegistry.BULWARK_GREATSHIELD.get());
+        var bulwarkBeforeCast = bulwarkStack.copy();
+        bulwarkPlayer.setItemInHand(InteractionHand.OFF_HAND, bulwarkStack);
+        bulwarkStack.getItem().use(helper.getLevel(), bulwarkPlayer, InteractionHand.OFF_HAND);
+        var bulwarkMagicData = MagicData.getPlayerMagicData(bulwarkPlayer);
+        helper.assertTrue(bulwarkMagicData != null, "Bulwark cleanup test requires MagicData");
+        bulwarkMagicData.setMana(1000.0F);
+        BulwarkGreatshieldRuntime.tryStartContinuousCast(
+                bulwarkPlayer, bulwarkStack, InteractionHand.OFF_HAND
+        );
+        helper.assertTrue(bulwarkMagicData.isCasting(), "Bulwark should start its continuous cast");
+        bulwarkMagicData.setMana(0.0F);
+
+        var reflectcastPlayer = BowGameTestSupport.createEquipmentTestPlayer(
+                helper, new BlockPos(2, 2, 0), "reflectcast_continuous_cleanup_test"
+        );
+        var reflectcastStack = createContinuousCastShieldStack(ItemRegistry.REFLECTCAST_SHIELD.get());
+        ReflectcastShield.setCalibrationAdjustment(
+                reflectcastStack,
+                0,
+                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
+        );
+        var reflectcastBeforeCast = reflectcastStack.copy();
+        reflectcastPlayer.setItemInHand(InteractionHand.OFF_HAND, reflectcastStack);
+        reflectcastStack.getItem().use(helper.getLevel(), reflectcastPlayer, InteractionHand.OFF_HAND);
+        var reflectcastMagicData = MagicData.getPlayerMagicData(reflectcastPlayer);
+        helper.assertTrue(reflectcastMagicData != null, "Reflectcast cleanup test requires MagicData");
+        reflectcastMagicData.setMana(1000.0F);
+        helper.assertTrue(ReflectcastShieldRuntime.tryTriggerSpell(
+                        reflectcastPlayer, reflectcastStack, InteractionHand.OFF_HAND),
+                "Reflectcast should start its continuous cast");
+        reflectcastMagicData.setMana(0.0F);
+
+        helper.runAfterDelay(10, () -> {
+            BulwarkGreatshieldRuntime.tickContinuousCast(bulwarkPlayer, bulwarkStack);
+            ReflectcastShieldRuntime.tickContinuousCast(reflectcastPlayer, reflectcastStack);
+
+            helper.assertFalse(bulwarkMagicData.isCasting(),
+                    "Bulwark mana exhaustion should end only its continuous cast");
+            helper.assertTrue(bulwarkPlayer.isUsingItem(),
+                    "Bulwark mana exhaustion should keep the shield raised");
+            helper.assertFalse(reflectcastMagicData.isCasting(),
+                    "Reflectcast mana exhaustion should end only its continuous cast");
+            helper.assertTrue(reflectcastPlayer.isUsingItem(),
+                    "Reflectcast mana exhaustion should keep the shield raised");
+            helper.assertTrue(Utils.isSameItemSameComponentsIgnoreDurability(bulwarkBeforeCast, bulwarkStack),
+                    "Bulwark continuous cleanup must not rewrite shield NBT");
+            helper.assertTrue(Utils.isSameItemSameComponentsIgnoreDurability(reflectcastBeforeCast, reflectcastStack),
+                    "Reflectcast continuous cleanup must not rewrite shield NBT");
+
+            bulwarkPlayer.stopUsingItem();
+            bulwarkMagicData.getPlayerCooldowns().clearCooldowns();
+            bulwarkMagicData.setMana(1000.0F);
+            bulwarkStack.getItem().use(helper.getLevel(), bulwarkPlayer, InteractionHand.OFF_HAND);
+            BulwarkGreatshieldRuntime.tryStartContinuousCast(
+                    bulwarkPlayer, bulwarkStack, InteractionHand.OFF_HAND
+            );
+            helper.assertTrue(bulwarkMagicData.isCasting(),
+                    "Bulwark logout cleanup test should start from an active cast");
+            BulwarkGreatshieldRuntime.onLogout(new PlayerEvent.PlayerLoggedOutEvent(bulwarkPlayer));
+            helper.assertFalse(bulwarkMagicData.isCasting(),
+                    "Bulwark logout should clear the persisted casting state");
+
+            reflectcastPlayer.stopUsingItem();
+            reflectcastMagicData.getPlayerCooldowns().clearCooldowns();
+            reflectcastMagicData.setMana(1000.0F);
+            reflectcastStack.getItem().use(helper.getLevel(), reflectcastPlayer, InteractionHand.OFF_HAND);
+            helper.assertTrue(ReflectcastShieldRuntime.tryTriggerSpell(
+                            reflectcastPlayer, reflectcastStack, InteractionHand.OFF_HAND),
+                    "Reflectcast logout cleanup test should start from an active cast");
+            ReflectcastShieldRuntime.onLogout(new PlayerEvent.PlayerLoggedOutEvent(reflectcastPlayer));
+            helper.assertFalse(reflectcastMagicData.isCasting(),
+                    "Reflectcast logout should clear the persisted casting state");
+            helper.succeed();
+        });
+    }
+
+    private static ItemStack createContinuousCastShieldStack(net.minecraft.world.item.Item shieldItem) {
+        var stack = new ItemStack(shieldItem);
+        var spellContainer = ISpellContainer.create(1, false, false).mutableCopy();
+        spellContainer.addSpellAtIndex(SpellRegistry.FIRE_BREATH_SPELL.get(), 1, 0, false);
+        ISpellContainer.set(stack, spellContainer.toImmutable());
+        return stack;
     }
 }

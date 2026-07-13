@@ -69,7 +69,7 @@ public final class BulwarkGreatshieldRuntime {
         spell.onServerPreCast(player.level(), level, player, magicData);
         USE_STATES.put(player.getUUID(), new UseState(true, activeCast));
         if (!castPulse(player, activeCast, magicData)) {
-            stopActiveCast(player, activeCast, magicData, true);
+            stopActiveCast(player, activeCast, magicData, true, true);
             USE_STATES.put(player.getUUID(), new UseState(true, null));
         }
     }
@@ -93,7 +93,7 @@ public final class BulwarkGreatshieldRuntime {
         if (elapsedTicks > 0L && elapsedTicks % CONTINUOUS_CAST_INTERVAL_TICKS == 0L
                 && !castPulse(player, activeCast, magicData)) {
             // マナ切れ後も盾使用は維持し、この構えでは魔法だけ再開させない。
-            stopActiveCast(player, activeCast, magicData, true);
+            stopActiveCast(player, activeCast, magicData, true, true);
             USE_STATES.put(player.getUUID(), new UseState(true, null));
             return;
         }
@@ -106,7 +106,7 @@ public final class BulwarkGreatshieldRuntime {
         if (state != null && state.activeCast() != null) {
             var magicData = MagicData.getPlayerMagicData(player);
             if (magicData != null) {
-                stopActiveCast(player, state.activeCast(), magicData, true);
+                stopActiveCast(player, state.activeCast(), magicData, true, false);
             }
         }
     }
@@ -148,7 +148,7 @@ public final class BulwarkGreatshieldRuntime {
     }
 
     public static void clear(ServerPlayer player) {
-        USE_STATES.remove(player.getUUID());
+        finishUse(player);
         NEXT_DURABILITY_CONSUMPTION_TICKS.remove(player.getUUID());
         NEXT_MANA_RECOVERY_TICKS.remove(player.getUUID());
     }
@@ -208,18 +208,20 @@ public final class BulwarkGreatshieldRuntime {
             ServerPlayer player,
             ContinuousCast activeCast,
             MagicData magicData,
-            boolean triggerCooldown
+            boolean triggerCooldown,
+            boolean preserveShieldUse
     ) {
         if (triggerCooldown) {
             MagicHelper.MAGIC_MANAGER.addCooldown(player, activeCast.spell(), activeCast.castSource());
         }
-        activeCast.spell().onServerCastComplete(
-                player.level(),
-                activeCast.spellLevel(),
-                player,
-                magicData,
-                true
+        var finishCast = (Runnable) () -> activeCast.spell().onServerCastComplete(
+                player.level(), activeCast.spellLevel(), player, magicData, true
         );
+        if (preserveShieldUse) {
+            ShieldCastUseContext.runPreservingShieldUse(magicData, finishCast);
+        } else {
+            finishCast.run();
+        }
         clearMagicDataSimulation(magicData, activeCast.slot());
     }
 

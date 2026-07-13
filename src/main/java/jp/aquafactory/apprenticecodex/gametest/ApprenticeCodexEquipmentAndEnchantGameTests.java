@@ -284,6 +284,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void continuousShieldCastCleanupPreservesUseAndClearsLogoutState(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.continuousShieldCastCleanupPreservesUseAndClearsLogoutState(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void parrycastBucklerKeepsCoreContract(GameTestHelper helper) {
         ParrycastBucklerGameTestScenarios.parrycastBucklerKeepsCoreContract(helper);
     }

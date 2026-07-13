@@ -92,7 +92,7 @@ public final class ReflectcastShieldRuntime {
         syncMagicDataSimulation(magicData, activeCast, stack, elapsedTicks);
         if (elapsedTicks > 0L && elapsedTicks % CONTINUOUS_CAST_INTERVAL_TICKS == 0L
                 && !castPulse(player, activeCast, magicData)) {
-            stopActiveCast(player, activeCast, magicData, true);
+            stopActiveCast(player, activeCast, magicData, true, true);
             ACTIVE_CONTINUOUS_CASTS.remove(player.getUUID());
             return;
         }
@@ -106,7 +106,7 @@ public final class ReflectcastShieldRuntime {
         }
         var magicData = MagicData.getPlayerMagicData(player);
         if (magicData != null) {
-            stopActiveCast(player, activeCast, magicData, true);
+            stopActiveCast(player, activeCast, magicData, true, false);
         }
     }
 
@@ -211,7 +211,13 @@ public final class ReflectcastShieldRuntime {
                 slot
         );
         if (casted) {
-            TriggeredSpellCastHelper.applyLongCastDurationOverride(player, spellLevel, spell, magicData, slot, 0);
+            if (spell.getCastType() == CastType.INSTANT) {
+                // 次 tick の MagicManager に残すと完了 cleanup が再開後の盾を解除するため、先に INSTANT を完了させる。
+                spell.castSpell(player.level(), spellLevel, player, magicData.getCastSource(), true);
+                spell.onServerCastComplete(player.level(), spellLevel, player, magicData, false);
+            } else {
+                TriggeredSpellCastHelper.applyLongCastDurationOverride(player, spellLevel, spell, magicData, slot, 0);
+            }
             player.startUsingItem(hand);
             ((LivingEntityAccessor) player).apprenticecodex$setUseItemRemaining(remainingUseTicks);
         }
@@ -242,7 +248,7 @@ public final class ReflectcastShieldRuntime {
             sendEffectStart(player, stack, hand, spell);
             return true;
         }
-        stopActiveCast(player, activeCast, magicData, true);
+        stopActiveCast(player, activeCast, magicData, true, true);
         ACTIVE_CONTINUOUS_CASTS.remove(player.getUUID());
         return false;
     }
@@ -310,14 +316,20 @@ public final class ReflectcastShieldRuntime {
             ServerPlayer player,
             ContinuousCast activeCast,
             MagicData magicData,
-            boolean triggerCooldown
+            boolean triggerCooldown,
+            boolean preserveShieldUse
     ) {
         if (triggerCooldown) {
             MagicHelper.MAGIC_MANAGER.addCooldown(player, activeCast.spell(), activeCast.castSource());
         }
-        activeCast.spell().onServerCastComplete(
+        var finishCast = (Runnable) () -> activeCast.spell().onServerCastComplete(
                 player.level(), activeCast.spellLevel(), player, magicData, true
         );
+        if (preserveShieldUse) {
+            ShieldCastUseContext.runPreservingShieldUse(magicData, finishCast);
+        } else {
+            finishCast.run();
+        }
         clearMagicDataSimulation(magicData, activeCast.slot());
     }
 
