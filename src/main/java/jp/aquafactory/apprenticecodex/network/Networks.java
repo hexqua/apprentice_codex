@@ -42,6 +42,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncMirageAvoidanceStatePac
 import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncReflectcastShieldEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSchoolAffinityAssignmentsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSatelliteFollowcastAmuletStatePacket;
@@ -59,7 +60,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "54";
+    private static final String PROTOCOL_VERSION = "55";
 
     private Networks() {
     }
@@ -314,6 +315,11 @@ public final class Networks {
                 AtelierStationFluidEffectPacket.TYPE,
                 AtelierStationFluidEffectPacket.STREAM_CODEC,
                 AtelierStationFluidEffectPacket::handle
+        );
+        registrar.playToClient(
+                SyncReflectcastShieldEffectPacket.TYPE,
+                SyncReflectcastShieldEffectPacket.STREAM_CODEC,
+                SyncReflectcastShieldEffectPacket::handle
         );
     }
 

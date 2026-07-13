@@ -8,10 +8,13 @@ import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 import jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor;
 import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.SyncReflectcastShieldEffectPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
@@ -64,7 +67,7 @@ public final class ReflectcastShieldRuntime {
         var castSource = ReflectcastShield.resolveCastSource(player, stack);
         var slot = hand == InteractionHand.OFF_HAND ? SpellSelectionManager.OFFHAND : SpellSelectionManager.MAINHAND;
         var triggered = spell.getCastType() == CastType.CONTINUOUS
-                ? tryStartContinuousCast(player, stack, spell, spellLevel, castSource, slot, magicData, now)
+                ? tryStartContinuousCast(player, stack, hand, spell, spellLevel, castSource, slot, magicData, now)
                 : tryStartTriggeredCast(player, stack, hand, spell, spellLevel, castSource, slot, magicData);
         if (triggered) {
             rememberSpellTriggered(player, now);
@@ -154,6 +157,9 @@ public final class ReflectcastShieldRuntime {
         if (!(castingItem.getItem() instanceof ReflectcastShield) || !ReflectcastShield.hasSilverRing(castingItem)) {
             return;
         }
+        if (magicData == null) {
+            return;
+        }
         var spellLevel = magicData.getCastingSpellLevel() > 0 ? magicData.getCastingSpellLevel() : 1;
         event.setEffectiveCooldown(resolveLongCastCooldownTicks(
                 player, event.getSpell(), spellLevel, event.getEffectiveCooldown()
@@ -214,6 +220,7 @@ public final class ReflectcastShieldRuntime {
     private static boolean tryStartContinuousCast(
             ServerPlayer player,
             ItemStack stack,
+            InteractionHand hand,
             AbstractSpell spell,
             int spellLevel,
             CastSource castSource,
@@ -231,11 +238,28 @@ public final class ReflectcastShieldRuntime {
         spell.onServerPreCast(player.level(), spellLevel, player, magicData);
         ACTIVE_CONTINUOUS_CASTS.put(player.getUUID(), activeCast);
         if (castPulse(player, activeCast, magicData)) {
+            sendEffectStart(player, stack, hand);
             return true;
         }
         stopActiveCast(player, activeCast, magicData, true);
         ACTIVE_CONTINUOUS_CASTS.remove(player.getUUID());
         return false;
+    }
+
+    private static void sendEffectStart(ServerPlayer player, ItemStack stack, InteractionHand hand) {
+        var spellContainer = ISpellContainer.get(stack);
+        if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
+            return;
+        }
+        var imbuedSpell = spellContainer.getSpellAtIndex(0);
+        if (imbuedSpell == io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY
+                || imbuedSpell.getSpell() == null) {
+            return;
+        }
+        Networks.sendToPlayer(player, new SyncReflectcastShieldEffectPacket(
+                hand,
+                imbuedSpell.getSpell().getSpellId()
+        ));
     }
 
     private static boolean canStartCast(
