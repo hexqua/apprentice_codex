@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor;
 import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncReflectcastShieldEffectPacket;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
@@ -269,7 +270,11 @@ public final class ReflectcastShieldRuntime {
             CastSource castSource,
             MagicData magicData
     ) {
-        return spell.canBeCastedBy(spellLevel, castSource, magicData, player).isSuccess()
+        var castResult = spell.canBeCastedBy(spellLevel, castSource, magicData, player);
+        if (castResult.message != null) {
+            player.connection.send(new ClientboundSetActionBarTextPacket(castResult.message));
+        }
+        return castResult.isSuccess()
                 && spell.checkPreCastConditions(player.level(), spellLevel, player, magicData)
                 && !MinecraftForge.EVENT_BUS.post(new SpellPreCastEvent(
                 player,
