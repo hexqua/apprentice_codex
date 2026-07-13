@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
@@ -20,6 +21,7 @@ import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -47,7 +49,9 @@ import java.util.UUID;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class BulwarkGreatshield extends AbstractImbueShieldItem implements GeoItem {
+public class BulwarkGreatshield extends AbstractImbueShieldItem implements GeoItem, IJeiInfoItem {
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.bulwark_greatshield.desc_";
+
     public static final int DURABILITY = 2031;
     public static final int ENCHANTMENT_VALUE = 15;
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 1;
@@ -68,6 +72,20 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem implements GeoIt
     public BulwarkGreatshield() {
         super(new Item.Properties().stacksTo(1).durability(DURABILITY).rarity(Rarity.RARE));
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
+    }
+
+    @Override
+    protected void appendAlwaysVisibleImbueTooltip(ItemStack stack, List<Component> lines) {
+        lines.add(ImbueTooltipHelper.translatableGray(
+                "item." + ApprenticeCodex.MODID + ".bulwark_greatshield.desc"));
+        var castTooltip = hasWisdomShardAdjustment(stack) ? "cast_wisdom" : "cast_default";
+        lines.add(ImbueTooltipHelper.translatableGray(
+                "item." + ApprenticeCodex.MODID + ".bulwark_greatshield." + castTooltip));
     }
 
     @Override
@@ -100,13 +118,13 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem implements GeoIt
     }
 
     @Override
-    protected List<net.minecraft.network.chat.Component> getImbueShieldAbilityTooltipSection() {
+    protected List<Component> getImbueShieldAbilityTooltipSection() {
         return List.of(ImbueTooltipHelper.translatableGray(
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_hold_continuous"));
     }
 
     @Override
-    protected List<net.minecraft.network.chat.Component> getImbueShieldRestrictionTooltipSection() {
+    protected List<Component> getImbueShieldRestrictionTooltipSection() {
         return List.of(ImbueTooltipHelper.translatableGray(
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_continuous_only"));
     }

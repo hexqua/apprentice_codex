@@ -14,11 +14,16 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantments;
+
+import java.util.ArrayList;
 
 final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private BulwarkGreatshieldGameTestScenarios() {
@@ -28,6 +33,12 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.BULWARK_GREATSHIELD.get());
             var item = (BulwarkGreatshield) stack.getItem();
+            var tooltipLines = new ArrayList<Component>();
+            item.appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+            assertTooltipKeyAt(helper, tooltipLines, 0,
+                    "item.apprenticecodex.bulwark_greatshield.desc");
+            assertTooltipKeyAt(helper, tooltipLines, 1,
+                    "item.apprenticecodex.bulwark_greatshield.cast_default");
             helper.assertTrue(stack.getMaxDamage() == BulwarkGreatshield.DURABILITY,
                     "Bulwark Greatshield durability should be 2031");
             helper.assertTrue(item.getEnchantmentValue(stack) == BulwarkGreatshield.ENCHANTMENT_VALUE,
@@ -100,7 +111,22 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
             BulwarkGreatshield.setCalibrationAdjustment(stack, 0, wisdomShard);
             helper.assertTrue(BulwarkGreatshield.hasWisdomShardAdjustment(stack),
                     "Wisdom Shard adjustment should be stored on Bulwark");
+            var tooltipLines = new ArrayList<Component>();
+            stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+            assertTooltipKeyAt(helper, tooltipLines, 0,
+                    "item.apprenticecodex.bulwark_greatshield.desc");
+            assertTooltipKeyAt(helper, tooltipLines, 1,
+                    "item.apprenticecodex.bulwark_greatshield.cast_wisdom");
         });
+    }
+
+    private static void assertTooltipKeyAt(GameTestHelper helper, java.util.List<Component> lines, int index,
+                                           String expectedKey) {
+        helper.assertTrue(lines.size() > index, "Bulwark tooltip line is missing at index " + index);
+        var contents = lines.get(index).getContents();
+        helper.assertTrue(contents instanceof TranslatableContents translatable
+                        && expectedKey.equals(translatable.getKey()),
+                "Unexpected Bulwark tooltip at index " + index + ": " + lines.get(index));
     }
 
     static void bulwarkGreatshieldDurabilityAndManaRateLimitsStayMemoryOnly(GameTestHelper helper) {

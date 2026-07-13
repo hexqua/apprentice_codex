@@ -11,6 +11,7 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.capabilities.magic.CooldownInstance;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
@@ -68,7 +69,8 @@ import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
-public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem {
+public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem, IJeiInfoItem {
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.parrycast_buckler.desc_";
     public static final int DURABILITY = 1561;
     public static final int ENCHANTMENT_VALUE = 22;
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
@@ -100,6 +102,20 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
     public ParrycastBuckler() {
         super(new Item.Properties().stacksTo(1).durability(DURABILITY).rarity(Rarity.RARE));
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
+    }
+
+    @Override
+    protected void appendAlwaysVisibleImbueTooltip(ItemStack stack, List<Component> lines) {
+        lines.add(ImbueTooltipHelper.translatableGray(
+                "item." + ApprenticeCodex.MODID + ".parrycast_buckler.desc"));
+        var castTooltip = hasWisdomShard(stack) ? "cast_wisdom" : "cast_default";
+        lines.add(ImbueTooltipHelper.translatableGray(
+                "item." + ApprenticeCodex.MODID + ".parrycast_buckler." + castTooltip));
     }
 
     @Override
@@ -324,7 +340,7 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
         int level = spell.getLevelFor(spellData.getLevel(), player);
         if (!canUseConfiguredSpell(stack, spell, level)) {
             player.displayClientMessage(Component.translatable(
-                    "ui.apprenticecodex.parrycast.cannot_long_cast", spell.getDisplayName(player)), true);
+                    "ui.apprenticecodex.parrycast.cannot_cast", spell.getDisplayName(player)), true);
             return;
         }
         var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
