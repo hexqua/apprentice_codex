@@ -24,10 +24,6 @@ public final class FocusStaffbowChargeLogic {
         return Math.max(settings.minimumOverchargeBaselineTicks(), Math.max(0, effectiveCastTicks));
     }
 
-    public static int normalizeContinuousRequiredCastTicks(int effectiveCastTicks) {
-        return Math.max(1, effectiveCastTicks);
-    }
-
     public static double clampChargeMultiplier(double rawMultiplier, double maxChargeMultiplier) {
         var clampedMaxChargeMultiplier = Math.max(1.0D, maxChargeMultiplier);
         return Math.min(clampedMaxChargeMultiplier, Math.max(1.0D, rawMultiplier));
@@ -124,7 +120,4 @@ public final class FocusStaffbowChargeLogic {
                 CONTINUOUS_CHARGE_UPDATE_INTERVAL_TICKS) == 0;
     }
 
-    public static int computeContinuousCastDurationRemaining(long elapsedTicks, int requiredCastTicks) {
-        return requiredCastTicks - (int) Math.min(Integer.MAX_VALUE, Math.max(0L, elapsedTicks));
-    }
 }

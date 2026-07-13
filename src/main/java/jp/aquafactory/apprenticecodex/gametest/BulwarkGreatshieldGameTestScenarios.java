@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrati
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceSpellLevelEvent;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
+import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshieldRuntime;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
@@ -253,6 +254,78 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
         });
     }
 
+    static void continuousShieldCastDurationsProgressMonotonically(GameTestHelper helper) {
+        var spell = SpellRegistry.FIRE_BREATH_SPELL.get();
+        var expectedCastDuration = ContinuousCastDurationSimulation.normalizeCastDuration(spell.getCastTime(1));
+        helper.assertTrue(ContinuousCastDurationSimulation.computeRemaining(20, 25L) == -5,
+                "Managed continuous cast duration should continue below zero after the normal duration");
+
+        var bulwarkPlayer = BowGameTestSupport.createEquipmentTestPlayer(
+                helper, new BlockPos(0, 2, 0), "bulwark_continuous_duration_test"
+        );
+        var bulwarkStack = createContinuousCastShieldStack(ItemRegistry.BULWARK_GREATSHIELD.get());
+        bulwarkPlayer.setItemInHand(InteractionHand.OFF_HAND, bulwarkStack);
+        bulwarkStack.getItem().use(helper.getLevel(), bulwarkPlayer, InteractionHand.OFF_HAND);
+        var bulwarkMagicData = MagicData.getPlayerMagicData(bulwarkPlayer);
+        helper.assertTrue(bulwarkMagicData != null, "Bulwark duration test requires MagicData");
+        bulwarkMagicData.setMana(10000.0F);
+
+        var reflectcastPlayer = BowGameTestSupport.createEquipmentTestPlayer(
+                helper, new BlockPos(2, 2, 0), "reflectcast_continuous_duration_test"
+        );
+        var reflectcastStack = createContinuousCastShieldStack(ItemRegistry.REFLECTCAST_SHIELD.get());
+        ReflectcastShield.setCalibrationAdjustment(
+                reflectcastStack,
+                0,
+                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
+        );
+        reflectcastPlayer.setItemInHand(InteractionHand.OFF_HAND, reflectcastStack);
+        reflectcastStack.getItem().use(helper.getLevel(), reflectcastPlayer, InteractionHand.OFF_HAND);
+        var reflectcastMagicData = MagicData.getPlayerMagicData(reflectcastPlayer);
+        helper.assertTrue(reflectcastMagicData != null, "Reflectcast duration test requires MagicData");
+        reflectcastMagicData.setMana(10000.0F);
+
+        var startedAt = helper.getLevel().getGameTime();
+        BulwarkGreatshieldRuntime.tryStartContinuousCast(
+                bulwarkPlayer, bulwarkStack, InteractionHand.OFF_HAND
+        );
+        helper.assertTrue(ReflectcastShieldRuntime.tryTriggerSpell(
+                        reflectcastPlayer, reflectcastStack, InteractionHand.OFF_HAND),
+                "Reflectcast duration test should start its continuous cast");
+        assertSimulatedCastDuration(
+                helper, "Bulwark", bulwarkMagicData, expectedCastDuration, 0L
+        );
+        assertSimulatedCastDuration(
+                helper, "Reflectcast", reflectcastMagicData, expectedCastDuration, 0L
+        );
+
+        helper.runAtTickTime(10, () -> {
+            var elapsedTicks = helper.getLevel().getGameTime() - startedAt;
+            BulwarkGreatshieldRuntime.tickContinuousCast(bulwarkPlayer, bulwarkStack);
+            ReflectcastShieldRuntime.tickContinuousCast(reflectcastPlayer, reflectcastStack);
+            assertSimulatedCastDuration(
+                    helper, "Bulwark", bulwarkMagicData, expectedCastDuration, elapsedTicks
+            );
+            assertSimulatedCastDuration(
+                    helper, "Reflectcast", reflectcastMagicData, expectedCastDuration, elapsedTicks
+            );
+        });
+        helper.runAtTickTime(20, () -> {
+            var elapsedTicks = helper.getLevel().getGameTime() - startedAt;
+            BulwarkGreatshieldRuntime.tickContinuousCast(bulwarkPlayer, bulwarkStack);
+            ReflectcastShieldRuntime.tickContinuousCast(reflectcastPlayer, reflectcastStack);
+            assertSimulatedCastDuration(
+                    helper, "Bulwark", bulwarkMagicData, expectedCastDuration, elapsedTicks
+            );
+            assertSimulatedCastDuration(
+                    helper, "Reflectcast", reflectcastMagicData, expectedCastDuration, elapsedTicks
+            );
+            BulwarkGreatshieldRuntime.finishUse(bulwarkPlayer);
+            ReflectcastShieldRuntime.finishUse(reflectcastPlayer);
+            helper.succeed();
+        });
+    }
+
     static void continuousShieldCastCleanupPreservesUseAndClearsLogoutState(GameTestHelper helper) {
         var bulwarkPlayer = BowGameTestSupport.createEquipmentTestPlayer(
                 helper, new BlockPos(0, 2, 0), "bulwark_continuous_cleanup_test"
@@ -405,5 +478,23 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
         spellContainer.addSpellAtIndex(SpellRegistry.FIRE_BREATH_SPELL.get(), 1, 0, false);
         ISpellContainer.set(stack, spellContainer.toImmutable());
         return stack;
+    }
+
+    private static void assertSimulatedCastDuration(
+            GameTestHelper helper,
+            String itemName,
+            MagicData magicData,
+            int expectedCastDuration,
+            long elapsedTicks
+    ) {
+        var expectedRemaining = ContinuousCastDurationSimulation.computeRemaining(
+                expectedCastDuration, elapsedTicks
+        );
+        helper.assertTrue(magicData.getCastDuration() == expectedCastDuration,
+                itemName + " continuous cast should expose the spell's base cast duration: "
+                        + magicData.getCastDuration());
+        helper.assertTrue(magicData.getCastDurationRemaining() == expectedRemaining,
+                itemName + " continuous cast remaining duration should decrease monotonically: "
+                        + magicData.getCastDurationRemaining() + " expected " + expectedRemaining);
     }
 }
