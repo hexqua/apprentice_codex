@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerCon
 import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagiCompressorGadgetServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaForceBladeServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ParrycastBucklerServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaShieldCharmServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaThrusterServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MulticastEchoStaffServerConfig;
@@ -44,6 +45,7 @@ final class ItemsServerConfig {
     private final ZenithStaffServerConfig zenithStaffConfig;
     private final IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig;
     private final ManaForceBladeServerConfig manaForceBladeConfig;
+    private final ParrycastBucklerServerConfig parrycastBucklerConfig;
     private final MagiCompressorGadgetServerConfig magiCompressorGadgetConfig;
     private final ManaShieldCharmServerConfig manaShieldCharmConfig;
     private final ManaThrusterServerConfig manaThrusterConfig;
@@ -73,6 +75,7 @@ final class ItemsServerConfig {
             ZenithStaffServerConfig zenithStaffConfig,
             IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig,
             ManaForceBladeServerConfig manaForceBladeConfig,
+            ParrycastBucklerServerConfig parrycastBucklerConfig,
             MagiCompressorGadgetServerConfig magiCompressorGadgetConfig,
             ManaShieldCharmServerConfig manaShieldCharmConfig,
             ManaThrusterServerConfig manaThrusterConfig,
@@ -101,6 +104,7 @@ final class ItemsServerConfig {
         this.zenithStaffConfig = zenithStaffConfig;
         this.isekaiTravelGuidebookConfig = isekaiTravelGuidebookConfig;
         this.manaForceBladeConfig = manaForceBladeConfig;
+        this.parrycastBucklerConfig = parrycastBucklerConfig;
         this.magiCompressorGadgetConfig = magiCompressorGadgetConfig;
         this.manaShieldCharmConfig = manaShieldCharmConfig;
         this.manaThrusterConfig = manaThrusterConfig;
@@ -132,6 +136,7 @@ final class ItemsServerConfig {
         var zenithStaffConfig = ZenithStaffServerConfig.define(builder);
         var isekaiTravelGuidebookConfig = IsekaiTravelGuidebookServerConfig.define(builder);
         var manaForceBladeConfig = ManaForceBladeServerConfig.define(builder);
+        var parrycastBucklerConfig = ParrycastBucklerServerConfig.define(builder);
         var magiCompressorGadgetConfig = MagiCompressorGadgetServerConfig.define(builder);
         var manaShieldCharmConfig = ManaShieldCharmServerConfig.define(builder);
         var manaThrusterConfig = ManaThrusterServerConfig.define(builder);
@@ -162,6 +167,7 @@ final class ItemsServerConfig {
                 zenithStaffConfig,
                 isekaiTravelGuidebookConfig,
                 manaForceBladeConfig,
+                parrycastBucklerConfig,
                 magiCompressorGadgetConfig,
                 manaShieldCharmConfig,
                 manaThrusterConfig,
@@ -340,6 +346,22 @@ final class ItemsServerConfig {
 
     int manaForceBladePerfectGuardReleaseCooldownGraceUses() {
         return manaForceBladeConfig.perfectGuardReleaseCooldownGraceUses();
+    }
+
+    int parrycastBucklerReleaseCooldownTicks() {
+        return parrycastBucklerConfig.releaseCooldownTicks();
+    }
+
+    int parrycastBucklerPerfectGuardTicks() {
+        return parrycastBucklerConfig.perfectGuardTicks();
+    }
+
+    int parrycastBucklerPerfectGuardReleaseCooldownGraceTicks() {
+        return parrycastBucklerConfig.perfectGuardReleaseCooldownGraceTicks();
+    }
+
+    int parrycastBucklerPerfectGuardReleaseCooldownGraceUses() {
+        return parrycastBucklerConfig.perfectGuardReleaseCooldownGraceUses();
     }
 
     float manaShieldCharmManaPerDamage() {

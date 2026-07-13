@@ -19,6 +19,9 @@ import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.AbstractSpellSideEdgeItem;
+import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
+import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import net.minecraft.world.item.Item;
 
 final class MagicItemEnchantmentTargeting {
@@ -37,7 +40,8 @@ final class MagicItemEnchantmentTargeting {
     }
 
     static boolean isSupportedOffhandMagicItem(Item item) {
-        return item instanceof AbstractOffhandMagicItem || item instanceof OffhandMagicCompatibleItem;
+        return item instanceof AbstractOffhandMagicItem || item instanceof OffhandMagicCompatibleItem
+                || item instanceof ParrycastBuckler;
     }
 
     static boolean isSupportedSpellGunItem(Item item) {
@@ -85,7 +89,10 @@ final class MagicItemEnchantmentTargeting {
                 || item instanceof StealthRuneArmorItem
                 || item instanceof ChromaticMagiaDressItem
                 || item instanceof ElementMaidenRobeItem
-                || item instanceof OffhandMagicCompatibleItem;
+                || item instanceof OffhandMagicCompatibleItem
+                || item instanceof BulwarkGreatshield
+                || item instanceof ReflectcastShield
+                || item instanceof ParrycastBuckler;
     }
 
     static boolean isSupportedHeldWisdomMagicItem(Item item) {
@@ -98,7 +105,10 @@ final class MagicItemEnchantmentTargeting {
                 || item instanceof MultipurposeStaffrifle
                 || item instanceof ScrollcasterGauntlet
                 || item instanceof AbstractRightClickMagicWeaponItem
-                || item instanceof AlchemistsFlask;
+                || item instanceof AlchemistsFlask
+                || item instanceof BulwarkGreatshield
+                || item instanceof ReflectcastShield
+                || item instanceof ParrycastBuckler;
     }
 
     static boolean isSupportedLootingMagicItem(Item item) {

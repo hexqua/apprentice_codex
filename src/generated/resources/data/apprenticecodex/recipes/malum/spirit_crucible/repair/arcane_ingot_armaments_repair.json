@@ -11,7 +11,9 @@
     "apprenticecodex:elemental_bow",
     "apprenticecodex:mana_force_blade",
     "apprenticecodex:spell_side_edge",
-    "apprenticecodex:spellcharged_greatsword"
+    "apprenticecodex:spellcharged_greatsword",
+    "apprenticecodex:bulwark_greatshield",
+    "apprenticecodex:parrycast_buckler"
   ],
   "itemIdRegex": "",
   "modIdRegex": "",

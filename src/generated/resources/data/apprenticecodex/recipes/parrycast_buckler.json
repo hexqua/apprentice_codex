@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "apprenticecodex:spellstained_arcane_ingot"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_ingot"
+    },
+    "N": {
+      "item": "minecraft:netherite_ingot"
+    },
+    "S": {
+      "item": "minecraft:shield"
+    }
+  },
+  "pattern": [
+    " N ",
+    "MSM",
+    " A "
+  ],
+  "result": {
+    "item": "apprenticecodex:parrycast_buckler"
+  },
+  "show_notification": true
+}

@@ -172,10 +172,10 @@ public final class RecipeGenerator extends RecipeProvider {
                 .pattern("IMI")
                 .pattern(" I ")
                 .define('R', io.redspace.ironsspellbooks.registries.ItemRegistry.PROTECTION_RUNE.get())
-                .define('S', ItemRegistry.REFLECTCAST_SHIELD.get())
+                .define('S', Items.SHIELD)
                 .define('I', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
-                .unlockedBy(getHasName(ItemRegistry.REFLECTCAST_SHIELD.get()), has(ItemRegistry.REFLECTCAST_SHIELD.get()))
+                .unlockedBy(getHasName(Items.SHIELD), has(Items.SHIELD))
                 .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.PROTECTION_SPELL_SUPPORTER.get())
@@ -493,10 +493,32 @@ public final class RecipeGenerator extends RecipeProvider {
                 .pattern("AGA")
                 .pattern("DSD")
                 .pattern("AGA")
-                .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .define('A', ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get())
                 .define('S', Items.SHIELD)
                 .define('D', Items.DIAMOND)
                 .define('G', Items.GLASS_PANE)
+                .unlockedBy(getHasName(Items.SHIELD), has(Items.SHIELD))
+                .save(recipeWriter);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.BULWARK_GREATSHIELD.get())
+                .pattern("NMN")
+                .pattern("NSN")
+                .pattern("NAN")
+                .define('A', ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get())
+                .define('S', Items.SHIELD)
+                .define('N', Items.NETHERITE_INGOT)
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
+                .unlockedBy(getHasName(Items.SHIELD), has(Items.SHIELD))
+                .save(recipeWriter);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.PARRYCAST_BUCKLER.get())
+                .pattern(" N ")
+                .pattern("MSM")
+                .pattern(" A ")
+                .define('A', ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get())
+                .define('S', Items.SHIELD)
+                .define('N', Items.NETHERITE_INGOT)
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_INGOT.get())
                 .unlockedBy(getHasName(Items.SHIELD), has(Items.SHIELD))
                 .save(recipeWriter);
 
@@ -1039,7 +1061,9 @@ public final class RecipeGenerator extends RecipeProvider {
                         ItemRegistry.ELEMENTAL_BOW.get(),
                         ItemRegistry.MANA_FORCE_BLADE.get(),
                         ItemRegistry.SPELL_SIDE_EDGE.get(),
-                        ItemRegistry.SPELLCHARGED_GREATSWORD.get()
+                        ItemRegistry.SPELLCHARGED_GREATSWORD.get(),
+                        ItemRegistry.BULWARK_GREATSHIELD.get(),
+                        ItemRegistry.PARRYCAST_BUCKLER.get()
                 ),
                 io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get(),
                 1,

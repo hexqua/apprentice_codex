@@ -549,18 +549,44 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                 .addCriterion("crafted_crystal_bladed_staff", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.CRYSTAL_BLADED_STAFF.getId()))
                 .save(saver, advancementId("craft_crystal_bladed_staff"), existingFileHelper);
 
-        Advancement.Builder.advancement()
+        var shield = Advancement.Builder.advancement()
                 .parent(bladed)
                 .display(ItemRegistry.REFLECTCAST_SHIELD.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_reflectcast_shield.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_reflectcast_shield.description"),
                         null,
-                        FrameType.GOAL,
+                        FrameType.TASK,
                         true,
                         true,
                         false)
                 .addCriterion("craft_reflectcast_shield", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.REFLECTCAST_SHIELD.getId()))
                 .save(saver, advancementId("craft_reflectcast_shield"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(shield)
+                .display(ItemRegistry.BULWARK_GREATSHIELD.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_bulwark_greatshield.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_bulwark_greatshield.description"),
+                        null,
+                        FrameType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_bulwark_greatshield", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.BULWARK_GREATSHIELD.getId()))
+                .save(saver, advancementId("craft_bulwark_greatshield"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(shield)
+                .display(ItemRegistry.PARRYCAST_BUCKLER.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_parrycast_buckler.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_parrycast_buckler.description"),
+                        null,
+                        FrameType.CHALLENGE,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_parrycast_buckler", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.PARRYCAST_BUCKLER.getId()))
+                .save(saver, advancementId("craft_parrycast_buckler"), existingFileHelper);
 
         Advancement.Builder.advancement()
                 .parent(bladed)
