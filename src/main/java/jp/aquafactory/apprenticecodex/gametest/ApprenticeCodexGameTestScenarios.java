@@ -285,6 +285,7 @@ import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ClientInformation;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -446,9 +447,9 @@ public class ApprenticeCodexGameTestScenarios {
             var server = level.getServer();
             helper.assertTrue(server != null, "Combat policy PvP test requires a server");
             var owner = new ServerPlayer(server, level,
-                    new GameProfile(UUID.randomUUID(), "combat_policy_team_owner"));
+                    new GameProfile(UUID.randomUUID(), "combat_policy_team_owner"), ClientInformation.createDefault());
             var target = new ServerPlayer(server, level,
-                    new GameProfile(UUID.randomUUID(), "combat_policy_team_target"));
+                    new GameProfile(UUID.randomUUID(), "combat_policy_team_target"), ClientInformation.createDefault());
             var scoreboard = level.getScoreboard();
             var team = scoreboard.addPlayerTeam("codex_policy");
             var previousPvp = server.isPvpAllowed();
@@ -483,8 +484,14 @@ public class ApprenticeCodexGameTestScenarios {
     static void combatTargetPolicyProtectsWholeVehicleAndOwnedEntities(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
-            var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "combat_policy_vehicle_owner");
-            var passenger = createEquipmentTestPlayer(helper, new BlockPos(1, 2, 0), "combat_policy_vehicle_passenger");
+            var owner = EntityType.ZOMBIE.create(level);
+            var passenger = EntityType.VILLAGER.create(level);
+            helper.assertTrue(owner != null && passenger != null,
+                    "Combat policy vehicle test should create its owner and passenger");
+            var ownerPosition = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 2, 0)));
+            var passengerPosition = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(1, 2, 0)));
+            owner.setPos(ownerPosition);
+            passenger.setPos(passengerPosition);
             level.addFreshEntity(owner);
             level.addFreshEntity(passenger);
             var boat = new Boat(level, owner.getX(), owner.getY(), owner.getZ());
@@ -500,7 +507,7 @@ public class ApprenticeCodexGameTestScenarios {
 
             var wolf = new Wolf(EntityType.WOLF, level);
             wolf.setOwnerUUID(owner.getUUID());
-            wolf.setTame(true);
+            wolf.setTame(true, true);
             level.addFreshEntity(wolf);
             helper.assertTrue(CombatTools.isProtectedCombatTarget(
                             wolf, owner, CombatTools.CombatTargetPolicy.PROTECT_SELF_AND_ALLIES),

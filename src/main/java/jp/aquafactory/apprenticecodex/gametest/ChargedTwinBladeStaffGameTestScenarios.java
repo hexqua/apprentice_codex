@@ -899,7 +899,6 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
         var magicData = MagicData.getPlayerMagicData(player);
         helper.assertTrue(magicData != null, "Charged Twin Blade Staff creative RemoteOwner profile test could not resolve player mana data");
-        magicData.setMana(0.0F);
         var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
         var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
                 ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "magic_missile"),
@@ -918,6 +917,7 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
 
         helper.runAtTickTime(1, () -> {
             NeoForge.EVENT_BUS.addListener(projectileListener);
+            magicData.setMana(0.0F);
             try {
                 helper.assertTrue(
                         jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
