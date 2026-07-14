@@ -457,9 +457,9 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             helper.assertFalse(item.canUseConfiguredSpell(stack,
                             io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get(), 1),
                     "Reflectcast Shield should require Silver Ring for continuous spells");
-            jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     stack, 0, new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()));
-            jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     stack, 1, new ItemStack(ItemRegistry.WISDOM_SHARD.get()));
             helper.assertTrue(jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.hasSilverRing(stack),
                     "Reflectcast Shield should store Silver Ring calibration");
@@ -502,7 +502,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             }
 
             var castStack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
-            jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     castStack, 0, new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()));
             var castContainer = ISpellContainer.create(1, false, false).mutableCopy();
             castContainer.addSpellAtIndex(

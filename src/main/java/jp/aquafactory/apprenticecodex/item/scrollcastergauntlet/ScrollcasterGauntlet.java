@@ -33,6 +33,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -40,6 +41,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -81,11 +83,18 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.BetterCombatOffhandDualWieldingPolicyItem;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.ItemTransformPreservingCastAnimationItem;
 import jp.aquafactory.apprenticecodex.item.OffhandUsePriorityHelper;
 import jp.aquafactory.apprenticecodex.item.PriorityOffhandUseDeferringItem;
 import jp.aquafactory.apprenticecodex.item.RightClickSpellItemHelper;
+import jp.aquafactory.apprenticecodex.item.SneakSelectionUiItem;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
+import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
@@ -95,13 +104,40 @@ import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
         ItemTransformPreservingCastAnimationItem,
         BetterCombatOffhandDualWieldingPolicyItem, SwingTriggeredMagicItem, PriorityOffhandUseDeferringItem, IJeiInfoItem,
-        SneakSelectionUiItem, StoredSpellCalibrationImbueTarget {
+        SneakSelectionUiItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.scrollcaster_gauntlet.desc_";
 
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     public static final int CALIBRATION_SCROLL_SLOT_COUNT = 10;
     public static final int BASE_CALIBRATION_SCROLL_SLOT_COUNT = 4;
     public static final int CALIBRATION_SCROLL_SLOTS_PER_UPGRADE = 2;
+    private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
+            CalibrationAdjustmentProfile.of(
+                    CalibrationAdjustmentRule.repeatable(
+                            ScrollcasterGauntlet::isCalibrationSlotUpgrade,
+                            CalibrationAdjustmentHints.slotUpgrades()
+                    ),
+                    CalibrationAdjustmentRule.uniqueBy(
+                            stack -> stack.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS),
+                            stack -> {
+                                var candidate = readFirstBookEnchantment(stack);
+                                return candidate == null ? null : candidate.enchantment();
+                            },
+                            CalibrationAdjustmentHints.enchantmentBooks()
+                    ),
+                    CalibrationAdjustmentRule.unique(
+                            ScrollcasterGauntlet::isFreecastStaffAdjustment,
+                            CalibrationAdjustmentHints.mithrilFreecastStaff()
+                    ),
+                    CalibrationAdjustmentRule.unique(
+                            ScrollcasterGauntlet::isSilverRingAdjustment,
+                            CalibrationAdjustmentHints.silverRing()
+                    ),
+                    CalibrationAdjustmentRule.unique(
+                            ScrollcasterSchoolRuneResolver::isSchoolRune,
+                            CalibrationAdjustmentHints.schoolRunes()
+                    )
+            );
 
     private static final HolderLookup.Provider FALLBACK_SERIALIZATION_LOOKUP =
             RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
@@ -571,32 +607,65 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         return school == null ? ItemStack.EMPTY : SchoolAffinityRegistry.createIconStack(school);
     }
 
-    public static @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack gauntletStack, int slot) {
-        return getCalibrationAdjustment(gauntletStack, slot, serializationLookup());
+    private static @NotNull ItemStack readCalibrationAdjustment(@NotNull ItemStack gauntletStack, int slot) {
+        return readCalibrationAdjustment(gauntletStack, slot, serializationLookup());
     }
 
-    public static @NotNull ItemStack getCalibrationAdjustment(
+    private static @NotNull ItemStack readCalibrationAdjustment(
             @NotNull ItemStack gauntletStack,
             int slot,
             @NotNull HolderLookup.Provider lookupProvider
     ) {
-        return getCalibrationItem(gauntletStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, lookupProvider);
+        return getCalibrationItem(
+                gauntletStack,
+                ADJUSTMENTS_TAG,
+                slot,
+                CALIBRATION_ADJUSTMENT_SLOT_COUNT,
+                lookupProvider
+        );
     }
 
-    public static void setCalibrationAdjustment(@NotNull ItemStack gauntletStack, int slot, @NotNull ItemStack stack) {
-        setCalibrationAdjustment(gauntletStack, slot, stack, serializationLookup());
-    }
-
-    public static void setCalibrationAdjustment(
-            @NotNull ItemStack gauntletStack,
-            int slot,
-            @NotNull ItemStack stack,
-            @NotNull HolderLookup.Provider lookupProvider
-    ) {
-        setCalibrationItem(gauntletStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, stack, lookupProvider);
+    private static void writeCalibrationAdjustment(@NotNull ItemStack gauntletStack, int slot, @NotNull ItemStack stack) {
+        var lookupProvider = serializationLookup();
+        setCalibrationItem(
+                gauntletStack,
+                ADJUSTMENTS_TAG,
+                slot,
+                CALIBRATION_ADJUSTMENT_SLOT_COUNT,
+                stack,
+                lookupProvider
+        );
         refreshCalibrationEnchantments(gauntletStack, lookupProvider);
         refreshResolvedCalibrationSchool(gauntletStack, lookupProvider);
         refreshSelectedSpellContainer(gauntletStack, lookupProvider);
+    }
+
+    @Override
+    public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_SLOT_COUNT;
+    }
+
+    @Override
+    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
+        return readCalibrationAdjustment(targetStack, slot);
+    }
+
+    @Override
+    public boolean trySetCalibrationAdjustment(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull ItemStack adjustment
+    ) {
+        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
+            return false;
+        }
+        writeCalibrationAdjustment(targetStack, slot, adjustment);
+        return true;
+    }
+
+    @Override
+    public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_PROFILE;
     }
 
     public static @NotNull ItemStack getCalibrationScroll(@NotNull ItemStack gauntletStack, int slot) {
@@ -635,7 +704,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         }
 
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (isFreecastStaffAdjustment(getCalibrationAdjustment(gauntletStack, slot))) {
+            if (isFreecastStaffAdjustment(readCalibrationAdjustment(gauntletStack, slot))) {
                 return true;
             }
         }
@@ -648,7 +717,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         }
 
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (isSilverRingAdjustment(getCalibrationAdjustment(gauntletStack, slot))) {
+            if (isSilverRingAdjustment(readCalibrationAdjustment(gauntletStack, slot))) {
                 return true;
             }
         }
@@ -669,7 +738,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
         var candidatesByEnchantment = new LinkedHashMap<Holder<Enchantment>, CalibrationEnchantmentCandidate>();
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            var candidate = readFirstBookEnchantment(getCalibrationAdjustment(gauntletStack, slot, lookupProvider));
+            var candidate = readFirstBookEnchantment(readCalibrationAdjustment(gauntletStack, slot, lookupProvider));
             if (candidate == null || !isSupportedCalibrationEnchantment(gauntletStack, candidate.enchantment())) {
                 continue;
             }
@@ -713,7 +782,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
         var upgradeCount = 0;
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (isCalibrationSlotUpgrade(getCalibrationAdjustment(gauntletStack, slot))) {
+            if (isCalibrationSlotUpgrade(readCalibrationAdjustment(gauntletStack, slot))) {
                 ++upgradeCount;
             }
         }
@@ -917,7 +986,9 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         }
 
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            var school = ScrollcasterSchoolRuneResolver.resolveSchool(getCalibrationAdjustment(gauntletStack, slot, lookupProvider));
+            var school = ScrollcasterSchoolRuneResolver.resolveSchool(
+                    readCalibrationAdjustment(gauntletStack, slot, lookupProvider)
+            );
             if (school.isPresent()) {
                 setResolvedCalibrationSchoolId(gauntletStack, school.get().getId());
                 return;

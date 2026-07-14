@@ -1929,12 +1929,12 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                                         && "item.apprenticecodex.magi_agent_suit.rune_hint".equals(contents.getKey())),
                         "Magi Agent Suit " + armorType + " should show its rune hint before calibration");
 
-                MagiAgentSuitItem.setCalibrationAdjustment(
+                SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                         stack,
                         0,
                         new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get())
                 );
-                helper.assertTrue(MagiAgentSuitItem.getCalibrationAdjustment(stack, 0)
+                helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.getCalibrationAdjustment(stack, 0)
                                 .is(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get()),
                         "Magi Agent Suit " + armorType + " should store the calibration rune");
 

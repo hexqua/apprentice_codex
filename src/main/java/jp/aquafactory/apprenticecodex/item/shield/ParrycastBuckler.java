@@ -5,20 +5,20 @@ import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
-import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
-import io.redspace.ironsspellbooks.api.spells.CastSource;
-import io.redspace.ironsspellbooks.api.spells.CastType;
-import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.capabilities.magic.CooldownInstance;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.offhand.OffhandMagicModifierHelper;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 import jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor;
@@ -67,11 +67,29 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem, IJeiInfoItem {
+public class ParrycastBuckler extends AbstractImbueShieldItem
+        implements GeoItem, IJeiInfoItem, SpellCalibrationAdjustmentTarget {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.parrycast_buckler.desc_";
     public static final int DURABILITY = 1561;
     public static final int ENCHANTMENT_VALUE = 22;
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
+    private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
+            CalibrationAdjustmentProfile.of(
+                    CalibrationAdjustmentRule.uniqueBy(
+                            ScrollcasterSchoolRuneResolver::isSchoolRune,
+                            stack -> ScrollcasterSchoolRuneResolver.resolveSchool(stack)
+                                    .map(SchoolType::getId),
+                            CalibrationAdjustmentHints.schoolRunes()
+                    ),
+                    CalibrationAdjustmentRule.unique(
+                            MithrilFreecastStaff::isSilverRing,
+                            CalibrationAdjustmentHints.silverRing()
+                    ),
+                    CalibrationAdjustmentRule.unique(
+                            stack -> stack.is(ItemRegistry.WISDOM_SHARD.get()),
+                            CalibrationAdjustmentHints.wisdomShard()
+                    )
+            );
     private static final double SCHOOL_POWER_BONUS = 0.1D;
     private static final String CALIBRATION_TAG = "ParrycastBucklerCalibration";
     private static final String USE_START_TICK_TAG = "ApprenticeCodexParrycastBucklerUseStart";
@@ -291,7 +309,7 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
         }
         Set<net.minecraft.resources.ResourceLocation> seen = new HashSet<>();
         for (int i = 0; i < CALIBRATION_ADJUSTMENT_SLOT_COUNT; i++) {
-            var school = ScrollcasterSchoolRuneResolver.resolveSchool(getCalibrationAdjustment(stack, i)).orElse(null);
+            var school = ScrollcasterSchoolRuneResolver.resolveSchool(readCalibrationAdjustment(stack, i)).orElse(null);
             if (school == null || !seen.add(school.getId())) continue;
             var attribute = MagicTools.resolveSchoolPowerAttribute(school);
             if (attribute != null) {
@@ -440,23 +458,46 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
         return true;
     }
 
-    public static ItemStack getCalibrationAdjustment(ItemStack stack, int slot) {
+    private static ItemStack readCalibrationAdjustment(ItemStack stack, int slot) {
         return ShieldCalibrationData.get(stack, CALIBRATION_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
     }
 
-    public static void setCalibrationAdjustment(ItemStack stack, int slot, ItemStack adjustment) {
+    private static void writeCalibrationAdjustment(ItemStack stack, int slot, ItemStack adjustment) {
         ShieldCalibrationData.set(stack, CALIBRATION_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, adjustment);
     }
 
-    public static boolean isCalibrationAdjustmentItem(ItemStack stack) {
-        return ScrollcasterSchoolRuneResolver.isSchoolRune(stack) || MithrilFreecastStaff.isSilverRing(stack)
-                || stack.is(ItemRegistry.WISDOM_SHARD.get());
+    @Override
+    public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_SLOT_COUNT;
+    }
+
+    @Override
+    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
+        return readCalibrationAdjustment(targetStack, slot);
+    }
+
+    @Override
+    public boolean trySetCalibrationAdjustment(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull ItemStack adjustment
+    ) {
+        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
+            return false;
+        }
+        writeCalibrationAdjustment(targetStack, slot, adjustment);
+        return true;
+    }
+
+    @Override
+    public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_PROFILE;
     }
 
     public static boolean hasSilverRing(ItemStack stack) { return hasAdjustment(stack, MithrilFreecastStaff::isSilverRing); }
     public static boolean hasWisdomShard(ItemStack stack) { return hasAdjustment(stack, s -> s.is(ItemRegistry.WISDOM_SHARD.get())); }
     private static boolean hasAdjustment(ItemStack stack, java.util.function.Predicate<ItemStack> predicate) {
-        for (int i = 0; i < CALIBRATION_ADJUSTMENT_SLOT_COUNT; i++) if (predicate.test(getCalibrationAdjustment(stack, i))) return true;
+        for (int i = 0; i < CALIBRATION_ADJUSTMENT_SLOT_COUNT; i++) if (predicate.test(readCalibrationAdjustment(stack, i))) return true;
         return false;
     }
 
