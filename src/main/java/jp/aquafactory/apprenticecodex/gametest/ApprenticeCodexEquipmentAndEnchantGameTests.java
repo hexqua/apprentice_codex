@@ -319,6 +319,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void parrycastBucklerBlocksDispenserArrowAndStopsOnUnblockedDamage(GameTestHelper helper) {
+        ParrycastBucklerGameTestScenarios.parrycastBucklerBlocksDispenserArrowAndStopsOnUnblockedDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void parrycastWisdomOnlyReducesAllCooldownsWhenSelectedSpellIsCoolingDown(GameTestHelper helper) {
         ParrycastBucklerGameTestScenarios
                 .parrycastWisdomOnlyReducesAllCooldownsWhenSelectedSpellIsCoolingDown(helper);

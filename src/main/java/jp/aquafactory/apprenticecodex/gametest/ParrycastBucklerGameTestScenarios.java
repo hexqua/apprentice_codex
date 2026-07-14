@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
@@ -24,17 +25,22 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.neoforged.neoforge.event.entity.living.LivingShieldBlockEvent;
 import net.neoforged.neoforge.common.damagesource.DamageContainer;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.event.entity.living.LivingShieldBlockEvent;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 final class ParrycastBucklerGameTestScenarios {
     private ParrycastBucklerGameTestScenarios() {}
@@ -160,6 +166,47 @@ final class ParrycastBucklerGameTestScenarios {
         });
     }
 
+    static void parrycastBucklerBlocksDispenserArrowAndStopsOnUnblockedDamage(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var blockedPlayer = createDamageableTestPlayer(
+                    helper, new BlockPos(0, 2, 0), "parrycast_dispenser_arrow_block_test");
+            helper.getLevel().addFreshEntity(blockedPlayer);
+            blockedPlayer.setYRot(0.0F);
+            blockedPlayer.setXRot(0.0F);
+            var blockedStack = new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get());
+            blockedPlayer.setItemInHand(InteractionHand.OFF_HAND, blockedStack);
+            blockedStack.getItem().use(helper.getLevel(), blockedPlayer, InteractionHand.OFF_HAND);
+            helper.assertTrue(blockedPlayer.isBlocking(),
+                    "Parrycast Buckler should enter its blocking state immediately");
+
+            var frontalArrow = new Arrow(EntityType.ARROW, helper.getLevel());
+            frontalArrow.setPos(blockedPlayer.getX(), blockedPlayer.getY() + 1.0D, blockedPlayer.getZ() + 3.0D);
+            helper.getLevel().addFreshEntity(frontalArrow);
+            var healthBeforeBlock = blockedPlayer.getHealth();
+            blockedPlayer.hurt(helper.getLevel().damageSources().arrow(frontalArrow, null), 4.0F);
+            helper.assertTrue(blockedPlayer.getHealth() == healthBeforeBlock,
+                    "Parrycast Buckler should block a frontal dispenser arrow");
+            helper.assertTrue(blockedPlayer.isUsingItem(),
+                    "A perfect guard against a dispenser arrow should keep the buckler raised");
+
+            var damagedPlayer = createDamageableTestPlayer(
+                    helper, new BlockPos(3, 2, 0), "parrycast_unblocked_damage_release_test");
+            helper.getLevel().addFreshEntity(damagedPlayer);
+            damagedPlayer.setYRot(0.0F);
+            damagedPlayer.setXRot(0.0F);
+            var damagedStack = new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get());
+            damagedPlayer.setItemInHand(InteractionHand.OFF_HAND, damagedStack);
+            damagedStack.getItem().use(helper.getLevel(), damagedPlayer, InteractionHand.OFF_HAND);
+
+            var healthBeforeDamage = damagedPlayer.getHealth();
+            var hurtResult = damagedPlayer.hurt(helper.getLevel().damageSources().generic(), 4.0F);
+            helper.assertTrue(hurtResult && damagedPlayer.getHealth() < healthBeforeDamage,
+                    "Damage that bypasses Parrycast Buckler should reduce health");
+            helper.assertFalse(damagedPlayer.isUsingItem(),
+                    "Damage that bypasses Parrycast Buckler should force the guard stance to end");
+        });
+    }
+
     static void parrycastWisdomOnlyReducesAllCooldownsWhenSelectedSpellIsCoolingDown(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var otherSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
@@ -242,6 +289,34 @@ final class ParrycastBucklerGameTestScenarios {
     private static int cooldownRemaining(MagicData magicData, AbstractSpell spell) {
         var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
         return cooldown == null ? 0 : cooldown.getCooldownRemaining();
+    }
+
+    private static FakePlayer createDamageableTestPlayer(GameTestHelper helper, BlockPos position, String name) {
+        var player = new DamageableFakePlayer(
+                helper.getLevel(), new GameProfile(UUID.randomUUID(), name));
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        // FakePlayer 固有の無敵と生成直後の保護を外し、実際の盾・ダメージ処理を検証する。
+        try {
+            var spawnProtection = ServerPlayer.class.getDeclaredField("spawnInvulnerableTime");
+            spawnProtection.setAccessible(true);
+            spawnProtection.setInt(player, 0);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Failed to disable spawn protection for GameTest", exception);
+        }
+        var absolutePosition = helper.absolutePos(position);
+        player.setPos(absolutePosition.getX() + 0.5D, absolutePosition.getY(), absolutePosition.getZ() + 0.5D);
+        return player;
+    }
+
+    private static final class DamageableFakePlayer extends FakePlayer {
+        private DamageableFakePlayer(net.minecraft.server.level.ServerLevel level, GameProfile profile) {
+            super(level, profile);
+        }
+
+        @Override
+        public boolean isInvulnerableTo(DamageSource source) {
+            return false;
+        }
     }
 
     private record WisdomParryContext(
