@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastEvent;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
@@ -118,7 +119,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertFalse(longAmuletMenu.shouldRenderMismatchCastConditionWarning(0),
                     "Autocast Amulet should clear the long spell warning after Silver Ring adjustment");
 
-            var manaForceBlade = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+            var manaForceBlade = (ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
             var emptyBlade = new ItemStack(manaForceBlade);
             manaForceBlade.initializeSpellContainer(emptyBlade);
             var bladeMenu = new SpellCalibrationBenchMenu(0, player.getInventory());
@@ -369,7 +370,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                             && SatelliteFollowcastAmulet.getSpellDataAt(satelliteAmulet, 1) != SpellData.EMPTY,
                     "Calibration Bench should not compact Satellite Followcast Amulet slots while removing a scroll");
 
-            var manaForceBlade = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+            var manaForceBlade = (ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
             var unsupportedMenu = new SpellCalibrationBenchMenu(0, player.getInventory());
             var manaForceBladeStack = new ItemStack(manaForceBlade);
             manaForceBlade.initializeSpellContainer(manaForceBladeStack);

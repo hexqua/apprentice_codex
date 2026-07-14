@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.item;
+package jp.aquafactory.apprenticecodex.item.manaforceblade;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
@@ -11,7 +11,8 @@ import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeConfigState;
+import jp.aquafactory.apprenticecodex.item.OffhandMagicModifierHelper;
+import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
 import jp.aquafactory.apprenticecodex.renderer.item.ManaForceBladeRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;

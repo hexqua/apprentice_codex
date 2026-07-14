@@ -6,7 +6,7 @@ import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
-import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
 import jp.aquafactory.apprenticecodex.item.ZenithStaff;

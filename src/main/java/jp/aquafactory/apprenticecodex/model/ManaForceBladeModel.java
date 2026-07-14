@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.model;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;

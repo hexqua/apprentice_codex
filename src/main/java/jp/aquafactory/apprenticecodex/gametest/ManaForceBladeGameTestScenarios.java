@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeGuardLogic;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -23,7 +23,7 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
 
     static void manaForceBladeAttunementAndUpgradeMergeForTooltip(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var item = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+            var item = (ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
             var stack = new ItemStack(item);
             item.initializeSpellContainer(stack);
             var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get();
@@ -116,7 +116,7 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
 
     static void manaForceBladeAttackManaCostIsOncePerTick(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var item = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+            var item = (ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
             var stack = new ItemStack(item);
             item.initializeSpellContainer(stack);
             setSingleUnlockedSpell(helper, stack,
@@ -136,7 +136,7 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
             item.hurtEnemy(stack, secondTarget, player);
 
             var expectedMana = 100.0F
-                    - jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(player, stack);
+                    - ManaForceBlade.resolveBladeAttackManaCost(player, stack);
             helper.assertTrue(Math.abs(magicData.getMana() - expectedMana) < 1.0e-4F,
                     "Mana Force Blade should spend attack mana once per tick even when multiple targets are hit"
                             + " expected=" + expectedMana
@@ -145,7 +145,7 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
     }
     static void manaForceBladeConfigScalesDamageAndManaFormulas(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var item = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+            var item = (ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
             var stack = new ItemStack(item);
             item.initializeSpellContainer(stack);
             setSingleUnlockedSpell(helper, stack,
@@ -173,34 +173,34 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
                 schoolPower.setBaseValue(1.2D);
             }
 
-            var baseDamage = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackDamage(stack);
-            var damageMultiplier = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveDamageMultiplier(player, stack, 1.0F);
+            var baseDamage = ManaForceBlade.resolveBladeAttackDamage(stack);
+            var damageMultiplier = ManaForceBlade.resolveDamageMultiplier(player, stack, 1.0F);
             helper.assertTrue(Math.abs(damageMultiplier - 1.8F) < 1.0e-4F,
                     "Mana Force Blade should multiply spell power and school power for imbued damage but got "
                             + damageMultiplier);
-            helper.assertTrue(Math.abs(jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveDamageMultiplier(player, stack, 0.5F) - 0.9F) < 1.0e-4F,
+            helper.assertTrue(Math.abs(ManaForceBlade.resolveDamageMultiplier(player, stack, 0.5F) - 0.9F) < 1.0e-4F,
                     "Mana Force Blade imbue damage scale should directly scale the final school multiplier");
-            helper.assertTrue(Math.abs(jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveDamageMultiplier(player, stack, 0.0F) - 1.0F) < 1.0e-4F,
+            helper.assertTrue(Math.abs(ManaForceBlade.resolveDamageMultiplier(player, stack, 0.0F) - 1.0F) < 1.0e-4F,
                     "Mana Force Blade imbue damage scale 0 should disable imbued damage changes");
 
-            var fullManaCost = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(
+            var fullManaCost = ManaForceBlade.resolveBladeAttackManaCost(
                     player, stack, 3.0F, 1.0F, 1.0F);
             helper.assertTrue(Math.abs(fullManaCost - baseDamage * 3.0F * 1.8F) < 1.0e-4F,
                     "Mana Force Blade full school mana scale should follow final imbued damage: " + fullManaCost);
 
-            var halfSchoolManaCost = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(
+            var halfSchoolManaCost = ManaForceBlade.resolveBladeAttackManaCost(
                     player, stack, 3.0F, 0.5F, 1.0F);
             helper.assertTrue(Math.abs(halfSchoolManaCost - baseDamage * 3.0F * 1.4F) < 1.0e-4F,
                     "Mana Force Blade half school mana scale should only halve the school-derived increase: "
                             + halfSchoolManaCost);
 
-            var noSchoolManaCost = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(
+            var noSchoolManaCost = ManaForceBlade.resolveBladeAttackManaCost(
                     player, stack, 3.0F, 0.0F, 1.0F);
             helper.assertTrue(Math.abs(noSchoolManaCost - baseDamage * 3.0F) < 1.0e-4F,
                     "Mana Force Blade school mana scale 0 should ignore school multiplier for mana cost: "
                             + noSchoolManaCost);
 
-            var disabledManaCost = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(
+            var disabledManaCost = ManaForceBlade.resolveBladeAttackManaCost(
                     player, stack, 3.0F, 1.0F, 0.0F);
             helper.assertTrue(disabledManaCost == 0.0F,
                     "Mana Force Blade imbue damage scale 0 should also disable hit mana cost");
