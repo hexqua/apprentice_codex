@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.compat.bettercombat;
 import jp.aquafactory.apprenticecodex.event.client.ClientSwingMagicAttackTrigger;
 import jp.aquafactory.apprenticecodex.event.client.ClientMultipurposeStaffrifleInputEvent;
 import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientAdsState;
-import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
+import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import net.bettercombat.api.AttackHand;
 import net.bettercombat.api.WeaponAttributes;
