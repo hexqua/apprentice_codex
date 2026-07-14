@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.item;
+package jp.aquafactory.apprenticecodex.item.elementalbow;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
@@ -10,12 +10,12 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
+import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverBowAmmoResolver;
-import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.ResolvedDefinition;
-import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager;
 import jp.aquafactory.apprenticecodex.renderer.item.ElementalBowRenderer;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;

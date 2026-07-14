@@ -1,6 +1,6 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
-import jp.aquafactory.apprenticecodex.item.ElementalBow;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;

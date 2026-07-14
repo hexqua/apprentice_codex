@@ -11,7 +11,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.UUID;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
-import jp.aquafactory.apprenticecodex.item.ElementalBow;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowCastEvent;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.ChatFormatting;
@@ -857,7 +858,7 @@ final class ElementalBowGameTestScenarios {
                     player,
                     CastSource.SWORD
             );
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(cooldownEvent);
+            ElementalBowCastEvent.onSpellCooldownAdded(cooldownEvent);
             helper.assertTrue(cooldownEvent.getEffectiveCooldown() == 0,
                     "Elemental Bow should suppress elemental arrow cooldowns but got " + cooldownEvent.getEffectiveCooldown());
             helper.assertTrue(
@@ -875,7 +876,7 @@ final class ElementalBowGameTestScenarios {
                     player,
                     CastSource.SWORD
             );
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(controlEvent);
+            ElementalBowCastEvent.onSpellCooldownAdded(controlEvent);
             helper.assertTrue(controlEvent.getEffectiveCooldown() == 160,
                     "Elemental Bow cooldown suppression should not affect unrelated spells");
         });
@@ -911,7 +912,7 @@ final class ElementalBowGameTestScenarios {
                     player,
                     CastSource.SWORD
             );
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(cooldownEvent);
+            ElementalBowCastEvent.onSpellCooldownAdded(cooldownEvent);
             jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
                     player,
                     SchoolRegistry.FIRE_RESOURCE,
@@ -957,7 +958,7 @@ final class ElementalBowGameTestScenarios {
             helper.assertTrue(magicData != null, "Elemental Bow school overheat test could not resolve player mana data");
 
             magicData.setPlayerCastingItem(fireStack.copy());
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+            ElementalBowCastEvent.onSpellCooldownAdded(
                     new SpellCooldownAddedEvent.Pre(
                             160,
                             io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
@@ -976,7 +977,7 @@ final class ElementalBowGameTestScenarios {
             );
 
             magicData.setPlayerCastingItem(natureStack.copy());
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+            ElementalBowCastEvent.onSpellCooldownAdded(
                     new SpellCooldownAddedEvent.Pre(
                             120,
                             io.redspace.ironsspellbooks.api.registry.SpellRegistry.POISON_ARROW_SPELL.get(),
@@ -1030,7 +1031,7 @@ final class ElementalBowGameTestScenarios {
 
         helper.runAtTickTime(1, () -> {
             magicData.setPlayerCastingItem(stack.copy());
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+            ElementalBowCastEvent.onSpellCooldownAdded(
                     new SpellCooldownAddedEvent.Pre(
                             io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(fireArrow, player, CastSource.SWORD),
                             fireArrow,
@@ -1052,7 +1053,7 @@ final class ElementalBowGameTestScenarios {
 
         helper.runAtTickTime(40, () -> {
             magicData.setPlayerCastingItem(stack.copy());
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+            ElementalBowCastEvent.onSpellCooldownAdded(
                     new SpellCooldownAddedEvent.Pre(
                             io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(fireArrow, player, CastSource.SWORD),
                             fireArrow,

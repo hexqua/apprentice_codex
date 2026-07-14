@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.event.client;
 
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.ElementalBowClientRenderState;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowClientRenderState;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;

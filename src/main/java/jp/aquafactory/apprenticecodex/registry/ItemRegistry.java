@@ -28,6 +28,7 @@ import jp.aquafactory.apprenticecodex.item.curios.spellcastparryingring.SpellCas
 import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.offhand.CopperSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.DiamondSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.ExplorersCane;

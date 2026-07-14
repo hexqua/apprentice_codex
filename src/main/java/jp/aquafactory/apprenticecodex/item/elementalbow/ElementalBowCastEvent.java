@@ -1,9 +1,9 @@
-package jp.aquafactory.apprenticecodex.item;
+package jp.aquafactory.apprenticecodex.item.elementalbow;
 
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager;
+import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;

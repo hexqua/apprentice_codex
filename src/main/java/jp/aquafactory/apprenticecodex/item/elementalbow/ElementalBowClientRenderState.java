@@ -1,8 +1,6 @@
-package jp.aquafactory.apprenticecodex.item;
+package jp.aquafactory.apprenticecodex.item.elementalbow;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager;
-import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
