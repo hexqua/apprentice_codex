@@ -5,7 +5,6 @@ import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
-import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.TickEvent;

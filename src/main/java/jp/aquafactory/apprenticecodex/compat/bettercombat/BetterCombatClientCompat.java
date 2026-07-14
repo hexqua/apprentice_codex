@@ -4,7 +4,7 @@ import jp.aquafactory.apprenticecodex.event.client.ClientSwingMagicAttackTrigger
 import jp.aquafactory.apprenticecodex.event.client.ClientMultipurposeStaffrifleInputEvent;
 import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientAdsState;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
-import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import net.bettercombat.api.AttackHand;
 import net.bettercombat.api.WeaponAttributes;
 import net.bettercombat.api.client.BetterCombatClientEvents;
