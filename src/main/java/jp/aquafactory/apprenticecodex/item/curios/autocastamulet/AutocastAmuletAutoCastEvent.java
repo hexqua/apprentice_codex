@@ -134,6 +134,7 @@ public final class AutocastAmuletAutoCastEvent {
 
             if (!spell.checkPreCastConditions(player.level(), spellLevel, player, magicData)) {
                 magicData.resetAdditionalCastData();
+                // 条件不成立を毎 tick 再試行しないため、クリエイティブでも意図的に待機時間を設ける。
                 io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, CastSource.SWORD);
                 scheduleRetry(slotResult.stack(), player.tickCount, index);
                 return SequenceResult.BLOCKED;
