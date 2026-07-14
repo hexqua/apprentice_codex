@@ -108,21 +108,22 @@ public final class StorageStabilizer extends Item implements IPresetSpellContain
         super.appendHoverText(stack, context, lines, flag);
     }
 
-    public static @NotNull SpellData getSelectedSpellData(@NotNull ItemStack stack) {
-        return getSpellDataAt(normalizeSelectedSpellIndex(stack));
-    }
-
-    public static @NotNull Component createDisplayName(@NotNull ItemStack stack, @NotNull Component baseName) {
+    @Override
+    public @NotNull Component getName(@NotNull ItemStack stack) {
         var spellData = getSelectedSpellData(stack);
         if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
-            return baseName;
+            return super.getName(stack);
         }
 
         return Component.translatable(
                 "item.apprenticecodex.storage_stabilizer.with_spell",
-                baseName,
+                super.getName(stack),
                 spellData.getSpell().getDisplayName(null)
         );
+    }
+
+    public static @NotNull SpellData getSelectedSpellData(@NotNull ItemStack stack) {
+        return getSpellDataAt(normalizeSelectedSpellIndex(stack));
     }
 
     public static int getSelectedSpellIndex(@NotNull ItemStack stack) {

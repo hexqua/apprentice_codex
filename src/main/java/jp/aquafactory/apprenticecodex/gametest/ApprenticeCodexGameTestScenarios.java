@@ -2843,14 +2843,14 @@ public class ApprenticeCodexGameTestScenarios {
                 assertSpellData(helper, companionTrunkContainer, 0, SpellRegistry.COMPANION_TRUNK.get(), 1, true,
                         "Storage Stabilizer should project Companion Trunk level 1 as a locked spell");
             }
-            assertStorageStabilizerDisplayName(helper, storageStabilizer, null, SpellRegistry.COMPANION_TRUNK.get(),
+            assertStorageStabilizerDisplayName(helper, storageStabilizer, SpellRegistry.COMPANION_TRUNK.get(),
                     "Storage Stabilizer default name should include Companion Trunk");
             storageStabilizer.setHoverName(Component.literal("Storage Test"));
-            assertStorageStabilizerDisplayName(helper, storageStabilizer, "Storage Test", SpellRegistry.COMPANION_TRUNK.get(),
-                    "Storage Stabilizer custom name should replace only the base item name");
+            helper.assertTrue("Storage Test".equals(storageStabilizer.getHoverName().getString()),
+                    "Storage Stabilizer custom name should hide its spell name");
             StorageStabilizer.setSelectedSpellIndex(storageStabilizer, 1);
-            assertStorageStabilizerDisplayName(helper, storageStabilizer, "Storage Test", SpellRegistry.PERSONAL_SHELF.get(),
-                    "Storage Stabilizer custom name should remain while its spell name follows the selection");
+            helper.assertTrue("Storage Test".equals(storageStabilizer.getHoverName().getString()),
+                    "Storage Stabilizer custom name should remain after changing its spell selection");
             var invalidStorageStabilizer = new ItemStack(ItemRegistry.STORAGE_STABILIZER.get());
             StorageStabilizer.setSelectedSpellIndex(invalidStorageStabilizer, 99);
             helper.assertTrue(StorageStabilizer.getSelectedSpellIndex(invalidStorageStabilizer) == 0,
@@ -12224,7 +12224,6 @@ public class ApprenticeCodexGameTestScenarios {
     static void assertStorageStabilizerDisplayName(
             GameTestHelper helper,
             ItemStack stack,
-            @Nullable String expectedCustomName,
             AbstractSpell expectedSpell,
             String message
     ) {
@@ -12244,13 +12243,8 @@ public class ApprenticeCodexGameTestScenarios {
             return;
         }
 
-        if (expectedCustomName == null) {
-            assertTranslatableKey(helper, baseName, "item.apprenticecodex.storage_stabilizer",
-                    message + " (unexpected base item name)");
-        } else {
-            helper.assertTrue(expectedCustomName.equals(baseName.getString()),
-                    message + " (unexpected custom name: " + baseName.getString() + ")");
-        }
+        assertTranslatableKey(helper, baseName, "item.apprenticecodex.storage_stabilizer",
+                message + " (unexpected base item name)");
         helper.assertTrue(expectedSpell.getDisplayName(null).getString().equals(spellName.getString()),
                 message + " (unexpected spell name: " + spellName.getString() + ")");
     }

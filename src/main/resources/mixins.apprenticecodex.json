@@ -28,7 +28,6 @@
     "EpicFightPlayerPatchMixin",
     "IronsSpellbooksSchoolSpellCacheHotfixMixin",
     "ItemNameMixin",
-    "ItemStackNameMixin",
     "ItemEntityAccessor",
     "ItemCombinerMenuAccessor",
     "MagicDataAccessor",
@@ -56,7 +55,6 @@
     "UtilsMixin"
   ],
   "client": [
-    "AnvilScreenStorageStabilizerNameMixin",
     "ArcaneAnvilJeiRecipeMixin",
     "BetterCombatItemInHandLayerMixin",
     "BetterCombatItemInHandRendererMixin",
