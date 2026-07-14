@@ -2,5 +2,19 @@
   "parent": "item/generated",
   "textures": {
     "layer0": "apprenticecodex:item/storage_stabilizer"
-  }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "apprenticecodex:selected_spell": 1.0
+      },
+      "model": "apprenticecodex:item/storage_stabilizer_1"
+    },
+    {
+      "predicate": {
+        "apprenticecodex:selected_spell": 2.0
+      },
+      "model": "apprenticecodex:item/storage_stabilizer_2"
+    }
+  ]
 }

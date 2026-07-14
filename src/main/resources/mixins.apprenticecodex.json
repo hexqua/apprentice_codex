@@ -27,6 +27,7 @@
     "EpicFightLivingEntityPatchMixin",
     "EpicFightPlayerPatchMixin",
     "ItemNameMixin",
+    "ItemStackNameMixin",
     "ItemEntityAccessor",
     "ItemCombinerMenuAccessor",
     "LivingEntityAccessor",
@@ -53,6 +54,7 @@
     "UtilsMixin"
   ],
   "client": [
+    "AnvilScreenStorageStabilizerNameMixin",
     "ArcaneAnvilJeiRecipeMixin",
     "BetterCombatItemInHandLayerMixin",
     "BetterCombatItemInHandRendererMixin",

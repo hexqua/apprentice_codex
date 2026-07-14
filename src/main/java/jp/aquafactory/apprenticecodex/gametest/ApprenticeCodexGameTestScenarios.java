@@ -2596,6 +2596,38 @@ public class ApprenticeCodexGameTestScenarios {
                     "Storage Stabilizer right-click resolver should expose its dedicated resolution path");
             helper.assertTrue(resolvedStorageStabilizerSpell.get().spellData().getSpell() instanceof IClientBlockTargetingSpell,
                     "Storage Stabilizer Personal Shelf should stay eligible for client block target sync");
+            var storageStabilizerViews = StorageStabilizer.getSelectionViews(storageStabilizer);
+            helper.assertTrue(storageStabilizerViews.size() == 3,
+                    "Storage Stabilizer selection UI should expose all three storage spells");
+            assertSpellData(helper, storageStabilizerViews.get(2).spellData(), SpellRegistry.COMPANION_TRUNK.get(), 1,
+                    "Storage Stabilizer should expose Companion Trunk level 1 as its third selection");
+            StorageStabilizer.setSelectedSpellIndex(storageStabilizer, 2);
+            var companionTrunkContainer = ISpellContainer.get(storageStabilizer);
+            helper.assertTrue(companionTrunkContainer != null,
+                    "Storage Stabilizer Companion Trunk spell container is null");
+            if (companionTrunkContainer != null) {
+                assertSpellData(helper, companionTrunkContainer, 0, SpellRegistry.COMPANION_TRUNK.get(), 1, true,
+                        "Storage Stabilizer should project Companion Trunk level 1 as a locked spell");
+            }
+            assertStorageStabilizerDisplayName(helper, storageStabilizer, null, SpellRegistry.COMPANION_TRUNK.get(),
+                    "Storage Stabilizer default name should include Companion Trunk");
+            storageStabilizer.setHoverName(Component.literal("Storage Test"));
+            assertStorageStabilizerDisplayName(helper, storageStabilizer, "Storage Test", SpellRegistry.COMPANION_TRUNK.get(),
+                    "Storage Stabilizer custom name should replace only the base item name");
+            StorageStabilizer.setSelectedSpellIndex(storageStabilizer, 1);
+            assertStorageStabilizerDisplayName(helper, storageStabilizer, "Storage Test", SpellRegistry.PERSONAL_SHELF.get(),
+                    "Storage Stabilizer custom name should remain while its spell name follows the selection");
+            var invalidStorageStabilizer = new ItemStack(ItemRegistry.STORAGE_STABILIZER.get());
+            StorageStabilizer.setSelectedSpellIndex(invalidStorageStabilizer, 99);
+            helper.assertTrue(StorageStabilizer.getSelectedSpellIndex(invalidStorageStabilizer) == 0,
+                    "Storage Stabilizer invalid selection should fall back to Summon Ender Chest");
+            var companionTrunkStabilizer = new ItemStack(ItemRegistry.STORAGE_STABILIZER.get());
+            StorageStabilizer.setSelectedSpellIndex(companionTrunkStabilizer, 2);
+            player.setItemInHand(InteractionHand.MAIN_HAND, companionTrunkStabilizer);
+            var resolvedCompanionTrunkSpell = RightClickSpellResolver.resolve(player);
+            helper.assertTrue(resolvedCompanionTrunkSpell.isPresent()
+                            && resolvedCompanionTrunkSpell.get().spellData().getSpell() == SpellRegistry.COMPANION_TRUNK.get(),
+                    "Storage Stabilizer right-click resolver should use the selected Companion Trunk spell");
             var inertMainHand = new ItemStack(Items.STICK);
             player.setItemInHand(InteractionHand.MAIN_HAND, inertMainHand);
             player.setItemInHand(InteractionHand.OFF_HAND, storageStabilizer);
@@ -11417,6 +11449,40 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(expectedKey.equals(translatableContents.getKey()),
                     message + " (expected=" + expectedKey + ", actual=" + translatableContents.getKey() + ")");
         }
+    }
+
+    static void assertStorageStabilizerDisplayName(
+            GameTestHelper helper,
+            ItemStack stack,
+            @Nullable String expectedCustomName,
+            AbstractSpell expectedSpell,
+            String message
+    ) {
+        var displayName = stack.getHoverName();
+        helper.assertTrue(displayName.getContents() instanceof TranslatableContents,
+                message + " (display name was not translatable: " + displayName + ")");
+        if (!(displayName.getContents() instanceof TranslatableContents contents)) {
+            return;
+        }
+
+        helper.assertTrue("item.apprenticecodex.storage_stabilizer.with_spell".equals(contents.getKey()),
+                message + " (unexpected translation key: " + contents.getKey() + ")");
+        var args = contents.getArgs();
+        helper.assertTrue(args.length == 2,
+                message + " (unexpected argument count: " + args.length + ")");
+        if (args.length != 2 || !(args[0] instanceof Component baseName) || !(args[1] instanceof Component spellName)) {
+            return;
+        }
+
+        if (expectedCustomName == null) {
+            assertTranslatableKey(helper, baseName, "item.apprenticecodex.storage_stabilizer",
+                    message + " (unexpected base item name)");
+        } else {
+            helper.assertTrue(expectedCustomName.equals(baseName.getString()),
+                    message + " (unexpected custom name: " + baseName.getString() + ")");
+        }
+        helper.assertTrue(expectedSpell.getDisplayName(null).getString().equals(spellName.getString()),
+                message + " (unexpected spell name: " + spellName.getString() + ")");
     }
 
     static void assertTooltipKeyAt(

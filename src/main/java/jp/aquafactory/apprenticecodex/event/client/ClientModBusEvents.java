@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
 import io.redspace.ironsspellbooks.render.SpellBookCurioRenderer;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationScreen;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntityRenderer;
@@ -12,6 +13,7 @@ import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientComp
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightClientCompat;
 import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBuiltinTemplateSupport;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticle;
 import jp.aquafactory.apprenticecodex.particle.AdditiveRhombusParticle;
@@ -191,6 +193,11 @@ public final class ClientModBusEvents {
                 ItemRegistry.ALCHEMISTS_FLASK.get(),
                 ResourceLocation.withDefaultNamespace("filled"),
                 (stack, level, living, seed) -> SpellcastersFlask.isFilled(stack) ? 1.0F : 0.0F
+        ));
+        event.enqueueWork(() -> ItemProperties.register(
+                ItemRegistry.STORAGE_STABILIZER.get(),
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "selected_spell"),
+                (stack, level, living, seed) -> StorageStabilizer.getSelectedSpellIndex(stack)
         ));
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),

@@ -110,6 +110,19 @@ public final class StorageStabilizer extends Item implements IPresetSpellContain
         return getSpellDataAt(normalizeSelectedSpellIndex(stack));
     }
 
+    public static @NotNull Component createDisplayName(@NotNull ItemStack stack, @NotNull Component baseName) {
+        var spellData = getSelectedSpellData(stack);
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            return baseName;
+        }
+
+        return Component.translatable(
+                "item.apprenticecodex.storage_stabilizer.with_spell",
+                baseName,
+                spellData.getSpell().getDisplayName(null)
+        );
+    }
+
     public static int getSelectedSpellIndex(@NotNull ItemStack stack) {
         if (!isValidStorageStabilizer(stack)) {
             return DEFAULT_SPELL_INDEX;
@@ -198,13 +211,14 @@ public final class StorageStabilizer extends Item implements IPresetSpellContain
         var spell = switch (index) {
             case 0 -> io.redspace.ironsspellbooks.api.registry.SpellRegistry.SUMMON_ENDER_CHEST_SPELL.get();
             case 1 -> jp.aquafactory.apprenticecodex.registry.SpellRegistry.PERSONAL_SHELF.get();
+            case 2 -> jp.aquafactory.apprenticecodex.registry.SpellRegistry.COMPANION_TRUNK.get();
             default -> null;
         };
         return spell == null ? SpellData.EMPTY : new SpellData(spell, 1);
     }
 
     private static int getSpellCount() {
-        return 2;
+        return 3;
     }
 
     private static boolean isCurrentSelectedSpellContainer(@NotNull ItemStack stack) {
