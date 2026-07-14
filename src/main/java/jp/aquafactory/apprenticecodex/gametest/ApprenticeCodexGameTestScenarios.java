@@ -3009,6 +3009,7 @@ public class ApprenticeCodexGameTestScenarios {
                     "Scrollcaster Gauntlet freecast should cast with the gauntlet stack");
             helper.assertTrue(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND.equals(magicData.getCastingEquipmentSlot()),
                     "Scrollcaster Gauntlet freecast should mark the mainhand casting slot");
+            magicData.resetCastingState();
             magicData.getPlayerCooldowns().removeCooldown(magicMissile.getSpellId());
 
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(fireBreath));
@@ -3018,15 +3019,11 @@ public class ApprenticeCodexGameTestScenarios {
 
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(heal));
             ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
-            helper.assertFalse(gauntletItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
-                    "Scrollcaster Gauntlet freecast should reject long spells before a Silver Ring adjustment");
-            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
-                    gauntlet,
-                    1,
-                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
-            );
-            helper.assertTrue(ScrollcasterGauntlet.hasSilverRingAdjustment(gauntlet),
-                    "Scrollcaster Gauntlet should detect its Silver Ring adjustment");
+            player.setHealth(Math.max(1.0F, player.getMaxHealth() - 1.0F));
+            helper.assertTrue(gauntletItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
+                    "Scrollcaster Gauntlet freecast should allow long spells with only a Mithril Freecast Staff adjustment");
+            magicData.resetCastingState();
+            magicData.getPlayerCooldowns().removeCooldown(heal.getSpellId());
 
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(magicMissile));
             ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
@@ -3213,16 +3210,10 @@ public class ApprenticeCodexGameTestScenarios {
                     "Mithril Freecast Staff adjustment should be stored on the gauntlet");
             helper.assertFalse(menu.getSlot(2).mayPlace(freecastStaff),
                     "Scrollcaster Gauntlet should reject duplicate Mithril Freecast Staff adjustments");
-            helper.assertTrue(menu.getSlot(2).mayPlace(silverRing),
-                    "Scrollcaster Gauntlet should accept Silver Ring adjustments");
-            menu.getSlot(2).set(silverRing.copy());
-            helper.assertTrue(ScrollcasterGauntlet.hasSilverRingAdjustment(gauntlet),
-                    "Silver Ring adjustment should be stored on the gauntlet");
-            helper.assertFalse(menu.getSlot(3).mayPlace(silverRing),
-                    "Scrollcaster Gauntlet should reject duplicate Silver Ring adjustments");
+            helper.assertFalse(menu.getSlot(2).mayPlace(silverRing),
+                    "Scrollcaster Gauntlet should reject Silver Ring adjustments");
 
             menu.getSlot(1).set(ItemStack.EMPTY);
-            menu.getSlot(2).set(ItemStack.EMPTY);
             menu.getSlot(0).set(staff);
             helper.assertFalse(menu.getSlot(1).mayPlace(freecastStaff),
                     "Revolvercast Staff should not accept a Mithril Freecast Staff adjustment");
