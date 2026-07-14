@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.item.OffhandMagicModifierHelper;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
+import jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
@@ -361,13 +362,24 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
         float borrowed = Math.max(0F, spell.getManaCost(level) - magicData.getMana());
         if (borrowed > 0F) magicData.addMana(borrowed);
         String slot = hand == InteractionHand.OFF_HAND ? SpellSelectionManager.OFFHAND : SpellSelectionManager.MAINHAND;
+        int remainingUseTicks = player.getUseItemRemainingTicks();
         boolean casted = spell.attemptInitiateCast(stack, level, player.level(), player, castSource, true, slot);
         if (!casted) {
             if (borrowed > 0F) magicData.setMana(Math.max(0F, magicData.getMana() - borrowed));
             return;
         }
         if (borrowed > 0F) ItemManaBypassCastEvent.reserveBorrowedMana(player, borrowed);
-        TriggeredSpellCastHelper.applyLongCastDurationOverride(player, level, spell, magicData, slot, 0);
+        if (spell.getCastType() == CastType.INSTANT) {
+            // attemptInitiateCast は盾使用を止めるため、INSTANT をその場で完了してから構えを復元する。
+            spell.castSpell(player.level(), level, player, magicData.getCastSource(), true);
+            spell.onServerCastComplete(player.level(), level, player, magicData, false);
+        } else {
+            TriggeredSpellCastHelper.applyLongCastDurationOverride(player, level, spell, magicData, slot, 0);
+        }
+        if (player.getItemInHand(hand) == stack && !stack.isEmpty()) {
+            player.startUsingItem(hand);
+            ((LivingEntityAccessor) player).apprenticecodex$setUseItemRemaining(remainingUseTicks);
+        }
     }
 
     private static void reduceAllCooldowns(ServerPlayer player, MagicData magicData) {

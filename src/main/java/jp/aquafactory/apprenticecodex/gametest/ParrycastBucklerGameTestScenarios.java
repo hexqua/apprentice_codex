@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.entity.spells.blood_slash.BloodSlashProjectile;
 import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -174,7 +175,14 @@ final class ParrycastBucklerGameTestScenarios {
             blockedPlayer.setYRot(0.0F);
             blockedPlayer.setXRot(0.0F);
             var blockedStack = new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get());
+            var bloodSlash = io.redspace.ironsspellbooks.api.registry.SpellRegistry.BLOOD_SLASH_SPELL.get();
+            helper.assertTrue(SpellCalibrationImbueHelper.setScrollAt(
+                            blockedStack, 0, BowGameTestSupport.createSpellScroll(bloodSlash)),
+                    "Parrycast Buckler should accept Blood Slash for the perfect-guard test");
             blockedPlayer.setItemInHand(InteractionHand.OFF_HAND, blockedStack);
+            var magicData = MagicData.getPlayerMagicData(blockedPlayer);
+            helper.assertTrue(magicData != null, "Blood Slash perfect-guard test requires MagicData");
+            magicData.setMana(0.0F);
             blockedStack.getItem().use(helper.getLevel(), blockedPlayer, InteractionHand.OFF_HAND);
             helper.assertTrue(blockedPlayer.isBlocking(),
                     "Parrycast Buckler should enter its blocking state immediately");
@@ -183,11 +191,23 @@ final class ParrycastBucklerGameTestScenarios {
             frontalArrow.setPos(blockedPlayer.getX(), blockedPlayer.getY() + 1.0D, blockedPlayer.getZ() + 3.0D);
             helper.getLevel().addFreshEntity(frontalArrow);
             var healthBeforeBlock = blockedPlayer.getHealth();
+            var bloodSlashCountBefore = helper.getLevel().getEntitiesOfClass(
+                    BloodSlashProjectile.class, blockedPlayer.getBoundingBox().inflate(32.0D)).size();
             blockedPlayer.hurt(helper.getLevel().damageSources().arrow(frontalArrow, null), 4.0F);
             helper.assertTrue(blockedPlayer.getHealth() == healthBeforeBlock,
                     "Parrycast Buckler should block a frontal dispenser arrow");
             helper.assertTrue(blockedPlayer.isUsingItem(),
                     "A perfect guard against a dispenser arrow should keep the buckler raised");
+            helper.assertTrue(helper.getLevel().getEntitiesOfClass(
+                            BloodSlashProjectile.class, blockedPlayer.getBoundingBox().inflate(32.0D)).size()
+                            > bloodSlashCountBefore,
+                    "A perfect guard should cast the imbued Blood Slash immediately");
+            helper.assertFalse(magicData.isCasting(),
+                    "An instant perfect-guard spell should not leave pending casting state");
+            helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(bloodSlash),
+                    "A perfect-guard Blood Slash should apply its spell cooldown");
+            helper.assertTrue(magicData.getMana() == 0.0F,
+                    "A perfect-guard Blood Slash should not consume mana");
 
             var damagedPlayer = createDamageableTestPlayer(
                     helper, new BlockPos(3, 2, 0), "parrycast_unblocked_damage_release_test");
