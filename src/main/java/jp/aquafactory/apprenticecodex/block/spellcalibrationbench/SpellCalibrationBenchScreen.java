@@ -2,18 +2,14 @@ package jp.aquafactory.apprenticecodex.block.spellcalibrationbench;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
-import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
@@ -238,7 +234,7 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
     }
 
     private int findHoveredDisabledScrollSlot(int mouseX, int mouseY) {
-        if (!menu.hasStoredCalibrationTarget()) {
+        if (!menu.hasAdjustmentTarget()) {
             return -1;
         }
 
@@ -318,7 +314,7 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
     }
 
     private int findHoveredEmptyAdjustmentSlot(int mouseX, int mouseY) {
-        if (!menu.hasStoredCalibrationTarget()) {
+        if (!menu.hasAdjustmentTarget()) {
             return -1;
         }
 
@@ -340,94 +336,35 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
     private List<Component> createAdjustmentItemHintTooltip() {
         var lines = new ArrayList<Component>();
         lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_title"));
-        if (menu.hasMagiAgentSuit()) {
-            lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_runes"));
-            return List.copyOf(lines);
-        }
-        if (menu.hasMithrilFreecastStaff()) {
-            lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_runes"));
-            appendSilverRingHint(lines);
-            return List.copyOf(lines);
-        }
-        if (menu.hasAutocastAmulet()) {
-            appendSlotUpgradeHints(lines);
-            appendSilverRingHint(lines);
-            appendWisdomShardHint(lines);
-            return List.copyOf(lines);
-        }
-        if (menu.hasBulwarkGreatshield()) {
-            lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_runes"));
-            appendWisdomShardHint(lines);
-            return List.copyOf(lines);
-        }
-        if (menu.hasParrycastBuckler()) {
-            lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_runes"));
-            appendSilverRingHint(lines);
-            appendWisdomShardHint(lines);
-            return List.copyOf(lines);
-        }
-        if (menu.hasReflectcastShield()) {
-            appendSilverRingHint(lines);
-            appendWisdomShardHint(lines);
-            return List.copyOf(lines);
-        }
-        appendSlotUpgradeHints(lines);
-        if (menu.hasGauntlet()) {
-            lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_enchantment_books"));
-            appendTaggedItemHintLines(
-                    lines,
-                    TagRegistry.Items.SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS,
-                    new ItemStack(Items.ENCHANTED_BOOK)
-            );
-            lines.add(Component.translatable(
-                    "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_single_specific_item",
-                    new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()).getHoverName()
-            ));
-            appendSilverRingHint(lines);
-        }
-        lines.add(Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_runes"));
-        if (menu.hasRevolvercastStaff()) {
-            lines.add(Component.translatable(
-                    "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_single_specific_item",
-                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()).getHoverName()
-            ));
-            appendSilverRingHint(lines);
+        for (var rule : menu.getAdjustmentProfile().rules()) {
+            appendAdjustmentHint(lines, rule.hint());
         }
         return List.copyOf(lines);
     }
 
-    private static void appendSlotUpgradeHints(List<Component> lines) {
-        lines.add(SLOT_UPGRADE_GROUP);
-        appendTaggedItemHintLines(
-                lines,
-                TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES,
-                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
-        );
-    }
+    private static void appendAdjustmentHint(List<Component> lines, CalibrationAdjustmentHint hint) {
+        if (hint instanceof CalibrationAdjustmentHint.Translatable translatable) {
+            lines.add(Component.translatable(translatable.translationKey()));
+            return;
+        }
+        if (hint instanceof CalibrationAdjustmentHint.SpecificItem specificItem) {
+            lines.add(Component.translatable(
+                    "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_single_specific_item",
+                    new ItemStack(specificItem.item().get()).getHoverName()
+            ));
+            return;
+        }
 
-    private static void appendSilverRingHint(List<Component> lines) {
-        lines.add(Component.translatable(
-                "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_single_specific_item",
-                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()).getHoverName()
-        ));
-    }
-
-    private static void appendWisdomShardHint(List<Component> lines) {
-        lines.add(Component.translatable(
-                "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_single_specific_item",
-                new ItemStack(ItemRegistry.WISDOM_SHARD.get()).getHoverName()
-        ));
-    }
-
-    private static void appendTaggedItemHintLines(List<Component> lines, TagKey<Item> tag, ItemStack fallbackStack) {
+        var taggedItems = (CalibrationAdjustmentHint.TaggedItems) hint;
+        lines.add(Component.translatable(taggedItems.headingTranslationKey()));
         var stacks = ForgeRegistries.ITEMS.getValues().stream()
                 .map(ItemStack::new)
-                .filter(stack -> stack.is(tag))
+                .filter(stack -> stack.is(taggedItems.tag()))
                 .sorted(Comparator.comparing(stack -> stack.getHoverName().getString()))
                 .toList();
 
         if (stacks.isEmpty()) {
-            lines.add(createSpecificItemHint(fallbackStack));
+            lines.add(createSpecificItemHint(new ItemStack(taggedItems.fallbackItem().get())));
             return;
         }
 

@@ -269,8 +269,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void bulwarkGreatshieldCalibrationSupportsOneRuneOrWisdomShard(GameTestHelper helper) {
-        BulwarkGreatshieldGameTestScenarios.bulwarkGreatshieldCalibrationSupportsOneRuneOrWisdomShard(helper);
+    public static void bulwarkGreatshieldCalibrationSupportsThreeDistinctSchoolRunes(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.bulwarkGreatshieldCalibrationSupportsThreeDistinctSchoolRunes(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -387,6 +387,17 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void spellCalibrationBenchTargetsExposeExpectedSlots(GameTestHelper helper) {
         SpellCalibrationEquipmentGameTestScenarios.spellCalibrationBenchTargetsExposeExpectedSlots(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellCalibrationAdjustmentProfilesEnforceDeclaredRules(GameTestHelper helper) {
+        SpellCalibrationEquipmentGameTestScenarios.spellCalibrationAdjustmentProfilesEnforceDeclaredRules(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellCalibrationBenchImbueStatesSeparateInsertionFromCurrentUsability(GameTestHelper helper) {
+        SpellCalibrationEquipmentGameTestScenarios
+                .spellCalibrationBenchImbueStatesSeparateInsertionFromCurrentUsability(helper);
     }
 
     @GameTest(template = TEMPLATE)

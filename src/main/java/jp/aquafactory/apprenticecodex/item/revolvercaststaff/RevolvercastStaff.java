@@ -68,13 +68,33 @@ import java.util.function.Consumer;
 
 public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         implements GeoItem, CastAnimationOverrideItem, IJeiInfoItem, SwingTriggeredMagicItem,
-        RestrictedSpellImbuableItem, ArcaneAnvilImbueBlockItem {
+        RestrictedSpellImbuableItem, ArcaneAnvilImbueBlockItem, StoredSpellCalibrationImbueTarget,
+        SpellCalibrationAdjustmentTarget {
     private static final String ITEM_KEY = "revolvercast_staff";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.revolvercast_staff.desc_";
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     public static final int CALIBRATION_SCROLL_SLOT_COUNT = 10;
     public static final int BASE_CALIBRATION_SCROLL_SLOT_COUNT = 4;
     public static final int CALIBRATION_SCROLL_SLOTS_PER_UPGRADE = 2;
+    private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
+            CalibrationAdjustmentProfile.of(
+                    CalibrationAdjustmentRule.repeatable(
+                            RevolvercastStaff::isCalibrationSlotUpgrade,
+                            CalibrationAdjustmentHints.slotUpgrades()
+                    ),
+                    CalibrationAdjustmentRule.unique(
+                            ScrollcasterSchoolRuneResolver::isSchoolRune,
+                            CalibrationAdjustmentHints.schoolRunes()
+                    ),
+                    CalibrationAdjustmentRule.unique(
+                            RevolvercastStaff::isRecoveryRune,
+                            CalibrationAdjustmentHints.recoveryRune()
+                    ),
+                    CalibrationAdjustmentRule.unique(
+                            RevolvercastStaff::isSilverRing,
+                            CalibrationAdjustmentHints.silverRing()
+                    )
+            );
 
     private static final String ORB_CONTROLLER = "orb";
     private static final String REVOLVE_CONTROLLER = "revolve";
@@ -208,6 +228,20 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     @Override
     public boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel) {
         return canSwingCastSpell(spell);
+    }
+
+    @Override
+    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull SpellData spellData
+    ) {
+        if (slot < 0 || slot >= getEnabledCalibrationScrollSlotCount(targetStack)
+                || spellData == SpellData.EMPTY || spellData.getSpell() == null
+                || !canSwingCastSpell(spellData.getSpell(), true)) {
+            return SpellCalibrationImbueState.REJECTED;
+        }
+        return SpellCalibrationImbueState.accepted(canSwingCastSpell(targetStack, spellData.getSpell()));
     }
 
     @Override
@@ -417,14 +451,42 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
                 : EnumSet.of(SpellGunCastType.INSTANT);
     }
 
-    public static @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack staffStack, int slot) {
+    private static @NotNull ItemStack readCalibrationAdjustment(@NotNull ItemStack staffStack, int slot) {
         return getCalibrationItem(staffStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
     }
 
-    public static void setCalibrationAdjustment(@NotNull ItemStack staffStack, int slot, @NotNull ItemStack stack) {
+    private static void writeCalibrationAdjustment(@NotNull ItemStack staffStack, int slot, @NotNull ItemStack stack) {
         setCalibrationItem(staffStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, stack);
         refreshResolvedCalibrationSchool(staffStack);
         refreshSelectedSpellContainer(staffStack);
+    }
+
+    @Override
+    public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_SLOT_COUNT;
+    }
+
+    @Override
+    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
+        return readCalibrationAdjustment(targetStack, slot);
+    }
+
+    @Override
+    public boolean trySetCalibrationAdjustment(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull ItemStack adjustment
+    ) {
+        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
+            return false;
+        }
+        writeCalibrationAdjustment(targetStack, slot, adjustment);
+        return true;
+    }
+
+    @Override
+    public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_PROFILE;
     }
 
     public static @NotNull ItemStack getCalibrationScroll(@NotNull ItemStack staffStack, int slot) {
@@ -447,7 +509,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
 
         var upgradeCount = 0;
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (isCalibrationSlotUpgrade(getCalibrationAdjustment(staffStack, slot))) {
+            if (isCalibrationSlotUpgrade(readCalibrationAdjustment(staffStack, slot))) {
                 ++upgradeCount;
             }
         }
@@ -543,17 +605,6 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         return getScrollSpellData(getCalibrationScroll(staffStack, selectedIndex));
     }
 
-    public static boolean isMismatchedCastConditionScroll(@NotNull ItemStack staffStack, int slot) {
-        if (!isValidCalibrationAccess(staffStack, slot, CALIBRATION_SCROLL_SLOT_COUNT)) {
-            return false;
-        }
-
-        var spellData = getScrollSpellData(getCalibrationScroll(staffStack, slot));
-        return spellData != SpellData.EMPTY
-                && spellData.getSpell() != null
-                && !canSwingCastSpell(staffStack, spellData.getSpell());
-    }
-
     public static void refreshSelectedSpellContainer(@NotNull ItemStack staffStack) {
         var spellData = getSelectedSpellData(staffStack);
         if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
@@ -576,7 +627,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         }
 
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            var school = ScrollcasterSchoolRuneResolver.resolveSchool(getCalibrationAdjustment(staffStack, slot));
+            var school = ScrollcasterSchoolRuneResolver.resolveSchool(readCalibrationAdjustment(staffStack, slot));
             if (school.isPresent()) {
                 setResolvedCalibrationSchoolId(staffStack, school.get().getId());
                 return;
@@ -589,13 +640,6 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     public static @Nullable SchoolType getResolvedCalibrationSchool(ItemStack stack) {
         var schoolId = getResolvedCalibrationSchoolId(stack);
         return schoolId == null ? null : SchoolRegistry.getSchool(schoolId);
-    }
-
-    public static boolean isCalibrationAdjustmentItem(@NotNull ItemStack stack) {
-        return isCalibrationSlotUpgrade(stack)
-                || ScrollcasterSchoolRuneResolver.isSchoolRune(stack)
-                || isRecoveryRune(stack)
-                || isSilverRing(stack);
     }
 
     public static boolean isCalibrationSlotUpgrade(@NotNull ItemStack stack) {
@@ -612,7 +656,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
 
     public static boolean hasRecoveryRune(@NotNull ItemStack staffStack) {
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (isRecoveryRune(getCalibrationAdjustment(staffStack, slot))) {
+            if (isRecoveryRune(readCalibrationAdjustment(staffStack, slot))) {
                 return true;
             }
         }
@@ -621,7 +665,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
 
     public static boolean hasSilverRingAdjustment(@NotNull ItemStack staffStack) {
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (isSilverRing(getCalibrationAdjustment(staffStack, slot))) {
+            if (isSilverRing(readCalibrationAdjustment(staffStack, slot))) {
                 return true;
             }
         }

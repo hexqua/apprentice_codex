@@ -61,10 +61,22 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
-        implements GeoItem, CastAnimationOverrideItem, IJeiInfoItem, SwingTriggeredMagicItem, ArcaneAnvilImbueBlockItem {
+        implements GeoItem, CastAnimationOverrideItem, IJeiInfoItem, SwingTriggeredMagicItem,
+        ArcaneAnvilImbueBlockItem, SpellCalibrationAdjustmentTarget {
     private static final String ITEM_KEY = "mithril_freecast_staff";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.mithril_freecast_staff.desc_";
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
+    private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
+            CalibrationAdjustmentProfile.of(
+                    CalibrationAdjustmentRule.unique(
+                            ScrollcasterSchoolRuneResolver::isSchoolRune,
+                            CalibrationAdjustmentHints.schoolRunes()
+                    ),
+                    CalibrationAdjustmentRule.unique(
+                            MithrilFreecastStaff::isSilverRing,
+                            CalibrationAdjustmentHints.silverRing()
+                    )
+            );
     private static final String MAIN_CONTROLLER = "main";
     private static final String CALIBRATION_TAG = "SpellCalibration";
     private static final String ADJUSTMENTS_TAG = "Adjustments";
@@ -354,13 +366,41 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
                 : EnumSet.of(SpellGunCastType.INSTANT);
     }
 
-    public static @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack staffStack, int slot) {
+    private static @NotNull ItemStack readCalibrationAdjustment(@NotNull ItemStack staffStack, int slot) {
         return getCalibrationItem(staffStack, slot);
     }
 
-    public static void setCalibrationAdjustment(@NotNull ItemStack staffStack, int slot, @NotNull ItemStack stack) {
+    private static void writeCalibrationAdjustment(@NotNull ItemStack staffStack, int slot, @NotNull ItemStack stack) {
         setCalibrationItem(staffStack, slot, stack);
         refreshResolvedCalibrationSchool(staffStack);
+    }
+
+    @Override
+    public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_SLOT_COUNT;
+    }
+
+    @Override
+    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
+        return readCalibrationAdjustment(targetStack, slot);
+    }
+
+    @Override
+    public boolean trySetCalibrationAdjustment(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull ItemStack adjustment
+    ) {
+        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
+            return false;
+        }
+        writeCalibrationAdjustment(targetStack, slot, adjustment);
+        return true;
+    }
+
+    @Override
+    public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_PROFILE;
     }
 
     public static void refreshResolvedCalibrationSchool(@NotNull ItemStack staffStack) {
@@ -369,7 +409,7 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
         }
 
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            var school = ScrollcasterSchoolRuneResolver.resolveSchool(getCalibrationAdjustment(staffStack, slot));
+            var school = ScrollcasterSchoolRuneResolver.resolveSchool(readCalibrationAdjustment(staffStack, slot));
             if (school.isPresent()) {
                 setResolvedCalibrationSchoolId(staffStack, school.get().getId());
                 return;
@@ -384,10 +424,6 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
         return schoolId == null ? null : SchoolRegistry.getSchool(schoolId);
     }
 
-    public static boolean isCalibrationAdjustmentItem(@NotNull ItemStack stack) {
-        return ScrollcasterSchoolRuneResolver.isSchoolRune(stack) || isSilverRing(stack);
-    }
-
     public static boolean isSilverRing(@NotNull ItemStack stack) {
         return !stack.isEmpty() && stack.getItem() == io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get();
     }
@@ -398,7 +434,7 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
         }
 
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (isSilverRing(getCalibrationAdjustment(staffStack, slot))) {
+            if (isSilverRing(readCalibrationAdjustment(staffStack, slot))) {
                 return true;
             }
         }

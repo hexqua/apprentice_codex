@@ -8,7 +8,11 @@ import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.renderer.armor.MagiAgentSuitRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -44,8 +48,16 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpellContainer {
+public class MagiAgentSuitItem extends ArmorItem
+        implements GeoItem, IPresetSpellContainer, SpellCalibrationAdjustmentTarget {
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 1;
+    private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
+            CalibrationAdjustmentProfile.of(
+                    CalibrationAdjustmentRule.unique(
+                            ScrollcasterSchoolRuneResolver::isSchoolRune,
+                            CalibrationAdjustmentHints.schoolRunes()
+                    )
+            );
 
     private static final ResourceLocation ARMOR_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/magi_agent_suit.png");
@@ -199,7 +211,7 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
         return cache;
     }
 
-    public static @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack suitStack, int slot) {
+    private static @NotNull ItemStack readCalibrationAdjustment(@NotNull ItemStack suitStack, int slot) {
         if (!isValidCalibrationAccess(suitStack, slot)) {
             return ItemStack.EMPTY;
         }
@@ -211,7 +223,7 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
         return ItemStack.of(calibrationTag.getCompound(ADJUSTMENT_TAG));
     }
 
-    public static void setCalibrationAdjustment(@NotNull ItemStack suitStack, int slot, @NotNull ItemStack stack) {
+    private static void writeCalibrationAdjustment(@NotNull ItemStack suitStack, int slot, @NotNull ItemStack stack) {
         if (!isValidCalibrationAccess(suitStack, slot)) {
             return;
         }
@@ -226,12 +238,36 @@ public class MagiAgentSuitItem extends ArmorItem implements GeoItem, IPresetSpel
         suitStack.getOrCreateTagElement(CALIBRATION_TAG).put(ADJUSTMENT_TAG, storedStack.save(new CompoundTag()));
     }
 
-    public static boolean isCalibrationAdjustmentItem(@NotNull ItemStack stack) {
-        return ScrollcasterSchoolRuneResolver.isSchoolRune(stack);
+    @Override
+    public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_SLOT_COUNT;
+    }
+
+    @Override
+    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
+        return readCalibrationAdjustment(targetStack, slot);
+    }
+
+    @Override
+    public boolean trySetCalibrationAdjustment(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull ItemStack adjustment
+    ) {
+        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
+            return false;
+        }
+        writeCalibrationAdjustment(targetStack, slot, adjustment);
+        return true;
+    }
+
+    @Override
+    public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_PROFILE;
     }
 
     public static @Nullable SchoolType getResolvedCalibrationSchool(ItemStack stack) {
-        return ScrollcasterSchoolRuneResolver.resolveSchool(getCalibrationAdjustment(stack, 0)).orElse(null);
+        return ScrollcasterSchoolRuneResolver.resolveSchool(readCalibrationAdjustment(stack, 0)).orElse(null);
     }
 
     private void appendSuitEffectHoverText(List<Component> lines) {
