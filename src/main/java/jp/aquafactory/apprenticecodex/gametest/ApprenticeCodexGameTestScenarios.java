@@ -70,7 +70,7 @@ import jp.aquafactory.apprenticecodex.event.errandmage.ErrandMageTradeManager;
 import jp.aquafactory.apprenticecodex.event.ErrandMageVillagerTradesEvent;
 import jp.aquafactory.apprenticecodex.event.ScrollcasterGauntletGrindstoneEvent;
 import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
-import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
@@ -11601,7 +11601,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static void assertModifierAmount(
             GameTestHelper helper,
-            jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem item,
+            AbstractOffhandMagicItem item,
             ItemStack stack,
             Attribute attribute,
             double expectedAmount,

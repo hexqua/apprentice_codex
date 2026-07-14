@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffCastEvent;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffCoolingHandler;
+import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.core.BlockPos;
@@ -310,7 +311,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_base_mana_gate_test");
             var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
             amplifierItem.initializeSpellContainer(amplifierStack);
             var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
@@ -502,7 +503,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_recast_neutral_test");
             var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
             amplifierItem.initializeSpellContainer(amplifierStack);
             var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();

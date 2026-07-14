@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
+import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmash;
@@ -53,7 +54,7 @@ final class FocusStaffbowGameTestScenarios {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_offhand_selection_test");
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
             amplifierItem.initializeSpellContainer(amplifierStack);
 
@@ -81,7 +82,7 @@ final class FocusStaffbowGameTestScenarios {
     static void focusStaffbowShowsLongSummonWeaponDuringPendingCast(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_pending_summon_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
         amplifierItem.initializeSpellContainer(amplifierStack);
         setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE.get(), 1);
@@ -181,7 +182,7 @@ final class FocusStaffbowGameTestScenarios {
     static void focusStaffbowCancelsPendingSummonWeaponBeforeRequiredCharge(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_pending_cancel_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
         amplifierItem.initializeSpellContainer(amplifierStack);
         setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE.get(), 1);
@@ -229,7 +230,7 @@ final class FocusStaffbowGameTestScenarios {
     static void focusStaffbowContinuousCastStaysActivePastSpellDuration(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_hold_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
         amplifierItem.initializeSpellContainer(amplifierStack);
         var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get();
@@ -347,7 +348,7 @@ final class FocusStaffbowGameTestScenarios {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_arrow_gate_test");
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
             amplifierItem.initializeSpellContainer(amplifierStack);
             setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
@@ -367,7 +368,7 @@ final class FocusStaffbowGameTestScenarios {
     static void focusStaffbowContinuousCastUsesStandardCastTimeWithoutAttributeAdjustment(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_standard_time_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
         amplifierItem.initializeSpellContainer(amplifierStack);
         var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get();
@@ -428,7 +429,7 @@ final class FocusStaffbowGameTestScenarios {
     static void focusStaffbowContinuousCastStopsWhenManaRunsOut(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_mana_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
         amplifierItem.initializeSpellContainer(amplifierStack);
         setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get(), 1);
@@ -472,7 +473,7 @@ final class FocusStaffbowGameTestScenarios {
     static void focusStaffbowInstantImmediateReleaseConsumesBaseMana(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_instant_base_mana_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
         amplifierItem.initializeSpellContainer(amplifierStack);
         var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
@@ -511,7 +512,7 @@ final class FocusStaffbowGameTestScenarios {
     static void focusStaffbowShortLongReleaseStaysAtBaseMultiplier(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_short_long_base_mana_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
         amplifierItem.initializeSpellContainer(amplifierStack);
         var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE.get();
@@ -591,7 +592,7 @@ final class FocusStaffbowGameTestScenarios {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_base_mana_gate_test");
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
             amplifierItem.initializeSpellContainer(amplifierStack);
             var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
@@ -625,7 +626,7 @@ final class FocusStaffbowGameTestScenarios {
         );
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_arrow_config_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
         amplifierItem.initializeSpellContainer(amplifierStack);
         var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
@@ -672,7 +673,7 @@ final class FocusStaffbowGameTestScenarios {
             )) {
                 var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_config_test");
                 var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-                var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+                var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
                 var amplifierStack = new ItemStack(amplifierItem);
                 amplifierItem.initializeSpellContainer(amplifierStack);
                 setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get(), 1);
@@ -704,7 +705,7 @@ final class FocusStaffbowGameTestScenarios {
         );
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_config_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
         amplifierItem.initializeSpellContainer(amplifierStack);
         var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
@@ -758,7 +759,7 @@ final class FocusStaffbowGameTestScenarios {
         );
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_ratio_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
         amplifierItem.initializeSpellContainer(amplifierStack);
         var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
@@ -813,7 +814,7 @@ final class FocusStaffbowGameTestScenarios {
             )) {
                 var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_denylist_test");
                 var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-                var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+                var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
                 var amplifierStack = new ItemStack(amplifierItem);
                 amplifierItem.initializeSpellContainer(amplifierStack);
                 setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
@@ -846,7 +847,7 @@ final class FocusStaffbowGameTestScenarios {
             )) {
                 var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_allowlist_test");
                 var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-                var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+                var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
                 var amplifierStack = new ItemStack(amplifierItem);
                 amplifierItem.initializeSpellContainer(amplifierStack);
                 setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
@@ -868,7 +869,7 @@ final class FocusStaffbowGameTestScenarios {
     static void focusStaffbowOverchargeLoanConsumesRecoveredMana(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_repay_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
         amplifierItem.initializeSpellContainer(amplifierStack);
         var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
@@ -929,7 +930,7 @@ final class FocusStaffbowGameTestScenarios {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_creative_overcharge_test");
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
         amplifierItem.initializeSpellContainer(amplifierStack);
         var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
@@ -970,7 +971,7 @@ final class FocusStaffbowGameTestScenarios {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_creative_continuous_cooldown_test");
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
         amplifierItem.initializeSpellContainer(amplifierStack);
         var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get();
@@ -1018,7 +1019,7 @@ final class FocusStaffbowGameTestScenarios {
             );
             player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
             amplifierItem.initializeSpellContainer(amplifierStack);
             setSingleUnlockedSpell(
@@ -1055,7 +1056,7 @@ final class FocusStaffbowGameTestScenarios {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_block_test");
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
             amplifierItem.initializeSpellContainer(amplifierStack);
             setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
@@ -1081,7 +1082,7 @@ final class FocusStaffbowGameTestScenarios {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_cooldown_block_test");
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
             amplifierItem.initializeSpellContainer(amplifierStack);
             var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
@@ -1131,7 +1132,7 @@ final class FocusStaffbowGameTestScenarios {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_special_arrow_reject_test");
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
             amplifierItem.initializeSpellContainer(amplifierStack);
             setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
@@ -1168,7 +1169,7 @@ final class FocusStaffbowGameTestScenarios {
             )) {
                 var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_special_arrow_test");
                 var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-                var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+                var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
                 var amplifierStack = new ItemStack(amplifierItem);
                 amplifierItem.initializeSpellContainer(amplifierStack);
                 setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
@@ -1209,7 +1210,7 @@ final class FocusStaffbowGameTestScenarios {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_synthesis_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         bowStack.enchant(EnchantmentRegistry.SYNTHESIS.get(), 1);
-        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
         amplifierItem.initializeSpellContainer(amplifierStack);
         setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
