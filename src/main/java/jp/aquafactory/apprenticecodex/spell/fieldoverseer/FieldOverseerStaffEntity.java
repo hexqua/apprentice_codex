@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.fieldoverseer;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.capabilities.magic.SummonManager;
 import io.redspace.ironsspellbooks.entity.mobs.IMagicSummon;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.particle.ZapParticleOption;
@@ -89,6 +88,9 @@ public class FieldOverseerStaffEntity extends PathfinderMob implements GeoEntity
     private final List<UUID> selectedTargets = new ArrayList<>(MAX_TARGETS);
     private UUID ownerUuid;
     private LivingEntity cachedOwner;
+    private boolean playerOwned;
+    private long expirationGameTime = -1L;
+    private boolean lifecycleEnding;
 
     public FieldOverseerStaffEntity(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -142,7 +144,35 @@ public class FieldOverseerStaffEntity extends PathfinderMob implements GeoEntity
     public void setOwner(LivingEntity owner) {
         ownerUuid = owner.getUUID();
         cachedOwner = owner;
+        playerOwned = owner instanceof ServerPlayer;
         entityData.set(OWNER_UUID, Optional.of(ownerUuid));
+    }
+
+    void setExpirationGameTime(long expirationGameTime) {
+        this.expirationGameTime = expirationGameTime;
+    }
+
+    long getExpirationGameTime() {
+        return expirationGameTime;
+    }
+
+    boolean hasExpirationGameTime() {
+        return expirationGameTime >= 0L;
+    }
+
+    boolean isPlayerOwned() {
+        return playerOwned;
+    }
+
+    @Nullable ServerPlayer resolvePlayerOwner() {
+        if (!playerOwned || ownerUuid == null || !(level() instanceof ServerLevel serverLevel)) {
+            return null;
+        }
+        var onlinePlayer = serverLevel.getServer().getPlayerList().getPlayer(ownerUuid);
+        if (onlinePlayer != null) {
+            return onlinePlayer;
+        }
+        return serverLevel.getEntity(ownerUuid) instanceof ServerPlayer player ? player : null;
     }
 
     @Override
@@ -150,11 +180,12 @@ public class FieldOverseerStaffEntity extends PathfinderMob implements GeoEntity
         if (cachedOwner != null && !cachedOwner.isRemoved()) {
             return cachedOwner;
         }
-        var managedOwner = SummonManager.getOwner(this);
-        if (managedOwner instanceof LivingEntity livingOwner) {
-            ownerUuid = livingOwner.getUUID();
-            cachedOwner = livingOwner;
-            return livingOwner;
+        if (playerOwned) {
+            var player = resolvePlayerOwner();
+            if (player != null) {
+                cachedOwner = player;
+            }
+            return player;
         }
         if (ownerUuid != null && level() instanceof ServerLevel serverLevel
                 && serverLevel.getEntity(ownerUuid) instanceof LivingEntity livingOwner) {
@@ -176,6 +207,16 @@ public class FieldOverseerStaffEntity extends PathfinderMob implements GeoEntity
     }
 
     private void tickServer(ServerLevel level) {
+        var validation = FieldOverseerManager.validate(this);
+        if (validation == FieldOverseerManager.ValidationResult.EXPIRED) {
+            FieldOverseerManager.expire(this);
+            return;
+        }
+        if (validation == FieldOverseerManager.ValidationResult.INVALID) {
+            discardForLifecycle();
+            return;
+        }
+
         updateSupportState();
         transferOwnerMana(level);
 
@@ -407,16 +448,21 @@ public class FieldOverseerStaffEntity extends PathfinderMob implements GeoEntity
         discard();
     }
 
-    @Override
-    public void remove(@NotNull RemovalReason reason) {
-        super.remove(reason);
-        onRemovedHelper(this);
+    void discardForLifecycle() {
+        lifecycleEnding = true;
+        discard();
     }
 
     @Override
-    public void die(@NotNull DamageSource source) {
-        super.die(source);
-        onDeathHelper();
+    public void remove(@NotNull RemovalReason reason) {
+        var notifyOwner = reason.shouldDestroy() && !lifecycleEnding;
+        lifecycleEnding = true;
+        if (notifyOwner && !level().isClientSide) {
+            FieldOverseerManager.onDestroyed(this);
+        }
+        if (!isRemoved()) {
+            super.remove(reason);
+        }
     }
 
     @Override
@@ -453,6 +499,8 @@ public class FieldOverseerStaffEntity extends PathfinderMob implements GeoEntity
         tag.putFloat("MaxMana", getMaxStaffMana());
         tag.putInt("AttackManaCost", getAttackManaCost());
         if (ownerUuid != null) tag.putUUID("Owner", ownerUuid);
+        tag.putBoolean("PlayerOwned", playerOwned);
+        if (hasExpirationGameTime()) tag.putLong("ExpirationGameTime", expirationGameTime);
     }
 
     @Override
@@ -465,6 +513,8 @@ public class FieldOverseerStaffEntity extends PathfinderMob implements GeoEntity
         entityData.set(MAX_MANA, tag.getFloat("MaxMana"));
         entityData.set(ATTACK_MANA_COST, tag.getInt("AttackManaCost"));
         ownerUuid = tag.hasUUID("Owner") ? tag.getUUID("Owner") : null;
+        playerOwned = tag.getBoolean("PlayerOwned");
+        expirationGameTime = tag.contains("ExpirationGameTime") ? tag.getLong("ExpirationGameTime") : -1L;
         entityData.set(OWNER_UUID, Optional.ofNullable(ownerUuid));
         cachedOwner = null;
     }

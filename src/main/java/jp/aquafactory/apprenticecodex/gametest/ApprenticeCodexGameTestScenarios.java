@@ -175,6 +175,7 @@ import jp.aquafactory.apprenticecodex.spell.dualacrobat.DualAcrobatSmgEntity;
 import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
 import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseer;
+import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseerManager;
 import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseerStaffEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.harvestmoon.HarvestMoon;
@@ -7740,15 +7741,17 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    static void fieldOverseerCastDataRoundTripsPlacementAndSummons(GameTestHelper helper) {
+    static void fieldOverseerCastDataRoundTripsPlacementAndIdentity(GameTestHelper helper) {
         var source = new FieldOverseer.FieldOverseerCastData();
         var expectedPosition = helper.absolutePos(new BlockPos(1, 2, 3));
+        var expectedStaffUuid = UUID.randomUUID();
+        var expectedDimension = helper.getLevel().dimension().location();
         var sourceTag = new CompoundTag();
         sourceTag.putLong("Position", expectedPosition.asLong());
+        sourceTag.putUUID("Staff", expectedStaffUuid);
+        sourceTag.putString("Dimension", expectedDimension.toString());
         source.deserializeNBT(helper.getLevel().registryAccess(), sourceTag);
 
-        var marker = helper.spawn(EntityType.ARMOR_STAND, new BlockPos(0, 2, 0));
-        source.add(marker);
         var buffer = new FriendlyByteBuf(Unpooled.buffer());
         source.writeToBuffer(buffer);
 
@@ -7757,8 +7760,10 @@ public class ApprenticeCodexGameTestScenarios {
         var restoredTag = restored.serializeNBT(helper.getLevel().registryAccess());
         helper.assertTrue(restoredTag.getLong("Position") == expectedPosition.asLong(),
                 "FieldOverseer cast data should preserve placement through network serialization");
-        helper.assertTrue(restored.getSummons().contains(marker.getUUID()),
-                "FieldOverseer cast data should preserve summons through network serialization");
+        helper.assertTrue(restoredTag.getUUID("Staff").equals(expectedStaffUuid),
+                "FieldOverseer cast data should preserve the managed staff UUID");
+        helper.assertTrue(restoredTag.getString("Dimension").equals(expectedDimension.toString()),
+                "FieldOverseer cast data should preserve the managed dimension");
         helper.succeed();
     }
 
@@ -7786,6 +7791,10 @@ public class ApprenticeCodexGameTestScenarios {
                 "FieldOverseer staff should survive chunk save and reload during its summon duration");
         helper.assertFalse(staff.removeWhenFarAway(Double.MAX_VALUE),
                 "FieldOverseer staff should not despawn when the owner moves far away");
+        var savedStaff = new CompoundTag();
+        staff.saveWithoutId(savedStaff);
+        helper.assertTrue(savedStaff.contains("ExpirationGameTime"),
+                "FieldOverseer staff should persist its absolute expiration time");
         helper.succeed();
     }
 
@@ -7826,8 +7835,51 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void fieldOverseerCancelledWhileUnloadedDoesNotReturn(GameTestHelper helper) {
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, -2), "field_overseer_unloaded_cancel_test");
+        var anchorPos = new BlockPos(0, 2, 0);
+        helper.setBlock(anchorPos.below(), Blocks.STONE);
+        var staff = createDurationBoundFieldOverseer(helper, owner, 1, anchorPos, 200);
+        var savedStaff = new CompoundTag();
+        staff.saveWithoutId(savedStaff);
+        staff.remove(net.minecraft.world.entity.Entity.RemovalReason.UNLOADED_TO_CHUNK);
+
+        FieldOverseerManager.cancel(owner);
+        var magicData = MagicData.getPlayerMagicData(owner);
+        helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(SpellRegistry.FIELD_OVERSEER.get()),
+                "FieldOverseer cancel should remove recast data while the staff is unloaded");
+        helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(SpellRegistry.FIELD_OVERSEER.get()),
+                "FieldOverseer cancel should apply the normal cooldown");
+
+        var restored = new FieldOverseerStaffEntity(EntityRegistry.FIELD_OVERSEER_STAFF.get(), helper.getLevel());
+        restored.load(savedStaff);
+        helper.getLevel().addFreshEntity(restored);
+        helper.succeedWhen(() -> helper.assertTrue(restored.isRemoved(),
+                "FieldOverseer loaded after cancellation should discard itself before acting"));
+    }
+
+    static void fieldOverseerDestructionEndsMatchingRecast(GameTestHelper helper) {
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, -2), "field_overseer_destroy_test");
+        var anchorPos = new BlockPos(0, 2, 0);
+        helper.setBlock(anchorPos.below(), Blocks.STONE);
+        var staff = createDurationBoundFieldOverseer(helper, owner, 1, anchorPos, 200);
+        var magicData = MagicData.getPlayerMagicData(owner);
+
+        staff.remove(net.minecraft.world.entity.Entity.RemovalReason.KILLED);
+
+        helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(SpellRegistry.FIELD_OVERSEER.get()),
+                "Destroying FieldOverseer should remove its matching recast");
+        helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(SpellRegistry.FIELD_OVERSEER.get()),
+                "Destroying FieldOverseer should apply the normal cooldown");
+        helper.succeed();
+    }
+
     static void fieldOverseerPrioritizesHealthAndTransfersMana(GameTestHelper helper) {
         var owner = createEquipmentTestPlayer(helper, new BlockPos(2, 2, 0), "field_overseer_attack_test");
+        var manaRegen = owner.getAttribute(AttributeRegistry.MANA_REGEN.get());
+        if (manaRegen != null) {
+            manaRegen.setBaseValue(0.0D);
+        }
         var ownerMagicData = MagicData.getPlayerMagicData(owner);
         ownerMagicData.setMana(75.0F);
         var anchorPos = helper.absolutePos(new BlockPos(2, 2, 2));
@@ -7867,30 +7919,36 @@ public class ApprenticeCodexGameTestScenarios {
 
     private static FieldOverseerStaffEntity createFieldOverseerTestEntity(
             GameTestHelper helper, FakePlayer owner, BlockPos anchorPos, float maxMana, int attackManaCost) {
-        var level = helper.getLevel();
-        var center = Vec3.atBottomCenterOf(anchorPos);
-        var staff = new FieldOverseerStaffEntity(EntityRegistry.FIELD_OVERSEER_STAFF.get(), level);
-        staff.setOwner(owner);
-        staff.configure(anchorPos, 4.0F, 24.0D, attackManaCost, maxMana, 20);
-        staff.moveTo(center.x, center.y, center.z, 0.0F, 0.0F);
-        level.addFreshEntity(staff);
-        io.redspace.ironsspellbooks.capabilities.magic.SummonManager.setOwner(staff, owner);
-        return staff;
+        return createDurationBoundFieldOverseer(
+                helper, owner, 1, anchorPos, maxMana, attackManaCost,
+                ((FieldOverseer) SpellRegistry.FIELD_OVERSEER.get()).getDuration());
     }
 
     private static FieldOverseerStaffEntity createDurationBoundFieldOverseer(
             GameTestHelper helper, FakePlayer owner, int spellLevel, BlockPos anchorPos, int duration) {
-        helper.getLevel().addFreshEntity(owner);
-        var staff = createFieldOverseerTestEntity(
-                helper, owner, helper.absolutePos(anchorPos), 100.0F, 40);
+        return createDurationBoundFieldOverseer(
+                helper, owner, spellLevel, helper.absolutePos(anchorPos), 100.0F, 40, duration);
+    }
+
+    private static FieldOverseerStaffEntity createDurationBoundFieldOverseer(
+            GameTestHelper helper, FakePlayer owner, int spellLevel, BlockPos anchorPos,
+            float maxMana, int attackManaCost, int duration) {
+        var level = helper.getLevel();
+        level.addFreshEntity(owner);
+        var center = Vec3.atBottomCenterOf(anchorPos);
+        var staff = new FieldOverseerStaffEntity(EntityRegistry.FIELD_OVERSEER_STAFF.get(), level);
+        staff.configure(anchorPos, 4.0F, 24.0D, attackManaCost, maxMana, 20);
+        staff.moveTo(center.x, center.y, center.z, 0.0F, 0.0F);
         var castData = new FieldOverseer.FieldOverseerCastData();
+        FieldOverseerManager.initialize(owner, staff, anchorPos, duration, castData);
+        level.addFreshEntity(staff);
         var spell = (FieldOverseer) SpellRegistry.FIELD_OVERSEER.get();
-        io.redspace.ironsspellbooks.capabilities.magic.SummonManager.initSummon(
-                owner, staff, duration, castData);
         var magicData = MagicData.getPlayerMagicData(owner);
         magicData.getPlayerRecasts().addRecast(new RecastInstance(
                 spell.getSpellId(), spellLevel, spell.getRecastCount(spellLevel, owner),
                 duration, CastSource.SPELLBOOK, castData), magicData);
+        helper.assertFalse(SummonManager.getSummons(owner).contains(staff.getUUID()),
+                "FieldOverseer should not register itself with Iron's SummonManager");
         return staff;
     }
 

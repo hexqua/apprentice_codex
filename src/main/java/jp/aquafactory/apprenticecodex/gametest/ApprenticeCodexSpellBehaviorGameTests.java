@@ -378,8 +378,8 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = FIELD_OVERSEER_ISOLATED_BATCH)
-    public static void fieldOverseerCastDataRoundTripsPlacementAndSummons(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.fieldOverseerCastDataRoundTripsPlacementAndSummons(helper);
+    public static void fieldOverseerCastDataRoundTripsPlacementAndIdentity(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.fieldOverseerCastDataRoundTripsPlacementAndIdentity(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FIELD_OVERSEER_ISOLATED_BATCH)
@@ -400,6 +400,16 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = FIELD_OVERSEER_LIFECYCLE_BATCH)
     public static void fieldOverseerTimeoutRemovesPlacedStaff(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.fieldOverseerTimeoutRemovesPlacedStaff(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FIELD_OVERSEER_LIFECYCLE_BATCH)
+    public static void fieldOverseerCancelledWhileUnloadedDoesNotReturn(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.fieldOverseerCancelledWhileUnloadedDoesNotReturn(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FIELD_OVERSEER_LIFECYCLE_BATCH)
+    public static void fieldOverseerDestructionEndsMatchingRecast(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.fieldOverseerDestructionEndsMatchingRecast(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FIELD_OVERSEER_ISOLATED_BATCH, timeoutTicks = 100)

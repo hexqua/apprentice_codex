@@ -14,8 +14,6 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
-import io.redspace.ironsspellbooks.capabilities.magic.SummonManager;
-import io.redspace.ironsspellbooks.capabilities.magic.SummonedEntitiesCastData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
@@ -45,6 +43,7 @@ import net.minecraft.world.level.Level;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public class FieldOverseer extends AbstractSpell implements IClientBlockTargetingSpell,
         IClientBlockTargetCaptureSpell, IClientPlacementPreviewSpell {
@@ -209,10 +208,10 @@ public class FieldOverseer extends AbstractSpell implements IClientBlockTargetin
                     );
                     staff.moveTo(placement.get().center().x, placement.get().center().y, placement.get().center().z,
                             entity.getYRot(), 0.0F);
-                    serverLevel.addFreshEntity(staff);
-
                     var castData = new FieldOverseerCastData();
-                    SummonManager.initSummon(entity, staff, getDuration(), castData);
+                    FieldOverseerManager.initialize(
+                            entity, staff, placement.get().blockPos(), getDuration(), castData);
+                    serverLevel.addFreshEntity(staff);
                     recasts.addRecast(new RecastInstance(
                             getSpellId(), spellLevel, getRecastCount(spellLevel, entity), getDuration(), castSource, castData),
                             playerMagicData);
@@ -225,7 +224,7 @@ public class FieldOverseer extends AbstractSpell implements IClientBlockTargetin
     @Override
     public void onRecastFinished(ServerPlayer serverPlayer, RecastInstance recastInstance, RecastResult recastResult,
                                  ICastDataSerializable castDataSerializable) {
-        if (SummonManager.recastFinishedHelper(serverPlayer, recastInstance, recastResult, castDataSerializable)) {
+        if (FieldOverseerManager.finishRecast(serverPlayer, recastInstance, recastResult, castDataSerializable)) {
             super.onRecastFinished(serverPlayer, recastInstance, recastResult, castDataSerializable);
         }
     }
@@ -256,32 +255,62 @@ public class FieldOverseer extends AbstractSpell implements IClientBlockTargetin
         }
     }
 
-    public static class FieldOverseerCastData extends SummonedEntitiesCastData {
+    public static class FieldOverseerCastData implements ICastDataSerializable {
         private BlockPos position;
+        private UUID staffUuid;
+        private ResourceLocation dimension;
+
+        void bindStaff(FieldOverseerStaffEntity staff, BlockPos position) {
+            this.position = position.immutable();
+            staffUuid = staff.getUUID();
+            dimension = staff.level().dimension().location();
+        }
+
+        boolean matches(FieldOverseerStaffEntity staff) {
+            return staffUuid != null
+                    && staffUuid.equals(staff.getUUID())
+                    && dimension != null
+                    && dimension.equals(staff.level().dimension().location());
+        }
+
+        UUID getStaffUuid() {
+            return staffUuid;
+        }
+
+        ResourceLocation getDimension() {
+            return dimension;
+        }
 
         @Override
         public void writeToBuffer(FriendlyByteBuf buffer) {
-            super.writeToBuffer(buffer);
             buffer.writeBoolean(position != null);
             if (position != null) buffer.writeBlockPos(position);
+            buffer.writeBoolean(staffUuid != null);
+            if (staffUuid != null) buffer.writeUUID(staffUuid);
+            buffer.writeBoolean(dimension != null);
+            if (dimension != null) buffer.writeResourceLocation(dimension);
         }
 
         @Override
         public void readFromBuffer(FriendlyByteBuf buffer) {
-            super.readFromBuffer(buffer);
             position = buffer.readBoolean() ? buffer.readBlockPos() : null;
+            staffUuid = buffer.readBoolean() ? buffer.readUUID() : null;
+            dimension = buffer.readBoolean() ? buffer.readResourceLocation() : null;
         }
 
         @Override
         public void reset() {
-            super.reset();
             position = null;
+            staffUuid = null;
+            dimension = null;
         }
 
         @Override
         public CompoundTag serializeNBT(HolderLookup.Provider provider) {
             var tag = super.serializeNBT(provider);
             if (position != null) tag.putLong("Position", position.asLong());
+            if (staffUuid != null) tag.putUUID("Staff", staffUuid);
+            if (dimension != null) tag.putString("Dimension", dimension.toString());
             return tag;
         }
 
@@ -289,6 +318,8 @@ public class FieldOverseer extends AbstractSpell implements IClientBlockTargetin
         public void deserializeNBT(HolderLookup.Provider provider, CompoundTag tag) {
             super.deserializeNBT(provider, tag);
             position = tag.contains("Position") ? BlockPos.of(tag.getLong("Position")) : null;
+            staffUuid = tag.hasUUID("Staff") ? tag.getUUID("Staff") : null;
+            dimension = tag.contains("Dimension") ? ResourceLocation.tryParse(tag.getString("Dimension")) : null;
         }
     }
 }
