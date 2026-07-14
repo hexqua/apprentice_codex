@@ -1,0 +1,7 @@
+{
+  "parent": "apprenticecodex:block/personal_shelf_chest",
+  "textures": {
+    "0": "apprenticecodex:block/personal_shelf_chest_export",
+    "particle": "apprenticecodex:block/personal_shelf_chest_export"
+  }
+}

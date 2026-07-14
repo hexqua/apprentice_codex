@@ -110,6 +110,7 @@
   "item.apprenticecodex.alchemists_flask": "炼金术士烧瓶",
   "item.apprenticecodex.elemental_bow": "元素弓",
   "item.apprenticecodex.storage_stabilizer": "存储稳定器",
+  "item.apprenticecodex.storage_stabilizer.with_spell": "%1$s(%2$s)",
   "item.apprenticecodex.scrollcaster_gauntlet": "卷轴施法臂铠",
   "item.apprenticecodex.apprentice_mage_scarf": "学徒法师围巾",
   "item.apprenticecodex.apprentice_mage_torso": "学徒法师长袍",
@@ -861,6 +862,7 @@
   "ui.apprenticecodex.auto_turret.restock_not_need": "这把弩的箭矢已经补满了...",
   "ui.apprenticecodex.auto_turret.restock_complete": "已补充弩的箭矢！",
   "ui.apprenticecodex.auto_turret.insufficient_mana": "法力值不足，无法补充！",
+  "ui.apprenticecodex.personal_shelf.for_export_mode": "已设置为从个人空间中导出...",
 
   "ui.apprenticecodex.cant_place": "无法在此放置",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s 自动目标模式",

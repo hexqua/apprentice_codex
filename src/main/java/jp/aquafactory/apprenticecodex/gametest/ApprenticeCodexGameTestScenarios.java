@@ -181,6 +181,7 @@ import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldDefenseEven
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldShieldEntity;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
+import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlock;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxChargeBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxCounterSpellEvent;
@@ -2596,6 +2597,38 @@ public class ApprenticeCodexGameTestScenarios {
                     "Storage Stabilizer right-click resolver should expose its dedicated resolution path");
             helper.assertTrue(resolvedStorageStabilizerSpell.get().spellData().getSpell() instanceof IClientBlockTargetingSpell,
                     "Storage Stabilizer Personal Shelf should stay eligible for client block target sync");
+            var storageStabilizerViews = StorageStabilizer.getSelectionViews(storageStabilizer);
+            helper.assertTrue(storageStabilizerViews.size() == 3,
+                    "Storage Stabilizer selection UI should expose all three storage spells");
+            assertSpellData(helper, storageStabilizerViews.get(2).spellData(), SpellRegistry.COMPANION_TRUNK.get(), 1,
+                    "Storage Stabilizer should expose Companion Trunk level 1 as its third selection");
+            StorageStabilizer.setSelectedSpellIndex(storageStabilizer, 2);
+            var companionTrunkContainer = ISpellContainer.get(storageStabilizer);
+            helper.assertTrue(companionTrunkContainer != null,
+                    "Storage Stabilizer Companion Trunk spell container is null");
+            if (companionTrunkContainer != null) {
+                assertSpellData(helper, companionTrunkContainer, 0, SpellRegistry.COMPANION_TRUNK.get(), 1, true,
+                        "Storage Stabilizer should project Companion Trunk level 1 as a locked spell");
+            }
+            assertStorageStabilizerDisplayName(helper, storageStabilizer, SpellRegistry.COMPANION_TRUNK.get(),
+                    "Storage Stabilizer default name should include Companion Trunk");
+            storageStabilizer.setHoverName(Component.literal("Storage Test"));
+            helper.assertTrue("Storage Test".equals(storageStabilizer.getHoverName().getString()),
+                    "Storage Stabilizer custom name should hide its spell name");
+            StorageStabilizer.setSelectedSpellIndex(storageStabilizer, 1);
+            helper.assertTrue("Storage Test".equals(storageStabilizer.getHoverName().getString()),
+                    "Storage Stabilizer custom name should remain after changing its spell selection");
+            var invalidStorageStabilizer = new ItemStack(ItemRegistry.STORAGE_STABILIZER.get());
+            StorageStabilizer.setSelectedSpellIndex(invalidStorageStabilizer, 99);
+            helper.assertTrue(StorageStabilizer.getSelectedSpellIndex(invalidStorageStabilizer) == 0,
+                    "Storage Stabilizer invalid selection should fall back to Summon Ender Chest");
+            var companionTrunkStabilizer = new ItemStack(ItemRegistry.STORAGE_STABILIZER.get());
+            StorageStabilizer.setSelectedSpellIndex(companionTrunkStabilizer, 2);
+            player.setItemInHand(InteractionHand.MAIN_HAND, companionTrunkStabilizer);
+            var resolvedCompanionTrunkSpell = RightClickSpellResolver.resolve(player);
+            helper.assertTrue(resolvedCompanionTrunkSpell.isPresent()
+                            && resolvedCompanionTrunkSpell.get().spellData().getSpell() == SpellRegistry.COMPANION_TRUNK.get(),
+                    "Storage Stabilizer right-click resolver should use the selected Companion Trunk spell");
             var inertMainHand = new ItemStack(Items.STICK);
             player.setItemInHand(InteractionHand.MAIN_HAND, inertMainHand);
             player.setItemInHand(InteractionHand.OFF_HAND, storageStabilizer);
@@ -6153,6 +6186,32 @@ public class ApprenticeCodexGameTestScenarios {
             helper.succeed();
         });
     }
+
+    static void personalShelfSynchronizesExportModeBlockState(GameTestHelper helper) {
+        var player = createPersonalShelfPlayer(helper, new BlockPos(1, 2, 1), "personal_shelf_export_state_test");
+        var normalShelfPos = new BlockPos(0, 1, 0);
+        var exportShelfPos = new BlockPos(2, 1, 0);
+
+        placeAndAssertBlockEntity(helper, normalShelfPos, BlockRegistry.PERSONAL_SHELF_CHEST.get(),
+                BlockEntityRegistry.PERSONAL_SHELF_CHEST.get());
+        placeAndAssertBlockEntity(helper, exportShelfPos, BlockRegistry.PERSONAL_SHELF_CHEST.get(),
+                BlockEntityRegistry.PERSONAL_SHELF_CHEST.get());
+
+        var normalShelf = getPersonalShelfBlockEntity(helper, helper.absolutePos(normalShelfPos));
+        normalShelf.setShelfData(player, false, Direction.NORTH);
+        normalShelf.setLifeRange(10.0);
+
+        var exportShelf = getPersonalShelfBlockEntity(helper, helper.absolutePos(exportShelfPos));
+        exportShelf.setShelfData(player, true, Direction.NORTH);
+        exportShelf.setLifeRange(10.0);
+
+        helper.runAtTickTime(1, () -> {
+            helper.assertBlockProperty(normalShelfPos, PersonalShelfChestBlock.EXPORT_MODE, false);
+            helper.assertBlockProperty(exportShelfPos, PersonalShelfChestBlock.EXPORT_MODE, true);
+            helper.succeed();
+        });
+    }
+
     static void personalShelfExpireClosesOpenedChestMenu(GameTestHelper helper) {
         var player = createPersonalShelfPlayer(helper, new BlockPos(0, 2, 0), "personal_shelf_expire_close_test");
         var shelfPos = new BlockPos(0, 1, 0);
@@ -11417,6 +11476,34 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(expectedKey.equals(translatableContents.getKey()),
                     message + " (expected=" + expectedKey + ", actual=" + translatableContents.getKey() + ")");
         }
+    }
+
+    static void assertStorageStabilizerDisplayName(
+            GameTestHelper helper,
+            ItemStack stack,
+            AbstractSpell expectedSpell,
+            String message
+    ) {
+        var displayName = stack.getHoverName();
+        helper.assertTrue(displayName.getContents() instanceof TranslatableContents,
+                message + " (display name was not translatable: " + displayName + ")");
+        if (!(displayName.getContents() instanceof TranslatableContents contents)) {
+            return;
+        }
+
+        helper.assertTrue("item.apprenticecodex.storage_stabilizer.with_spell".equals(contents.getKey()),
+                message + " (unexpected translation key: " + contents.getKey() + ")");
+        var args = contents.getArgs();
+        helper.assertTrue(args.length == 2,
+                message + " (unexpected argument count: " + args.length + ")");
+        if (args.length != 2 || !(args[0] instanceof Component baseName) || !(args[1] instanceof Component spellName)) {
+            return;
+        }
+
+        assertTranslatableKey(helper, baseName, "item.apprenticecodex.storage_stabilizer",
+                message + " (unexpected base item name)");
+        helper.assertTrue(expectedSpell.getDisplayName(null).getString().equals(spellName.getString()),
+                message + " (unexpected spell name: " + spellName.getString() + ")");
     }
 
     static void assertTooltipKeyAt(
