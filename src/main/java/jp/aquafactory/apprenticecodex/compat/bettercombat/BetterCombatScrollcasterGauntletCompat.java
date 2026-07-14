@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.compat.bettercombat;
 
 import io.redspace.ironsspellbooks.api.spells.SpellData;
-import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import net.bettercombat.logic.WeaponRegistry;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;

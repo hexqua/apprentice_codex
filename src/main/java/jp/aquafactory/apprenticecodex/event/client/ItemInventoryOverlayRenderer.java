@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
-import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;

@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.block.spellcalibrationbench;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.client.gui.GuiGraphics;

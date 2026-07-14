@@ -11,7 +11,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.PriorityOffhandUseDeferringItem;
 import jp.aquafactory.apprenticecodex.item.RightClickSpellItemHelper;
-import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.StorageStabilizer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
