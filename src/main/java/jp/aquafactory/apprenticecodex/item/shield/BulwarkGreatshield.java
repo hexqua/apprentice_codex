@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
@@ -23,6 +24,7 @@ import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -48,8 +50,9 @@ import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.util.UUID;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 public class BulwarkGreatshield extends AbstractImbueShieldItem
@@ -58,11 +61,13 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
 
     public static final int DURABILITY = 2031;
     public static final int ENCHANTMENT_VALUE = 15;
-    public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 1;
+    public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
-                    CalibrationAdjustmentRule.unique(
+                    CalibrationAdjustmentRule.uniqueBy(
                             ScrollcasterSchoolRuneResolver::isSchoolRune,
+                            stack -> ScrollcasterSchoolRuneResolver.resolveSchool(stack)
+                                    .map(SchoolType::getId),
                             CalibrationAdjustmentHints.schoolRunes()
                     ),
                     CalibrationAdjustmentRule.unique(
@@ -77,7 +82,10 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
     public static final double SCHOOL_SPELL_RESIST = 0.5D;
 
     private static final String CALIBRATION_TAG = "BulwarkGreatshieldCalibration";
-    private static final String ADJUSTMENT_TAG = "Adjustment";
+    private static final String LEGACY_ADJUSTMENT_TAG = "Adjustment";
+    private static final String ADJUSTMENTS_TAG = "Adjustments";
+    private static final String SLOT_TAG = "Slot";
+    private static final String ITEM_TAG = "Item";
     private static final UUID GENERIC_RESIST_MODIFIER_ID = UUID.fromString("bd2b8a1f-b1a5-49ee-9370-4d2ab9385994");
     private static final UUID SCHOOL_RESIST_MODIFIER_ID = UUID.fromString("886ced13-4a4f-4623-9cbb-8900f65c52ac");
     private static final ItemStack SHIELD_ENCHANTMENT_PROBE = new ItemStack(Items.SHIELD);
@@ -176,14 +184,16 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
                 GENERIC_SPELL_RESIST,
                 AttributeModifier.Operation.MULTIPLY_BASE
         ));
-        var schoolResist = MagicTools.resolveSchoolResistAttribute(getResolvedCalibrationSchool(stack));
-        if (schoolResist != null) {
-            builder.put(schoolResist, new AttributeModifier(
-                    SCHOOL_RESIST_MODIFIER_ID,
-                    "Bulwark greatshield school spell resist",
-                    SCHOOL_SPELL_RESIST,
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            ));
+        for (var school : getResolvedCalibrationSchools(stack)) {
+            var schoolResist = MagicTools.resolveSchoolResistAttribute(school);
+            if (schoolResist != null) {
+                builder.put(schoolResist, new AttributeModifier(
+                        SCHOOL_RESIST_MODIFIER_ID,
+                        "Bulwark greatshield school spell resist",
+                        SCHOOL_SPELL_RESIST,
+                        AttributeModifier.Operation.MULTIPLY_BASE
+                ));
+            }
         }
         return builder.build();
     }
@@ -224,8 +234,18 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
             return ItemStack.EMPTY;
         }
         var calibration = shieldStack.getTagElement(CALIBRATION_TAG);
-        return calibration != null && calibration.contains(ADJUSTMENT_TAG, Tag.TAG_COMPOUND)
-                ? ItemStack.of(calibration.getCompound(ADJUSTMENT_TAG))
+        if (calibration == null) {
+            return ItemStack.EMPTY;
+        }
+        var adjustments = calibration.getList(ADJUSTMENTS_TAG, Tag.TAG_COMPOUND);
+        for (var value : adjustments) {
+            var entry = (CompoundTag) value;
+            if (entry.getInt(SLOT_TAG) == slot) {
+                return ItemStack.of(entry.getCompound(ITEM_TAG));
+            }
+        }
+        return slot == 0 && calibration.contains(LEGACY_ADJUSTMENT_TAG, Tag.TAG_COMPOUND)
+                ? ItemStack.of(calibration.getCompound(LEGACY_ADJUSTMENT_TAG))
                 : ItemStack.EMPTY;
     }
 
@@ -233,19 +253,33 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
         if (!isValidCalibrationAccess(shieldStack, slot)) {
             return;
         }
-        if (adjustment.isEmpty()) {
-            var calibration = shieldStack.getTagElement(CALIBRATION_TAG);
-            if (calibration != null) {
-                calibration.remove(ADJUSTMENT_TAG);
-                if (calibration.isEmpty()) {
-                    shieldStack.removeTagKey(CALIBRATION_TAG);
-                }
+        var calibration = shieldStack.getOrCreateTagElement(CALIBRATION_TAG);
+        var current = calibration.getList(ADJUSTMENTS_TAG, Tag.TAG_COMPOUND);
+        var replacement = new ListTag();
+        for (var value : current) {
+            if (((CompoundTag) value).getInt(SLOT_TAG) != slot) {
+                replacement.add(value.copy());
             }
-            return;
         }
-        var stored = adjustment.copy();
-        stored.setCount(1);
-        shieldStack.getOrCreateTagElement(CALIBRATION_TAG).put(ADJUSTMENT_TAG, stored.save(new CompoundTag()));
+        if (!adjustment.isEmpty()) {
+            var entry = new CompoundTag();
+            entry.putInt(SLOT_TAG, slot);
+            var stored = adjustment.copy();
+            stored.setCount(1);
+            entry.put(ITEM_TAG, stored.save(new CompoundTag()));
+            replacement.add(entry);
+        }
+        if (slot == 0) {
+            calibration.remove(LEGACY_ADJUSTMENT_TAG);
+        }
+        if (replacement.isEmpty()) {
+            calibration.remove(ADJUSTMENTS_TAG);
+        } else {
+            calibration.put(ADJUSTMENTS_TAG, replacement);
+        }
+        if (calibration.isEmpty()) {
+            shieldStack.removeTagKey(CALIBRATION_TAG);
+        }
     }
 
     @Override
@@ -281,11 +315,26 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
     }
 
     public static boolean hasWisdomShardAdjustment(ItemStack stack) {
-        return isWisdomShard(readCalibrationAdjustment(stack, 0));
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            if (isWisdomShard(readCalibrationAdjustment(stack, slot))) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    public static @Nullable io.redspace.ironsspellbooks.api.spells.SchoolType getResolvedCalibrationSchool(ItemStack stack) {
-        return ScrollcasterSchoolRuneResolver.resolveSchool(readCalibrationAdjustment(stack, 0)).orElse(null);
+    public static @NotNull List<SchoolType> getResolvedCalibrationSchools(ItemStack stack) {
+        var schools = new ArrayList<SchoolType>();
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            ScrollcasterSchoolRuneResolver.resolveSchool(readCalibrationAdjustment(stack, slot))
+                    .ifPresent(schools::add);
+        }
+        return List.copyOf(schools);
+    }
+
+    public static @Nullable SchoolType getResolvedCalibrationSchool(ItemStack stack) {
+        var schools = getResolvedCalibrationSchools(stack);
+        return schools.isEmpty() ? null : schools.get(0);
     }
 
     @Nullable
@@ -314,7 +363,8 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
     }
 
     private static boolean isValidCalibrationAccess(ItemStack stack, int slot) {
-        return slot == 0 && !stack.isEmpty() && stack.getItem() instanceof BulwarkGreatshield;
+        return slot >= 0 && slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT
+                && !stack.isEmpty() && stack.getItem() instanceof BulwarkGreatshield;
     }
 
     @Override

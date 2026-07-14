@@ -326,7 +326,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get()),
                     new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get())
             };
-            var expectedSlotCounts = new int[]{3, 3, 3, 1, 3, 3, 1, 3, 3};
+            var expectedSlotCounts = new int[]{3, 3, 3, 1, 3, 3, 3, 3, 3};
             var representativeAdjustments = new ItemStack[]{
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()),
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()),
