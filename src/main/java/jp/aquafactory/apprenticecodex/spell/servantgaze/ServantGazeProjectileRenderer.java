@@ -38,7 +38,7 @@ public class ServantGazeProjectileRenderer extends EntityRenderer<ServantGazePro
         poseStack.mulPose(Axis.XP.rotationDegrees(xRot));
         poseStack.scale(0.35F, 0.35F, 0.35F);
         body.render(poseStack, buffers.getBuffer(RenderType.energySwirl(TEXTURE, 0, 0)),
-                LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, 0.8F, 0.8F, 0.8F, 1.0F);
+                LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, 0xFFCCCCCC);
         poseStack.popPose();
 
         poseStack.pushPose();
@@ -59,9 +59,9 @@ public class ServantGazeProjectileRenderer extends EntityRenderer<ServantGazePro
     }
 
     private static void vertex(VertexConsumer consumer, Matrix4f matrix, float y, float z, float u, float v) {
-        consumer.vertex(matrix, 0, y, z).color(255, 180, 255, 255).uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BRIGHT)
-                .normal(0, 1, 0).endVertex();
+        consumer.addVertex(matrix, 0, y, z).setColor(255, 180, 255, 255).setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightTexture.FULL_BRIGHT)
+                .setNormal(0, 1, 0);
     }
 
     @Override public @NotNull ResourceLocation getTextureLocation(@NotNull ServantGazeProjectileEntity entity) { return TEXTURE; }

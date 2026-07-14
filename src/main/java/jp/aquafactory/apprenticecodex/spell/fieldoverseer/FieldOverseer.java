@@ -29,6 +29,7 @@ import jp.aquafactory.apprenticecodex.spell.PlacementHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -203,7 +204,7 @@ public class FieldOverseer extends AbstractSpell implements IClientBlockTargetin
                             getDamage(spellLevel, entity),
                             getRadius(),
                             getConsumeManaPerAttack(spellLevel),
-                            (float) entity.getAttributeValue(AttributeRegistry.MAX_MANA.get()),
+                            (float) entity.getAttributeValue(AttributeRegistry.MAX_MANA),
                             getStaffHealth(spellLevel)
                     );
                     staff.moveTo(placement.get().center().x, placement.get().center().y, placement.get().center().z,
@@ -278,15 +279,15 @@ public class FieldOverseer extends AbstractSpell implements IClientBlockTargetin
         }
 
         @Override
-        public CompoundTag serializeNBT() {
-            var tag = super.serializeNBT();
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+            var tag = super.serializeNBT(provider);
             if (position != null) tag.putLong("Position", position.asLong());
             return tag;
         }
 
         @Override
-        public void deserializeNBT(CompoundTag tag) {
-            super.deserializeNBT(tag);
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag tag) {
+            super.deserializeNBT(provider, tag);
             position = tag.contains("Position") ? BlockPos.of(tag.getLong("Position")) : null;
         }
     }

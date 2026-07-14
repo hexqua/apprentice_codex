@@ -16,9 +16,9 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.gametest.GameTestHolder;
-import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.util.UUID;
 
@@ -110,14 +110,15 @@ public final class ApprenticeCodexServantGazeGameTests {
         // 構造端では従者の杖が未追跡の隣 chunk へ出るため、召喚位置も構造内に収まる中央へ置く。
         var position = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(2, 2, 2)));
         player.setPos(position.x, position.y, position.z);
-        var manaRegen = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get());
+        var manaRegen = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN);
         if (manaRegen != null) manaRegen.setBaseValue(0.0D);
         helper.getLevel().addFreshEntity(player);
         return player;
     }
 
     private static Zombie createZombie(GameTestHelper helper, BlockPos position, float health) {
-        var zombie = EntityType.ZOMBIE.create(helper.getLevel());
+        // 未選択対象の体力不変を検証するため、日光ダメージを受けないHuskを使う。
+        var zombie = EntityType.HUSK.create(helper.getLevel());
         if (zombie == null) throw new IllegalStateException("Failed to create Servant Gaze test zombie");
         var absolute = helper.absoluteVec(Vec3.atBottomCenterOf(position));
         zombie.setPos(absolute.x, absolute.y, absolute.z);

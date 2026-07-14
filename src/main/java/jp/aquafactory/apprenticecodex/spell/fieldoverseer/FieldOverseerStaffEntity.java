@@ -5,7 +5,6 @@ import io.redspace.ironsspellbooks.capabilities.magic.SummonManager;
 import io.redspace.ironsspellbooks.entity.mobs.IMagicSummon;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.particle.ZapParticleOption;
-import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import io.redspace.ironsspellbooks.util.ParticleHelper;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
@@ -38,11 +37,12 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import net.neoforged.neoforge.network.PacketDistributor;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
@@ -110,13 +110,13 @@ public class FieldOverseerStaffEntity extends PathfinderMob implements GeoEntity
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        entityData.define(CURRENT_MANA, 0.0F);
-        entityData.define(MAX_MANA, 0.0F);
-        entityData.define(ATTACK_MANA_COST, 0);
-        entityData.define(ANIMATION_STATE, 0);
-        entityData.define(OWNER_UUID, Optional.empty());
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(CURRENT_MANA, 0.0F);
+        builder.define(MAX_MANA, 0.0F);
+        builder.define(ATTACK_MANA_COST, 0);
+        builder.define(ANIMATION_STATE, 0);
+        builder.define(OWNER_UUID, Optional.empty());
     }
 
     @Override

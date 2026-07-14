@@ -15,7 +15,7 @@ import net.minecraft.util.Mth;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 public class FieldOverseerStaffRenderer extends GeoEntityRenderer<FieldOverseerStaffEntity> {
     private static final String STAR_BONE = "star";
@@ -36,40 +36,38 @@ public class FieldOverseerStaffRenderer extends GeoEntityRenderer<FieldOverseerS
     public void postRender(PoseStack poseStack, FieldOverseerStaffEntity animatable, BakedGeoModel model,
                            MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
                            float partialTick, int packedLight, int packedOverlay,
-                           float red, float green, float blue, float alpha) {
+                           int colour) {
         super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha);
+                packedLight, packedOverlay, colour);
         if (isReRender) return;
 
         var insufficient = !animatable.hasEnoughManaToAttack();
         var warningAlpha = insufficient
                 ? 0.95F + 0.05F * Mth.sin((animatable.tickCount + partialTick) * 0.25F)
                 : 1.0F;
-        renderCorePass(model, poseStack, bufferSource, animatable, partialTick,
-                insufficient ? 1.0F : 1.0F,
-                insufficient ? 0.0F : 1.0F,
-                insufficient ? 0.0F : 1.0F,
-                warningAlpha);
+        var coreColour = (Mth.clamp(Math.round(warningAlpha * 255.0F), 0, 255) << 24)
+                | (insufficient ? 0x00FF0000 : 0x00FFFFFF);
+        renderCorePass(model, poseStack, bufferSource, animatable, partialTick, coreColour);
     }
 
     @Override
     public void renderRecursively(PoseStack poseStack, FieldOverseerStaffEntity animatable, GeoBone bone,
                                   RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                   boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                  float red, float green, float blue, float alpha) {
+                                  int colour) {
         var coreBone = isBoneOrChildOf(bone, CORE_BONE);
         if (!renderingCore && coreBone) {
             renderChildBonesOnly(poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender,
-                    partialTick, packedLight, packedOverlay, red, green, blue, alpha);
+                    partialTick, packedLight, packedOverlay, colour);
             return;
         }
         if (renderingCore) {
             if (coreBone) {
                 super.renderRecursively(poseStack, animatable, bone, renderType, bufferSource, buffer,
-                        isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
+                        isReRender, partialTick, packedLight, packedOverlay, colour);
             } else {
                 renderChildBonesOnly(poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender,
-                        partialTick, packedLight, packedOverlay, red, green, blue, alpha);
+                        partialTick, packedLight, packedOverlay, colour);
             }
             return;
         }
@@ -78,17 +76,17 @@ public class FieldOverseerStaffRenderer extends GeoEntityRenderer<FieldOverseerS
                     LightTexture.sky(packedLight));
         }
         super.renderRecursively(poseStack, animatable, bone, renderType, bufferSource, buffer,
-                isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
+                isReRender, partialTick, packedLight, packedOverlay, colour);
     }
 
     private void renderCorePass(BakedGeoModel model, PoseStack poseStack, MultiBufferSource bufferSource,
                                 FieldOverseerStaffEntity animatable, float partialTick,
-                                float red, float green, float blue, float alpha) {
+                                int colour) {
         renderingCore = true;
         try {
             reRender(model, poseStack, bufferSource, animatable, CORE_RENDER_TYPE,
                     bufferSource.getBuffer(CORE_RENDER_TYPE), partialTick, LightTexture.FULL_BRIGHT,
-                    OverlayTexture.NO_OVERLAY, red, green, blue, alpha);
+                    OverlayTexture.NO_OVERLAY, colour);
         } finally {
             renderingCore = false;
         }
@@ -97,16 +95,16 @@ public class FieldOverseerStaffRenderer extends GeoEntityRenderer<FieldOverseerS
     private void renderChildBonesOnly(PoseStack poseStack, FieldOverseerStaffEntity animatable, GeoBone bone,
                                       RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                       boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                      float red, float green, float blue, float alpha) {
+                                      int colour) {
         poseStack.pushPose();
         if (bone.isTrackingMatrices()) {
             var poseState = new org.joml.Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, entityRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, entityRenderTranslations));
         }
-        RenderUtils.prepMatrixForBone(poseStack, bone);
+        RenderUtil.prepMatrixForBone(poseStack, bone);
         renderChildBones(poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender,
-                partialTick, packedLight, packedOverlay, red, green, blue, alpha);
+                partialTick, packedLight, packedOverlay, colour);
         poseStack.popPose();
     }
 

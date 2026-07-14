@@ -305,10 +305,10 @@ public final class EntityRegistry {
             regLiving("field_overseer_staff", FieldOverseerStaffEntity::new,
                     FieldOverseerStaffEntity.WIDTH, FieldOverseerStaffEntity.HEIGHT, 32);
 
-    public static final RegistryObject<EntityType<ServantGazeStaffEntity>> SERVANT_GAZE_STAFF =
+    public static final DeferredHolder<EntityType<?>, EntityType<ServantGazeStaffEntity>> SERVANT_GAZE_STAFF =
             regWeapon("servant_gaze_staff", ServantGazeStaffEntity::new, 1);
 
-    public static final RegistryObject<EntityType<ServantGazeProjectileEntity>> SERVANT_GAZE_PROJECTILE =
+    public static final DeferredHolder<EntityType<?>, EntityType<ServantGazeProjectileEntity>> SERVANT_GAZE_PROJECTILE =
             regProjectile("servant_gaze_projectile", ServantGazeProjectileEntity::new, 128, 1);
 
     public static void register(IEventBus bus) {
