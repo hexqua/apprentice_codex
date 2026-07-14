@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.item;
+package jp.aquafactory.apprenticecodex.item.spellgun;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

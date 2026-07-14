@@ -2,8 +2,8 @@ package jp.aquafactory.apprenticecodex.datagen.spell;
 
 import com.mojang.serialization.JsonOps;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.SpellGunSpellList;
-import jp.aquafactory.apprenticecodex.item.SpellGunSpellListManager;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunSpellList;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunSpellListManager;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;

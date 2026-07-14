@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item;
 
+import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.BowItem;

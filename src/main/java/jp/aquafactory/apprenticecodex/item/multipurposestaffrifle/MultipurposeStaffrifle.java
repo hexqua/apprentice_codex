@@ -19,6 +19,8 @@ import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientF
 import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientAdsState;
 import jp.aquafactory.apprenticecodex.item.*;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunSpellListManager;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
