@@ -181,6 +181,7 @@ import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldDefenseEven
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldShieldEntity;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
+import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlock;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxChargeBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxCounterSpellEvent;
@@ -6185,6 +6186,32 @@ public class ApprenticeCodexGameTestScenarios {
             helper.succeed();
         });
     }
+
+    static void personalShelfSynchronizesExportModeBlockState(GameTestHelper helper) {
+        var player = createPersonalShelfPlayer(helper, new BlockPos(1, 2, 1), "personal_shelf_export_state_test");
+        var normalShelfPos = new BlockPos(0, 1, 0);
+        var exportShelfPos = new BlockPos(2, 1, 0);
+
+        placeAndAssertBlockEntity(helper, normalShelfPos, BlockRegistry.PERSONAL_SHELF_CHEST.get(),
+                BlockEntityRegistry.PERSONAL_SHELF_CHEST.get());
+        placeAndAssertBlockEntity(helper, exportShelfPos, BlockRegistry.PERSONAL_SHELF_CHEST.get(),
+                BlockEntityRegistry.PERSONAL_SHELF_CHEST.get());
+
+        var normalShelf = getPersonalShelfBlockEntity(helper, helper.absolutePos(normalShelfPos));
+        normalShelf.setShelfData(player, false, Direction.NORTH);
+        normalShelf.setLifeRange(10.0);
+
+        var exportShelf = getPersonalShelfBlockEntity(helper, helper.absolutePos(exportShelfPos));
+        exportShelf.setShelfData(player, true, Direction.NORTH);
+        exportShelf.setLifeRange(10.0);
+
+        helper.runAtTickTime(1, () -> {
+            helper.assertBlockProperty(normalShelfPos, PersonalShelfChestBlock.EXPORT_MODE, false);
+            helper.assertBlockProperty(exportShelfPos, PersonalShelfChestBlock.EXPORT_MODE, true);
+            helper.succeed();
+        });
+    }
+
     static void personalShelfExpireClosesOpenedChestMenu(GameTestHelper helper) {
         var player = createPersonalShelfPlayer(helper, new BlockPos(0, 2, 0), "personal_shelf_expire_close_test");
         var shelfPos = new BlockPos(0, 1, 0);

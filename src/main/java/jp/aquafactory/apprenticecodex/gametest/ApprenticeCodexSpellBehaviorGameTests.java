@@ -162,6 +162,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.personalShelfOpensVanillaChestMenuAndHandlesFullQuickMove(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = PERSONAL_SHELF_ISOLATED_BATCH)
+    public static void personalShelfSynchronizesExportModeBlockState(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.personalShelfSynchronizesExportModeBlockState(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = PERSONAL_SHELF_ISOLATED_BATCH, timeoutTicks = 60)
     public static void personalShelfExpireClosesOpenedChestMenu(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.personalShelfExpireClosesOpenedChestMenu(helper);

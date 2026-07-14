@@ -919,6 +919,7 @@
   "ui.apprenticecodex.auto_turret.restock_not_need": "This crossbow's arrows are already full...",
   "ui.apprenticecodex.auto_turret.restock_complete": "Restocked the crossbow's arrows!",
   "ui.apprenticecodex.auto_turret.insufficient_mana": "Not enough mana to restock!",
+  "ui.apprenticecodex.personal_shelf.for_export_mode": "Set to export items from your personal storage...",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "Switched firing mode to %s",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "Overheating has increased mana cost to %s!",

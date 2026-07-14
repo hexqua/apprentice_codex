@@ -926,6 +926,7 @@
   "ui.apprenticecodex.auto_turret.restock_not_need": "このクロスボウは矢が最大まで溜まっている...",
   "ui.apprenticecodex.auto_turret.restock_complete": "クロスボウの矢を補充した！",
   "ui.apprenticecodex.auto_turret.insufficient_mana": "補充するためのマナが足りない！",
+  "ui.apprenticecodex.personal_shelf.for_export_mode": "自分の所有している空間から搬出する状態に設定...",
 
   "ui.apprenticecodex.swingcast.cannot_swing_cast": "%sは打撃詠唱できない！",
   "ui.apprenticecodex.jumpcast.cannot_long_cast": "%sは跳躍詠唱できない！",
