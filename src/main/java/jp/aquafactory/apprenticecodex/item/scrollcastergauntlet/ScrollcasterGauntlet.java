@@ -109,10 +109,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                             CalibrationAdjustmentHints.mithrilFreecastStaff()
                     ),
                     CalibrationAdjustmentRule.unique(
-                            ScrollcasterGauntlet::isSilverRingAdjustment,
-                            CalibrationAdjustmentHints.silverRing()
-                    ),
-                    CalibrationAdjustmentRule.unique(
                             ScrollcasterSchoolRuneResolver::isSchoolRune,
                             CalibrationAdjustmentHints.schoolRunes()
                     )
@@ -309,7 +305,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         }
 
         var spell = spellData.getSpell();
-        if (!MithrilFreecastStaff.canSwingCastSpell(spell, hasSilverRingAdjustment(stack))) {
+        if (!MithrilFreecastStaff.canSwingCastSpell(spell, true)) {
             player.displayClientMessage(
                     Component.translatable(
                             "ui.apprenticecodex.swingcast.cannot_swing_cast",
@@ -348,7 +344,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                     spell,
                     magicData,
                     slotId,
-                    spell.getCastType() == CastType.LONG && hasSilverRingAdjustment(stack) ? 0 : null
+                    spell.getCastType() == CastType.LONG ? 0 : null
             );
             if (player instanceof ServerPlayer serverPlayer) {
                 triggerCastAnimation(serverPlayer, stack);
@@ -629,19 +625,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
             if (isFreecastStaffAdjustment(readCalibrationAdjustment(gauntletStack, slot))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static boolean hasSilverRingAdjustment(@NotNull ItemStack gauntletStack) {
-        if (!isValidCalibrationAccess(gauntletStack, 0, 1)) {
-            return false;
-        }
-
-        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (isSilverRingAdjustment(readCalibrationAdjustment(gauntletStack, slot))) {
                 return true;
             }
         }
@@ -932,10 +915,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     public static boolean isFreecastStaffAdjustment(@NotNull ItemStack stack) {
         return !stack.isEmpty() && stack.getItem() instanceof MithrilFreecastStaff;
-    }
-
-    public static boolean isSilverRingAdjustment(@NotNull ItemStack stack) {
-        return MithrilFreecastStaff.isSilverRing(stack);
     }
 
     private static int resolveEffectiveSpellLevel(Player player, ItemStack stack, AbstractSpell spell) {

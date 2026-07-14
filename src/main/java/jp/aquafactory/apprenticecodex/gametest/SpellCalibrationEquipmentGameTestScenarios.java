@@ -356,11 +356,11 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             var gauntlet = targets[0];
             var gauntletProfile = ((SpellCalibrationAdjustmentTarget) gauntlet.getItem())
                     .getCalibrationAdjustmentProfile(gauntlet);
-            helper.assertTrue(gauntletProfile.rules().size() == 5,
-                    "Scrollcaster Gauntlet should expose all five hint groups from its rules");
+            helper.assertTrue(gauntletProfile.rules().size() == 4,
+                    "Scrollcaster Gauntlet should expose all four hint groups from its rules");
             helper.assertTrue(gauntletProfile.rules().get(0).hint() instanceof CalibrationAdjustmentHint.TaggedItems,
                     "Scrollcaster Gauntlet slot upgrades should use a generated tag hint");
-            helper.assertTrue(gauntletProfile.rules().get(4).hint() instanceof CalibrationAdjustmentHint.Translatable,
+            helper.assertTrue(gauntletProfile.rules().get(3).hint() instanceof CalibrationAdjustmentHint.Translatable,
                     "Scrollcaster Gauntlet school runes should use a translated category hint");
 
             var silverRing = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get());

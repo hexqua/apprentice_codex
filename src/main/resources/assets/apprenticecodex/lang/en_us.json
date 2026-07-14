@@ -452,7 +452,7 @@
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_5": "- Slot upgrade items: Increase the gauntlet's scroll slots by 2.",
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_6": "- School Rune: Changes the spell power bonus from general spell power to that rune's school.",
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_7": "- Enchantment book items: Applies the first enchantment listed on the item to the gauntlet.",
-  "jei.apprenticecodex.scrollcaster_gauntlet.desc_8": "- Mithril Freecast Staff: Lets the gauntlet swing-cast the selected spell like a Mithril Freecast Staff. A Silver Ring adjustment also applies.",
+  "jei.apprenticecodex.scrollcaster_gauntlet.desc_8": "- Mithril Freecast Staff: Lets the gauntlet swing-cast the selected spell when attacking. Spells that require casting time are supported, but continuous-cast spells are not.",
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_9": "Only one mutually incompatible enchantment is applied; enchantments for swords, pickaxes, or spellcasting aids are supported.",
   "jei.apprenticecodex.spell_calibration_bench.desc_1": "A workstation for adjusting some equipment's performance with adjustment items and configuring imbued spells.",
   "jei.apprenticecodex.spell_calibration_bench.desc_2": "It cannot handle items whose imbued spells cannot be removed; use an Arcane Anvil for those.",

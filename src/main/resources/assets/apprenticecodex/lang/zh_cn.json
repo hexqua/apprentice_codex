@@ -453,7 +453,7 @@
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_5": "- 槽位升级物品：使臂铠的卷轴槽位数增加2个。",
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_6": "- 学派符文：将法术强度加成从全属性改为对应学派专精。",
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_7": "- 附魔书类物品：将物品中最上方列出的附魔应用到臂铠。",
-  "jei.apprenticecodex.scrollcaster_gauntlet.desc_8": "- 秘银制自由施法杖：使臂铠在挥击时像秘银制自由施法杖一样释放当前选中的法术。银戒指的调整也会生效。",
+  "jei.apprenticecodex.scrollcaster_gauntlet.desc_8": "- 秘银制自由施法杖：攻击时，使臂铠像秘银制自由施法杖一样挥击释放当前选中的法术。可以发动需要施法时间的法术，但无法发动需要持续施法的法术。",
   "jei.apprenticecodex.scrollcaster_gauntlet.desc_9": "互斥附魔同时存在时只会应用一个；可应用于剑、镐或魔法施法辅助具的附魔可以生效。",
   "jei.apprenticecodex.spell_calibration_bench.desc_1": "用于通过调整物品改变部分装备性能，并设定注入法术的装置。",
   "jei.apprenticecodex.spell_calibration_bench.desc_2": "无法处理注入法术不可取下的物品；这类物品需要使用奥术铁砧。",
