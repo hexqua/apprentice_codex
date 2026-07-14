@@ -2740,6 +2740,37 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void scrollcasterGauntletEmptySelectionViewsTrackEnabledSlots(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var baseViews = ScrollcasterGauntlet.getSelectionViews(gauntlet);
+            helper.assertTrue(baseViews.size() == ScrollcasterGauntlet.BASE_CALIBRATION_SCROLL_SLOT_COUNT,
+                    "Empty Scrollcaster Gauntlet selection UI should expose every base slot");
+            helper.assertTrue(baseViews.stream().allMatch(view -> !view.hasSpell() && !view.currentSelection()),
+                    "Empty Scrollcaster Gauntlet selection UI should expose only unselected empty slots");
+
+            var expandedGauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var lesserUpgrade = new ItemStack(
+                    io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()
+            );
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            expandedGauntlet,
+                            0,
+                            lesserUpgrade
+                    ),
+                    "Failed to add a slot upgrade to the empty Scrollcaster Gauntlet");
+
+            var expandedViews = ScrollcasterGauntlet.getSelectionViews(expandedGauntlet);
+            helper.assertTrue(expandedViews.size()
+                            == ScrollcasterGauntlet.getEnabledCalibrationScrollSlotCount(expandedGauntlet),
+                    "Empty Scrollcaster Gauntlet selection UI should track its enabled slot count");
+            helper.assertTrue(expandedViews.size() > baseViews.size(),
+                    "Slot upgrade should add empty slots to the Scrollcaster Gauntlet selection UI");
+            helper.assertTrue(expandedViews.stream().allMatch(view -> !view.hasSpell() && !view.currentSelection()),
+                    "Expanded empty Scrollcaster Gauntlet selection UI should keep every slot unselected");
+        });
+    }
+
     static void scrollcasterGauntletFreecastStaffAdjustmentEnablesSwingcast(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());

@@ -101,6 +101,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void scrollcasterGauntletEmptySelectionViewsTrackEnabledSlots(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.scrollcasterGauntletEmptySelectionViewsTrackEnabledSlots(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void scrollcasterGauntletSelectedScrollDrivesImbuedSpell(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.scrollcasterGauntletSelectedScrollDrivesImbuedSpell(helper);
     }

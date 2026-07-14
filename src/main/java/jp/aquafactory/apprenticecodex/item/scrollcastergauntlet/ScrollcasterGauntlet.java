@@ -753,10 +753,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         }
 
         var selectedIndex = normalizeSelectedScrollIndex(gauntletStack);
-        if (selectedIndex < 0) {
-            return List.of();
-        }
-
         var enabledSlotCount = getEnabledCalibrationScrollSlotCount(gauntletStack);
         var views = new ArrayList<ScrollSelectionView>();
         for (var slot = 0; slot < enabledSlotCount; ++slot) {
