@@ -86,6 +86,7 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
         this.isExportMode = isExportMode;
         this.exportFacing = exportFacing;
 
+        syncExportModeBlockState();
         setChanged();
         syncToClient();
     }
@@ -97,6 +98,18 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
     private void syncToClient() {
         if (level instanceof ServerLevel serverLevel) {
             serverLevel.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+        }
+    }
+
+    private void syncExportModeBlockState() {
+        if (level == null) {
+            return;
+        }
+
+        var state = getBlockState();
+        if (state.hasProperty(PersonalShelfChestBlock.EXPORT_MODE)
+                && state.getValue(PersonalShelfChestBlock.EXPORT_MODE) != isExportMode) {
+            level.setBlockAndUpdate(worldPosition, state.setValue(PersonalShelfChestBlock.EXPORT_MODE, isExportMode));
         }
     }
 
@@ -154,6 +167,10 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
     public static void serverTick(Level level, BlockPos pos, BlockState state, PersonalShelfChestBlockEntity blockEntity) {
         if (level.isClientSide) {
             return;
+        }
+
+        if (state.getValue(PersonalShelfChestBlock.EXPORT_MODE) != blockEntity.isExportMode) {
+            blockEntity.syncExportModeBlockState();
         }
 
         if (blockEntity.owner == null) {
