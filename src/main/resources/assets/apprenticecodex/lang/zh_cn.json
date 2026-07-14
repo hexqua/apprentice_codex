@@ -949,6 +949,7 @@
   "ui.apprenticecodex.spell_calibration_bench.warning_mismatch_cast_condition": "该法术不符合目标物品的施法条件",
   "ui.apprenticecodex.spellcaster_workbench.warning_max_slot_reached": "该物品已扩展至最大",
   "ui.apprenticecodex.spellcaster_workbench.cant_imbue_to_card": "该法术无法注入符卡",
+  "ui.apprenticecodex.scrollcaster_gauntlet.select_ui.empty": "无可选法术",
   "ui.apprenticecodex.spell_throwable_cards.not_imbued": "这张符卡尚未注入法术！",
 
   "effect.apprenticecodex.arcane_charge": "奥术充能",
