@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import jp.aquafactory.apprenticecodex.item.pastelstaff.PastelStaff;
 import jp.aquafactory.apprenticecodex.mixin.SchoolTypeAccessor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -118,12 +119,12 @@ public final class MagicTools {
 
     public static int resolveSchoolTintColor(@Nullable SchoolType schoolType) {
         if (schoolType == null) {
-            return jp.aquafactory.apprenticecodex.item.PastelStaff.DEFAULT_STONE_TINT_COLOR;
+            return PastelStaff.DEFAULT_STONE_TINT_COLOR;
         }
 
         var color = schoolType.getDisplayName().getStyle().getColor();
         if (color == null) {
-            return jp.aquafactory.apprenticecodex.item.PastelStaff.DEFAULT_STONE_TINT_COLOR;
+            return PastelStaff.DEFAULT_STONE_TINT_COLOR;
         }
 
         return color.getValue();

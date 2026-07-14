@@ -4,7 +4,7 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
-import jp.aquafactory.apprenticecodex.item.PastelStaff;
+import jp.aquafactory.apprenticecodex.item.pastelstaff.PastelStaff;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;

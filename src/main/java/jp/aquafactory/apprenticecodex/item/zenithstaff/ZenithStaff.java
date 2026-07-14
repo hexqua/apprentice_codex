@@ -1,56 +1,57 @@
-package jp.aquafactory.apprenticecodex.item;
+package jp.aquafactory.apprenticecodex.item.zenithstaff;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
-import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
-import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import io.redspace.ironsspellbooks.item.weapons.StaffItem;
 import io.redspace.ironsspellbooks.item.weapons.StaffTier;
 import io.redspace.ironsspellbooks.render.ClientStaffItemExtensions;
-import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
-import jp.aquafactory.apprenticecodex.renderer.item.MulticastEchoStaffRenderer;
-import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
+import jp.aquafactory.apprenticecodex.item.StaffEnchantmentTargeting;
+import jp.aquafactory.apprenticecodex.renderer.item.ZenithStaffRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.fml.DistExecutor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
-public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem {
-    private static final StaffTier MULTICAST_ECHO_STAFF_TIER = new StaffTier(
+public class ZenithStaff extends StaffItem implements GeoItem, UniqueItem {
+    private static final String MAIN_CONTROLLER = "main";
+    private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
+    private static final StaffTier ZENITH_STAFF_TIER = new StaffTier(
             3.0F,
             -3.0F,
             new AttributeContainer(
                     AttributeRegistry.SPELL_POWER,
-                    0.05D,
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            ),
-            new AttributeContainer(
-                    AttributeRegistry.ELDRITCH_SPELL_POWER,
-                    0.15D,
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            ),
-            new AttributeContainer(
-                    AttributeRegistry.CAST_TIME_REDUCTION,
-                    0.2D,
+                    0.10D,
                     AttributeModifier.Operation.MULTIPLY_BASE
             )
     );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
-    public MulticastEchoStaff() {
-        super(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC).fireResistant(), MULTICAST_ECHO_STAFF_TIER);
+    public ZenithStaff() {
+        super(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC).fireResistant(), ZENITH_STAFF_TIER);
         GeoItem.registerSyncedAnimatable(this);
     }
 
@@ -62,12 +63,12 @@ public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpe
     @Override
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {
         consumer.accept(new ClientStaffItemExtensions() {
-            private MulticastEchoStaffRenderer renderer;
+            private ZenithStaffRenderer renderer;
 
             @Override
             public BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
-                    renderer = new MulticastEchoStaffRenderer();
+                    renderer = new ZenithStaffRenderer();
                 }
 
                 return renderer;
@@ -77,15 +78,12 @@ public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpe
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
-    }
-
-    @Override
-    public void initializeSpellContainer(ItemStack itemStack) {
-        if (itemStack == null || itemStack.isEmpty() || ISpellContainer.isSpellContainer(itemStack)) {
-            return;
-        }
-
-        InitialSpellContainerHelper.setInitialContainer(itemStack, 1, true, false, SpellRegistry.ECHO_CAST, 1);
+        controllerRegistrar.add(
+                new AnimationController<>(this, MAIN_CONTROLLER, 0, state -> {
+                    state.setAnimation(ANIM_IDLE);
+                    return PlayState.CONTINUE;
+                })
+        );
     }
 
     @Override
@@ -105,11 +103,7 @@ public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpe
         }
 
         var enchantments = EnchantmentHelper.getEnchantments(book);
-        if (enchantments.isEmpty()) {
-            return true;
-        }
-
-        return enchantments.keySet().stream()
+        return enchantments.isEmpty() || enchantments.keySet().stream()
                 .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
     }
 
@@ -119,7 +113,25 @@ public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpe
         return 22;
     }
 
-    public static boolean isMulticastEchoStaff(ItemStack stack) {
-        return stack != null && !stack.isEmpty() && stack.getItem() instanceof MulticastEchoStaff;
+    @Override
+    public void appendHoverText(
+            @NotNull ItemStack itemStack,
+            @Nullable Level level,
+            @NotNull List<Component> lines,
+            @NotNull TooltipFlag flag
+    ) {
+        super.appendHoverText(itemStack, level, lines, flag);
+
+        var tooltipLines = resolveClientTooltipLines();
+        tooltipLines.ifPresent(lines::addAll);
+    }
+
+    public static boolean isZenithStaff(ItemStack stack) {
+        return stack != null && !stack.isEmpty() && stack.getItem() instanceof ZenithStaff;
+    }
+
+    private static Optional<List<Component>> resolveClientTooltipLines() {
+        var result = DistExecutor.unsafeCallWhenOn(Dist.CLIENT, () -> ZenithStaffClientTooltip::createLines);
+        return Optional.ofNullable(result);
     }
 }
