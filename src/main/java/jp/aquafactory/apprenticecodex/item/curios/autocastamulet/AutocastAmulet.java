@@ -9,6 +9,8 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
+import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
@@ -35,7 +37,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.ArrayList;
 
-public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, ArcaneAnvilImbueBlockItem {
+public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, ArcaneAnvilImbueBlockItem,
+        StoredSpellCalibrationImbueTarget {
     public static final int MIN_SPELL_SLOTS = 1;
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     public static final int MAX_SPELL_SLOTS = MIN_SPELL_SLOTS + CALIBRATION_ADJUSTMENT_SLOT_COUNT;
@@ -116,6 +119,19 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
                 && spell != io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()
                 && getSupportedCastTypes(stack).contains(SpellGunCastType.from(spell.getCastType()))
                 && spell.getRecastCount(spellLevel, null) <= 0;
+    }
+
+    @Override
+    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull SpellData spellData
+    ) {
+        if (!isEnabledSpellSlot(targetStack, slot) || !canImbueSpell(spellData)) {
+            return SpellCalibrationImbueState.REJECTED;
+        }
+        // Wisdom Shard のプロファイルはプレイヤー状態に依存するため、ここでは対象構成だけを評価する。
+        return SpellCalibrationImbueState.accepted(canAutoCastSpell(targetStack, spellData));
     }
 
     public List<Component> getImbueRestrictionTooltipLines() {
@@ -321,17 +337,6 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
 
     public static boolean isEnabledSpellSlot(@NotNull ItemStack amuletStack, int slot) {
         return isValidStoredSpellAccess(amuletStack, slot) && slot < getEnabledSpellSlotCount(amuletStack);
-    }
-
-    public static boolean isMismatchedCastConditionAt(@NotNull ItemStack amuletStack, int slot) {
-        if (!isValidStoredSpellAccess(amuletStack, slot)) {
-            return false;
-        }
-
-        var spellData = getSpellDataAt(amuletStack, slot);
-        return spellData != SpellData.EMPTY
-                && spellData.getSpell() != null
-                && !isCastableConfiguredSpell(amuletStack, spellData);
     }
 
     public static @NotNull SpellData getSpellDataAt(@NotNull ItemStack amuletStack, int slot) {

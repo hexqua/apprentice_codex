@@ -68,7 +68,7 @@ import java.util.function.Consumer;
 
 public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         implements GeoItem, CastAnimationOverrideItem, IJeiInfoItem, SwingTriggeredMagicItem,
-        RestrictedSpellImbuableItem, ArcaneAnvilImbueBlockItem {
+        RestrictedSpellImbuableItem, ArcaneAnvilImbueBlockItem, StoredSpellCalibrationImbueTarget {
     private static final String ITEM_KEY = "revolvercast_staff";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.revolvercast_staff.desc_";
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
@@ -208,6 +208,20 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     @Override
     public boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel) {
         return canSwingCastSpell(spell);
+    }
+
+    @Override
+    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull SpellData spellData
+    ) {
+        if (slot < 0 || slot >= getEnabledCalibrationScrollSlotCount(targetStack)
+                || spellData == SpellData.EMPTY || spellData.getSpell() == null
+                || !canSwingCastSpell(spellData.getSpell(), true)) {
+            return SpellCalibrationImbueState.REJECTED;
+        }
+        return SpellCalibrationImbueState.accepted(canSwingCastSpell(targetStack, spellData.getSpell()));
     }
 
     @Override
@@ -541,17 +555,6 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         }
 
         return getScrollSpellData(getCalibrationScroll(staffStack, selectedIndex));
-    }
-
-    public static boolean isMismatchedCastConditionScroll(@NotNull ItemStack staffStack, int slot) {
-        if (!isValidCalibrationAccess(staffStack, slot, CALIBRATION_SCROLL_SLOT_COUNT)) {
-            return false;
-        }
-
-        var spellData = getScrollSpellData(getCalibrationScroll(staffStack, slot));
-        return spellData != SpellData.EMPTY
-                && spellData.getSpell() != null
-                && !canSwingCastSpell(staffStack, spellData.getSpell());
     }
 
     public static void refreshSelectedSpellContainer(@NotNull ItemStack staffStack) {

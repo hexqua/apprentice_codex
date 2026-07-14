@@ -26,7 +26,11 @@ import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastS
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastEvent;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.item.spellthrowablecard.AbstractSpellThrowableCardItem;
+import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
+import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
@@ -301,6 +305,90 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     "Smashcast Scepter should reject CONTINUOUS scrolls in the Spell Calibration Bench");
         });
     }
+
+    static void spellCalibrationBenchImbueStatesSeparateInsertionFromCurrentUsability(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "spell_calibration_imbue_state_test");
+            var silverRing = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get());
+            var wisdomShard = new ItemStack(ItemRegistry.WISDOM_SHARD.get());
+            var longScroll = createSpellScroll(SpellRegistry.MANTIS_LEAP.get());
+            var continuousScroll = createSpellScroll(SpellRegistry.MANA_CHARGE.get());
+            var profiledContinuousScroll = createSpellScroll(
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get()
+            );
+
+            var autocast = new ItemStack(ItemRegistry.AUTOCAST_AMULET.get());
+            var autocastMenu = createSpellCalibrationBenchMenuWithTarget(player, autocast);
+            assertCalibrationImbueState(helper, autocast, 0, longScroll,
+                    SpellCalibrationImbueState.ACCEPTED_CURRENTLY_UNUSABLE,
+                    "Autocast Amulet should accept long spells with a warning before an enabling adjustment");
+            AutocastAmulet.setCalibrationAdjustment(autocast, 0, wisdomShard);
+            assertCalibrationImbueState(helper, autocast, 0, longScroll,
+                    SpellCalibrationImbueState.ACCEPTED_CURRENTLY_UNUSABLE,
+                    "Wisdom Shard runtime profiles should not change Calibration Bench insertion state");
+            AutocastAmulet.setCalibrationAdjustment(autocast, 1, silverRing);
+            assertCalibrationImbueState(helper, autocast, 0, longScroll,
+                    SpellCalibrationImbueState.ACCEPTED_USABLE,
+                    "Autocast Amulet should mark long spells usable after an enabling adjustment");
+            autocastMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(longScroll.copy());
+            AutocastAmulet.setCalibrationAdjustment(autocast, 1, ItemStack.EMPTY);
+            helper.assertFalse(AutocastAmulet.getCalibrationScroll(autocast, 0).isEmpty(),
+                    "Removing an enabling adjustment should keep an already inserted scroll");
+            helper.assertTrue(autocastMenu.shouldRenderMismatchCastConditionWarning(0),
+                    "Removing an enabling adjustment should restore the configured-spell warning");
+
+            var satellite = new ItemStack(ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get());
+            createSpellCalibrationBenchMenuWithTarget(player, satellite);
+            assertCalibrationImbueState(helper, satellite, 0, profiledContinuousScroll,
+                    SpellCalibrationImbueState.ACCEPTED_CURRENTLY_UNUSABLE,
+                    "Satellite Followcast Amulet should accept continuous spells with a warning before an enabling adjustment");
+            SatelliteFollowcastAmulet.setCalibrationAdjustment(satellite, 0, silverRing);
+            assertCalibrationImbueState(helper, satellite, 0, profiledContinuousScroll,
+                    SpellCalibrationImbueState.ACCEPTED_USABLE,
+                    "Satellite Followcast Amulet should mark continuous spells usable after an enabling adjustment");
+
+            var revolver = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
+            createSpellCalibrationBenchMenuWithTarget(player, revolver);
+            assertCalibrationImbueState(helper, revolver, 0, longScroll,
+                    SpellCalibrationImbueState.ACCEPTED_CURRENTLY_UNUSABLE,
+                    "Revolvercast Staff should accept long spells with a warning before an enabling adjustment");
+            RevolvercastStaff.setCalibrationAdjustment(revolver, 0, silverRing);
+            assertCalibrationImbueState(helper, revolver, 0, longScroll,
+                    SpellCalibrationImbueState.ACCEPTED_USABLE,
+                    "Revolvercast Staff should mark long spells usable after an enabling adjustment");
+
+            var parrycast = new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get());
+            createSpellCalibrationBenchMenuWithTarget(player, parrycast);
+            assertCalibrationImbueState(helper, parrycast, 0, longScroll,
+                    SpellCalibrationImbueState.ACCEPTED_CURRENTLY_UNUSABLE,
+                    "Parrycast Buckler should accept long spells with a warning before an enabling adjustment");
+            ParrycastBuckler.setCalibrationAdjustment(parrycast, 0, silverRing);
+            assertCalibrationImbueState(helper, parrycast, 0, longScroll,
+                    SpellCalibrationImbueState.ACCEPTED_USABLE,
+                    "Parrycast Buckler should mark long spells usable after an enabling adjustment");
+
+            var reflectcast = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
+            createSpellCalibrationBenchMenuWithTarget(player, reflectcast);
+            assertCalibrationImbueState(helper, reflectcast, 0, profiledContinuousScroll,
+                    SpellCalibrationImbueState.ACCEPTED_CURRENTLY_UNUSABLE,
+                    "Reflectcast Shield should accept continuous spells with a warning before an enabling adjustment");
+            ReflectcastShield.setCalibrationAdjustment(reflectcast, 0, silverRing);
+            assertCalibrationImbueState(helper, reflectcast, 0, profiledContinuousScroll,
+                    SpellCalibrationImbueState.ACCEPTED_USABLE,
+                    "Reflectcast Shield should mark continuous spells usable after an enabling adjustment");
+
+            var rejectedAutocast = new ItemStack(ItemRegistry.AUTOCAST_AMULET.get());
+            var rejectedAutocastMenu = createSpellCalibrationBenchMenuWithTarget(player, rejectedAutocast);
+            assertCalibrationImbueState(helper, rejectedAutocast, 0, continuousScroll,
+                    SpellCalibrationImbueState.REJECTED,
+                    "Autocast Amulet should reject permanently unsupported continuous spells");
+            rejectedAutocastMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START)
+                    .set(continuousScroll.copy());
+            helper.assertTrue(AutocastAmulet.getCalibrationScroll(rejectedAutocast, 0).isEmpty(),
+                    "Rejected Autocast Amulet spells should not be stored through direct Slot#set");
+        });
+    }
     static void spellCalibrationBenchImbueOnlySupportsExtractableTargets(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_calibration_imbue_test");
@@ -449,6 +537,8 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             spellAmplifierMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(createSpellScroll(heal));
             assertStackHasSpell(helper, spellAmplifier, heal, 1,
                     "Calibration Bench should imbue generic extractable Spell Amplifiers");
+            helper.assertFalse(spellAmplifierMenu.shouldRenderMismatchCastConditionWarning(0),
+                    "A filled generic SpellContainer should not be treated as a configured-spell mismatch");
             helper.assertTrue(spellAmplifierMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).remove(1)
                             .is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
                     "Calibration Bench should extract generic Spell Amplifier spells");
@@ -459,6 +549,18 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             assertStackHasSpell(helper, circlet, heal, 1,
                     "Calibration Bench should imbue tag-allowed extractable Curios");
         });
+    }
+
+    private static void assertCalibrationImbueState(
+            GameTestHelper helper,
+            ItemStack targetStack,
+            int slot,
+            ItemStack scrollStack,
+            SpellCalibrationImbueState expected,
+            String message
+    ) {
+        var actual = SpellCalibrationImbueHelper.evaluateScrollAt(targetStack, slot, scrollStack);
+        helper.assertTrue(actual == expected, message + ": expected=" + expected + ", actual=" + actual);
     }
     static void mithrilFreecastStaffBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
         helper.succeedIf(() -> {

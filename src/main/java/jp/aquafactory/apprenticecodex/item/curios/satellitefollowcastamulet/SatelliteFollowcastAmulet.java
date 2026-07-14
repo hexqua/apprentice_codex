@@ -9,6 +9,8 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
+import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRules;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
@@ -34,7 +36,8 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiInfoItem, ArcaneAnvilImbueBlockItem {
+public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiInfoItem, ArcaneAnvilImbueBlockItem,
+        StoredSpellCalibrationImbueTarget {
     public static final int MIN_SPELL_SLOTS = 1;
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     public static final int MAX_SPELL_SLOTS = MIN_SPELL_SLOTS + CALIBRATION_ADJUSTMENT_SLOT_COUNT;
@@ -206,19 +209,20 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
                 && getSupportedCastTypes(stack).contains(spellData.getSpell().getCastType());
     }
 
-    public static boolean isEnabledSpellSlot(@NotNull ItemStack amuletStack, int slot) {
-        return isValidStoredSpellAccess(amuletStack, slot) && slot < getEnabledSpellSlotCount(amuletStack);
+    @Override
+    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull SpellData spellData
+    ) {
+        if (!isEnabledSpellSlot(targetStack, slot) || !canImbueSpell(spellData)) {
+            return SpellCalibrationImbueState.REJECTED;
+        }
+        return SpellCalibrationImbueState.accepted(canFollowcastSpell(targetStack, spellData));
     }
 
-    public static boolean isMismatchedCastConditionAt(@NotNull ItemStack amuletStack, int slot) {
-        if (!isValidStoredSpellAccess(amuletStack, slot)) {
-            return false;
-        }
-
-        var spellData = getSpellDataAt(amuletStack, slot);
-        return spellData != SpellData.EMPTY
-                && spellData.getSpell() != null
-                && !isCastableConfiguredSpell(amuletStack, spellData);
+    public static boolean isEnabledSpellSlot(@NotNull ItemStack amuletStack, int slot) {
+        return isValidStoredSpellAccess(amuletStack, slot) && slot < getEnabledSpellSlotCount(amuletStack);
     }
 
     public static List<SpellData> getImbuedSpells(ItemStack stack) {

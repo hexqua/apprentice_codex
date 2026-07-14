@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -68,14 +69,16 @@ final class ParrycastBucklerGameTestScenarios {
                     "Long scroll placement should not require Silver Ring");
             helper.assertTrue(SpellCalibrationImbueHelper.setScrollAt(stack, 0, longScroll),
                     "Long scroll should be insertable without Silver Ring");
-            helper.assertTrue(item.isMismatchedCastConditionAt(stack, 0),
+            helper.assertFalse(item.evaluateCalibrationImbue(stack, 0, new SpellData(SpellRegistry.MANTIS_LEAP.get(), 1))
+                            .isUsable(),
                     "Inserted long spell should warn while Silver Ring is absent");
             assertFirstRestrictionKey(helper, item.getImbueRestrictionTooltipLines(stack),
                     "item.apprenticecodex.spellgun.tooltip.restrict_restrict_instant_only");
             ParrycastBuckler.setCalibrationAdjustment(stack, 0,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()));
             helper.assertTrue(item.canUseConfiguredSpell(stack, SpellRegistry.MANTIS_LEAP.get(), 1), "Silver Ring should allow long spells");
-            helper.assertFalse(item.isMismatchedCastConditionAt(stack, 0),
+            helper.assertTrue(item.evaluateCalibrationImbue(stack, 0, new SpellData(SpellRegistry.MANTIS_LEAP.get(), 1))
+                            .isUsable(),
                     "Silver Ring should clear the inserted long spell warning");
             assertFirstRestrictionKey(helper, item.getImbueRestrictionTooltipLines(stack),
                     "item.apprenticecodex.spellgun.tooltip.restrict_restrict_not_continuous");

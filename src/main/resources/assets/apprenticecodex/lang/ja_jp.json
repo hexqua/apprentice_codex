@@ -962,7 +962,7 @@
   "ui.apprenticecodex.spell_calibration_bench.hint_default_spell": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spell_calibration_bench.cant_remove_not_allow": "このアイテムからはスクロールは取り出せない",
   "ui.apprenticecodex.spell_calibration_bench.cant_imbue_unsupported_equipment": "このアイテムへの注入は秘術の金床を使う必要がある",
-  "ui.apprenticecodex.spell_calibration_bench.warning_restrict_imbue_condition": "以下を満たした魔法のスクロールのみ注入できる",
+  "ui.apprenticecodex.spell_calibration_bench.warning_restrict_imbue_condition": "以下を満たした魔法のスクロールのみ発動できる",
   "ui.apprenticecodex.spell_calibration_bench.warning_mismatch_cast_condition": "対象のアイテムの詠唱可能条件を満たしていない",
   "ui.apprenticecodex.spellcaster_workbench.warning_max_slot_reached": "このアイテムは既に最大まで拡張されている",
   "ui.apprenticecodex.spellcaster_workbench.cant_imbue_to_card": "この魔法は札に注入できない",

@@ -5,11 +5,12 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public interface RestrictedSpellImbuableItem {
+public interface RestrictedSpellImbuableItem extends SpellCalibrationImbueTarget {
     boolean canImbueSpell(SpellData spellData);
 
     boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel);
@@ -29,6 +30,13 @@ public interface RestrictedSpellImbuableItem {
 
     default boolean canRemoveWorkbenchSpell(ItemStack stack, ISpellContainer spellContainer, int spellIndex, SpellData spellData) {
         return spellData.canRemove();
+    }
+
+    @Override
+    default @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(@NotNull ItemStack targetStack, int slot, @NotNull SpellData spellData) {
+        return canImbueSpell(spellData)
+                ? SpellCalibrationImbueState.ACCEPTED_USABLE
+                : SpellCalibrationImbueState.REJECTED;
     }
 
     default List<Component> getImbueRestrictionTooltipLines() {

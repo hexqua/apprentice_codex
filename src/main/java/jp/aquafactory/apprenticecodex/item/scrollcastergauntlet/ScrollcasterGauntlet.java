@@ -83,13 +83,26 @@ import java.util.function.Consumer;
 public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
         ItemTransformPreservingCastAnimationItem,
         BetterCombatOffhandDualWieldingPolicyItem, SwingTriggeredMagicItem, PriorityOffhandUseDeferringItem, IJeiInfoItem,
-        SneakSelectionUiItem {
+        SneakSelectionUiItem, StoredSpellCalibrationImbueTarget {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.scrollcaster_gauntlet.desc_";
 
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     public static final int CALIBRATION_SCROLL_SLOT_COUNT = 10;
     public static final int BASE_CALIBRATION_SCROLL_SLOT_COUNT = 4;
     public static final int CALIBRATION_SCROLL_SLOTS_PER_UPGRADE = 2;
+
+    @Override
+    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull SpellData spellData
+    ) {
+        if (slot < 0 || slot >= getEnabledCalibrationScrollSlotCount(targetStack)
+                || spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            return SpellCalibrationImbueState.REJECTED;
+        }
+        return SpellCalibrationImbueState.ACCEPTED_USABLE;
+    }
 
     private static final String MALUM_NAMESPACE = "malum";
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =

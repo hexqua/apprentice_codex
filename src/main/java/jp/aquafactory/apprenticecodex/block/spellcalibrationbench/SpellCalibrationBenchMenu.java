@@ -1,7 +1,5 @@
 package jp.aquafactory.apprenticecodex.block.spellcalibrationbench;
 
-import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
-import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.Scroll;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
@@ -290,25 +288,10 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         if (!isScrollSlotEnabled(slot)) {
             return false;
         }
-        if (hasRevolvercastStaff()) {
-            return RevolvercastStaff.isMismatchedCastConditionScroll(getGauntletStack(), slot);
-        }
-        if (hasParrycastBuckler()) {
-            return ((ParrycastBuckler) getGauntletStack().getItem())
-                    .isMismatchedCastConditionAt(getGauntletStack(), slot);
-        }
-        if (hasReflectcastShield()) {
-            return ((ReflectcastShield) getGauntletStack().getItem())
-                    .isMismatchedCastConditionAt(getGauntletStack(), slot);
-        }
-        if (hasAutocastAmulet()) {
-            return AutocastAmulet.isMismatchedCastConditionAt(getGauntletStack(), slot);
-        }
-        if (hasSatelliteFollowcastAmulet()) {
-            return SatelliteFollowcastAmulet.isMismatchedCastConditionAt(getGauntletStack(), slot);
-        }
-        return hasOperationalImbueTarget()
-                && SpellCalibrationImbueHelper.isMismatchedCastConditionAt(getGauntletStack(), slot);
+
+        var scrollStack = getScroll(slot);
+        return !scrollStack.isEmpty()
+                && !SpellCalibrationImbueHelper.evaluateStoredScrollAt(getGauntletStack(), slot, scrollStack).isUsable();
     }
 
     public boolean hasTargetSpellAt(int slot) {
@@ -461,6 +444,11 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
     private void setScroll(int slot, @NotNull ItemStack stack) {
         if (!hasCalibrationTarget()) {
+            return;
+        }
+
+        if (!stack.isEmpty()
+                && !SpellCalibrationImbueHelper.evaluateScrollAt(getGauntletStack(), slot, stack).canInsert()) {
             return;
         }
 
@@ -931,25 +919,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             if (!hasCalibrationTarget() || !isScrollSlotEnabled(calibrationSlot) || !isScroll(stack)) {
                 return false;
             }
-            if (hasRevolvercastStaff()) {
-                var spellData = getScrollSpellData(stack);
-                return spellData != SpellData.EMPTY
-                        && spellData.getSpell() != null
-                        && RevolvercastStaff.canSwingCastSpell(spellData.getSpell(), true);
-            }
-            if (hasAutocastAmulet()) {
-                var spellData = getScrollSpellData(stack);
-                return spellData != SpellData.EMPTY
-                        && spellData.getSpell() != null
-                        && ((AutocastAmulet) getGauntletStack().getItem()).canImbueSpell(spellData);
-            }
-            if (hasSatelliteFollowcastAmulet()) {
-                var spellData = getScrollSpellData(stack);
-                return spellData != SpellData.EMPTY
-                        && spellData.getSpell() != null
-                        && ((SatelliteFollowcastAmulet) getGauntletStack().getItem()).canImbueSpell(spellData);
-            }
-            return hasGauntlet() || SpellCalibrationImbueHelper.canPlaceScrollAt(getGauntletStack(), calibrationSlot, stack);
+            return SpellCalibrationImbueHelper.evaluateScrollAt(getGauntletStack(), calibrationSlot, stack).canInsert();
         }
 
         @Override
@@ -975,17 +945,4 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         }
     }
 
-    private static @NotNull SpellData getScrollSpellData(@NotNull ItemStack scrollStack) {
-        if (!isScroll(scrollStack)) {
-            return SpellData.EMPTY;
-        }
-
-        var scrollContainer = ISpellContainer.get(scrollStack);
-        if (scrollContainer == null || scrollContainer.getActiveSpellCount() != 1) {
-            return SpellData.EMPTY;
-        }
-
-        var spellData = scrollContainer.getSpellAtIndex(0);
-        return spellData == null ? SpellData.EMPTY : spellData;
-    }
 }
