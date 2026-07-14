@@ -275,9 +275,9 @@ public class FieldOverseerStaffEntity extends PathfinderMob implements GeoEntity
                         && CombatTools.isValidCombatTarget(target, owner)
         ));
         for (var target : targets) {
-            CombatTools.applyDamage(target, damage, source, SpellRegistry.FIELD_OVERSEER.get().getSchoolType(),
+            var damaged = CombatTools.applyDamage(target, damage, source, SpellRegistry.FIELD_OVERSEER.get().getSchoolType(),
                     CombatTools.KnockbackTypes.NO_KNOCKBACK);
-            if (target instanceof Mob mob && !mob.isAlliedTo(this)) {
+            if (damaged && target instanceof Mob mob && !mob.isAlliedTo(this)) {
                 mob.setTarget(this);
                 mob.setLastHurtByMob(this);
             }

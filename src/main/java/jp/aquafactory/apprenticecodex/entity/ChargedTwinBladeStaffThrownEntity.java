@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -21,6 +22,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
@@ -146,6 +148,11 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
     }
 
     @Override
+    protected boolean canHitEntity(@NotNull Entity target) {
+        return super.canHitEntity(target) && CombatTools.isValidCombatTarget(target, getOwner());
+    }
+
+    @Override
     protected void onHitEntity(@NotNull EntityHitResult hitResult) {
         super.onHitEntity(hitResult);
         if (level().isClientSide) {
@@ -160,7 +167,11 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
                 ? ChargedTwinBladeStaff.resolveThrownDamage(serverLevel, weaponStack, hitEntity, damageSource)
                 : (float) ChargedTwinBladeStaff.resolveThrownDamage(weaponStack);
 
-        if (hitEntity.hurt(damageSource, damage) && hitEntity instanceof LivingEntity livingTarget) {
+        var protectedTarget = CombatTools.isProtectedCombatTarget(
+                CombatTools.resolutePartEntity(hitEntity), owner,
+                CombatTools.CombatTargetPolicy.PROTECT_SELF_AND_ALLIES
+        );
+        if (!protectedTarget && hitEntity.hurt(damageSource, damage) && hitEntity instanceof LivingEntity livingTarget) {
             if (level() instanceof ServerLevel serverLevel) {
                 EnchantmentHelper.doPostAttackEffectsWithItemSource(serverLevel, livingTarget, damageSource, weaponStack);
             }

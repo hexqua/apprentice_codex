@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.CombatOwnerUuidSource;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
@@ -52,7 +53,7 @@ import java.util.Comparator;
 import java.util.Optional;
 import java.util.UUID;
 
-public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
+public class AutoTurretEntity extends PathfinderMob implements GeoEntity, CombatOwnerUuidSource {
     public static final float WIDTH = 0.9f;
     public static final float HEIGHT = 1.6f;
     private static final int CHARGE_TICK = 15;
@@ -346,10 +347,11 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
     private void fire(Entity target, ServerLevel level, LivingEntity owner) {
         var targetPosition = RaycastTools.getEntityTargetPosition(target);
         var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.AUTO_TURRET);
-        CombatTools.applyDamage(target, damage, source, SpellRegistry.AUTO_TURRET.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+        var damaged = CombatTools.applyDamage(target, damage, source,
+                SpellRegistry.AUTO_TURRET.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
         AudioTools.playSoundFromEntity(level, this, SoundEvents.ARROW_SHOOT, SoundSource.PLAYERS, 0.5f);
 
-        if (target instanceof Mob mob && !mob.isAlliedTo(this)) {
+        if (damaged && target instanceof Mob mob && !mob.isAlliedTo(this)) {
             mob.setTarget(this);
             mob.setLastHurtByMob(this);
         }
@@ -449,6 +451,11 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
 
     public Optional<UUID> getOwnerUuidForRendering() {
         return getOwnerUuid();
+    }
+
+    @Override
+    public @Nullable UUID getCombatOwnerUuid() {
+        return getOwnerUuid().orElse(null);
     }
 
     private Optional<UUID> getOwnerUuid() {
