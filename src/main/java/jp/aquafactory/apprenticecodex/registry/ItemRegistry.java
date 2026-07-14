@@ -33,6 +33,7 @@ import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQ
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.offhand.CopperSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.DiamondSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.ExplorersCane;
