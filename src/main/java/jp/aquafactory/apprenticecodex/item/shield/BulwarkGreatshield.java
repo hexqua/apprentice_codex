@@ -11,7 +11,11 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.BulwarkGreatshieldRenderer;
@@ -48,12 +52,24 @@ import java.util.UUID;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class BulwarkGreatshield extends AbstractImbueShieldItem implements GeoItem, IJeiInfoItem {
+public class BulwarkGreatshield extends AbstractImbueShieldItem
+        implements GeoItem, IJeiInfoItem, SpellCalibrationAdjustmentTarget {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.bulwark_greatshield.desc_";
 
     public static final int DURABILITY = 2031;
     public static final int ENCHANTMENT_VALUE = 15;
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 1;
+    private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
+            CalibrationAdjustmentProfile.of(
+                    CalibrationAdjustmentRule.unique(
+                            ScrollcasterSchoolRuneResolver::isSchoolRune,
+                            CalibrationAdjustmentHints.schoolRunes()
+                    ),
+                    CalibrationAdjustmentRule.unique(
+                            BulwarkGreatshield::isWisdomShard,
+                            CalibrationAdjustmentHints.wisdomShard()
+                    )
+            );
     public static final int DURABILITY_SUPPRESSION_TICKS = 20;
     public static final int CONTINUOUS_CAST_DELAY_TICKS = 20;
     public static final int MANA_RECOVERY_COOLDOWN_TICKS = 20;
@@ -203,7 +219,7 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem implements GeoIt
         return enchantments.isEmpty() || enchantments.keySet().stream().allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
     }
 
-    public static @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack shieldStack, int slot) {
+    private static @NotNull ItemStack readCalibrationAdjustment(@NotNull ItemStack shieldStack, int slot) {
         if (!isValidCalibrationAccess(shieldStack, slot)) {
             return ItemStack.EMPTY;
         }
@@ -213,7 +229,7 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem implements GeoIt
                 : ItemStack.EMPTY;
     }
 
-    public static void setCalibrationAdjustment(@NotNull ItemStack shieldStack, int slot, @NotNull ItemStack adjustment) {
+    private static void writeCalibrationAdjustment(@NotNull ItemStack shieldStack, int slot, @NotNull ItemStack adjustment) {
         if (!isValidCalibrationAccess(shieldStack, slot)) {
             return;
         }
@@ -232,8 +248,32 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem implements GeoIt
         shieldStack.getOrCreateTagElement(CALIBRATION_TAG).put(ADJUSTMENT_TAG, stored.save(new CompoundTag()));
     }
 
-    public static boolean isCalibrationAdjustmentItem(@NotNull ItemStack stack) {
-        return ScrollcasterSchoolRuneResolver.isSchoolRune(stack) || isWisdomShard(stack);
+    @Override
+    public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_SLOT_COUNT;
+    }
+
+    @Override
+    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
+        return readCalibrationAdjustment(targetStack, slot);
+    }
+
+    @Override
+    public boolean trySetCalibrationAdjustment(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull ItemStack adjustment
+    ) {
+        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
+            return false;
+        }
+        writeCalibrationAdjustment(targetStack, slot, adjustment);
+        return true;
+    }
+
+    @Override
+    public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_PROFILE;
     }
 
     public static boolean isWisdomShard(@NotNull ItemStack stack) {
@@ -241,11 +281,11 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem implements GeoIt
     }
 
     public static boolean hasWisdomShardAdjustment(ItemStack stack) {
-        return isWisdomShard(getCalibrationAdjustment(stack, 0));
+        return isWisdomShard(readCalibrationAdjustment(stack, 0));
     }
 
     public static @Nullable io.redspace.ironsspellbooks.api.spells.SchoolType getResolvedCalibrationSchool(ItemStack stack) {
-        return ScrollcasterSchoolRuneResolver.resolveSchool(getCalibrationAdjustment(stack, 0)).orElse(null);
+        return ScrollcasterSchoolRuneResolver.resolveSchool(readCalibrationAdjustment(stack, 0)).orElse(null);
     }
 
     @Nullable

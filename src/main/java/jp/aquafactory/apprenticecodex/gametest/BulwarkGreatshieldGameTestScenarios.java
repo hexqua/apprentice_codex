@@ -114,7 +114,7 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
             helper.assertTrue(adjustmentSlot.mayPlace(fireRune), "Bulwark should accept a school rune");
             helper.assertTrue(adjustmentSlot.mayPlace(wisdomShard), "Bulwark should accept Wisdom Shard");
 
-            BulwarkGreatshield.setCalibrationAdjustment(stack, 0, fireRune);
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 0, fireRune);
             var schoolResist = MagicTools.resolveSchoolResistAttribute(BulwarkGreatshield.getResolvedCalibrationSchool(stack));
             helper.assertTrue(schoolResist != null, "Fire rune should resolve a school resist attribute");
             helper.assertTrue(stack.getAttributeModifiers(EquipmentSlot.OFFHAND).get(schoolResist).stream()
@@ -125,7 +125,7 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
                             .anyMatch(modifier -> modifier.getAmount() == BulwarkGreatshield.GENERIC_SPELL_RESIST),
                     "School rune must not replace generic spell resist");
 
-            BulwarkGreatshield.setCalibrationAdjustment(stack, 0, wisdomShard);
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 0, wisdomShard);
             helper.assertTrue(BulwarkGreatshield.hasWisdomShardAdjustment(stack),
                     "Wisdom Shard adjustment should be stored on Bulwark");
             var tooltipLines = new ArrayList<Component>();
@@ -274,7 +274,7 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
                 helper, new BlockPos(2, 2, 0), "reflectcast_continuous_duration_test"
         );
         var reflectcastStack = createContinuousCastShieldStack(ItemRegistry.REFLECTCAST_SHIELD.get());
-        ReflectcastShield.setCalibrationAdjustment(
+        SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                 reflectcastStack,
                 0,
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
@@ -347,7 +347,7 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
                 helper, new BlockPos(2, 2, 0), "reflectcast_continuous_cleanup_test"
         );
         var reflectcastStack = createContinuousCastShieldStack(ItemRegistry.REFLECTCAST_SHIELD.get());
-        ReflectcastShield.setCalibrationAdjustment(
+        SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                 reflectcastStack,
                 0,
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
@@ -442,7 +442,7 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
                 helper, new BlockPos(2, 2, 0), "reflectcast_continuous_death_test"
         );
         var reflectcastStack = createContinuousCastShieldStack(ItemRegistry.REFLECTCAST_SHIELD.get());
-        ReflectcastShield.setCalibrationAdjustment(
+        SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                 reflectcastStack,
                 0,
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
@@ -508,7 +508,7 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
         reflectcastPlayer.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
         helper.assertTrue(reflectcastPlayer.isCreative(), "Reflectcast creative cooldown test requires creative mode");
         var reflectcastStack = createContinuousCastShieldStack(ItemRegistry.REFLECTCAST_SHIELD.get());
-        ReflectcastShield.setCalibrationAdjustment(
+        SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                 reflectcastStack,
                 0,
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())

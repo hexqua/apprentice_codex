@@ -59,7 +59,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
                     "Autocast Amulet should reject continuous spells");
             helper.assertFalse(item.canAutoCastSpell(stack, apprenticeLongSpell, 1),
                     "Autocast Amulet should not auto-cast long spells without Silver Ring adjustment");
-            AutocastAmulet.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     stack,
                     0,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
@@ -94,14 +94,15 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             var silverRing = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get());
             var fireRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get());
 
-            helper.assertTrue(AutocastAmulet.isCalibrationAdjustmentItem(wisdomShard),
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
+                            stack, 0, wisdomShard),
                     "Wisdom Shard should be accepted as an Autocast Amulet adjustment item");
             helper.assertFalse(AutocastAmulet.isCalibrationSlotUpgrade(wisdomShard),
                     "Wisdom Shard should not count as an Autocast Amulet slot upgrade");
             helper.assertFalse(AutocastAmulet.isSilverRing(wisdomShard),
                     "Wisdom Shard should not count as a Silver Ring adjustment");
 
-            AutocastAmulet.setCalibrationAdjustment(stack, 0, wisdomShard);
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 0, wisdomShard);
 
             helper.assertTrue(AutocastAmulet.hasWisdomShardAdjustment(stack),
                     "Autocast Amulet should detect an installed Wisdom Shard");
@@ -141,7 +142,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
                     1,
                     new SpellData(spell, 1)
             );
-            AutocastAmulet.setCalibrationAdjustment(stack, 0, new ItemStack(ItemRegistry.WISDOM_SHARD.get()));
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 0, new ItemStack(ItemRegistry.WISDOM_SHARD.get()));
             equipNecklaceCurio(player, stack);
 
             var magicData = MagicData.getPlayerMagicData(player);
@@ -269,19 +270,19 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
                     new SpellData(apprenticeSpell, 1)
             );
 
-            AutocastAmulet.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     stack,
                     0,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
             );
             AutocastAmulet.setCalibrationScroll(stack, 1, createSpellScroll(mageLight));
-            AutocastAmulet.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     stack,
                     1,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
             );
             AutocastAmulet.setCalibrationScroll(stack, 2, createSpellScroll(remoteEye));
-            AutocastAmulet.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     stack,
                     2,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
@@ -317,7 +318,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
                     new SpellData(remoteEye, 1)
             );
 
-            AutocastAmulet.setCalibrationAdjustment(stack, 1, ItemStack.EMPTY);
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 1, ItemStack.EMPTY);
             helper.assertFalse(ISpellContainer.isSpellContainer(stack),
                     "Autocast Amulet should keep scroll storage outside Iron's SpellContainer after removing an upgrade");
             helper.assertTrue(AutocastAmulet.getEnabledSpellSlotCount(stack) == 2,
@@ -456,7 +457,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
             var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
             var stack = item.getDefaultInstance();
-            AutocastAmulet.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     stack,
                     0,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
@@ -560,7 +561,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
             var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
             var stack = item.getDefaultInstance();
-            AutocastAmulet.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     stack,
                     0,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())

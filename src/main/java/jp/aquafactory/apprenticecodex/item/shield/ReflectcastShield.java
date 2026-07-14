@@ -8,7 +8,11 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
@@ -43,7 +47,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class ReflectcastShield extends AbstractImbueShieldItem implements GeoItem, IJeiInfoItem {
+public class ReflectcastShield extends AbstractImbueShieldItem
+        implements GeoItem, IJeiInfoItem, SpellCalibrationAdjustmentTarget {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.reflectcast_shield.desc_";
 
     public static final int DURABILITY = 1561;
@@ -51,6 +56,17 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
     public static final int SPELL_TRIGGER_SUPPRESSION_TICKS = 10;
     public static final int ENCHANTMENT_VALUE = 22;
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
+    private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
+            CalibrationAdjustmentProfile.of(
+                    CalibrationAdjustmentRule.unique(
+                            MithrilFreecastStaff::isSilverRing,
+                            CalibrationAdjustmentHints.silverRing()
+                    ),
+                    CalibrationAdjustmentRule.unique(
+                            stack -> stack.is(ItemRegistry.WISDOM_SHARD.get()),
+                            CalibrationAdjustmentHints.wisdomShard()
+                    )
+            );
     private static final float MINIMUM_DURABILITY_DAMAGE = 3.0F;
     private static final String CALIBRATION_TAG = "ReflectcastShieldCalibration";
     private static final String ADJUSTMENTS_TAG = "Adjustments";
@@ -222,7 +238,7 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
                 .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
     }
 
-    public static @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack shieldStack, int slot) {
+    private static @NotNull ItemStack readCalibrationAdjustment(@NotNull ItemStack shieldStack, int slot) {
         if (!isValidCalibrationAccess(shieldStack, slot)) {
             return ItemStack.EMPTY;
         }
@@ -240,7 +256,7 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
         return ItemStack.EMPTY;
     }
 
-    public static void setCalibrationAdjustment(@NotNull ItemStack shieldStack, int slot, @NotNull ItemStack adjustment) {
+    private static void writeCalibrationAdjustment(@NotNull ItemStack shieldStack, int slot, @NotNull ItemStack adjustment) {
         if (!isValidCalibrationAccess(shieldStack, slot)) {
             return;
         }
@@ -267,8 +283,32 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
         }
     }
 
-    public static boolean isCalibrationAdjustmentItem(ItemStack stack) {
-        return MithrilFreecastStaff.isSilverRing(stack) || stack.is(ItemRegistry.WISDOM_SHARD.get());
+    @Override
+    public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_SLOT_COUNT;
+    }
+
+    @Override
+    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
+        return readCalibrationAdjustment(targetStack, slot);
+    }
+
+    @Override
+    public boolean trySetCalibrationAdjustment(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull ItemStack adjustment
+    ) {
+        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
+            return false;
+        }
+        writeCalibrationAdjustment(targetStack, slot, adjustment);
+        return true;
+    }
+
+    @Override
+    public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_PROFILE;
     }
 
     public static boolean hasSilverRing(ItemStack stack) {
@@ -300,7 +340,7 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
 
     private static boolean hasAdjustment(ItemStack stack, java.util.function.Predicate<ItemStack> predicate) {
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; slot++) {
-            if (predicate.test(getCalibrationAdjustment(stack, slot))) {
+            if (predicate.test(readCalibrationAdjustment(stack, slot))) {
                 return true;
             }
         }

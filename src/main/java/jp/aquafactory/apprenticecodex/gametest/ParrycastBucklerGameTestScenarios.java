@@ -74,7 +74,7 @@ final class ParrycastBucklerGameTestScenarios {
                     "Inserted long spell should warn while Silver Ring is absent");
             assertFirstRestrictionKey(helper, item.getImbueRestrictionTooltipLines(stack),
                     "item.apprenticecodex.spellgun.tooltip.restrict_restrict_instant_only");
-            ParrycastBuckler.setCalibrationAdjustment(stack, 0,
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 0,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()));
             helper.assertTrue(item.canUseConfiguredSpell(stack, SpellRegistry.MANTIS_LEAP.get(), 1), "Silver Ring should allow long spells");
             helper.assertTrue(item.evaluateCalibrationImbue(stack, 0, new SpellData(SpellRegistry.MANTIS_LEAP.get(), 1))
@@ -94,9 +94,9 @@ final class ParrycastBucklerGameTestScenarios {
             for (int i = 0; i < 3; i++) helper.assertTrue(menu.isAdjustmentSlotEnabled(i), "Parrycast adjustment slot should be enabled: " + i);
 
             var fireRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get());
-            ParrycastBuckler.setCalibrationAdjustment(stack, 0, fireRune);
-            ParrycastBuckler.setCalibrationAdjustment(stack, 1, fireRune);
-            ParrycastBuckler.setCalibrationAdjustment(stack, 2, new ItemStack(ItemRegistry.WISDOM_SHARD.get()));
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 0, fireRune);
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 1, fireRune);
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 2, new ItemStack(ItemRegistry.WISDOM_SHARD.get()));
             helper.assertTrue(ParrycastBuckler.hasWisdomShard(stack), "Wisdom Shard should be stored");
             var tooltipLines = new ArrayList<Component>();
             stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
@@ -208,7 +208,7 @@ final class ParrycastBucklerGameTestScenarios {
     ) {
         var player = BowGameTestSupport.createEquipmentTestPlayer(helper, position, name);
         var buckler = new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get());
-        ParrycastBuckler.setCalibrationAdjustment(buckler, 0, new ItemStack(ItemRegistry.WISDOM_SHARD.get()));
+        SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(buckler, 0, new ItemStack(ItemRegistry.WISDOM_SHARD.get()));
         var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
         ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, BowGameTestSupport.createSpellScroll(selectedSpell));
         ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);

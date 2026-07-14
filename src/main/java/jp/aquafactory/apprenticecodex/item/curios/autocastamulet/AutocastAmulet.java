@@ -8,7 +8,11 @@ import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
@@ -38,10 +42,25 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, ArcaneAnvilImbueBlockItem,
-        StoredSpellCalibrationImbueTarget {
+        StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget {
     public static final int MIN_SPELL_SLOTS = 1;
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     public static final int MAX_SPELL_SLOTS = MIN_SPELL_SLOTS + CALIBRATION_ADJUSTMENT_SLOT_COUNT;
+    private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
+            CalibrationAdjustmentProfile.of(
+                    CalibrationAdjustmentRule.repeatable(
+                            AutocastAmulet::isCalibrationSlotUpgrade,
+                            CalibrationAdjustmentHints.slotUpgrades()
+                    ),
+                    CalibrationAdjustmentRule.unique(
+                            AutocastAmulet::isSilverRing,
+                            CalibrationAdjustmentHints.silverRing()
+                    ),
+                    CalibrationAdjustmentRule.unique(
+                            AutocastAmulet::isWisdomShard,
+                            CalibrationAdjustmentHints.wisdomShard()
+                    )
+            );
 
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.autocast_amulet.desc_";
     private static final String CALIBRATION_TAG = "SpellCalibration";
@@ -255,12 +274,40 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
         return spells;
     }
 
-    public static @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack amuletStack, int slot) {
+    private static @NotNull ItemStack readCalibrationAdjustment(@NotNull ItemStack amuletStack, int slot) {
         return getCalibrationItem(amuletStack, slot);
     }
 
-    public static void setCalibrationAdjustment(@NotNull ItemStack amuletStack, int slot, @NotNull ItemStack stack) {
+    private static void writeCalibrationAdjustment(@NotNull ItemStack amuletStack, int slot, @NotNull ItemStack stack) {
         setCalibrationItem(amuletStack, slot, stack);
+    }
+
+    @Override
+    public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_SLOT_COUNT;
+    }
+
+    @Override
+    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
+        return readCalibrationAdjustment(targetStack, slot);
+    }
+
+    @Override
+    public boolean trySetCalibrationAdjustment(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull ItemStack adjustment
+    ) {
+        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
+            return false;
+        }
+        writeCalibrationAdjustment(targetStack, slot, adjustment);
+        return true;
+    }
+
+    @Override
+    public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_PROFILE;
     }
 
     public static @NotNull ItemStack getCalibrationScroll(@NotNull ItemStack amuletStack, int slot) {
@@ -278,15 +325,11 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
 
         var upgradeCount = 0;
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (isCalibrationSlotUpgrade(getCalibrationAdjustment(amuletStack, slot))) {
+            if (isCalibrationSlotUpgrade(readCalibrationAdjustment(amuletStack, slot))) {
                 ++upgradeCount;
             }
         }
         return clampSpellSlotCount(MIN_SPELL_SLOTS + upgradeCount);
-    }
-
-    public static boolean isCalibrationAdjustmentItem(@NotNull ItemStack stack) {
-        return isCalibrationSlotUpgrade(stack) || isSilverRing(stack) || isWisdomShard(stack);
     }
 
     public static boolean isCalibrationSlotUpgrade(@NotNull ItemStack stack) {
@@ -308,7 +351,7 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
         }
 
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (isSilverRing(getCalibrationAdjustment(amuletStack, slot))) {
+            if (isSilverRing(readCalibrationAdjustment(amuletStack, slot))) {
                 return true;
             }
         }
@@ -321,7 +364,7 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
         }
 
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (isWisdomShard(getCalibrationAdjustment(amuletStack, slot))) {
+            if (isWisdomShard(readCalibrationAdjustment(amuletStack, slot))) {
                 return true;
             }
         }
@@ -380,14 +423,14 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
 
         var existingUpgradeCount = 0;
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (isCalibrationSlotUpgrade(getCalibrationAdjustment(amuletStack, slot))) {
+            if (isCalibrationSlotUpgrade(readCalibrationAdjustment(amuletStack, slot))) {
                 ++existingUpgradeCount;
             }
         }
 
         var missingUpgradeCount = Math.min(CALIBRATION_ADJUSTMENT_SLOT_COUNT, legacyExtraSlots) - existingUpgradeCount;
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT && missingUpgradeCount > 0; ++slot) {
-            if (!getCalibrationAdjustment(amuletStack, slot).isEmpty()) {
+            if (!readCalibrationAdjustment(amuletStack, slot).isEmpty()) {
                 continue;
             }
             setCalibrationItem(

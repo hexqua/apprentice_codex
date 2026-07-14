@@ -13,6 +13,8 @@ import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
@@ -37,10 +39,15 @@ import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import jp.aquafactory.apprenticecodex.utility.SpellSelectionStackResolver;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentInstance;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraftforge.common.MinecraftForge;
 
 final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGameTestScenarios {
@@ -214,7 +221,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertTrue(suitCoatMenu.getEnabledScrollSlotCount() == 1,
                     "Magi Agent Suit coat should expose one scroll slot");
             suitCoatMenu.getSlot(SpellCalibrationBenchMenu.ADJUSTMENT_MENU_SLOT_START).set(fireRune.copy());
-            helper.assertTrue(jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport
                             .getCalibrationAdjustment(suitCoat, 0)
                             .is(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get()),
                     "Magi Agent Suit coat should store a school rune through the Spell Calibration Bench");
@@ -284,7 +291,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
 
             var fourSlotSatellite = new ItemStack(ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get());
             for (var slot = 0; slot < SatelliteFollowcastAmulet.CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-                SatelliteFollowcastAmulet.setCalibrationAdjustment(
+                SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                         fourSlotSatellite,
                         slot,
                         new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
@@ -306,6 +313,123 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
         });
     }
 
+    static void spellCalibrationAdjustmentProfilesEnforceDeclaredRules(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var targets = new ItemStack[]{
+                    new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get()),
+                    new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get()),
+                    new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()),
+                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get()),
+                    new ItemStack(ItemRegistry.AUTOCAST_AMULET.get()),
+                    new ItemStack(ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get()),
+                    new ItemStack(ItemRegistry.BULWARK_GREATSHIELD.get()),
+                    new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get()),
+                    new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get())
+            };
+            var expectedSlotCounts = new int[]{3, 3, 3, 1, 3, 3, 1, 3, 3};
+            var representativeAdjustments = new ItemStack[]{
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get()),
+                    new ItemStack(ItemRegistry.WISDOM_SHARD.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()),
+                    new ItemStack(ItemRegistry.WISDOM_SHARD.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.ICE_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
+            };
+            for (var index = 0; index < targets.length; ++index) {
+                var stack = targets[index];
+                helper.assertTrue(stack.getItem() instanceof SpellCalibrationAdjustmentTarget,
+                        "Every declared calibration target should implement SpellCalibrationAdjustmentTarget: " + index);
+                var target = (SpellCalibrationAdjustmentTarget) stack.getItem();
+                helper.assertTrue(target.getCalibrationAdjustmentSlotCount(stack) == expectedSlotCounts[index],
+                        "Calibration target should expose its declared adjustment slot count: " + index);
+                helper.assertFalse(target.getCalibrationAdjustmentProfile(stack).rules().isEmpty(),
+                        "Calibration target should expose at least one adjustment rule: " + index);
+                helper.assertTrue(target.canPlaceCalibrationAdjustment(stack, 0, representativeAdjustments[index]),
+                        "Calibration target should accept its representative adjustment: " + index);
+                helper.assertFalse(target.canPlaceCalibrationAdjustment(stack, 0, new ItemStack(Items.DIRT)),
+                        "Calibration target should reject an unrelated item: " + index);
+            }
+
+            var gauntlet = targets[0];
+            var gauntletProfile = ((SpellCalibrationAdjustmentTarget) gauntlet.getItem())
+                    .getCalibrationAdjustmentProfile(gauntlet);
+            helper.assertTrue(gauntletProfile.rules().size() == 5,
+                    "Scrollcaster Gauntlet should expose all five hint groups from its rules");
+            helper.assertTrue(gauntletProfile.rules().get(0).hint() instanceof CalibrationAdjustmentHint.TaggedItems,
+                    "Scrollcaster Gauntlet slot upgrades should use a generated tag hint");
+            helper.assertTrue(gauntletProfile.rules().get(4).hint() instanceof CalibrationAdjustmentHint.Translatable,
+                    "Scrollcaster Gauntlet school runes should use a translated category hint");
+
+            var silverRing = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get());
+            var autocast = targets[4];
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            autocast, 0, silverRing),
+                    "Autocast Amulet should accept its first Silver Ring");
+            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
+                            autocast, 1, silverRing),
+                    "Autocast Amulet should reject a duplicate singleton adjustment");
+
+            var slotUpgrade = new ItemStack(
+                    io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get());
+            var satellite = targets[5];
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            satellite, 0, slotUpgrade),
+                    "Satellite Followcast Amulet should accept a slot upgrade");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
+                            satellite, 1, slotUpgrade),
+                    "Repeatable slot upgrades should be accepted more than once");
+
+            var fireRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get());
+            var iceRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.ICE_RUNE.get());
+            var parrycast = targets[7];
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            parrycast, 0, fireRune),
+                    "Parrycast Buckler should accept its first school rune");
+            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
+                            parrycast, 1, fireRune),
+                    "Parrycast Buckler should reject a duplicate School ID");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
+                            parrycast, 1, iceRune),
+                    "Parrycast Buckler should accept a different School ID");
+
+            var sharpnessBook = new ItemStack(Items.ENCHANTED_BOOK);
+            EnchantedBookItem.addEnchantment(sharpnessBook,
+                    new EnchantmentInstance(Enchantments.SHARPNESS, 1));
+            var anotherSharpnessBook = sharpnessBook.copy();
+            var unbreakingBook = new ItemStack(Items.ENCHANTED_BOOK);
+            EnchantedBookItem.addEnchantment(unbreakingBook,
+                    new EnchantmentInstance(Enchantments.UNBREAKING, 1));
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            gauntlet, 0, sharpnessBook),
+                    "Scrollcaster Gauntlet should accept a supported enchantment book");
+            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
+                            gauntlet, 1, anotherSharpnessBook),
+                    "Scrollcaster Gauntlet should reject the same first enchantment twice");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
+                            gauntlet, 1, unbreakingBook),
+                    "Scrollcaster Gauntlet should accept a different first enchantment");
+
+            var calibration = autocast.getTagElement("SpellCalibration");
+            helper.assertTrue(calibration != null, "Legacy duplicate test requires calibration NBT");
+            var adjustments = calibration.getList("Adjustments", Tag.TAG_COMPOUND);
+            var duplicate = ((CompoundTag) adjustments.get(0).copy());
+            duplicate.putInt("Slot", 1);
+            adjustments.add(duplicate);
+            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport
+                            .getCalibrationAdjustment(autocast, 1).isEmpty(),
+                    "Legacy duplicate adjustment should remain readable");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            autocast, 0, ItemStack.EMPTY),
+                    "Legacy duplicate adjustment should be removable from the first slot");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            autocast, 1, ItemStack.EMPTY),
+                    "Legacy duplicate adjustment should be removable from the second slot");
+        });
+    }
+
     static void spellCalibrationBenchImbueStatesSeparateInsertionFromCurrentUsability(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
@@ -323,16 +447,16 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             assertCalibrationImbueState(helper, autocast, 0, longScroll,
                     SpellCalibrationImbueState.ACCEPTED_CURRENTLY_UNUSABLE,
                     "Autocast Amulet should accept long spells with a warning before an enabling adjustment");
-            AutocastAmulet.setCalibrationAdjustment(autocast, 0, wisdomShard);
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(autocast, 0, wisdomShard);
             assertCalibrationImbueState(helper, autocast, 0, longScroll,
                     SpellCalibrationImbueState.ACCEPTED_CURRENTLY_UNUSABLE,
                     "Wisdom Shard runtime profiles should not change Calibration Bench insertion state");
-            AutocastAmulet.setCalibrationAdjustment(autocast, 1, silverRing);
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(autocast, 1, silverRing);
             assertCalibrationImbueState(helper, autocast, 0, longScroll,
                     SpellCalibrationImbueState.ACCEPTED_USABLE,
                     "Autocast Amulet should mark long spells usable after an enabling adjustment");
             autocastMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(longScroll.copy());
-            AutocastAmulet.setCalibrationAdjustment(autocast, 1, ItemStack.EMPTY);
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(autocast, 1, ItemStack.EMPTY);
             helper.assertFalse(AutocastAmulet.getCalibrationScroll(autocast, 0).isEmpty(),
                     "Removing an enabling adjustment should keep an already inserted scroll");
             helper.assertTrue(autocastMenu.shouldRenderMismatchCastConditionWarning(0),
@@ -343,7 +467,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             assertCalibrationImbueState(helper, satellite, 0, profiledContinuousScroll,
                     SpellCalibrationImbueState.ACCEPTED_CURRENTLY_UNUSABLE,
                     "Satellite Followcast Amulet should accept continuous spells with a warning before an enabling adjustment");
-            SatelliteFollowcastAmulet.setCalibrationAdjustment(satellite, 0, silverRing);
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(satellite, 0, silverRing);
             assertCalibrationImbueState(helper, satellite, 0, profiledContinuousScroll,
                     SpellCalibrationImbueState.ACCEPTED_USABLE,
                     "Satellite Followcast Amulet should mark continuous spells usable after an enabling adjustment");
@@ -353,7 +477,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             assertCalibrationImbueState(helper, revolver, 0, longScroll,
                     SpellCalibrationImbueState.ACCEPTED_CURRENTLY_UNUSABLE,
                     "Revolvercast Staff should accept long spells with a warning before an enabling adjustment");
-            RevolvercastStaff.setCalibrationAdjustment(revolver, 0, silverRing);
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(revolver, 0, silverRing);
             assertCalibrationImbueState(helper, revolver, 0, longScroll,
                     SpellCalibrationImbueState.ACCEPTED_USABLE,
                     "Revolvercast Staff should mark long spells usable after an enabling adjustment");
@@ -363,7 +487,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             assertCalibrationImbueState(helper, parrycast, 0, longScroll,
                     SpellCalibrationImbueState.ACCEPTED_CURRENTLY_UNUSABLE,
                     "Parrycast Buckler should accept long spells with a warning before an enabling adjustment");
-            ParrycastBuckler.setCalibrationAdjustment(parrycast, 0, silverRing);
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(parrycast, 0, silverRing);
             assertCalibrationImbueState(helper, parrycast, 0, longScroll,
                     SpellCalibrationImbueState.ACCEPTED_USABLE,
                     "Parrycast Buckler should mark long spells usable after an enabling adjustment");
@@ -373,7 +497,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             assertCalibrationImbueState(helper, reflectcast, 0, profiledContinuousScroll,
                     SpellCalibrationImbueState.ACCEPTED_CURRENTLY_UNUSABLE,
                     "Reflectcast Shield should accept continuous spells with a warning before an enabling adjustment");
-            ReflectcastShield.setCalibrationAdjustment(reflectcast, 0, silverRing);
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(reflectcast, 0, silverRing);
             assertCalibrationImbueState(helper, reflectcast, 0, profiledContinuousScroll,
                     SpellCalibrationImbueState.ACCEPTED_USABLE,
                     "Reflectcast Shield should mark continuous spells usable after an enabling adjustment");
@@ -406,7 +530,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
 
             var twoSlotAmulet = new ItemStack(autocastAmulet);
             autocastAmulet.initializeSpellContainer(twoSlotAmulet);
-            AutocastAmulet.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     twoSlotAmulet,
                     0,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
@@ -439,7 +563,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             assertSatelliteSpellData(helper, satelliteAmulet, 0, mageLight, 1,
                     "Calibration-imbued Satellite Followcast Amulet should contain mage_light");
 
-            SatelliteFollowcastAmulet.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     satelliteAmulet,
                     0,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
@@ -590,7 +714,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             var staff = new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
             var staffItem = (MithrilFreecastStaff) staff.getItem();
             staffItem.initializeSpellContainer(staff);
-            MithrilFreecastStaff.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     staff,
                     0,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
