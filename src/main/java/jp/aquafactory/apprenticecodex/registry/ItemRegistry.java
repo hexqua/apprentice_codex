@@ -413,8 +413,8 @@ public final class ItemRegistry {
             ITEMS.register("elemental_bow", ElementalBow::new);
     public static final DeferredHolder<Item, Item> REFLECTCAST_SHIELD =
             ITEMS.register("reflectcast_shield", ReflectcastShield::new);
-    public static final RegistryObject<Item> PARRYCAST_BUCKLER =
+    public static final DeferredHolder<Item, Item> PARRYCAST_BUCKLER =
             ITEMS.register("parrycast_buckler", ParrycastBuckler::new);
-    public static final RegistryObject<Item> BULWARK_GREATSHIELD =
+    public static final DeferredHolder<Item, Item> BULWARK_GREATSHIELD =
             ITEMS.register("bulwark_greatshield", BulwarkGreatshield::new);
 }

@@ -169,6 +169,7 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
             try {
                 player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
                 io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(false);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
                 RemoteOwnerCooldownManager.addCooldown(
                         player,
                         spellData,
@@ -179,6 +180,7 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
                         "Remote Owner should skip creative cooldowns when Iron's setting is disabled");
 
                 io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(true);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
                 RemoteOwnerCooldownManager.addCooldown(
                         player,
                         spellData,
@@ -191,6 +193,7 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
                 magicData.getPlayerCooldowns().clearCooldowns();
                 player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
                 io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(false);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
                 RemoteOwnerCooldownManager.addCooldown(
                         player,
                         spellData,
@@ -201,6 +204,7 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
                         "Remote Owner should keep applying survival cooldowns");
             } finally {
                 io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
                 magicData.getPlayerCooldowns().clearCooldowns();
             }
         });

@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "minecraft:shield"
-            ]
+            "items": "minecraft:shield"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_shield",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_shield"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:bulwark_greatshield"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

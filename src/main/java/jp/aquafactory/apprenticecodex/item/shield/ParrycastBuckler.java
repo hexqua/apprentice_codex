@@ -20,42 +20,40 @@ import jp.aquafactory.apprenticecodex.item.OffhandMagicModifierHelper;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.renderer.item.ParrycastBucklerRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.HashSet;
@@ -65,9 +63,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.WeakHashMap;
-import java.util.function.Consumer;
 
 public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem, IJeiInfoItem {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.parrycast_buckler.desc_";
@@ -76,9 +72,6 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     private static final double SCHOOL_POWER_BONUS = 0.1D;
     private static final String CALIBRATION_TAG = "ParrycastBucklerCalibration";
-    private static final String ADJUSTMENTS_TAG = "Adjustments";
-    private static final String SLOT_TAG = "Slot";
-    private static final String ITEM_TAG = "Item";
     private static final String USE_START_TICK_TAG = "ApprenticeCodexParrycastBucklerUseStart";
     private static final String SESSION_TRIGGERED_TAG = "ApprenticeCodexParrycastBucklerTriggered";
     private static final String LAST_DURABILITY_TICK_TAG = "ApprenticeCodexParrycastBucklerDurabilityTick";
@@ -88,14 +81,14 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
     private static final Map<ItemStack, ClientAnimationState> CLIENT_ANIMATION_STATES = new WeakHashMap<>();
     private static final Map<LivingEntity, EnumMap<InteractionHand, ClientAnimationState>> CLIENT_ANIMATION_OWNERS = new WeakHashMap<>();
     private static long nextClientAnimationInstanceId = Long.MIN_VALUE;
-    private static final ItemStack SHIELD_ENCHANTMENT_PROBE = new ItemStack(Items.SHIELD);
+    private static final ItemStack SHIELD_ENCHANTMENT_PROBE = new ItemStack(net.minecraft.world.item.Items.SHIELD);
     private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation DEPLOY = RawAnimation.begin().thenPlayAndHold("deploy");
     private static final RawAnimation REMOVE_IDLE = RawAnimation.begin().thenPlay("remove").thenLoop("idle");
-    private static final UUID[] SCHOOL_POWER_IDS = {
-            UUID.fromString("23da0bec-c636-4454-9802-866f841b0a50"),
-            UUID.fromString("64de25e1-e97c-49d2-b522-58122aac8470"),
-            UUID.fromString("f4501063-c5a5-45d6-bdf5-dd67fde71768")
+    private static final ResourceLocation[] SCHOOL_POWER_IDS = {
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "parrycast_buckler/school_spell_power_0"),
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "parrycast_buckler/school_spell_power_1"),
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "parrycast_buckler/school_spell_power_2")
     };
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
@@ -265,35 +258,41 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return enchantment.canApplyAtEnchantingTable(SHIELD_ENCHANTMENT_PROBE)
-                || enchantment == EnchantmentRegistry.TENSE.get()
-                || enchantment == EnchantmentRegistry.ALACRITY.get()
-                || enchantment == EnchantmentRegistry.TRANSCENDENCE.get()
-                || enchantment == EnchantmentRegistry.WISDOM.get();
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.supportsEnchantment(stack, enchantment)
+                || SHIELD_ENCHANTMENT_PROBE.supportsEnchantment(enchantment);
+    }
+
+    @Override
+    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
     public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
         if (!super.isBookEnchantable(stack, book)) return false;
-        var enchantments = EnchantmentHelper.getEnchantments(book);
-        return enchantments.isEmpty() || enchantments.keySet().stream().allMatch(e -> canApplyAtEnchantingTable(stack, e));
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
+        return enchantments.isEmpty() || enchantments.keySet().stream()
+                .allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        var base = super.getAttributeModifiers(slot, stack);
-        if (slot != EquipmentSlot.OFFHAND) return base;
-        var equippedBase = OffhandMagicModifierHelper.buildEquippedModifiers(base, stack, "parrycast_buckler");
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder().putAll(equippedBase);
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        var equippedBase = OffhandMagicModifierHelper.buildEquippedModifiers(
+                ImmutableMultimap.<Holder<Attribute>, AttributeModifier>of(), stack, "parrycast_buckler");
+        var builder = ItemAttributeModifiers.builder();
+        for (var entry : equippedBase.entries()) {
+            builder.add(entry.getKey(), entry.getValue(), net.minecraft.world.entity.EquipmentSlotGroup.OFFHAND);
+        }
         Set<net.minecraft.resources.ResourceLocation> seen = new HashSet<>();
         for (int i = 0; i < CALIBRATION_ADJUSTMENT_SLOT_COUNT; i++) {
             var school = ScrollcasterSchoolRuneResolver.resolveSchool(getCalibrationAdjustment(stack, i)).orElse(null);
             if (school == null || !seen.add(school.getId())) continue;
             var attribute = MagicTools.resolveSchoolPowerAttribute(school);
             if (attribute != null) {
-                builder.put(attribute, new AttributeModifier(SCHOOL_POWER_IDS[i],
-                        "Parrycast buckler school spell power", SCHOOL_POWER_BONUS, AttributeModifier.Operation.MULTIPLY_BASE));
+                builder.add(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute), new AttributeModifier(
+                        SCHOOL_POWER_IDS[i], SCHOOL_POWER_BONUS, AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
+                        net.minecraft.world.entity.EquipmentSlotGroup.OFFHAND);
             }
         }
         return builder.build();
@@ -323,14 +322,17 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
     }
 
     public static boolean isDurabilitySuppressed(ItemStack stack, long gameTime) {
-        var tag = stack.getTag();
-        return tag != null && tag.contains(LAST_DURABILITY_TICK_TAG)
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        var tag = customData == null ? null : customData.copyTag();
+        return tag != null && tag.contains(LAST_DURABILITY_TICK_TAG, Tag.TAG_LONG)
                 && gameTime - tag.getLong(LAST_DURABILITY_TICK_TAG)
                 <= ApprenticeCodexServerConfig.parrycastBucklerPerfectGuardTicks();
     }
 
     public static void rememberDurabilityConsumed(ItemStack stack, long gameTime) {
-        if (!stack.isEmpty()) stack.getOrCreateTag().putLong(LAST_DURABILITY_TICK_TAG, gameTime);
+        if (!stack.isEmpty()) {
+            CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putLong(LAST_DURABILITY_TICK_TAG, gameTime));
+        }
     }
 
     private void tryCastOrReduceCooldown(ServerPlayer player, ItemStack stack, InteractionHand hand) {
@@ -391,47 +393,43 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
         int ticks = ApprenticeCodexServerConfig.parrycastBucklerPerfectGuardReleaseCooldownGraceTicks();
         int uses = ApprenticeCodexServerConfig.parrycastBucklerPerfectGuardReleaseCooldownGraceUses();
         if (ticks <= 0 || uses <= 0) return;
-        stack.getOrCreateTag().putLong(GRACE_TICK_TAG, gameTime);
-        stack.getOrCreateTag().putInt(GRACE_USES_TAG, uses);
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putLong(GRACE_TICK_TAG, gameTime);
+            tag.putInt(GRACE_USES_TAG, uses);
+        });
     }
 
     private static boolean consumeReleaseGrace(ItemStack stack, Level level) {
-        var tag = stack.getTag();
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        var tag = customData == null ? null : customData.copyTag();
         if (tag == null || !tag.contains(GRACE_TICK_TAG) || !tag.contains(GRACE_USES_TAG)) return false;
         long elapsed = level.getGameTime() - tag.getLong(GRACE_TICK_TAG);
         int uses = tag.getInt(GRACE_USES_TAG);
         if (elapsed < 0 || elapsed > ApprenticeCodexServerConfig.parrycastBucklerPerfectGuardReleaseCooldownGraceTicks() || uses <= 0) {
-            tag.remove(GRACE_TICK_TAG); tag.remove(GRACE_USES_TAG); return false;
+            CustomData.update(DataComponents.CUSTOM_DATA, stack, data -> {
+                data.remove(GRACE_TICK_TAG);
+                data.remove(GRACE_USES_TAG);
+            });
+            return false;
         }
-        if (--uses <= 0) { tag.remove(GRACE_TICK_TAG); tag.remove(GRACE_USES_TAG); }
-        else tag.putInt(GRACE_USES_TAG, uses);
+        int remainingUses = uses - 1;
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, data -> {
+            if (remainingUses <= 0) {
+                data.remove(GRACE_TICK_TAG);
+                data.remove(GRACE_USES_TAG);
+            } else {
+                data.putInt(GRACE_USES_TAG, remainingUses);
+            }
+        });
         return true;
     }
 
     public static ItemStack getCalibrationAdjustment(ItemStack stack, int slot) {
-        if (slot < 0 || slot >= CALIBRATION_ADJUSTMENT_SLOT_COUNT) return ItemStack.EMPTY;
-        var calibration = stack.getTagElement(CALIBRATION_TAG);
-        if (calibration == null) return ItemStack.EMPTY;
-        var list = calibration.getList(ADJUSTMENTS_TAG, Tag.TAG_COMPOUND);
-        for (Tag value : list) {
-            var entry = (CompoundTag) value;
-            if (entry.getInt(SLOT_TAG) == slot) return ItemStack.of(entry.getCompound(ITEM_TAG));
-        }
-        return ItemStack.EMPTY;
+        return ShieldCalibrationData.get(stack, CALIBRATION_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
     }
 
     public static void setCalibrationAdjustment(ItemStack stack, int slot, ItemStack adjustment) {
-        if (slot < 0 || slot >= CALIBRATION_ADJUSTMENT_SLOT_COUNT) return;
-        var calibration = stack.getOrCreateTagElement(CALIBRATION_TAG);
-        var old = calibration.getList(ADJUSTMENTS_TAG, Tag.TAG_COMPOUND);
-        var replacement = new ListTag();
-        for (Tag value : old) if (((CompoundTag) value).getInt(SLOT_TAG) != slot) replacement.add(value.copy());
-        if (!adjustment.isEmpty()) {
-            var entry = new CompoundTag(); entry.putInt(SLOT_TAG, slot);
-            var stored = adjustment.copy(); stored.setCount(1); entry.put(ITEM_TAG, stored.save(new CompoundTag()));
-            replacement.add(entry);
-        }
-        if (replacement.isEmpty()) stack.removeTagKey(CALIBRATION_TAG); else calibration.put(ADJUSTMENTS_TAG, replacement);
+        ShieldCalibrationData.set(stack, CALIBRATION_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, adjustment);
     }
 
     public static boolean isCalibrationAdjustmentItem(ItemStack stack) {
@@ -444,17 +442,6 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
     private static boolean hasAdjustment(ItemStack stack, java.util.function.Predicate<ItemStack> predicate) {
         for (int i = 0; i < CALIBRATION_ADJUSTMENT_SLOT_COUNT; i++) if (predicate.test(getCalibrationAdjustment(stack, i))) return true;
         return false;
-    }
-
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private ParrycastBucklerRenderer renderer;
-            @Override public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                if (renderer == null) renderer = new ParrycastBucklerRenderer();
-                return renderer;
-            }
-        });
     }
 
     @Override

@@ -5197,15 +5197,17 @@ public class ApprenticeCodexGameTestScenarios {
                 manaCost * 3.0F
         ));
         helper.runAtTickTime(2, () ->
-                MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player))
+                MulticastEchoStaffCastHelper.onPlayerTick(new PlayerTickEvent.Post(player))
         );
         helper.runAtTickTime(4, () -> {
             var originalCreativeCooldown = io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.get();
             try {
                 io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(false);
-                MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
+                MulticastEchoStaffCastHelper.onPlayerTick(new PlayerTickEvent.Post(player));
             } finally {
                 io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
             }
             var magicData = MagicData.getPlayerMagicData(player);
             helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
@@ -11741,8 +11743,8 @@ public class ApprenticeCodexGameTestScenarios {
                 enchantment -> enchantment.value().canEnchant(new ItemStack(Items.SHIELD))
         );
         expectedEnchantments.addAll(registryIdSet(
-                EnchantmentRegistry.TRANSCENDENCE,
-                EnchantmentRegistry.WISDOM
+                Enchantments.TRANSCENDENCE,
+                Enchantments.WISDOM
         ));
         return expectedEnchantments;
     }

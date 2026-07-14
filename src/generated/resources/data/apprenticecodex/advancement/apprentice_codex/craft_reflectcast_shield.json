@@ -12,14 +12,13 @@
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_reflectcast_shield.description"
     },
-    "frame": "goal",
     "icon": {
       "components": {
         "irons_spellbooks:spell_container": {
           "data": [],
           "maxSpells": 1,
           "mustEquip": false,
-          "spellWheel": true
+          "spellWheel": false
         }
       },
       "count": 1,

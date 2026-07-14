@@ -9,17 +9,22 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_bulwark_greatshield.description"
     },
     "frame": "goal",
-    "hidden": false,
     "icon": {
-      "item": "apprenticecodex:bulwark_greatshield",
-      "nbt": "{Damage:0,\"irons_spellbooks:spell_container\":{data:[],maxSpells:1,mustEquip:0b,spellWheel:0b}}"
+      "components": {
+        "irons_spellbooks:spell_container": {
+          "data": [],
+          "maxSpells": 1,
+          "mustEquip": false,
+          "spellWheel": false
+        }
+      },
+      "count": 1,
+      "id": "apprenticecodex:bulwark_greatshield"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_bulwark_greatshield.title"
     }

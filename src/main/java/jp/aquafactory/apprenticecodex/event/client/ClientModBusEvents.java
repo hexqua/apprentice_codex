@@ -58,6 +58,8 @@ import jp.aquafactory.apprenticecodex.renderer.item.MulticastEchoStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.PhotonSiphonRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.ReflectcastShieldRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.BulwarkGreatshieldRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.ParrycastBucklerRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.ScrollcasterGauntletRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.SpellAmplifierRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.SwingcastStaffRenderer;
@@ -514,6 +516,28 @@ public final class ClientModBusEvents {
                 return renderer;
             }
         }, ItemRegistry.REFLECTCAST_SHIELD.get());
+        event.registerItem(new IClientItemExtensions() {
+            private ParrycastBucklerRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new ParrycastBucklerRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.PARRYCAST_BUCKLER.get());
+        event.registerItem(new IClientItemExtensions() {
+            private BulwarkGreatshieldRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new BulwarkGreatshieldRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.BULWARK_GREATSHIELD.get());
         event.registerItem(new IClientItemExtensions() {
             private ScrollcasterGauntletRenderer renderer;
 

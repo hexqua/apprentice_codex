@@ -1309,14 +1309,16 @@ final class FocusStaffbowGameTestScenarios {
             var originalCreativeCooldown = io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.get();
             try {
                 io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(false);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
                 bowStack.getItem().releaseUsing(
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration() - 2
+                        bowStack.getUseDuration(player) - 2
                 );
             } finally {
                 io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
             }
         });
         helper.runAtTickTime(4, () -> {
@@ -1351,15 +1353,18 @@ final class FocusStaffbowGameTestScenarios {
             var interruptedSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
             var magicData = MagicData.getPlayerMagicData(player);
             helper.assertTrue(magicData != null, "Focus Staffbow creative interruption test requires MagicData");
+            magicData.setSyncedData(new io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData(player));
             magicData.initiateCast(interruptedSpell, 1, 60, CastSource.SPELLBOOK, "gametest");
 
             var originalCreativeCooldown = io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.get();
             net.minecraft.world.InteractionResultHolder<ItemStack> result;
             try {
                 io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(false);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
                 result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
             } finally {
                 io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
             }
             helper.assertTrue(result.getResult().consumesAction(),
                     "Focus Staffbow should accept input after interrupting a different creative cast");

@@ -428,7 +428,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
             var item = (jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield) stack.getItem();
             var defaultTooltipLines = new ArrayList<Component>();
-            item.appendHoverText(stack, helper.getLevel(), defaultTooltipLines, TooltipFlag.Default.NORMAL);
+            item.appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), defaultTooltipLines, TooltipFlag.Default.NORMAL);
             helper.assertTrue(containsTranslatableKey(defaultTooltipLines,
                             "item.apprenticecodex.reflectcast_shield.cast_default"),
                     "Reflectcast Shield should show the imbued-spell cast tooltip by default");
@@ -466,7 +466,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             helper.assertTrue(jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.hasWisdomShard(stack),
                     "Reflectcast Shield should store Wisdom Shard calibration alongside Silver Ring");
             var wisdomTooltipLines = new ArrayList<Component>();
-            item.appendHoverText(stack, helper.getLevel(), wisdomTooltipLines, TooltipFlag.Default.NORMAL);
+            item.appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), wisdomTooltipLines, TooltipFlag.Default.NORMAL);
             helper.assertTrue(containsTranslatableKey(wisdomTooltipLines,
                             "item.apprenticecodex.reflectcast_shield.cast_wisdom"),
                     "Wisdom Shard should switch Reflectcast Shield to the selected-spell cast tooltip");
@@ -510,7 +510,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             ISpellContainer.set(castStack, castContainer.toImmutable());
             player.setItemInHand(InteractionHand.OFF_HAND, castStack);
             castStack.getItem().use(helper.getLevel(), player, InteractionHand.OFF_HAND);
-            helper.assertTrue(player.getUseItemRemainingTicks() == castStack.getUseDuration(),
+            helper.assertTrue(player.getUseItemRemainingTicks() == castStack.getUseDuration(player),
                     "Reflectcast Shield should keep vanilla shield block preparation time");
             var magicData = MagicData.getPlayerMagicData(player);
             helper.assertTrue(magicData != null, "Reflectcast Shield continuous cast requires MagicData");

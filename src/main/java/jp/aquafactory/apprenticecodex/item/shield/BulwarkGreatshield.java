@@ -1,7 +1,5 @@
 package jp.aquafactory.apprenticecodex.item.shield;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
@@ -13,41 +11,35 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.renderer.item.BulwarkGreatshieldRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.util.UUID;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class BulwarkGreatshield extends AbstractImbueShieldItem implements GeoItem, IJeiInfoItem {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.bulwark_greatshield.desc_";
@@ -62,9 +54,10 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem implements GeoIt
     public static final double SCHOOL_SPELL_RESIST = 0.5D;
 
     private static final String CALIBRATION_TAG = "BulwarkGreatshieldCalibration";
-    private static final String ADJUSTMENT_TAG = "Adjustment";
-    private static final UUID GENERIC_RESIST_MODIFIER_ID = UUID.fromString("bd2b8a1f-b1a5-49ee-9370-4d2ab9385994");
-    private static final UUID SCHOOL_RESIST_MODIFIER_ID = UUID.fromString("886ced13-4a4f-4623-9cbb-8900f65c52ac");
+    private static final ResourceLocation GENERIC_RESIST_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(
+            ApprenticeCodex.MODID, "bulwark_greatshield/generic_spell_resist");
+    private static final ResourceLocation SCHOOL_RESIST_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(
+            ApprenticeCodex.MODID, "bulwark_greatshield/school_spell_resist");
     private static final ItemStack SHIELD_ENCHANTMENT_PROBE = new ItemStack(Items.SHIELD);
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -133,7 +126,7 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem implements GeoIt
     public void onUseTick(@NotNull Level level, @NotNull LivingEntity livingEntity, @NotNull ItemStack stack, int remainingUseDuration) {
         super.onUseTick(level, livingEntity, stack, remainingUseDuration);
         if (!level.isClientSide && livingEntity instanceof ServerPlayer player
-                && getUseDuration(stack) - remainingUseDuration >= CONTINUOUS_CAST_DELAY_TICKS) {
+                && getUseDuration(stack, livingEntity) - remainingUseDuration >= CONTINUOUS_CAST_DELAY_TICKS) {
             BulwarkGreatshieldRuntime.tryStartContinuousCast(player, stack, player.getUsedItemHand());
             BulwarkGreatshieldRuntime.tickContinuousCast(player, stack);
         }
@@ -148,27 +141,20 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem implements GeoIt
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        var base = super.getAttributeModifiers(slot, stack);
-        if (slot != EquipmentSlot.OFFHAND) {
-            return base;
-        }
-
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder().putAll(base);
-        builder.put(AttributeRegistry.SPELL_RESIST.get(), new AttributeModifier(
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        var builder = ItemAttributeModifiers.builder();
+        builder.add(AttributeRegistry.SPELL_RESIST, new AttributeModifier(
                 GENERIC_RESIST_MODIFIER_ID,
-                "Bulwark greatshield spell resist",
                 GENERIC_SPELL_RESIST,
-                AttributeModifier.Operation.MULTIPLY_BASE
-        ));
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+        ), net.minecraft.world.entity.EquipmentSlotGroup.OFFHAND);
         var schoolResist = MagicTools.resolveSchoolResistAttribute(getResolvedCalibrationSchool(stack));
         if (schoolResist != null) {
-            builder.put(schoolResist, new AttributeModifier(
+            builder.add(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(schoolResist), new AttributeModifier(
                     SCHOOL_RESIST_MODIFIER_ID,
-                    "Bulwark greatshield school spell resist",
                     SCHOOL_SPELL_RESIST,
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            ));
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+            ), net.minecraft.world.entity.EquipmentSlotGroup.OFFHAND);
         }
         return builder.build();
     }
@@ -189,10 +175,14 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem implements GeoIt
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return enchantment.canApplyAtEnchantingTable(SHIELD_ENCHANTMENT_PROBE)
-                || EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get()
-                || EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get();
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.supportsEnchantment(stack, enchantment)
+                || SHIELD_ENCHANTMENT_PROBE.supportsEnchantment(enchantment);
+    }
+
+    @Override
+    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -200,37 +190,23 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem implements GeoIt
         if (!super.isBookEnchantable(stack, book)) {
             return false;
         }
-        var enchantments = EnchantmentHelper.getEnchantments(book);
-        return enchantments.isEmpty() || enchantments.keySet().stream().allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
+        return enchantments.isEmpty() || enchantments.keySet().stream()
+                .allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     public static @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack shieldStack, int slot) {
         if (!isValidCalibrationAccess(shieldStack, slot)) {
             return ItemStack.EMPTY;
         }
-        var calibration = shieldStack.getTagElement(CALIBRATION_TAG);
-        return calibration != null && calibration.contains(ADJUSTMENT_TAG, Tag.TAG_COMPOUND)
-                ? ItemStack.of(calibration.getCompound(ADJUSTMENT_TAG))
-                : ItemStack.EMPTY;
+        return ShieldCalibrationData.get(shieldStack, CALIBRATION_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
     }
 
     public static void setCalibrationAdjustment(@NotNull ItemStack shieldStack, int slot, @NotNull ItemStack adjustment) {
         if (!isValidCalibrationAccess(shieldStack, slot)) {
             return;
         }
-        if (adjustment.isEmpty()) {
-            var calibration = shieldStack.getTagElement(CALIBRATION_TAG);
-            if (calibration != null) {
-                calibration.remove(ADJUSTMENT_TAG);
-                if (calibration.isEmpty()) {
-                    shieldStack.removeTagKey(CALIBRATION_TAG);
-                }
-            }
-            return;
-        }
-        var stored = adjustment.copy();
-        stored.setCount(1);
-        shieldStack.getOrCreateTagElement(CALIBRATION_TAG).put(ADJUSTMENT_TAG, stored.save(new CompoundTag()));
+        ShieldCalibrationData.set(shieldStack, CALIBRATION_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, adjustment);
     }
 
     public static boolean isCalibrationAdjustmentItem(@NotNull ItemStack stack) {
@@ -270,27 +246,12 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem implements GeoIt
 
     public static void recoverManaAfterBlock(ServerPlayer player) {
         var magicData = MagicData.getPlayerMagicData(player);
-        var maxMana = player.getAttributeValue(AttributeRegistry.MAX_MANA.get());
+        var maxMana = player.getAttributeValue(AttributeRegistry.MAX_MANA);
         MagicTools.recoverManaSafely(player, magicData, (float) (maxMana * 0.1D));
     }
 
     private static boolean isValidCalibrationAccess(ItemStack stack, int slot) {
         return slot == 0 && !stack.isEmpty() && stack.getItem() instanceof BulwarkGreatshield;
-    }
-
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private BulwarkGreatshieldRenderer renderer;
-
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                if (renderer == null) {
-                    renderer = new BulwarkGreatshieldRenderer();
-                }
-                return renderer;
-            }
-        });
     }
 
     @Override

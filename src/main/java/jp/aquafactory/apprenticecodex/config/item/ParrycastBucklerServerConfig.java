@@ -1,18 +1,18 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class ParrycastBucklerServerConfig {
-    private final ForgeConfigSpec.IntValue perfectGuardTicks;
-    private final ForgeConfigSpec.IntValue releaseCooldownTicks;
-    private final ForgeConfigSpec.IntValue perfectGuardReleaseCooldownGraceTicks;
-    private final ForgeConfigSpec.IntValue perfectGuardReleaseCooldownGraceUses;
+    private final ModConfigSpec.IntValue perfectGuardTicks;
+    private final ModConfigSpec.IntValue releaseCooldownTicks;
+    private final ModConfigSpec.IntValue perfectGuardReleaseCooldownGraceTicks;
+    private final ModConfigSpec.IntValue perfectGuardReleaseCooldownGraceUses;
 
     private ParrycastBucklerServerConfig(
-            ForgeConfigSpec.IntValue perfectGuardTicks,
-            ForgeConfigSpec.IntValue releaseCooldownTicks,
-            ForgeConfigSpec.IntValue perfectGuardReleaseCooldownGraceTicks,
-            ForgeConfigSpec.IntValue perfectGuardReleaseCooldownGraceUses
+            ModConfigSpec.IntValue perfectGuardTicks,
+            ModConfigSpec.IntValue releaseCooldownTicks,
+            ModConfigSpec.IntValue perfectGuardReleaseCooldownGraceTicks,
+            ModConfigSpec.IntValue perfectGuardReleaseCooldownGraceUses
     ) {
         this.perfectGuardTicks = perfectGuardTicks;
         this.releaseCooldownTicks = releaseCooldownTicks;
@@ -20,7 +20,7 @@ public final class ParrycastBucklerServerConfig {
         this.perfectGuardReleaseCooldownGraceUses = perfectGuardReleaseCooldownGraceUses;
     }
 
-    public static ParrycastBucklerServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static ParrycastBucklerServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("ParrycastBuckler");
         var perfectGuardTicks = builder
                 .comment("Ticks after starting to use Parrycast Buckler that are treated as a perfect guard.")

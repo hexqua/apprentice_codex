@@ -88,7 +88,7 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
     @Override
     public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
-        appendImbueTargetSpellTooltip(lines);
+        appendImbueTargetSpellTooltip(stack, lines);
     }
 
     @Override

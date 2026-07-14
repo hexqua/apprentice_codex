@@ -12,13 +12,8 @@ import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.renderer.item.ReflectcastShieldRenderer;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -30,18 +25,16 @@ import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class ReflectcastShield extends AbstractImbueShieldItem implements GeoItem, IJeiInfoItem {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.reflectcast_shield.desc_";
@@ -53,9 +46,6 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     private static final float MINIMUM_DURABILITY_DAMAGE = 3.0F;
     private static final String CALIBRATION_TAG = "ReflectcastShieldCalibration";
-    private static final String ADJUSTMENTS_TAG = "Adjustments";
-    private static final String SLOT_TAG = "Slot";
-    private static final String ITEM_TAG = "Item";
     private static final ItemStack SHIELD_ENCHANTMENT_PROBE = new ItemStack(Items.SHIELD);
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
@@ -196,10 +186,14 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return enchantment.canApplyAtEnchantingTable(SHIELD_ENCHANTMENT_PROBE)
-                || EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get()
-                || EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get();
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.supportsEnchantment(stack, enchantment)
+                || SHIELD_ENCHANTMENT_PROBE.supportsEnchantment(enchantment);
+    }
+
+    @Override
+    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -208,58 +202,27 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
             return false;
         }
 
-        var enchantments = EnchantmentHelper.getEnchantments(book);
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
         if (enchantments.isEmpty()) {
             return true;
         }
 
         return enchantments.keySet().stream()
-                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
+                .allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     public static @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack shieldStack, int slot) {
         if (!isValidCalibrationAccess(shieldStack, slot)) {
             return ItemStack.EMPTY;
         }
-        var calibration = shieldStack.getTagElement(CALIBRATION_TAG);
-        if (calibration == null) {
-            return ItemStack.EMPTY;
-        }
-        var adjustments = calibration.getList(ADJUSTMENTS_TAG, Tag.TAG_COMPOUND);
-        for (var value : adjustments) {
-            var entry = (CompoundTag) value;
-            if (entry.getInt(SLOT_TAG) == slot) {
-                return ItemStack.of(entry.getCompound(ITEM_TAG));
-            }
-        }
-        return ItemStack.EMPTY;
+        return ShieldCalibrationData.get(shieldStack, CALIBRATION_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
     }
 
     public static void setCalibrationAdjustment(@NotNull ItemStack shieldStack, int slot, @NotNull ItemStack adjustment) {
         if (!isValidCalibrationAccess(shieldStack, slot)) {
             return;
         }
-        var calibration = shieldStack.getOrCreateTagElement(CALIBRATION_TAG);
-        var current = calibration.getList(ADJUSTMENTS_TAG, Tag.TAG_COMPOUND);
-        var replacement = new ListTag();
-        for (var value : current) {
-            if (((CompoundTag) value).getInt(SLOT_TAG) != slot) {
-                replacement.add(value.copy());
-            }
-        }
-        if (!adjustment.isEmpty()) {
-            var entry = new CompoundTag();
-            entry.putInt(SLOT_TAG, slot);
-            var stored = adjustment.copy();
-            stored.setCount(1);
-            entry.put(ITEM_TAG, stored.save(new CompoundTag()));
-            replacement.add(entry);
-        }
-        if (replacement.isEmpty()) {
-            shieldStack.removeTagKey(CALIBRATION_TAG);
-        } else {
-            calibration.put(ADJUSTMENTS_TAG, replacement);
-        }
+        ShieldCalibrationData.set(shieldStack, CALIBRATION_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, adjustment);
     }
 
     public static boolean isCalibrationAdjustmentItem(ItemStack stack) {
@@ -305,22 +268,6 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
     private static boolean isValidCalibrationAccess(ItemStack stack, int slot) {
         return slot >= 0 && slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT
                 && !stack.isEmpty() && stack.getItem() instanceof ReflectcastShield;
-    }
-
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private ReflectcastShieldRenderer renderer;
-
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                if (renderer == null) {
-                    renderer = new ReflectcastShieldRenderer();
-                }
-
-                return renderer;
-            }
-        });
     }
 
     @Override

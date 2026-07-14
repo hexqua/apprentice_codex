@@ -11,25 +11,28 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.ImbueShieldBlockCastEvent;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraftforge.event.entity.living.ShieldBlockEvent;
+import net.neoforged.neoforge.event.entity.living.LivingShieldBlockEvent;
+import net.neoforged.neoforge.common.damagesource.DamageContainer;
 
 import java.util.ArrayList;
 
@@ -41,7 +44,7 @@ final class ParrycastBucklerGameTestScenarios {
             var stack = new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get());
             var item = (ParrycastBuckler) stack.getItem();
             var tooltipLines = new ArrayList<Component>();
-            item.appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+            item.appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
             assertTooltipKeyAt(helper, tooltipLines, 0,
                     "item.apprenticecodex.parrycast_buckler.desc");
             assertTooltipKeyAt(helper, tooltipLines, 1,
@@ -53,11 +56,12 @@ final class ParrycastBucklerGameTestScenarios {
                     "Parrycast Buckler should repair with arcane ingot");
             helper.assertFalse(item.isValidRepairItem(stack, new ItemStack(Items.DIAMOND)),
                     "Parrycast Buckler should not repair with diamond");
-            helper.assertTrue(item.canApplyAtEnchantingTable(stack, Enchantments.UNBREAKING), "Parrycast should accept shield enchantments");
-            helper.assertTrue(item.canApplyAtEnchantingTable(stack, EnchantmentRegistry.TENSE.get()), "Parrycast should accept Tense");
-            helper.assertTrue(item.canApplyAtEnchantingTable(stack, EnchantmentRegistry.ALACRITY.get()), "Parrycast should accept Alacrity");
-            helper.assertTrue(item.canApplyAtEnchantingTable(stack, EnchantmentRegistry.TRANSCENDENCE.get()), "Parrycast should accept Transcendence");
-            helper.assertTrue(item.canApplyAtEnchantingTable(stack, EnchantmentRegistry.WISDOM.get()), "Parrycast should accept Wisdom");
+            var enchantments = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            helper.assertTrue(item.supportsEnchantment(stack, enchantments.getOrThrow(Enchantments.UNBREAKING)), "Parrycast should accept shield enchantments");
+            helper.assertTrue(item.supportsEnchantment(stack, enchantments.getOrThrow(jp.aquafactory.apprenticecodex.enchantment.Enchantments.TENSE)), "Parrycast should accept Tense");
+            helper.assertTrue(item.supportsEnchantment(stack, enchantments.getOrThrow(jp.aquafactory.apprenticecodex.enchantment.Enchantments.ALACRITY)), "Parrycast should accept Alacrity");
+            helper.assertTrue(item.supportsEnchantment(stack, enchantments.getOrThrow(jp.aquafactory.apprenticecodex.enchantment.Enchantments.TRANSCENDENCE)), "Parrycast should accept Transcendence");
+            helper.assertTrue(item.supportsEnchantment(stack, enchantments.getOrThrow(jp.aquafactory.apprenticecodex.enchantment.Enchantments.WISDOM)), "Parrycast should accept Wisdom");
             helper.assertTrue(item.canImbueSpell(SpellRegistry.SENSE_EVIL.get(), 1), "Parrycast should accept instant no-recast spells");
             helper.assertTrue(item.canImbueSpell(SpellRegistry.MANTIS_LEAP.get(), 1),
                     "Parrycast should always accept long no-recast spells for imbue");
@@ -96,18 +100,22 @@ final class ParrycastBucklerGameTestScenarios {
             ParrycastBuckler.setCalibrationAdjustment(stack, 2, new ItemStack(ItemRegistry.WISDOM_SHARD.get()));
             helper.assertTrue(ParrycastBuckler.hasWisdomShard(stack), "Wisdom Shard should be stored");
             var tooltipLines = new ArrayList<Component>();
-            stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+            stack.getItem().appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
             assertTooltipKeyAt(helper, tooltipLines, 0,
                     "item.apprenticecodex.parrycast_buckler.desc");
             assertTooltipKeyAt(helper, tooltipLines, 1,
                     "item.apprenticecodex.parrycast_buckler.cast_wisdom");
             var school = ScrollcasterSchoolRuneResolver.resolveSchool(fireRune).orElse(null);
             var power = MagicTools.resolveSchoolPowerAttribute(school);
-            long matching = stack.getAttributeModifiers(EquipmentSlot.OFFHAND).get(power).stream()
-                    .filter(modifier -> modifier.getAmount() == 0.1D
-                            && modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE).count();
+            long matching = stack.getAttributeModifiers().modifiers().stream()
+                    .filter(entry -> entry.slot().equals(EquipmentSlotGroup.OFFHAND)
+                            && entry.attribute().value() == power
+                            && entry.modifier().amount() == 0.1D
+                            && entry.modifier().operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE).count();
             helper.assertTrue(matching == 1, "Duplicate school runes should grant one school power modifier");
-            helper.assertTrue(stack.getAttributeModifiers(EquipmentSlot.MAINHAND).get(power).isEmpty(),
+            helper.assertTrue(stack.getAttributeModifiers().modifiers().stream()
+                            .noneMatch(entry -> entry.slot().equals(EquipmentSlotGroup.MAINHAND)
+                                    && entry.attribute().value() == power),
                     "School rune power should be limited to offhand");
         });
     }
@@ -129,13 +137,15 @@ final class ParrycastBucklerGameTestScenarios {
                 "Known maximum cooldown should reduce by a rounded-up ten percent");
         helper.assertTrue(ParrycastBuckler.resolveCooldownReductionTicks(0, 21) == 5,
                 "Unknown maximum cooldown should reduce rounded-up twenty percent of remaining time");
-        helper.assertFalse(stack.getOrCreateTag().contains("ApprenticeCodexParrycastBucklerAnimationState"),
+        helper.assertTrue(stack.get(DataComponents.CUSTOM_DATA) == null
+                        || !stack.get(DataComponents.CUSTOM_DATA).copyTag().contains("ApprenticeCodexParrycastBucklerAnimationState"),
                 "Animation state should not be persisted in the item stack");
 
         helper.runAfterDelay(11, () -> {
             helper.assertFalse(ParrycastBuckler.isPerfectGuard(player),
                     "Perfect guard window should expire without an animation-driven use restart");
-            var event = new ShieldBlockEvent(player, helper.getLevel().damageSources().generic(), 4.0F);
+            var event = new LivingShieldBlockEvent(player,
+                    new DamageContainer(helper.getLevel().damageSources().generic(), 4.0F), true);
             ImbueShieldBlockCastEvent.onParrycastBucklerBlock(event);
             helper.assertFalse(player.isUsingItem(), "Normal guard should stop Parrycast Buckler use");
             helper.assertTrue(player.getCooldowns().isOnCooldown(stack.getItem()),
@@ -143,7 +153,8 @@ final class ParrycastBucklerGameTestScenarios {
             player.gameMode.useItem(player, helper.getLevel(), stack, InteractionHand.OFF_HAND);
             helper.assertFalse(player.isUsingItem(),
                     "Held use input should not restart Parrycast Buckler while the cooldown is active");
-            helper.assertFalse(stack.getOrCreateTag().contains("ApprenticeCodexParrycastBucklerAnimationState"),
+            helper.assertTrue(stack.get(DataComponents.CUSTOM_DATA) == null
+                            || !stack.get(DataComponents.CUSTOM_DATA).copyTag().contains("ApprenticeCodexParrycastBucklerAnimationState"),
                     "Stopping use should not persist animation state in the item stack");
             helper.succeed();
         });

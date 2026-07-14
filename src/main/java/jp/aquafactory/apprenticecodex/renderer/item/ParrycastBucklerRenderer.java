@@ -23,7 +23,7 @@ import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.cache.object.GeoQuad;
 import software.bernie.geckolib.cache.object.GeoVertex;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 public class ParrycastBucklerRenderer extends GeoItemRenderer<ParrycastBuckler> {
     private static final String CORE_BONE = "core";
@@ -65,10 +65,9 @@ public class ParrycastBucklerRenderer extends GeoItemRenderer<ParrycastBuckler> 
     @Override
     public void postRender(PoseStack poseStack, ParrycastBuckler animatable, BakedGeoModel model,
                            MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
-                           float partialTick, int packedLight, int packedOverlay, float red, float green,
-                           float blue, float alpha) {
+                           float partialTick, int packedLight, int packedOverlay, int colour) {
         super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha);
+                packedLight, packedOverlay, colour);
 
         if (isReRender) {
             return;
@@ -76,16 +75,15 @@ public class ParrycastBucklerRenderer extends GeoItemRenderer<ParrycastBuckler> 
 
         renderCorePass(model, poseStack, bufferSource, animatable, partialTick);
         renderShieldPass(model, poseStack, bufferSource, animatable, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha);
-        renderShieldGlintPass(model, poseStack, bufferSource, animatable, partialTick,
-                red, green, blue, alpha);
+                packedLight, packedOverlay, colour);
+        renderShieldGlintPass(model, poseStack, bufferSource, animatable, partialTick, colour);
     }
 
     @Override
     public void renderRecursively(PoseStack poseStack, ParrycastBuckler animatable, GeoBone bone,
                                   RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                   boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                  float red, float green, float blue, float alpha) {
+                                  int colour) {
         boolean coreBone = isBoneOrChildOf(bone, CORE_BONE);
         boolean shieldBone = isBoneOrChildOf(bone, SHIELD_BONE);
         if (this.specialPass == SpecialPass.NONE) {
@@ -95,7 +93,7 @@ public class ParrycastBucklerRenderer extends GeoItemRenderer<ParrycastBuckler> 
 
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
@@ -108,39 +106,35 @@ public class ParrycastBucklerRenderer extends GeoItemRenderer<ParrycastBuckler> 
         if (targetBone) {
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         renderChildBonesOnly(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
     @Override
     public void createVerticesOfQuad(GeoQuad quad, Matrix4f poseState, Vector3f normal, VertexConsumer buffer,
-                                     int packedLight, int packedOverlay, float red, float green, float blue,
-                                     float alpha) {
+                                     int packedLight, int packedOverlay, int colour) {
         if (this.specialPass != SpecialPass.SHIELD_GLINT) {
             super.createVerticesOfQuad(
-                    quad, poseState, normal, buffer, packedLight, packedOverlay, red, green, blue, alpha
+                    quad, poseState, normal, buffer, packedLight, packedOverlay, colour
             );
             return;
         }
 
         for (GeoVertex vertex : quad.vertices()) {
             Vector3f position = vertex.position();
-            Vector4f transformedPosition = poseState.transform(
-                    new Vector4f(position.x(), position.y(), position.z(), 1.0F)
-            );
-            buffer.vertex(
-                    transformedPosition.x(), transformedPosition.y(), transformedPosition.z(),
-                    red, green, blue, alpha,
-                    vertex.texU() + this.glintUOffset, vertex.texV() + this.glintVOffset,
-                    packedOverlay, packedLight, normal.x(), normal.y(), normal.z()
-            );
+            buffer.addVertex(poseState, position.x(), position.y(), position.z())
+                    .setColor(colour)
+                    .setUv(vertex.texU() + this.glintUOffset, vertex.texV() + this.glintVOffset)
+                    .setOverlay(packedOverlay)
+                    .setLight(packedLight)
+                    .setNormal(normal.x(), normal.y(), normal.z());
         }
     }
 
@@ -163,7 +157,7 @@ public class ParrycastBucklerRenderer extends GeoItemRenderer<ParrycastBuckler> 
                     model, poseStack, bufferSource, animatable, CORE_RENDER_TYPE,
                     bufferSource.getBuffer(CORE_RENDER_TYPE), partialTick,
                     LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
-                    coreState.red(), coreState.green(), coreState.blue(), coreState.alpha()
+                    packColour(coreState.red(), coreState.green(), coreState.blue(), coreState.alpha())
             );
         } finally {
             this.specialPass = SpecialPass.NONE;
@@ -172,13 +166,13 @@ public class ParrycastBucklerRenderer extends GeoItemRenderer<ParrycastBuckler> 
 
     private void renderShieldPass(BakedGeoModel model, PoseStack poseStack, MultiBufferSource bufferSource,
                                   ParrycastBuckler animatable, float partialTick, int packedLight,
-                                  int packedOverlay, float red, float green, float blue, float alpha) {
+                                  int packedOverlay, int colour) {
         this.specialPass = SpecialPass.SHIELD;
         try {
             this.reRender(
                     model, poseStack, bufferSource, animatable, DEFAULT_RENDER_TYPE,
                     bufferSource.getBuffer(DEFAULT_RENDER_TYPE), partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
         } finally {
             this.specialPass = SpecialPass.NONE;
@@ -186,8 +180,7 @@ public class ParrycastBucklerRenderer extends GeoItemRenderer<ParrycastBuckler> 
     }
 
     private void renderShieldGlintPass(BakedGeoModel model, PoseStack poseStack, MultiBufferSource bufferSource,
-                                       ParrycastBuckler animatable, float partialTick,
-                                       float red, float green, float blue, float alpha) {
+                                       ParrycastBuckler animatable, float partialTick, int colour) {
         float renderTime = resolveRenderTime(partialTick);
         this.specialPass = SpecialPass.SHIELD_GLINT;
         this.glintUOffset = wrapUnit(renderTime * GLINT_SCROLL_U_PER_TICK);
@@ -197,7 +190,7 @@ public class ParrycastBucklerRenderer extends GeoItemRenderer<ParrycastBuckler> 
                     model, poseStack, bufferSource, animatable, GLINT_RENDER_TYPE,
                     bufferSource.getBuffer(GLINT_RENDER_TYPE), partialTick,
                     LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
-                    red * GLINT_INTENSITY, green * GLINT_INTENSITY, blue * GLINT_INTENSITY, alpha
+                    scaleColour(colour, GLINT_INTENSITY)
             );
         } finally {
             this.specialPass = SpecialPass.NONE;
@@ -209,19 +202,19 @@ public class ParrycastBucklerRenderer extends GeoItemRenderer<ParrycastBuckler> 
     private void renderChildBonesOnly(PoseStack poseStack, ParrycastBuckler animatable, GeoBone bone,
                                       RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                       boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                      float red, float green, float blue, float alpha) {
+                                      int colour) {
         poseStack.pushPose();
 
         if (bone.isTrackingMatrices()) {
             Matrix4f poseState = new Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
         }
 
-        RenderUtils.prepMatrixForBone(poseStack, bone);
+        RenderUtil.prepMatrixForBone(poseStack, bone);
         renderChildBones(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
         poseStack.popPose();
     }
@@ -243,6 +236,22 @@ public class ParrycastBucklerRenderer extends GeoItemRenderer<ParrycastBuckler> 
         }
 
         return false;
+    }
+
+    private static int packColour(float red, float green, float blue, float alpha) {
+        var a = Mth.clamp(Math.round(alpha * 255.0F), 0, 255);
+        var r = Mth.clamp(Math.round(red * 255.0F), 0, 255);
+        var g = Mth.clamp(Math.round(green * 255.0F), 0, 255);
+        var b = Mth.clamp(Math.round(blue * 255.0F), 0, 255);
+        return a << 24 | r << 16 | g << 8 | b;
+    }
+
+    private static int scaleColour(int colour, float intensity) {
+        var alpha = colour >>> 24 & 0xFF;
+        var red = Math.round((colour >>> 16 & 0xFF) * intensity);
+        var green = Math.round((colour >>> 8 & 0xFF) * intensity);
+        var blue = Math.round((colour & 0xFF) * intensity);
+        return alpha << 24 | red << 16 | green << 8 | blue;
     }
 
     private enum SpecialPass {

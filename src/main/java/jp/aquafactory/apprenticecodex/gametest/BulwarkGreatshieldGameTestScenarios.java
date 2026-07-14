@@ -15,25 +15,26 @@ import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshieldRuntime;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.level.BlockEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.level.BlockDropsEvent;
 
 import java.util.ArrayList;
 
@@ -46,7 +47,7 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
             var stack = new ItemStack(ItemRegistry.BULWARK_GREATSHIELD.get());
             var item = (BulwarkGreatshield) stack.getItem();
             var tooltipLines = new ArrayList<Component>();
-            item.appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+            item.appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
             assertTooltipKeyAt(helper, tooltipLines, 0,
                     "item.apprenticecodex.bulwark_greatshield.desc");
             assertTooltipKeyAt(helper, tooltipLines, 1,
@@ -60,11 +61,14 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
                     "Bulwark Greatshield should repair with arcane ingot");
             helper.assertFalse(item.isValidRepairItem(stack, new ItemStack(Items.DIAMOND)),
                     "Bulwark Greatshield should not repair with diamond");
-            helper.assertTrue(item.canApplyAtEnchantingTable(stack, Enchantments.UNBREAKING),
+            var enchantments = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            helper.assertTrue(item.supportsEnchantment(stack, enchantments.getOrThrow(Enchantments.UNBREAKING)),
                     "Bulwark Greatshield should accept shield durability enchantments");
-            helper.assertTrue(item.canApplyAtEnchantingTable(stack, EnchantmentRegistry.TRANSCENDENCE.get()),
+            helper.assertTrue(item.supportsEnchantment(stack,
+                            enchantments.getOrThrow(jp.aquafactory.apprenticecodex.enchantment.Enchantments.TRANSCENDENCE)),
                     "Bulwark Greatshield should accept Transcendence");
-            helper.assertTrue(item.canApplyAtEnchantingTable(stack, EnchantmentRegistry.WISDOM.get()),
+            helper.assertTrue(item.supportsEnchantment(stack,
+                            enchantments.getOrThrow(jp.aquafactory.apprenticecodex.enchantment.Enchantments.WISDOM)),
                     "Bulwark Greatshield should accept Wisdom");
             helper.assertTrue(item.canImbueSpell(SpellRegistry.FIRE_BREATH_SPELL.get(), 1),
                     "Bulwark Greatshield should accept continuous spells");
@@ -86,14 +90,17 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
                             && repairedContainer.getSpellAtIndex(0).getSpell() == SpellRegistry.FIRE_BREATH_SPELL.get(),
                     "Repairing Bulwark spell wheel visibility should preserve the imbued spell");
 
-            var offhand = stack.getAttributeModifiers(EquipmentSlot.OFFHAND);
-            var mainhand = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
-            helper.assertTrue(offhand.get(AttributeRegistry.SPELL_RESIST.get()).stream()
-                            .anyMatch(modifier -> modifier.getAmount() == BulwarkGreatshield.GENERIC_SPELL_RESIST
-                                    && modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE),
+            var modifiers = stack.getAttributeModifiers().modifiers();
+            helper.assertTrue(modifiers.stream()
+                            .anyMatch(entry -> entry.slot().equals(EquipmentSlotGroup.OFFHAND)
+                                    && entry.attribute().equals(AttributeRegistry.SPELL_RESIST)
+                                    && entry.modifier().amount() == BulwarkGreatshield.GENERIC_SPELL_RESIST
+                                    && entry.modifier().operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
                     "Bulwark Greatshield should grant generic spell resist in offhand");
-            helper.assertFalse(mainhand.get(AttributeRegistry.SPELL_RESIST.get()).stream()
-                            .anyMatch(modifier -> modifier.getAmount() == BulwarkGreatshield.GENERIC_SPELL_RESIST),
+            helper.assertFalse(modifiers.stream()
+                            .anyMatch(entry -> entry.slot().equals(EquipmentSlotGroup.MAINHAND)
+                                    && entry.attribute().equals(AttributeRegistry.SPELL_RESIST)
+                                    && entry.modifier().amount() == BulwarkGreatshield.GENERIC_SPELL_RESIST),
                     "Bulwark Greatshield should not grant generic spell resist in mainhand");
         });
     }
@@ -117,19 +124,23 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
             BulwarkGreatshield.setCalibrationAdjustment(stack, 0, fireRune);
             var schoolResist = MagicTools.resolveSchoolResistAttribute(BulwarkGreatshield.getResolvedCalibrationSchool(stack));
             helper.assertTrue(schoolResist != null, "Fire rune should resolve a school resist attribute");
-            helper.assertTrue(stack.getAttributeModifiers(EquipmentSlot.OFFHAND).get(schoolResist).stream()
-                            .anyMatch(modifier -> modifier.getAmount() == BulwarkGreatshield.SCHOOL_SPELL_RESIST
-                                    && modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE),
+            helper.assertTrue(stack.getAttributeModifiers().modifiers().stream()
+                            .anyMatch(entry -> entry.slot().equals(EquipmentSlotGroup.OFFHAND)
+                                    && entry.attribute().value() == schoolResist
+                                    && entry.modifier().amount() == BulwarkGreatshield.SCHOOL_SPELL_RESIST
+                                    && entry.modifier().operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
                     "School rune should add 0.5 school spell resist");
-            helper.assertTrue(stack.getAttributeModifiers(EquipmentSlot.OFFHAND).get(AttributeRegistry.SPELL_RESIST.get()).stream()
-                            .anyMatch(modifier -> modifier.getAmount() == BulwarkGreatshield.GENERIC_SPELL_RESIST),
+            helper.assertTrue(stack.getAttributeModifiers().modifiers().stream()
+                            .anyMatch(entry -> entry.slot().equals(EquipmentSlotGroup.OFFHAND)
+                                    && entry.attribute().equals(AttributeRegistry.SPELL_RESIST)
+                                    && entry.modifier().amount() == BulwarkGreatshield.GENERIC_SPELL_RESIST),
                     "School rune must not replace generic spell resist");
 
             BulwarkGreatshield.setCalibrationAdjustment(stack, 0, wisdomShard);
             helper.assertTrue(BulwarkGreatshield.hasWisdomShardAdjustment(stack),
                     "Wisdom Shard adjustment should be stored on Bulwark");
             var tooltipLines = new ArrayList<Component>();
-            stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+            stack.getItem().appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
             assertTooltipKeyAt(helper, tooltipLines, 0,
                     "item.apprenticecodex.bulwark_greatshield.desc");
             assertTooltipKeyAt(helper, tooltipLines, 1,
@@ -166,8 +177,9 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
         var spellContainer = ISpellContainer.create(1, false, false).mutableCopy();
         spellContainer.addSpellAtIndex(spell, 1, 0, false);
         ISpellContainer.set(stack, spellContainer.toImmutable());
-        stack.enchant(EnchantmentRegistry.TRANSCENDENCE.get(), 1);
-        stack.enchant(EnchantmentRegistry.WISDOM.get(), 1);
+        var enchantments = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        stack.enchant(enchantments.getOrThrow(jp.aquafactory.apprenticecodex.enchantment.Enchantments.TRANSCENDENCE), 1);
+        stack.enchant(enchantments.getOrThrow(jp.aquafactory.apprenticecodex.enchantment.Enchantments.WISDOM), 1);
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
 
         var spellLevelEvent = new ModifySpellLevelEvent(spell, player, 1, 1);
@@ -175,15 +187,18 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
         helper.assertTrue(spellLevelEvent.getLevel() == 2,
                 itemName + " Transcendence should increase the imbued spell level from 1 to 2");
 
-        var experienceEvent = new BlockEvent.BreakEvent(
+        var experienceEvent = new BlockDropsEvent(
                 helper.getLevel(),
                 new BlockPos(5, 2, 0),
                 Blocks.STONE.defaultBlockState(),
-                player
+                null,
+                new ArrayList<>(),
+                player,
+                stack
         );
-        experienceEvent.setExpToDrop(5);
-        WisdomExperienceDropEvent.onBlockBreak(experienceEvent);
-        helper.assertTrue(experienceEvent.getExpToDrop() == 6,
+        experienceEvent.setDroppedExperience(5);
+        WisdomExperienceDropEvent.onBlockDrops(experienceEvent);
+        helper.assertTrue(experienceEvent.getDroppedExperience() == 6,
                 itemName + " Wisdom should increase block experience from 5 to 6");
     }
 
@@ -422,7 +437,7 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
                 bulwarkPlayer, bulwarkStack, InteractionHand.OFF_HAND
         );
         helper.assertTrue(bulwarkMagicData.isCasting(), "Bulwark death cleanup should start from an active cast");
-        MinecraftForge.EVENT_BUS.post(new LivingDeathEvent(
+        NeoForge.EVENT_BUS.post(new LivingDeathEvent(
                 bulwarkPlayer, helper.getLevel().damageSources().generic()
         ));
         helper.assertFalse(bulwarkMagicData.isCasting(), "Bulwark death should end its simulated casting state");
@@ -455,7 +470,7 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
         helper.assertTrue(ReflectcastShieldRuntime.tryTriggerSpell(
                         reflectcastPlayer, reflectcastStack, InteractionHand.OFF_HAND),
                 "Reflectcast death cleanup should start from an active cast");
-        MinecraftForge.EVENT_BUS.post(new LivingDeathEvent(
+        NeoForge.EVENT_BUS.post(new LivingDeathEvent(
                 reflectcastPlayer, helper.getLevel().damageSources().generic()
         ));
         helper.assertFalse(reflectcastMagicData.isCasting(),
@@ -495,9 +510,11 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
         var originalCreativeCooldown = io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.get();
         try {
             io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(false);
+            io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
             BulwarkGreatshieldRuntime.finishUse(bulwarkPlayer);
         } finally {
             io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
+            io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
         }
         helper.assertFalse(bulwarkMagicData.getPlayerCooldowns().isOnCooldown(spell),
                 "Bulwark creative finish should respect disabled creative cooldowns");
@@ -525,9 +542,11 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
                 "Reflectcast creative finish test should not begin with a cooldown");
         try {
             io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(false);
+            io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
             ReflectcastShieldRuntime.finishUse(reflectcastPlayer);
         } finally {
             io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
+            io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
         }
         helper.assertFalse(reflectcastMagicData.getPlayerCooldowns().isOnCooldown(spell),
                 "Reflectcast creative finish should respect disabled creative cooldowns");

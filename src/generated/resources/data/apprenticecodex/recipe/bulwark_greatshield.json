@@ -21,7 +21,15 @@
     "NAN"
   ],
   "result": {
-    "item": "apprenticecodex:bulwark_greatshield"
-  },
-  "show_notification": true
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [],
+        "maxSpells": 1,
+        "mustEquip": false,
+        "spellWheel": false
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:bulwark_greatshield"
+  }
 }

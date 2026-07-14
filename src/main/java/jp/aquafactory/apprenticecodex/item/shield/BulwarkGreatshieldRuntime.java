@@ -7,7 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
-import io.redspace.ironsspellbooks.setup.PacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
 import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
 import jp.aquafactory.apprenticecodex.utility.SpellCooldownHelper;
@@ -17,19 +17,19 @@ import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.server.ServerStoppedEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public final class BulwarkGreatshieldRuntime {
     private static final int CONTINUOUS_CAST_INTERVAL_TICKS = 10;
     private static final String COOLDOWN_CAST_ERROR_KEY = "ui.irons_spellbooks.cast_error_cooldown";
@@ -218,13 +218,13 @@ public final class BulwarkGreatshieldRuntime {
         }
         return castResult.isSuccess()
                 && spell.checkPreCastConditions(player.level(), spellLevel, player, magicData)
-                && !MinecraftForge.EVENT_BUS.post(new SpellPreCastEvent(
+                && !NeoForge.EVENT_BUS.post(new SpellPreCastEvent(
                         player,
                         spell.getSpellId(),
                         spellLevel,
                         spell.getSchoolType(),
                         castSource
-                ));
+                )).isCanceled();
     }
 
     private static boolean isCooldownCastError(ComponentContents contents) {
