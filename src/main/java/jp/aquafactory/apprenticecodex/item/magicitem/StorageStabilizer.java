@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.UniqueItem;
+import jp.aquafactory.apprenticecodex.item.SneakSelectionUiItem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import net.minecraft.ChatFormatting;
@@ -31,7 +32,7 @@ import net.minecraft.world.level.Level;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class StorageStabilizer extends Item implements IPresetSpellContainer, UniqueItem {
+public final class StorageStabilizer extends Item implements IPresetSpellContainer, UniqueItem, SneakSelectionUiItem {
     private static final String SELECTED_SPELL_INDEX_TAG = "SelectedStorageSpellIndex";
     private static final int DEFAULT_SPELL_INDEX = 0;
 

@@ -206,6 +206,9 @@ public final class ScrollcasterGauntletSelectionClientController {
         if (player.getMainHandItem().getItem() instanceof ScrollcasterGauntlet) {
             return InteractionHand.MAIN_HAND;
         }
+        if (SneakSelectionUiHandResolver.shouldSuppressOffhandSelection(player)) {
+            return null;
+        }
         if (ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)
                 && BetterCombatScrollcasterGauntletCompat.isRescueActive(player)) {
             return InteractionHand.OFF_HAND;
