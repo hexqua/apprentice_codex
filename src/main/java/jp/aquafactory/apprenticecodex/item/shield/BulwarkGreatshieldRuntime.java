@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.shield;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
@@ -11,6 +10,7 @@ import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
 import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
+import jp.aquafactory.apprenticecodex.utility.SpellCooldownHelper;
 import net.minecraft.network.chat.ComponentContents;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
@@ -259,7 +259,11 @@ public final class BulwarkGreatshieldRuntime {
             boolean preserveShieldUse
     ) {
         if (triggerCooldown) {
-            MagicHelper.MAGIC_MANAGER.addCooldown(player, activeCast.spell(), activeCast.castSource());
+            SpellCooldownHelper.addCooldownRespectingCreativeConfig(
+                    player,
+                    activeCast.spell(),
+                    activeCast.castSource()
+            );
         }
         var finishCast = (Runnable) () -> activeCast.spell().onServerCastComplete(
                 player.level(), activeCast.spellLevel(), player, magicData, true

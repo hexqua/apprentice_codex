@@ -3,7 +3,6 @@ package jp.aquafactory.apprenticecodex.item.shield;
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
@@ -16,6 +15,7 @@ import jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor;
 import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncReflectcastShieldEffectPacket;
+import jp.aquafactory.apprenticecodex.utility.SpellCooldownHelper;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -346,7 +346,11 @@ public final class ReflectcastShieldRuntime {
             boolean preserveShieldUse
     ) {
         if (triggerCooldown) {
-            MagicHelper.MAGIC_MANAGER.addCooldown(player, activeCast.spell(), activeCast.castSource());
+            SpellCooldownHelper.addCooldownRespectingCreativeConfig(
+                    player,
+                    activeCast.spell(),
+                    activeCast.castSource()
+            );
         }
         var finishCast = (Runnable) () -> activeCast.spell().onServerCastComplete(
                 player.level(), activeCast.spellLevel(), player, magicData, true

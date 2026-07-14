@@ -299,6 +299,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void continuousShieldCreativeFinishSkipsCooldown(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.continuousShieldCreativeFinishSkipsCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void parrycastBucklerKeepsCoreContract(GameTestHelper helper) {
         ParrycastBucklerGameTestScenarios.parrycastBucklerKeepsCoreContract(helper);
     }
@@ -972,6 +977,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowCreativeOverchargeDoesNotConsumeManaOrCreateLoan(GameTestHelper helper) {
         FocusStaffbowGameTestScenarios.focusStaffbowCreativeOverchargeDoesNotConsumeManaOrCreateLoan(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_CONTINUOUS_BATCH)
+    public static void focusStaffbowCreativeContinuousReleaseSkipsCooldown(GameTestHelper helper) {
+        FocusStaffbowGameTestScenarios.focusStaffbowCreativeContinuousReleaseSkipsCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowCreativeInterruptionSkipsPreviousSpellCooldown(GameTestHelper helper) {
+        FocusStaffbowGameTestScenarios.focusStaffbowCreativeInterruptionSkipsPreviousSpellCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE)
