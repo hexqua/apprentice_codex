@@ -18,6 +18,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Mant
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.MirageAvoidanceState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.RemoteEyeState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ServantGazeState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SpectralWingState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.TamersPocketState;
 
@@ -42,6 +43,7 @@ public final class CodexSpellStateTypeRegister {
     public static CodexSpellStateType<MirageAvoidanceState> MIRAGE_AVOIDANCE_STATE;
     public static CodexSpellStateType<RemoteEyeState> REMOTE_EYE_STATE;
     public static CodexSpellStateType<SearchBeaconState> SEARCH_BEACON_STATE;
+    public static CodexSpellStateType<ServantGazeState> SERVANT_GAZE_STATE;
     public static CodexSpellStateType<SpectralWingState> SPECTRAL_WING_STATE;
     public static CodexSpellStateType<TamersPocketState> TAMERS_POCKET_STATE;
 
@@ -64,6 +66,7 @@ public final class CodexSpellStateTypeRegister {
         MIRAGE_AVOIDANCE_STATE = CodexSpellStates.register("mirage_avoidance", MirageAvoidanceState::new);
         REMOTE_EYE_STATE = CodexSpellStates.register("remote_eye", RemoteEyeState::new);
         SEARCH_BEACON_STATE = CodexSpellStates.register("search_beacon", SearchBeaconState::new);
+        SERVANT_GAZE_STATE = CodexSpellStates.register("servant_gaze", ServantGazeState::new);
         SPECTRAL_WING_STATE = CodexSpellStates.register("spectral_wing", SpectralWingState::new);
         TAMERS_POCKET_STATE = CodexSpellStates.register("tamers_pocket", TamersPocketState::new);
     }

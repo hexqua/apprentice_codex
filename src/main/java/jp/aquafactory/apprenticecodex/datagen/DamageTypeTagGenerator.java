@@ -27,6 +27,7 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.COMMENCE_FIRE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.COMPOUND_PHIAL;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.DUAL_ACROBAT;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FEATHER_RUSH;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FIELD_OVERSEER;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FLY_SWATTER;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FROST_RUNE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.GRACED_RAIN;
@@ -50,6 +51,7 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.PRECISION_JACK;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.QUICK_ARMS;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SHOCK;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SILENT_ASSASSIN;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SERVANT_GAZE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SKY_EDGE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SLASH_BLADE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.THERMAL_PROCESS;
@@ -139,7 +141,9 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 DUAL_ACROBAT,
                 ARTISAN_SMASH,
                 ANCHOR_BLINK,
-                TOTEM_OF_PERMAFROST
+                TOTEM_OF_PERMAFROST,
+                FIELD_OVERSEER,
+                SERVANT_GAZE
         );
 
         // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
@@ -224,7 +228,9 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 DUAL_ACROBAT,
                 ARTISAN_SMASH,
                 ANCHOR_BLINK,
-                TOTEM_OF_PERMAFROST
+                TOTEM_OF_PERMAFROST,
+                FIELD_OVERSEER,
+                SERVANT_GAZE
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.
@@ -241,7 +247,9 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 HEALING_BLOOM,
                 AUTO_TURRET,
                 TIRO_VOLLEY,
-                TOTEM_OF_PERMAFROST
+                TOTEM_OF_PERMAFROST,
+                FIELD_OVERSEER,
+                SERVANT_GAZE
         );
 
         // MAGIC_DAMAGE: Magic Proficiencyでダメージが伸びる(Malum限定)

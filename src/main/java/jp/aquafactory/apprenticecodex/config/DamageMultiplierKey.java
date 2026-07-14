@@ -42,6 +42,8 @@ public enum DamageMultiplierKey {
     ARTISAN_SMASH("artisanSmash"),
     ANCHOR_BLINK("anchorBlink"),
     TOTEM_OF_PERMAFROST("totemOfPermafrost"),
+    FIELD_OVERSEER("fieldOverseer"),
+    SERVANT_GAZE("servantGaze")
     ;
 
     private final String configKey;
