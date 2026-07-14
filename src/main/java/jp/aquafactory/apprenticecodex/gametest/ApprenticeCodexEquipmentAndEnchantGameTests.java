@@ -395,6 +395,12 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellCalibrationBenchImbueStatesSeparateInsertionFromCurrentUsability(GameTestHelper helper) {
+        SpellCalibrationEquipmentGameTestScenarios
+                .spellCalibrationBenchImbueStatesSeparateInsertionFromCurrentUsability(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellCalibrationBenchImbueOnlySupportsExtractableTargets(GameTestHelper helper) {
         SpellCalibrationEquipmentGameTestScenarios.spellCalibrationBenchImbueOnlySupportsExtractableTargets(helper);
     }

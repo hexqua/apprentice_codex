@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -100,13 +101,18 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
                 || spell.getCastType() == CastType.CONTINUOUS);
     }
 
-    public boolean isMismatchedCastConditionAt(ItemStack targetStack, int slot) {
-        if (slot != 0) {
-            return false;
+    @Override
+    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull SpellData spellData
+    ) {
+        if (slot != 0 || !canImbueSpell(spellData)) {
+            return SpellCalibrationImbueState.REJECTED;
         }
-        var spellData = getPrimarySpellData(targetStack);
-        return spellData != null && spellData != SpellData.EMPTY
-                && !canUseConfiguredSpell(targetStack, spellData.getSpell(), spellData.getLevel());
+        return SpellCalibrationImbueState.accepted(
+                canUseConfiguredSpell(targetStack, spellData.getSpell(), spellData.getLevel())
+        );
     }
 
     public List<Component> getImbueRestrictionTooltipLines(ItemStack stack) {

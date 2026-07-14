@@ -95,7 +95,7 @@ import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
         ItemTransformPreservingCastAnimationItem,
         BetterCombatOffhandDualWieldingPolicyItem, SwingTriggeredMagicItem, PriorityOffhandUseDeferringItem, IJeiInfoItem,
-        SneakSelectionUiItem {
+        SneakSelectionUiItem, StoredSpellCalibrationImbueTarget {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.scrollcaster_gauntlet.desc_";
 
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
@@ -105,6 +105,27 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     private static final HolderLookup.Provider FALLBACK_SERIALIZATION_LOOKUP =
             RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+
+    @Override
+    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull SpellData spellData
+    ) {
+        if (slot < 0 || slot >= getEnabledCalibrationScrollSlotCount(targetStack)
+                || spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            return SpellCalibrationImbueState.REJECTED;
+        }
+        return SpellCalibrationImbueState.ACCEPTED_USABLE;
+    }
+
+    private static final String MALUM_NAMESPACE = "malum";
+    private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
+            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
+    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
+    );
     private static final String MAIN_CONTROLLER = "main";
     private static final String CALIBRATION_TAG = "SpellCalibration";
     private static final String ADJUSTMENTS_TAG = "Adjustments";

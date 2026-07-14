@@ -18,6 +18,7 @@ import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.offhand.OffhandMagicModifierHelper;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 import jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor;
@@ -210,15 +211,18 @@ public class ParrycastBuckler extends AbstractImbueShieldItem implements GeoItem
                 && spell.getRecastCount(spellLevel, null) <= 0;
     }
 
-    public boolean isMismatchedCastConditionAt(ItemStack targetStack, int slot) {
-        if (slot != 0) {
-            return false;
+    @Override
+    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull SpellData spellData
+    ) {
+        if (slot != 0 || !canImbueSpell(spellData)) {
+            return SpellCalibrationImbueState.REJECTED;
         }
-        var spellData = getPrimarySpellData(targetStack);
-        return spellData != SpellData.EMPTY
-                && spellData != null
-                && spellData.getSpell() != null
-                && !canUseConfiguredSpell(targetStack, spellData.getSpell(), spellData.getLevel());
+        return SpellCalibrationImbueState.accepted(
+                canUseConfiguredSpell(targetStack, spellData.getSpell(), spellData.getLevel())
+        );
     }
 
     public List<Component> getImbueRestrictionTooltipLines(ItemStack stack) {
