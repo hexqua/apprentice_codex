@@ -865,8 +865,9 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             try (var ignored = ApprenticeCodexServerConfig.useSpellchargedGreatswordConfigOverrideForGameTest(config)) {
                 var sweepingEdge = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
                         .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SWEEPING_EDGE);
+                var gameTime = helper.getLevel().getGameTime();
                 var levelOneStack = new ItemStack(item);
-                SpellchargedGreatsword.addCharge(levelOneStack, 0L, 200.0D);
+                SpellchargedGreatsword.addCharge(levelOneStack, gameTime, 200.0D);
                 assertSpellchargedGreatswordAttackAttributes(helper, item, levelOneStack, 11.0D, -0.11D,
                         "Spellcharged Greatsword level 1 configured attributes");
                 assertSpellchargedGreatswordEntityReach(helper, item, levelOneStack, 0.75D,
@@ -875,12 +876,12 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                         "Spellcharged Greatsword normal Sweeping Edge bonus should use server config");
 
                 var levelTwoStack = new ItemStack(item);
-                SpellchargedGreatsword.addCharge(levelTwoStack, 0L, 400.0D);
+                SpellchargedGreatsword.addCharge(levelTwoStack, gameTime, 400.0D);
                 assertSpellchargedGreatswordAttackAttributes(helper, item, levelTwoStack, 12.0D, -0.22D,
                         "Spellcharged Greatsword level 2 configured attributes");
 
                 var levelThreeStack = new ItemStack(item);
-                SpellchargedGreatsword.addCharge(levelThreeStack, 0L, 800.0D);
+                SpellchargedGreatsword.addCharge(levelThreeStack, gameTime, 800.0D);
                 assertSpellchargedGreatswordAttackAttributes(helper, item, levelThreeStack, 13.0D, -0.33D,
                         "Spellcharged Greatsword level 3 configured attributes");
 
