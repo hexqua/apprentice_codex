@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.item;
+package jp.aquafactory.apprenticecodex.item.blockitem;
 
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import net.minecraft.world.item.BlockItem;

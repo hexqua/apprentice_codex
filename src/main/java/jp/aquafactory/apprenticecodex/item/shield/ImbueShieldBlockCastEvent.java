@@ -1,12 +1,7 @@
-package jp.aquafactory.apprenticecodex.item;
+package jp.aquafactory.apprenticecodex.item.shield;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeEvents;
-import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
-import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshieldRuntime;
-import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
-import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime;
-import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;

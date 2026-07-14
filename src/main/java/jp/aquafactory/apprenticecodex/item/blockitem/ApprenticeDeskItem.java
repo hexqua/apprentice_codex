@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.item;
+package jp.aquafactory.apprenticecodex.item.blockitem;
 
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskFeatureState;
 import net.minecraft.ChatFormatting;
