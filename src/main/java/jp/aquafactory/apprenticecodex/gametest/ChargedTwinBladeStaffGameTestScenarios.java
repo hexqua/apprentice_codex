@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
+import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.spellthrowablecard.AbstractSpellThrowableCardItem;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -178,7 +178,7 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
                 stack,
                 helper.getLevel(),
                 player,
-                stack.getUseDuration() - jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff.THROW_THRESHOLD_TICKS
+                stack.getUseDuration() - ChargedTwinBladeStaff.THROW_THRESHOLD_TICKS
         ));
         helper.succeedWhen(() -> {
             helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
@@ -203,7 +203,7 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
                 stack,
                 helper.getLevel(),
                 player,
-                stack.getUseDuration() - jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff.THROW_THRESHOLD_TICKS
+                stack.getUseDuration() - ChargedTwinBladeStaff.THROW_THRESHOLD_TICKS
         ));
         helper.succeedWhen(() -> helper.assertTrue(Math.abs(magicData.getMana() - (100.0F - 100.0F / 3.0F)) < 1.0e-3F,
                 "Charged Twin Blade Staff loyalty mana discount regressed: " + magicData.getMana()));
@@ -222,7 +222,7 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
                     stack,
                     helper.getLevel(),
                     player,
-                    stack.getUseDuration() - jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff.THROW_THRESHOLD_TICKS
+                    stack.getUseDuration() - ChargedTwinBladeStaff.THROW_THRESHOLD_TICKS
             );
             helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
                     "Charged Twin Blade Staff riptide should consume 50 mana on dry ground");
