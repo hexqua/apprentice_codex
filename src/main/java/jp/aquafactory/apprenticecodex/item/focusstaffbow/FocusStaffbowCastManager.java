@@ -2,7 +2,6 @@
 
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
@@ -29,6 +28,7 @@ import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.utility.SpellCooldownHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -665,7 +665,11 @@ public final class FocusStaffbowCastManager {
             var spell = SpellRegistry.getSpell(state.spellId);
             if (spell != null && spell != SpellRegistry.none()) {
                 if (triggerCooldown) {
-                    MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, resolveCastSource(state.castSource));
+                    SpellCooldownHelper.addCooldownRespectingCreativeConfig(
+                            player,
+                            spell,
+                            resolveCastSource(state.castSource)
+                    );
                 }
                 spell.onServerCastComplete(player.level(), state.spellLevel, player, magicData, true);
             } else {
@@ -866,7 +870,7 @@ public final class FocusStaffbowCastManager {
         var spell = magicData.getCastingSpell().getSpell();
         if (spell != null && spell != SpellRegistry.none()) {
             if (magicData.getCastType() != CastType.LONG) {
-                MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, magicData.getCastSource());
+                SpellCooldownHelper.addCooldownRespectingCreativeConfig(player, spell, magicData.getCastSource());
             }
             if (magicData.getCastSource() == CastSource.SCROLL && magicData.getCastType() == CastType.CONTINUOUS) {
                 Scroll.attemptRemoveScrollAfterCast(player);

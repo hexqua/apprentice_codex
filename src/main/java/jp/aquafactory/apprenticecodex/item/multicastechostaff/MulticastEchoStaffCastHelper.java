@@ -2,7 +2,6 @@ package jp.aquafactory.apprenticecodex.item.multicastechostaff;
 
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
-import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
@@ -14,6 +13,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.utility.SpellCooldownHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -450,7 +450,7 @@ public final class MulticastEchoStaffCastHelper {
         MULTICAST_JOBS.remove(player.getUUID(), job);
         var context = new FinalCooldownContext(job.spellId(), job.spellLevel(), job.amplifier());
         FINAL_COOLDOWN_CONTEXTS.put(player.getUUID(), context);
-        MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, job.castSource());
+        SpellCooldownHelper.addCooldownRespectingCreativeConfig(player, spell, job.castSource());
         FINAL_COOLDOWN_CONTEXTS.remove(player.getUUID(), context);
     }
 

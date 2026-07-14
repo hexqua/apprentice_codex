@@ -472,6 +472,68 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
         helper.succeed();
     }
 
+    static void continuousShieldCreativeFinishSkipsCooldown(GameTestHelper helper) {
+        var spell = SpellRegistry.FIRE_BREATH_SPELL.get();
+        var bulwarkPlayer = BowGameTestSupport.createEquipmentTestPlayer(
+                helper, new BlockPos(0, 2, 0), "bulwark_creative_continuous_finish_test"
+        );
+        bulwarkPlayer.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+        helper.assertTrue(bulwarkPlayer.isCreative(), "Bulwark creative cooldown test requires creative mode");
+        var bulwarkStack = createContinuousCastShieldStack(ItemRegistry.BULWARK_GREATSHIELD.get());
+        bulwarkPlayer.setItemInHand(InteractionHand.OFF_HAND, bulwarkStack);
+        bulwarkStack.getItem().use(helper.getLevel(), bulwarkPlayer, InteractionHand.OFF_HAND);
+        var bulwarkMagicData = MagicData.getPlayerMagicData(bulwarkPlayer);
+        helper.assertTrue(bulwarkMagicData != null, "Bulwark creative finish test requires MagicData");
+        bulwarkMagicData.setMana(1000.0F);
+        BulwarkGreatshieldRuntime.tryStartContinuousCast(
+                bulwarkPlayer, bulwarkStack, InteractionHand.OFF_HAND
+        );
+        helper.assertTrue(bulwarkMagicData.isCasting(),
+                "Bulwark creative finish test should start from an active cast");
+        helper.assertFalse(bulwarkMagicData.getPlayerCooldowns().isOnCooldown(spell),
+                "Bulwark creative finish test should not begin with a cooldown");
+        var originalCreativeCooldown = io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.get();
+        try {
+            io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(false);
+            BulwarkGreatshieldRuntime.finishUse(bulwarkPlayer);
+        } finally {
+            io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
+        }
+        helper.assertFalse(bulwarkMagicData.getPlayerCooldowns().isOnCooldown(spell),
+                "Bulwark creative finish should respect disabled creative cooldowns");
+
+        var reflectcastPlayer = BowGameTestSupport.createEquipmentTestPlayer(
+                helper, new BlockPos(2, 2, 0), "reflectcast_creative_continuous_finish_test"
+        );
+        reflectcastPlayer.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+        helper.assertTrue(reflectcastPlayer.isCreative(), "Reflectcast creative cooldown test requires creative mode");
+        var reflectcastStack = createContinuousCastShieldStack(ItemRegistry.REFLECTCAST_SHIELD.get());
+        ReflectcastShield.setCalibrationAdjustment(
+                reflectcastStack,
+                0,
+                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
+        );
+        reflectcastPlayer.setItemInHand(InteractionHand.OFF_HAND, reflectcastStack);
+        reflectcastStack.getItem().use(helper.getLevel(), reflectcastPlayer, InteractionHand.OFF_HAND);
+        var reflectcastMagicData = MagicData.getPlayerMagicData(reflectcastPlayer);
+        helper.assertTrue(reflectcastMagicData != null, "Reflectcast creative finish test requires MagicData");
+        reflectcastMagicData.setMana(1000.0F);
+        helper.assertTrue(ReflectcastShieldRuntime.tryTriggerSpell(
+                        reflectcastPlayer, reflectcastStack, InteractionHand.OFF_HAND),
+                "Reflectcast creative finish test should start from an active cast");
+        helper.assertFalse(reflectcastMagicData.getPlayerCooldowns().isOnCooldown(spell),
+                "Reflectcast creative finish test should not begin with a cooldown");
+        try {
+            io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(false);
+            ReflectcastShieldRuntime.finishUse(reflectcastPlayer);
+        } finally {
+            io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
+        }
+        helper.assertFalse(reflectcastMagicData.getPlayerCooldowns().isOnCooldown(spell),
+                "Reflectcast creative finish should respect disabled creative cooldowns");
+        helper.succeed();
+    }
+
     private static ItemStack createContinuousCastShieldStack(net.minecraft.world.item.Item shieldItem) {
         var stack = new ItemStack(shieldItem);
         var spellContainer = ISpellContainer.create(1, false, false).mutableCopy();
