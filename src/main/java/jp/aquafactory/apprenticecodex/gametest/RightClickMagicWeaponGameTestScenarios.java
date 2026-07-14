@@ -15,7 +15,7 @@ import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterAttackEvent;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterFallProtectionEvent;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterReadyStateSyncEvent;
-import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
+import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;

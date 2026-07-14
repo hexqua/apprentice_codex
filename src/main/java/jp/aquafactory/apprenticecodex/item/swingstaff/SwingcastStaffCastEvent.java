@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.item.swingstaff;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
+import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;

@@ -12,7 +12,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Set;
 
-final class StaffEnchantmentTargeting {
+public final class StaffEnchantmentTargeting {
     private static final String VANILLA_NAMESPACE = "minecraft";
     private static final String MALUM_NAMESPACE = "malum";
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
@@ -35,7 +35,7 @@ final class StaffEnchantmentTargeting {
     private StaffEnchantmentTargeting() {
     }
 
-    static boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
+    public static boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
         var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
         if (enchantmentId == null) {
             return false;
@@ -71,7 +71,7 @@ final class StaffEnchantmentTargeting {
         return enchantment.canApplyAtEnchantingTable(SWORD_ENCHANTMENT_PROBE_STACK);
     }
 
-    static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
+    private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
         // エリトラは耐久値を持つが武器/ツール系カテゴリではないため、
         // ここに付くエンチャントを「耐久値持ちアイテム向け」とみなして除外する。
         return enchantment.canApplyAtEnchantingTable(DURABILITY_ENCHANTMENT_PROBE_STACK);

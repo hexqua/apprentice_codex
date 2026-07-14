@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat;
-import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.network.NetworkEvent;

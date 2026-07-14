@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import jp.aquafactory.apprenticecodex.item.StorageStabilizer;
+import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;

@@ -1,6 +1,6 @@
 package jp.aquafactory.apprenticecodex.event.client;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.ElementalBow;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
 import net.minecraft.client.Minecraft;

@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item;
 
+import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.BowItem;
@@ -7,7 +8,7 @@ import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.ToolActions;
 
-final class OffhandUsePriorityHelper {
+public final class OffhandUsePriorityHelper {
     private static final ResourceLocation FORGE_SHIELDS_TAG_ID = ResourceLocation.fromNamespaceAndPath("forge", "shields");
     private static final ResourceLocation FORGE_TOOLS_SHIELDS_TAG_ID =
             ResourceLocation.fromNamespaceAndPath("forge", "tools/shields");
@@ -15,7 +16,7 @@ final class OffhandUsePriorityHelper {
     private OffhandUsePriorityHelper() {
     }
 
-    static boolean isPriorityOffhandUseItem(ItemStack stack) {
+    public static boolean isPriorityOffhandUseItem(ItemStack stack) {
         if (stack == null || stack.isEmpty()) {
             return false;
         }
@@ -29,7 +30,7 @@ final class OffhandUsePriorityHelper {
                 || isShieldLikeItem(stack);
     }
 
-    static boolean isShieldLikeItem(ItemStack stack) {
+    public static boolean isShieldLikeItem(ItemStack stack) {
         if (stack == null || stack.isEmpty()) {
             return false;
         }

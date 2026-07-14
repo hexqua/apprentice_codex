@@ -1,6 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver;
 
-import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;

@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.model;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.ClientItemRenderContext;
-import jp.aquafactory.apprenticecodex.item.MulticastEchoStaff;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffClientRenderState;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.constant.DataTickets;

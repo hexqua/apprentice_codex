@@ -6,7 +6,7 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.PastelStaff;
+import jp.aquafactory.apprenticecodex.item.pastelstaff.PastelStaff;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;

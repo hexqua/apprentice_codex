@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.model;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
+import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.model.GeoModel;
 

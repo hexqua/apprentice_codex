@@ -69,12 +69,12 @@ import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.event.errandmage.ErrandMageTradeManager;
 import jp.aquafactory.apprenticecodex.event.ErrandMageVillagerTradesEvent;
 import jp.aquafactory.apprenticecodex.event.ScrollcasterGauntletGrindstoneEvent;
-import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
-import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
+import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
-import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
-import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
+import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
@@ -85,11 +85,11 @@ import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDe
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightSpellSupport;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
-import jp.aquafactory.apprenticecodex.item.ElementalBow;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
-import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
+import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfile;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfileManager;
@@ -97,17 +97,17 @@ import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectHandler;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectProfile;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectProfileManager;
-import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
-import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
-import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
-import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntletCastEvent;
+import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntletCastEvent;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntletFreecastContext;
-import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
-import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
-import jp.aquafactory.apprenticecodex.item.StorageStabilizer;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import jp.aquafactory.apprenticecodex.item.spellthrowablecard.AbstractSpellThrowableCardItem;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastCooldownMode;
@@ -11601,7 +11601,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static void assertModifierAmount(
             GameTestHelper helper,
-            jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem item,
+            AbstractOffhandMagicItem item,
             ItemStack stack,
             Attribute attribute,
             double expectedAmount,

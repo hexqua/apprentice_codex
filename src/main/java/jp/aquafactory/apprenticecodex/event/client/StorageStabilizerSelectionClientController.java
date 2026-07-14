@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.event.client;
 
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.StorageStabilizer;
+import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmStorageStabilizerSpellPacket;
 import net.minecraft.client.Minecraft;

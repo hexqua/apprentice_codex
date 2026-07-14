@@ -9,7 +9,7 @@ import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.BoundSwordState;
-import jp.aquafactory.apprenticecodex.item.BoundSwordItem;
+import jp.aquafactory.apprenticecodex.item.boundweapon.BoundSwordItem;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncBoundSwordStatePacket;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;

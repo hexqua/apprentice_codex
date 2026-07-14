@@ -2,7 +2,6 @@ package jp.aquafactory.apprenticecodex.item.focusstaffbow;
 
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
-import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;

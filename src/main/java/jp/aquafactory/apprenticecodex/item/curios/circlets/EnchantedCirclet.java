@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMultimap;
 import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
-import jp.aquafactory.apprenticecodex.item.OffhandMagicModifierHelper;
+import jp.aquafactory.apprenticecodex.item.offhand.OffhandMagicModifierHelper;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;

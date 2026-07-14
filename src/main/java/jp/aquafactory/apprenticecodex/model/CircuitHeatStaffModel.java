@@ -1,8 +1,8 @@
 package jp.aquafactory.apprenticecodex.model;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.CircuitHeatStaff;
-import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffClientRenderState;
+import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaff;
+import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffClientRenderState;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.constant.DataTickets;

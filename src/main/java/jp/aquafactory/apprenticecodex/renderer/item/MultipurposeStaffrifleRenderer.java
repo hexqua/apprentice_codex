@@ -5,7 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.model.MultipurposeStaffrifleModel;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import net.minecraft.client.Minecraft;

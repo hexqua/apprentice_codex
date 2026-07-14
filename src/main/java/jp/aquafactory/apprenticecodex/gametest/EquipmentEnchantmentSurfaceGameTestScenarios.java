@@ -16,7 +16,7 @@ import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
-import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressCastEvent;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
@@ -33,7 +33,7 @@ import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsG
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGreatsword;
-import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;

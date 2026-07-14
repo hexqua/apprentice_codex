@@ -4,7 +4,6 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
-import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;

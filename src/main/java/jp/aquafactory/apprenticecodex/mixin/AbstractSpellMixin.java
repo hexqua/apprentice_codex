@@ -4,7 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
-import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowStartSoundContext;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;

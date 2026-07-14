@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.compat.bettercombat;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import net.bettercombat.logic.WeaponRegistry;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;

@@ -20,7 +20,6 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowCastState;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
-import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
 import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;

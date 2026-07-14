@@ -8,10 +8,10 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import java.util.UUID;
 
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
-import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
-import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
+import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
-import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
@@ -43,7 +43,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
 
     static void copperSpellAmplifierStartsWithBallLightningAndStacksAttunement(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var item = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var item = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var stack = new ItemStack(item);
             item.initializeSpellContainer(stack);
 
@@ -151,7 +151,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
     }
     static void diamondAndNetheriteSpellAmplifierExposeNewAttributeBonuses(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var diamondItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.DIAMOND_SPELL_AMPLIFIER.get();
+            var diamondItem = (AbstractOffhandMagicItem) ItemRegistry.DIAMOND_SPELL_AMPLIFIER.get();
             var diamondStack = new ItemStack(diamondItem);
             assertModifierAmount(
                     helper,
@@ -163,7 +163,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     "Diamond Spell Amplifier casting move speed bonus regression"
             );
 
-            var netheriteItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get();
+            var netheriteItem = (AbstractOffhandMagicItem) ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get();
             var netheriteStack = new ItemStack(netheriteItem);
             assertModifierAmount(
                     helper,
@@ -434,7 +434,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     "Better Combat rescue should keep Iron Spell Amplifier + Surge at +0.07 spell power but got "
                             + rescuedSpellPowerBonus + " modifiers=" + describeModifiers(rescuedIronModifiers));
 
-            var copperAmplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var copperAmplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var copperAmplifier = new ItemStack(copperAmplifierItem);
             copperAmplifierItem.initializeSpellContainer(copperAmplifier);
             copperAmplifier.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
@@ -522,7 +522,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             );
             helper.assertTrue(spellbreaker != null, "Missing irons_spellbooks:spellbreaker for Better Combat spell rescue test");
 
-            var copperAmplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var copperAmplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var copperAmplifier = new ItemStack(copperAmplifierItem);
             copperAmplifierItem.initializeSpellContainer(copperAmplifier);
             var expectedSpell = ISpellContainer.get(copperAmplifier).getSpellAtIndex(0);
