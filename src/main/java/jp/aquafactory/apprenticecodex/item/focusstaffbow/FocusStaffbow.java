@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.item;
+package jp.aquafactory.apprenticecodex.item.focusstaffbow;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
@@ -14,11 +14,9 @@ import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
+import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
+import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
-import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager;
-import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientConfigState;
-import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientLoanState;
-import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientRenderState;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.FocusStaffbowRenderer;
 import net.minecraft.ChatFormatting;

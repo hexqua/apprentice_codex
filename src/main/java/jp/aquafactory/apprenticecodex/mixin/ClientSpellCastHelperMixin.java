@@ -12,7 +12,7 @@ import jp.aquafactory.apprenticecodex.event.client.ClientMultipurposeStaffrifleC
 import jp.aquafactory.apprenticecodex.event.client.ClientSwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScrollcasterGauntletCompat;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
-import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;

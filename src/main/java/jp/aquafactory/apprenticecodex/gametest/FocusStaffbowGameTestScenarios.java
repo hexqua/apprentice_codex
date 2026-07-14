@@ -10,7 +10,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
-import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -1105,7 +1105,7 @@ final class FocusStaffbowGameTestScenarios {
 
     static void focusStaffbowLoanMessageUsesExpectedTranslationKey(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var message = jp.aquafactory.apprenticecodex.item.FocusStaffbow.createLoanBlockedMessage(5.1F);
+            var message = FocusStaffbow.createLoanBlockedMessage(5.1F);
             assertTranslatableKey(
                     helper,
                     message,
@@ -1117,7 +1117,7 @@ final class FocusStaffbowGameTestScenarios {
 
     static void focusStaffbowInsufficientArrowMessageUsesExpectedTranslationKey(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var message = jp.aquafactory.apprenticecodex.item.FocusStaffbow.createInsufficientArrowMessage();
+            var message = FocusStaffbow.createInsufficientArrowMessage();
             assertTranslatableKey(
                     helper,
                     message,
