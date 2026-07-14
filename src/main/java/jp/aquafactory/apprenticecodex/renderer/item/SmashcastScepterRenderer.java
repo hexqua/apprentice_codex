@@ -5,7 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
+import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.model.SmashcastScepterModel;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;

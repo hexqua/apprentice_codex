@@ -55,6 +55,7 @@ import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGaun
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
+import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGreatsword;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdge;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeMirror;

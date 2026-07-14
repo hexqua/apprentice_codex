@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.compat.epicfight;
 
 import com.mojang.datafixers.util.Pair;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
+import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterAttackEvent;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.resources.ResourceLocation;

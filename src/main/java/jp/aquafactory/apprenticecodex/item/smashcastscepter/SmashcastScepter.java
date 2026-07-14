@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.item;
+package jp.aquafactory.apprenticecodex.item.smashcastscepter;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
@@ -12,6 +12,10 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
+import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
+import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.SmashcastScepterRenderer;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;

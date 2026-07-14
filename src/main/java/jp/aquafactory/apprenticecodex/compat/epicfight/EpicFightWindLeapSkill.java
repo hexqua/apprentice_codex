@@ -1,6 +1,6 @@
 package jp.aquafactory.apprenticecodex.compat.epicfight;
 
-import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
+import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.resources.ResourceLocation;
 import yesman.epicfight.client.input.EpicFightKeyMappings;

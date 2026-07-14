@@ -12,7 +12,7 @@ import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
 import jp.aquafactory.apprenticecodex.item.pastelstaff.PastelStaff;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
-import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
+import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;

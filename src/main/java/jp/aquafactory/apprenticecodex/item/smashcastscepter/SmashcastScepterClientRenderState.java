@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.item;
+package jp.aquafactory.apprenticecodex.item.smashcastscepter;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.client.Minecraft;
