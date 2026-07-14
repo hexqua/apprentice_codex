@@ -109,6 +109,7 @@
   "item.apprenticecodex.alchemists_flask": "炼金术士烧瓶",
   "item.apprenticecodex.elemental_bow": "元素弓",
   "item.apprenticecodex.storage_stabilizer": "存储稳定器",
+  "item.apprenticecodex.storage_stabilizer.with_spell": "%1$s(%2$s)",
   "item.apprenticecodex.scrollcaster_gauntlet": "卷轴施法臂铠",
   "item.apprenticecodex.apprentice_mage_scarf": "学徒法师围巾",
   "item.apprenticecodex.apprentice_mage_torso": "学徒法师长袍",

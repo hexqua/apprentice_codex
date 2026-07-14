@@ -110,6 +110,7 @@
   "item.apprenticecodex.alchemists_flask": "Alchemist's Flask",
   "item.apprenticecodex.elemental_bow": "Elemental Bow",
   "item.apprenticecodex.storage_stabilizer": "Storage Stabilizer",
+  "item.apprenticecodex.storage_stabilizer.with_spell": "%1$s(%2$s)",
   "item.apprenticecodex.scrollcaster_gauntlet": "Scrollcaster Gauntlet",
   "item.apprenticecodex.apprentice_mage_scarf": "Apprentice Mage's Scarf",
   "item.apprenticecodex.apprentice_mage_torso": "Apprentice Mage's Robe",
