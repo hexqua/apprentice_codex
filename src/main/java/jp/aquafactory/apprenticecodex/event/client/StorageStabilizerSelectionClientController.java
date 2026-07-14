@@ -213,6 +213,9 @@ public final class StorageStabilizerSelectionClientController {
         if (player.getMainHandItem().getItem() instanceof StorageStabilizer) {
             return InteractionHand.MAIN_HAND;
         }
+        if (SneakSelectionUiHandResolver.shouldSuppressOffhandSelection(player)) {
+            return null;
+        }
         if (player.getOffhandItem().getItem() instanceof StorageStabilizer) {
             return InteractionHand.OFF_HAND;
         }

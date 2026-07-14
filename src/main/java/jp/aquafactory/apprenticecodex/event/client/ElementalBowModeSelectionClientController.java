@@ -189,6 +189,9 @@ public final class ElementalBowModeSelectionClientController {
         if (player.getMainHandItem().getItem() instanceof ElementalBow) {
             return InteractionHand.MAIN_HAND;
         }
+        if (SneakSelectionUiHandResolver.shouldSuppressOffhandSelection(player)) {
+            return null;
+        }
         if (player.getOffhandItem().getItem() instanceof ElementalBow) {
             return InteractionHand.OFF_HAND;
         }

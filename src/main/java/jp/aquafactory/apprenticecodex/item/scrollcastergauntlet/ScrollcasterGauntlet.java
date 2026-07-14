@@ -82,7 +82,8 @@ import java.util.function.Consumer;
 
 public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
         ItemTransformPreservingCastAnimationItem,
-        BetterCombatOffhandDualWieldingPolicyItem, SwingTriggeredMagicItem, PriorityOffhandUseDeferringItem, IJeiInfoItem {
+        BetterCombatOffhandDualWieldingPolicyItem, SwingTriggeredMagicItem, PriorityOffhandUseDeferringItem, IJeiInfoItem,
+        SneakSelectionUiItem {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.scrollcaster_gauntlet.desc_";
 
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
