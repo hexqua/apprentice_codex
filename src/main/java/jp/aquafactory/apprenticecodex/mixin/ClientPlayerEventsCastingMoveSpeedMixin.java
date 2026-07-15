@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.mixin;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import io.redspace.ironsspellbooks.player.ClientPlayerEvents;
-import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import net.neoforged.neoforge.client.event.MovementInputUpdateEvent;
 import org.spongepowered.asm.mixin.Mixin;

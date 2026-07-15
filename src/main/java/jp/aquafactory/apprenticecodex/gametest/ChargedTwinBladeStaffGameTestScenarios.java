@@ -69,24 +69,24 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
-import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
-import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
+import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
-import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
-import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
-import jp.aquafactory.apprenticecodex.item.CircuitHeatStaff;
-import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffCastEvent;
-import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffRightClickItemEvent;
-import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
-import jp.aquafactory.apprenticecodex.item.ElementalBow;
-import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff;
+import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaff;
+import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffCastEvent;
+import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffRightClickItemEvent;
+import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
-import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
-import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
-import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
+import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfile;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfileManager;
@@ -101,13 +101,13 @@ import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffManaCostEvent;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffPowerHelper;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
-import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
+import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterAttackEvent;
-import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
-import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
-import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
-import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntletCastEvent;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntletCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
@@ -517,7 +517,7 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
                 stack,
                 helper.getLevel(),
                 player,
-                stack.getUseDuration(player) - jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff.THROW_THRESHOLD_TICKS
+                stack.getUseDuration(player) - jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff.THROW_THRESHOLD_TICKS
         ));
         helper.succeedWhen(() -> {
             helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
@@ -545,7 +545,7 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
                 stack,
                 helper.getLevel(),
                 player,
-                stack.getUseDuration(player) - jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff.THROW_THRESHOLD_TICKS
+                stack.getUseDuration(player) - jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff.THROW_THRESHOLD_TICKS
         ));
         helper.succeedWhen(() -> helper.assertTrue(Math.abs(magicData.getMana() - (100.0F - 100.0F / 3.0F)) < 1.0e-3F,
                 "Charged Twin Blade Staff loyalty mana discount regressed: " + magicData.getMana()));
@@ -567,7 +567,7 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
                     stack,
                     helper.getLevel(),
                     player,
-                    stack.getUseDuration(player) - jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff.THROW_THRESHOLD_TICKS
+                    stack.getUseDuration(player) - jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff.THROW_THRESHOLD_TICKS
             );
             helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
                     "Charged Twin Blade Staff riptide should consume 50 mana on dry ground");

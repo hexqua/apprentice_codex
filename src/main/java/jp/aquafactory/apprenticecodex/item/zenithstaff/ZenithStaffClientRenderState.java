@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.zenithstaff;
 
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
-import jp.aquafactory.apprenticecodex.item.ZenithStaff;
+import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaff;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;

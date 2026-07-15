@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.item.zenithstaff;
 
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
-import jp.aquafactory.apprenticecodex.item.ZenithStaff;
+import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaff;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;

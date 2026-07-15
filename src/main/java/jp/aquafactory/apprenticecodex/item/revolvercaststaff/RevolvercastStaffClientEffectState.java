@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.item.revolvercaststaff;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
-import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
+import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;

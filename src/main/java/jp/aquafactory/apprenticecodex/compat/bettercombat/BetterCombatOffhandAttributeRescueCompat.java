@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.compat.bettercombat;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import net.bettercombat.logic.WeaponRegistry;
 import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;

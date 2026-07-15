@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;

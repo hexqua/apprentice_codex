@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.renderer.item;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import jp.aquafactory.apprenticecodex.item.ClientItemRenderContext;
-import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeEffectState;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientRenderState;
 import jp.aquafactory.apprenticecodex.model.FocusStaffbowModel;

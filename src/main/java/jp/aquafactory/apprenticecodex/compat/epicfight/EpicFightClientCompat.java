@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.compat.epicfight;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import net.minecraft.client.KeyMapping;
 import yesman.epicfight.api.client.input.action.EpicFightInputAction;
 import yesman.epicfight.api.event.EpicFightEventHooks;

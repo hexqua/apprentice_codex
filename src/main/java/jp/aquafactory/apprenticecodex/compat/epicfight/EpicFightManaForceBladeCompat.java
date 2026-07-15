@@ -1,6 +1,6 @@
 package jp.aquafactory.apprenticecodex.compat.epicfight;
 
-import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeGuardLogic;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;

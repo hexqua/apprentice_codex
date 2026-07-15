@@ -1,16 +1,17 @@
 package jp.aquafactory.apprenticecodex.item;
 
+import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.Tags;
 
-final class OffhandUsePriorityHelper {
+public final class OffhandUsePriorityHelper {
     private OffhandUsePriorityHelper() {
     }
 
-    static boolean isPriorityOffhandUseItem(ItemStack stack) {
+    public static boolean isPriorityOffhandUseItem(ItemStack stack) {
         if (stack == null || stack.isEmpty()) {
             return false;
         }
@@ -24,7 +25,7 @@ final class OffhandUsePriorityHelper {
                 || isShieldLikeItem(stack);
     }
 
-    static boolean isShieldLikeItem(ItemStack stack) {
+    public static boolean isShieldLikeItem(ItemStack stack) {
         if (stack == null || stack.isEmpty()) {
             return false;
         }

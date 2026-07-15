@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.renderer.item;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import jp.aquafactory.apprenticecodex.item.ImbuedSpellCoreClientEffectState;
-import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
+import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffClientEffectState;
 import jp.aquafactory.apprenticecodex.model.RevolvercastStaffModel;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;

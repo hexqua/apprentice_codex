@@ -1,6 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff;
 
-import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
+import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;

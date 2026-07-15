@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.smashcastscepter;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
+import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.particle.ImpactTremorBlockParticleOptions;
 import jp.aquafactory.apprenticecodex.particle.SmashcastDustPillarParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;

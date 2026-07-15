@@ -1,6 +1,6 @@
 package jp.aquafactory.apprenticecodex.compat.epicfight;
 
-import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import net.minecraft.world.entity.LivingEntity;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.item.GloveCapability;

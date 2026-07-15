@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.renderer.item;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.MulticastEchoStaff;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffClientRenderState;
 import jp.aquafactory.apprenticecodex.model.MulticastEchoStaffModel;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
