@@ -11853,7 +11853,7 @@ public class ApprenticeCodexGameTestScenarios {
                 itemName + " should continue rejecting continuous spells");
     }
 
-    static void assertSpellgunCooldownOverride(
+    static void assertSpellgunCooldownAdjustment(
             GameTestHelper helper,
             ServerPlayer player,
             ItemStack stack,

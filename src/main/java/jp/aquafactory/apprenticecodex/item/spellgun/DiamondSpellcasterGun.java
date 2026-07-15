@@ -1,13 +1,11 @@
 package jp.aquafactory.apprenticecodex.item.spellgun;
 
-import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.DiamondSpellcasterGunRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
@@ -25,9 +23,11 @@ import java.util.function.Consumer;
 public class DiamondSpellcasterGun extends AbstractSpellGunItem implements GeoItem {
     private static final SpellGunConfig SPELL_GUN_CONFIG = new SpellGunConfig(
             EnumSet.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
-            ApprenticeCodexServerConfig::diamondSpellgunMaxInstantImbueCooldownTicks,
+            null,
             false,
-            ApprenticeCodexServerConfig::diamondSpellgunOverriddenSpellCooldownTicks,
+            null,
+            null,
+            null,
             true
     );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -36,8 +36,7 @@ public class DiamondSpellcasterGun extends AbstractSpellGunItem implements GeoIt
         super(
                 new Properties().stacksTo(1).rarity(Rarity.COMMON).fireResistant(),
                 SPELL_GUN_CONFIG,
-                "DiamondSpellcasterGun",
-                bonus(AttributeRegistry.SPELL_POWER, 0.10, AttributeModifier.Operation.MULTIPLY_BASE)
+                "DiamondSpellcasterGun"
         );
         GeoItem.registerSyncedAnimatable(this);
     }
