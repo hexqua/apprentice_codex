@@ -11,7 +11,6 @@ import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
-import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
@@ -24,7 +23,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 
@@ -92,7 +90,6 @@ public class AssistWings extends AbstractSpell {
 
     @Override
     public final boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        var onlyJump = isOnlyJumpItem(entity);
         if (entity.onGround()){
             return true;
         }
@@ -104,10 +101,6 @@ public class AssistWings extends AbstractSpell {
 
         var canJump = codexData.get(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE).doneJump < getJumpCount(spellLevel, entity);
         if (!canJump){
-            if (onlyJump) {
-                return true;
-            }
-
             if (entity instanceof ServerPlayer serverPlayer) {
                 serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.cant_jump_more", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
             }
@@ -123,38 +116,7 @@ public class AssistWings extends AbstractSpell {
         var castData = new AssistWingsCastData();
         playerMagicData.setAdditionalCastData(castData);
 
-        var onlyJump = isOnlyJumpItem(entity);
-        if (onlyJump) {
-            sendOnlyJumpWarning(entity);
-        }
-
         Capabilities.withSpellData(entity, data -> data.edit(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE, spell -> {
-            if (onlyJump) {
-                discardExistingWing(level.getEntity(spell.localEntityId));
-                spell.localEntityId = -1;
-
-                var maxJumpCount = getJumpCount(spellLevel, entity);
-                var shouldJump = entity.onGround() || spell.doneJump < maxJumpCount;
-                if (entity.onGround()) {
-                    spell.doneJump = 0;
-                } else if (shouldJump) {
-                    ++spell.doneJump;
-                }
-
-                // 上限後も詠唱自体は通して翼を破棄するが、跳躍は設定された空中ジャンプ回数内に限定する。
-                if (shouldJump) {
-                    if (spell.doneJump == maxJumpCount) {
-                        playAirJumpLimitSound(level, entity);
-                    }
-                    applyJump(entity);
-                    castData.markJumpApplied();
-                } else {
-                    playAirJumpLimitSound(level, entity);
-                }
-
-                return;
-            }
-
             // まずは翼が既にいるかどうかチェック.
             var wing = level.getEntity(spell.localEntityId);
             if (wing == null || wing.isRemoved() || !(wing instanceof AssistWingsWingEntity)) {
@@ -192,27 +154,6 @@ public class AssistWings extends AbstractSpell {
         }
 
         super.onClientCast(level, spellLevel, entity, castData);
-    }
-
-    private static boolean isOnlyJumpItem(LivingEntity entity) {
-        return entity.getMainHandItem().is(TagRegistry.Items.ASSIST_WINGS_ONLY_JUMP_ITEMS);
-    }
-
-    private static void sendOnlyJumpWarning(LivingEntity entity) {
-        if (entity instanceof ServerPlayer serverPlayer) {
-            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
-                    Component.translatable(
-                            "ui.apprenticecodex.assist_wings.only_jump_warning",
-                            entity.getMainHandItem().getHoverName()
-                    ).withStyle(ChatFormatting.YELLOW)
-            ));
-        }
-    }
-
-    private static void discardExistingWing(Entity wing) {
-        if (wing instanceof AssistWingsWingEntity assistWingsWing && !assistWingsWing.isRemoved()) {
-            assistWingsWing.discard();
-        }
     }
 
     private static void playAirJumpLimitSound(Level level, LivingEntity entity) {
