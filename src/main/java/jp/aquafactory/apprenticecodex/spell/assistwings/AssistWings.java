@@ -9,13 +9,12 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.SyncAssistWingsJumpPacket;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
@@ -74,11 +73,6 @@ public class AssistWings extends AbstractSpell {
     }
 
     @Override
-    public ICastDataSerializable getEmptyCastData() {
-        return new AssistWingsCastData();
-    }
-
-    @Override
     public Optional<SoundEvent> getCastFinishSound() {
         return Optional.of(SoundRegistry.VANILLA_HIGH_JUMP.get());
     }
@@ -114,9 +108,6 @@ public class AssistWings extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        var castData = new AssistWingsCastData();
-        playerMagicData.setAdditionalCastData(castData);
-
         Capabilities.withSpellData(entity, data -> data.edit(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE, spell -> {
             // まずは翼が既にいるかどうかチェック.
             var wing = level.getEntity(spell.localEntityId);
@@ -139,77 +130,27 @@ public class AssistWings extends AbstractSpell {
             }
 
             // ジャンプ高度は気持ち高め.
-            applyJump(entity);
-            castData.markJumpApplied();
+            var jumpHeight = 0.6f + entity.getJumpBoostPower();
+            applyJump(entity, jumpHeight);
+            if (entity instanceof ServerPlayer serverPlayer) {
+                // Iron's Spells の追加詠唱データは送信直後に reset されるため、エンコード時機に左右されない専用パケットを使う。
+                Networks.sendToPlayer(serverPlayer, new SyncAssistWingsJumpPacket(jumpHeight));
+            }
         }));
 
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
-    }
-
-    @Override
-    public void onClientCast(Level level, int spellLevel, LivingEntity entity, ICastData castData) {
-        if (level.isClientSide
-                && castData instanceof AssistWingsCastData assistWingsCastData
-                && assistWingsCastData.jumpApplied()) {
-            applyJump(entity);
-        }
-
-        super.onClientCast(level, spellLevel, entity, castData);
     }
 
     private static void playAirJumpLimitSound(Level level, LivingEntity entity) {
         AudioTools.playSoundFromEntity(level, entity, SoundEvents.SPLASH_POTION_BREAK, SoundSource.PLAYERS, 1.0f, 0.75f);
     }
 
-    private static void applyJump(LivingEntity entity) {
-        var jumpHeight = 0.6f + entity.getJumpBoostPower();
-        var currentDelta = entity.getDeltaMovement();
-        entity.setDeltaMovement(currentDelta.x, jumpHeight, currentDelta.z);
-        entity.hasImpulse = true;
+    private static void applyJump(LivingEntity entity, float jumpHeight) {
+        SyncAssistWingsJumpPacket.applyTo(entity, jumpHeight);
         if (!entity.level().isClientSide && !(entity instanceof ServerPlayer)) {
-            // 1.20.1 では ServerPlayer の hurtMarked が操作中の本人にも XYZ 全軸の速度を送り返す。
-            // サーバーが保持していない水平速度でクライアントの移動を上書きしないよう、本人は onClientCast 側で動かす。
+            // ServerPlayer の hurtMarked は操作中の本人にも XYZ 全軸の速度を送り返す。
+            // サーバーが保持していない水平速度でクライアントの移動を上書きしないよう、本人には Y 速度だけを専用同期する。
             entity.hurtMarked = true;
-        }
-        entity.fallDistance = 0;
-    }
-
-    public static class AssistWingsCastData implements ICastDataSerializable {
-        private boolean jumpApplied;
-
-        public boolean jumpApplied() {
-            return jumpApplied;
-        }
-
-        private void markJumpApplied() {
-            jumpApplied = true;
-        }
-
-        @Override
-        public void writeToBuffer(FriendlyByteBuf buffer) {
-            buffer.writeBoolean(jumpApplied);
-        }
-
-        @Override
-        public void readFromBuffer(FriendlyByteBuf buffer) {
-            jumpApplied = buffer.readBoolean();
-        }
-
-        @Override
-        public void reset() {
-            jumpApplied = false;
-        }
-
-        @Override
-        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
-            var tag = new CompoundTag();
-            tag.putBoolean("JumpApplied", jumpApplied);
-            return tag;
-        }
-
-        @Override
-        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag tag) {
-            jumpApplied = tag.getBoolean("JumpApplied");
         }
     }
 }

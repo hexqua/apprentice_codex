@@ -74,6 +74,7 @@ import jp.aquafactory.apprenticecodex.event.ErrandMageVillagerTradesEvent;
 import jp.aquafactory.apprenticecodex.event.errandmage.ErrandMageTradeManager;
 import jp.aquafactory.apprenticecodex.event.ScrollcasterGauntletGrindstoneEvent;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncAssistWingsJumpPacket;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
@@ -868,7 +869,9 @@ public class ApprenticeCodexGameTestScenarios {
                     "Regular air casts should consume one Assist Wings air jump");
             helper.assertTrue(countActiveAssistWingsWings(helper, player) == 1,
                     "Regular Assist Wings casts should keep one wing entity");
-            assertAssistWingsCastDataRoundTrips(helper, magicData, true);
+            helper.assertTrue(magicData.getAdditionalCastData() == null,
+                    "Assist Wings should not depend on resettable additional cast data for client movement");
+            assertAssistWingsJumpPacketRoundTrips(helper, player);
         });
     }
 
@@ -910,7 +913,8 @@ public class ApprenticeCodexGameTestScenarios {
                     "A tagged main-hand item should block Assist Wings gliding");
             helper.assertFalse(player.hasEffect(MobEffects.SLOW_FALLING),
                     "Assist Wings should not use the vanilla Slow Falling effect");
-            assertAssistWingsCastDataRoundTrips(helper, magicData, true);
+            helper.assertTrue(magicData.getAdditionalCastData() == null,
+                    "Assist Wings should not depend on resettable additional cast data for client movement");
         });
     }
 
@@ -11050,26 +11054,26 @@ public class ApprenticeCodexGameTestScenarios {
         }));
     }
 
-    static void assertAssistWingsCastDataRoundTrips(GameTestHelper helper, MagicData magicData, boolean expectedJumpApplied) {
-        if (!(magicData.getAdditionalCastData() instanceof AssistWings.AssistWingsCastData source)) {
-            helper.fail("Assist Wings should store serializable cast data for client movement");
-            return;
-        }
-        helper.assertTrue(source.jumpApplied() == expectedJumpApplied,
-                "Assist Wings cast data should report whether the server applied the jump");
-
+    static void assertAssistWingsJumpPacketRoundTrips(GameTestHelper helper, Player player) {
+        var source = new SyncAssistWingsJumpPacket(0.75F);
         var buffer = new FriendlyByteBuf(Unpooled.buffer());
-        source.writeToBuffer(buffer);
-        var restoredFromBuffer = new AssistWings.AssistWingsCastData();
-        restoredFromBuffer.readFromBuffer(buffer);
-        helper.assertTrue(restoredFromBuffer.jumpApplied() == expectedJumpApplied,
-                "Assist Wings cast data should preserve the jump result through network serialization");
+        SyncAssistWingsJumpPacket.encode(source, buffer);
+        var restored = SyncAssistWingsJumpPacket.decode(buffer);
+        helper.assertTrue(restored.jumpHeight() == source.jumpHeight(),
+                "Assist Wings jump packet should preserve jump height through network serialization");
 
-        var restoredFromNbt = new AssistWings.AssistWingsCastData();
-        var registries = helper.getLevel().registryAccess();
-        restoredFromNbt.deserializeNBT(registries, source.serializeNBT(registries));
-        helper.assertTrue(restoredFromNbt.jumpApplied() == expectedJumpApplied,
-                "Assist Wings cast data should preserve the jump result through NBT serialization");
+        player.setDeltaMovement(0.18D, -0.4D, -0.11D);
+        player.fallDistance = 8.0F;
+        SyncAssistWingsJumpPacket.applyTo(player, restored.jumpHeight());
+        var movement = player.getDeltaMovement();
+        helper.assertTrue(Math.abs(movement.x - 0.18D) < 0.0001D
+                        && Math.abs(movement.y - 0.75D) < 0.0001D
+                        && Math.abs(movement.z + 0.11D) < 0.0001D,
+                "Assist Wings jump packet should replace only vertical movement");
+        helper.assertTrue(player.hasImpulse,
+                "Assist Wings jump packet should mark the client movement as an impulse");
+        helper.assertTrue(player.fallDistance == 0.0F,
+                "Assist Wings jump packet should reset client fall distance");
     }
 
     static int countActiveAssistWingsWings(GameTestHelper helper, Player player) {

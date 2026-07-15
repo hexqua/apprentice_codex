@@ -22,6 +22,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPac
 import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletNotificationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletProfileSpellIdsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncApprenticeDeskConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncAssistWingsJumpPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncBoundBowStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncBoundSwordStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffOverheatPacket;
@@ -60,7 +61,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "55";
+    private static final String PROTOCOL_VERSION = "56";
 
     private Networks() {
     }
@@ -150,6 +151,11 @@ public final class Networks {
                 SyncApprenticeDeskConfigPacket.TYPE,
                 SyncApprenticeDeskConfigPacket.STREAM_CODEC,
                 SyncApprenticeDeskConfigPacket::handle
+        );
+        registrar.playToClient(
+                SyncAssistWingsJumpPacket.TYPE,
+                SyncAssistWingsJumpPacket.STREAM_CODEC,
+                SyncAssistWingsJumpPacket::handle
         );
         registrar.playToClient(
                 SyncManaForceBladeConfigPacket.TYPE,
