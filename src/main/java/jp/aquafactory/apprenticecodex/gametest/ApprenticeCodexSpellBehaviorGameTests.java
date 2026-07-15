@@ -638,18 +638,28 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
-    public static void assistWingsSmashcastGroundCastJumpsWithoutKeepingWing(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.assistWingsSmashcastGroundCastJumpsWithoutKeepingWing(helper);
+    public static void assistWingsRegularAirCastPreservesHorizontalMovementWithoutSelfMotionSync(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsRegularAirCastPreservesHorizontalMovementWithoutSelfMotionSync(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
-    public static void assistWingsSmashcastAirCastConsumesJumpAndDropsWing(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.assistWingsSmashcastAirCastConsumesJumpAndDropsWing(helper);
+    public static void assistWingsTaggedGroundCastKeepsWingAndBlocksGlide(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsTaggedGroundCastKeepsWingAndBlocksGlide(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
-    public static void assistWingsSmashcastExhaustedAirCastOnlyDropsWing(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.assistWingsSmashcastExhaustedAirCastOnlyDropsWing(helper);
+    public static void assistWingsTaggedOffhandBlocksGlideWithoutDiscardingWing(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsTaggedOffhandBlocksGlideWithoutDiscardingWing(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
+    public static void assistWingsRemovingTaggedItemRestoresCustomGlide(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsRemovingTaggedItemRestoresCustomGlide(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
+    public static void assistWingsTaggedLandingResetsAirJumpsAndAllowsNextAirCast(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsTaggedLandingResetsAirJumpsAndAllowsNextAirCast(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 80)
