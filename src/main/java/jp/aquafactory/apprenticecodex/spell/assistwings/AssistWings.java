@@ -14,6 +14,8 @@ import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
@@ -73,6 +75,11 @@ public class AssistWings extends AbstractSpell {
     }
 
     @Override
+    public ICastDataSerializable getEmptyCastData() {
+        return new AssistWingsCastData();
+    }
+
+    @Override
     public Optional<SoundEvent> getCastFinishSound() {
         return Optional.of(SoundRegistry.VANILLA_HIGH_JUMP.get());
     }
@@ -113,6 +120,9 @@ public class AssistWings extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        var castData = new AssistWingsCastData();
+        playerMagicData.setAdditionalCastData(castData);
+
         var onlyJump = isOnlyJumpItem(entity);
         if (onlyJump) {
             sendOnlyJumpWarning(entity);
@@ -131,11 +141,13 @@ public class AssistWings extends AbstractSpell {
                     ++spell.doneJump;
                 }
 
+                // 上限後も詠唱自体は通して翼を破棄するが、跳躍は設定された空中ジャンプ回数内に限定する。
                 if (shouldJump) {
                     if (spell.doneJump == maxJumpCount) {
                         playAirJumpLimitSound(level, entity);
                     }
                     applyJump(entity);
+                    castData.markJumpApplied();
                 } else {
                     playAirJumpLimitSound(level, entity);
                 }
@@ -165,9 +177,21 @@ public class AssistWings extends AbstractSpell {
 
             // ジャンプ高度は気持ち高め.
             applyJump(entity);
+            castData.markJumpApplied();
         }));
 
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    }
+
+    @Override
+    public void onClientCast(Level level, int spellLevel, LivingEntity entity, ICastData castData) {
+        if (level.isClientSide
+                && castData instanceof AssistWingsCastData assistWingsCastData
+                && assistWingsCastData.jumpApplied()) {
+            applyJump(entity);
+        }
+
+        super.onClientCast(level, spellLevel, entity, castData);
     }
 
     private static boolean isOnlyJumpItem(LivingEntity entity) {
@@ -200,7 +224,50 @@ public class AssistWings extends AbstractSpell {
         var currentDelta = entity.getDeltaMovement();
         entity.setDeltaMovement(currentDelta.x, jumpHeight, currentDelta.z);
         entity.hasImpulse = true;
-        entity.hurtMarked = true;
+        if (!entity.level().isClientSide && !(entity instanceof ServerPlayer)) {
+            // 1.20.1 では ServerPlayer の hurtMarked が操作中の本人にも XYZ 全軸の速度を送り返す。
+            // サーバーが保持していない水平速度でクライアントの移動を上書きしないよう、本人は onClientCast 側で動かす。
+            entity.hurtMarked = true;
+        }
         entity.fallDistance = 0;
+    }
+
+    public static class AssistWingsCastData implements ICastDataSerializable {
+        private boolean jumpApplied;
+
+        public boolean jumpApplied() {
+            return jumpApplied;
+        }
+
+        private void markJumpApplied() {
+            jumpApplied = true;
+        }
+
+        @Override
+        public void writeToBuffer(FriendlyByteBuf buffer) {
+            buffer.writeBoolean(jumpApplied);
+        }
+
+        @Override
+        public void readFromBuffer(FriendlyByteBuf buffer) {
+            jumpApplied = buffer.readBoolean();
+        }
+
+        @Override
+        public void reset() {
+            jumpApplied = false;
+        }
+
+        @Override
+        public CompoundTag serializeNBT() {
+            var tag = new CompoundTag();
+            tag.putBoolean("JumpApplied", jumpApplied);
+            return tag;
+        }
+
+        @Override
+        public void deserializeNBT(CompoundTag tag) {
+            jumpApplied = tag.getBoolean("JumpApplied");
+        }
     }
 }
