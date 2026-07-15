@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item;
 import io.redspace.ironsspellbooks.api.item.CastingImplementData;
 import io.redspace.ironsspellbooks.item.CastingItem;
 import io.redspace.ironsspellbooks.item.Scroll;
+import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -21,6 +22,10 @@ public final class RightClickSpellItemHelper {
         }
 
         var item = stack.getItem();
+        if (item instanceof AbstractSpellGunItem) {
+            return false;
+        }
+
         // クールダウン中でもメインハンド側の操作を優先し、オフハンド魔法は割り込ませない。
         if (player.getCooldowns().isOnCooldown(item)) {
             return true;

@@ -25,38 +25,42 @@ public final class RightClickSpellResolver {
     private RightClickSpellResolver() {
     }
 
-    public static Optional<ResolvedRightClickSpell> resolve(Player player) {
+    public static Optional<ResolvedRightClickSpell> resolve(Player player, InteractionHand triggeredHand) {
         var mainHandStack = player.getMainHandItem();
         var offHandStack = player.getOffhandItem();
+
+        if (triggeredHand == InteractionHand.OFF_HAND) {
+            return resolveOffhandUseItemSpell(player, offHandStack);
+        }
+
+        // メイン Spellgun 自身は右クリックを処理しない。AbstractOffhandMagicItem だけは
+        // Forge のメインハンド RightClickItem イベントへ割り込むため、この時点で同期する。
+        if (mainHandStack.getItem() instanceof AbstractSpellGunItem) {
+            if (offHandStack.getItem() instanceof AbstractOffhandMagicItem
+                    && !RightClickSpellItemHelper.hasMainHandRightClickBehavior(player, mainHandStack)) {
+                return resolveSelectionSpell(player, InteractionHand.OFF_HAND, "offhand_magic_selection");
+            }
+            return Optional.empty();
+        }
 
         if (shouldDeferMainHandToPriorityOffhandUse(mainHandStack, offHandStack)) {
             return resolveOffhandUseItemSpell(player, offHandStack);
         }
 
         var mainHandSpell = resolveMainHandSpell(player, mainHandStack);
-        if (mainHandSpell.isPresent()) {
-            return mainHandSpell;
-        }
-
-        var offhandUseSpell = resolveOffhandUseItemSpell(player, offHandStack);
-        if (offhandUseSpell.isPresent()) {
-            return offhandUseSpell;
-        }
 
         // オフハンド魔法はメインハンドの右クリック優先条件と同じ判定でのみ解放する。
-        if (offHandStack.getItem() instanceof AbstractOffhandMagicItem
+        if (mainHandSpell.isEmpty()
+                && offHandStack.getItem() instanceof AbstractOffhandMagicItem
                 && !RightClickSpellItemHelper.hasMainHandRightClickBehavior(player, mainHandStack)) {
             return resolveSelectionSpell(player, InteractionHand.OFF_HAND, "offhand_magic_selection");
         }
 
-        return Optional.empty();
+        return mainHandSpell;
     }
 
     private static Optional<ResolvedRightClickSpell> resolveMainHandSpell(Player player, ItemStack mainHandStack) {
         // 先頭 spell 固定で発動するアイテムは選択 spell より先に解決する。
-        if (mainHandStack.getItem() instanceof AbstractSpellGunItem) {
-            return resolveContainerSpell(mainHandStack, player, InteractionHand.MAIN_HAND, "spell_gun");
-        }
         if (mainHandStack.getItem() instanceof Scroll) {
             return resolveContainerSpell(mainHandStack, player, InteractionHand.MAIN_HAND, "scroll");
         }

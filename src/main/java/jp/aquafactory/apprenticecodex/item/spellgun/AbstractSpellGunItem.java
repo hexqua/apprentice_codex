@@ -20,6 +20,8 @@ import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.Spellcast
 import jp.aquafactory.apprenticecodex.item.offhand.OffhandMagicModifierHelper;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.ChatFormatting;
@@ -204,12 +206,15 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     @Override
     public final @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
         var stack = player.getItemInHand(usedHand);
-        var castResult = tryCastSpell(player, stack, usedHand);
-        return switch (castResult) {
-            case SUCCESS -> InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
-            case FAIL -> InteractionResultHolder.fail(stack);
-            case NONE -> InteractionResultHolder.pass(stack);
-        };
+        if (usedHand == InteractionHand.MAIN_HAND) {
+            return InteractionResultHolder.pass(stack);
+        }
+
+        if (player instanceof ServerPlayer serverPlayer) {
+            tryTriggerImbuedSpell(serverPlayer, usedHand, null);
+        }
+        // オフハンド Spellgun が選ばれた後の失敗をメインハンドへフォールバックさせない。
+        return InteractionResultHolder.consume(stack);
     }
 
     @Override
@@ -353,6 +358,14 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return spellData == SpellData.EMPTY ? null : spellData;
     }
 
+    @Nullable
+    public final SpellData getImbuedSpellData(ItemStack stack) {
+        if (!ISpellContainer.isSpellContainer(stack)) {
+            initializeSpellContainer(stack);
+        }
+        return getPrimarySpellData(stack);
+    }
+
     private boolean matchesConfiguredPresetSpell(@Nullable SpellData spellData) {
         return spellData != null
                 && startsWithPresetSpell
@@ -492,19 +505,29 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return !spellGunConfig.requireZeroInstantRecast() || spell.getRecastCount(spellLevel, null) <= 0;
     }
 
-    private CastResult tryCastSpell(Player player, ItemStack stack, InteractionHand usedHand) {
+    public final boolean tryTriggerImbuedSpell(ServerPlayer player, InteractionHand usedHand,
+                                                @Nullable BlockTargetData targetData) {
+        var stack = player.getItemInHand(usedHand);
+        if (stack.isEmpty() || stack.getItem() != this) {
+            return false;
+        }
+
         if (!ISpellContainer.isSpellContainer(stack)) {
             initializeSpellContainer(stack);
         }
 
         var spellContainer = ISpellContainer.get(stack);
         if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
-            return CastResult.NONE;
+            sendNotImbuedError(player, stack);
+            BlockTargetingHelper.clearPendingServerTarget(player);
+            return false;
         }
 
         var spellData = spellContainer.getSpellAtIndex(0);
         if (spellData == SpellData.EMPTY || !canImbueSpell(spellData)) {
-            return CastResult.FAIL;
+            sendNotImbuedError(player, stack);
+            BlockTargetingHelper.clearPendingServerTarget(player);
+            return false;
         }
 
         var spell = spellData.getSpell();
@@ -513,13 +536,24 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                 ? SpellSelectionManager.OFFHAND
                 : SpellSelectionManager.MAINHAND;
 
-        return tryCastSpellWithoutMana(player, stack, spellData, spellLevel, slotId, spell)
-                ? CastResult.SUCCESS
-                : CastResult.FAIL;
+        if (targetData != null) {
+            BlockTargetingHelper.setPendingServerTarget(player, spell.getSpellResource(), targetData);
+        }
+
+        try {
+            return tryCastSpellWithoutMana(player, stack, spellData, spellLevel, slotId, spell);
+        } finally {
+            BlockTargetingHelper.clearPendingServerTarget(player);
+        }
     }
 
     private boolean tryCastSpellWithoutMana(Player player, ItemStack stack, SpellData spellData, int spellLevel, String slotId, AbstractSpell spell) {
         var magicData = MagicData.getPlayerMagicData(player);
+        // attemptInitiateCast は既存詠唱を壊す場合があるため、同時入力は先に開始済みの詠唱を優先する。
+        if (magicData != null && magicData.isCasting()) {
+            return false;
+        }
+
         if (magicData == null || player.isCreative()) {
             var casted = spell.attemptInitiateCast(
                     stack,
@@ -591,6 +625,13 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                 getOverriddenLongCastTicks()
         );
         return true;
+    }
+
+    private static void sendNotImbuedError(ServerPlayer player, ItemStack stack) {
+        player.connection.send(new ClientboundSetActionBarTextPacket(
+                Component.translatable("ui.apprenticecodex.spellgun.not_imbued", stack.getHoverName())
+                        .withStyle(ChatFormatting.RED)
+        ));
     }
 
     @Override
@@ -935,12 +976,6 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             String key
     ) {
         return new AttributeBonus(() -> attribute, amount, operation, key);
-    }
-
-    private enum CastResult {
-        NONE,
-        SUCCESS,
-        FAIL
     }
 
     // `key` は UUID 生成のシードに使う任意識別子.

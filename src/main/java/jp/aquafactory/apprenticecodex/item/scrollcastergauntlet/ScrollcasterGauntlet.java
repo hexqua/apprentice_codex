@@ -22,7 +22,6 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.*;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.offhand.OffhandMagicModifierHelper;
-import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.ScrollcasterGauntletRenderer;
@@ -398,7 +397,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         var mainHandStack = player.getMainHandItem();
         var mainHandItem = mainHandStack.getItem();
         return RightClickSpellItemHelper.isRightClickSpellItem(mainHandStack)
-                || mainHandItem instanceof AbstractSpellGunItem
                 || mainHandItem instanceof AbstractRightClickMagicWeaponItem
                 || mainHandItem instanceof ScrollcasterGauntlet;
     }
