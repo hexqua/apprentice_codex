@@ -211,7 +211,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
     public int getEnabledScrollSlotCount() {
         if (hasGauntlet()) {
-            return ScrollcasterGauntlet.getEnabledCalibrationScrollSlotCount(getGauntletStack());
+            return ScrollcasterGauntlet.getEnabledCalibrationScrollSlotCount(getGauntletStack(), lookupProvider);
         }
         if (hasRevolvercastStaff()) {
             return RevolvercastStaff.getEnabledCalibrationScrollSlotCount(getGauntletStack());
@@ -274,7 +274,12 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
         var scrollStack = getScroll(slot);
         return !scrollStack.isEmpty()
-                && !SpellCalibrationImbueHelper.evaluateStoredScrollAt(getGauntletStack(), slot, scrollStack).isUsable();
+                && !SpellCalibrationImbueHelper.evaluateStoredScrollAt(
+                        getGauntletStack(),
+                        slot,
+                        scrollStack,
+                        lookupProvider
+                ).isUsable();
     }
 
     public boolean hasTargetSpellAt(int slot) {
@@ -326,7 +331,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
     private @NotNull ItemStack getAdjustment(int slot) {
         var target = getAdjustmentTarget();
-        return target == null ? ItemStack.EMPTY : target.getCalibrationAdjustment(getGauntletStack(), slot);
+        return target == null
+                ? ItemStack.EMPTY
+                : target.getCalibrationAdjustment(getGauntletStack(), slot, lookupProvider);
     }
 
     private void setAdjustment(int slot, @NotNull ItemStack stack) {
@@ -339,7 +346,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         if (!storedStack.isEmpty()) {
             storedStack.setCount(1);
         }
-        target.trySetCalibrationAdjustment(getGauntletStack(), slot, storedStack);
+        target.trySetCalibrationAdjustment(getGauntletStack(), slot, storedStack, lookupProvider);
     }
 
     private @NotNull ItemStack getScroll(int slot) {
@@ -388,7 +395,12 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         }
 
         if (!stack.isEmpty()
-                && !SpellCalibrationImbueHelper.evaluateScrollAt(getGauntletStack(), slot, stack).canInsert()) {
+                && !SpellCalibrationImbueHelper.evaluateScrollAt(
+                        getGauntletStack(),
+                        slot,
+                        stack,
+                        lookupProvider
+                ).canInsert()) {
             return;
         }
 
@@ -461,7 +473,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             return false;
         }
         for (var slot = 0; slot < target.getCalibrationAdjustmentSlotCount(getGauntletStack()); ++slot) {
-            if (target.canPlaceCalibrationAdjustment(getGauntletStack(), slot, stack)) {
+            if (target.canPlaceCalibrationAdjustment(getGauntletStack(), slot, stack, lookupProvider)) {
                 return true;
             }
         }
@@ -717,7 +729,12 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
             var target = getAdjustmentTarget();
             return target != null
-                    && target.canPlaceCalibrationAdjustment(getGauntletStack(), calibrationSlot, stack);
+                    && target.canPlaceCalibrationAdjustment(
+                            getGauntletStack(),
+                            calibrationSlot,
+                            stack,
+                            lookupProvider
+                    );
         }
 
         @Override
@@ -749,7 +766,12 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             if (!hasCalibrationTarget() || !isScrollSlotEnabled(calibrationSlot) || !isScroll(stack)) {
                 return false;
             }
-            return SpellCalibrationImbueHelper.evaluateScrollAt(getGauntletStack(), calibrationSlot, stack).canInsert();
+            return SpellCalibrationImbueHelper.evaluateScrollAt(
+                    getGauntletStack(),
+                    calibrationSlot,
+                    stack,
+                    lookupProvider
+            ).canInsert();
         }
 
         @Override

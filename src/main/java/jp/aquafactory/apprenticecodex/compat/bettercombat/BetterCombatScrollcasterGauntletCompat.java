@@ -39,7 +39,7 @@ public final class BetterCombatScrollcasterGauntletCompat {
         if (!(offhandStack.getItem() instanceof ScrollcasterGauntlet)) {
             return SpellData.EMPTY;
         }
-        return ScrollcasterGauntlet.getSelectedSpellData(offhandStack);
+        return ScrollcasterGauntlet.getSelectedSpellData(offhandStack, player.level().registryAccess());
     }
 
     private static boolean isTwoHandedMainHandWeapon(ItemStack mainHandStack) {

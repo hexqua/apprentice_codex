@@ -1,10 +1,12 @@
 package jp.aquafactory.apprenticecodex.item;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.IntFunction;
 
 /** 調整対象 Item が受け付ける候補ルールの順序付き宣言。 */
 public final class CalibrationAdjustmentProfile {
@@ -28,7 +30,40 @@ public final class CalibrationAdjustmentProfile {
             int slot,
             @NotNull ItemStack candidate
     ) {
+        return canPlace(
+                target,
+                targetStack,
+                slot,
+                candidate,
+                existingSlot -> target.getCalibrationAdjustment(targetStack, existingSlot)
+        );
+    }
+
+    boolean canPlace(
+            SpellCalibrationAdjustmentTarget target,
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull ItemStack candidate,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
+        return canPlace(
+                target,
+                targetStack,
+                slot,
+                candidate,
+                existingSlot -> target.getCalibrationAdjustment(targetStack, existingSlot, lookupProvider)
+        );
+    }
+
+    private boolean canPlace(
+            SpellCalibrationAdjustmentTarget target,
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull ItemStack candidate,
+            IntFunction<ItemStack> existingAdjustment
+    ) {
         Objects.requireNonNull(target);
+        Objects.requireNonNull(existingAdjustment);
         if (slot < 0 || slot >= target.getCalibrationAdjustmentSlotCount(targetStack)) {
             return false;
         }
@@ -46,7 +81,7 @@ public final class CalibrationAdjustmentProfile {
             if (existingSlot == slot) {
                 continue;
             }
-            if (matchedRule.conflicts(candidate, target.getCalibrationAdjustment(targetStack, existingSlot))) {
+            if (matchedRule.conflicts(candidate, existingAdjustment.apply(existingSlot))) {
                 return false;
             }
         }

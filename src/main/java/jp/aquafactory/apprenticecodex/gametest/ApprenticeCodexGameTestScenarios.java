@@ -3730,6 +3730,16 @@ public class ApprenticeCodexGameTestScenarios {
             menu.getSlot(1).set(createEnchantedBook(sharpness, 1));
             helper.assertTrue(getEnchantmentLevel(gauntlet, sharpness) == 1,
                     "Sharpness book should enchant the Scrollcaster Gauntlet");
+            var storedSharpnessBook = menu.getAdjustmentItem(0);
+            helper.assertTrue(storedSharpnessBook.is(Items.ENCHANTED_BOOK),
+                    "Bench should restore the stored enchanted book with the current Level registry");
+            helper.assertTrue(getEnchantmentLevel(storedSharpnessBook, sharpness) == 1,
+                    "Restored Bench book should retain its dynamic enchantment");
+
+            var syncedMenu = createSpellCalibrationBenchMenu(helper, player, new BlockPos(1, 1, 0));
+            syncedMenu.getSlot(0).set(gauntlet.copy());
+            helper.assertTrue(getEnchantmentLevel(syncedMenu.getAdjustmentItem(0), sharpness) == 1,
+                    "A newly synchronized Bench menu should restore the stored dynamic enchantment");
 
             menu.getSlot(2).set(createEnchantedBook(unbreaking, 1));
             helper.assertTrue(getEnchantmentLevel(gauntlet, unbreaking) == 0,
