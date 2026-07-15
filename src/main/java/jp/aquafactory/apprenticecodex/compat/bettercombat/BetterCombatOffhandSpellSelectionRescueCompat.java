@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.compat.bettercombat;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
-import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 
 public final class BetterCombatOffhandSpellSelectionRescueCompat {
     private BetterCombatOffhandSpellSelectionRescueCompat() {

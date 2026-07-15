@@ -1,6 +1,6 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.item.SmashcastScepterClientRenderState;
+import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterClientRenderState;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;

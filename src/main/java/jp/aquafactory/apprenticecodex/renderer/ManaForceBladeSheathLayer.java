@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.renderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexClientConfig;
-import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;

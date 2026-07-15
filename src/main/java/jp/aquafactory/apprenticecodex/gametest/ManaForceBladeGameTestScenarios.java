@@ -69,24 +69,24 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
-import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
-import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
+import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
-import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
-import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
-import jp.aquafactory.apprenticecodex.item.CircuitHeatStaff;
-import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffCastEvent;
-import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffRightClickItemEvent;
-import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
-import jp.aquafactory.apprenticecodex.item.ElementalBow;
-import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff;
+import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaff;
+import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffCastEvent;
+import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffRightClickItemEvent;
+import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
-import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
-import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
-import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
+import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfile;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfileManager;
@@ -101,13 +101,13 @@ import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffManaCostEvent;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffPowerHelper;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
-import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
+import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterAttackEvent;
-import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
-import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
-import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
-import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntletCastEvent;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntletCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
@@ -185,7 +185,7 @@ import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.CreativeTabRegistry;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
-import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeConfigState;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeGuardLogic;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -362,7 +362,7 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
     }
     static void manaForceBladeAttunementAndUpgradeMergeForTooltip(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var item = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+            var item = (jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
             var stack = new ItemStack(item);
             item.initializeSpellContainer(stack);
             var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get();
@@ -564,7 +564,7 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
 
     static void manaForceBladeAttackManaCostIsOncePerTick(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var item = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+            var item = (jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
             var stack = new ItemStack(item);
             item.initializeSpellContainer(stack);
             setSingleUnlockedSpell(helper, stack,
@@ -584,7 +584,7 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
             item.hurtEnemy(stack, secondTarget, player);
 
             var expectedMana = 100.0F
-                    - jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(player, stack);
+                    - jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade.resolveBladeAttackManaCost(player, stack);
             helper.assertTrue(Math.abs(magicData.getMana() - expectedMana) < 1.0e-4F,
                     "Mana Force Blade should spend attack mana once per tick even when multiple targets are hit"
                             + " expected=" + expectedMana
@@ -594,7 +594,7 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
 
     static void manaForceBladeConfigScalesDamageAndManaFormulas(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var item = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+            var item = (jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
             var stack = new ItemStack(item);
             item.initializeSpellContainer(stack);
             setSingleUnlockedSpell(helper, stack,
@@ -624,34 +624,34 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
                 schoolPower.setBaseValue(1.2D);
             }
 
-            var baseDamage = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackDamage(stack);
-            var damageMultiplier = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveDamageMultiplier(player, stack, 1.0F);
+            var baseDamage = jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade.resolveBladeAttackDamage(stack);
+            var damageMultiplier = jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade.resolveDamageMultiplier(player, stack, 1.0F);
             helper.assertTrue(Math.abs(damageMultiplier - 1.8F) < 1.0e-4F,
                     "Mana Force Blade should multiply spell power and school power for imbued damage but got "
                             + damageMultiplier);
-            helper.assertTrue(Math.abs(jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveDamageMultiplier(player, stack, 0.5F) - 0.9F) < 1.0e-4F,
+            helper.assertTrue(Math.abs(jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade.resolveDamageMultiplier(player, stack, 0.5F) - 0.9F) < 1.0e-4F,
                     "Mana Force Blade imbue damage scale should directly scale the final school multiplier");
-            helper.assertTrue(Math.abs(jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveDamageMultiplier(player, stack, 0.0F) - 1.0F) < 1.0e-4F,
+            helper.assertTrue(Math.abs(jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade.resolveDamageMultiplier(player, stack, 0.0F) - 1.0F) < 1.0e-4F,
                     "Mana Force Blade imbue damage scale 0 should disable imbued damage changes");
 
-            var fullManaCost = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(
+            var fullManaCost = jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade.resolveBladeAttackManaCost(
                     player, stack, 3.0F, 1.0F, 1.0F);
             helper.assertTrue(Math.abs(fullManaCost - baseDamage * 3.0F * 1.8F) < 1.0e-4F,
                     "Mana Force Blade full school mana scale should follow final imbued damage: " + fullManaCost);
 
-            var halfSchoolManaCost = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(
+            var halfSchoolManaCost = jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade.resolveBladeAttackManaCost(
                     player, stack, 3.0F, 0.5F, 1.0F);
             helper.assertTrue(Math.abs(halfSchoolManaCost - baseDamage * 3.0F * 1.4F) < 1.0e-4F,
                     "Mana Force Blade half school mana scale should only halve the school-derived increase: "
                             + halfSchoolManaCost);
 
-            var noSchoolManaCost = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(
+            var noSchoolManaCost = jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade.resolveBladeAttackManaCost(
                     player, stack, 3.0F, 0.0F, 1.0F);
             helper.assertTrue(Math.abs(noSchoolManaCost - baseDamage * 3.0F) < 1.0e-4F,
                     "Mana Force Blade school mana scale 0 should ignore school multiplier for mana cost: "
                             + noSchoolManaCost);
 
-            var disabledManaCost = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(
+            var disabledManaCost = jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade.resolveBladeAttackManaCost(
                     player, stack, 3.0F, 1.0F, 0.0F);
             helper.assertTrue(disabledManaCost == 0.0F,
                     "Mana Force Blade imbue damage scale 0 should also disable hit mana cost");

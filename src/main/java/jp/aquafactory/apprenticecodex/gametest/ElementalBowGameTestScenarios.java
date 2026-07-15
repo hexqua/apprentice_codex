@@ -69,24 +69,24 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
-import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
-import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
+import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
-import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
-import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
-import jp.aquafactory.apprenticecodex.item.CircuitHeatStaff;
-import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffCastEvent;
-import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffRightClickItemEvent;
-import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
-import jp.aquafactory.apprenticecodex.item.ElementalBow;
-import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff;
+import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaff;
+import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffCastEvent;
+import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffRightClickItemEvent;
+import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
-import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
-import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
-import jp.aquafactory.apprenticecodex.item.RevolvercastStaff;
+import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfile;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfileManager;
@@ -101,13 +101,13 @@ import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffManaCostEvent;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffPowerHelper;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
-import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
+import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterAttackEvent;
-import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
-import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
-import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
-import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntletCastEvent;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntletCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
@@ -1105,7 +1105,7 @@ final class ElementalBowGameTestScenarios {
                     player,
                     CastSource.SWORD
             );
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(cooldownEvent);
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowCastEvent.onSpellCooldownAdded(cooldownEvent);
             helper.assertTrue(cooldownEvent.getEffectiveCooldown() == 0,
                     "Elemental Bow should suppress elemental arrow cooldowns but got " + cooldownEvent.getEffectiveCooldown());
             helper.assertTrue(
@@ -1123,7 +1123,7 @@ final class ElementalBowGameTestScenarios {
                     player,
                     CastSource.SWORD
             );
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(controlEvent);
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowCastEvent.onSpellCooldownAdded(controlEvent);
             helper.assertTrue(controlEvent.getEffectiveCooldown() == 160,
                     "Elemental Bow cooldown suppression should not affect unrelated spells");
         });
@@ -1158,7 +1158,7 @@ final class ElementalBowGameTestScenarios {
                     player,
                     CastSource.SWORD
             );
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(cooldownEvent);
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowCastEvent.onSpellCooldownAdded(cooldownEvent);
             jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
                     player,
                     SchoolRegistry.FIRE_RESOURCE,
@@ -1203,7 +1203,7 @@ final class ElementalBowGameTestScenarios {
             helper.assertTrue(magicData != null, "Elemental Bow school overheat test could not resolve player mana data");
 
             magicData.setPlayerCastingItem(fireStack.copy());
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowCastEvent.onSpellCooldownAdded(
                     new SpellCooldownAddedEvent.Pre(
                             160,
                             io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
@@ -1222,7 +1222,7 @@ final class ElementalBowGameTestScenarios {
             );
 
             magicData.setPlayerCastingItem(natureStack.copy());
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowCastEvent.onSpellCooldownAdded(
                     new SpellCooldownAddedEvent.Pre(
                             120,
                             io.redspace.ironsspellbooks.api.registry.SpellRegistry.POISON_ARROW_SPELL.get(),
@@ -1275,7 +1275,7 @@ final class ElementalBowGameTestScenarios {
 
         helper.runAtTickTime(1, () -> {
             magicData.setPlayerCastingItem(stack.copy());
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowCastEvent.onSpellCooldownAdded(
                     new SpellCooldownAddedEvent.Pre(
                             io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(fireArrow, player, CastSource.SWORD),
                             fireArrow,
@@ -1297,7 +1297,7 @@ final class ElementalBowGameTestScenarios {
 
         helper.runAtTickTime(40, () -> {
             magicData.setPlayerCastingItem(stack.copy());
-            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowCastEvent.onSpellCooldownAdded(
                     new SpellCooldownAddedEvent.Pre(
                             io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(fireArrow, player, CastSource.SWORD),
                             fireArrow,

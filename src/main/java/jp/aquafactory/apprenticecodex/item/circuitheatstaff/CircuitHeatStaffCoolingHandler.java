@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.circuitheatstaff;
 
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.item.CircuitHeatStaff;
+import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaff;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;

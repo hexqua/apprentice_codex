@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.spell.boundsword;
 
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
-import jp.aquafactory.apprenticecodex.item.BoundSwordItem;
+import jp.aquafactory.apprenticecodex.item.boundweapon.BoundSwordItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;

@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.renderer.item;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
+import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffClientRenderState;
 import jp.aquafactory.apprenticecodex.model.MithrilFreecastStaffModel;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;

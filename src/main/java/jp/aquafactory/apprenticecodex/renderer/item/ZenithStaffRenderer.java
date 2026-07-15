@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.renderer.item;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.ZenithStaff;
+import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaff;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffClientRenderState;
 import jp.aquafactory.apprenticecodex.model.ZenithStaffModel;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;

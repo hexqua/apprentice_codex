@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.offhand;
 
 import io.redspace.ironsspellbooks.item.UniqueItem;
-import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;

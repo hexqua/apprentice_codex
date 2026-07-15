@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.renderer.item;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.model.ScrollcasterGauntletModel;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.Util;

@@ -118,12 +118,12 @@ public final class MagicTools {
 
     public static int resolveSchoolTintColor(@Nullable SchoolType schoolType) {
         if (schoolType == null) {
-            return jp.aquafactory.apprenticecodex.item.PastelStaff.DEFAULT_STONE_TINT_COLOR;
+            return jp.aquafactory.apprenticecodex.item.pastelstaff.PastelStaff.DEFAULT_STONE_TINT_COLOR;
         }
 
         var color = schoolType.getDisplayName().getStyle().getColor();
         if (color == null) {
-            return jp.aquafactory.apprenticecodex.item.PastelStaff.DEFAULT_STONE_TINT_COLOR;
+            return jp.aquafactory.apprenticecodex.item.pastelstaff.PastelStaff.DEFAULT_STONE_TINT_COLOR;
         }
 
         return color.getValue();
