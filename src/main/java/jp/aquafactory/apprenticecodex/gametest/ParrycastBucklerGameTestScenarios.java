@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.entity.spells.blood_slash.BloodSlashProjectile;
 import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
@@ -79,14 +80,16 @@ final class ParrycastBucklerGameTestScenarios {
                     "Long scroll placement should not require Silver Ring");
             helper.assertTrue(SpellCalibrationImbueHelper.setScrollAt(stack, 0, longScroll),
                     "Long scroll should be insertable without Silver Ring");
-            helper.assertTrue(item.isMismatchedCastConditionAt(stack, 0),
+            helper.assertFalse(item.evaluateCalibrationImbue(stack, 0, new SpellData(SpellRegistry.MANTIS_LEAP.get(), 1))
+                            .isUsable(),
                     "Inserted long spell should warn while Silver Ring is absent");
             assertFirstRestrictionKey(helper, item.getImbueRestrictionTooltipLines(stack),
                     "item.apprenticecodex.spellgun.tooltip.restrict_restrict_instant_only");
-            ParrycastBuckler.setCalibrationAdjustment(stack, 0,
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 0,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()));
             helper.assertTrue(item.canUseConfiguredSpell(stack, SpellRegistry.MANTIS_LEAP.get(), 1), "Silver Ring should allow long spells");
-            helper.assertFalse(item.isMismatchedCastConditionAt(stack, 0),
+            helper.assertTrue(item.evaluateCalibrationImbue(stack, 0, new SpellData(SpellRegistry.MANTIS_LEAP.get(), 1))
+                            .isUsable(),
                     "Silver Ring should clear the inserted long spell warning");
             assertFirstRestrictionKey(helper, item.getImbueRestrictionTooltipLines(stack),
                     "item.apprenticecodex.spellgun.tooltip.restrict_restrict_not_continuous");
@@ -102,9 +105,9 @@ final class ParrycastBucklerGameTestScenarios {
             for (int i = 0; i < 3; i++) helper.assertTrue(menu.isAdjustmentSlotEnabled(i), "Parrycast adjustment slot should be enabled: " + i);
 
             var fireRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get());
-            ParrycastBuckler.setCalibrationAdjustment(stack, 0, fireRune);
-            ParrycastBuckler.setCalibrationAdjustment(stack, 1, fireRune);
-            ParrycastBuckler.setCalibrationAdjustment(stack, 2, new ItemStack(ItemRegistry.WISDOM_SHARD.get()));
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 0, fireRune);
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 1, fireRune);
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 2, new ItemStack(ItemRegistry.WISDOM_SHARD.get()));
             helper.assertTrue(ParrycastBuckler.hasWisdomShard(stack), "Wisdom Shard should be stored");
             var tooltipLines = new ArrayList<Component>();
             stack.getItem().appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
@@ -283,7 +286,7 @@ final class ParrycastBucklerGameTestScenarios {
     ) {
         var player = BowGameTestSupport.createEquipmentTestPlayer(helper, position, name);
         var buckler = new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get());
-        ParrycastBuckler.setCalibrationAdjustment(buckler, 0, new ItemStack(ItemRegistry.WISDOM_SHARD.get()));
+        SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(buckler, 0, new ItemStack(ItemRegistry.WISDOM_SHARD.get()));
         var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
         ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, BowGameTestSupport.createSpellScroll(selectedSpell));
         ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);

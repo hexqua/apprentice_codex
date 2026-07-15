@@ -6,9 +6,11 @@ import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScrollcast
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmScrollcasterGauntletIndexPacket;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.neoforged.api.distmarker.Dist;
@@ -26,6 +28,8 @@ import java.util.List;
 @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ScrollcasterGauntletSelectionClientController {
     private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
+    private static final String EMPTY_SELECTION_LABEL_KEY =
+            "ui.apprenticecodex.scrollcaster_gauntlet.select_ui.empty";
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/gui/scrollcaster_gauntlet.png");
     private static final int TEXTURE_SIZE = 64;
@@ -179,9 +183,15 @@ public final class ScrollcasterGauntletSelectionClientController {
             return;
         }
 
+        var selectedView = activeState.selectedView();
+        if (!selectedView.hasSpell()) {
+            clearState();
+            return;
+        }
+
         Networks.sendToServer(new ClientConfirmScrollcasterGauntletIndexPacket(
                 activeState.hand(),
-                activeState.selectedView().scrollIndex()
+                selectedView.scrollIndex()
         ));
         clearState();
     }
@@ -205,6 +215,9 @@ public final class ScrollcasterGauntletSelectionClientController {
     private static InteractionHand resolveSelectionHand(net.minecraft.world.entity.player.Player player) {
         if (player.getMainHandItem().getItem() instanceof ScrollcasterGauntlet) {
             return InteractionHand.MAIN_HAND;
+        }
+        if (SneakSelectionUiHandResolver.shouldSuppressOffhandSelection(player)) {
+            return null;
         }
         if (ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)
                 && BetterCombatScrollcasterGauntletCompat.isRescueActive(player)) {
@@ -259,7 +272,10 @@ public final class ScrollcasterGauntletSelectionClientController {
         var rowWidth = computeRowWidth(views.size());
         var startX = screenWidth / 2 - rowWidth / 2;
         var crosshairY = screenHeight / 2;
-        var label = state.selectedView().displayName();
+        var hasSelectableView = state.selectableViewCount() > 0;
+        var label = hasSelectableView
+                ? state.selectedView().displayName()
+                : Component.translatable(EMPTY_SELECTION_LABEL_KEY).withStyle(ChatFormatting.RED);
         var labelX = screenWidth / 2 - font.width(label) / 2;
         var labelY = crosshairY + LABEL_OFFSET_FROM_CROSSHAIR;
         var rowY = labelY + SLOT_OFFSET_FROM_LABEL;
@@ -272,9 +288,11 @@ public final class ScrollcasterGauntletSelectionClientController {
             renderSlot(guiGraphics, startX, rowY, column, views.size(), views.get(column));
         }
 
-        var selectedColumn = state.selectedViewIndex();
-        var selectedContent = resolveContentPosition(startX, rowY, selectedColumn, views.size());
-        renderSelectedFrame(guiGraphics, selectedContent.x() - 4, selectedContent.y() - 4);
+        if (hasSelectableView) {
+            var selectedColumn = state.selectedViewIndex();
+            var selectedContent = resolveContentPosition(startX, rowY, selectedColumn, views.size());
+            renderSelectedFrame(guiGraphics, selectedContent.x() - 4, selectedContent.y() - 4);
+        }
         guiGraphics.pose().popPose();
     }
 

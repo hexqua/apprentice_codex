@@ -105,40 +105,60 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
         });
     }
 
-    static void bulwarkGreatshieldCalibrationSupportsOneRuneOrWisdomShard(GameTestHelper helper) {
+    static void bulwarkGreatshieldCalibrationSupportsThreeDistinctSchoolRunes(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = BowGameTestSupport.createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
                     "bulwark_greatshield_calibration_test");
             var stack = new ItemStack(ItemRegistry.BULWARK_GREATSHIELD.get());
             var fireRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get());
+            var iceRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.ICE_RUNE.get());
+            var holyRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.HOLY_RUNE.get());
             var wisdomShard = new ItemStack(ItemRegistry.WISDOM_SHARD.get());
             var menu = new SpellCalibrationBenchMenu(0, player.getInventory());
             menu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).set(stack);
 
             helper.assertTrue(menu.isAdjustmentSlotEnabled(0), "Bulwark adjustment slot 0 should be enabled");
-            helper.assertFalse(menu.isAdjustmentSlotEnabled(1), "Bulwark should expose only one adjustment slot");
+            helper.assertTrue(menu.isAdjustmentSlotEnabled(1), "Bulwark adjustment slot 1 should be enabled");
+            helper.assertTrue(menu.isAdjustmentSlotEnabled(2), "Bulwark adjustment slot 2 should be enabled");
+            helper.assertFalse(menu.isAdjustmentSlotEnabled(3), "Bulwark should expose exactly three adjustment slots");
             var adjustmentSlot = menu.getSlot(SpellCalibrationBenchMenu.ADJUSTMENT_MENU_SLOT_START);
             helper.assertTrue(adjustmentSlot.mayPlace(fireRune), "Bulwark should accept a school rune");
             helper.assertTrue(adjustmentSlot.mayPlace(wisdomShard), "Bulwark should accept Wisdom Shard");
 
-            BulwarkGreatshield.setCalibrationAdjustment(stack, 0, fireRune);
-            var schoolResist = MagicTools.resolveSchoolResistAttribute(BulwarkGreatshield.getResolvedCalibrationSchool(stack));
-            helper.assertTrue(schoolResist != null, "Fire rune should resolve a school resist attribute");
-            helper.assertTrue(stack.getAttributeModifiers().modifiers().stream()
-                            .anyMatch(entry -> entry.slot().equals(EquipmentSlotGroup.OFFHAND)
-                                    && entry.attribute().value() == schoolResist
-                                    && entry.modifier().amount() == BulwarkGreatshield.SCHOOL_SPELL_RESIST
-                                    && entry.modifier().operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
-                    "School rune should add 0.5 school spell resist");
-            helper.assertTrue(stack.getAttributeModifiers().modifiers().stream()
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 0, fireRune),
+                    "Bulwark should store its first school rune");
+            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(stack, 1, fireRune),
+                    "Bulwark should reject a rune for an already inserted School ID");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 1, iceRune),
+                    "Bulwark should accept a rune for a different School ID");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 2, holyRune),
+                    "Bulwark should fill its third slot with another School ID");
+            helper.assertTrue(BulwarkGreatshield.getResolvedCalibrationSchools(stack).size() == 3,
+                    "Bulwark should resolve all three inserted school runes");
+
+            var modifiers = stack.getAttributeModifiers().modifiers();
+            for (var school : BulwarkGreatshield.getResolvedCalibrationSchools(stack)) {
+                var schoolResist = MagicTools.resolveSchoolResistAttribute(school);
+                helper.assertTrue(schoolResist != null, "Inserted rune should resolve a school resist attribute");
+                helper.assertTrue(modifiers.stream()
+                                .anyMatch(entry -> entry.slot().equals(EquipmentSlotGroup.OFFHAND)
+                                        && entry.attribute().value() == schoolResist
+                                        && entry.modifier().amount() == BulwarkGreatshield.SCHOOL_SPELL_RESIST
+                                        && entry.modifier().operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
+                        "Each school rune should add 0.5 school spell resist");
+            }
+            helper.assertTrue(modifiers.stream()
                             .anyMatch(entry -> entry.slot().equals(EquipmentSlotGroup.OFFHAND)
                                     && entry.attribute().equals(AttributeRegistry.SPELL_RESIST)
                                     && entry.modifier().amount() == BulwarkGreatshield.GENERIC_SPELL_RESIST),
-                    "School rune must not replace generic spell resist");
+                    "School runes must not replace generic spell resist");
 
-            BulwarkGreatshield.setCalibrationAdjustment(stack, 0, wisdomShard);
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 2, wisdomShard),
+                    "Bulwark should allow Wisdom Shard to replace a school rune");
             helper.assertTrue(BulwarkGreatshield.hasWisdomShardAdjustment(stack),
-                    "Wisdom Shard adjustment should be stored on Bulwark");
+                    "Wisdom Shard should be detected outside the first adjustment slot");
+            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(stack, 1, wisdomShard),
+                    "Bulwark should reject a duplicate Wisdom Shard");
             var tooltipLines = new ArrayList<Component>();
             stack.getItem().appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
             assertTooltipKeyAt(helper, tooltipLines, 0,
@@ -289,7 +309,7 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
                 helper, new BlockPos(2, 2, 0), "reflectcast_continuous_duration_test"
         );
         var reflectcastStack = createContinuousCastShieldStack(ItemRegistry.REFLECTCAST_SHIELD.get());
-        ReflectcastShield.setCalibrationAdjustment(
+        SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                 reflectcastStack,
                 0,
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
@@ -362,7 +382,7 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
                 helper, new BlockPos(2, 2, 0), "reflectcast_continuous_cleanup_test"
         );
         var reflectcastStack = createContinuousCastShieldStack(ItemRegistry.REFLECTCAST_SHIELD.get());
-        ReflectcastShield.setCalibrationAdjustment(
+        SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                 reflectcastStack,
                 0,
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
@@ -457,7 +477,7 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
                 helper, new BlockPos(2, 2, 0), "reflectcast_continuous_death_test"
         );
         var reflectcastStack = createContinuousCastShieldStack(ItemRegistry.REFLECTCAST_SHIELD.get());
-        ReflectcastShield.setCalibrationAdjustment(
+        SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                 reflectcastStack,
                 0,
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
@@ -525,7 +545,7 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
         reflectcastPlayer.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
         helper.assertTrue(reflectcastPlayer.isCreative(), "Reflectcast creative cooldown test requires creative mode");
         var reflectcastStack = createContinuousCastShieldStack(ItemRegistry.REFLECTCAST_SHIELD.get());
-        ReflectcastShield.setCalibrationAdjustment(
+        SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                 reflectcastStack,
                 0,
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())

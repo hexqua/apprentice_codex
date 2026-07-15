@@ -13,6 +13,9 @@ import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
+import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.jumpcastcharm.JumpcastCharm;
@@ -20,6 +23,7 @@ import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.Sate
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -117,22 +121,97 @@ public final class SpellCalibrationImbueHelper {
         return getSpellDataAt(targetStack, slot) != SpellData.EMPTY;
     }
 
-    public static boolean isMismatchedCastConditionAt(@NotNull ItemStack targetStack, int slot) {
-        if (!(targetStack.getItem() instanceof RestrictedSpellImbuableItem spellImbueItem)) {
-            return false;
-        }
-
-        var spellData = getSpellDataAt(targetStack, slot);
-        return spellData != SpellData.EMPTY
-                && spellData.getSpell() != null
-                && !spellImbueItem.canImbueSpell(spellData);
-    }
-
     public static @NotNull List<Component> getImbueRestrictionTooltipLines(@NotNull ItemStack targetStack) {
         if (targetStack.getItem() instanceof RestrictedSpellImbuableItem spellImbueItem) {
             return spellImbueItem.getImbueRestrictionTooltipLines();
         }
         return List.of();
+    }
+
+    public static @NotNull SpellCalibrationImbueState evaluateScrollAt(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull ItemStack scrollStack
+    ) {
+        var spellData = getScrollSpellData(scrollStack);
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            return SpellCalibrationImbueState.REJECTED;
+        }
+
+        var item = targetStack.getItem();
+        if (item instanceof StoredSpellCalibrationImbueTarget storedTarget) {
+            return storedTarget.evaluateCalibrationImbue(targetStack, slot, spellData);
+        }
+
+        if (!canPlaceScrollAt(targetStack, slot, scrollStack)) {
+            return SpellCalibrationImbueState.REJECTED;
+        }
+        if (item instanceof SpellCalibrationImbueTarget imbueTarget) {
+            return imbueTarget.evaluateCalibrationImbue(targetStack, slot, spellData);
+        }
+        return SpellCalibrationImbueState.ACCEPTED_USABLE;
+    }
+
+    public static @NotNull SpellCalibrationImbueState evaluateScrollAt(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull ItemStack scrollStack,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
+        var spellData = getScrollSpellData(scrollStack);
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            return SpellCalibrationImbueState.REJECTED;
+        }
+
+        var item = targetStack.getItem();
+        if (item instanceof StoredSpellCalibrationImbueTarget storedTarget) {
+            return storedTarget.evaluateCalibrationImbue(targetStack, slot, spellData, lookupProvider);
+        }
+
+        if (!canPlaceScrollAt(targetStack, slot, scrollStack)) {
+            return SpellCalibrationImbueState.REJECTED;
+        }
+        if (item instanceof SpellCalibrationImbueTarget imbueTarget) {
+            return imbueTarget.evaluateCalibrationImbue(targetStack, slot, spellData, lookupProvider);
+        }
+        return SpellCalibrationImbueState.ACCEPTED_USABLE;
+    }
+
+    public static @NotNull SpellCalibrationImbueState evaluateStoredScrollAt(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull ItemStack scrollStack
+    ) {
+        var spellData = getScrollSpellData(scrollStack);
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            return SpellCalibrationImbueState.REJECTED;
+        }
+
+        if (targetStack.getItem() instanceof SpellCalibrationImbueTarget imbueTarget) {
+            return imbueTarget.evaluateCalibrationImbue(targetStack, slot, spellData);
+        }
+        return isSupportedTarget(targetStack) && isValidSpellSlot(targetStack, slot)
+                ? SpellCalibrationImbueState.ACCEPTED_USABLE
+                : SpellCalibrationImbueState.REJECTED;
+    }
+
+    public static @NotNull SpellCalibrationImbueState evaluateStoredScrollAt(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull ItemStack scrollStack,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
+        var spellData = getScrollSpellData(scrollStack);
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            return SpellCalibrationImbueState.REJECTED;
+        }
+
+        if (targetStack.getItem() instanceof SpellCalibrationImbueTarget imbueTarget) {
+            return imbueTarget.evaluateCalibrationImbue(targetStack, slot, spellData, lookupProvider);
+        }
+        return isSupportedTarget(targetStack) && isValidSpellSlot(targetStack, slot)
+                ? SpellCalibrationImbueState.ACCEPTED_USABLE
+                : SpellCalibrationImbueState.REJECTED;
     }
 
     public static boolean canPlaceScrollAt(@NotNull ItemStack targetStack, int slot, @NotNull ItemStack scrollStack) {

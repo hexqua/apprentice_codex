@@ -57,13 +57,18 @@ public record ClientConfirmScrollcasterGauntletIndexPacket(
             }
 
             var stack = resolveHeldGauntletStack(sender, packet.hand());
+            var lookupProvider = sender.level().registryAccess();
             if (!(stack.getItem() instanceof ScrollcasterGauntlet)
-                    || !ScrollcasterGauntlet.isSelectableScrollIndex(stack, packet.selectedIndex())) {
+                    || !ScrollcasterGauntlet.isSelectableScrollIndex(
+                            stack,
+                            packet.selectedIndex(),
+                            lookupProvider
+                    )) {
                 return;
             }
 
             var previousIndex = ScrollcasterGauntlet.getSelectedScrollIndex(stack);
-            ScrollcasterGauntlet.setSelectedScrollIndex(stack, packet.selectedIndex());
+            ScrollcasterGauntlet.setSelectedScrollIndex(stack, packet.selectedIndex(), lookupProvider);
             if (previousIndex != packet.selectedIndex()) {
                 sender.level().playSound(
                         null,

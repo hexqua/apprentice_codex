@@ -101,7 +101,11 @@ public final class ScrollcasterGauntletRenderer extends GeoItemRenderer<Scrollca
     }
 
     private static boolean hasVisibleScrollSocket(ItemStack stack) {
-        return stack != null && !stack.isEmpty() && ScrollcasterGauntlet.hasAnyCalibrationScroll(stack);
+        var level = Minecraft.getInstance().level;
+        return stack != null
+                && !stack.isEmpty()
+                && level != null
+                && ScrollcasterGauntlet.hasAnyCalibrationScroll(stack, level.registryAccess());
     }
 
     private static float pulse(float partialTick, float periodTicks, float minBrightness, float maxBrightness) {

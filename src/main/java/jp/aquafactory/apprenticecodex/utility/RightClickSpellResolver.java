@@ -62,7 +62,7 @@ public final class RightClickSpellResolver {
         }
         if (mainHandStack.getItem() instanceof ScrollcasterGauntlet) {
             return createResolvedSpell(
-                    ScrollcasterGauntlet.getSelectedSpellData(mainHandStack),
+                    ScrollcasterGauntlet.getSelectedSpellData(mainHandStack, player.level().registryAccess()),
                     player,
                     InteractionHand.MAIN_HAND,
                     "scrollcaster_gauntlet_selected"
@@ -96,7 +96,7 @@ public final class RightClickSpellResolver {
         }
         if (offHandStack.getItem() instanceof ScrollcasterGauntlet) {
             return createResolvedSpell(
-                    ScrollcasterGauntlet.getSelectedSpellData(offHandStack),
+                    ScrollcasterGauntlet.getSelectedSpellData(offHandStack, player.level().registryAccess()),
                     player,
                     InteractionHand.OFF_HAND,
                     "scrollcaster_gauntlet_selected"

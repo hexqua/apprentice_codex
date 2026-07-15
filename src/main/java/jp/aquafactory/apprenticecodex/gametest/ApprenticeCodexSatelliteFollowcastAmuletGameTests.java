@@ -124,7 +124,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
 
         var upgradeStack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get());
         for (var slot = 0; slot < SatelliteFollowcastAmulet.CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            SatelliteFollowcastAmulet.setCalibrationAdjustment(stack, slot, upgradeStack);
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, slot, upgradeStack);
         }
         helper.assertTrue(SatelliteFollowcastAmulet.getEnabledSpellSlotCount(stack) == SatelliteFollowcastAmulet.MAX_SPELL_SLOTS,
                 "Satellite Followcast Amulet calibration upgrades should enable four spell slots.");
@@ -143,7 +143,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         helper.assertTrue(SatelliteFollowcastAmulet.getEnabledSpellSlotCount(legacyStack) == 2,
                 "Satellite Followcast Amulet legacy two-slot item should convert to one calibration upgrade.");
         helper.assertTrue(SatelliteFollowcastAmulet.isCalibrationSlotUpgrade(
-                        SatelliteFollowcastAmulet.getCalibrationAdjustment(legacyStack, 0)),
+                        SpellCalibrationAdjustmentGameTestSupport.getCalibrationAdjustment(legacyStack, 0)),
                 "Satellite Followcast Amulet legacy two-slot item should gain a slot upgrade adjustment.");
         assertSatelliteSpellData(helper, legacyStack, 0, SpellRegistry.MAGE_LIGHT.get(), 1,
                 "Satellite Followcast Amulet legacy conversion should preserve the first spell.");
@@ -580,7 +580,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         var amulet = (SatelliteFollowcastAmulet) ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get();
         var amuletStack = new ItemStack(amulet);
         for (var slot = 1; slot < spells.length && slot <= SatelliteFollowcastAmulet.CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            SatelliteFollowcastAmulet.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     amuletStack,
                     slot - 1,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
@@ -596,10 +596,10 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         }
         if (needsSilverRing) {
             for (var slot = 0; slot < SatelliteFollowcastAmulet.CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-                if (!SatelliteFollowcastAmulet.getCalibrationAdjustment(amuletStack, slot).isEmpty()) {
+                if (!SpellCalibrationAdjustmentGameTestSupport.getCalibrationAdjustment(amuletStack, slot).isEmpty()) {
                     continue;
                 }
-                SatelliteFollowcastAmulet.setCalibrationAdjustment(
+                SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                         amuletStack,
                         slot,
                         new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())

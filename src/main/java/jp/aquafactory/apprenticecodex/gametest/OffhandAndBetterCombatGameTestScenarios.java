@@ -902,7 +902,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(expectedSpell));
             ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
-            ScrollcasterGauntlet.setCalibrationAdjustment(gauntlet, 0, new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()));
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(gauntlet, 0, new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()));
 
             var player = createBetterCombatHiddenOffhandPlayer(
                     helper,

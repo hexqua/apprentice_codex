@@ -2973,6 +2973,37 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void scrollcasterGauntletEmptySelectionViewsTrackEnabledSlots(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var baseViews = ScrollcasterGauntlet.getSelectionViews(gauntlet);
+            helper.assertTrue(baseViews.size() == ScrollcasterGauntlet.BASE_CALIBRATION_SCROLL_SLOT_COUNT,
+                    "Empty Scrollcaster Gauntlet selection UI should expose every base slot");
+            helper.assertTrue(baseViews.stream().allMatch(view -> !view.hasSpell() && !view.currentSelection()),
+                    "Empty Scrollcaster Gauntlet selection UI should expose only unselected empty slots");
+
+            var expandedGauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var lesserUpgrade = new ItemStack(
+                    io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()
+            );
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            expandedGauntlet,
+                            0,
+                            lesserUpgrade
+                    ),
+                    "Failed to add a slot upgrade to the empty Scrollcaster Gauntlet");
+
+            var expandedViews = ScrollcasterGauntlet.getSelectionViews(expandedGauntlet);
+            helper.assertTrue(expandedViews.size()
+                            == ScrollcasterGauntlet.getEnabledCalibrationScrollSlotCount(expandedGauntlet),
+                    "Empty Scrollcaster Gauntlet selection UI should track its enabled slot count");
+            helper.assertTrue(expandedViews.size() > baseViews.size(),
+                    "Slot upgrade should add empty slots to the Scrollcaster Gauntlet selection UI");
+            helper.assertTrue(expandedViews.stream().allMatch(view -> !view.hasSpell() && !view.currentSelection()),
+                    "Expanded empty Scrollcaster Gauntlet selection UI should keep every slot unselected");
+        });
+    }
+
     static void scrollcasterGauntletFreecastStaffAdjustmentEnablesSwingcast(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
@@ -2995,7 +3026,7 @@ public class ApprenticeCodexGameTestScenarios {
                     "Scrollcaster Gauntlet should not be treated as swing-triggerable before freecast adjustment");
             helper.assertFalse(gauntletItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
                     "Scrollcaster Gauntlet should not swing-cast without a Mithril Freecast Staff adjustment");
-            ScrollcasterGauntlet.setCalibrationAdjustment(gauntlet, 0, new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()));
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(gauntlet, 0, new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()));
             helper.assertTrue(ScrollcasterGauntlet.hasFreecastStaffAdjustment(gauntlet),
                     "Scrollcaster Gauntlet should detect its Mithril Freecast Staff adjustment");
             helper.assertTrue(gauntletItem.canTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND),
@@ -3009,6 +3040,7 @@ public class ApprenticeCodexGameTestScenarios {
                     "Scrollcaster Gauntlet freecast should cast with the gauntlet stack");
             helper.assertTrue(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND.equals(magicData.getCastingEquipmentSlot()),
                     "Scrollcaster Gauntlet freecast should mark the mainhand casting slot");
+            magicData.resetCastingState();
             magicData.getPlayerCooldowns().removeCooldown(magicMissile.getSpellId());
 
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(fireBreath));
@@ -3018,15 +3050,11 @@ public class ApprenticeCodexGameTestScenarios {
 
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(heal));
             ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
-            helper.assertFalse(gauntletItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
-                    "Scrollcaster Gauntlet freecast should reject long spells before a Silver Ring adjustment");
-            ScrollcasterGauntlet.setCalibrationAdjustment(
-                    gauntlet,
-                    1,
-                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
-            );
-            helper.assertTrue(ScrollcasterGauntlet.hasSilverRingAdjustment(gauntlet),
-                    "Scrollcaster Gauntlet should detect its Silver Ring adjustment");
+            player.setHealth(Math.max(1.0F, player.getMaxHealth() - 1.0F));
+            helper.assertTrue(gauntletItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
+                    "Scrollcaster Gauntlet freecast should allow long spells with only a Mithril Freecast Staff adjustment");
+            magicData.resetCastingState();
+            magicData.getPlayerCooldowns().removeCooldown(heal.getSpellId());
 
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(magicMissile));
             ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
@@ -3135,7 +3163,7 @@ public class ApprenticeCodexGameTestScenarios {
             var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(magicMissile));
             ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
-            ScrollcasterGauntlet.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     gauntlet,
                     0,
                     new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get())
@@ -3213,16 +3241,10 @@ public class ApprenticeCodexGameTestScenarios {
                     "Mithril Freecast Staff adjustment should be stored on the gauntlet");
             helper.assertFalse(menu.getSlot(2).mayPlace(freecastStaff),
                     "Scrollcaster Gauntlet should reject duplicate Mithril Freecast Staff adjustments");
-            helper.assertTrue(menu.getSlot(2).mayPlace(silverRing),
-                    "Scrollcaster Gauntlet should accept Silver Ring adjustments");
-            menu.getSlot(2).set(silverRing.copy());
-            helper.assertTrue(ScrollcasterGauntlet.hasSilverRingAdjustment(gauntlet),
-                    "Silver Ring adjustment should be stored on the gauntlet");
-            helper.assertFalse(menu.getSlot(3).mayPlace(silverRing),
-                    "Scrollcaster Gauntlet should reject duplicate Silver Ring adjustments");
+            helper.assertFalse(menu.getSlot(2).mayPlace(silverRing),
+                    "Scrollcaster Gauntlet should reject Silver Ring adjustments");
 
             menu.getSlot(1).set(ItemStack.EMPTY);
-            menu.getSlot(2).set(ItemStack.EMPTY);
             menu.getSlot(0).set(staff);
             helper.assertFalse(menu.getSlot(1).mayPlace(freecastStaff),
                     "Revolvercast Staff should not accept a Mithril Freecast Staff adjustment");
@@ -3288,7 +3310,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void revolvercastStaffSelectedScrollNormalizesAndDrivesSpellWheel(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var staff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
-            RevolvercastStaff.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     staff,
                     0,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
@@ -3340,7 +3362,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void revolvercastStaffCooldownFailureAdvancesOnlyInSkipMode(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var staff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
-            RevolvercastStaff.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     staff,
                     1,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
@@ -3365,7 +3387,7 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 0,
                     "Normal Revolvercast Staff mode should stay on a failed cooldown spell");
 
-            RevolvercastStaff.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     staff,
                     0,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get())
@@ -3380,7 +3402,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static void revolvercastStaffSuccessfulCastAdvancesAfterCompletionTick(GameTestHelper helper) {
         var staff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
-        RevolvercastStaff.setCalibrationAdjustment(
+        SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                 staff,
                 0,
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
@@ -3420,7 +3442,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static void revolvercastStaffPendingAdvanceSurvivesUnrelatedCastCompletion(GameTestHelper helper) {
         var staff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
-        RevolvercastStaff.setCalibrationAdjustment(
+        SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                 staff,
                 0,
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
@@ -3455,7 +3477,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static void revolvercastStaffCancelledCastDoesNotAdvancePendingSelection(GameTestHelper helper) {
         var staff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
-        RevolvercastStaff.setCalibrationAdjustment(
+        SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                 staff,
                 0,
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
@@ -3498,7 +3520,7 @@ public class ApprenticeCodexGameTestScenarios {
                     0.10D,
                     "Revolvercast Staff general spell power modifier changed"
             );
-            RevolvercastStaff.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     stack,
                     0,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get())
@@ -3523,7 +3545,7 @@ public class ApprenticeCodexGameTestScenarios {
                     "Revolvercast Staff should accept instant spells by default");
             helper.assertFalse(staff.canImbueSpell(heal, 1),
                     "Revolvercast Staff should reject long spells without Silver Ring");
-            RevolvercastStaff.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     stack,
                     1,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
@@ -3625,7 +3647,7 @@ public class ApprenticeCodexGameTestScenarios {
             menu.getSlot(1).set(fireRune);
             helper.assertTrue(!menu.getSlot(2).mayPlace(iceRune), "Only one school rune should be accepted at a time");
             helper.assertTrue(menu.getSlot(2).mayPlace(enchantedBook), "Non-rune adjustments should remain accepted after a rune is present");
-            helper.assertTrue(!ScrollcasterGauntlet.getCalibrationAdjustment(gauntlet, 0).isEmpty(),
+            helper.assertTrue(!SpellCalibrationAdjustmentGameTestSupport.getCalibrationAdjustment(gauntlet, 0).isEmpty(),
                     "Adjustment item should be stored on the gauntlet NBT");
         });
     }
@@ -3669,7 +3691,7 @@ public class ApprenticeCodexGameTestScenarios {
                     "Removing the school rune should remove the school rune tooltip");
 
             var staleGauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-            ScrollcasterGauntlet.setCalibrationAdjustment(staleGauntlet, 0, fireRune);
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(staleGauntlet, 0, fireRune);
             CustomData.update(DataComponents.CUSTOM_DATA, staleGauntlet, rootTag -> {
                 var calibrationTag = rootTag.contains("SpellCalibration")
                         ? rootTag.getCompound("SpellCalibration")
@@ -3708,6 +3730,16 @@ public class ApprenticeCodexGameTestScenarios {
             menu.getSlot(1).set(createEnchantedBook(sharpness, 1));
             helper.assertTrue(getEnchantmentLevel(gauntlet, sharpness) == 1,
                     "Sharpness book should enchant the Scrollcaster Gauntlet");
+            var storedSharpnessBook = menu.getAdjustmentItem(0);
+            helper.assertTrue(storedSharpnessBook.is(Items.ENCHANTED_BOOK),
+                    "Bench should restore the stored enchanted book with the current Level registry");
+            helper.assertTrue(getEnchantmentLevel(storedSharpnessBook, sharpness) == 1,
+                    "Restored Bench book should retain its dynamic enchantment");
+
+            var syncedMenu = createSpellCalibrationBenchMenu(helper, player, new BlockPos(1, 1, 0));
+            syncedMenu.getSlot(0).set(gauntlet.copy());
+            helper.assertTrue(getEnchantmentLevel(syncedMenu.getAdjustmentItem(0), sharpness) == 1,
+                    "A newly synchronized Bench menu should restore the stored dynamic enchantment");
 
             menu.getSlot(2).set(createEnchantedBook(unbreaking, 1));
             helper.assertTrue(getEnchantmentLevel(gauntlet, unbreaking) == 0,
@@ -3752,9 +3784,12 @@ public class ApprenticeCodexGameTestScenarios {
             }
 
             menu.getSlot(1).set(createEnchantedBook(sharpness, 1));
-            menu.getSlot(2).set(createEnchantedBook(sharpness, 4));
-            helper.assertTrue(getEnchantmentLevel(gauntlet, sharpness) == 4,
-                    "Duplicate Bench enchantments should keep the highest level");
+            var duplicateSharpness = createEnchantedBook(sharpness, 4);
+            helper.assertFalse(menu.getSlot(2).mayPlace(duplicateSharpness),
+                    "Duplicate Bench enchantments should be rejected before insertion");
+            menu.getSlot(2).set(duplicateSharpness);
+            helper.assertTrue(getEnchantmentLevel(gauntlet, sharpness) == 1,
+                    "Rejected duplicate Bench enchantments should not replace the installed level");
 
             menu.getSlot(1).set(createEnchantedBook(sharpness, 2));
             menu.getSlot(2).set(createEnchantedBook(smite, 5));
@@ -13943,7 +13978,7 @@ public class ApprenticeCodexGameTestScenarios {
         var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
         var stack = item.getDefaultInstance();
         for (var slot = 0; slot < spellSlotCount - AutocastAmulet.MIN_SPELL_SLOTS; ++slot) {
-            AutocastAmulet.setCalibrationAdjustment(
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     stack,
                     slot,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
