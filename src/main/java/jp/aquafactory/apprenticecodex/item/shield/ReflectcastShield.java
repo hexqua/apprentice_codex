@@ -1,29 +1,39 @@
 package jp.aquafactory.apprenticecodex.item.shield;
 
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
+import jp.aquafactory.apprenticecodex.item.MithrilFreecastStaff;
+import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.Holder;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 public class ReflectcastShield extends AbstractImbueShieldItem implements GeoItem, IJeiInfoItem {
@@ -31,16 +41,12 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
 
     public static final int DURABILITY = 1561;
     public static final int DURABILITY_SUPPRESSION_TICKS = 10;
-    private static final String MALUM_NAMESPACE = "malum";
-    private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
-            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
-    private static final TagKey<Item> MALUM_SOUL_SHATTER_CAPABLE_WEAPON = TagKey.create(
-            Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_shatter_capable_weapon")
-    );
+    public static final int SPELL_TRIGGER_SUPPRESSION_TICKS = 10;
+    public static final int ENCHANTMENT_VALUE = 22;
+    public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     private static final float MINIMUM_DURABILITY_DAMAGE = 3.0F;
-    private static final int ENCHANTMENT_VALUE = 1;
-    private static final String LAST_DURABILITY_COST_TICK_TAG = "ApprenticeCodexReflectcastShieldLastDurabilityCostTick";
+    private static final String CALIBRATION_TAG = "ReflectcastShieldCalibration";
+    private static final ItemStack SHIELD_ENCHANTMENT_PROBE = new ItemStack(Items.SHIELD);
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public ReflectcastShield() {
@@ -54,41 +60,113 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
     }
 
     @Override
-    protected void appendAlwaysVisibleImbueTooltip(List<Component> lines) {
-        lines.add(ImbueTooltipHelper.translatableGray("item." + ApprenticeCodex.MODID + ".reflectcast_shield.hint"));
-        lines.add(ImbueTooltipHelper.translatableGray("item." + ApprenticeCodex.MODID + ".reflectcast_shield.cast_hint"));
+    protected void appendAlwaysVisibleImbueTooltip(ItemStack stack, List<Component> lines) {
+        var castTooltip = hasWisdomShard(stack) ? "cast_wisdom" : "cast_default";
+        lines.add(ImbueTooltipHelper.translatableGray(
+                "item." + ApprenticeCodex.MODID + ".reflectcast_shield." + castTooltip));
     }
 
-    public static int resolveBlockedDurabilityCost(float originalBlockedDamage, boolean spellTriggered) {
+    @Override
+    protected boolean shouldPrimeImmediateShieldBlock() {
+        return false;
+    }
+
+    @Override
+    public boolean supportsBlockTriggeredImbuedSpell() {
+        // 専用イベントが非永続ランタイムを使うため、基底クラスの persistent NBT 発動窓は作らない。
+        return false;
+    }
+
+    @Override
+    public boolean supportsManaBypass(@Nullable AbstractSpell spell) {
+        return false;
+    }
+
+    @Override
+    public boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel) {
+        return spell != null && spell != SpellRegistry.none()
+                && (spell.getCastType() == CastType.INSTANT
+                || spell.getCastType() == CastType.LONG
+                || spell.getCastType() == CastType.CONTINUOUS)
+                && spell.getRecastCount(spellLevel, null) <= 0;
+    }
+
+    public boolean canUseConfiguredSpell(ItemStack stack, @Nullable AbstractSpell spell, int spellLevel) {
+        if (spell == null || spell == SpellRegistry.none() || spell.getRecastCount(spellLevel, null) > 0) {
+            return false;
+        }
+        return spell.getCastType() == CastType.INSTANT
+                || hasSilverRing(stack) && (spell.getCastType() == CastType.LONG
+                || spell.getCastType() == CastType.CONTINUOUS);
+    }
+
+    public boolean isMismatchedCastConditionAt(ItemStack targetStack, int slot) {
+        if (slot != 0) {
+            return false;
+        }
+        var spellData = getPrimarySpellData(targetStack);
+        return spellData != null && spellData != SpellData.EMPTY
+                && !canUseConfiguredSpell(targetStack, spellData.getSpell(), spellData.getLevel());
+    }
+
+    public List<Component> getImbueRestrictionTooltipLines(ItemStack stack) {
+        return getImbueShieldRestrictionTooltipSection(stack);
+    }
+
+    @Override
+    public List<Component> getImbueRestrictionTooltipLines() {
+        return getImbueShieldRestrictionTooltipSection(ItemStack.EMPTY);
+    }
+
+    @Override
+    protected List<Component> getImbueShieldRestrictionTooltipSection(ItemStack stack) {
+        var lines = hasSilverRing(stack)
+                ? new ArrayList<Component>()
+                : new ArrayList<>(ImbueTooltipHelper.collectCastTypeRestrictionLines(
+                EnumSet.of(SpellGunCastType.INSTANT)
+        ));
+        ImbueTooltipHelper.appendNoRecastRestrictionLine(lines, true);
+        return lines;
+    }
+
+    @Override
+    protected List<Component> getImbueShieldAbilityTooltipSection(ItemStack stack) {
+        if (!hasSilverRing(stack)) {
+            return List.of(ImbueTooltipHelper.translatableGray(
+                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_none"));
+        }
+        return List.of(
+                ImbueTooltipHelper.translatableGray(
+                        "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant"),
+                ImbueTooltipHelper.translatableGray(
+                        "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_hold_continuous"),
+                ImbueTooltipHelper.translatableGray(
+                        "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_extend_cooldown")
+        );
+    }
+
+    @Override
+    public void onUseTick(@NotNull Level level, @NotNull LivingEntity livingEntity, @NotNull ItemStack stack, int remainingUseDuration) {
+        super.onUseTick(level, livingEntity, stack, remainingUseDuration);
+        if (!level.isClientSide && livingEntity instanceof ServerPlayer player) {
+            ReflectcastShieldRuntime.tickContinuousCast(player, stack);
+        }
+    }
+
+    @Override
+    public void releaseUsing(@NotNull ItemStack stack, @NotNull Level level, @NotNull LivingEntity livingEntity, int timeLeft) {
+        if (!level.isClientSide && livingEntity instanceof ServerPlayer player) {
+            ReflectcastShieldRuntime.finishUse(player);
+        }
+        super.releaseUsing(stack, level, livingEntity, timeLeft);
+    }
+
+    public static int resolveBlockedDurabilityCost(float originalBlockedDamage) {
         if (originalBlockedDamage < MINIMUM_DURABILITY_DAMAGE) {
             return 0;
         }
 
-        var vanillaCost = 1 + Mth.floor(originalBlockedDamage);
-        return spellTriggered ? Math.min(vanillaCost, 1) : vanillaCost;
-    }
-
-    public static boolean isDurabilityConsumptionSuppressed(ItemStack stack, long gameTime) {
-        if (stack.isEmpty()) {
-            return false;
-        }
-
-        var customData = stack.get(DataComponents.CUSTOM_DATA);
-        return customData != null && isDurabilityConsumptionSuppressed(customData.copyTag(), gameTime);
-    }
-
-    public static boolean isDurabilityConsumptionSuppressed(CompoundTag tag, long gameTime) {
-        if (tag == null || !tag.contains(LAST_DURABILITY_COST_TICK_TAG)) {
-            return false;
-        }
-
-        return gameTime - tag.getLong(LAST_DURABILITY_COST_TICK_TAG) <= DURABILITY_SUPPRESSION_TICKS;
-    }
-
-    public static void rememberDurabilityConsumed(ItemStack stack, long gameTime) {
-        if (!stack.isEmpty()) {
-            CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putLong(LAST_DURABILITY_COST_TICK_TAG, gameTime));
-        }
+        return 1 + Mth.floor(originalBlockedDamage);
     }
 
     @Override
@@ -109,12 +187,8 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
 
     @Override
     public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
-        if (super.supportsEnchantment(stack, enchantment)) {
-            return true;
-        }
-
-        var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
-        return enchantmentId != null && isMalumSpiritPlunder(stack, enchantmentId);
+        return super.supportsEnchantment(stack, enchantment)
+                || SHIELD_ENCHANTMENT_PROBE.supportsEnchantment(enchantment);
     }
 
     @Override
@@ -137,6 +211,65 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
                 .allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
+    public static @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack shieldStack, int slot) {
+        if (!isValidCalibrationAccess(shieldStack, slot)) {
+            return ItemStack.EMPTY;
+        }
+        return ShieldCalibrationData.get(shieldStack, CALIBRATION_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
+    }
+
+    public static void setCalibrationAdjustment(@NotNull ItemStack shieldStack, int slot, @NotNull ItemStack adjustment) {
+        if (!isValidCalibrationAccess(shieldStack, slot)) {
+            return;
+        }
+        ShieldCalibrationData.set(shieldStack, CALIBRATION_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, adjustment);
+    }
+
+    public static boolean isCalibrationAdjustmentItem(ItemStack stack) {
+        return MithrilFreecastStaff.isSilverRing(stack) || stack.is(ItemRegistry.WISDOM_SHARD.get());
+    }
+
+    public static boolean hasSilverRing(ItemStack stack) {
+        return hasAdjustment(stack, MithrilFreecastStaff::isSilverRing);
+    }
+
+    public static boolean hasWisdomShard(ItemStack stack) {
+        return hasAdjustment(stack, adjustment -> adjustment.is(ItemRegistry.WISDOM_SHARD.get()));
+    }
+
+    @Nullable
+    public static SpellData resolveCastSpell(ServerPlayer player, ItemStack stack) {
+        if (!hasWisdomShard(stack)) {
+            return ((ReflectcastShield) stack.getItem()).getPrimarySpellData(stack);
+        }
+        var selection = new SpellSelectionManager(player).getSelection();
+        return selection == null || selection.spellData == SpellData.EMPTY ? null : selection.spellData;
+    }
+
+    public static CastSource resolveCastSource(ServerPlayer player, ItemStack stack) {
+        if (hasWisdomShard(stack)) {
+            var selection = new SpellSelectionManager(player).getSelection();
+            if (selection != null) {
+                return selection.getCastSource();
+            }
+        }
+        return CastSource.SWORD;
+    }
+
+    private static boolean hasAdjustment(ItemStack stack, java.util.function.Predicate<ItemStack> predicate) {
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; slot++) {
+            if (predicate.test(getCalibrationAdjustment(stack, slot))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isValidCalibrationAccess(ItemStack stack, int slot) {
+        return slot >= 0 && slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT
+                && !stack.isEmpty() && stack.getItem() instanceof ReflectcastShield;
+    }
+
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
     }
@@ -144,9 +277,5 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
-    }
-
-    private static boolean isMalumSpiritPlunder(ItemStack stack, ResourceLocation enchantmentId) {
-        return MALUM_SPIRIT_PLUNDER.equals(enchantmentId) && stack.is(MALUM_SOUL_SHATTER_CAPABLE_WEAPON);
     }
 }

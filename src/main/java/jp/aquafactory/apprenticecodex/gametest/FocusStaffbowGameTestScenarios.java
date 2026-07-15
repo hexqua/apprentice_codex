@@ -82,6 +82,7 @@ import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffRightClickItemEvent;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
@@ -600,10 +601,19 @@ final class FocusStaffbowGameTestScenarios {
                     "Focus Staffbow continuous cast should stay active past the spell's normal duration cap");
             helper.assertTrue(magicData.isCasting(),
                     "Focus Staffbow continuous cast should keep Iron's casting state active past the normal duration cap");
+            var continuousState = spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
+            var elapsedTicks = continuousState.getElapsedTicks(player.level().getGameTime());
+            var expectedRemaining = ContinuousCastDurationSimulation.computeRemaining(
+                    continuousState.requiredCastTicks, elapsedTicks
+            );
+            helper.assertTrue(magicData.getCastDuration() == continuousState.requiredCastTicks,
+                    "Focus Staffbow continuous cast should expose the spell's base cast duration");
+            helper.assertTrue(magicData.getCastDurationRemaining() == expectedRemaining,
+                    "Focus Staffbow continuous cast remaining duration should decrease monotonically: "
+                            + magicData.getCastDurationRemaining() + " expected " + expectedRemaining);
             helper.assertTrue(magicData.getCastDurationRemaining() < 10,
                     "Focus Staffbow continuous cast should have passed Iron's normal remaining-duration stop window: " + magicData.getCastDurationRemaining());
             helper.assertTrue(spellPowerAttribute != null, "Focus Staffbow continuous midpoint test could not resolve spell power attribute");
-            var continuousState = spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
             var expectedMultiplier = jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(
                     continuousState.getElapsedTicks(player.level().getGameTime())
             );
@@ -1273,6 +1283,96 @@ final class FocusStaffbowGameTestScenarios {
             helper.succeed();
         });
     }
+    static void focusStaffbowCreativeContinuousReleaseSkipsCooldown(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_creative_continuous_cooldown_test");
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get();
+        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Focus Staffbow creative continuous cooldown test requires MagicData");
+        magicData.setMana(1000.0F);
+
+        helper.runAtTickTime(1, () -> {
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow creative continuous cooldown test should start casting");
+        });
+        helper.runAtTickTime(3, () -> {
+            var originalCreativeCooldown = io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.get();
+            try {
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(false);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
+                bowStack.getItem().releaseUsing(
+                        bowStack,
+                        helper.getLevel(),
+                        player,
+                        bowStack.getUseDuration(player) - 2
+                );
+            } finally {
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
+            }
+        });
+        helper.runAtTickTime(4, () -> {
+            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "Focus Staffbow creative CONTINUOUS release should respect disabled creative cooldowns");
+            helper.succeed();
+        });
+    }
+
+    static void focusStaffbowCreativeInterruptionSkipsPreviousSpellCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = ApprenticeCodexGameTestScenarios.createTrackedEquipmentTestPlayer(
+                    helper,
+                    new BlockPos(0, 2, 0),
+                    "focus_staffbow_creative_interruption_cooldown_test"
+            );
+            player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+            var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierStack = new ItemStack(amplifierItem);
+            amplifierItem.initializeSpellContainer(amplifierStack);
+            setSingleUnlockedSpell(
+                    helper,
+                    amplifierStack,
+                    jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(),
+                    1
+            );
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+            setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
+
+            var interruptedSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Focus Staffbow creative interruption test requires MagicData");
+            magicData.setSyncedData(new io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData(player));
+            magicData.initiateCast(interruptedSpell, 1, 60, CastSource.SPELLBOOK, "gametest");
+
+            var originalCreativeCooldown = io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.get();
+            net.minecraft.world.InteractionResultHolder<ItemStack> result;
+            try {
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(false);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
+                result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            } finally {
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
+            }
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow should accept input after interrupting a different creative cast");
+            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(interruptedSpell),
+                    "Focus Staffbow creative interruption should respect disabled creative cooldowns");
+        });
+    }
+
     static void focusStaffbowBlocksUseWhileLoanRemains(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_block_test");

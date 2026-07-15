@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.item;
 
+import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
+import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.event.OffhandUpgradeAttributeEvent;
 import jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGreatsword;
@@ -54,6 +56,17 @@ public final class MagicItemAttributeEvent {
         if (item instanceof SpellchargedGreatsword spellchargedGreatsword) {
             replaceModifiers(event, spellchargedGreatsword.getDefaultAttributeModifiers(stack));
             applyMainhandUpgradeBridge(event);
+            return;
+        }
+
+        if (item instanceof ParrycastBuckler parrycastBuckler) {
+            replaceModifiers(event, parrycastBuckler.getDefaultAttributeModifiers(stack));
+            OffhandUpgradeAttributeEvent.onItemAttributeModifier(event);
+            return;
+        }
+
+        if (item instanceof BulwarkGreatshield bulwarkGreatshield) {
+            replaceModifiers(event, bulwarkGreatshield.getDefaultAttributeModifiers(stack));
         }
     }
 

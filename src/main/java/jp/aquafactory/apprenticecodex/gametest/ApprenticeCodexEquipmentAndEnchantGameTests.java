@@ -259,8 +259,74 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void reflectcastShieldAbilityTooltipShowsManaBypass(GameTestHelper helper) {
-        EquipmentSpellGunGameTestScenarios.reflectcastShieldAbilityTooltipShowsManaBypass(helper);
+    public static void reflectcastShieldCastRestrictionsFollowCalibration(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.reflectcastShieldCastRestrictionsFollowCalibration(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void bulwarkGreatshieldKeepsCoreItemAndEnchantmentContract(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.bulwarkGreatshieldKeepsCoreItemAndEnchantmentContract(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void bulwarkGreatshieldCalibrationSupportsOneRuneOrWisdomShard(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.bulwarkGreatshieldCalibrationSupportsOneRuneOrWisdomShard(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void imbueShieldsApplyTranscendenceAndWisdomEffects(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.imbueShieldsApplyTranscendenceAndWisdomEffects(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void bulwarkGreatshieldDurabilityAndManaRateLimitsStayMemoryOnly(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.bulwarkGreatshieldDurabilityAndManaRateLimitsStayMemoryOnly(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void continuousShieldCastCleanupPreservesUseAndClearsLogoutState(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.continuousShieldCastCleanupPreservesUseAndClearsLogoutState(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void continuousShieldCastDurationsProgressMonotonically(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.continuousShieldCastDurationsProgressMonotonically(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void continuousShieldDeathClearsRuntimeWithNormalCooldown(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.continuousShieldDeathClearsRuntimeWithNormalCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void continuousShieldCreativeFinishSkipsCooldown(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.continuousShieldCreativeFinishSkipsCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void parrycastBucklerKeepsCoreContract(GameTestHelper helper) {
+        ParrycastBucklerGameTestScenarios.parrycastBucklerKeepsCoreContract(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void parrycastBucklerSupportsThreeAdjustmentsAndSchoolDeduplication(GameTestHelper helper) {
+        ParrycastBucklerGameTestScenarios.parrycastBucklerSupportsThreeAdjustmentsAndSchoolDeduplication(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void parrycastBucklerKeepsPerfectGuardWindowAndDurabilityRateLimit(GameTestHelper helper) {
+        ParrycastBucklerGameTestScenarios.parrycastBucklerKeepsPerfectGuardWindowAndDurabilityRateLimit(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void parrycastBucklerBlocksDispenserArrowAndStopsOnUnblockedDamage(GameTestHelper helper) {
+        ParrycastBucklerGameTestScenarios.parrycastBucklerBlocksDispenserArrowAndStopsOnUnblockedDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void parrycastWisdomOnlyReducesAllCooldownsWhenSelectedSpellIsCoolingDown(GameTestHelper helper) {
+        ParrycastBucklerGameTestScenarios
+                .parrycastWisdomOnlyReducesAllCooldownsWhenSelectedSpellIsCoolingDown(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1111,6 +1177,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowCreativeOverchargeDoesNotConsumeManaOrCreateLoan(GameTestHelper helper) {
         FocusStaffbowGameTestScenarios.focusStaffbowCreativeOverchargeDoesNotConsumeManaOrCreateLoan(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_CONTINUOUS_BATCH)
+    public static void focusStaffbowCreativeContinuousReleaseSkipsCooldown(GameTestHelper helper) {
+        FocusStaffbowGameTestScenarios.focusStaffbowCreativeContinuousReleaseSkipsCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowCreativeInterruptionSkipsPreviousSpellCooldown(GameTestHelper helper) {
+        FocusStaffbowGameTestScenarios.focusStaffbowCreativeInterruptionSkipsPreviousSpellCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE)

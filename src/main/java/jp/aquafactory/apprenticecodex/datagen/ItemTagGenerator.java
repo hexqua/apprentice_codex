@@ -344,6 +344,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()
         );
         vanillaDurabilityEnchantableTag.add(
+                ItemRegistry.BULWARK_GREATSHIELD.get(),
+                ItemRegistry.PARRYCAST_BUCKLER.get(),
+                ItemRegistry.REFLECTCAST_SHIELD.get(),
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
                 ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
                 ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
@@ -398,6 +401,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()
         );
         tag(MINECRAFT_ENCHANTABLE_VANISHING).add(
+                ItemRegistry.BULWARK_GREATSHIELD.get(),
+                ItemRegistry.PARRYCAST_BUCKLER.get(),
+                ItemRegistry.REFLECTCAST_SHIELD.get(),
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
                 ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
                 ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
@@ -455,8 +461,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         // 1.21.1 の Spirit Plunder は soul_shatter_capable_weapon 経由で supported_items を見ている。
         // Java 側の許可だけでは definition 判定を通らないため、Malum 側 tag も同じ面へ揃える。
         tag(MALUM_SOUL_SHATTER_CAPABLE_WEAPON).add(
-                ItemRegistry.PASTEL_STAFF.get(),
-                ItemRegistry.REFLECTCAST_SHIELD.get()
+                ItemRegistry.PASTEL_STAFF.get()
         );
         tag(TOMAGIC_REVERSAL_WEAPON).add(ItemRegistry.PASTEL_STAFF.get());
         tag(MAGIC_ITEM_ENCHANTABLE).add(
@@ -492,6 +497,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 .addTag(ALCHEMISTS_FLASK_ENCHANTABLE);
         tag(MANA_SHIELD_CHARM_ENCHANTABLE).add(ItemRegistry.MANA_SHIELD_CHARM.get());
         wisdomEnchantableTag.addTag(SPELL_GUN_ENCHANTABLE).add(
+                ItemRegistry.BULWARK_GREATSHIELD.get(),
+                ItemRegistry.PARRYCAST_BUCKLER.get(),
+                ItemRegistry.REFLECTCAST_SHIELD.get(),
                 ItemRegistry.ENCHANTED_CIRCLET.get(),
                 ItemRegistry.ENCHANTRESS_HAT.get(),
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
@@ -515,7 +523,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get(),
                 ItemRegistry.PHOTON_SIPHON.get(),
                 ItemRegistry.EXPLORERS_CANE.get(),
-                ItemRegistry.ENCHANTED_CIRCLET.get()
+                ItemRegistry.ENCHANTED_CIRCLET.get(),
+                ItemRegistry.PARRYCAST_BUCKLER.get()
         );
         // 付呪魔女防具は 1.20.1 と同様に叡智のみを許可し、専用エンチャ系タグから外す.
         tag(OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE)
@@ -533,7 +542,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         attunementEnchantableTag.addTag(SPELL_CONTAINER_MAGIC_ENCHANTABLE);
         transcendenceEnchantableTag
                 .addTag(SPELL_CONTAINER_MAGIC_ENCHANTABLE)
-                .addTag(ALCHEMISTS_FLASK_ENCHANTABLE);
+                .addTag(ALCHEMISTS_FLASK_ENCHANTABLE)
+                .add(ItemRegistry.BULWARK_GREATSHIELD.get(), ItemRegistry.REFLECTCAST_SHIELD.get());
 
         tag(CURIOS_RING).add(
                 ItemRegistry.SCARLET_THIRST.get(),

@@ -16,6 +16,8 @@
     "apprenticecodex:element_maiden_robe_robe",
     "apprenticecodex:elemental_bow",
     "#apprenticecodex:spell_container_magic_enchantable",
-    "#apprenticecodex:alchemists_flask_enchantable"
+    "#apprenticecodex:alchemists_flask_enchantable",
+    "apprenticecodex:bulwark_greatshield",
+    "apprenticecodex:reflectcast_shield"
   ]
 }

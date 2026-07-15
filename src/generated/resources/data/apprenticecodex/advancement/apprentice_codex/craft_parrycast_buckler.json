@@ -1,0 +1,38 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_reflectcast_shield",
+  "criteria": {
+    "crafted_parrycast_buckler": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:parrycast_buckler"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_parrycast_buckler.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "components": {
+        "irons_spellbooks:spell_container": {
+          "data": [],
+          "maxSpells": 1,
+          "mustEquip": false,
+          "spellWheel": false
+        }
+      },
+      "count": 1,
+      "id": "apprenticecodex:parrycast_buckler"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_parrycast_buckler.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_parrycast_buckler"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

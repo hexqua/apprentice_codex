@@ -5178,6 +5178,44 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void multicastEchoStaffCreativeCastSkipsFinalCooldown(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multicast_echo_staff_creative_cooldown_test");
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+        var staffStack = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        var spell = SpellRegistry.SHOCK.get();
+        var spellLevel = 1;
+        var manaCost = spell.getManaCost(spellLevel);
+        player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+
+        helper.runAtTickTime(1, () -> completeMulticastEchoStaffCast(
+                helper.getLevel(),
+                player,
+                staffStack,
+                spell,
+                spellLevel,
+                0,
+                manaCost * 3.0F
+        ));
+        helper.runAtTickTime(2, () ->
+                MulticastEchoStaffCastHelper.onPlayerTick(new PlayerTickEvent.Post(player))
+        );
+        helper.runAtTickTime(4, () -> {
+            var originalCreativeCooldown = io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.get();
+            try {
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(false);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
+                MulticastEchoStaffCastHelper.onPlayerTick(new PlayerTickEvent.Post(player));
+            } finally {
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
+            }
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "Multicast Echo Staff creative finalization should respect disabled creative cooldowns");
+            helper.succeed();
+        });
+    }
+
     static void multicastEchoStaffInsufficientManaEndsWithPenaltyCooldown(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multicast_echo_staff_mana_penalty_test");
         var staffStack = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
@@ -11704,7 +11742,10 @@ public class ApprenticeCodexGameTestScenarios {
                 registryAccess,
                 enchantment -> enchantment.value().canEnchant(new ItemStack(Items.SHIELD))
         );
-        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
+        expectedEnchantments.addAll(registryIdSet(
+                Enchantments.TRANSCENDENCE,
+                Enchantments.WISDOM
+        ));
         return expectedEnchantments;
     }
 

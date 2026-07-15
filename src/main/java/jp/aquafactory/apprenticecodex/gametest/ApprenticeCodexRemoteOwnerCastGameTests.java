@@ -23,6 +23,8 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRunner;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCooldownManager;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCooldownPolicy;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
@@ -148,6 +150,64 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
         helper.assertFalse(amulet.canImbueSpell(SpellRegistry.RAISE_DEAD_SPELL.get(), 1),
                 "Satellite Followcast Amulet should keep rejecting recast spells.");
         helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void remoteOwnerCooldownRespectsCreativeConfig(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                    helper,
+                    new net.minecraft.core.BlockPos(0, 2, 0),
+                    "remote_owner_creative_cooldown_test"
+            );
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Remote Owner creative cooldown test requires MagicData");
+            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get();
+            var spellData = new SpellData(spell, 1);
+            var originalCreativeCooldown = io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.get();
+
+            try {
+                player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(false);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
+                RemoteOwnerCooldownManager.addCooldown(
+                        player,
+                        spellData,
+                        CastSource.SWORD,
+                        RemoteOwnerCooldownPolicy.WEAPON_IMBUE
+                );
+                helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                        "Remote Owner should skip creative cooldowns when Iron's setting is disabled");
+
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(true);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
+                RemoteOwnerCooldownManager.addCooldown(
+                        player,
+                        spellData,
+                        CastSource.SWORD,
+                        RemoteOwnerCooldownPolicy.WEAPON_IMBUE
+                );
+                helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                        "Remote Owner should apply creative cooldowns when Iron's setting is enabled");
+
+                magicData.getPlayerCooldowns().clearCooldowns();
+                player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(false);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
+                RemoteOwnerCooldownManager.addCooldown(
+                        player,
+                        spellData,
+                        CastSource.SWORD,
+                        RemoteOwnerCooldownPolicy.WEAPON_IMBUE
+                );
+                helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                        "Remote Owner should keep applying survival cooldowns");
+            } finally {
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
+                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
+                magicData.getPlayerCooldowns().clearCooldowns();
+            }
+        });
     }
 
     @GameTest(template = TEMPLATE)

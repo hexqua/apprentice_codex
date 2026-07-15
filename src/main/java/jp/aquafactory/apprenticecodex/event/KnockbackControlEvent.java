@@ -14,6 +14,7 @@ public final class KnockbackControlEvent {
     private KnockbackControlEvent() {}
 
     private static final Map<LivingEntity, Integer> IMMUNE = new WeakHashMap<>();
+    private static final Map<LivingEntity, Integer> IMMUNE_THIS_TICK = new WeakHashMap<>();
 
     public static void markIgnoreNextKnockback(LivingEntity target) {
         if (target == null) return;
@@ -22,9 +23,33 @@ public final class KnockbackControlEvent {
         IMMUNE.put(target, target.tickCount);
     }
 
+    public static void markIgnoreKnockbackThisTick(LivingEntity target) {
+        if (target == null || target.level().isClientSide) {
+            return;
+        }
+        IMMUNE_THIS_TICK.put(target, target.tickCount);
+    }
+
+    public static boolean shouldIgnorePushThisTick(LivingEntity target) {
+        var markedTick = IMMUNE_THIS_TICK.get(target);
+        if (markedTick == null) {
+            return false;
+        }
+        if (markedTick == target.tickCount) {
+            return true;
+        }
+        IMMUNE_THIS_TICK.remove(target);
+        return false;
+    }
+
     @SubscribeEvent
     public static void onKnockback(LivingKnockBackEvent event) {
         var entity = event.getEntity();
+        if (shouldIgnorePushThisTick(entity)) {
+            event.setCanceled(true);
+            return;
+        }
+
         var markedTick = IMMUNE.get(entity);
         if (markedTick == null) return;
 

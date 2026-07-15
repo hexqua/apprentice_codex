@@ -1,0 +1,38 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_reflectcast_shield",
+  "criteria": {
+    "crafted_bulwark_greatshield": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:bulwark_greatshield"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_bulwark_greatshield.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "components": {
+        "irons_spellbooks:spell_container": {
+          "data": [],
+          "maxSpells": 1,
+          "mustEquip": false,
+          "spellWheel": false
+        }
+      },
+      "count": 1,
+      "id": "apprenticecodex:bulwark_greatshield"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_bulwark_greatshield.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_bulwark_greatshield"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -2,7 +2,6 @@
 
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
@@ -22,11 +21,13 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
+import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
 import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.utility.SpellCooldownHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
@@ -402,7 +403,7 @@ public final class FocusStaffbowCastManager {
         // CONTINUOUS は詠唱時間短縮 Attribute が逆効果になるため、
         // FocusStaffbow 側では spell 本来の castTime だけを標準詠唱可能時間として扱う。
         var standardCastTicks = Math.max(spell.getCastTime(spellLevel), 0);
-        var requiredCastTicks = FocusStaffbowChargeLogic.normalizeContinuousRequiredCastTicks(standardCastTicks);
+        var requiredCastTicks = ContinuousCastDurationSimulation.normalizeCastDuration(standardCastTicks);
 
         var magicData = MagicData.getPlayerMagicData(player);
         if (!validateCastStart(player, spell, spellLevel, castSource, magicData)) {
@@ -664,7 +665,11 @@ public final class FocusStaffbowCastManager {
             var spell = SpellRegistry.getSpell(state.spellId);
             if (spell != null && spell != SpellRegistry.none()) {
                 if (triggerCooldown) {
-                    MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, resolveCastSource(state.castSource));
+                    SpellCooldownHelper.addCooldownRespectingCreativeConfig(
+                            player,
+                            spell,
+                            resolveCastSource(state.castSource)
+                    );
                 }
                 spell.onServerCastComplete(player.level(), state.spellLevel, player, magicData, true);
             } else {
@@ -874,7 +879,7 @@ public final class FocusStaffbowCastManager {
         var spell = magicData.getCastingSpell().getSpell();
         if (spell != null && spell != SpellRegistry.none()) {
             if (magicData.getCastType() != CastType.LONG) {
-                MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, magicData.getCastSource());
+                SpellCooldownHelper.addCooldownRespectingCreativeConfig(player, spell, magicData.getCastSource());
             }
             if (magicData.getCastSource() == CastSource.SCROLL && magicData.getCastType() == CastType.CONTINUOUS) {
                 Scroll.attemptRemoveScrollAfterCast(player);
@@ -998,7 +1003,7 @@ public final class FocusStaffbowCastManager {
         accessor.apprenticecodex$setCastingSpellLevel(spellLevel);
         accessor.apprenticecodex$setCastDuration(requiredCastTicks);
         accessor.apprenticecodex$setCastDurationRemaining(
-                FocusStaffbowChargeLogic.computeContinuousCastDurationRemaining(elapsedTicks, requiredCastTicks)
+                ContinuousCastDurationSimulation.computeRemaining(requiredCastTicks, elapsedTicks)
         );
         accessor.apprenticecodex$setCastSource(castSource);
         accessor.apprenticecodex$setCastType(spell.getCastType());

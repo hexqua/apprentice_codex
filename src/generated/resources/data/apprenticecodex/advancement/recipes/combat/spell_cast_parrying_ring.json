@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_reflectcast_shield": {
+    "has_shield": {
       "conditions": {
         "items": [
           {
-            "items": "apprenticecodex:reflectcast_shield"
+            "items": "minecraft:shield"
           }
         ]
       },
@@ -21,7 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_reflectcast_shield"
+      "has_shield"
     ]
   ],
   "rewards": {

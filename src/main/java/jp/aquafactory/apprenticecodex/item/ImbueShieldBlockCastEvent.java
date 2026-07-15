@@ -2,7 +2,11 @@ package jp.aquafactory.apprenticecodex.item;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeEvents;
+import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
+import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshieldRuntime;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime;
+import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
@@ -32,15 +36,59 @@ public final class ImbueShieldBlockCastEvent {
         }
 
         var shieldStack = player.getUseItem();
+        if (shieldStack.getItem() instanceof BulwarkGreatshield) {
+            return;
+        }
         if (shieldStack.getItem() instanceof ReflectcastShield) {
             return;
         }
+        if (shieldStack.getItem() instanceof ParrycastBuckler) {
+            return;
+        }
 
-        if (!(shieldStack.getItem() instanceof AbstractImbueShieldItem imbueShieldItem)) {
+        if (!(shieldStack.getItem() instanceof AbstractImbueShieldItem imbueShieldItem)
+                || !imbueShieldItem.supportsBlockTriggeredImbuedSpell()) {
             return;
         }
 
         imbueShieldItem.tryTriggerImbuedSpellOnBlock(player, shieldStack, player.getUsedItemHand());
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void onParrycastBucklerBlock(LivingShieldBlockEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || player.level().isClientSide
+                || event.getBlockedDamage() <= 0.0F || !player.isUsingItem()) {
+            return;
+        }
+        var stack = player.getUseItem();
+        if (!(stack.getItem() instanceof ParrycastBuckler buckler)) {
+            return;
+        }
+
+        var hand = player.getUsedItemHand();
+        var perfectGuard = buckler.handlePerfectGuard(player, stack, hand);
+        event.setShieldDamage(0.0F);
+        applyParrycastBucklerDurability(event.getOriginalBlockedDamage(), player, stack, hand, perfectGuard);
+        if (!perfectGuard) {
+            buckler.finishFailedGuard(player, stack);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void onBulwarkGreatshieldBlock(LivingShieldBlockEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || player.level().isClientSide
+                || event.getBlockedDamage() <= 0.0F || !player.isUsingItem()) {
+            return;
+        }
+        var shieldStack = player.getUseItem();
+        if (!(shieldStack.getItem() instanceof BulwarkGreatshield)) {
+            return;
+        }
+
+        event.setShieldDamage(0.0F);
+        applyBulwarkDurability(event.getOriginalBlockedDamage(), player, shieldStack, player.getUsedItemHand());
+        BulwarkGreatshieldRuntime.tryRecoverMana(player);
+        jp.aquafactory.apprenticecodex.event.KnockbackControlEvent.markIgnoreKnockbackThisTick(player);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -54,16 +102,16 @@ public final class ImbueShieldBlockCastEvent {
         }
 
         var shieldStack = player.getUseItem();
-        if (!(shieldStack.getItem() instanceof ReflectcastShield reflectcastShield)) {
+        if (!(shieldStack.getItem() instanceof ReflectcastShield)) {
             return;
         }
 
         var usedHand = player.getUsedItemHand();
-        var spellTriggered = reflectcastShield.tryTriggerImbuedSpellOnBlock(player, shieldStack, usedHand);
+        var spellTriggered = ReflectcastShieldRuntime.tryTriggerSpell(player, shieldStack, usedHand);
 
         // 反射詠唱時だけ耐久消費を軽減するため、ReflectcastShield はイベント側の盾耐久消費を手動管理する。
         event.setShieldDamage(0.0F);
-        applyReflectcastShieldDurability(event, player, shieldStack, usedHand, spellTriggered);
+        applyReflectcastShieldDurability(event, player, shieldStack, usedHand);
         if (spellTriggered) {
             ManaForceBladeEvents.playBlueGuardEffect(player, resolveReflectcastEffectPosition(player, event), 16);
         }
@@ -73,15 +121,11 @@ public final class ImbueShieldBlockCastEvent {
             LivingShieldBlockEvent event,
             ServerPlayer player,
             ItemStack shieldStack,
-            InteractionHand usedHand,
-            boolean spellTriggered
+            InteractionHand usedHand
     ) {
         var now = player.level().getGameTime();
-        var durabilityCost = ReflectcastShield.resolveBlockedDurabilityCost(
-                event.getOriginalBlockedDamage(),
-                spellTriggered
-        );
-        if (durabilityCost <= 0 || ReflectcastShield.isDurabilityConsumptionSuppressed(shieldStack, now)) {
+        var durabilityCost = ReflectcastShield.resolveBlockedDurabilityCost(event.getOriginalBlockedDamage());
+        if (durabilityCost <= 0 || ReflectcastShieldRuntime.isDurabilityConsumptionSuppressed(player, now)) {
             return;
         }
 
@@ -101,12 +145,71 @@ public final class ImbueShieldBlockCastEvent {
         }
 
         if (shieldStack.isEmpty() || shieldStack.getDamageValue() > beforeDamage || shieldStack.getCount() < beforeCount) {
-            ReflectcastShield.rememberDurabilityConsumed(shieldStack, now);
+            ReflectcastShieldRuntime.rememberDurabilityConsumed(player, now);
         }
     }
 
     private static EquipmentSlot resolveEquipmentSlot(InteractionHand usedHand) {
         return usedHand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
+    }
+
+    private static void applyBulwarkDurability(
+            float originalBlockedDamage,
+            ServerPlayer player,
+            ItemStack shieldStack,
+            InteractionHand usedHand
+    ) {
+        var now = player.level().getGameTime();
+        if (originalBlockedDamage < 3.0F || BulwarkGreatshieldRuntime.isDurabilityConsumptionSuppressed(player, now)) {
+            return;
+        }
+
+        var beforeDamage = shieldStack.getDamageValue();
+        var beforeCount = shieldStack.getCount();
+        var equipmentSlot = resolveEquipmentSlot(usedHand);
+        var beforeBreakStack = shieldStack.copy();
+        shieldStack.hurtAndBreak(1, player, equipmentSlot);
+        if (shieldStack.isEmpty()) {
+            EventHooks.onPlayerDestroyItem(player, beforeBreakStack, usedHand);
+            player.setItemSlot(equipmentSlot, ItemStack.EMPTY);
+            player.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + player.level().random.nextFloat() * 0.4F);
+            if (player.getUseItem() == shieldStack) {
+                player.stopUsingItem();
+            }
+        }
+        // hurtAndBreak 内の Unbreaking が消費を打ち消した場合は抑止時間を開始しない。
+        if (shieldStack.isEmpty() || shieldStack.getDamageValue() > beforeDamage || shieldStack.getCount() < beforeCount) {
+            BulwarkGreatshieldRuntime.rememberDurabilityConsumed(player, now);
+        }
+    }
+
+    private static void applyParrycastBucklerDurability(
+            float originalBlockedDamage,
+            ServerPlayer player,
+            ItemStack stack,
+            InteractionHand hand,
+            boolean perfectGuard
+    ) {
+        var now = player.level().getGameTime();
+        var cost = ParrycastBuckler.resolveDurabilityCost(originalBlockedDamage, perfectGuard);
+        if (cost <= 0 || ParrycastBuckler.isDurabilitySuppressed(stack, now)) {
+            return;
+        }
+        var beforeDamage = stack.getDamageValue();
+        var beforeCount = stack.getCount();
+        var equipmentSlot = resolveEquipmentSlot(hand);
+        var beforeBreakStack = stack.copy();
+        stack.hurtAndBreak(cost, player, equipmentSlot);
+        if (stack.isEmpty()) {
+            EventHooks.onPlayerDestroyItem(player, beforeBreakStack, hand);
+            player.setItemSlot(equipmentSlot, ItemStack.EMPTY);
+            player.playSound(SoundEvents.SHIELD_BREAK, 0.8F, 0.8F + player.level().random.nextFloat() * 0.4F);
+            if (player.getUseItem() == stack) {
+                player.stopUsingItem();
+            }
+        } else if (stack.getDamageValue() > beforeDamage || stack.getCount() < beforeCount) {
+            ParrycastBuckler.rememberDurabilityConsumed(stack, now);
+        }
     }
 
     private static Vec3 resolveReflectcastEffectPosition(ServerPlayer player, LivingShieldBlockEvent event) {

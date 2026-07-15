@@ -135,6 +135,7 @@ public final class AutocastAmuletCastEvent {
             return;
         }
 
+        // Autocast Amulet は連続発動を防ぐため、creativeCooldowns が無効でも意図的にクールダウンを付与する。
         MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, pendingCooldown.castSource());
     }
 

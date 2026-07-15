@@ -1,0 +1,404 @@
+package jp.aquafactory.apprenticecodex.item.shield;
+
+import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
+import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
+import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
+import jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor;
+import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.SyncReflectcastShieldEffectPacket;
+import jp.aquafactory.apprenticecodex.utility.SpellCooldownHelper;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
+public final class ReflectcastShieldRuntime {
+    private static final int CONTINUOUS_CAST_INTERVAL_TICKS = 10;
+    private static final Map<UUID, Long> NEXT_SPELL_TRIGGER_TICKS = new ConcurrentHashMap<>();
+    private static final Map<UUID, Long> NEXT_DURABILITY_CONSUMPTION_TICKS = new ConcurrentHashMap<>();
+    private static final Map<UUID, ContinuousCast> ACTIVE_CONTINUOUS_CASTS = new ConcurrentHashMap<>();
+
+    private ReflectcastShieldRuntime() {
+    }
+
+    public static boolean tryTriggerSpell(ServerPlayer player, ItemStack stack, InteractionHand hand) {
+        var activeCast = ACTIVE_CONTINUOUS_CASTS.get(player.getUUID());
+        if (activeCast != null) {
+            return false;
+        }
+
+        var now = player.level().getGameTime();
+        if (now < NEXT_SPELL_TRIGGER_TICKS.getOrDefault(player.getUUID(), 0L)) {
+            return false;
+        }
+
+        var spellData = ReflectcastShield.resolveCastSpell(player, stack);
+        if (spellData == null || spellData == io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY) {
+            return false;
+        }
+        var shield = (ReflectcastShield) stack.getItem();
+        var spell = spellData.getSpell();
+        if (!shield.canUseConfiguredSpell(stack, spell, spellData.getLevel())) {
+            return false;
+        }
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData == null || magicData.isCasting()) {
+            return false;
+        }
+        var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
+        var castSource = ReflectcastShield.resolveCastSource(player, stack);
+        var slot = hand == InteractionHand.OFF_HAND ? SpellSelectionManager.OFFHAND : SpellSelectionManager.MAINHAND;
+        var triggered = spell.getCastType() == CastType.CONTINUOUS
+                ? tryStartContinuousCast(player, stack, hand, spell, spellLevel, castSource, slot, magicData, now)
+                : tryStartTriggeredCast(player, stack, hand, spell, spellLevel, castSource, slot, magicData);
+        if (triggered) {
+            rememberSpellTriggered(player, now);
+        }
+        return triggered;
+    }
+
+    public static void tickContinuousCast(ServerPlayer player, ItemStack stack) {
+        var activeCast = ACTIVE_CONTINUOUS_CASTS.get(player.getUUID());
+        if (activeCast == null) {
+            return;
+        }
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData == null || !magicData.getSyncedData().isCasting()
+                || !activeCast.spell().getSpellId().equals(magicData.getCastingSpellId())) {
+            ACTIVE_CONTINUOUS_CASTS.remove(player.getUUID());
+            return;
+        }
+
+        var elapsedTicks = Math.max(0L, player.level().getGameTime() - activeCast.startedAt());
+        syncMagicDataSimulation(magicData, activeCast, stack, elapsedTicks);
+        if (elapsedTicks > 0L && elapsedTicks % CONTINUOUS_CAST_INTERVAL_TICKS == 0L
+                && !castPulse(player, activeCast, magicData)) {
+            stopActiveCast(player, activeCast, magicData, true, true);
+            ACTIVE_CONTINUOUS_CASTS.remove(player.getUUID());
+            return;
+        }
+        activeCast.spell().onServerCastTick(player.level(), activeCast.spellLevel(), player, magicData);
+    }
+
+    public static void finishUse(ServerPlayer player) {
+        var activeCast = ACTIVE_CONTINUOUS_CASTS.remove(player.getUUID());
+        if (activeCast == null) {
+            return;
+        }
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData != null) {
+            stopActiveCast(player, activeCast, magicData, true, false);
+        }
+    }
+
+    public static boolean shouldBypassMagicManager(MagicData magicData) {
+        var player = ((MagicDataAccessor) magicData).apprenticecodex$getServerPlayer();
+        if (player == null) {
+            return false;
+        }
+        var activeCast = ACTIVE_CONTINUOUS_CASTS.get(player.getUUID());
+        return activeCast != null && magicData.getSyncedData().isCasting()
+                && activeCast.spell().getSpellId().equals(magicData.getCastingSpellId());
+    }
+
+    public static boolean isDurabilityConsumptionSuppressed(ServerPlayer player, long gameTime) {
+        return gameTime < NEXT_DURABILITY_CONSUMPTION_TICKS.getOrDefault(player.getUUID(), 0L);
+    }
+
+    public static boolean isSpellTriggerSuppressed(ServerPlayer player, long gameTime) {
+        return gameTime < NEXT_SPELL_TRIGGER_TICKS.getOrDefault(player.getUUID(), 0L);
+    }
+
+    public static void rememberSpellTriggered(ServerPlayer player, long gameTime) {
+        NEXT_SPELL_TRIGGER_TICKS.put(
+                player.getUUID(), gameTime + ReflectcastShield.SPELL_TRIGGER_SUPPRESSION_TICKS
+        );
+    }
+
+    public static void rememberDurabilityConsumed(ServerPlayer player, long gameTime) {
+        // ItemStack NBT の更新は Iron's Spells に装備変更と判定され、CONTINUOUS を中断する。
+        NEXT_DURABILITY_CONSUMPTION_TICKS.put(
+                player.getUUID(),
+                gameTime + ReflectcastShield.DURABILITY_SUPPRESSION_TICKS + 1L
+        );
+    }
+
+    public static void clear(ServerPlayer player) {
+        finishUse(player);
+        NEXT_SPELL_TRIGGER_TICKS.remove(player.getUUID());
+        NEXT_DURABILITY_CONSUMPTION_TICKS.remove(player.getUUID());
+    }
+
+    @SubscribeEvent
+    public static void onSpellCooldownAdded(SpellCooldownAddedEvent.Pre event) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || event.getSpell().getCastType() != CastType.LONG) {
+            return;
+        }
+        var magicData = MagicData.getPlayerMagicData(player);
+        var castingItem = magicData == null ? ItemStack.EMPTY : magicData.getPlayerCastingItem();
+        if (!(castingItem.getItem() instanceof ReflectcastShield) || !ReflectcastShield.hasSilverRing(castingItem)) {
+            return;
+        }
+        if (magicData == null) {
+            return;
+        }
+        var spellLevel = magicData.getCastingSpellLevel() > 0 ? magicData.getCastingSpellLevel() : 1;
+        event.setEffectiveCooldown(resolveLongCastCooldownTicks(
+                player, event.getSpell(), spellLevel, event.getEffectiveCooldown()
+        ));
+    }
+
+    public static int resolveLongCastCooldownTicks(
+            ServerPlayer player,
+            AbstractSpell spell,
+            int spellLevel,
+            int currentEffectiveCooldown
+    ) {
+        return currentEffectiveCooldown + Math.max(0, spell.getEffectiveCastTime(spellLevel, player));
+    }
+
+    @SubscribeEvent
+    public static void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            clear(player);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onLivingDeath(LivingDeathEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            // Iron's の通常死亡処理へ詠唱完了とクールダウン付与を任せるため、先に盾専用ランタイムだけを外す。
+            discardRuntime(player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerClone(PlayerEvent.Clone event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            // Clone 後の MagicData に模擬詠唱がコピーされていても、死亡前のランタイムへ再接続しない。
+            discardRuntime(player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onServerStopped(ServerStoppedEvent event) {
+        NEXT_SPELL_TRIGGER_TICKS.clear();
+        NEXT_DURABILITY_CONSUMPTION_TICKS.clear();
+        ACTIVE_CONTINUOUS_CASTS.clear();
+    }
+
+    private static void discardRuntime(ServerPlayer player) {
+        ACTIVE_CONTINUOUS_CASTS.remove(player.getUUID());
+        NEXT_SPELL_TRIGGER_TICKS.remove(player.getUUID());
+        NEXT_DURABILITY_CONSUMPTION_TICKS.remove(player.getUUID());
+    }
+
+    private static boolean tryStartTriggeredCast(
+            ServerPlayer player,
+            ItemStack stack,
+            InteractionHand hand,
+            AbstractSpell spell,
+            int spellLevel,
+            CastSource castSource,
+            String slot,
+            MagicData magicData
+    ) {
+        var remainingUseTicks = player.getUseItemRemainingTicks();
+        var casted = spell.attemptInitiateCast(
+                stack,
+                spellLevel,
+                player.level(),
+                player,
+                castSource,
+                true,
+                slot
+        );
+        if (casted) {
+            if (spell.getCastType() == CastType.INSTANT) {
+                // 次 tick の MagicManager に残すと完了 cleanup が再開後の盾を解除するため、先に INSTANT を完了させる。
+                spell.castSpell(player.level(), spellLevel, player, magicData.getCastSource(), true);
+                spell.onServerCastComplete(player.level(), spellLevel, player, magicData, false);
+            } else {
+                TriggeredSpellCastHelper.applyLongCastDurationOverride(player, spellLevel, spell, magicData, slot, 0);
+            }
+            player.startUsingItem(hand);
+            ((LivingEntityAccessor) player).apprenticecodex$setUseItemRemaining(remainingUseTicks);
+        }
+        return casted;
+    }
+
+    private static boolean tryStartContinuousCast(
+            ServerPlayer player,
+            ItemStack stack,
+            InteractionHand hand,
+            AbstractSpell spell,
+            int spellLevel,
+            CastSource castSource,
+            String slot,
+            MagicData magicData,
+            long now
+    ) {
+        if (!canStartCast(player, spell, spellLevel, castSource, magicData)) {
+            return false;
+        }
+        var castDuration = ContinuousCastDurationSimulation.normalizeCastDuration(spell.getCastTime(spellLevel));
+        var activeCast = new ContinuousCast(spell, spellLevel, castSource, slot, castDuration, now);
+        magicData.initiateCast(spell, spellLevel, castDuration, castSource, slot);
+        magicData.setPlayerCastingItem(stack);
+        syncMagicDataSimulation(magicData, activeCast, stack, 0L);
+        spell.onServerPreCast(player.level(), spellLevel, player, magicData);
+        ACTIVE_CONTINUOUS_CASTS.put(player.getUUID(), activeCast);
+        if (castPulse(player, activeCast, magicData)) {
+            sendEffectStart(player, stack, hand, spell);
+            return true;
+        }
+        stopActiveCast(player, activeCast, magicData, true, true);
+        ACTIVE_CONTINUOUS_CASTS.remove(player.getUUID());
+        return false;
+    }
+
+    private static void sendEffectStart(
+            ServerPlayer player,
+            ItemStack stack,
+            InteractionHand hand,
+            AbstractSpell castSpell
+    ) {
+        var spellContainer = ISpellContainer.get(stack);
+        if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
+            return;
+        }
+        var imbuedSpell = spellContainer.getSpellAtIndex(0);
+        if (imbuedSpell == io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY
+                || imbuedSpell.getSpell() == null) {
+            return;
+        }
+        // 盾の明滅は注入魔法のクールダウン通知専用なので、Wisdom Shard で別魔法を選択した場合は演出しない。
+        if (!imbuedSpell.getSpell().getSpellId().equals(castSpell.getSpellId())) {
+            return;
+        }
+        Networks.sendToPlayer(player, new SyncReflectcastShieldEffectPacket(
+                hand,
+                imbuedSpell.getSpell().getSpellId()
+        ));
+    }
+
+    private static boolean canStartCast(
+            ServerPlayer player,
+            AbstractSpell spell,
+            int spellLevel,
+            CastSource castSource,
+            MagicData magicData
+    ) {
+        var castResult = spell.canBeCastedBy(spellLevel, castSource, magicData, player);
+        if (castResult.message != null) {
+            player.connection.send(new ClientboundSetActionBarTextPacket(castResult.message));
+        }
+        return castResult.isSuccess()
+                && spell.checkPreCastConditions(player.level(), spellLevel, player, magicData)
+                && !NeoForge.EVENT_BUS.post(new SpellPreCastEvent(
+                player,
+                spell.getSpellId(),
+                spellLevel,
+                spell.getSchoolType(),
+                castSource
+        )).isCanceled();
+    }
+
+    private static boolean castPulse(ServerPlayer player, ContinuousCast activeCast, MagicData magicData) {
+        if (!activeCast.spell().canBeCastedBy(
+                activeCast.spellLevel(), activeCast.castSource(), magicData, player
+        ).isSuccess()) {
+            return false;
+        }
+        activeCast.spell().castSpell(
+                player.level(), activeCast.spellLevel(), player, activeCast.castSource(), false
+        );
+        return true;
+    }
+
+    private static void stopActiveCast(
+            ServerPlayer player,
+            ContinuousCast activeCast,
+            MagicData magicData,
+            boolean triggerCooldown,
+            boolean preserveShieldUse
+    ) {
+        if (triggerCooldown) {
+            SpellCooldownHelper.addCooldownRespectingCreativeConfig(
+                    player,
+                    activeCast.spell(),
+                    activeCast.castSource()
+            );
+        }
+        var finishCast = (Runnable) () -> activeCast.spell().onServerCastComplete(
+                player.level(), activeCast.spellLevel(), player, magicData, true
+        );
+        if (preserveShieldUse) {
+            ShieldCastUseContext.runPreservingShieldUse(magicData, finishCast);
+        } else {
+            finishCast.run();
+        }
+        clearMagicDataSimulation(magicData, activeCast.slot());
+    }
+
+    private static void syncMagicDataSimulation(
+            MagicData magicData,
+            ContinuousCast activeCast,
+            ItemStack castingItem,
+            long elapsedTicks
+    ) {
+        var accessor = (MagicDataAccessor) magicData;
+        accessor.apprenticecodex$setCastingSpellLevel(activeCast.spellLevel());
+        accessor.apprenticecodex$setCastDuration(activeCast.castDuration());
+        accessor.apprenticecodex$setCastDurationRemaining(
+                ContinuousCastDurationSimulation.computeRemaining(activeCast.castDuration(), elapsedTicks)
+        );
+        accessor.apprenticecodex$setCastSource(activeCast.castSource());
+        accessor.apprenticecodex$setCastType(CastType.CONTINUOUS);
+        magicData.setPlayerCastingItem(castingItem);
+    }
+
+    private static void clearMagicDataSimulation(MagicData magicData, String slot) {
+        magicData.getSyncedData().setIsCasting(false, "", 0, slot);
+        magicData.resetAdditionalCastData();
+        var accessor = (MagicDataAccessor) magicData;
+        accessor.apprenticecodex$setCastingSpellLevel(0);
+        accessor.apprenticecodex$setCastDuration(0);
+        accessor.apprenticecodex$setCastDurationRemaining(0);
+        accessor.apprenticecodex$setCastSource(CastSource.NONE);
+        accessor.apprenticecodex$setCastType(CastType.NONE);
+        magicData.setPlayerCastingItem(ItemStack.EMPTY);
+    }
+
+    private record ContinuousCast(
+            AbstractSpell spell,
+            int spellLevel,
+            CastSource castSource,
+            String slot,
+            int castDuration,
+            long startedAt
+    ) {
+    }
+}

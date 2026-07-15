@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientComp
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightClientCompat;
 import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBuiltinTemplateSupport;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticle;
 import jp.aquafactory.apprenticecodex.particle.AdditiveRhombusParticle;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireInscriptionScreen;
@@ -57,6 +58,8 @@ import jp.aquafactory.apprenticecodex.renderer.item.MulticastEchoStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.PhotonSiphonRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.ReflectcastShieldRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.BulwarkGreatshieldRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.ParrycastBucklerRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.ScrollcasterGauntletRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.SpellAmplifierRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.SwingcastStaffRenderer;
@@ -195,6 +198,23 @@ public final class ClientModBusEvents {
                 ItemRegistry.REFLECTCAST_SHIELD.get(),
                 ResourceLocation.withDefaultNamespace("blocking"),
                 (stack, level, living, seed) -> living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0f : 0.0f
+        ));
+        event.enqueueWork(() -> ItemProperties.register(
+                ItemRegistry.PARRYCAST_BUCKLER.get(),
+                ResourceLocation.withDefaultNamespace("blocking"),
+                (stack, level, living, seed) -> {
+                    var using = living != null && living.isUsingItem() && living.getUseItem() == stack;
+                    if (living != null) {
+                        // ItemStack の NBT を描画状態に使うと装備同期が使用の再開始を誘発するため、描画時の実状態だけを保持する。
+                        ParrycastBuckler.observeClientUseAnimation(stack, living, using, living.level().getGameTime());
+                    }
+                    return using ? 1.0F : 0.0F;
+                }
+        ));
+        event.enqueueWork(() -> ItemProperties.register(
+                ItemRegistry.BULWARK_GREATSHIELD.get(),
+                ResourceLocation.withDefaultNamespace("blocking"),
+                (stack, level, living, seed) -> living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F
         ));
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.MANA_FORCE_BLADE.get(),
@@ -496,6 +516,28 @@ public final class ClientModBusEvents {
                 return renderer;
             }
         }, ItemRegistry.REFLECTCAST_SHIELD.get());
+        event.registerItem(new IClientItemExtensions() {
+            private ParrycastBucklerRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new ParrycastBucklerRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.PARRYCAST_BUCKLER.get());
+        event.registerItem(new IClientItemExtensions() {
+            private BulwarkGreatshieldRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new BulwarkGreatshieldRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.BULWARK_GREATSHIELD.get());
         event.registerItem(new IClientItemExtensions() {
             private ScrollcasterGauntletRenderer renderer;
 

@@ -3,7 +3,7 @@
   "category": "equipment",
   "key": {
     "A": {
-      "item": "irons_spellbooks:arcane_ingot"
+      "item": "apprenticecodex:spellstained_arcane_ingot"
     },
     "D": {
       "item": "minecraft:diamond"
@@ -26,7 +26,7 @@
         "data": [],
         "maxSpells": 1,
         "mustEquip": false,
-        "spellWheel": true
+        "spellWheel": false
       }
     },
     "count": 1,

@@ -108,6 +108,8 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.UNITE_LUNA_STAFF.get());
         output.accept(ItemRegistry.ELEMENTAL_BOW.get());
         output.accept(ItemRegistry.REFLECTCAST_SHIELD.get());
+        output.accept(ItemRegistry.PARRYCAST_BUCKLER.get());
+        output.accept(ItemRegistry.BULWARK_GREATSHIELD.get());
         output.accept(ItemRegistry.APPRENTICE_MAGE_SCARF.get());
         output.accept(ItemRegistry.APPRENTICE_MAGE_TORSO.get());
         output.accept(ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get());

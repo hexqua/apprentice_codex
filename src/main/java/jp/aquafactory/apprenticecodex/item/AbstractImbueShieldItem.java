@@ -48,15 +48,14 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
             return;
         }
 
-        if (repairPresetSpellContainerStateIfNeeded(itemStack)) {
-            return;
-        }
+        repairPresetSpellContainerStateIfNeeded(itemStack);
 
         if (ISpellContainer.isSpellContainer(itemStack)) {
+            normalizeHiddenSpellContainer(itemStack);
             return;
         }
 
-        ISpellContainer.set(itemStack, ISpellContainer.create(1, true, false));
+        ISpellContainer.set(itemStack, ISpellContainer.create(1, false, false));
     }
 
     public final boolean repairPresetSpellContainerStateIfNeeded(ItemStack itemStack) {
@@ -89,7 +88,7 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
     @Override
     public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
-        appendImbueTargetSpellTooltip(lines);
+        appendImbueTargetSpellTooltip(stack, lines);
     }
 
     @Override
@@ -138,13 +137,29 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand usedHand) {
         var result = super.use(level, player, usedHand);
         var usingStack = player.getItemInHand(usedHand);
-        primeImmediateShieldBlock(player, usingStack);
+        if (shouldPrimeImmediateShieldBlock()) {
+            primeImmediateShieldBlock(player, usingStack);
+        }
 
-        if (!level.isClientSide) {
+        if (!level.isClientSide && supportsBlockTriggeredImbuedSpell()) {
             markTriggerWindowStart(player, usedHand);
         }
 
         return result;
+    }
+
+    /**
+     * 既存の Imbue 盾は即時防御を仕様としているが、通常の盾準備時間を使う派生盾は false を返す。
+     */
+    protected boolean shouldPrimeImmediateShieldBlock() {
+        return true;
+    }
+
+    /**
+     * ブロック成功直後に魔法を発動しない派生盾が、共通イベントから除外されるための拡張点。
+     */
+    public boolean supportsBlockTriggeredImbuedSpell() {
+        return true;
     }
 
     @Override
@@ -168,6 +183,21 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
             PresetSpellContainerStateHelper.rememberOverridden(stack, spellData);
         } else {
             PresetSpellContainerStateHelper.clearRememberedState(stack);
+        }
+        ISpellContainer.set(stack, normalized.toImmutable());
+    }
+
+    private void normalizeHiddenSpellContainer(ItemStack stack) {
+        var current = ISpellContainer.get(stack);
+        if (current == null || !current.isSpellWheel() && !current.mustEquip()) {
+            return;
+        }
+
+        var normalized = ISpellContainer.create(1, false, false).mutableCopy();
+        var spellData = current.getActiveSpellCount() > 0 ? current.getSpellAtIndex(0) : SpellData.EMPTY;
+        if (spellData != SpellData.EMPTY && canImbueSpell(spellData)) {
+            // 既存スタックのホイール公開フラグだけを直し、Workbench で設定した魔法と抽出可否は維持する。
+            normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, !spellData.canRemove());
         }
         ISpellContainer.set(stack, normalized.toImmutable());
     }
@@ -330,8 +360,8 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
         return TRIGGER_WINDOW_CASTED_TAG_PREFIX + usedHand.name().toLowerCase(Locale.ROOT);
     }
 
-    private void appendImbueTargetSpellTooltip(List<Component> lines) {
-        appendAlwaysVisibleImbueTooltip(lines);
+    private void appendImbueTargetSpellTooltip(ItemStack stack, List<Component> lines) {
+        appendAlwaysVisibleImbueTooltip(stack, lines);
         ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
         if (ImbueTooltipHelper.appendHintIfDetailsHidden(lines)) {
             return;
@@ -339,19 +369,19 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
 
         ImbueTooltipHelper.appendTooltipSection(
                 lines,
-                collectImbueShieldAbilityTooltipSection(),
+                getImbueShieldAbilityTooltipSection(stack),
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_title",
                 null
         );
         ImbueTooltipHelper.appendTooltipSection(
                 lines,
-                collectRestrictTooltipSection(),
+                getImbueShieldRestrictionTooltipSection(stack),
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_title",
                 null
         );
     }
 
-    protected void appendAlwaysVisibleImbueTooltip(List<Component> lines) {
+    protected void appendAlwaysVisibleImbueTooltip(ItemStack stack, List<Component> lines) {
     }
 
     private static List<Component> collectImbueShieldAbilityTooltipSection() {
@@ -369,8 +399,24 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
         return translatedLines;
     }
 
+    protected List<Component> getImbueShieldAbilityTooltipSection() {
+        return collectImbueShieldAbilityTooltipSection();
+    }
+
+    protected List<Component> getImbueShieldAbilityTooltipSection(ItemStack stack) {
+        return getImbueShieldAbilityTooltipSection();
+    }
+
+    protected List<Component> getImbueShieldRestrictionTooltipSection() {
+        return collectRestrictTooltipSection();
+    }
+
+    protected List<Component> getImbueShieldRestrictionTooltipSection(ItemStack stack) {
+        return getImbueShieldRestrictionTooltipSection();
+    }
+
     @Override
     public List<Component> getImbueRestrictionTooltipLines() {
-        return collectRestrictTooltipSection();
+        return getImbueShieldRestrictionTooltipSection();
     }
 }

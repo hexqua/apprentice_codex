@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.shield;
 
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
+import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
@@ -82,7 +84,8 @@ public final class ReflectcastShieldClientEffectState {
             return new RenderState(PULSE_RED * strength, PULSE_GREEN * strength, PULSE_BLUE * strength, strength);
         }
 
-        if (effect.cooldownObserved || age >= SUCCESS_FLASH_TICKS + COOLDOWN_WAIT_TICKS) {
+        if (effect.cooldownObserved
+                || (!effect.waitForCooldown && age >= SUCCESS_FLASH_TICKS + COOLDOWN_WAIT_TICKS)) {
             clear();
         }
 
@@ -173,12 +176,15 @@ public final class ReflectcastShieldClientEffectState {
         private final InteractionHand hand;
         private final String spellId;
         private final long flashStartGameTime;
+        private final boolean waitForCooldown;
         private boolean cooldownObserved;
 
         private ActiveEffect(InteractionHand hand, String spellId, long flashStartGameTime) {
             this.hand = hand;
             this.spellId = spellId;
             this.flashStartGameTime = flashStartGameTime;
+            var spell = SpellRegistry.getSpell(spellId);
+            this.waitForCooldown = spell != null && spell.getCastType() == CastType.CONTINUOUS;
         }
     }
 }

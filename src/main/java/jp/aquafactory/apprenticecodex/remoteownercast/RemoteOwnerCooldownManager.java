@@ -1,12 +1,12 @@
 package jp.aquafactory.apprenticecodex.remoteownercast;
 
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
-import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
+import jp.aquafactory.apprenticecodex.utility.SpellCooldownHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -49,7 +49,7 @@ public final class RemoteOwnerCooldownManager {
                 resolveExtraCooldownTicks(owner, spellData, policy)
         ));
         try {
-            MagicHelper.MAGIC_MANAGER.addCooldown(owner, spell, castSource);
+            SpellCooldownHelper.addCooldownRespectingCreativeConfig(owner, spell, castSource);
         } finally {
             PENDING_COOLDOWNS.remove(owner.getUUID());
         }
