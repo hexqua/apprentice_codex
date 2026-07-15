@@ -9,21 +9,26 @@ import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.RightClickSpellItemHelper;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraftforge.common.MinecraftForge;
 
 import java.util.ArrayList;
@@ -161,6 +166,177 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                 helper.assertTrue(Math.abs(enchantedSpellPower - 0.02D) < 1.0e-9D,
                         item.getDescriptionId() + " should retain Surge spell power");
             }
+        });
+    }
+
+    static void spellcasterGunsAcceptOnlySilverSpellAmplifierCalibration(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spellguns = List.of(
+                    new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
+                    new ItemStack(ItemRegistry.COPPER_SPELLCASTER_GUN.get()),
+                    new ItemStack(ItemRegistry.GOLD_SPELLCASTER_GUN.get()),
+                    new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get())
+            );
+            for (var spellgun : spellguns) {
+                helper.assertTrue(spellgun.getItem() instanceof SpellCalibrationAdjustmentTarget,
+                        spellgun.getDescriptionId() + " should support calibration adjustments");
+                var target = (SpellCalibrationAdjustmentTarget) spellgun.getItem();
+                helper.assertTrue(target.getCalibrationAdjustmentSlotCount(spellgun) == 1,
+                        spellgun.getDescriptionId() + " should expose exactly one adjustment slot");
+                helper.assertTrue(target.canPlaceCalibrationAdjustment(
+                                spellgun, 0, new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get())),
+                        spellgun.getDescriptionId() + " should accept Silver Spell Amplifier");
+                helper.assertFalse(target.canPlaceCalibrationAdjustment(
+                                spellgun, 0, new ItemStack(ItemRegistry.IRON_SPELL_AMPLIFIER.get())),
+                        spellgun.getDescriptionId() + " should reject other Spell Amplifiers");
+                helper.assertFalse(target.canPlaceCalibrationAdjustment(
+                                spellgun, 1, new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get())),
+                        spellgun.getDescriptionId() + " should reject out-of-range adjustment slots");
+
+                var adjustment = new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get(), 4);
+                helper.assertTrue(target.trySetCalibrationAdjustment(spellgun, 0, adjustment),
+                        spellgun.getDescriptionId() + " should store Silver Spell Amplifier calibration");
+                helper.assertTrue(target.getCalibrationAdjustment(spellgun, 0).getCount() == 1,
+                        spellgun.getDescriptionId() + " should store one adjustment item");
+
+                var restored = roundTripItemStack(spellgun);
+                var restoredTarget = (SpellCalibrationAdjustmentTarget) restored.getItem();
+                helper.assertTrue(restoredTarget.getCalibrationAdjustment(restored, 0)
+                                .is(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
+                        spellgun.getDescriptionId() + " should retain calibration after save/load");
+                helper.assertTrue(restoredTarget.trySetCalibrationAdjustment(restored, 0, ItemStack.EMPTY),
+                        spellgun.getDescriptionId() + " should allow adjustment removal");
+                helper.assertTrue(restoredTarget.getCalibrationAdjustment(restored, 0).isEmpty(),
+                        spellgun.getDescriptionId() + " should clear removed calibration data");
+            }
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "spellgun_calibration_slot_test");
+            var menu = new SpellCalibrationBenchMenu(0, player.getInventory());
+            menu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT)
+                    .set(new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()));
+            helper.assertTrue(menu.isAdjustmentSlotEnabled(0),
+                    "Spellgun should enable its first adjustment slot");
+            helper.assertFalse(menu.isAdjustmentSlotEnabled(1) || menu.isAdjustmentSlotEnabled(2),
+                    "Spellgun should keep the remaining adjustment slots disabled");
+        });
+    }
+
+    static void spellcasterGunsKeepCalibrationBenchImbueOperationalAndSafe(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "spellgun_calibration_imbue_test");
+            for (var spellgun : List.of(
+                    new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
+                    new ItemStack(ItemRegistry.COPPER_SPELLCASTER_GUN.get()),
+                    new ItemStack(ItemRegistry.GOLD_SPELLCASTER_GUN.get()),
+                    new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get())
+            )) {
+                var menu = createSpellCalibrationBenchMenuWithTarget(player, spellgun);
+                helper.assertTrue(menu.hasOperationalImbueTarget(),
+                        spellgun.getDescriptionId() + " should remain an operational Calibration Bench imbue target");
+                helper.assertTrue(menu.isScrollSlotEnabled(0),
+                        spellgun.getDescriptionId() + " should keep its spell scroll slot enabled");
+                helper.assertFalse(menu.shouldRenderUnsupportedImbueOverlay(0),
+                        spellgun.getDescriptionId() + " should not show the Arcane Anvil requirement overlay");
+            }
+
+            var goldSpellgun = new ItemStack(ItemRegistry.GOLD_SPELLCASTER_GUN.get());
+            var goldMenu = createSpellCalibrationBenchMenuWithTarget(player, goldSpellgun);
+            var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var magicMissileScroll = createSpellScroll(magicMissile);
+            helper.assertTrue(goldMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START)
+                            .mayPlace(magicMissileScroll),
+                    "Spellgun scroll slot should accept a supported spell");
+
+            var playerInventoryMenuSlot = SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START
+                    + ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOT_COUNT;
+            player.getInventory().setItem(9, magicMissileScroll.copy());
+            var insertedScroll = goldMenu.quickMoveStack(player, playerInventoryMenuSlot);
+            helper.assertTrue(insertedScroll.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
+                    "Shift-clicking a supported scroll should report a successful move");
+            helper.assertTrue(player.getInventory().getItem(9).isEmpty(),
+                    "Successfully inserted Spellgun scroll should leave the player inventory");
+            assertStackHasSpell(helper, goldMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).getItem(),
+                    magicMissile, 1, "Shift-clicked scroll should be applied to Spellgun");
+
+            var extractedScroll = goldMenu.quickMoveStack(player, SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START);
+            helper.assertTrue(extractedScroll.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
+                    "Shift-clicking the Spellgun scroll slot should extract the imbued spell");
+            var extractedContainer = ISpellContainer.get(
+                    goldMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).getItem());
+            helper.assertTrue(extractedContainer != null && extractedContainer.getActiveSpellCount() == 0,
+                    "Extracting the Spellgun scroll should clear its imbued spell");
+
+            var ironMenu = createSpellCalibrationBenchMenuWithTarget(
+                    player,
+                    new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get())
+            );
+            var rejectedScroll = createSpellScroll(
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get());
+            player.getInventory().setItem(9, rejectedScroll.copy());
+            helper.assertFalse(ironMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START)
+                            .mayPlace(rejectedScroll),
+                    "Spellgun scroll slot should reject an unsupported spell before moving it");
+            helper.assertTrue(ironMenu.quickMoveStack(player, playerInventoryMenuSlot).isEmpty(),
+                    "Shift-clicking an unsupported Spellgun scroll should fail without moving it");
+            helper.assertTrue(player.getInventory().getItem(9).is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
+                    "Rejected Spellgun scroll should remain in the player inventory");
+        });
+    }
+
+    static void silverSpellAmplifierMovesAllSpellgunAttributesToOffhand(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractSpellGunItem) ItemRegistry.IRON_SPELLCASTER_GUN.get();
+            var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var attunementAttribute = MagicTools.resolveSchoolPowerAttribute(magicMissile.getSchoolType());
+            helper.assertTrue(attunementAttribute != null,
+                    "Magic Missile school power attribute should be available for Spellgun calibration test");
+
+            var cases = List.of(
+                    new SpellgunAttributeCase(EnchantmentRegistry.ALACRITY.get(),
+                            io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get(),
+                            AttributeModifier.Operation.MULTIPLY_BASE, 0.02D),
+                    new SpellgunAttributeCase(EnchantmentRegistry.REFLUX.get(),
+                            io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get(),
+                            AttributeModifier.Operation.MULTIPLY_BASE, 0.05D),
+                    new SpellgunAttributeCase(EnchantmentRegistry.RESERVOIR.get(),
+                            io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get(),
+                            AttributeModifier.Operation.ADDITION, 20.0D),
+                    new SpellgunAttributeCase(EnchantmentRegistry.SURGE.get(),
+                            io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get(),
+                            AttributeModifier.Operation.MULTIPLY_BASE, 0.02D),
+                    new SpellgunAttributeCase(EnchantmentRegistry.ATTUNEMENT.get(), attunementAttribute,
+                            AttributeModifier.Operation.MULTIPLY_BASE, 0.04D),
+                    new SpellgunAttributeCase(EnchantmentRegistry.TENSE.get(),
+                            io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get(),
+                            AttributeModifier.Operation.MULTIPLY_BASE, 0.05D)
+            );
+            for (var attributeCase : cases) {
+                var stack = createInitializedPresetStack(item);
+                stack.enchant(attributeCase.enchantment(), 1);
+                assertSpellgunAttributeSlot(helper, stack, EquipmentSlot.MAINHAND, attributeCase,
+                        "Unadjusted Spellgun should apply enchanted Attribute in mainhand");
+                assertSpellgunAttributeSlot(helper, stack, EquipmentSlot.OFFHAND, attributeCase.withAmount(0.0D),
+                        "Unadjusted Spellgun should not apply enchanted Attribute in offhand");
+
+                helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                                stack, 0, new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get())),
+                        "Spellgun should accept Silver Spell Amplifier calibration");
+                assertSpellgunAttributeSlot(helper, stack, EquipmentSlot.MAINHAND, attributeCase.withAmount(0.0D),
+                        "Adjusted Spellgun should remove enchanted Attribute from mainhand");
+                assertSpellgunAttributeSlot(helper, stack, EquipmentSlot.OFFHAND, attributeCase,
+                        "Adjusted Spellgun should apply enchanted Attribute in offhand");
+
+                helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                                stack, 0, ItemStack.EMPTY),
+                        "Spellgun should allow Silver Spell Amplifier removal");
+                assertSpellgunAttributeSlot(helper, stack, EquipmentSlot.MAINHAND, attributeCase,
+                        "Spellgun should restore enchanted Attribute to mainhand after adjustment removal");
+                assertSpellgunAttributeSlot(helper, stack, EquipmentSlot.OFFHAND, attributeCase.withAmount(0.0D),
+                        "Spellgun should remove enchanted Attribute from offhand after adjustment removal");
+            }
+
         });
     }
     static void reflectcastShieldCastRestrictionsFollowCalibration(GameTestHelper helper) {
@@ -598,4 +774,34 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                     "Gold Spellcaster Gun legacy locked replacement should be recovered after save/load");
         });
     }
+
+    private static void assertSpellgunAttributeSlot(
+            GameTestHelper helper,
+            ItemStack stack,
+            EquipmentSlot slot,
+            SpellgunAttributeCase attributeCase,
+            String message
+    ) {
+        var modifiers = stack.getAttributeModifiers(slot);
+        var actualAmount = sumModifierAmount(
+                modifiers.get(attributeCase.attribute()),
+                attributeCase.operation()
+        );
+        helper.assertTrue(Math.abs(actualAmount - attributeCase.amount()) < 1.0e-9D,
+                message + ": expected=" + attributeCase.amount()
+                        + ", actual=" + actualAmount
+                        + ", modifiers=" + describeModifiers(modifiers));
+    }
+
+    private record SpellgunAttributeCase(
+            Enchantment enchantment,
+            Attribute attribute,
+            AttributeModifier.Operation operation,
+            double amount
+    ) {
+        private SpellgunAttributeCase withAmount(double replacementAmount) {
+            return new SpellgunAttributeCase(enchantment, attribute, operation, replacementAmount);
+        }
+    }
+
 }

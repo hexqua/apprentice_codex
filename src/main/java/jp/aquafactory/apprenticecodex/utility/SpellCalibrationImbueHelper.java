@@ -69,6 +69,12 @@ public final class SpellCalibrationImbueHelper {
             return false;
         }
 
+        // Spellgun は初期固定呪文やサーバー設定により「現在受理できる既知呪文」の走査結果が空でも、
+        // 調整台での差し替え自体に対応する。個々のスクロールは canPlaceScrollAt で改めて制約を検証する。
+        if (probeStack.getItem() instanceof AbstractSpellGunItem) {
+            return true;
+        }
+
         if (hasRemovableSpell(probeStack, spellContainer)) {
             return true;
         }

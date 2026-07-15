@@ -345,6 +345,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellcasterGunsAcceptOnlySilverSpellAmplifierCalibration(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellcasterGunsAcceptOnlySilverSpellAmplifierCalibration(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcasterGunsKeepCalibrationBenchImbueOperationalAndSafe(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellcasterGunsKeepCalibrationBenchImbueOperationalAndSafe(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void silverSpellAmplifierMovesAllSpellgunAttributesToOffhand(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.silverSpellAmplifierMovesAllSpellgunAttributesToOffhand(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellcasterGunRecastCastBypassesAmmoRequirement(GameTestHelper helper) {
         EquipmentSpellGunGameTestScenarios.spellcasterGunRecastCastBypassesAmmoRequirement(helper);
     }

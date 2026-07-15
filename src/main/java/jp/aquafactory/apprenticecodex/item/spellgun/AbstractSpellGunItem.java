@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.item.*;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.offhand.OffhandMagicModifierHelper;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
@@ -29,6 +30,8 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -61,7 +64,8 @@ import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 public abstract class AbstractSpellGunItem extends Item implements IPresetSpellContainer, RestrictedSpellImbuableItem,
-        ManaBypassSpellItem, CastAnimationOverrideItem, IJeiInfoItem, NonDamageableAnvilMergeItem {
+        ManaBypassSpellItem, CastAnimationOverrideItem, IJeiInfoItem, NonDamageableAnvilMergeItem,
+        SpellCalibrationAdjustmentTarget {
     private static final String JEI_INFO_GROUP_ID = "spellgun_items";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.spellgun_items.desc_";
     private static final String MALUM_NAMESPACE = "malum";
@@ -77,6 +81,16 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     private static final double SURGE_SPELL_POWER_PER_LEVEL = 0.02D;
     private static final double ATTUNEMENT_SPELL_POWER_PER_LEVEL = 0.04D;
     private static final double TENSE_CAST_TIME_REDUCTION_PER_LEVEL = 0.05D;
+    public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 1;
+    private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
+            CalibrationAdjustmentProfile.of(
+                    CalibrationAdjustmentRule.unique(
+                            stack -> stack.is(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
+                            CalibrationAdjustmentHint.specificItem(ItemRegistry.SILVER_SPELL_AMPLIFIER)
+                    )
+            );
+    private static final String CALIBRATION_TAG = "SpellgunCalibration";
+    private static final String ADJUSTMENT_TAG = "Adjustment";
     public static final float EMPTY_CASING_RETURN_CHANCE = 0.5F;
     private final SpellGunConfig spellGunConfig;
     private final Supplier<? extends AbstractSpell> configuredSpell;
@@ -268,11 +282,68 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
     @Override
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        if (slot == EquipmentSlot.MAINHAND) {
+        // 調整後は将来追加される基本補正も含め、従来のメインハンド補正一式をオフハンドへ移す。
+        var adjustedSlot = hasSilverSpellAmplifier(stack) ? EquipmentSlot.OFFHAND : EquipmentSlot.MAINHAND;
+        if (slot == adjustedSlot) {
             return buildMainhandModifiers(stack);
         }
 
         return super.getAttributeModifiers(slot, stack);
+    }
+
+    @Override
+    public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_SLOT_COUNT;
+    }
+
+    @Override
+    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
+        if (!isValidCalibrationAccess(targetStack, slot)) {
+            return ItemStack.EMPTY;
+        }
+
+        var calibrationTag = targetStack.getTagElement(CALIBRATION_TAG);
+        if (calibrationTag == null || !calibrationTag.contains(ADJUSTMENT_TAG, Tag.TAG_COMPOUND)) {
+            return ItemStack.EMPTY;
+        }
+        return ItemStack.of(calibrationTag.getCompound(ADJUSTMENT_TAG));
+    }
+
+    @Override
+    public boolean trySetCalibrationAdjustment(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull ItemStack adjustment
+    ) {
+        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
+            return false;
+        }
+
+        if (adjustment.isEmpty()) {
+            targetStack.removeTagKey(CALIBRATION_TAG);
+            return true;
+        }
+
+        var storedAdjustment = adjustment.copy();
+        storedAdjustment.setCount(1);
+        targetStack.getOrCreateTagElement(CALIBRATION_TAG)
+                .put(ADJUSTMENT_TAG, storedAdjustment.save(new CompoundTag()));
+        return true;
+    }
+
+    @Override
+    public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_PROFILE;
+    }
+
+    private static boolean hasSilverSpellAmplifier(ItemStack stack) {
+        return !stack.isEmpty()
+                && stack.getItem() instanceof AbstractSpellGunItem spellGun
+                && spellGun.getCalibrationAdjustment(stack, 0).is(ItemRegistry.SILVER_SPELL_AMPLIFIER.get());
+    }
+
+    private static boolean isValidCalibrationAccess(ItemStack stack, int slot) {
+        return slot == 0 && !stack.isEmpty() && stack.getItem() instanceof AbstractSpellGunItem;
     }
 
     public final boolean canImbueSpell(SpellData spellData) {
