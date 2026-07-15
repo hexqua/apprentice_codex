@@ -12,6 +12,10 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 public class AssistWingsWingRenderer extends EntityRenderer<AssistWingsWingEntity> {
+    private static final float BLOCKED_RED = 0x88 / 255.0F;
+    private static final float BLOCKED_GREEN = 0x44 / 255.0F;
+    private static final float BLOCKED_BLUE = 0x44 / 255.0F;
+
     public AssistWingsWingRenderer(EntityRendererProvider.Context pContext) {
         super(pContext);
     }
@@ -30,19 +34,39 @@ public class AssistWingsWingRenderer extends EntityRenderer<AssistWingsWingEntit
             poseStack.pushPose();
             poseStack.translate(0.15, -0.5, -(1.0f/16.0f) * 0.5f);
             poseStack.mulPose(Axis.YP.rotationDegrees(+open));
-            ExtrudedSpriteRenderer.render(poseStack, buffer, packedLight, getTextureLocation(entity));
+            renderWing(entity, poseStack, buffer, packedLight);
             poseStack.popPose();
         }
         {
             poseStack.pushPose();
             poseStack.translate(-0.15, -0.5, -(1.0f/16.0f) * 0.5f);
             poseStack.mulPose(Axis.YP.rotationDegrees(180-open));
-            ExtrudedSpriteRenderer.render(poseStack, buffer, packedLight, getTextureLocation(entity));
+            renderWing(entity, poseStack, buffer, packedLight);
             poseStack.popPose();
         }
 
         poseStack.popPose();
         super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
+    }
+
+    private void renderWing(AssistWingsWingEntity entity, PoseStack poseStack,
+                            MultiBufferSource buffer, int packedLight) {
+        if (entity.isGlideBlocked()) {
+            ExtrudedSpriteRenderer.render(
+                    poseStack,
+                    buffer,
+                    packedLight,
+                    getTextureLocation(entity),
+                    ExtrudedSpriteRenderer.RenderMode.DEFAULT,
+                    BLOCKED_RED,
+                    BLOCKED_GREEN,
+                    BLOCKED_BLUE,
+                    1.0F
+            );
+            return;
+        }
+
+        ExtrudedSpriteRenderer.render(poseStack, buffer, packedLight, getTextureLocation(entity));
     }
 
 

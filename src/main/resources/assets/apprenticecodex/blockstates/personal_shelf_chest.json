@@ -1,5 +1,6 @@
 {
   "variants": {
-    "": { "model": "apprenticecodex:block/personal_shelf_chest" }
+    "export_mode=false": { "model": "apprenticecodex:block/personal_shelf_chest" },
+    "export_mode=true": { "model": "apprenticecodex:block/personal_shelf_chest_export" }
   }
 }

@@ -162,6 +162,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.personalShelfOpensVanillaChestMenuAndHandlesFullQuickMove(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = PERSONAL_SHELF_ISOLATED_BATCH)
+    public static void personalShelfSynchronizesExportModeBlockState(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.personalShelfSynchronizesExportModeBlockState(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = PERSONAL_SHELF_ISOLATED_BATCH, timeoutTicks = 60)
     public static void personalShelfExpireClosesOpenedChestMenu(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.personalShelfExpireClosesOpenedChestMenu(helper);
@@ -373,8 +378,8 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = FIELD_OVERSEER_ISOLATED_BATCH)
-    public static void fieldOverseerCastDataRoundTripsPlacementAndSummons(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.fieldOverseerCastDataRoundTripsPlacementAndSummons(helper);
+    public static void fieldOverseerCastDataRoundTripsPlacementAndIdentity(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.fieldOverseerCastDataRoundTripsPlacementAndIdentity(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FIELD_OVERSEER_ISOLATED_BATCH)
@@ -395,6 +400,16 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = FIELD_OVERSEER_LIFECYCLE_BATCH)
     public static void fieldOverseerTimeoutRemovesPlacedStaff(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.fieldOverseerTimeoutRemovesPlacedStaff(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FIELD_OVERSEER_LIFECYCLE_BATCH)
+    public static void fieldOverseerCancelledWhileUnloadedDoesNotReturn(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.fieldOverseerCancelledWhileUnloadedDoesNotReturn(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FIELD_OVERSEER_LIFECYCLE_BATCH)
+    public static void fieldOverseerDestructionEndsMatchingRecast(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.fieldOverseerDestructionEndsMatchingRecast(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FIELD_OVERSEER_ISOLATED_BATCH, timeoutTicks = 100)
@@ -623,18 +638,28 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
-    public static void assistWingsSmashcastGroundCastJumpsWithoutKeepingWing(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.assistWingsSmashcastGroundCastJumpsWithoutKeepingWing(helper);
+    public static void assistWingsRegularAirCastPreservesHorizontalMovementWithoutSelfMotionSync(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsRegularAirCastPreservesHorizontalMovementWithoutSelfMotionSync(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
-    public static void assistWingsSmashcastAirCastConsumesJumpAndDropsWing(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.assistWingsSmashcastAirCastConsumesJumpAndDropsWing(helper);
+    public static void assistWingsTaggedGroundCastKeepsWingAndBlocksGlide(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsTaggedGroundCastKeepsWingAndBlocksGlide(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
-    public static void assistWingsSmashcastExhaustedAirCastOnlyDropsWing(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.assistWingsSmashcastExhaustedAirCastOnlyDropsWing(helper);
+    public static void assistWingsTaggedOffhandBlocksGlideWithoutDiscardingWing(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsTaggedOffhandBlocksGlideWithoutDiscardingWing(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
+    public static void assistWingsRemovingTaggedItemRestoresCustomGlide(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsRemovingTaggedItemRestoresCustomGlide(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
+    public static void assistWingsTaggedLandingResetsAirJumpsAndAllowsNextAirCast(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsTaggedLandingResetsAirJumpsAndAllowsNextAirCast(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)

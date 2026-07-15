@@ -9,9 +9,10 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.SyncAssistWingsJumpPacket;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
-import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -22,7 +23,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 
@@ -85,7 +85,6 @@ public class AssistWings extends AbstractSpell {
 
     @Override
     public final boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        var onlyJump = isOnlyJumpItem(entity);
         if (entity.onGround()){
             return true;
         }
@@ -97,10 +96,6 @@ public class AssistWings extends AbstractSpell {
 
         var canJump = codexData.get(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE).doneJump < getJumpCount(spellLevel, entity);
         if (!canJump){
-            if (onlyJump) {
-                return true;
-            }
-
             if (entity instanceof ServerPlayer serverPlayer) {
                 serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.cant_jump_more", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
             }
@@ -113,36 +108,7 @@ public class AssistWings extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        var onlyJump = isOnlyJumpItem(entity);
-        if (onlyJump) {
-            sendOnlyJumpWarning(entity);
-        }
-
         Capabilities.withSpellData(entity, data -> data.edit(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE, spell -> {
-            if (onlyJump) {
-                discardExistingWing(level.getEntity(spell.localEntityId));
-                spell.localEntityId = -1;
-
-                var maxJumpCount = getJumpCount(spellLevel, entity);
-                var shouldJump = entity.onGround() || spell.doneJump < maxJumpCount;
-                if (entity.onGround()) {
-                    spell.doneJump = 0;
-                } else if (shouldJump) {
-                    ++spell.doneJump;
-                }
-
-                if (shouldJump) {
-                    if (spell.doneJump == maxJumpCount) {
-                        playAirJumpLimitSound(level, entity);
-                    }
-                    applyJump(entity);
-                } else {
-                    playAirJumpLimitSound(level, entity);
-                }
-
-                return;
-            }
-
             // まずは翼が既にいるかどうかチェック.
             var wing = level.getEntity(spell.localEntityId);
             if (wing == null || wing.isRemoved() || !(wing instanceof AssistWingsWingEntity)) {
@@ -164,43 +130,27 @@ public class AssistWings extends AbstractSpell {
             }
 
             // ジャンプ高度は気持ち高め.
-            applyJump(entity);
+            var jumpHeight = 0.6f + entity.getJumpBoostPower();
+            applyJump(entity, jumpHeight);
+            if (entity instanceof ServerPlayer serverPlayer) {
+                // Iron's Spells の追加詠唱データは送信直後に reset されるため、エンコード時機に左右されない専用パケットを使う。
+                Networks.sendToPlayer(serverPlayer, new SyncAssistWingsJumpPacket(jumpHeight));
+            }
         }));
 
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
-    }
-
-    private static boolean isOnlyJumpItem(LivingEntity entity) {
-        return entity.getMainHandItem().is(TagRegistry.Items.ASSIST_WINGS_ONLY_JUMP_ITEMS);
-    }
-
-    private static void sendOnlyJumpWarning(LivingEntity entity) {
-        if (entity instanceof ServerPlayer serverPlayer) {
-            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
-                    Component.translatable(
-                            "ui.apprenticecodex.assist_wings.only_jump_warning",
-                            entity.getMainHandItem().getHoverName()
-                    ).withStyle(ChatFormatting.YELLOW)
-            ));
-        }
-    }
-
-    private static void discardExistingWing(Entity wing) {
-        if (wing instanceof AssistWingsWingEntity assistWingsWing && !assistWingsWing.isRemoved()) {
-            assistWingsWing.discard();
-        }
     }
 
     private static void playAirJumpLimitSound(Level level, LivingEntity entity) {
         AudioTools.playSoundFromEntity(level, entity, SoundEvents.SPLASH_POTION_BREAK, SoundSource.PLAYERS, 1.0f, 0.75f);
     }
 
-    private static void applyJump(LivingEntity entity) {
-        var jumpHeight = 0.6f + entity.getJumpBoostPower();
-        var currentDelta = entity.getDeltaMovement();
-        entity.setDeltaMovement(currentDelta.x, jumpHeight, currentDelta.z);
-        entity.hasImpulse = true;
-        entity.hurtMarked = true;
-        entity.fallDistance = 0;
+    private static void applyJump(LivingEntity entity, float jumpHeight) {
+        SyncAssistWingsJumpPacket.applyTo(entity, jumpHeight);
+        if (!entity.level().isClientSide && !(entity instanceof ServerPlayer)) {
+            // ServerPlayer の hurtMarked は操作中の本人にも XYZ 全軸の速度を送り返す。
+            // サーバーが保持していない水平速度でクライアントの移動を上書きしないよう、本人には Y 速度だけを専用同期する。
+            entity.hurtMarked = true;
+        }
     }
 }

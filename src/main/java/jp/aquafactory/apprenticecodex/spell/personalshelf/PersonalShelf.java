@@ -125,6 +125,13 @@ public class PersonalShelf extends AbstractSpell implements jp.aquafactory.appre
         castData.exportFacing = position.get().facing();
         castData.exportMode = entity.isShiftKeyDown();
         playerMagicData.setAdditionalCastData(castData);
+
+        if (castData.exportMode && entity instanceof ServerPlayer serverPlayer) {
+            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                    Component.translatable("ui.apprenticecodex.personal_shelf.for_export_mode")
+                            .withStyle(ChatFormatting.GREEN)
+            ));
+        }
         return true;
     }
 
