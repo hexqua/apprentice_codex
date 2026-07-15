@@ -12683,7 +12683,7 @@ public class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    static void assertSpellgunCooldownOverride(
+    static void assertSpellgunCooldownAdjustment(
             GameTestHelper helper,
             ServerPlayer player,
             ItemStack stack,

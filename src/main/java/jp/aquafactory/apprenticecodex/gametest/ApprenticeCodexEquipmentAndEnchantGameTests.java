@@ -330,8 +330,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void spellgunServerConfigDefaultsMatchCurrentHardcodedValues(GameTestHelper helper) {
-        EquipmentSpellGunGameTestScenarios.spellgunServerConfigDefaultsMatchCurrentHardcodedValues(helper);
+    public static void spellgunServerConfigDefaultsMatchBalanceValues(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellgunServerConfigDefaultsMatchBalanceValues(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLGUN_CONFIG_BATCH)
@@ -340,8 +340,13 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLGUN_CONFIG_BATCH)
-    public static void spellgunZeroCastCooldownConfigForcesZeroCooldown(GameTestHelper helper) {
-        EquipmentSpellGunGameTestScenarios.spellgunZeroCastCooldownConfigForcesZeroCooldown(helper);
+    public static void spellgunZeroCooldownSettingsRemainNonNegative(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellgunZeroCooldownSettingsRemainNonNegative(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcasterGunsRemoveBaseSpellPowerButKeepSurge(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellcasterGunsRemoveBaseSpellPowerButKeepSurge(helper);
     }
 
     @GameTest(template = TEMPLATE)

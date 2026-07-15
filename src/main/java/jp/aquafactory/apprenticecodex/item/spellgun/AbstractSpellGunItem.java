@@ -413,6 +413,11 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return spellGunConfig.overriddenSpellCooldownTicks();
     }
 
+    @Nullable
+    final Integer getAdjustedCooldownTicks(int originalCooldownTicks) {
+        return spellGunConfig.adjustedSpellCooldownTicks(originalCooldownTicks);
+    }
+
     final boolean isRecastCast(@Nullable MagicData magicData, @Nullable AbstractSpell spell) {
         return magicData != null
                 && spell != null
@@ -810,6 +815,16 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             ));
         }
 
+        var cooldownReductionTicks = spellGunConfig.cooldownReductionTicks();
+        var reducedCooldownMinimumTicks = spellGunConfig.reducedCooldownMinimumTicks();
+        if (cooldownReductionTicks != null && reducedCooldownMinimumTicks != null) {
+            translatedLines.add(ImbueTooltipHelper.translatableGray(
+                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_subtract_cooldown",
+                    ImbueTooltipHelper.formatTooltipSeconds(cooldownReductionTicks),
+                    ImbueTooltipHelper.formatTooltipSeconds(reducedCooldownMinimumTicks)
+            ));
+        }
+
         if (spellGunConfig.instantLongCast()) {
             translatedLines.add(ImbueTooltipHelper.translatableGray(
                     "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant"
@@ -934,10 +949,18 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             @Nullable IntSupplier maxInstantImbueCooldownTicksSupplier,
             boolean requireZeroInstantRecast,
             @Nullable IntSupplier overriddenSpellCooldownTicksSupplier,
+            @Nullable IntSupplier cooldownReductionTicksSupplier,
+            @Nullable IntSupplier reducedCooldownMinimumTicksSupplier,
             boolean instantLongCast
     ) {
         public SpellGunConfig {
             supportedCastTypes = Set.copyOf(Objects.requireNonNull(supportedCastTypes));
+            if ((cooldownReductionTicksSupplier == null) != (reducedCooldownMinimumTicksSupplier == null)) {
+                throw new IllegalArgumentException("Cooldown reduction and minimum suppliers must be configured together");
+            }
+            if (overriddenSpellCooldownTicksSupplier != null && cooldownReductionTicksSupplier != null) {
+                throw new IllegalArgumentException("Cooldown override and reduction cannot be configured together");
+            }
         }
 
         public boolean supports(SpellGunCastType castType) {
@@ -958,6 +981,39 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             return overriddenSpellCooldownTicksSupplier == null
                     ? null
                     : Math.max(0, overriddenSpellCooldownTicksSupplier.getAsInt());
+        }
+
+        @Nullable
+        public Integer cooldownReductionTicks() {
+            return cooldownReductionTicksSupplier == null
+                    ? null
+                    : Math.max(0, cooldownReductionTicksSupplier.getAsInt());
+        }
+
+        @Nullable
+        public Integer reducedCooldownMinimumTicks() {
+            return reducedCooldownMinimumTicksSupplier == null
+                    ? null
+                    : Math.max(0, reducedCooldownMinimumTicksSupplier.getAsInt());
+        }
+
+        @Nullable
+        public Integer adjustedSpellCooldownTicks(int originalCooldownTicks) {
+            var overriddenTicks = overriddenSpellCooldownTicks();
+            if (overriddenTicks != null) {
+                return overriddenTicks;
+            }
+
+            var reductionTicks = cooldownReductionTicks();
+            var minimumTicks = reducedCooldownMinimumTicks();
+            if (reductionTicks == null || minimumTicks == null) {
+                return null;
+            }
+
+            var originalTicks = Math.max(0, originalCooldownTicks);
+            var reducedTicks = Math.max(minimumTicks, originalTicks - reductionTicks);
+            // 短縮能力で元のクールダウンを延長しないよう、設定下限より短い魔法は元値を維持する。
+            return Math.min(originalTicks, reducedTicks);
         }
     }
 

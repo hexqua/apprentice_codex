@@ -7,26 +7,23 @@ public final class SpellgunServerConfig {
 
     private final TierConfig iron;
     private final TierConfig copper;
-    private final TierConfig gold;
-    private final TierConfig diamond;
+    private final GoldConfig gold;
     private Values override;
 
-    private SpellgunServerConfig(TierConfig iron, TierConfig copper, TierConfig gold, TierConfig diamond) {
+    private SpellgunServerConfig(TierConfig iron, TierConfig copper, GoldConfig gold) {
         this.iron = iron;
         this.copper = copper;
         this.gold = gold;
-        this.diamond = diamond;
     }
 
     public static SpellgunServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("Spellgun");
-        var iron = defineTier(builder, "Iron", 20 * 5, 10);
-        var copper = defineTier(builder, "Copper", 20 * 10, 20);
-        var gold = defineTier(builder, "Gold", 20 * 20, 40);
-        var diamond = defineTier(builder, "Diamond", 20 * 30, 80);
+        var iron = defineTier(builder, "Iron", 20 * 5, 4);
+        var copper = defineTier(builder, "Copper", 20 * 20, 20);
+        var gold = defineGold(builder);
         builder.pop();
 
-        return new SpellgunServerConfig(iron, copper, gold, diamond);
+        return new SpellgunServerConfig(iron, copper, gold);
     }
 
     public int ironMaxInstantImbueCooldownTicks() {
@@ -45,20 +42,12 @@ public final class SpellgunServerConfig {
         return values().copperOverriddenSpellCooldownTicks();
     }
 
-    public int goldMaxInstantImbueCooldownTicks() {
-        return values().goldMaxInstantImbueCooldownTicks();
+    public int goldReducedCooldownMinimumTicks() {
+        return values().goldReducedCooldownMinimumTicks();
     }
 
-    public int goldOverriddenSpellCooldownTicks() {
-        return values().goldOverriddenSpellCooldownTicks();
-    }
-
-    public int diamondMaxInstantImbueCooldownTicks() {
-        return values().diamondMaxInstantImbueCooldownTicks();
-    }
-
-    public int diamondOverriddenSpellCooldownTicks() {
-        return values().diamondOverriddenSpellCooldownTicks();
+    public int goldCooldownReductionTicks() {
+        return values().goldCooldownReductionTicks();
     }
 
     public Values values() {
@@ -70,10 +59,8 @@ public final class SpellgunServerConfig {
                 iron.overriddenSpellCooldownTicks(),
                 copper.maxInstantImbueCooldownTicks(),
                 copper.overriddenSpellCooldownTicks(),
-                gold.maxInstantImbueCooldownTicks(),
-                gold.overriddenSpellCooldownTicks(),
-                diamond.maxInstantImbueCooldownTicks(),
-                diamond.overriddenSpellCooldownTicks()
+                gold.reducedCooldownMinimumTicks(),
+                gold.cooldownReductionTicks()
         );
     }
 
@@ -104,25 +91,34 @@ public final class SpellgunServerConfig {
         );
     }
 
+    private static GoldConfig defineGold(ModConfigSpec.Builder builder) {
+        builder.push("Gold");
+        var reducedCooldownMinimumTicks = builder
+                .comment("Minimum cooldown after Gold Spellgun reduction.")
+                .defineInRange("reducedCooldownMinimumTicks", 10, 0, MAX_CONFIGURED_TICKS);
+        var cooldownReductionTicks = builder
+                .comment("Cooldown ticks subtracted after Gold Spellgun casts.")
+                .defineInRange("cooldownReductionTicks", 200, 0, MAX_CONFIGURED_TICKS);
+        builder.pop();
+
+        return new GoldConfig(reducedCooldownMinimumTicks, 10, cooldownReductionTicks, 200);
+    }
+
     public record Values(
             int ironMaxInstantImbueCooldownTicks,
             int ironOverriddenSpellCooldownTicks,
             int copperMaxInstantImbueCooldownTicks,
             int copperOverriddenSpellCooldownTicks,
-            int goldMaxInstantImbueCooldownTicks,
-            int goldOverriddenSpellCooldownTicks,
-            int diamondMaxInstantImbueCooldownTicks,
-            int diamondOverriddenSpellCooldownTicks
+            int goldReducedCooldownMinimumTicks,
+            int goldCooldownReductionTicks
     ) {
         public Values {
             ironMaxInstantImbueCooldownTicks = clampTicks(ironMaxInstantImbueCooldownTicks);
             ironOverriddenSpellCooldownTicks = clampTicks(ironOverriddenSpellCooldownTicks);
             copperMaxInstantImbueCooldownTicks = clampTicks(copperMaxInstantImbueCooldownTicks);
             copperOverriddenSpellCooldownTicks = clampTicks(copperOverriddenSpellCooldownTicks);
-            goldMaxInstantImbueCooldownTicks = clampTicks(goldMaxInstantImbueCooldownTicks);
-            goldOverriddenSpellCooldownTicks = clampTicks(goldOverriddenSpellCooldownTicks);
-            diamondMaxInstantImbueCooldownTicks = clampTicks(diamondMaxInstantImbueCooldownTicks);
-            diamondOverriddenSpellCooldownTicks = clampTicks(diamondOverriddenSpellCooldownTicks);
+            goldReducedCooldownMinimumTicks = clampTicks(goldReducedCooldownMinimumTicks);
+            goldCooldownReductionTicks = clampTicks(goldCooldownReductionTicks);
         }
     }
 
@@ -147,6 +143,21 @@ public final class SpellgunServerConfig {
         } catch (IllegalStateException ignored) {
             // Datapack 読み込み中の ItemStack 正規化では server config がまだロードされていない.
             return defaultValue;
+        }
+    }
+
+    private record GoldConfig(
+            ModConfigSpec.IntValue reducedCooldownMinimumTicksValue,
+            int defaultReducedCooldownMinimumTicks,
+            ModConfigSpec.IntValue cooldownReductionTicksValue,
+            int defaultCooldownReductionTicks
+    ) {
+        int reducedCooldownMinimumTicks() {
+            return configuredTicks(reducedCooldownMinimumTicksValue, defaultReducedCooldownMinimumTicks);
+        }
+
+        int cooldownReductionTicks() {
+            return configuredTicks(cooldownReductionTicksValue, defaultCooldownReductionTicks);
         }
     }
 

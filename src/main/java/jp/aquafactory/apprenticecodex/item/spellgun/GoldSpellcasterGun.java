@@ -1,13 +1,11 @@
 package jp.aquafactory.apprenticecodex.item.spellgun;
 
-import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
@@ -24,9 +22,11 @@ import java.util.List;
 public class GoldSpellcasterGun extends AbstractSpellGunItem implements GeoItem {
     private static final SpellGunConfig SPELL_GUN_CONFIG = new SpellGunConfig(
             EnumSet.of(SpellGunCastType.INSTANT),
-            ApprenticeCodexServerConfig::goldSpellgunMaxInstantImbueCooldownTicks,
+            null,
             false,
-            ApprenticeCodexServerConfig::goldSpellgunOverriddenSpellCooldownTicks,
+            null,
+            ApprenticeCodexServerConfig::goldSpellgunCooldownReductionTicks,
+            ApprenticeCodexServerConfig::goldSpellgunReducedCooldownMinimumTicks,
             false
     );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -35,8 +35,7 @@ public class GoldSpellcasterGun extends AbstractSpellGunItem implements GeoItem 
         super(
                 new Properties().stacksTo(1).rarity(Rarity.COMMON),
                 SPELL_GUN_CONFIG,
-                "GoldSpellcasterGun",
-                bonus(AttributeRegistry.SPELL_POWER, 0.10, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
+                "GoldSpellcasterGun"
         );
         GeoItem.registerSyncedAnimatable(this);
     }

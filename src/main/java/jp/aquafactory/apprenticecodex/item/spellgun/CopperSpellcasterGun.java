@@ -1,13 +1,11 @@
 package jp.aquafactory.apprenticecodex.item.spellgun;
 
-import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
@@ -23,10 +21,12 @@ import java.util.List;
 
 public class CopperSpellcasterGun extends AbstractSpellGunItem implements GeoItem {
     private static final SpellGunConfig SPELL_GUN_CONFIG = new SpellGunConfig(
-            EnumSet.of(SpellGunCastType.LONG),
+            EnumSet.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
             ApprenticeCodexServerConfig::copperSpellgunMaxInstantImbueCooldownTicks,
             false,
             ApprenticeCodexServerConfig::copperSpellgunOverriddenSpellCooldownTicks,
+            null,
+            null,
             true
     );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -35,8 +35,7 @@ public class CopperSpellcasterGun extends AbstractSpellGunItem implements GeoIte
         super(
                 new Properties().stacksTo(1).rarity(Rarity.COMMON),
                 SPELL_GUN_CONFIG,
-                "CopperSpellcasterGun",
-                bonus(AttributeRegistry.SPELL_POWER, 0.05, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
+                "CopperSpellcasterGun"
         );
         GeoItem.registerSyncedAnimatable(this);
     }

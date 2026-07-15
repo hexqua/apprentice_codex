@@ -501,20 +501,12 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.copperSpellgunOverriddenSpellCooldownTicks();
     }
 
-    public static int goldSpellgunMaxInstantImbueCooldownTicks() {
-        return ITEMS_CONFIG.goldSpellgunMaxInstantImbueCooldownTicks();
+    public static int goldSpellgunReducedCooldownMinimumTicks() {
+        return ITEMS_CONFIG.goldSpellgunReducedCooldownMinimumTicks();
     }
 
-    public static int goldSpellgunOverriddenSpellCooldownTicks() {
-        return ITEMS_CONFIG.goldSpellgunOverriddenSpellCooldownTicks();
-    }
-
-    public static int diamondSpellgunMaxInstantImbueCooldownTicks() {
-        return ITEMS_CONFIG.diamondSpellgunMaxInstantImbueCooldownTicks();
-    }
-
-    public static int diamondSpellgunOverriddenSpellCooldownTicks() {
-        return ITEMS_CONFIG.diamondSpellgunOverriddenSpellCooldownTicks();
+    public static int goldSpellgunCooldownReductionTicks() {
+        return ITEMS_CONFIG.goldSpellgunCooldownReductionTicks();
     }
 
     public static boolean isCircuitHeatStaffSpellDenied(ResourceLocation spellId) {
