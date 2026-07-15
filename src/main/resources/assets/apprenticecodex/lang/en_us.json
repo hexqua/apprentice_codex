@@ -859,6 +859,7 @@
   "ui.apprenticecodex.need_ignite": "%1$s or %2$s is required to ignite!",
   "ui.apprenticecodex.now_smoke_processing": "Still needs time",
   "ui.apprenticecodex.missing_spell_gun_ammo": "Out of ammo!(Ammo:%1$s)",
+  "ui.apprenticecodex.spellgun.not_imbued": "%1$s has no imbued spell!",
   "ui.apprenticecodex.cant_open_hole": "Can't open hole on %s",
   "ui.apprenticecodex.spell.dimension_not_allowed": "Can't use this spell in this dimension",
   "ui.apprenticecodex.spectral_wing.conflict": "Your mana interferes and the wings cannot unfold!",

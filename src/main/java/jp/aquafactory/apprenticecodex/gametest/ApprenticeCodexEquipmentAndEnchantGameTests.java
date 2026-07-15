@@ -350,6 +350,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellgunHandUseContractDoesNotFallback(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellgunHandUseContractDoesNotFallback(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellgunCastAttemptPreservesExistingCast(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellgunCastAttemptPreservesExistingCast(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void copperSwingcastStaffReplacementSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
         SwingcastStaffGameTestScenarios.copperSwingcastStaffReplacementSpellStaysRemovableAfterNormalization(helper);
     }

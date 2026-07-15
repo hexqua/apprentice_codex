@@ -421,7 +421,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         var mainHandStack = player.getMainHandItem();
         var mainHandItem = mainHandStack.getItem();
         return RightClickSpellItemHelper.isRightClickSpellItem(mainHandStack)
-                || mainHandItem instanceof AbstractSpellGunItem
                 || mainHandItem instanceof AbstractRightClickMagicWeaponItem
                 || mainHandItem instanceof ScrollcasterGauntlet;
     }

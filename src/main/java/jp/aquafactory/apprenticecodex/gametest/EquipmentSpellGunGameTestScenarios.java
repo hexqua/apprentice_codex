@@ -106,6 +106,7 @@ import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterAttackEvent;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.item.RightClickSpellItemHelper;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntletCastEvent;
@@ -630,13 +631,15 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             applyRestrictedImbueNormalization(helper, stack, item, spell, 1);
 
             var player = createArcherMultiplePlayer(helper, new BlockPos(0, 12, 0), "spellgun_recast_ammo_bypass_test");
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.setItemInHand(InteractionHand.OFF_HAND, stack);
 
-            var firstUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertFalse(firstUse.getResult().consumesAction(),
-                    "Diamond Spellcaster Gun should reject initial Archer Multiple cast without ammo");
+            var firstUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.OFF_HAND);
+            helper.assertTrue(firstUse.getResult().consumesAction(),
+                    "Selected offhand Spellcaster Gun should consume the input even when its cast fails without ammo");
 
             var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertFalse(magicData.isCasting(),
+                    "Failed initial Archer Multiple cast should not start casting");
             magicData.getPlayerRecasts().addRecast(new RecastInstance(
                     spell.getSpellId(),
                     1,
@@ -646,7 +649,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                     null
             ), magicData);
 
-            var recastUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            var recastUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.OFF_HAND);
             helper.assertTrue(recastUse.getResult().consumesAction(),
                     "Diamond Spellcaster Gun should allow recast without ammo");
 
@@ -674,6 +677,68 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                     player.getInventory(),
                     ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get()
             ) == 1, "Recast Spellcaster Gun cast should not consume ammo from the cast event");
+        });
+    }
+
+    static void spellgunHandUseContractDoesNotFallback(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractSpellGunItem) ItemRegistry.DIAMOND_SPELLCASTER_GUN.get();
+            var imbuedStack = createInitializedPresetStack(item);
+            applyRestrictedImbueNormalization(
+                    helper,
+                    imbuedStack,
+                    item,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(),
+                    1
+            );
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellgun_hand_contract_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, imbuedStack);
+
+            var mainHandUse = item.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertFalse(mainHandUse.getResult().consumesAction(),
+                    "Mainhand Spellgun right-click should always pass without casting");
+            helper.assertFalse(RightClickSpellItemHelper.hasMainHandRightClickBehavior(player, imbuedStack),
+                    "Mainhand Spellgun should expose no right-click behavior to offhand magic items");
+
+            var emptyStack = new ItemStack(item);
+            ISpellContainer.set(emptyStack, ISpellContainer.create(1, false, false));
+            player.setItemInHand(InteractionHand.OFF_HAND, emptyStack);
+            var offhandUse = item.use(helper.getLevel(), player, InteractionHand.OFF_HAND);
+            helper.assertTrue(offhandUse.getResult().consumesAction(),
+                    "Selected offhand Spellgun should consume right-click even when it is not imbued");
+        });
+    }
+
+    static void spellgunCastAttemptPreservesExistingCast(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractSpellGunItem) ItemRegistry.DIAMOND_SPELLCASTER_GUN.get();
+            var stack = createInitializedPresetStack(item);
+            applyRestrictedImbueNormalization(
+                    helper,
+                    stack,
+                    item,
+                    SpellRegistry.ARCHER_MULTIPLE.get(),
+                    1
+            );
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellgun_existing_cast_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            var magicData = MagicData.getPlayerMagicData(player);
+            magicData.setSyncedData(new io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData(player));
+            var activeSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
+            magicData.initiateCast(
+                    activeSpell,
+                    1,
+                    activeSpell.getEffectiveCastTime(1, player),
+                    CastSource.SPELLBOOK,
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+            );
+
+            helper.assertFalse(item.tryTriggerImbuedSpell(player, InteractionHand.MAIN_HAND, null),
+                    "Spellgun should reject a cast while another spell is already casting");
+            helper.assertTrue(magicData.isCasting(),
+                    "Rejected Spellgun cast should preserve the existing casting state");
+            helper.assertTrue(activeSpell.getSpellId().equals(magicData.getCastingSpellId()),
+                    "Rejected Spellgun cast should preserve the existing spell id");
         });
     }
 

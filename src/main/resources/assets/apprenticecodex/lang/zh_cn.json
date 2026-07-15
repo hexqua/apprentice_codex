@@ -875,6 +875,7 @@
   "ui.apprenticecodex.need_ignite": "需要 %1$s 或 %2$s 才能点燃！",
   "ui.apprenticecodex.now_smoke_processing": "还需要时间",
   "ui.apprenticecodex.missing_spell_gun_ammo": "弹药耗尽！(弹药：%1$s)",
+  "ui.apprenticecodex.spellgun.not_imbued": "%1$s尚未注入法术！",
   "ui.apprenticecodex.cant_open_hole": "无法在 %s 上开孔",
   "ui.apprenticecodex.spell.dimension_not_allowed": "无法在此维度使用该法术",
   "ui.apprenticecodex.spectral_wing.conflict": "你的魔力产生干扰，翅膀无法展开！",

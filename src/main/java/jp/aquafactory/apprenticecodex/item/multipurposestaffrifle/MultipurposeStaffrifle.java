@@ -25,6 +25,8 @@ import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.Holder;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
@@ -204,6 +206,10 @@ public final class MultipurposeStaffrifle extends Item
     }
 
     public boolean tryTriggerSelectedSpell(ServerPlayer player, boolean adsFullAuto) {
+        return tryTriggerSelectedSpell(player, adsFullAuto, null);
+    }
+
+    public boolean tryTriggerSelectedSpell(ServerPlayer player, boolean adsFullAuto, @Nullable BlockTargetData targetData) {
         var stack = player.getMainHandItem();
         if (stack.isEmpty() || stack.getItem() != this) {
             return false;
@@ -251,29 +257,37 @@ public final class MultipurposeStaffrifle extends Item
             return false;
         }
 
+        if (targetData != null) {
+            BlockTargetingHelper.setPendingServerTarget(player, spell.getSpellResource(), targetData);
+        }
+
         boolean casted;
-        try (var ignored = MultipurposeStaffrifleCastContext.open(player.getUUID(), stack, spell, recast)) {
-            casted = spell.attemptInitiateCast(
-                    stack,
-                    spellLevel,
-                    player.level(),
-                    player,
-                    CastSource.SWORD,
-                    true,
-                    SpellSelectionManager.MAINHAND
-            );
-            if (casted) {
-                TriggeredSpellCastHelper.applyLongCastDurationOverride(
-                        player,
+        try {
+            try (var ignored = MultipurposeStaffrifleCastContext.open(player.getUUID(), stack, spell, recast)) {
+                casted = spell.attemptInitiateCast(
+                        stack,
                         spellLevel,
-                        spell,
-                        magicData,
-                        SpellSelectionManager.MAINHAND,
-                        0
+                        player.level(),
+                        player,
+                        CastSource.SWORD,
+                        true,
+                        SpellSelectionManager.MAINHAND
                 );
+                if (casted) {
+                    TriggeredSpellCastHelper.applyLongCastDurationOverride(
+                            player,
+                            spellLevel,
+                            spell,
+                            magicData,
+                            SpellSelectionManager.MAINHAND,
+                            0
+                    );
+                }
             }
         } catch (Exception exception) {
             throw new IllegalStateException("Multipurpose Staffrifle special cast context failed to close.", exception);
+        } finally {
+            BlockTargetingHelper.clearPendingServerTarget(player);
         }
 
         if (!casted) {

@@ -864,6 +864,7 @@
   "ui.apprenticecodex.need_ignite": "%1$sか%2$sで着火する必要がある！",
   "ui.apprenticecodex.now_smoke_processing": "まだ時間がかかりそうだ",
   "ui.apprenticecodex.missing_spell_gun_ammo": "弾切れだ！(弾:%1$s)",
+  "ui.apprenticecodex.spellgun.not_imbued": "%1$sには魔法が注入されていない！",
   "ui.apprenticecodex.cant_open_hole": "%sを対象に取るには不安定すぎる",
   "ui.apprenticecodex.spell.dimension_not_allowed": "このディメンションではこの魔法を使用できない",
   "ui.apprenticecodex.spectral_wing.conflict": "魔力が干渉して翼を展開できない！",

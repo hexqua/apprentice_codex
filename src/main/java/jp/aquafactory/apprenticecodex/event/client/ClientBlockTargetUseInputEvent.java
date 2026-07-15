@@ -29,7 +29,7 @@ public final class ClientBlockTargetUseInputEvent {
             return;
         }
 
-        var resolvedSpell = RightClickSpellResolver.resolve(player);
+        var resolvedSpell = RightClickSpellResolver.resolve(player, event.getHand());
         if (resolvedSpell.isEmpty()) {
             return;
         }
