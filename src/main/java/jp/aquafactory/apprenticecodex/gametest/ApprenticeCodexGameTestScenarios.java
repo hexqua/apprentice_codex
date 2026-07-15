@@ -872,7 +872,7 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    static void assistWingsSmashcastGroundCastJumpsWithoutKeepingWing(GameTestHelper helper) {
+    static void assistWingsTaggedGroundCastKeepsWingAndBlocksGlide(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createAssistWingsPlayer(helper, new BlockPos(0, 2, 0), "assist_wings_smashcast_ground_test");
             player.setOnGround(true);
@@ -894,52 +894,89 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(player.hurtMarked,
                     "Smashcast Scepter ground jumps should not force a full velocity sync back to the casting ServerPlayer");
             helper.assertTrue(player.fallDistance == 0.0F,
-                    "Assist Wings should reset fall distance at the only-jump takeoff");
+                    "Assist Wings should reset fall distance at takeoff");
             helper.assertTrue(getAssistWingsDoneJump(player) == 0,
-                    "Ground only-jump casts should not consume an air jump");
-            helper.assertTrue(countActiveAssistWingsWings(helper, player) == 0,
-                    "Assist Wings should not keep a wing entity for Smashcast Scepter ground casts");
+                    "Ground casts with a tagged item should not consume an air jump");
+            helper.assertTrue(countActiveAssistWingsWings(helper, player) == 1,
+                    "Assist Wings should keep its wing entity while a tagged item is held");
+
+            var state = Capabilities.getSpellDataOrNull(player).get(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE);
+            if (!(helper.getLevel().getEntity(state.localEntityId) instanceof AssistWingsWingEntity wing)) {
+                helper.fail("Assist Wings should register its wing entity in spell state");
+                return;
+            }
+            wing.tickOnServer(helper.getLevel());
+            helper.assertTrue(wing.isGlideBlocked(),
+                    "A tagged main-hand item should block Assist Wings gliding");
+            helper.assertFalse(player.hasEffect(MobEffects.SLOW_FALLING),
+                    "Assist Wings should not use the vanilla Slow Falling effect");
             assertAssistWingsCastDataRoundTrips(helper, magicData, true);
         });
     }
-    static void assistWingsSmashcastAirCastConsumesJumpAndDropsWing(GameTestHelper helper) {
+
+    static void assistWingsTaggedOffhandBlocksGlideWithoutDiscardingWing(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createAssistWingsPlayer(helper, new BlockPos(0, 4, 0), "assist_wings_smashcast_air_test");
+            var player = createAssistWingsPlayer(helper, new BlockPos(0, 4, 0), "assist_wings_offhand_glide_test");
             player.setOnGround(false);
-            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()));
+            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()));
             player.setDeltaMovement(0.12D, -0.2D, -0.08D);
             player.fallDistance = 7.0F;
-            setAssistWingsState(player, 0, -1);
 
-            var spell = SpellRegistry.ASSIST_WINGS.get();
-            var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
-                    "Assist Wings should allow a Smashcast Scepter air jump while jumps remain");
-            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+            var wing = new AssistWingsWingEntity(EntityRegistry.ASSIST_WINGS_WING.get(), helper.getLevel(), player);
+            helper.getLevel().addFreshEntity(wing);
+            setAssistWingsState(player, 1, wing.getId());
+            wing.tickOnServer(helper.getLevel());
 
             var movement = player.getDeltaMovement();
             helper.assertTrue(Math.abs(movement.x - 0.12D) < 0.0001D
-                            && movement.y > 0.59D
+                            && Math.abs(movement.y + 0.2D) < 0.0001D
                             && Math.abs(movement.z + 0.08D) < 0.0001D,
-                    "Assist Wings should preserve horizontal movement during an available only-jump air cast");
-            helper.assertFalse(player.hurtMarked,
-                    "Only-jump air casts should not force a full velocity sync back to the casting ServerPlayer");
-            helper.assertTrue(player.fallDistance == 0.0F,
-                    "Assist Wings should reset fall distance when the only-jump air jump occurs");
-            helper.assertTrue(getAssistWingsDoneJump(player) == 1,
-                    "Only-jump air casts should consume one Assist Wings air jump");
-            helper.assertTrue(countActiveAssistWingsWings(helper, player) == 0,
-                    "Assist Wings should not keep a wing entity after a Smashcast Scepter air jump");
-            assertAssistWingsCastDataRoundTrips(helper, magicData, true);
+                    "A tagged offhand item should leave falling movement unchanged");
+            helper.assertTrue(player.fallDistance == 7.0F,
+                    "A tagged offhand item should preserve accumulated fall distance");
+            helper.assertTrue(wing.isGlideBlocked(),
+                    "A tagged offhand item should block Assist Wings gliding");
+            helper.assertFalse(wing.isRemoved(),
+                    "Blocking gliding from the offhand should not discard the wing");
         });
     }
-    static void assistWingsSmashcastExhaustedAirCastOnlyDropsWing(GameTestHelper helper) {
+
+    static void assistWingsRemovingTaggedItemRestoresCustomGlide(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createAssistWingsPlayer(helper, new BlockPos(0, 4, 0), "assist_wings_smashcast_exhausted_test");
+            var player = createAssistWingsPlayer(helper, new BlockPos(0, 4, 0), "assist_wings_restore_glide_test");
             player.setOnGround(false);
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()));
-            player.setDeltaMovement(0.12D, -0.2D, -0.08D);
+
+            var wing = new AssistWingsWingEntity(EntityRegistry.ASSIST_WINGS_WING.get(), helper.getLevel(), player);
+            helper.getLevel().addFreshEntity(wing);
+            setAssistWingsState(player, 1, wing.getId());
+            wing.tickOnServer(helper.getLevel());
+            helper.assertTrue(wing.isGlideBlocked(),
+                    "The tagged main-hand item should initially block gliding");
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            player.setDeltaMovement(0.12D, -0.3D, -0.08D);
             player.fallDistance = 8.0F;
+            wing.tickOnServer(helper.getLevel());
+
+            var movement = player.getDeltaMovement();
+            helper.assertTrue(Math.abs(movement.x - 0.12D) < 0.0001D
+                            && Math.abs(movement.y + 0.08D) < 0.0001D
+                            && Math.abs(movement.z + 0.08D) < 0.0001D,
+                    "Removing the tagged item should restore the custom glide speed cap");
+            helper.assertTrue(player.fallDistance == 0.0F,
+                    "Restored gliding should reset accumulated fall distance");
+            helper.assertFalse(wing.isGlideBlocked(),
+                    "Removing the tagged item should restore the normal wing state");
+            helper.assertFalse(player.hasEffect(MobEffects.SLOW_FALLING),
+                    "Custom gliding should not add the vanilla Slow Falling effect");
+        });
+    }
+
+    static void assistWingsTaggedLandingResetsAirJumpsAndAllowsNextAirCast(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createAssistWingsPlayer(helper, new BlockPos(0, 2, 0), "assist_wings_tagged_landing_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()));
 
             var wing = new AssistWingsWingEntity(EntityRegistry.ASSIST_WINGS_WING.get(), helper.getLevel(), player);
             helper.getLevel().addFreshEntity(wing);
@@ -947,26 +984,24 @@ public class ApprenticeCodexGameTestScenarios {
 
             var spell = SpellRegistry.ASSIST_WINGS.get();
             var magicData = MagicData.getPlayerMagicData(player);
-            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
-                    "Assist Wings should allow a Smashcast Scepter cast after air jumps are exhausted");
-            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+            player.setOnGround(false);
+            helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Tagged items should not bypass the normal Assist Wings air-jump limit");
 
-            var movement = player.getDeltaMovement();
-            helper.assertTrue(Math.abs(movement.x - 0.12D) < 0.0001D
-                            && Math.abs(movement.y + 0.2D) < 0.0001D
-                            && Math.abs(movement.z + 0.08D) < 0.0001D,
-                    "Exhausted Smashcast Scepter casts should not change player movement");
-            helper.assertFalse(player.hurtMarked,
-                    "Exhausted Smashcast Scepter casts should not force a velocity sync to the casting ServerPlayer");
-            helper.assertTrue(player.fallDistance == 8.0F,
-                    "Exhausted Smashcast Scepter casts should not reset fall distance without a jump");
-            helper.assertTrue(getAssistWingsDoneJump(player) == 2,
-                    "Exhausted Smashcast Scepter casts should not exceed the Assist Wings air jump limit");
+            player.setOnGround(true);
+            for (var i = 0; i < 10; ++i) {
+                wing.tickOnServer(helper.getLevel());
+            }
+
             helper.assertTrue(wing.isRemoved(),
-                    "Exhausted Smashcast Scepter casts should discard the existing Assist Wings wing");
-            helper.assertTrue(countActiveAssistWingsWings(helper, player) == 0,
-                    "Exhausted Smashcast Scepter casts should not restore an Assist Wings wing");
-            assertAssistWingsCastDataRoundTrips(helper, magicData, false);
+                    "The wing should remain long enough to detect landing, then be discarded");
+            helper.assertTrue(getAssistWingsDoneJump(player) == 0,
+                    "Landing with a tagged item should reset Assist Wings air jumps");
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            player.setOnGround(false);
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "A normal midair Assist Wings cast should be available after the tagged landing reset");
         });
     }
     static void smashcastScepterWindBurstUsesVanillaPostAttackEffect(GameTestHelper helper) {
@@ -9515,14 +9550,11 @@ public class ApprenticeCodexGameTestScenarios {
             var assistWing = new AssistWingsWingEntity(EntityRegistry.ASSIST_WINGS_WING.get(), level, assistOwner);
             level.addFreshEntity(assistWing);
             setAssistWingsState(assistOwner, 1, assistWing.getId());
-            assistOwner.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 20, 0, true, false, false));
             ((AntiMagicSusceptible) assistWing).onAntiMagic(counterMagicData);
             var assistState = Capabilities.getSpellDataOrNull(assistOwner).get(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE);
             helper.assertTrue(assistWing.isRemoved(), "Assist Wings wing should be discarded by anti-magic");
             helper.assertTrue(assistState.localEntityId == -1 && assistState.doneJump == 1,
                     "Assist Wings anti-magic should clear only the managed wing id");
-            helper.assertFalse(assistOwner.hasEffect(MobEffects.SLOW_FALLING),
-                    "Assist Wings anti-magic should remove its own short slow-falling effect");
 
             var magnetOwner = createEquipmentTestPlayer(helper, new BlockPos(2, 2, 0), "auto_magnet_antimagic_owner_test");
             AutoMagnetFamiliarManager.activate(magnetOwner, 6.0D, 0.0D);
