@@ -163,6 +163,7 @@ import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsMan
 import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamEntity;
+import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWings;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurret;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretEntity;
@@ -841,11 +842,42 @@ public class ApprenticeCodexGameTestScenarios {
                     "CraftsmansDelight Mana Mending completion should reset repair cost");
         });
     }
+    static void assistWingsRegularAirCastPreservesHorizontalMovementWithoutSelfMotionSync(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createAssistWingsPlayer(helper, new BlockPos(0, 4, 0), "assist_wings_regular_air_test");
+            player.setOnGround(false);
+            player.setDeltaMovement(0.12D, -0.2D, -0.08D);
+            player.fallDistance = 6.0F;
+
+            var spell = SpellRegistry.ASSIST_WINGS.get();
+            var magicData = MagicData.getPlayerMagicData(player);
+            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+
+            var movement = player.getDeltaMovement();
+            helper.assertTrue(Math.abs(movement.x - 0.12D) < 0.0001D
+                            && movement.y > 0.59D
+                            && Math.abs(movement.z + 0.08D) < 0.0001D,
+                    "Assist Wings should preserve horizontal movement while applying the regular air jump");
+            helper.assertTrue(player.hasImpulse,
+                    "Assist Wings should mark the regular air jump as an impulse");
+            helper.assertFalse(player.hurtMarked,
+                    "Assist Wings should not force a full velocity sync back to the casting ServerPlayer");
+            helper.assertTrue(player.fallDistance == 0.0F,
+                    "Assist Wings should reset fall distance on a regular air jump");
+            helper.assertTrue(getAssistWingsDoneJump(player) == 1,
+                    "Regular air casts should consume one Assist Wings air jump");
+            helper.assertTrue(countActiveAssistWingsWings(helper, player) == 1,
+                    "Regular Assist Wings casts should keep one wing entity");
+            assertAssistWingsCastDataRoundTrips(helper, magicData, true);
+        });
+    }
+
     static void assistWingsSmashcastGroundCastJumpsWithoutKeepingWing(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createAssistWingsPlayer(helper, new BlockPos(0, 2, 0), "assist_wings_smashcast_ground_test");
             player.setOnGround(true);
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()));
+            player.setDeltaMovement(0.12D, -0.2D, -0.08D);
             player.fallDistance = 5.0F;
 
             var spell = SpellRegistry.ASSIST_WINGS.get();
@@ -854,14 +886,20 @@ public class ApprenticeCodexGameTestScenarios {
                     "Assist Wings should allow a ground cast with Smashcast Scepter");
             spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
 
-            helper.assertTrue(player.getDeltaMovement().y > 0.59D,
-                    "Assist Wings should still apply the initial jump with Smashcast Scepter");
+            var movement = player.getDeltaMovement();
+            helper.assertTrue(Math.abs(movement.x - 0.12D) < 0.0001D
+                            && movement.y > 0.59D
+                            && Math.abs(movement.z + 0.08D) < 0.0001D,
+                    "Assist Wings should preserve horizontal movement during a Smashcast Scepter ground jump");
+            helper.assertFalse(player.hurtMarked,
+                    "Smashcast Scepter ground jumps should not force a full velocity sync back to the casting ServerPlayer");
             helper.assertTrue(player.fallDistance == 0.0F,
                     "Assist Wings should reset fall distance at the only-jump takeoff");
             helper.assertTrue(getAssistWingsDoneJump(player) == 0,
                     "Ground only-jump casts should not consume an air jump");
             helper.assertTrue(countActiveAssistWingsWings(helper, player) == 0,
                     "Assist Wings should not keep a wing entity for Smashcast Scepter ground casts");
+            assertAssistWingsCastDataRoundTrips(helper, magicData, true);
         });
     }
     static void assistWingsSmashcastAirCastConsumesJumpAndDropsWing(GameTestHelper helper) {
@@ -869,6 +907,7 @@ public class ApprenticeCodexGameTestScenarios {
             var player = createAssistWingsPlayer(helper, new BlockPos(0, 4, 0), "assist_wings_smashcast_air_test");
             player.setOnGround(false);
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()));
+            player.setDeltaMovement(0.12D, -0.2D, -0.08D);
             player.fallDistance = 7.0F;
             setAssistWingsState(player, 0, -1);
 
@@ -878,14 +917,20 @@ public class ApprenticeCodexGameTestScenarios {
                     "Assist Wings should allow a Smashcast Scepter air jump while jumps remain");
             spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
 
-            helper.assertTrue(player.getDeltaMovement().y > 0.59D,
-                    "Assist Wings should still jump in only-jump air casts while jumps remain");
+            var movement = player.getDeltaMovement();
+            helper.assertTrue(Math.abs(movement.x - 0.12D) < 0.0001D
+                            && movement.y > 0.59D
+                            && Math.abs(movement.z + 0.08D) < 0.0001D,
+                    "Assist Wings should preserve horizontal movement during an available only-jump air cast");
+            helper.assertFalse(player.hurtMarked,
+                    "Only-jump air casts should not force a full velocity sync back to the casting ServerPlayer");
             helper.assertTrue(player.fallDistance == 0.0F,
                     "Assist Wings should reset fall distance when the only-jump air jump occurs");
             helper.assertTrue(getAssistWingsDoneJump(player) == 1,
                     "Only-jump air casts should consume one Assist Wings air jump");
             helper.assertTrue(countActiveAssistWingsWings(helper, player) == 0,
                     "Assist Wings should not keep a wing entity after a Smashcast Scepter air jump");
+            assertAssistWingsCastDataRoundTrips(helper, magicData, true);
         });
     }
     static void assistWingsSmashcastExhaustedAirCastOnlyDropsWing(GameTestHelper helper) {
@@ -910,13 +955,18 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(Math.abs(movement.x - 0.12D) < 0.0001D
                             && Math.abs(movement.y + 0.2D) < 0.0001D
                             && Math.abs(movement.z + 0.08D) < 0.0001D,
-                    "Exhausted only-jump casts should not change player movement");
+                    "Exhausted Smashcast Scepter casts should not change player movement");
+            helper.assertFalse(player.hurtMarked,
+                    "Exhausted Smashcast Scepter casts should not force a velocity sync to the casting ServerPlayer");
             helper.assertTrue(player.fallDistance == 8.0F,
-                    "Exhausted only-jump casts should not reset fall distance");
+                    "Exhausted Smashcast Scepter casts should not reset fall distance without a jump");
             helper.assertTrue(getAssistWingsDoneJump(player) == 2,
-                    "Exhausted only-jump casts should not consume another air jump");
+                    "Exhausted Smashcast Scepter casts should not exceed the Assist Wings air jump limit");
             helper.assertTrue(wing.isRemoved(),
-                    "Exhausted only-jump casts should discard the existing Assist Wings wing");
+                    "Exhausted Smashcast Scepter casts should discard the existing Assist Wings wing");
+            helper.assertTrue(countActiveAssistWingsWings(helper, player) == 0,
+                    "Exhausted Smashcast Scepter casts should not restore an Assist Wings wing");
+            assertAssistWingsCastDataRoundTrips(helper, magicData, false);
         });
     }
     static void smashcastScepterWindBurstUsesVanillaPostAttackEffect(GameTestHelper helper) {
@@ -10968,11 +11018,34 @@ public class ApprenticeCodexGameTestScenarios {
         }));
     }
 
+    static void assertAssistWingsCastDataRoundTrips(GameTestHelper helper, MagicData magicData, boolean expectedJumpApplied) {
+        if (!(magicData.getAdditionalCastData() instanceof AssistWings.AssistWingsCastData source)) {
+            helper.fail("Assist Wings should store serializable cast data for client movement");
+            return;
+        }
+        helper.assertTrue(source.jumpApplied() == expectedJumpApplied,
+                "Assist Wings cast data should report whether the server applied the jump");
+
+        var buffer = new FriendlyByteBuf(Unpooled.buffer());
+        source.writeToBuffer(buffer);
+        var restoredFromBuffer = new AssistWings.AssistWingsCastData();
+        restoredFromBuffer.readFromBuffer(buffer);
+        helper.assertTrue(restoredFromBuffer.jumpApplied() == expectedJumpApplied,
+                "Assist Wings cast data should preserve the jump result through network serialization");
+
+        var restoredFromNbt = new AssistWings.AssistWingsCastData();
+        restoredFromNbt.deserializeNBT(source.serializeNBT());
+        helper.assertTrue(restoredFromNbt.jumpApplied() == expectedJumpApplied,
+                "Assist Wings cast data should preserve the jump result through NBT serialization");
+    }
+
     static int countActiveAssistWingsWings(GameTestHelper helper, Player player) {
         return helper.getLevel().getEntitiesOfClass(
                 AssistWingsWingEntity.class,
                 new AABB(player.position(), player.position()).inflate(16.0D),
                 wing -> !wing.isRemoved()
+                        && wing.getOwner() != null
+                        && wing.getOwner().getUUID().equals(player.getUUID())
         ).size();
     }
 
