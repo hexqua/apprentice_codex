@@ -2931,7 +2931,7 @@ public class ApprenticeCodexGameTestScenarios {
             }
             assertStorageStabilizerDisplayName(helper, storageStabilizer, SpellRegistry.COMPANION_TRUNK.get(),
                     "Storage Stabilizer default name should include Companion Trunk");
-            storageStabilizer.setHoverName(Component.literal("Storage Test"));
+            storageStabilizer.set(DataComponents.CUSTOM_NAME, Component.literal("Storage Test"));
             helper.assertTrue("Storage Test".equals(storageStabilizer.getHoverName().getString()),
                     "Storage Stabilizer custom name should hide its spell name");
             StorageStabilizer.setSelectedSpellIndex(storageStabilizer, 1);
@@ -7961,7 +7961,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static void fieldOverseerPrioritizesHealthAndTransfersMana(GameTestHelper helper) {
         var owner = createEquipmentTestPlayer(helper, new BlockPos(2, 2, 0), "field_overseer_attack_test");
-        var manaRegen = owner.getAttribute(AttributeRegistry.MANA_REGEN.get());
+        var manaRegen = owner.getAttribute(AttributeRegistry.MANA_REGEN);
         if (manaRegen != null) {
             manaRegen.setBaseValue(0.0D);
         }
@@ -11066,7 +11066,8 @@ public class ApprenticeCodexGameTestScenarios {
                 "Assist Wings cast data should preserve the jump result through network serialization");
 
         var restoredFromNbt = new AssistWings.AssistWingsCastData();
-        restoredFromNbt.deserializeNBT(source.serializeNBT());
+        var registries = helper.getLevel().registryAccess();
+        restoredFromNbt.deserializeNBT(registries, source.serializeNBT(registries));
         helper.assertTrue(restoredFromNbt.jumpApplied() == expectedJumpApplied,
                 "Assist Wings cast data should preserve the jump result through NBT serialization");
     }

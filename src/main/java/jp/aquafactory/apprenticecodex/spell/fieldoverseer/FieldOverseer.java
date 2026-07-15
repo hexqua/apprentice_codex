@@ -307,7 +307,7 @@ public class FieldOverseer extends AbstractSpell implements IClientBlockTargetin
 
         @Override
         public CompoundTag serializeNBT(HolderLookup.Provider provider) {
-            var tag = super.serializeNBT(provider);
+            var tag = new CompoundTag();
             if (position != null) tag.putLong("Position", position.asLong());
             if (staffUuid != null) tag.putUUID("Staff", staffUuid);
             if (dimension != null) tag.putString("Dimension", dimension.toString());
@@ -316,7 +316,6 @@ public class FieldOverseer extends AbstractSpell implements IClientBlockTargetin
 
         @Override
         public void deserializeNBT(HolderLookup.Provider provider, CompoundTag tag) {
-            super.deserializeNBT(provider, tag);
             position = tag.contains("Position") ? BlockPos.of(tag.getLong("Position")) : null;
             staffUuid = tag.hasUUID("Staff") ? tag.getUUID("Staff") : null;
             dimension = tag.contains("Dimension") ? ResourceLocation.tryParse(tag.getString("Dimension")) : null;
