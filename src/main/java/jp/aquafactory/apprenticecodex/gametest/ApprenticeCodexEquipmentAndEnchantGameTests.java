@@ -365,6 +365,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void silverSpellAmplifierKeepsDualSpellgunModifiersIndependent(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.silverSpellAmplifierKeepsDualSpellgunModifiersIndependent(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void silverSpellAmplifierMovesUpgradeOrbModifiersToOffhand(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.silverSpellAmplifierMovesUpgradeOrbModifiersToOffhand(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellcasterGunRecastCastBypassesAmmoRequirement(GameTestHelper helper) {
         EquipmentSpellGunGameTestScenarios.spellcasterGunRecastCastBypassesAmmoRequirement(helper);
     }

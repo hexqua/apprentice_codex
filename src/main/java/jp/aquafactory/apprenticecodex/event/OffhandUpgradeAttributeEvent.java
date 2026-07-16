@@ -4,8 +4,10 @@ import io.redspace.ironsspellbooks.api.item.UpgradeData;
 import io.redspace.ironsspellbooks.util.UpgradeUtils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
@@ -15,18 +17,19 @@ public final class OffhandUpgradeAttributeEvent {
     private OffhandUpgradeAttributeEvent() {
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onItemAttributeModifier(ItemAttributeModifierEvent event) {
         var stack = event.getItemStack();
-        if (!(stack.getItem() instanceof AbstractOffhandMagicItem)) {
+        if (!(stack.getItem() instanceof AbstractOffhandMagicItem)
+                && !AbstractSpellGunItem.usesOffhandAttributeModifiers(stack)) {
             return;
         }
 
         applyStoredUpgradeData(
                 event,
                 EquipmentSlot.MAINHAND.getName(),
-                EquipmentSlot.OFFHAND.getName(),
-                EquipmentSlotGroup.OFFHAND
+            EquipmentSlot.OFFHAND.getName(),
+            EquipmentSlotGroup.OFFHAND
         );
     }
 
