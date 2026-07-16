@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.curios.circlets;
 
 import com.google.common.collect.ImmutableMultimap;
 import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
 import jp.aquafactory.apprenticecodex.item.offhand.OffhandMagicModifierHelper;
@@ -14,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.SlotContext;
 
 public class EnchantedCirclet extends AbstractCircletItem
-        implements NonDamageableAnvilMergeItem, OffhandMagicCompatibleItem {
+        implements NonDamageableAnvilMergeItem, OffhandMagicCompatibleItem, TranscendencePolicy {
     private static final String ITEM_KEY = "enchanted_circlet";
     private static final AttributeContainer[] CIRCLET_ATTRIBUTES = {
             new AttributeContainer(

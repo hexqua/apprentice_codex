@@ -483,7 +483,7 @@
   "enchantment.apprenticecodex.tense.desc": "Reduces spell cast time. Channeled spells take longer to cast.",
   "enchantment.apprenticecodex.surge.desc": "Increases spell power for all elements.",
   "enchantment.apprenticecodex.attunement.desc": "Increases spell power for the imbued element.",
-  "enchantment.apprenticecodex.transcendence.desc": "Only while held, increases the level of the imbued spell.",
+  "enchantment.apprenticecodex.transcendence.desc": "While equipped, increases the level of spells held by this item.",
   "enchantment.apprenticecodex.wisdom.desc": "Mobs and minerals will drop more experience when killed or mined.",
   "enchantment.apprenticecodex.plunder.desc": "Mobs will drop more drop when killed with magic weapons.",
   "enchantment.apprenticecodex.guzzle.desc": "Increases drink flask speed.",

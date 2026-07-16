@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.offhand.OffhandMagicModifierHelper;
 import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
@@ -60,7 +61,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellContainer, SpellSlotUpgradeableItem {
+public class ManaForceBlade extends SwordItem
+        implements GeoItem, IPresetSpellContainer, SpellSlotUpgradeableItem, TranscendencePolicy {
     public static final float DISPLAY_ATTACK_DAMAGE = 6.0F;
     public static final int DEFAULT_RELEASE_COOLDOWN_TICKS = 40;
     private static final String EPICFIGHT_MOD_ID = "epicfight";

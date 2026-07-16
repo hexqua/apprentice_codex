@@ -484,7 +484,7 @@
   "enchantment.apprenticecodex.tense.desc": "魔法の詠唱時間を短縮します。継続詠唱の魔法は詠唱時間が延長されます。",
   "enchantment.apprenticecodex.surge.desc": "属性を問わず魔法の力が上昇します。",
   "enchantment.apprenticecodex.attunement.desc": "注入された魔法の属性の魔法の力が上昇します。",
-  "enchantment.apprenticecodex.transcendence.desc": "手に持っている時のみ、注入された魔法のレベルが上昇します。",
+  "enchantment.apprenticecodex.transcendence.desc": "装備中、このアイテムが保持する魔法のレベルが上昇します。",
   "enchantment.apprenticecodex.wisdom.desc": "Mobや鉱石からの経験値ドロップを増加させます。",
   "enchantment.apprenticecodex.plunder.desc": "魔法武器で倒したMobからのドロップを増加させます。",
   "enchantment.apprenticecodex.guzzle.desc": "フラスコを飲む速度が上昇します。",

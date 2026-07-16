@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.armor.ElementMaidenRobeRenderer;
@@ -47,7 +48,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class ElementMaidenRobeItem extends ArmorItem implements GeoItem, IPresetSpellContainer, UniqueItem {
+public class ElementMaidenRobeItem extends ArmorItem
+        implements GeoItem, IPresetSpellContainer, UniqueItem, TranscendencePolicy {
     private static final ResourceLocation ARMOR_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/element_maiden_robe.png");
     private static final String DESCRIPTION_KEY = "item." + ApprenticeCodex.MODID + ".element_maiden_robe.desc";
@@ -72,6 +74,16 @@ public class ElementMaidenRobeItem extends ArmorItem implements GeoItem, IPreset
 
     public boolean hasImbueSlot() {
         return armorType == Type.CHESTPLATE;
+    }
+
+    @Override
+    public boolean isTranscendenceActiveWhileHeld() {
+        return false;
+    }
+
+    @Override
+    public boolean supportsDirectTranscendenceApplication() {
+        return hasImbueSlot();
     }
 
     @Override

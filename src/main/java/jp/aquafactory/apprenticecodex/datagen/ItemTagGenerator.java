@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
@@ -118,9 +119,15 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ZENITH_STAFF.get()
         );
 
+        var transcendenceEnchantableTag = tag(TagRegistry.Items.ENCHANTABLE_TRANSCENDENCE);
+
         // 所謂魔法武器全般を自動で登録するようにする.
         for (RegistryObject<Item> itemEntry : ItemRegistry.ITEMS.getEntries()) {
             var item = itemEntry.get();
+            if (TranscendencePolicy.supportsDirectApplication(item)) {
+                // 1.21.1 側では enchantment JSON の supported_items / primary_items からこのタグを参照する。
+                transcendenceEnchantableTag.add(item);
+            }
             if (item instanceof AbstractOffhandMagicItem
                     || item instanceof AbstractSpellGunItem
                     || item instanceof AbstractRightClickMagicWeaponItem) {

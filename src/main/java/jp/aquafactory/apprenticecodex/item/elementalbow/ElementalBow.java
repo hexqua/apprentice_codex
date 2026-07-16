@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.SneakSelectionUiItem;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
@@ -72,7 +73,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContainer, ArcaneAnvilImbueBlockItem,
-        IJeiInfoItem, SneakSelectionUiItem {
+        IJeiInfoItem, SneakSelectionUiItem, TranscendencePolicy {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.elemental_bow.desc_";
 
     public static final int READY_DRAW_TICKS = 20;
@@ -96,6 +97,11 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     public ElementalBow() {
         super(new Properties().durability(1561).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public Handling transcendenceHandling() {
+        return Handling.INTERNAL;
     }
 
     @Override

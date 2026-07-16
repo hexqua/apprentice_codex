@@ -74,6 +74,7 @@ import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
@@ -11148,7 +11149,7 @@ public class ApprenticeCodexGameTestScenarios {
                 EnchantmentRegistry.TRANSCENDENCE,
                 EnchantmentRegistry.WISDOM
         ));
-        if (stack.getItem() instanceof MithrilFreecastStaff || stack.getItem() instanceof RevolvercastStaff) {
+        if (stack.getItem() instanceof MithrilFreecastStaff) {
             expectedEnchantments.remove(ForgeRegistries.ENCHANTMENTS.getKey(EnchantmentRegistry.TRANSCENDENCE.get()));
         }
         addExpectedMalumHauntedIfPresent(stack, expectedEnchantments);
@@ -11347,6 +11348,9 @@ public class ApprenticeCodexGameTestScenarios {
                 enchantment -> enchantment.canApplyAtEnchantingTable(probeStack)
         );
         expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
+        if (stack.getItem() instanceof EnchantressRobeItem robeItem && robeItem.hasImbueSlot()) {
+            expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.TRANSCENDENCE));
+        }
         return expectedEnchantments;
     }
 
