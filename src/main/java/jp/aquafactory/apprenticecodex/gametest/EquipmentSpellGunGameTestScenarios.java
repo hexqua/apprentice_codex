@@ -575,19 +575,35 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                         spellgun.getDescriptionId() + " should reject out-of-range adjustment slots");
 
                 var adjustment = new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get(), 4);
-                helper.assertTrue(target.trySetCalibrationAdjustment(spellgun, 0, adjustment),
+                adjustment.set(DataComponents.CUSTOM_NAME, Component.literal("Component-preserving amplifier"));
+                var lookupProvider = helper.getLevel().registryAccess();
+                var enchantments = lookupProvider.lookupOrThrow(Registries.ENCHANTMENT);
+                adjustment.enchant(enchantments.getOrThrow(Enchantments.SURGE), 1);
+                var expectedStoredAdjustment = adjustment.copyWithCount(1);
+                helper.assertTrue(target.trySetCalibrationAdjustment(
+                                spellgun, 0, adjustment, lookupProvider),
                         spellgun.getDescriptionId() + " should store Silver Spell Amplifier calibration");
-                helper.assertTrue(target.getCalibrationAdjustment(spellgun, 0).getCount() == 1,
+                var storedAdjustment = target.getCalibrationAdjustment(spellgun, 0, lookupProvider);
+                helper.assertTrue(storedAdjustment.getCount() == 1,
                         spellgun.getDescriptionId() + " should store one adjustment item");
+                helper.assertTrue(ItemStack.isSameItemSameComponents(storedAdjustment, expectedStoredAdjustment),
+                        spellgun.getDescriptionId() + " should retain adjustment components");
+                var builtInOnlyLookup = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+                helper.assertTrue(target.getCalibrationAdjustment(spellgun, 0, builtInOnlyLookup)
+                                .is(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
+                        spellgun.getDescriptionId() + " should retain the adjustment ID without dynamic registries");
+                helper.assertTrue(AbstractSpellGunItem.usesOffhandAttributeModifiers(spellgun),
+                        spellgun.getDescriptionId() + " should resolve offhand modifiers from the stored adjustment ID");
 
                 var restored = roundTripItemStack(helper, spellgun);
                 var restoredTarget = (SpellCalibrationAdjustmentTarget) restored.getItem();
-                helper.assertTrue(restoredTarget.getCalibrationAdjustment(restored, 0)
-                                .is(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
-                        spellgun.getDescriptionId() + " should retain calibration after save/load");
-                helper.assertTrue(restoredTarget.trySetCalibrationAdjustment(restored, 0, ItemStack.EMPTY),
+                var restoredAdjustment = restoredTarget.getCalibrationAdjustment(restored, 0, lookupProvider);
+                helper.assertTrue(ItemStack.isSameItemSameComponents(restoredAdjustment, expectedStoredAdjustment),
+                        spellgun.getDescriptionId() + " should retain calibration components after save/load");
+                helper.assertTrue(restoredTarget.trySetCalibrationAdjustment(
+                                restored, 0, ItemStack.EMPTY, lookupProvider),
                         spellgun.getDescriptionId() + " should allow adjustment removal");
-                helper.assertTrue(restoredTarget.getCalibrationAdjustment(restored, 0).isEmpty(),
+                helper.assertTrue(restoredTarget.getCalibrationAdjustment(restored, 0, lookupProvider).isEmpty(),
                         spellgun.getDescriptionId() + " should clear removed calibration data");
             }
 
