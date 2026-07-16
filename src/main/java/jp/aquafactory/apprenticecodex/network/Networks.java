@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPack
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientSpellgunCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HeavenlyFistPulsePacket;
@@ -64,7 +65,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "55";
+    private static final String PROTOCOL_VERSION = "56";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -182,6 +183,14 @@ public final class Networks {
                 ClientMultipurposeStaffrifleCastPacket::encode,
                 ClientMultipurposeStaffrifleCastPacket::decode,
                 ClientMultipurposeStaffrifleCastPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                ClientSpellgunCastPacket.class,
+                ClientSpellgunCastPacket::encode,
+                ClientSpellgunCastPacket::decode,
+                ClientSpellgunCastPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER)
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

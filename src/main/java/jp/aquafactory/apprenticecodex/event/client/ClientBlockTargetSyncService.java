@@ -45,6 +45,27 @@ public final class ClientBlockTargetSyncService {
         return trySend(resolvedSpell.spellData(), player, resolvedSpell.spellLevel(), -1, false);
     }
 
+    public static BlockTargetData captureForEmbeddedCast(SpellData spellData) {
+        var player = Minecraft.getInstance().player;
+        if (player == null || spellData == null || spellData == SpellData.EMPTY) {
+            return new BlockTargetData();
+        }
+
+        var spell = spellData.getSpell();
+        if (spell == null || spell == SpellRegistry.none() || !(spell instanceof IClientBlockTargetingSpell targetingSpell)) {
+            return new BlockTargetData();
+        }
+
+        var spellResource = spell.getSpellResource();
+        if (spellResource == null) {
+            return new BlockTargetData();
+        }
+
+        var targetData = captureTargetData(spell, player, resolveSpellLevel(spellData, player), targetingSpell);
+        ClientPlacementPreviewManager.rememberPendingTarget(spellResource, targetData);
+        return targetData;
+    }
+
     private static boolean trySend(SpellData spellData, Player player, int spellLevel, int quickCastSlot, boolean initiateCast) {
         if (spellData == null || spellData == SpellData.EMPTY) {
             return false;

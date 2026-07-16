@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
+import jp.aquafactory.apprenticecodex.item.OffhandUsePriorityHelper;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterAttackEvent;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterFallProtectionEvent;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterReadyStateSyncEvent;
@@ -399,6 +400,8 @@ final class RightClickMagicWeaponGameTestScenarios extends ApprenticeCodexGameTe
             ItemStack offhandStack,
             String profileName
     ) {
+        helper.assertTrue(OffhandUsePriorityHelper.isPriorityOffhandUseItem(offhandStack),
+                "Expected a supported priority offhand use item but got " + offhandStack);
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), profileName);
         var mainhandStack = new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, mainhandStack);

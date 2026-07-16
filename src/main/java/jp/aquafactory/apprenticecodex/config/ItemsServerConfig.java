@@ -440,20 +440,12 @@ final class ItemsServerConfig {
         return spellgunConfig.copperOverriddenSpellCooldownTicks();
     }
 
-    int goldSpellgunMaxInstantImbueCooldownTicks() {
-        return spellgunConfig.goldMaxInstantImbueCooldownTicks();
+    int goldSpellgunReducedCooldownMinimumTicks() {
+        return spellgunConfig.goldReducedCooldownMinimumTicks();
     }
 
-    int goldSpellgunOverriddenSpellCooldownTicks() {
-        return spellgunConfig.goldOverriddenSpellCooldownTicks();
-    }
-
-    int diamondSpellgunMaxInstantImbueCooldownTicks() {
-        return spellgunConfig.diamondMaxInstantImbueCooldownTicks();
-    }
-
-    int diamondSpellgunOverriddenSpellCooldownTicks() {
-        return spellgunConfig.diamondOverriddenSpellCooldownTicks();
+    int goldSpellgunCooldownReductionTicks() {
+        return spellgunConfig.goldCooldownReductionTicks();
     }
 
     boolean isCircuitHeatStaffSpellDenied(ResourceLocation spellId) {

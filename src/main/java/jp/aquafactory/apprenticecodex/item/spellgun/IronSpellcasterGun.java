@@ -1,13 +1,11 @@
 package jp.aquafactory.apprenticecodex.item.spellgun;
 
-import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.IronSpellcasterGunRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
@@ -27,6 +25,8 @@ public class IronSpellcasterGun extends AbstractSpellGunItem implements GeoItem 
             ApprenticeCodexServerConfig::ironSpellgunMaxInstantImbueCooldownTicks,
             true,
             ApprenticeCodexServerConfig::ironSpellgunOverriddenSpellCooldownTicks,
+            null,
+            null,
             false
     );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -37,8 +37,7 @@ public class IronSpellcasterGun extends AbstractSpellGunItem implements GeoItem 
                 SPELL_GUN_CONFIG,
                 SpellRegistry.MAGIC_MISSILE_SPELL,
                 1,
-                "IronSpellcasterGun",
-                bonus(AttributeRegistry.SPELL_POWER, 0.05, AttributeModifier.Operation.MULTIPLY_BASE)
+                "IronSpellcasterGun"
         );
         GeoItem.registerSyncedAnimatable(this);
     }

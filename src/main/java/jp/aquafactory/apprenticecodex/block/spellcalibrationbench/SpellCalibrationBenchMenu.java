@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGaun
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmulet;
+import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
@@ -203,7 +204,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     public boolean hasOperationalImbueTarget() {
         return hasMagiAgentSuitImbueTarget()
                 || hasBulwarkGreatshield() || hasParrycastBuckler() || hasReflectcastShield()
-                || !hasAdjustmentTarget() && SpellCalibrationImbueHelper.isSupportedTarget(getGauntletStack());
+                || (!hasAdjustmentTarget() || hasSpellgun())
+                && SpellCalibrationImbueHelper.isSupportedTarget(getGauntletStack());
     }
 
     public int getEnabledScrollSlotCount() {
@@ -380,12 +382,11 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     private void setScroll(int slot, @NotNull ItemStack stack) {
-        if (!hasCalibrationTarget()) {
+        if (!canPersistScrollChanges()) {
             return;
         }
 
-        if (!stack.isEmpty()
-                && !SpellCalibrationImbueHelper.evaluateScrollAt(getGauntletStack(), slot, stack).canInsert()) {
+        if (!stack.isEmpty() && !canPlaceScrollAt(slot, stack)) {
             return;
         }
 
@@ -493,6 +494,10 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         return !stack.isEmpty() && stack.getItem() instanceof SatelliteFollowcastAmulet;
     }
 
+    private boolean hasSpellgun() {
+        return getGauntletStack().getItem() instanceof AbstractSpellGunItem;
+    }
+
     private static boolean isCalibrationTarget(@NotNull ItemStack stack) {
         return stack.getItem() instanceof SpellCalibrationAdjustmentTarget
                 || SpellCalibrationImbueHelper.isVisibleImbueTarget(stack);
@@ -504,6 +509,17 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
     private boolean hasStoredScrollTarget() {
         return hasGauntlet() || hasRevolvercastStaff() || hasAutocastAmulet() || hasSatelliteFollowcastAmulet();
+    }
+
+    private boolean canPersistScrollChanges() {
+        return hasStoredScrollTarget() || hasOperationalImbueTarget();
+    }
+
+    private boolean canPlaceScrollAt(int slot, @NotNull ItemStack stack) {
+        return canPersistScrollChanges()
+                && isScrollSlotEnabled(slot)
+                && isScroll(stack)
+                && SpellCalibrationImbueHelper.evaluateScrollAt(getGauntletStack(), slot, stack).canInsert();
     }
 
     private boolean hasMagiAgentSuitImbueTarget() {
@@ -743,10 +759,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            if (!hasCalibrationTarget() || !isScrollSlotEnabled(calibrationSlot) || !isScroll(stack)) {
-                return false;
-            }
-            return SpellCalibrationImbueHelper.evaluateScrollAt(getGauntletStack(), calibrationSlot, stack).canInsert();
+            // Slot が受理した後に保存処理だけ拒否すると、shift-click 元の Stack が先に減って消失する。
+            return canPlaceScrollAt(calibrationSlot, stack);
         }
 
         @Override

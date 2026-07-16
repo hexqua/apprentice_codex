@@ -325,8 +325,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void spellgunServerConfigDefaultsMatchCurrentHardcodedValues(GameTestHelper helper) {
-        EquipmentSpellGunGameTestScenarios.spellgunServerConfigDefaultsMatchCurrentHardcodedValues(helper);
+    public static void spellgunServerConfigDefaultsMatchBalanceValues(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellgunServerConfigDefaultsMatchBalanceValues(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLGUN_CONFIG_BATCH)
@@ -335,13 +335,68 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLGUN_CONFIG_BATCH)
-    public static void spellgunZeroCastCooldownConfigForcesZeroCooldown(GameTestHelper helper) {
-        EquipmentSpellGunGameTestScenarios.spellgunZeroCastCooldownConfigForcesZeroCooldown(helper);
+    public static void spellgunZeroCooldownSettingsRemainNonNegative(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellgunZeroCooldownSettingsRemainNonNegative(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcasterGunsRemoveBaseSpellPowerButKeepSurge(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellcasterGunsRemoveBaseSpellPowerButKeepSurge(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcasterGunsAcceptOnlySilverSpellAmplifierCalibration(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellcasterGunsAcceptOnlySilverSpellAmplifierCalibration(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcasterGunsKeepCalibrationBenchImbueOperationalAndSafe(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellcasterGunsKeepCalibrationBenchImbueOperationalAndSafe(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void silverSpellAmplifierMovesAllSpellgunAttributesToOffhand(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.silverSpellAmplifierMovesAllSpellgunAttributesToOffhand(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void silverSpellAmplifierKeepsDualSpellgunModifiersIndependent(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.silverSpellAmplifierKeepsDualSpellgunModifiersIndependent(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void silverSpellAmplifierMovesUpgradeOrbModifiersToOffhand(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.silverSpellAmplifierMovesUpgradeOrbModifiersToOffhand(helper);
     }
 
     @GameTest(template = TEMPLATE)
     public static void spellcasterGunRecastCastBypassesAmmoRequirement(GameTestHelper helper) {
         EquipmentSpellGunGameTestScenarios.spellcasterGunRecastCastBypassesAmmoRequirement(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellgunHandUseContractDoesNotFallback(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellgunHandUseContractDoesNotFallback(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcasterGunTooltipsUseCommonOperationDescriptions(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellcasterGunTooltipsUseCommonOperationDescriptions(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcasterRoundTooltipsUseSharedKeys(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellcasterRoundTooltipsUseSharedKeys(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void invalidSpellgunSpellUsesDedicatedError(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.invalidSpellgunSpellUsesDedicatedError(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellgunCastAttemptPreservesExistingCast(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellgunCastAttemptPreservesExistingCast(helper);
     }
 
     @GameTest(template = TEMPLATE)

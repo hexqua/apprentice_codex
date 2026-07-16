@@ -199,7 +199,10 @@ public final class ItemRegistry {
                     () -> new SpellcasterRoundItem(EMPTY_SPELL_DOMINATOR_CASING));
     public static final RegistryObject<Item> MULTI_PURPOSE_SPELL_ROUND =
             ITEMS.register("multi_purpose_spell_round",
-                    () -> new SpellcasterRoundItem(EMPTY_MULTI_PURPOSE_SPELL_CASING));
+                    () -> new SpellcasterRoundItem(
+                            EMPTY_MULTI_PURPOSE_SPELL_CASING,
+                            "item.apprenticecodex.multi_purpose_spell_round.desc"
+                    ));
     public static final RegistryObject<Item> SPELL_INVOKE_CARD =
             ITEMS.register("spell_invoke_card", SpellInvokeCard::new);
     public static final RegistryObject<Item> SPELL_AUTONOMY_CARD =
