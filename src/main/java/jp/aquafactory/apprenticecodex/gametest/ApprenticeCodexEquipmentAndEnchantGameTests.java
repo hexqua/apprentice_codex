@@ -375,6 +375,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellcasterGunTooltipsUseCommonOperationDescriptions(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellcasterGunTooltipsUseCommonOperationDescriptions(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcasterRoundTooltipsUseSharedKeys(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellcasterRoundTooltipsUseSharedKeys(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void invalidSpellgunSpellUsesDedicatedError(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.invalidSpellgunSpellUsesDedicatedError(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellgunCastAttemptPreservesExistingCast(GameTestHelper helper) {
         EquipmentSpellGunGameTestScenarios.spellgunCastAttemptPreservesExistingCast(helper);
     }

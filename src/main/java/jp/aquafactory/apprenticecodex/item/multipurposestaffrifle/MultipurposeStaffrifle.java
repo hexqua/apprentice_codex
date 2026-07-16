@@ -247,7 +247,7 @@ public final class MultipurposeStaffrifle extends Item
         var recast = magicData != null && magicData.getPlayerRecasts().hasRecastForSpell(spell);
         if (!player.isCreative() && !recast && !SpellGunCastEvent.hasAmmo(player, player.getInventory(), getAmmoItem(stack))) {
             sendActionBarError(player, Component.translatable(
-                    "ui.apprenticecodex.missing_spell_gun_ammo",
+                    "ui.apprenticecodex.spellgun.missing_ammo",
                     getAmmoItem(stack).getDescription()
             ));
             return false;

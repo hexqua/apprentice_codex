@@ -210,7 +210,10 @@ public final class ItemRegistry {
                     () -> new SpellcasterRoundItem(() -> EMPTY_SPELL_DOMINATOR_CASING.get()));
     public static final DeferredHolder<Item, Item> MULTI_PURPOSE_SPELL_ROUND =
             ITEMS.register("multi_purpose_spell_round",
-                    () -> new SpellcasterRoundItem(() -> EMPTY_MULTI_PURPOSE_SPELL_CASING.get()));
+                    () -> new SpellcasterRoundItem(
+                            EMPTY_MULTI_PURPOSE_SPELL_CASING,
+                            "item.apprenticecodex.multi_purpose_spell_round.desc"
+                    ));
     public static final DeferredHolder<Item, Item> SPELL_INVOKE_CARD =
             ITEMS.register("spell_invoke_card", SpellInvokeCard::new);
     public static final DeferredHolder<Item, Item> SPELL_AUTONOMY_CARD =
