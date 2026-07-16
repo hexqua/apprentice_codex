@@ -99,6 +99,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     private final String itemKey;
     private final List<AttributeBonus> handBonuses;
     private final Multimap<Attribute, AttributeModifier> mainhandModifiers;
+    private final Multimap<Attribute, AttributeModifier> offhandModifiers;
 
     protected AbstractSpellGunItem(
             Properties properties,
@@ -131,7 +132,8 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         this.startsWithPresetSpell = true;
         this.itemKey = normalizeKeyToken(itemKey != null ? itemKey : getClass().getSimpleName());
         this.handBonuses = List.copyOf(handBonuses);
-        this.mainhandModifiers = buildBaseMainhandModifiers();
+        this.mainhandModifiers = buildBaseHandModifiers(EquipmentSlot.MAINHAND);
+        this.offhandModifiers = buildBaseHandModifiers(EquipmentSlot.OFFHAND);
     }
 
     protected AbstractSpellGunItem(
@@ -165,7 +167,8 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         this.startsWithPresetSpell = false;
         this.itemKey = normalizeKeyToken(itemKey != null ? itemKey : getClass().getSimpleName());
         this.handBonuses = List.copyOf(handBonuses);
-        this.mainhandModifiers = buildBaseMainhandModifiers();
+        this.mainhandModifiers = buildBaseHandModifiers(EquipmentSlot.MAINHAND);
+        this.offhandModifiers = buildBaseHandModifiers(EquipmentSlot.OFFHAND);
     }
 
     protected AbstractSpellGunItem(
@@ -290,10 +293,10 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
     @Override
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        // 調整後は将来追加される基本補正も含め、従来のメインハンド補正一式をオフハンドへ移す。
-        var adjustedSlot = hasSilverSpellAmplifier(stack) ? EquipmentSlot.OFFHAND : EquipmentSlot.MAINHAND;
+        // 補正値だけでなく UUID も装備スロット別に生成し、同種二丁の補正が互いを上書きしないようにする。
+        var adjustedSlot = usesOffhandAttributeModifiers(stack) ? EquipmentSlot.OFFHAND : EquipmentSlot.MAINHAND;
         if (slot == adjustedSlot) {
-            return buildMainhandModifiers(stack);
+            return buildHandModifiers(stack, adjustedSlot);
         }
 
         return super.getAttributeModifiers(slot, stack);
@@ -344,7 +347,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return CALIBRATION_ADJUSTMENT_PROFILE;
     }
 
-    private static boolean hasSilverSpellAmplifier(ItemStack stack) {
+    public static boolean usesOffhandAttributeModifiers(@NotNull ItemStack stack) {
         return !stack.isEmpty()
                 && stack.getItem() instanceof AbstractSpellGunItem spellGun
                 && spellGun.getCalibrationAdjustment(stack, 0).is(ItemRegistry.SILVER_SPELL_AMPLIFIER.get());
@@ -748,9 +751,9 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return JEI_INFO_GROUP_ID;
     }
 
-    private Multimap<Attribute, AttributeModifier> buildBaseMainhandModifiers() {
+    private Multimap<Attribute, AttributeModifier> buildBaseHandModifiers(EquipmentSlot slot) {
         var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        var prefix = "apprenticecodex." + itemKey + ".mainhand";
+        var prefix = "apprenticecodex." + itemKey + "." + slot.getName();
         for (int i = 0; i < handBonuses.size(); ++i) {
             var bonus = handBonuses.get(i);
             var attribute = bonus.attributeSupplier().get();
@@ -769,8 +772,8 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return builder.build();
     }
 
-    private Multimap<Attribute, AttributeModifier> buildMainhandModifiers(ItemStack stack) {
-        var baseModifiers = mainhandModifiers;
+    private Multimap<Attribute, AttributeModifier> buildHandModifiers(ItemStack stack, EquipmentSlot slot) {
+        var baseModifiers = slot == EquipmentSlot.OFFHAND ? offhandModifiers : mainhandModifiers;
         if (stack == null || stack.isEmpty()) {
             return baseModifiers;
         }
@@ -804,7 +807,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
         var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
         builder.putAll(baseModifiers);
-        var prefix = "apprenticecodex." + itemKey + ".mainhand.enchant";
+        var prefix = "apprenticecodex." + itemKey + "." + slot.getName() + ".enchant";
 
         addEnchantmentModifier(
                 builder,

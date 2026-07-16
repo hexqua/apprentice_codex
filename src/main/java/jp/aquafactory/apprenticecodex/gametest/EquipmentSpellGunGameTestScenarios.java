@@ -26,6 +26,7 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -395,6 +396,99 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                         "Spellgun should remove enchanted Attribute from offhand after adjustment removal");
             }
 
+        });
+    }
+
+    static void silverSpellAmplifierKeepsDualSpellgunModifiersIndependent(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractSpellGunItem) ItemRegistry.IRON_SPELLCASTER_GUN.get();
+            var spellPower = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
+            var mainhandStack = createInitializedPresetStack(item);
+            mainhandStack.enchant(EnchantmentRegistry.SURGE.get(), 1);
+            var offhandStack = createInitializedPresetStack(item);
+            offhandStack.enchant(EnchantmentRegistry.SURGE.get(), 1);
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            offhandStack, 0, new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get())),
+                    "Offhand Spellgun should accept Silver Spell Amplifier calibration");
+
+            var mainhandModifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, mainhandStack)
+                    .get(spellPower).stream()
+                    .filter(modifier -> modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE)
+                    .toList();
+            var offhandModifiers = item.getAttributeModifiers(EquipmentSlot.OFFHAND, offhandStack)
+                    .get(spellPower).stream()
+                    .filter(modifier -> modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE)
+                    .toList();
+            helper.assertTrue(mainhandModifiers.size() == 1 && offhandModifiers.size() == 1,
+                    "Dual Spellguns should each expose one Surge modifier: main=" + mainhandModifiers
+                            + ", off=" + offhandModifiers);
+            helper.assertFalse(mainhandModifiers.get(0).getId().equals(offhandModifiers.get(0).getId()),
+                    "Mainhand and offhand Spellgun modifiers must use different UUIDs");
+
+            var attributeInstance = new AttributeInstance(spellPower, unused -> {
+            });
+            mainhandModifiers.forEach(attributeInstance::addTransientModifier);
+            offhandModifiers.forEach(attributeInstance::addTransientModifier);
+            helper.assertTrue(Math.abs(sumModifierAmount(
+                            attributeInstance.getModifiers(), AttributeModifier.Operation.MULTIPLY_BASE) - 0.04D) < 1.0e-9D,
+                    "Dual Spellgun Surge modifiers should stack to 0.04");
+
+            mainhandModifiers.forEach(modifier -> attributeInstance.removeModifier(modifier.getId()));
+            helper.assertTrue(Math.abs(sumModifierAmount(
+                            attributeInstance.getModifiers(), AttributeModifier.Operation.MULTIPLY_BASE) - 0.02D) < 1.0e-9D,
+                    "Removing one Spellgun should leave the other Spellgun modifier active");
+        });
+    }
+
+    static void silverSpellAmplifierMovesUpgradeOrbModifiersToOffhand(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractSpellGunItem) ItemRegistry.IRON_SPELLCASTER_GUN.get();
+            var maxMana = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
+
+            var orbBeforeCalibration = createInitializedPresetStack(item);
+            orbBeforeCalibration.enchant(EnchantmentRegistry.RESERVOIR.get(), 1);
+            createUpgradeData(
+                    helper.getLevel().registryAccess(),
+                    orbBeforeCalibration,
+                    io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.MANA,
+                    EquipmentSlot.MAINHAND.getName()
+            );
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            orbBeforeCalibration, 0, new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get())),
+                    "Spellgun should accept Silver Spell Amplifier after Upgrade Orb data");
+            assertAdjustedUpgradeOrbSlots(helper, orbBeforeCalibration, maxMana, "Orb-before-calibration");
+
+            var calibrationBeforeOrb = createInitializedPresetStack(item);
+            calibrationBeforeOrb.enchant(EnchantmentRegistry.RESERVOIR.get(), 1);
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            calibrationBeforeOrb, 0, new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get())),
+                    "Spellgun should accept Silver Spell Amplifier before Upgrade Orb data");
+            createUpgradeData(
+                    helper.getLevel().registryAccess(),
+                    calibrationBeforeOrb,
+                    io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.MANA,
+                    EquipmentSlot.MAINHAND.getName()
+            );
+            assertAdjustedUpgradeOrbSlots(helper, calibrationBeforeOrb, maxMana, "Calibration-before-orb");
+
+            var restored = roundTripItemStack(orbBeforeCalibration);
+            assertAdjustedUpgradeOrbSlots(helper, restored, maxMana, "Save-load");
+
+            var unadjusted = createInitializedPresetStack(item);
+            unadjusted.enchant(EnchantmentRegistry.RESERVOIR.get(), 1);
+            createUpgradeData(
+                    helper.getLevel().registryAccess(),
+                    unadjusted,
+                    io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.MANA,
+                    EquipmentSlot.MAINHAND.getName()
+            );
+            var unadjustedMainhand = resolveRuntimeSpellgunModifiers(unadjusted, EquipmentSlot.MAINHAND);
+            helper.assertTrue(Math.abs(sumModifierAmount(
+                            unadjustedMainhand.get(maxMana), AttributeModifier.Operation.ADDITION) - 70.0D) < 1.0e-9D,
+                    "Unadjusted Spellgun should retain Reservoir plus Upgrade Orb in mainhand: "
+                            + describeModifiers(unadjustedMainhand));
+            helper.assertTrue(resolveRuntimeSpellgunModifiers(unadjusted, EquipmentSlot.OFFHAND).get(maxMana).isEmpty(),
+                    "Unadjusted Spellgun should not expose Upgrade Orb in offhand");
         });
     }
     static void reflectcastShieldCastRestrictionsFollowCalibration(GameTestHelper helper) {
@@ -926,6 +1020,45 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                 message + ": expected=" + attributeCase.amount()
                         + ", actual=" + actualAmount
                         + ", modifiers=" + describeModifiers(modifiers));
+    }
+
+    private static void assertAdjustedUpgradeOrbSlots(
+            GameTestHelper helper,
+            ItemStack stack,
+            Attribute attribute,
+            String context
+    ) {
+        var mainhandModifiers = resolveRuntimeSpellgunModifiers(stack, EquipmentSlot.MAINHAND);
+        helper.assertTrue(mainhandModifiers.get(attribute).isEmpty(),
+                context + " adjusted Spellgun should not retain Upgrade Orb in mainhand: "
+                        + describeModifiers(mainhandModifiers));
+
+        var offhandModifiers = resolveRuntimeSpellgunModifiers(stack, EquipmentSlot.OFFHAND);
+        var matchingModifiers = offhandModifiers.get(attribute).stream()
+                .filter(modifier -> modifier.getOperation() == AttributeModifier.Operation.ADDITION)
+                .toList();
+        helper.assertTrue(matchingModifiers.size() == 1,
+                context + " adjusted Spellgun should merge Reservoir and Upgrade Orb in offhand: "
+                        + describeModifiers(offhandModifiers));
+        helper.assertTrue(Math.abs(matchingModifiers.get(0).getAmount() - 70.0D) < 1.0e-9D,
+                context + " adjusted Spellgun offhand modifier should be 70 but got "
+                        + matchingModifiers.get(0).getAmount());
+        helper.assertTrue(matchingModifiers.get(0).getId().equals(
+                        io.redspace.ironsspellbooks.util.UpgradeUtils.UUIDForSlot(EquipmentSlot.OFFHAND)),
+                context + " adjusted Spellgun Upgrade Orb should use the offhand UUID");
+    }
+
+    private static com.google.common.collect.Multimap<Attribute, AttributeModifier> resolveRuntimeSpellgunModifiers(
+            ItemStack stack,
+            EquipmentSlot slot
+    ) {
+        var event = new net.minecraftforge.event.ItemAttributeModifierEvent(
+                stack,
+                slot,
+                stack.getItem().getAttributeModifiers(slot, stack)
+        );
+        MinecraftForge.EVENT_BUS.post(event);
+        return event.getModifiers();
     }
 
     private record SpellgunAttributeCase(
