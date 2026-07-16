@@ -1959,6 +1959,26 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void directAttributeEnchantmentPolicyKeepsExpectedMatrix(GameTestHelper helper) {
+        AttributeEnchantmentPolicyGameTestScenarios.directApplicationPolicyKeepsExpectedMatrix(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void forcedAttributeEnchantmentsCoexistAndKeepRawPositiveLevels(GameTestHelper helper) {
+        AttributeEnchantmentPolicyGameTestScenarios.forcedEnchantmentsCoexistAndKeepRawPositiveLevels(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void attunementResolutionFailureIsNoOp(GameTestHelper helper) {
+        AttributeEnchantmentPolicyGameTestScenarios.attunementResolutionFailureIsNoOp(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magicAttributeMergeOnlyNormalizesLinearMagicAttributes(GameTestHelper helper) {
+        AttributeEnchantmentPolicyGameTestScenarios.mergeHelperOnlyNormalizesLinearMagicAttributes(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void magiAgentSuitKeepsExpectedStatsImbueAndCalibrationRune(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.magiAgentSuitKeepsExpectedStatsImbueAndCalibrationRune(helper);
     }

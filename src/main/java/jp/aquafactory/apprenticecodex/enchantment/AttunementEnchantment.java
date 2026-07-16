@@ -8,7 +8,8 @@ import org.jetbrains.annotations.NotNull;
 @SuppressWarnings("RedundantMethodOverride")
 public class AttunementEnchantment extends Enchantment {
     private static final EnchantmentCategory MAGIC_ITEM_CATEGORY =
-            EnchantmentCategory.create("apprenticecodex_attunement_magic", MagicItemEnchantmentTargeting::isSupportedSpellContainerMagicItem);
+            EnchantmentCategory.create("apprenticecodex_attunement_magic",
+                    item -> AttributeEnchantmentPolicy.supportsDirectApplication(item, AttributeEnchantmentType.ATTUNEMENT));
 
     public AttunementEnchantment() {
         super(Rarity.UNCOMMON, MAGIC_ITEM_CATEGORY,

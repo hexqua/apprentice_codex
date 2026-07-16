@@ -7,11 +7,13 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.armor.ElementMaidenRobeRenderer;
-import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.nbt.CompoundTag;
@@ -46,10 +48,11 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class ElementMaidenRobeItem extends ArmorItem
-        implements GeoItem, IPresetSpellContainer, UniqueItem, TranscendencePolicy {
+        implements GeoItem, IPresetSpellContainer, UniqueItem, TranscendencePolicy, AttributeEnchantmentPolicy {
     private static final ResourceLocation ARMOR_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/element_maiden_robe.png");
     private static final String DESCRIPTION_KEY = "item." + ApprenticeCodex.MODID + ".element_maiden_robe.desc";
@@ -84,6 +87,13 @@ public class ElementMaidenRobeItem extends ArmorItem
     @Override
     public boolean supportsDirectTranscendenceApplication() {
         return hasImbueSlot();
+    }
+
+    @Override
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return hasImbueSlot()
+                ? Set.of(AttributeEnchantmentType.SURGE, AttributeEnchantmentType.ATTUNEMENT)
+                : Set.of();
     }
 
     @Override
@@ -131,7 +141,12 @@ public class ElementMaidenRobeItem extends ArmorItem
         }
 
         if (ApprenticeCodex.MODID.equals(enchantmentId.getNamespace())) {
-            return isSupportedRobeEnchantment(enchantment);
+            var attributeEnchantment = AttributeEnchantmentType.from(enchantment);
+            return attributeEnchantment.map(this::supportsDirectAttributeEnchantment).orElseGet(() ->
+                    (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
+                    || (hasImbueSlot() && EnchantmentRegistry.TRANSCENDENCE.isPresent()
+                    && enchantment == EnchantmentRegistry.TRANSCENDENCE.get()));
+
         }
 
         return enchantment.canApplyAtEnchantingTable(createArmorProbeStack());
@@ -303,38 +318,12 @@ public class ElementMaidenRobeItem extends ArmorItem
             return;
         }
 
-        if (EnchantmentRegistry.SURGE.isPresent()) {
-            var surgeLevel = stack.getEnchantmentLevel(EnchantmentRegistry.SURGE.get());
-            ElementMaidenRobeStats.addSurgeSpellPowerModifier(builder, armorType, surgeLevel);
-        }
-
-        if (!EnchantmentRegistry.ATTUNEMENT.isPresent()) {
-            return;
-        }
-
-        var attunementLevel = stack.getEnchantmentLevel(EnchantmentRegistry.ATTUNEMENT.get());
-        if (attunementLevel <= 0) {
-            return;
-        }
-
-        var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
-        var attunementSpellPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
-        ElementMaidenRobeStats.addAttunementSpellPowerModifier(
+        // 直接付与可否とは分離し、強制付与された6種も共通規則で評価する。
+        AttributeEnchantmentResolver.addModifiers(
                 builder,
-                attunementSpellPowerAttribute,
-                armorType,
-                attunementLevel
+                stack,
+                "apprenticecodex.element_maiden_robe.chestplate.enchant"
         );
-    }
-
-    private boolean isSupportedRobeEnchantment(Enchantment enchantment) {
-        return (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
-                || (hasImbueSlot() && EnchantmentRegistry.TRANSCENDENCE.isPresent()
-                && enchantment == EnchantmentRegistry.TRANSCENDENCE.get())
-                || (hasImbueSlot() && EnchantmentRegistry.SURGE.isPresent()
-                && enchantment == EnchantmentRegistry.SURGE.get())
-                || (hasImbueSlot() && EnchantmentRegistry.ATTUNEMENT.isPresent()
-                && enchantment == EnchantmentRegistry.ATTUNEMENT.get());
     }
 
     private ItemStack createArmorProbeStack() {

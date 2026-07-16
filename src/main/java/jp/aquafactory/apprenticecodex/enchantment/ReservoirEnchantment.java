@@ -8,7 +8,8 @@ import org.jetbrains.annotations.NotNull;
 @SuppressWarnings("RedundantMethodOverride")
 public class ReservoirEnchantment extends Enchantment {
     private static final EnchantmentCategory MAGIC_ITEM_CATEGORY =
-            EnchantmentCategory.create("apprenticecodex_reservoir_magic", MagicItemEnchantmentTargeting::isSupportedMagicItem);
+            EnchantmentCategory.create("apprenticecodex_reservoir_magic",
+                    item -> AttributeEnchantmentPolicy.supportsDirectApplication(item, AttributeEnchantmentType.RESERVOIR));
 
     public ReservoirEnchantment() {
         super(Rarity.COMMON, MAGIC_ITEM_CATEGORY,

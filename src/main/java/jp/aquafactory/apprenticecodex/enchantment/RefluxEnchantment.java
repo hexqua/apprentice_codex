@@ -8,7 +8,8 @@ import org.jetbrains.annotations.NotNull;
 @SuppressWarnings("RedundantMethodOverride")
 public class RefluxEnchantment extends Enchantment {
     private static final EnchantmentCategory MAGIC_ITEM_CATEGORY =
-            EnchantmentCategory.create("apprenticecodex_reflux_magic", MagicItemEnchantmentTargeting::isSupportedMagicItem);
+            EnchantmentCategory.create("apprenticecodex_reflux_magic",
+                    item -> AttributeEnchantmentPolicy.supportsDirectApplication(item, AttributeEnchantmentType.REFLUX));
 
     public RefluxEnchantment() {
         super(Rarity.UNCOMMON, MAGIC_ITEM_CATEGORY,

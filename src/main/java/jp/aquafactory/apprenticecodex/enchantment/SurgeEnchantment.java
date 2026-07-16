@@ -8,7 +8,8 @@ import org.jetbrains.annotations.NotNull;
 @SuppressWarnings("RedundantMethodOverride")
 public class SurgeEnchantment extends Enchantment {
     private static final EnchantmentCategory MAGIC_ITEM_CATEGORY =
-            EnchantmentCategory.create("apprenticecodex_surge_magic", MagicItemEnchantmentTargeting::isSupportedSurgeMagicItem);
+            EnchantmentCategory.create("apprenticecodex_surge_magic",
+                    item -> AttributeEnchantmentPolicy.supportsDirectApplication(item, AttributeEnchantmentType.SURGE));
 
     public SurgeEnchantment() {
         super(Rarity.COMMON, MAGIC_ITEM_CATEGORY,

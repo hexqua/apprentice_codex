@@ -10,12 +10,14 @@ import io.redspace.ironsspellbooks.capabilities.magic.CooldownInstance;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
-import jp.aquafactory.apprenticecodex.item.offhand.OffhandMagicModifierHelper;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
@@ -25,6 +27,7 @@ import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.ParrycastBucklerRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.nbt.CompoundTag;
@@ -71,7 +74,7 @@ import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
 public class ParrycastBuckler extends AbstractImbueShieldItem
-        implements GeoItem, IJeiInfoItem, SpellCalibrationAdjustmentTarget {
+        implements GeoItem, IJeiInfoItem, SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.parrycast_buckler.desc_";
     public static final int DURABILITY = 1561;
     public static final int ENCHANTMENT_VALUE = 22;
@@ -108,6 +111,10 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
     private static final Map<LivingEntity, EnumMap<InteractionHand, ClientAnimationState>> CLIENT_ANIMATION_OWNERS = new WeakHashMap<>();
     private static long nextClientAnimationInstanceId = Long.MIN_VALUE;
     private static final ItemStack SHIELD_ENCHANTMENT_PROBE = new ItemStack(Items.SHIELD);
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.TENSE
+    );
     private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation DEPLOY = RawAnimation.begin().thenPlayAndHold("deploy");
     private static final RawAnimation REMOVE_IDLE = RawAnimation.begin().thenPlay("remove").thenLoop("idle");
@@ -282,17 +289,23 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
     public int getEnchantmentValue(ItemStack stack) { return ENCHANTMENT_VALUE; }
 
     @Override
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
+    }
+
+    @Override
     public boolean isValidRepairItem(@NotNull ItemStack toRepair, @NotNull ItemStack repair) {
         return repair.is(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get());
     }
 
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return enchantment.canApplyAtEnchantingTable(SHIELD_ENCHANTMENT_PROBE)
-                || enchantment == EnchantmentRegistry.TENSE.get()
-                || enchantment == EnchantmentRegistry.ALACRITY.get()
+        var attributeType = AttributeEnchantmentType.from(enchantment);
+        return attributeType.map(this::supportsDirectAttributeEnchantment).orElseGet(() ->
+                enchantment.canApplyAtEnchantingTable(SHIELD_ENCHANTMENT_PROBE)
                 || enchantment == EnchantmentRegistry.TRANSCENDENCE.get()
-                || enchantment == EnchantmentRegistry.WISDOM.get();
+                || enchantment == EnchantmentRegistry.WISDOM.get());
+
     }
 
     @Override
@@ -306,7 +319,11 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
         var base = super.getAttributeModifiers(slot, stack);
         if (slot != EquipmentSlot.OFFHAND) return base;
-        var equippedBase = OffhandMagicModifierHelper.buildEquippedModifiers(base, stack, "parrycast_buckler");
+        var equippedBase = AttributeEnchantmentResolver.resolveMergedModifiers(
+                base,
+                stack,
+                "apprenticecodex.parrycast_buckler"
+        );
         var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder().putAll(equippedBase);
         Set<net.minecraft.resources.ResourceLocation> seen = new HashSet<>();
         for (int i = 0; i < CALIBRATION_ADJUSTMENT_SLOT_COUNT; i++) {
@@ -318,7 +335,10 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
                         "Parrycast buckler school spell power", SCHOOL_POWER_BONUS, AttributeModifier.Operation.MULTIPLY_BASE));
             }
         }
-        return builder.build();
+        return MagicAttributeModifierHelper.mergeLinearMagicModifiers(
+                builder.build(),
+                "apprenticecodex.parrycast_buckler.merged"
+        );
     }
 
     public boolean handlePerfectGuard(ServerPlayer player, ItemStack stack, InteractionHand hand) {

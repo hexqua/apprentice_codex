@@ -1,12 +1,10 @@
 package jp.aquafactory.apprenticecodex.enchantment;
 
-import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
-import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
@@ -26,52 +24,6 @@ import net.minecraft.world.item.Item;
 
 final class MagicItemEnchantmentTargeting {
     private MagicItemEnchantmentTargeting() {
-    }
-
-    static boolean isSupportedMagicItem(Item item) {
-        return isSupportedOffhandMagicItem(item)
-                || isSupportedSpellGunItem(item)
-                || isSupportedMagicArmorItem(item)
-                || item instanceof ScrollcasterGauntlet;
-    }
-
-    static boolean isSupportedSurgeMagicItem(Item item) {
-        return isSupportedMagicItem(item) || item instanceof ManaForceBlade || item instanceof MultipurposeStaffrifle;
-    }
-
-    static boolean isSupportedOffhandMagicItem(Item item) {
-        return item instanceof AbstractOffhandMagicItem || item instanceof OffhandMagicCompatibleItem
-                || item instanceof ParrycastBuckler;
-    }
-
-    static boolean isSupportedSpellGunItem(Item item) {
-        return item instanceof AbstractSpellGunItem;
-    }
-
-    static boolean isSupportedMagicArmorItem(Item item) {
-        return item instanceof EnchantressRobeItem
-                || item instanceof ElementMaidenRobeItem elementRobeItem && elementRobeItem.hasImbueSlot();
-    }
-
-    static boolean isSupportedOffhandOrArmorMagicItem(Item item) {
-        return isSupportedOffhandMagicItem(item) || isSupportedMagicArmorItem(item) || item instanceof ScrollcasterGauntlet;
-    }
-
-    static boolean isSupportedSpellContainerMagicItem(Item item) {
-        return isSupportedOffhandMagicItem(item)
-                || isSupportedSpellGunItem(item)
-                || item instanceof ElementalBow
-                || item instanceof ManaForceBlade
-                || item instanceof AbstractSpellSideEdgeItem
-                || item instanceof ScrollcasterGauntlet
-                || (item instanceof AbstractRightClickMagicWeaponItem && !(item instanceof MithrilFreecastStaff))
-                || item instanceof AlchemistsFlask
-                || isSupportedSpellContainerArmorItem(item);
-    }
-
-    static boolean isSupportedSpellContainerArmorItem(Item item) {
-        return item instanceof EnchantressRobeItem enchantressRobeItem && enchantressRobeItem.hasImbueSlot()
-                || item instanceof ElementMaidenRobeItem elementRobeItem && elementRobeItem.hasImbueSlot();
     }
 
     static boolean isSupportedWisdomEnchantingItem(Item item) {

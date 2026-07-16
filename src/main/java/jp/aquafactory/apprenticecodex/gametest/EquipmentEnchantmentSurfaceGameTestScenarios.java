@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressCastEvent;
@@ -1387,7 +1388,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     AttributeModifier.Operation.MULTIPLY_BASE
             );
             helper.assertTrue(Math.abs(enchantedGlobalSpellPower
-                            - (expectedSpellPower + ElementMaidenRobeStats.SURGE_SPELL_POWER_PER_LEVEL)) < 1.0e-9D,
+                            - (expectedSpellPower + AttributeEnchantmentType.SURGE.amountPerLevel())) < 1.0e-9D,
                     "Element Maiden Robe chestplate should add Surge spell power: " + describeModifiers(enchantedModifiers));
 
             var attunementSpellPower = sumModifierAmount(
@@ -1395,7 +1396,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     AttributeModifier.Operation.MULTIPLY_BASE
             );
             helper.assertTrue(Math.abs(attunementSpellPower
-                            - ElementMaidenRobeStats.ATTUNEMENT_SPELL_POWER_PER_LEVEL) < 1.0e-9D,
+                            - AttributeEnchantmentType.ATTUNEMENT.amountPerLevel()) < 1.0e-9D,
                     "Element Maiden Robe chestplate should add Attunement school spell power: "
                             + describeModifiers(enchantedModifiers));
         });

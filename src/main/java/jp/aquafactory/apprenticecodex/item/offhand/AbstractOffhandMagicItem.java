@@ -6,9 +6,13 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
+import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -27,9 +31,11 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 public abstract class AbstractOffhandMagicItem extends Item
-        implements IPresetSpellContainer, IJeiInfoItem, NonDamageableAnvilMergeItem, TranscendencePolicy {
+        implements IPresetSpellContainer, IJeiInfoItem, NonDamageableAnvilMergeItem, TranscendencePolicy,
+        AttributeEnchantmentPolicy {
     private static final String JEI_INFO_GROUP_ID = "offhand_magic_items";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.offhand_magic_items.desc_";
+    private static final int ENCHANTMENT_VALUE = 1;
 
     private final Supplier<? extends AbstractSpell> configuredSpell;
     private final int configuredSpellLevel;
@@ -197,13 +203,18 @@ public abstract class AbstractOffhandMagicItem extends Item
 
     @Override
     public int getEnchantmentValue(ItemStack stack) {
-        return OffhandMagicModifierHelper.enchantmentValue();
+        return ENCHANTMENT_VALUE;
     }
 
     @Override
     public boolean isEnchantable(@NotNull ItemStack stack) {
         // 非耐久アイテムでもエンチャント台/金床で扱えるようにする.
-        return OffhandMagicModifierHelper.isEnchantable(stack);
+        return getEnchantmentValue(stack) > 0;
+    }
+
+    @Override
+    public java.util.Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return ALL_ATTRIBUTE_ENCHANTMENTS;
     }
 
     @Override
@@ -239,7 +250,12 @@ public abstract class AbstractOffhandMagicItem extends Item
     }
 
     private Multimap<Attribute, AttributeModifier> buildEquippedModifiers(ItemStack stack) {
-        return OffhandMagicModifierHelper.buildEquippedModifiers(baseModifiers, stack, itemKey, this::addStackDependentModifiers);
+        return AttributeEnchantmentResolver.resolveMergedModifiers(
+                baseModifiers,
+                stack,
+                "apprenticecodex." + itemKey,
+                this::addStackDependentModifiers
+        );
     }
 
     // Imbue 内容に応じた補正など、stack の状態を見て増減させたい派生アイテム向け.
@@ -264,7 +280,7 @@ public abstract class AbstractOffhandMagicItem extends Item
             AttributeModifier.Operation operation,
             String modifierIdSeed
     ) {
-        OffhandMagicModifierHelper.addEquippedModifier(builder, attribute, amount, operation, modifierIdSeed);
+        MagicAttributeModifierHelper.addModifier(builder, attribute, amount, operation, modifierIdSeed);
     }
 
     private static String resolveAttributeKey(AttributeBonus bonus, Attribute attribute, int index) {

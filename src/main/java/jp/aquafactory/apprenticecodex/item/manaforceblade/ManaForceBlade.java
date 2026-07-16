@@ -10,9 +10,11 @@ import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.item.offhand.OffhandMagicModifierHelper;
 import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
 import jp.aquafactory.apprenticecodex.renderer.item.ManaForceBladeRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -62,7 +64,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class ManaForceBlade extends SwordItem
-        implements GeoItem, IPresetSpellContainer, SpellSlotUpgradeableItem, TranscendencePolicy {
+        implements GeoItem, IPresetSpellContainer, SpellSlotUpgradeableItem, TranscendencePolicy,
+        AttributeEnchantmentPolicy {
     public static final float DISPLAY_ATTACK_DAMAGE = 6.0F;
     public static final int DEFAULT_RELEASE_COOLDOWN_TICKS = 40;
     private static final String EPICFIGHT_MOD_ID = "epicfight";
@@ -82,10 +85,12 @@ public class ManaForceBlade extends SwordItem
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD);
     private static final Set<String> EXTRA_ENCHANTMENTS = Set.of(
-            "apprenticecodex:surge",
-            "apprenticecodex:attunement",
             "apprenticecodex:wisdom",
             "apprenticecodex:transcendence"
+    );
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.SURGE,
+            AttributeEnchantmentType.ATTUNEMENT
     );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -219,7 +224,11 @@ public class ManaForceBlade extends SwordItem
         }
 
         // Iron's の upgrade 処理は同 Attribute/Operation の既存補正 1 本を置換するため、表示前に自前補正を合算しておく。
-        return OffhandMagicModifierHelper.buildEquippedModifiers(mainhandModifiers, stack, "mana_force_blade");
+        return AttributeEnchantmentResolver.resolveMergedModifiers(
+                mainhandModifiers,
+                stack,
+                "apprenticecodex.mana_force_blade"
+        );
     }
 
     @Override
@@ -230,6 +239,11 @@ public class ManaForceBlade extends SwordItem
     @Override
     public int getEnchantmentValue(ItemStack stack) {
         return ENCHANTMENT_VALUE;
+    }
+
+    @Override
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
     }
 
     @Override
@@ -244,8 +258,10 @@ public class ManaForceBlade extends SwordItem
             return true;
         }
 
-        return EXTRA_ENCHANTMENTS.contains(enchantmentId.toString())
-                || enchantment.canApplyAtEnchantingTable(SWORD_ENCHANTMENT_PROBE_STACK);
+        var attributeType = AttributeEnchantmentType.from(enchantment);
+        return attributeType.map(this::supportsDirectAttributeEnchantment).orElseGet(() -> EXTRA_ENCHANTMENTS.contains(enchantmentId.toString())
+                || enchantment.canApplyAtEnchantingTable(SWORD_ENCHANTMENT_PROBE_STACK));
+
     }
 
     @Override
