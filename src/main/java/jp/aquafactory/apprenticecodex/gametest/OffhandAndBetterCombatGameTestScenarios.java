@@ -511,6 +511,43 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                             + expectedMaxManaBonus + " but changed from " + baseMaxMana + " to " + rescuedMaxMana);
         });
     }
+    static void betterCombatHiddenNonOffhandMagicItemDoesNotApplyTranscendence(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded("bettercombat")) {
+                return;
+            }
+
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var manaForceBlade = TranscendenceGameTestScenarios.createStack(
+                    ItemRegistry.MANA_FORCE_BLADE.get(),
+                    2,
+                    spell
+            );
+            var player = createBetterCombatHiddenOffhandPlayer(
+                    helper,
+                    ItemStack.EMPTY,
+                    manaForceBlade,
+                    "better_combat_hidden_non_offhand_magic_transcendence_test"
+            );
+
+            var physicalOffhand = player.getInventory().offhand.get(0);
+            helper.assertTrue(physicalOffhand.is(ItemRegistry.MANA_FORCE_BLADE.get()),
+                    "Physical offhand should retain Mana Force Blade but got " + physicalOffhand);
+            helper.assertFalse(physicalOffhand.getItem() instanceof AbstractOffhandMagicItem,
+                    "Transcendence negative case must use an item outside AbstractOffhandMagicItem rescue scope");
+            helper.assertTrue(player.getOffhandItem().isEmpty(),
+                    "Better Combat should hide a two-handed physical offhand item from logical equipment access");
+
+            // 物理スロットの無条件直読みを防ぎ、明示的なoffhand補助具だけを救済対象に保つ。
+            TranscendenceGameTestScenarios.assertEventLevel(
+                    helper,
+                    player,
+                    spell,
+                    1,
+                    "Hidden non-offhand magic item should not apply Transcendence"
+            );
+        });
+    }
     static void betterCombatSpellSelectionRescueUsesPhysicalOffhandInventoryStack(GameTestHelper helper) {
         helper.succeedIf(() -> {
             if (!ModList.get().isLoaded("bettercombat")) {
