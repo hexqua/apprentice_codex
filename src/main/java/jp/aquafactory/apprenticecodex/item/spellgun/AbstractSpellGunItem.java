@@ -24,7 +24,7 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
-import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
@@ -63,7 +63,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.IntSupplier;
@@ -78,7 +77,7 @@ import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 
 public abstract class AbstractSpellGunItem extends Item implements IPresetSpellContainer, RestrictedSpellImbuableItem,
         ManaBypassSpellItem, CastAnimationOverrideItem, IJeiInfoItem, NonDamageableAnvilMergeItem,
-        SpellCalibrationAdjustmentTarget, TranscendencePolicy {
+        SpellCalibrationAdjustmentTarget, TranscendencePolicy, AttributeEnchantmentPolicy {
     private static final String JEI_INFO_GROUP_ID = "spellgun_items";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.spellgun_items.desc_";
     private static final String MALUM_NAMESPACE = "malum";
@@ -88,12 +87,6 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_shatter_capable_weapon")
     );
-    private static final double ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL = 0.02D;
-    private static final double REFLUX_MANA_REGEN_PER_LEVEL = 0.05D;
-    private static final double RESERVOIR_MAX_MANA_PER_LEVEL = 20.0D;
-    private static final double SURGE_SPELL_POWER_PER_LEVEL = 0.02D;
-    private static final double ATTUNEMENT_SPELL_POWER_PER_LEVEL = 0.04D;
-    private static final double TENSE_CAST_TIME_REDUCTION_PER_LEVEL = 0.05D;
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 1;
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(

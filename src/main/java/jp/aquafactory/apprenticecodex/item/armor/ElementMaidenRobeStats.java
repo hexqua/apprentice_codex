@@ -22,8 +22,6 @@ import java.util.function.Supplier;
 
 public final class ElementMaidenRobeStats {
     public static final double MAX_MANA_BONUS = 150.0D;
-    public static final double SURGE_SPELL_POWER_PER_LEVEL = 0.02D;
-    public static final double ATTUNEMENT_SPELL_POWER_PER_LEVEL = 0.04D;
 
     private static final int DURABILITY_MULTIPLIER = 37;
     private static final int ENCHANTMENT_VALUE = 22;

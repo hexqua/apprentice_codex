@@ -41,6 +41,7 @@ public abstract class AbstractOffhandMagicItem extends Item
     private static final double TENSE_CAST_TIME_REDUCTION_PER_LEVEL = 0.05D;
     private static final String JEI_INFO_GROUP_ID = "offhand_magic_items";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.offhand_magic_items.desc_";
+    private static final int ENCHANTMENT_VALUE = 1;
 
     private final Supplier<? extends AbstractSpell> configuredSpell;
     private final int configuredSpellLevel;

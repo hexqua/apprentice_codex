@@ -1876,7 +1876,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             );
             helper.assertTrue(Math.abs(enchantedGlobalSpellPower
-                            - (expectedSpellPower + ElementMaidenRobeStats.SURGE_SPELL_POWER_PER_LEVEL)) < 1.0e-9D,
+                            - (expectedSpellPower + AttributeEnchantmentType.SURGE.amountPerLevel())) < 1.0e-9D,
                     "Element Maiden Robe chestplate should add Surge spell power: " + describeModifiers(enchantedModifiers));
 
             var attunementSpellPower = sumModifierAmount(
@@ -1884,7 +1884,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             );
             helper.assertTrue(Math.abs(attunementSpellPower
-                            - ElementMaidenRobeStats.ATTUNEMENT_SPELL_POWER_PER_LEVEL) < 1.0e-9D,
+                            - AttributeEnchantmentType.ATTUNEMENT.amountPerLevel()) < 1.0e-9D,
                     "Element Maiden Robe chestplate should add Attunement school spell power: "
                             + describeModifiers(enchantedModifiers));
         });
