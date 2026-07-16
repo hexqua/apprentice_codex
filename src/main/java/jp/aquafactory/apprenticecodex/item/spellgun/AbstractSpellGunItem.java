@@ -14,6 +14,7 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
@@ -77,7 +78,7 @@ import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 
 public abstract class AbstractSpellGunItem extends Item implements IPresetSpellContainer, RestrictedSpellImbuableItem,
         ManaBypassSpellItem, CastAnimationOverrideItem, IJeiInfoItem, NonDamageableAnvilMergeItem,
-        SpellCalibrationAdjustmentTarget {
+        SpellCalibrationAdjustmentTarget, TranscendencePolicy {
     private static final String JEI_INFO_GROUP_ID = "spellgun_items";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.spellgun_items.desc_";
     private static final String MALUM_NAMESPACE = "malum";

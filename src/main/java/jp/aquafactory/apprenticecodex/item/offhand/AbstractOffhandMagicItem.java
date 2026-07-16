@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.Holder;
@@ -31,7 +32,7 @@ import java.util.function.Supplier;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 
 public abstract class AbstractOffhandMagicItem extends Item
-        implements IPresetSpellContainer, IJeiInfoItem, NonDamageableAnvilMergeItem {
+        implements IPresetSpellContainer, IJeiInfoItem, NonDamageableAnvilMergeItem, TranscendencePolicy {
     private static final double ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL = 0.02D;
     private static final double REFLUX_MANA_REGEN_PER_LEVEL = 0.05D;
     private static final double RESERVOIR_MAX_MANA_PER_LEVEL = 20.0D;

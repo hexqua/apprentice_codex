@@ -252,6 +252,11 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
+    public Handling transcendenceHandling() {
+        return Handling.DISABLED;
+    }
+
+    @Override
     public boolean canImbueSpell(SpellData spellData) {
         return spellData != SpellData.EMPTY && canImbueSpell(spellData.getSpell(), spellData.getLevel());
     }

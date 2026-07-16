@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
@@ -104,7 +105,8 @@ import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
         ItemTransformPreservingCastAnimationItem,
         BetterCombatOffhandDualWieldingPolicyItem, SwingTriggeredMagicItem, PriorityOffhandUseDeferringItem, IJeiInfoItem,
-        SneakSelectionUiItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget {
+        SneakSelectionUiItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
+        TranscendencePolicy {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.scrollcaster_gauntlet.desc_";
 
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
@@ -192,6 +194,11 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+
+    @Override
+    public boolean supportsDirectTranscendenceApplication() {
+        return false;
+    }
 
     public ScrollcasterGauntlet() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE).fireResistant());

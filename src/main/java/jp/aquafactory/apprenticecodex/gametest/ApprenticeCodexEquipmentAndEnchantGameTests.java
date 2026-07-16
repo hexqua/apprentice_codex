@@ -84,6 +84,26 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void transcendenceResolverUsesMaximumMatchingEventLevel(GameTestHelper helper) {
+        TranscendenceGameTestScenarios.resolverUsesMaximumMatchingEventLevel(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void transcendenceEventCollectsHeldArmorAndConfiguredCurios(GameTestHelper helper) {
+        TranscendenceGameTestScenarios.eventCollectsHeldArmorAndConfiguredCurios(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void transcendenceSpecialItemPoliciesStayExplicit(GameTestHelper helper) {
+        TranscendenceGameTestScenarios.specialItemPoliciesStayExplicit(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void transcendenceDirectApplicationTagMatchesPolicy(GameTestHelper helper) {
+        TranscendenceGameTestScenarios.directApplicationTagMatchesPolicy(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void copperSpellAmplifierStartsWithBallLightningAndStacksAttunement(GameTestHelper helper) {
         OffhandAndBetterCombatGameTestScenarios.copperSpellAmplifierStartsWithBallLightningAndStacksAttunement(helper);
     }
