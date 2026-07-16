@@ -936,6 +936,12 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void betterCombatHiddenNonOffhandMagicItemDoesNotApplyTranscendence(GameTestHelper helper) {
+        OffhandAndBetterCombatGameTestScenarios
+                .betterCombatHiddenNonOffhandMagicItemDoesNotApplyTranscendence(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void betterCombatSpellSelectionRescueUsesPhysicalOffhandInventoryStack(GameTestHelper helper) {
         OffhandAndBetterCombatGameTestScenarios.betterCombatSpellSelectionRescueUsesPhysicalOffhandInventoryStack(helper);
     }

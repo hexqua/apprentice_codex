@@ -81,8 +81,9 @@ final class TranscendenceGameTestScenarios {
             assertEventLevel(helper, player, spell, 2, "Mainhand policy item should participate");
             player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
 
-            player.setItemInHand(InteractionHand.OFF_HAND, createStack(ItemRegistry.MANA_FORCE_BLADE.get(), 2, spell));
-            assertEventLevel(helper, player, spell, 3, "Offhand policy item should participate");
+            player.setItemInHand(InteractionHand.OFF_HAND,
+                    createStack(ItemRegistry.COPPER_SPELL_AMPLIFIER.get(), 2, spell));
+            assertEventLevel(helper, player, spell, 3, "Offhand magic item should participate");
             player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
 
             var heldRobe = createStack(ItemRegistry.ENCHANTRESS_ROBE.get(), 3, spell);
@@ -171,7 +172,7 @@ final class TranscendenceGameTestScenarios {
         });
     }
 
-    private static ItemStack createStack(Item item, int transcendenceLevel, AbstractSpell... spells) {
+    static ItemStack createStack(Item item, int transcendenceLevel, AbstractSpell... spells) {
         var stack = new ItemStack(item);
         var mutable = ISpellContainer.create(Math.max(1, spells.length), true, false).mutableCopy();
         for (var index = 0; index < spells.length; ++index) {
@@ -188,7 +189,7 @@ final class TranscendenceGameTestScenarios {
         return stack.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get());
     }
 
-    private static void assertEventLevel(
+    static void assertEventLevel(
             GameTestHelper helper,
             FakePlayer player,
             AbstractSpell spell,
