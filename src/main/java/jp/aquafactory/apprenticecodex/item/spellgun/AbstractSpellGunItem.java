@@ -277,6 +277,14 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     @Override
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, level, lines, flag);
+        lines.add(Component.translatable(
+                "item." + ApprenticeCodex.MODID + ".common.spellgun.desc_1",
+                ImbueTooltipHelper.getAttackKeyName()
+        ).withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable(
+                "item." + ApprenticeCodex.MODID + ".common.spellgun.desc_2",
+                ImbueTooltipHelper.getUseKeyName()
+        ).withStyle(ChatFormatting.GRAY));
         appendSpellGunHelpTooltip(stack, lines);
     }
 
@@ -600,8 +608,14 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         }
 
         var spellData = spellContainer.getSpellAtIndex(0);
-        if (spellData == SpellData.EMPTY || !canImbueSpell(spellData)) {
+        if (spellData == SpellData.EMPTY) {
             sendNotImbuedError(player, stack);
+            BlockTargetingHelper.clearPendingServerTarget(player);
+            return false;
+        }
+
+        if (!canImbueSpell(spellData)) {
+            sendInvalidSpellError(player, stack, spellData);
             BlockTargetingHelper.clearPendingServerTarget(player);
             return false;
         }
@@ -657,7 +671,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         if (ammoItem != null && !isRecastCast(magicData, spell) && !SpellGunCastEvent.hasAmmo(player, player.getInventory(), ammoItem)) {
             if (player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
-                        Component.translatable("ui.apprenticecodex.missing_spell_gun_ammo", ammoItem.getDescription())
+                        Component.translatable("ui.apprenticecodex.spellgun.missing_ammo", ammoItem.getDescription())
                                 .withStyle(ChatFormatting.RED)
                 ));
             }
@@ -708,6 +722,20 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                 Component.translatable("ui.apprenticecodex.spellgun.not_imbued", stack.getHoverName())
                         .withStyle(ChatFormatting.RED)
         ));
+    }
+
+    private static void sendInvalidSpellError(ServerPlayer player, ItemStack stack, SpellData spellData) {
+        player.connection.send(new ClientboundSetActionBarTextPacket(
+                createInvalidSpellError(player, stack, spellData)
+        ));
+    }
+
+    private static Component createInvalidSpellError(Player player, ItemStack stack, SpellData spellData) {
+        return Component.translatable(
+                "ui.apprenticecodex.spellgun.invalid_spell",
+                spellData.getSpell().getDisplayName(player),
+                stack.getHoverName()
+        ).withStyle(ChatFormatting.RED);
     }
 
     @Override
@@ -910,6 +938,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ammo_title",
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ammo_none"
         );
+        ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
     }
 
     private List<Component> collectSpellGunAbilityTooltipSection() {

@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
@@ -26,6 +27,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -141,6 +143,62 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                             || containsTranslatableKey(diamondLines,
                             "item.apprenticecodex.spellgun.tooltip.ability_subtract_cooldown"),
                     "Diamond Spellcaster Gun should not show a cooldown adjustment ability");
+        });
+    }
+
+    static void spellcasterGunTooltipsUseCommonOperationDescriptions(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            for (var item : List.of(
+                    ItemRegistry.IRON_SPELLCASTER_GUN.get(),
+                    ItemRegistry.COPPER_SPELLCASTER_GUN.get(),
+                    ItemRegistry.GOLD_SPELLCASTER_GUN.get(),
+                    ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()
+            )) {
+                var stack = new ItemStack(item);
+                assertTooltipKeyAt(helper, stack, 0,
+                        "item.apprenticecodex.common.spellgun.desc_1",
+                        item.getDescriptionId() + " should show the common mainhand operation tooltip first");
+                assertTooltipKeyArgument(helper, stack, 0, "key.attack",
+                        item.getDescriptionId() + " should use the configured attack key name");
+                assertTooltipKeyAt(helper, stack, 1,
+                        "item.apprenticecodex.common.spellgun.desc_2",
+                        item.getDescriptionId() + " should show the common offhand operation tooltip second");
+                assertTooltipKeyArgument(helper, stack, 1, "key.use",
+                        item.getDescriptionId() + " should use the configured use key name");
+            }
+        });
+    }
+
+    static void spellcasterRoundTooltipsUseSharedKeys(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            for (var item : List.of(
+                    ItemRegistry.RAPID_SPELLCASTER_ROUND.get(),
+                    ItemRegistry.BASIC_SPELLCASTER_ROUND.get(),
+                    ItemRegistry.ARCANE_SPELLCASTER_ROUND.get(),
+                    ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get(),
+                    ItemRegistry.SPELL_DOMINATOR_ROUND.get()
+            )) {
+                assertTooltipKeyAt(helper, new ItemStack(item), 0,
+                        "item.apprenticecodex.common.round.desc",
+                        item.getDescriptionId() + " should use the common round tooltip");
+            }
+
+            assertTooltipKeyAt(helper, new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get()), 0,
+                    "item.apprenticecodex.multi_purpose_spell_round.desc",
+                    "Multi-purpose Spell Round should retain its dedicated tooltip");
+
+            for (var item : List.of(
+                    ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get(),
+                    ItemRegistry.EMPTY_BASIC_SPELLCASTER_CASING.get(),
+                    ItemRegistry.EMPTY_ARCANE_SPELLCASTER_CASING.get(),
+                    ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get(),
+                    ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get(),
+                    ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get()
+            )) {
+                assertTooltipKeyAt(helper, new ItemStack(item), 0,
+                        "item.apprenticecodex.common.empty_casing.desc",
+                        item.getDescriptionId() + " should use the common empty casing tooltip");
+            }
         });
     }
 
@@ -640,6 +698,38 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
         });
     }
 
+    static void invalidSpellgunSpellUsesDedicatedError(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractSpellGunItem) ItemRegistry.DIAMOND_SPELLCASTER_GUN.get();
+            var stack = new ItemStack(item);
+            var invalidSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
+            var container = ISpellContainer.create(1, false, false).mutableCopy();
+            container.addSpellAtIndex(invalidSpell, 1, 0, false);
+            ISpellContainer.set(stack, container.toImmutable());
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "spellgun_invalid_spell_error_test");
+            player.setItemInHand(InteractionHand.OFF_HAND, stack);
+            helper.assertFalse(item.tryTriggerImbuedSpell(player, InteractionHand.OFF_HAND, null),
+                    "Spellgun should reject a persisted spell that no longer meets its restrictions");
+
+            var spellData = ISpellContainer.get(stack).getSpellAtIndex(0);
+            var message = createInvalidSpellError(helper, player, stack, spellData);
+            assertTranslatableKey(helper, message, "ui.apprenticecodex.spellgun.invalid_spell",
+                    "Invalid Spellgun spell should use the dedicated error key");
+            var contents = (TranslatableContents) message.getContents();
+            var args = contents.getArgs();
+            helper.assertTrue(args.length == 2,
+                    "Invalid Spellgun error should contain spell and item arguments");
+            if (args.length == 2 && args[0] instanceof Component spellName && args[1] instanceof Component itemName) {
+                helper.assertTrue(invalidSpell.getDisplayName(player).getString().equals(spellName.getString()),
+                        "Invalid Spellgun error should include the invalid spell name");
+                helper.assertTrue(stack.getHoverName().getString().equals(itemName.getString()),
+                        "Invalid Spellgun error should include the Spellgun item name");
+            }
+        });
+    }
+
     static void spellgunCastAttemptPreservesExistingCast(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AbstractSpellGunItem) ItemRegistry.DIAMOND_SPELLCASTER_GUN.get();
@@ -703,6 +793,51 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
         } catch (ReflectiveOperationException exception) {
             helper.fail("Spellgun ability tooltip reflection failed: " + exception);
             return List.of();
+        }
+    }
+
+    private static void assertTooltipKeyArgument(
+            GameTestHelper helper,
+            ItemStack stack,
+            int tooltipIndex,
+            String expectedArgumentKey,
+            String message
+    ) {
+        var lines = new ArrayList<Component>();
+        stack.getItem().appendHoverText(stack, helper.getLevel(), lines, TooltipFlag.Default.NORMAL);
+        helper.assertTrue(lines.size() > tooltipIndex,
+                message + " (tooltip line count=" + lines.size() + ")");
+        if (lines.size() <= tooltipIndex
+                || !(lines.get(tooltipIndex).getContents() instanceof TranslatableContents contents)) {
+            return;
+        }
+
+        var args = contents.getArgs();
+        helper.assertTrue(args.length == 1 && args[0] instanceof Component,
+                message + " (unexpected argument count=" + args.length + ")");
+        if (args.length == 1 && args[0] instanceof Component keyName) {
+            assertTranslatableKey(helper, keyName, expectedArgumentKey, message);
+        }
+    }
+
+    private static Component createInvalidSpellError(
+            GameTestHelper helper,
+            Player player,
+            ItemStack stack,
+            SpellData spellData
+    ) {
+        try {
+            var method = AbstractSpellGunItem.class.getDeclaredMethod(
+                    "createInvalidSpellError",
+                    Player.class,
+                    ItemStack.class,
+                    SpellData.class
+            );
+            method.setAccessible(true);
+            return (Component) method.invoke(null, player, stack, spellData);
+        } catch (ReflectiveOperationException exception) {
+            helper.fail("Spellgun invalid spell error reflection failed: " + exception);
+            return Component.empty();
         }
     }
 
