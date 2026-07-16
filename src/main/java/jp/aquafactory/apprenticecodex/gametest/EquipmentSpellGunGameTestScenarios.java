@@ -1381,7 +1381,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                 context + " adjusted Spellgun offhand modifier should be 70 but got "
                         + matchingModifiers.get(0).amount());
         helper.assertTrue(matchingModifiers.get(0).id().equals(
-                        io.redspace.ironsspellbooks.util.UpgradeUtils.UUIDForSlot(EquipmentSlot.OFFHAND)),
+                        io.redspace.ironsspellbooks.IronsSpellbooks.id("offhand_upgrade_mana")),
                 context + " adjusted Spellgun Upgrade Orb should use the offhand ID");
     }
 
