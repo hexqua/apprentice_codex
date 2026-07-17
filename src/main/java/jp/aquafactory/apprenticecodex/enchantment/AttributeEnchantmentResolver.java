@@ -3,9 +3,12 @@ package jp.aquafactory.apprenticecodex.enchantment;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
+import net.minecraft.core.Holder;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 
 /**
  * Stack に存在する6種のエンチャントを、装備場所に依存しない modifier へ解決する。
@@ -17,8 +20,8 @@ public final class AttributeEnchantmentResolver {
     private AttributeEnchantmentResolver() {
     }
 
-    public static Multimap<Attribute, AttributeModifier> resolveMergedModifiers(
-            Multimap<Attribute, AttributeModifier> baseModifiers,
+    public static Multimap<Holder<Attribute>, AttributeModifier> resolveMergedModifiers(
+            Multimap<Holder<Attribute>, AttributeModifier> baseModifiers,
             ItemStack stack,
             String modifierSeedPrefix
     ) {
@@ -30,8 +33,8 @@ public final class AttributeEnchantmentResolver {
         );
     }
 
-    public static Multimap<Attribute, AttributeModifier> resolveMergedModifiers(
-            Multimap<Attribute, AttributeModifier> baseModifiers,
+    public static Multimap<Holder<Attribute>, AttributeModifier> resolveMergedModifiers(
+            Multimap<Holder<Attribute>, AttributeModifier> baseModifiers,
             ItemStack stack,
             String modifierSeedPrefix,
             AdditionalModifierAppender additionalModifierAppender
@@ -40,7 +43,7 @@ public final class AttributeEnchantmentResolver {
             return baseModifiers;
         }
 
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+        var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
         builder.putAll(baseModifiers);
         var hasAdditionalModifiers =
                 additionalModifierAppender.add(builder, stack, modifierSeedPrefix + ".stack");
@@ -56,7 +59,7 @@ public final class AttributeEnchantmentResolver {
     }
 
     public static boolean addModifiers(
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            ImmutableMultimap.Builder<Holder<Attribute>, AttributeModifier> builder,
             ItemStack stack,
             String modifierSeedPrefix
     ) {
@@ -89,10 +92,45 @@ public final class AttributeEnchantmentResolver {
         return added;
     }
 
+    public static boolean addModifiers(
+            ItemAttributeModifiers.Builder builder,
+            ItemStack stack,
+            EquipmentSlotGroup slotGroup,
+            String modifierSeedPrefix
+    ) {
+        if (stack == null || stack.isEmpty()
+                || !(stack.getItem() instanceof AttributeEnchantmentPolicy)) {
+            return false;
+        }
+
+        var added = false;
+        for (var type : AttributeEnchantmentType.values()) {
+            var level = type.getLevel(stack);
+            var attribute = type.resolveAttribute(stack);
+            if (level <= 0 || attribute == null) {
+                continue;
+            }
+
+            builder.add(
+                    attribute,
+                    new AttributeModifier(
+                            MagicAttributeModifierHelper.createModifierId(
+                                    modifierSeedPrefix + "." + type.modifierKey()
+                            ),
+                            level * type.amountPerLevel(),
+                            type.operation()
+                    ),
+                    slotGroup
+            );
+            added = true;
+        }
+        return added;
+    }
+
     @FunctionalInterface
     public interface AdditionalModifierAppender {
         boolean add(
-                ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+                ImmutableMultimap.Builder<Holder<Attribute>, AttributeModifier> builder,
                 ItemStack stack,
                 String modifierSeedPrefix
         );

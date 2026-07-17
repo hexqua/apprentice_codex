@@ -104,37 +104,6 @@ public final class ElementMaidenRobeStats {
         );
     }
 
-    static void addSurgeSpellPowerModifier(
-            ItemAttributeModifiers.Builder builder,
-            ArmorItem.Type type,
-            int level
-    ) {
-        MagicArmorAttributeHelper.addModifier(
-                builder,
-                AttributeRegistry.SPELL_POWER,
-                level * SURGE_SPELL_POWER_PER_LEVEL,
-                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                EquipmentSlotGroup.bySlot(type.getSlot()),
-                "element_maiden_robe_" + typeToken(type) + "_surge_spell_power"
-        );
-    }
-
-    static void addAttunementSpellPowerModifier(
-            ItemAttributeModifiers.Builder builder,
-            Holder<Attribute> attribute,
-            ArmorItem.Type type,
-            int level
-    ) {
-        MagicArmorAttributeHelper.addModifier(
-                builder,
-                attribute,
-                level * ATTUNEMENT_SPELL_POWER_PER_LEVEL,
-                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                EquipmentSlotGroup.bySlot(type.getSlot()),
-                "element_maiden_robe_" + typeToken(type) + "_attunement_spell_power"
-        );
-    }
-
     static String typeToken(ArmorItem.Type type) {
         return switch (type) {
             case HELMET -> "helmet";

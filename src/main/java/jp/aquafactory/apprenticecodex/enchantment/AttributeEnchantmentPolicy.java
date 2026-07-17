@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.enchantment;
 
+import net.minecraft.core.Holder;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.enchantment.Enchantment;
 
@@ -27,7 +28,7 @@ public interface AttributeEnchantmentPolicy {
                 && policy.supportsDirectAttributeEnchantment(type);
     }
 
-    static boolean supportsDirectApplication(Item item, Enchantment enchantment) {
+    static boolean supportsDirectApplication(Item item, Holder<Enchantment> enchantment) {
         return AttributeEnchantmentType.from(enchantment)
                 .map(type -> supportsDirectApplication(item, type))
                 .orElse(false);

@@ -105,6 +105,10 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
     private static final Map<LivingEntity, EnumMap<InteractionHand, ClientAnimationState>> CLIENT_ANIMATION_OWNERS = new WeakHashMap<>();
     private static long nextClientAnimationInstanceId = Long.MIN_VALUE;
     private static final ItemStack SHIELD_ENCHANTMENT_PROBE = new ItemStack(net.minecraft.world.item.Items.SHIELD);
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.TENSE
+    );
     private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation DEPLOY = RawAnimation.begin().thenPlayAndHold("deploy");
     private static final RawAnimation REMOVE_IDLE = RawAnimation.begin().thenPlay("remove").thenLoop("idle");
@@ -309,27 +313,29 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
 
     @Override
     public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
-        var equippedBase = OffhandMagicModifierHelper.buildEquippedModifiers(
+        var equippedBase = AttributeEnchantmentResolver.resolveMergedModifiers(
                 ImmutableMultimap.<Holder<Attribute>, AttributeModifier>of(), stack, "parrycast_buckler");
-        var builder = ItemAttributeModifiers.builder();
-        for (var entry : equippedBase.entries()) {
-            builder.add(entry.getKey(), entry.getValue(), net.minecraft.world.entity.EquipmentSlotGroup.OFFHAND);
-        }
+        var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
+        builder.putAll(equippedBase);
         Set<net.minecraft.resources.ResourceLocation> seen = new HashSet<>();
         for (int i = 0; i < CALIBRATION_ADJUSTMENT_SLOT_COUNT; i++) {
             var school = ScrollcasterSchoolRuneResolver.resolveSchool(readCalibrationAdjustment(stack, i)).orElse(null);
             if (school == null || !seen.add(school.getId())) continue;
             var attribute = MagicTools.resolveSchoolPowerAttribute(school);
             if (attribute != null) {
-                builder.add(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute), new AttributeModifier(
-                        SCHOOL_POWER_IDS[i], SCHOOL_POWER_BONUS, AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
-                        net.minecraft.world.entity.EquipmentSlotGroup.OFFHAND);
+                builder.put(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute), new AttributeModifier(
+                        SCHOOL_POWER_IDS[i], SCHOOL_POWER_BONUS, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
             }
         }
-        return MagicAttributeModifierHelper.mergeLinearMagicModifiers(
+        var merged = MagicAttributeModifierHelper.mergeLinearMagicModifiers(
                 builder.build(),
                 "apprenticecodex.parrycast_buckler.merged"
         );
+        var result = ItemAttributeModifiers.builder();
+        for (var entry : merged.entries()) {
+            result.add(entry.getKey(), entry.getValue(), net.minecraft.world.entity.EquipmentSlotGroup.OFFHAND);
+        }
+        return result.build();
     }
 
     public boolean handlePerfectGuard(ServerPlayer player, ItemStack stack, InteractionHand hand) {

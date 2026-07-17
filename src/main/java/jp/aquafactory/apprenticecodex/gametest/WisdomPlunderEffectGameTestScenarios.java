@@ -1,11 +1,13 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
-import jp.aquafactory.apprenticecodex.enchantment.PlunderLootingLevelEvent;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.enchantment.PlunderLootingEvent;
+import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
@@ -13,12 +15,8 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.event.entity.living.LootingLevelEvent;
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
 
 import java.util.List;
 import java.util.UUID;
@@ -29,17 +27,16 @@ final class WisdomPlunderEffectGameTestScenarios extends ApprenticeCodexGameTest
 
     static void newlyUnifiedHeldTargetsApplyWisdomAndPlunder(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var wisdomTargets = List.of(
+            for (var item : List.of(
                     ItemRegistry.FOCUS_STAFFBOW.get(),
                     ItemRegistry.CIRCUIT_HEAT_STAFF.get(),
                     ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                     ItemRegistry.SPELLCHARGED_GREATSWORD.get(),
                     ItemRegistry.ALCHEMISTS_FLASK.get()
-            );
-            for (var item : wisdomTargets) {
+            )) {
                 assertHeldWisdom(helper, item, true);
             }
-            assertHeldPlunder(helper, ItemRegistry.FOCUS_STAFFBOW.get());
+            assertActivePlunder(helper, ItemRegistry.FOCUS_STAFFBOW.get(), 2);
         });
     }
 
@@ -49,85 +46,73 @@ final class WisdomPlunderEffectGameTestScenarios extends ApprenticeCodexGameTest
             assertHeldWisdom(helper, ItemRegistry.ENCHANTED_CIRCLET.get(), false);
             assertHeldWisdom(helper, Items.STICK, false);
 
-            var level = helper.getLevel();
-            var armorPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_armor_policy_test"));
-            var robe = new ItemStack(ItemRegistry.ENCHANTRESS_ROBE.get());
-            robe.enchant(EnchantmentRegistry.WISDOM.get(), 1);
-            armorPlayer.setItemSlot(EquipmentSlot.CHEST, robe);
-            var armorEvent = new BlockEvent.BreakEvent(level, new BlockPos(1, 2, 0),
-                    Blocks.DIAMOND_ORE.defaultBlockState(), armorPlayer);
-            armorEvent.setExpToDrop(20);
-            WisdomExperienceDropEvent.onBlockBreak(armorEvent);
-            helper.assertTrue(armorEvent.getExpToDrop() == 21,
+            var player = new FakePlayer(helper.getLevel(),
+                    new GameProfile(UUID.randomUUID(), "wisdom_armor_policy_test"));
+            var robe = enchantedStack(helper, ItemRegistry.ENCHANTRESS_ROBE.get(), Enchantments.WISDOM, 1);
+            player.setItemSlot(EquipmentSlot.CHEST, robe);
+            var event = new LivingExperienceDropEvent(
+                    helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0)), player, 20
+            );
+            WisdomExperienceDropEvent.onLivingExperienceDrop(event);
+            helper.assertTrue(event.getDroppedExperience() == 21,
                     "Equipped Wisdom armor should apply the +5% equipment rate");
 
-            var unsupportedPlayer = new FakePlayer(level,
-                    new GameProfile(UUID.randomUUID(), "unsupported_plunder_policy_test"));
-            var unsupported = new ItemStack(Items.STICK);
-            unsupported.enchant(EnchantmentRegistry.PLUNDER.get(), 3);
-            unsupportedPlayer.setItemInHand(InteractionHand.MAIN_HAND, unsupported);
-            var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0));
-            var lootingEvent = new LootingLevelEvent(
-                    target,
-                    unsupportedPlayer.damageSources().playerAttack(unsupportedPlayer),
-                    0
-            );
-            PlunderLootingLevelEvent.onLootingLevel(lootingEvent);
-            helper.assertTrue(lootingEvent.getLootingLevel() == 0,
-                    "A forced Plunder enchantment on an unsupported item should not apply");
+            var unsupported = enchantedStack(helper, Items.STICK, Enchantments.PLUNDER, 3);
+            helper.assertTrue(PlunderLootingEvent.getActivePlunderLevel(unsupported) == 0,
+                    "Forced Plunder on an unsupported item must stay inactive");
         });
     }
 
     static void circuitHeatStaffKeepsVanillaLooting(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = new FakePlayer(helper.getLevel(),
-                    new GameProfile(UUID.randomUUID(), "circuit_heat_staff_looting_test"));
-            var stack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-            stack.enchant(Enchantments.MOB_LOOTING, 3);
-            stack.enchant(EnchantmentRegistry.PLUNDER.get(), 2);
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            var stack = enchantedStack(helper, ItemRegistry.CIRCUIT_HEAT_STAFF.get(), Enchantments.PLUNDER, 2);
+            helper.assertFalse(stack.getItem() instanceof PlunderTarget,
+                    "Circuit Heat Staff must not opt into Plunder's Looting conversion");
+            helper.assertTrue(PlunderLootingEvent.getActivePlunderLevel(stack) == 0,
+                    "Forced Plunder must remain inactive on Circuit Heat Staff");
 
-            var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 0));
-            var event = new LootingLevelEvent(target, player.damageSources().playerAttack(player), 3);
-            PlunderLootingLevelEvent.onLootingLevel(event);
-
-            helper.assertTrue(event.getLootingLevel() == 3,
-                    "Circuit Heat Staff should keep vanilla Looting and ignore forced Plunder");
+            var looting = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                    .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.LOOTING);
+            helper.assertTrue(stack.getItem().supportsEnchantment(stack, looting),
+                    "Circuit Heat Staff should keep vanilla Looting through the 1.21.1 sword tag");
         });
     }
 
     private static void assertHeldWisdom(GameTestHelper helper, Item item, boolean expectedActive) {
-        var level = helper.getLevel();
         for (var hand : InteractionHand.values()) {
-            var player = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "held_wisdom_policy_test"));
-            var stack = new ItemStack(item);
-            stack.enchant(EnchantmentRegistry.WISDOM.get(), 1);
-            player.setItemInHand(hand, stack);
-
-            var event = new BlockEvent.BreakEvent(level, new BlockPos(0, 2, 0),
-                    Blocks.DIAMOND_ORE.defaultBlockState(), player);
-            event.setExpToDrop(20);
-            WisdomExperienceDropEvent.onBlockBreak(event);
-            var expectedExperience = expectedActive ? 24 : 20;
-            helper.assertTrue(event.getExpToDrop() == expectedExperience,
-                    ForgeRegistries.ITEMS.getKey(item) + " " + hand + " Wisdom expected=" + expectedExperience
-                            + " actual=" + event.getExpToDrop());
+            var player = new FakePlayer(helper.getLevel(),
+                    new GameProfile(UUID.randomUUID(), "held_wisdom_policy_test"));
+            player.setItemInHand(hand, enchantedStack(helper, item, Enchantments.WISDOM, 1));
+            var event = new LivingExperienceDropEvent(
+                    helper.spawn(EntityType.ZOMBIE, new BlockPos(0, 2, 0)), player, 20
+            );
+            WisdomExperienceDropEvent.onLivingExperienceDrop(event);
+            // Better Combat が両手武器を論理 offhand から隠す場合は、通常の装備参照と同様に効果対象外となる。
+            var logicallyEquipped = !player.getItemInHand(hand).isEmpty();
+            var expectedExperience = expectedActive && logicallyEquipped ? 24 : 20;
+            helper.assertTrue(event.getDroppedExperience() == expectedExperience,
+                    item + " " + hand + " Wisdom expected=" + expectedExperience
+                            + " actual=" + event.getDroppedExperience());
         }
     }
 
-    private static void assertHeldPlunder(GameTestHelper helper, Item item) {
-        var level = helper.getLevel();
-        for (var hand : InteractionHand.values()) {
-            var player = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "held_plunder_policy_test"));
-            var stack = new ItemStack(item);
-            stack.enchant(EnchantmentRegistry.PLUNDER.get(), 2);
-            player.setItemInHand(hand, stack);
+    private static void assertActivePlunder(GameTestHelper helper, Item item, int expectedLevel) {
+        var stack = enchantedStack(helper, item, Enchantments.PLUNDER, expectedLevel);
+        helper.assertTrue(PlunderLootingEvent.getActivePlunderLevel(stack) == expectedLevel,
+                item + " should expose active Plunder level " + expectedLevel);
+    }
 
-            var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 0));
-            var event = new LootingLevelEvent(target, player.damageSources().playerAttack(player), 0);
-            PlunderLootingLevelEvent.onLootingLevel(event);
-            helper.assertTrue(event.getLootingLevel() == 2,
-                    ForgeRegistries.ITEMS.getKey(item) + " " + hand + " Plunder should set looting level to 2");
-        }
+    private static ItemStack enchantedStack(
+            GameTestHelper helper,
+            Item item,
+            net.minecraft.resources.ResourceKey<net.minecraft.world.item.enchantment.Enchantment> enchantmentKey,
+            int level
+    ) {
+        var stack = new ItemStack(item);
+        var enchantment = helper.getLevel().registryAccess()
+                .lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(enchantmentKey);
+        stack.enchant(enchantment, level);
+        return stack;
     }
 }

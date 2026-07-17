@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.enchantment;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -100,15 +99,15 @@ public final class PlunderLootingEvent {
     }
 
     private static int getApplicablePlunderLevel(Player player) {
-        // 遅延着弾する spell まで厳密追跡するのは重いため、撃破時の手持ち spell gun を見る緩め判定に寄せる.
+        // 遅延着弾する spell まで厳密追跡するのは重いため、撃破時の手持ち対象アイテムを見る緩め判定に寄せる。
         return Math.max(
-                getPlunderLevel(player.getMainHandItem()),
-                getPlunderLevel(player.getOffhandItem())
+                getActivePlunderLevel(player.getMainHandItem()),
+                getActivePlunderLevel(player.getOffhandItem())
         );
     }
 
-    private static int getPlunderLevel(ItemStack stack) {
-        if (stack.isEmpty() || !(stack.getItem() instanceof AbstractSpellGunItem)) {
+    public static int getActivePlunderLevel(ItemStack stack) {
+        if (stack.isEmpty() || !(stack.getItem() instanceof PlunderTarget)) {
             return 0;
         }
 

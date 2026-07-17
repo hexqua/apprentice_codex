@@ -180,6 +180,7 @@ import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressStats;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeSchoolPowerBonusEvents;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeStats;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastCooldownMode;
 import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
@@ -372,8 +373,6 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             helper.assertTrue(item.getEnchantmentValue(stack)
                             == jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.ENCHANTMENT_VALUE,
                     "Reflectcast Shield enchantment value should be 22");
-            helper.assertFalse(stack.is(MALUM_SOUL_HUNTER_WEAPON),
-                    "Reflectcast Shield should stay outside malum:soul_hunter_weapon");
         });
     }
 

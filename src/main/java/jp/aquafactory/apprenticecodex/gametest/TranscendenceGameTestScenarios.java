@@ -6,15 +6,17 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceResolver;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceSpellLevelEvent;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.util.FakePlayer;
+import net.minecraft.core.registries.Registries;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.List;
@@ -143,13 +145,20 @@ final class TranscendenceGameTestScenarios {
         }
         ISpellContainer.set(stack, mutable.toImmutable());
         if (transcendenceLevel > 0) {
-            stack.enchant(EnchantmentRegistry.TRANSCENDENCE.get(), transcendenceLevel);
+            var server = ServerLifecycleHooks.getCurrentServer();
+            if (server == null) {
+                throw new IllegalStateException("Transcendence GameTest requires a running server");
+            }
+            var transcendence = server.registryAccess()
+                    .lookupOrThrow(Registries.ENCHANTMENT)
+                    .getOrThrow(Enchantments.TRANSCENDENCE);
+            stack.enchant(transcendence, transcendenceLevel);
         }
         return stack;
     }
 
     private static int getTranscendenceLevel(ItemStack stack) {
-        return stack.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get());
+        return Enchantments.getLevel(stack, Enchantments.TRANSCENDENCE);
     }
 
     static void assertEventLevel(

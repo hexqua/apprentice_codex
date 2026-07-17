@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import io.redspace.ironsspellbooks.item.weapons.StaffItem;
 import io.redspace.ironsspellbooks.item.weapons.StaffTier;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffClientTooltip;
 import jp.aquafactory.apprenticecodex.renderer.item.ZenithStaffRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;

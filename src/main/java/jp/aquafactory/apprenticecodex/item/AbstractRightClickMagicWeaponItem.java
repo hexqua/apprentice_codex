@@ -49,7 +49,7 @@ import java.util.function.Predicate;
 
 public abstract class AbstractRightClickMagicWeaponItem extends Item
         implements IPresetSpellContainer, NonDamageableAnvilMergeItem, PriorityOffhandUseDeferringItem,
-        TranscendencePolicy {
+        TranscendencePolicy, WisdomPolicy {
     private static final Set<ResourceLocation> ALLOWED_MAGIC_ITEM_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "transcendence"),
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom")

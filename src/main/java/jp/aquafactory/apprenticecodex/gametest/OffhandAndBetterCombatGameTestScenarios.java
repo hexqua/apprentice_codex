@@ -256,6 +256,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.village.poi.PoiTypes;
@@ -1142,47 +1143,49 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             var genericCurio = new top.theillusivec4.curios.api.SlotContext(
                     "curio", wearer, 0, false, true
             );
-            var spellPower = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
+            var spellPower = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER;
 
             var headZeroStack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
-            headZeroStack.enchant(EnchantmentRegistry.SURGE.get(), 1);
+            var surge = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                    .getOrThrow(Enchantments.SURGE);
+            headZeroStack.enchant(surge, 1);
             var headOneStack = headZeroStack.copy();
             var genericCurioStack = headZeroStack.copy();
 
             var headZeroModifiers = item.getAttributeModifiers(
                             headZero,
-                            top.theillusivec4.curios.api.CuriosApi.getSlotUuid(headZero),
+                            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "gametest/curios/head_0"),
                             headZeroStack
                     ).get(spellPower).stream()
-                    .filter(modifier -> modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE)
+                    .filter(modifier -> modifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
                     .toList();
             var headOneModifiers = item.getAttributeModifiers(
                             headOne,
-                            top.theillusivec4.curios.api.CuriosApi.getSlotUuid(headOne),
+                            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "gametest/curios/head_1"),
                             headOneStack
                     ).get(spellPower).stream()
-                    .filter(modifier -> modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE)
+                    .filter(modifier -> modifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
                     .toList();
             var genericCurioModifierMap = item.getAttributeModifiers(
                     genericCurio,
-                    top.theillusivec4.curios.api.CuriosApi.getSlotUuid(genericCurio),
+                    ResourceLocation.fromNamespaceAndPath("apprenticecodex", "gametest/curios/generic_0"),
                     genericCurioStack
             );
             var genericCurioModifiers = genericCurioModifierMap.get(spellPower).stream()
-                    .filter(modifier -> modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE)
+                    .filter(modifier -> modifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
                     .toList();
 
             helper.assertTrue(headZeroModifiers.size() == 1
                             && headOneModifiers.size() == 1
                             && genericCurioModifiers.size() == 1,
                     "Every Curios slot should expose one Enchanted Circlet Surge modifier");
-            helper.assertFalse(headZeroModifiers.get(0).getId().equals(headOneModifiers.get(0).getId()),
-                    "Expanded head slots must use different Enchanted Circlet modifier UUIDs");
-            helper.assertFalse(headZeroModifiers.get(0).getId().equals(genericCurioModifiers.get(0).getId()),
-                    "Generic Curios slots must use different Enchanted Circlet modifier UUIDs");
+            helper.assertFalse(headZeroModifiers.get(0).id().equals(headOneModifiers.get(0).id()),
+                    "Expanded head slots must use different Enchanted Circlet modifier ids");
+            helper.assertFalse(headZeroModifiers.get(0).id().equals(genericCurioModifiers.get(0).id()),
+                    "Generic Curios slots must use different Enchanted Circlet modifier ids");
             helper.assertTrue(Math.abs(sumModifierAmount(
                             genericCurioModifierMap.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE),
-                            AttributeModifier.Operation.MULTIPLY_BASE) + 0.10D) < 1.0e-9D,
+                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE) + 0.10D) < 1.0e-9D,
                     "Generic Curios slot should retain the Enchanted Circlet attack damage penalty");
 
             var attributeInstance = new AttributeInstance(spellPower, unused -> {
@@ -1191,12 +1194,12 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             headOneModifiers.forEach(attributeInstance::addTransientModifier);
             genericCurioModifiers.forEach(attributeInstance::addTransientModifier);
             helper.assertTrue(Math.abs(sumModifierAmount(
-                            attributeInstance.getModifiers(), AttributeModifier.Operation.MULTIPLY_BASE) - 0.06D) < 1.0e-9D,
+                            attributeInstance.getModifiers(), AttributeModifier.Operation.ADD_MULTIPLIED_BASE) - 0.06D) < 1.0e-9D,
                     "Three Enchanted Circlet Surge modifiers should stack to 0.06");
 
-            headZeroModifiers.forEach(modifier -> attributeInstance.removeModifier(modifier.getId()));
+            headZeroModifiers.forEach(modifier -> attributeInstance.removeModifier(modifier.id()));
             helper.assertTrue(Math.abs(sumModifierAmount(
-                            attributeInstance.getModifiers(), AttributeModifier.Operation.MULTIPLY_BASE) - 0.04D) < 1.0e-9D,
+                            attributeInstance.getModifiers(), AttributeModifier.Operation.ADD_MULTIPLIED_BASE) - 0.04D) < 1.0e-9D,
                     "Removing one Enchanted Circlet should leave the other slot modifiers active");
         });
     }
@@ -1221,6 +1224,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             var circletStack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
             var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             circletStack.enchant(enchantmentLookup.getOrThrow(Enchantments.WISDOM), 1);
+            var backCircletStack = circletStack.copy();
 
             var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
                     .orElseThrow(() -> new IllegalStateException("Missing curios inventory for wisdom test"));
@@ -1229,8 +1233,9 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
 
             var withCirclet = new LivingExperienceDropEvent(helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0)), player, baseExperience);
             NeoForge.EVENT_BUS.post(withCirclet);
-            helper.assertTrue(withCirclet.getDroppedExperience() == 21,
-                    "Enchanted Circlet Wisdom should match armor rate (+5% at level 1) but got " + withCirclet.getDroppedExperience());
+            helper.assertTrue(withCirclet.getDroppedExperience() == 22,
+                    "Wisdom should include all equipped Curios slots (+10% for two level-1 circlets) but got "
+                            + withCirclet.getDroppedExperience());
 
             var roundedUp = new LivingExperienceDropEvent(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0)), player, 1);
             NeoForge.EVENT_BUS.post(roundedUp);

@@ -3,17 +3,19 @@ package jp.aquafactory.apprenticecodex.utility;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.attribute.IMagicAttribute;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraftforge.registries.ForgeRegistries;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 
 /**
  * Iron's の魔法 Attribute modifier を生成・線形合算する共通処理。
@@ -23,8 +25,8 @@ public final class MagicAttributeModifierHelper {
     }
 
     public static void addModifier(
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
-            Attribute attribute,
+            ImmutableMultimap.Builder<Holder<Attribute>, AttributeModifier> builder,
+            Holder<Attribute> attribute,
             double amount,
             AttributeModifier.Operation operation,
             String modifierIdSeed
@@ -33,12 +35,11 @@ public final class MagicAttributeModifierHelper {
             return;
         }
 
-        var modifierId = UUID.nameUUIDFromBytes(modifierIdSeed.getBytes(StandardCharsets.UTF_8));
-        builder.put(attribute, new AttributeModifier(modifierId, modifierIdSeed, amount, operation));
+        builder.put(attribute, new AttributeModifier(createModifierId(modifierIdSeed), amount, operation));
     }
 
-    public static Multimap<Attribute, AttributeModifier> mergeLinearMagicModifiers(
-            Multimap<Attribute, AttributeModifier> modifiers,
+    public static Multimap<Holder<Attribute>, AttributeModifier> mergeLinearMagicModifiers(
+            Multimap<Holder<Attribute>, AttributeModifier> modifiers,
             String modifierSeedPrefix
     ) {
         if (modifiers.isEmpty()) {
@@ -46,21 +47,21 @@ public final class MagicAttributeModifierHelper {
         }
 
         var merged = new LinkedHashMap<MergeTarget, Double>();
-        var passthrough = new ArrayList<Map.Entry<Attribute, AttributeModifier>>();
+        var passthrough = new ArrayList<Map.Entry<Holder<Attribute>, AttributeModifier>>();
         for (var entry : modifiers.entries()) {
             var modifier = entry.getValue();
-            var operation = modifier.getOperation();
-            if (!(entry.getKey() instanceof IMagicAttribute)
-                    || (operation != AttributeModifier.Operation.ADDITION
-                    && operation != AttributeModifier.Operation.MULTIPLY_BASE)) {
+            var operation = modifier.operation();
+            if (!(entry.getKey().value() instanceof IMagicAttribute)
+                    || (operation != AttributeModifier.Operation.ADD_VALUE
+                    && operation != AttributeModifier.Operation.ADD_MULTIPLIED_BASE)) {
                 passthrough.add(entry);
                 continue;
             }
 
-            merged.merge(new MergeTarget(entry.getKey(), operation), modifier.getAmount(), Double::sum);
+            merged.merge(new MergeTarget(entry.getKey(), operation), modifier.amount(), Double::sum);
         }
 
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+        var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
         for (var entry : merged.entrySet()) {
             var target = entry.getKey();
             var amount = entry.getValue();
@@ -78,9 +79,17 @@ public final class MagicAttributeModifierHelper {
         return builder.build();
     }
 
-    private static String resolveAttributeToken(Attribute attribute) {
-        var registryKey = ForgeRegistries.ATTRIBUTES.getKey(attribute);
+    private static String resolveAttributeToken(Holder<Attribute> attribute) {
+        var registryKey = attribute.unwrapKey().map(ResourceKey::location).orElseGet(() ->
+                BuiltInRegistries.ATTRIBUTE.getKey(attribute.value()));
         return registryKey == null ? "unknown" : normalizeKeyToken(registryKey.toString());
+    }
+
+    public static ResourceLocation createModifierId(String seed) {
+        return ResourceLocation.fromNamespaceAndPath(
+                ApprenticeCodex.MODID,
+                normalizeKeyToken(seed).replace('.', '/')
+        );
     }
 
     private static String normalizeKeyToken(String token) {
@@ -91,6 +100,6 @@ public final class MagicAttributeModifierHelper {
                 .replaceAll("[^a-z0-9._-]", "_");
     }
 
-    private record MergeTarget(Attribute attribute, AttributeModifier.Operation operation) {
+    private record MergeTarget(Holder<Attribute> attribute, AttributeModifier.Operation operation) {
     }
 }

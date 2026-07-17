@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
 import jp.aquafactory.apprenticecodex.item.offhand.OffhandMagicModifierHelper;
 import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -19,7 +20,6 @@ import net.minecraft.world.item.Rarity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
-import java.util.UUID;
 
 public class EnchantedCirclet extends AbstractCircletItem
         implements NonDamageableAnvilMergeItem, OffhandMagicCompatibleItem, TranscendencePolicy,
@@ -59,16 +59,15 @@ public class EnchantedCirclet extends AbstractCircletItem
     }
 
     @Override
-    protected void addAdditionalHeadModifiers(
+    protected void addAdditionalModifiers(
             ImmutableMultimap.Builder<Holder<Attribute>, AttributeModifier> builder,
-            SlotContext slotContext,
             ItemStack stack,
-            UUID slotUuid
+            ResourceLocation slotId
     ) {
         builder.putAll(AttributeEnchantmentResolver.resolveMergedModifiers(
                 ImmutableMultimap.of(),
                 stack,
-                "apprenticecodex." + ITEM_KEY + "." + slotUuid
+                "apprenticecodex." + ITEM_KEY + "." + slotId
         ));
     }
 }

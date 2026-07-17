@@ -1793,7 +1793,7 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void spellchargedGreatswordKeepsExpectedStatsAndTags(GameTestHelper helper) {
-        EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordKeepsExpectedStatsAndTags(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordKeepsExpectedStatsTagsAndEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1866,7 +1866,7 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void scrollcasterGauntletKeepsExpectedStatsAndBenchRules(GameTestHelper helper) {
-        EquipmentEnchantmentSurfaceGameTestScenarios.scrollcasterGauntletKeepsExpectedStatsAndBenchRules(helper);
+        EquipmentEnchantmentSurfaceGameTestScenarios.scrollcasterGauntletKeepsExpectedStatsAndBenchEnchantingRules(helper);
     }
 
     @GameTest(template = TEMPLATE)
