@@ -84,6 +84,24 @@ public final class TagRegistry {
                 createItemTag("spell_autonomy_card_crafting_materials");
         public static final TagKey<Item> MANA_MENDING_DENYLIST =
                 createItemTag("mana_mending_denylist");
+        public static final TagKey<Item> ENCHANTABLE_TRANSCENDENCE =
+                createItemTag("enchantable/transcendence");
+        public static final TagKey<Item> ENCHANTABLE_WISDOM =
+                createItemTag("enchantable/wisdom");
+        public static final TagKey<Item> ENCHANTABLE_PLUNDER =
+                createItemTag("enchantable/plunder");
+        public static final TagKey<Item> ENCHANTABLE_ALACRITY =
+                createItemTag("enchantable/alacrity");
+        public static final TagKey<Item> ENCHANTABLE_REFLUX =
+                createItemTag("enchantable/reflux");
+        public static final TagKey<Item> ENCHANTABLE_RESERVOIR =
+                createItemTag("enchantable/reservoir");
+        public static final TagKey<Item> ENCHANTABLE_SURGE =
+                createItemTag("enchantable/surge");
+        public static final TagKey<Item> ENCHANTABLE_ATTUNEMENT =
+                createItemTag("enchantable/attunement");
+        public static final TagKey<Item> ENCHANTABLE_TENSE =
+                createItemTag("enchantable/tense");
     }
 
     public static final class EntityTypes {

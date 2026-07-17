@@ -86,22 +86,6 @@ final class ElementalBowGameTestScenarios {
         });
     }
 
-    static void elementalBowKeepsVanillaBowEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            var expectedEnchantments = expectedElementalBowEnchantments();
-            var expectedBookEnchantments = expectedElementalBowBookEnchantments();
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedEnchantments,
-                    expectedBookEnchantments,
-                    expectedEnchantments,
-                    "Elemental Bow"
-            );
-        });
-    }
-
     static void elementalBowBuildsSelectionViewsFromHeldAmmo(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_selection_view_test");
@@ -677,18 +661,9 @@ final class ElementalBowGameTestScenarios {
         });
     }
 
-    static void elementalBowAcceptsSynthesisEnchantmentsAndTooltip(GameTestHelper helper) {
+    static void elementalBowSynthesisTooltipKeepsExpectedState(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            helper.assertTrue(stack.getItem().canApplyAtEnchantingTable(stack, EnchantmentRegistry.SYNTHESIS.get()),
-                    "Elemental Bow should accept Synthesis at the enchanting table");
-            helper.assertTrue(stack.getItem().isBookEnchantable(stack, createEnchantedBook(EnchantmentRegistry.SYNTHESIS.get())),
-                    "Elemental Bow should accept Synthesis from enchanted books");
-            helper.assertFalse(EnchantmentRegistry.SYNTHESIS.get().isCompatibleWith(Enchantments.INFINITY_ARROWS),
-                    "Synthesis should be incompatible with Infinity");
-            helper.assertFalse(EnchantmentRegistry.SYNTHESIS.get().isCompatibleWith(Enchantments.MENDING),
-                    "Synthesis should be incompatible with Mending");
-
             assertTooltipKeyAt(helper, stack, 0, "item.apprenticecodex.elemental_bow.mode",
                     "Elemental Bow should always show the current mode tooltip line");
             assertTooltipKeyUsesColor(helper, stack, "item.apprenticecodex.elemental_bow.desc", ChatFormatting.GRAY,

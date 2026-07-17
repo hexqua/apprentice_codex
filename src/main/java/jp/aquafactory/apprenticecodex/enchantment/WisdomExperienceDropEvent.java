@@ -1,8 +1,6 @@
 package jp.aquafactory.apprenticecodex.enchantment;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
-import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -82,7 +80,7 @@ public final class WisdomExperienceDropEvent {
         var wisdom = EnchantmentRegistry.WISDOM.get();
         var totalLevel = 0;
         for (var stack : player.getArmorSlots()) {
-            if (!stack.isEmpty()) {
+            if (!stack.isEmpty() && stack.getItem() instanceof WisdomPolicy) {
                 totalLevel += stack.getEnchantmentLevel(wisdom);
             }
         }
@@ -92,17 +90,17 @@ public final class WisdomExperienceDropEvent {
     private static int getApplicableCurioWisdomLevel(Player player) {
         var wisdom = EnchantmentRegistry.WISDOM.get();
         return CuriosApi.getCuriosInventory(player)
-                .map(inventory -> inventory.findCurios(stack -> stack.getItem() instanceof OffhandMagicCompatibleItem))
+                .map(inventory -> inventory.findCurios(stack -> stack.getItem() instanceof WisdomPolicy))
                 .orElse(List.of())
                 .stream()
-                .filter(slotResult -> CuriosSlotConstants.HEAD.equals(slotResult.slotContext().identifier()))
                 .mapToInt(slotResult -> slotResult.stack().getEnchantmentLevel(wisdom))
                 .sum();
     }
 
     private static int getHeldWisdomLevel(ItemStack stack) {
         if (stack.isEmpty()
-                || !MagicItemEnchantmentTargeting.isSupportedHeldWisdomMagicItem(stack.getItem())) {
+                || !(stack.getItem() instanceof WisdomPolicy policy)
+                || !policy.isWisdomActiveWhileHeld()) {
             return 0;
         }
 

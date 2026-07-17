@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.smashcastscepter;
 
+import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
@@ -56,7 +57,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
-        implements GeoItem, RestrictedSpellImbuableItem, IJeiInfoItem {
+        implements GeoItem, RestrictedSpellImbuableItem, IJeiInfoItem, PlunderTarget {
     public static final double ATTACK_DAMAGE_MODIFIER = 5.0D;
     public static final double ATTACK_SPEED_MODIFIER = -3.4D;
     public static final float SMASH_ATTACK_FALL_DISTANCE_THRESHOLD = 1.5F;

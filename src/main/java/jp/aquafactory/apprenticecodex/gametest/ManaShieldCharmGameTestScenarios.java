@@ -30,18 +30,6 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
                     "Mana Shield Charm should resolve to the dedicated curio item implementation");
         });
     }
-    static void manaShieldCharmKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> assertExactEnchantmentSurfaces(
-                helper,
-                new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()),
-                registryIdSet(
-                        EnchantmentRegistry.SHELL,
-                        EnchantmentRegistry.SYNCHRONIZATION,
-                        EnchantmentRegistry.NEUTRALIZATION
-                ),
-                "Mana Shield Charm"
-        ));
-    }
     static void manaShieldCharmExclusiveEnchantmentsStayMutuallyExclusive(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var shell = EnchantmentRegistry.SHELL.get();

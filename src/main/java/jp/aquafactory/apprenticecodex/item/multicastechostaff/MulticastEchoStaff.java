@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.multicastechostaff;
 
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
@@ -27,7 +28,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.function.Consumer;
 
-public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem {
+public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem, WisdomPolicy {
     private static final StaffTier MULTICAST_ECHO_STAFF_TIER = new StaffTier(
             3.0F,
             -3.0F,

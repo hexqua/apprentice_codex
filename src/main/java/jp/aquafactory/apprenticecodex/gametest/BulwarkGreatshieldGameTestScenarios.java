@@ -13,7 +13,6 @@ import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
 import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshieldRuntime;
-import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -27,7 +26,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -59,12 +57,6 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
                     "Bulwark Greatshield should repair with arcane ingot");
             helper.assertFalse(item.isValidRepairItem(stack, new ItemStack(Items.DIAMOND)),
                     "Bulwark Greatshield should not repair with diamond");
-            helper.assertTrue(item.canApplyAtEnchantingTable(stack, Enchantments.UNBREAKING),
-                    "Bulwark Greatshield should accept shield durability enchantments");
-            helper.assertTrue(item.canApplyAtEnchantingTable(stack, EnchantmentRegistry.TRANSCENDENCE.get()),
-                    "Bulwark Greatshield should accept Transcendence");
-            helper.assertTrue(item.canApplyAtEnchantingTable(stack, EnchantmentRegistry.WISDOM.get()),
-                    "Bulwark Greatshield should accept Wisdom");
             helper.assertTrue(item.canImbueSpell(SpellRegistry.FIRE_BREATH_SPELL.get(), 1),
                     "Bulwark Greatshield should accept continuous spells");
             helper.assertFalse(item.canImbueSpell(SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1),

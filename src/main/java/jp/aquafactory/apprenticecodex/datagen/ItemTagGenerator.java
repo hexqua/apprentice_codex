@@ -1,6 +1,11 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
+import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
@@ -18,6 +23,7 @@ import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public final class ItemTagGenerator extends ItemTagsProvider {
@@ -118,9 +124,39 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ZENITH_STAFF.get()
         );
 
+        var transcendenceEnchantableTag = tag(TagRegistry.Items.ENCHANTABLE_TRANSCENDENCE);
+        var wisdomEnchantableTag = tag(TagRegistry.Items.ENCHANTABLE_WISDOM);
+        var plunderEnchantableTag = tag(TagRegistry.Items.ENCHANTABLE_PLUNDER);
+        var attributeEnchantableTags = Map.of(
+                AttributeEnchantmentType.ALACRITY, tag(TagRegistry.Items.ENCHANTABLE_ALACRITY),
+                AttributeEnchantmentType.REFLUX, tag(TagRegistry.Items.ENCHANTABLE_REFLUX),
+                AttributeEnchantmentType.RESERVOIR, tag(TagRegistry.Items.ENCHANTABLE_RESERVOIR),
+                AttributeEnchantmentType.SURGE, tag(TagRegistry.Items.ENCHANTABLE_SURGE),
+                AttributeEnchantmentType.ATTUNEMENT, tag(TagRegistry.Items.ENCHANTABLE_ATTUNEMENT),
+                AttributeEnchantmentType.TENSE, tag(TagRegistry.Items.ENCHANTABLE_TENSE)
+        );
+
         // 所謂魔法武器全般を自動で登録するようにする.
         for (RegistryObject<Item> itemEntry : ItemRegistry.ITEMS.getEntries()) {
             var item = itemEntry.get();
+            if (TranscendencePolicy.supportsDirectApplication(item)) {
+                // 1.21.1 側では enchantment JSON の supported_items / primary_items からこのタグを参照する。
+                transcendenceEnchantableTag.add(item);
+            }
+            if (WisdomPolicy.supportsDirectApplication(item)) {
+                // 1.21.1 側では enchantment JSON の supported_items / primary_items からこのタグを参照する。
+                wisdomEnchantableTag.add(item);
+            }
+            if (PlunderTarget.supportsDirectApplication(item)) {
+                // 1.21.1 側では enchantment JSON の supported_items / primary_items からこのタグを参照する。
+                plunderEnchantableTag.add(item);
+            }
+            for (var type : AttributeEnchantmentType.values()) {
+                if (AttributeEnchantmentPolicy.supportsDirectApplication(item, type)) {
+                    // 1.21.1 側では各 enchantment JSON の supported_items / primary_items から参照する。
+                    attributeEnchantableTags.get(type).add(item);
+                }
+            }
             if (item instanceof AbstractOffhandMagicItem
                     || item instanceof AbstractSpellGunItem
                     || item instanceof AbstractRightClickMagicWeaponItem) {

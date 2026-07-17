@@ -484,7 +484,7 @@
   "enchantment.apprenticecodex.tense.desc": "减少法术施法时间（持续施法类法术施法时间延长）。",
   "enchantment.apprenticecodex.surge.desc": "提升全元素法术强度。",
   "enchantment.apprenticecodex.attunement.desc": "提升注入元素的法术强度。",
-  "enchantment.apprenticecodex.transcendence.desc": "手持时，提升注入法术的等级。",
+  "enchantment.apprenticecodex.transcendence.desc": "装备时，提升该物品所持有法术的等级。",
   "enchantment.apprenticecodex.wisdom.desc": "击杀生物或挖掘矿石时获得更多经验。",
   "enchantment.apprenticecodex.plunder.desc": "使用魔法武器击杀生物时获得更多掉落物。",
   "enchantment.apprenticecodex.guzzle.desc": "提升饮用烧瓶的速度。",

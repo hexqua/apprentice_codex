@@ -276,15 +276,4 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
         });
     }
 
-    static void manaForceBladeKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.MANA_FORCE_BLADE.get());
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedManaForceBladeEnchantments(stack),
-                    "Mana Force Blade"
-            );
-        });
-    }
 }

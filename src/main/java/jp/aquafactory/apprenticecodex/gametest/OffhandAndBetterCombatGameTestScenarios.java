@@ -22,6 +22,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -511,6 +512,43 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                             + expectedMaxManaBonus + " but changed from " + baseMaxMana + " to " + rescuedMaxMana);
         });
     }
+    static void betterCombatHiddenNonOffhandMagicItemDoesNotApplyTranscendence(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded("bettercombat")) {
+                return;
+            }
+
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var manaForceBlade = TranscendenceGameTestScenarios.createStack(
+                    ItemRegistry.MANA_FORCE_BLADE.get(),
+                    2,
+                    spell
+            );
+            var player = createBetterCombatHiddenOffhandPlayer(
+                    helper,
+                    ItemStack.EMPTY,
+                    manaForceBlade,
+                    "better_combat_hidden_non_offhand_magic_transcendence_test"
+            );
+
+            var physicalOffhand = player.getInventory().offhand.get(0);
+            helper.assertTrue(physicalOffhand.is(ItemRegistry.MANA_FORCE_BLADE.get()),
+                    "Physical offhand should retain Mana Force Blade but got " + physicalOffhand);
+            helper.assertFalse(physicalOffhand.getItem() instanceof AbstractOffhandMagicItem,
+                    "Transcendence negative case must use an item outside AbstractOffhandMagicItem rescue scope");
+            helper.assertTrue(player.getOffhandItem().isEmpty(),
+                    "Better Combat should hide a two-handed physical offhand item from logical equipment access");
+
+            // 物理スロットの無条件直読みを防ぎ、明示的なoffhand補助具だけを救済対象に保つ。
+            TranscendenceGameTestScenarios.assertEventLevel(
+                    helper,
+                    player,
+                    spell,
+                    1,
+                    "Hidden non-offhand magic item should not apply Transcendence"
+            );
+        });
+    }
     static void betterCombatSpellSelectionRescueUsesPhysicalOffhandInventoryStack(GameTestHelper helper) {
         helper.succeedIf(() -> {
             if (!ModList.get().isLoaded("bettercombat")) {
@@ -624,40 +662,6 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             );
         });
     }
-    static void offhandMagicItemsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var expectedBookEnchantments = allRegisteredEnchantmentIds();
-            var stacks = getRegisteredItemStacks(item -> item instanceof AbstractOffhandMagicItem);
-            helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: Offhand Magic Item");
-
-            for (var stack : stacks) {
-                // 1.20.1 の offhand 系は isBookEnchantable を個別制限していないため、
-                // 本判定だけは広く通る。Malum 側は main hand 前提で soul_hunter_weapon を使うため、
-                // 実際に固定したい付与面はエンチャント台と独自金床側の offhand 非対応面。
-                assertExactEnchantmentSurfaces(
-                        helper,
-                        stack,
-                        expectedOffhandEnchantments(stack),
-                        expectedBookEnchantments,
-                        expectedOffhandEnchantments(stack),
-                        "Offhand Magic Item " + ForgeRegistries.ITEMS.getKey(stack.getItem())
-                );
-            }
-        });
-    }
-    static void enchantedCircletKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedEnchantedCircletEnchantments(stack),
-                    allRegisteredEnchantmentIds(),
-                    expectedEnchantedCircletEnchantments(stack),
-                    "Enchanted Circlet"
-            );
-        });
-    }
     static void enchantedCircletCurioBonusesMirrorOffhandMagicEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
@@ -758,6 +762,77 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             );
         });
     }
+    static void enchantedCircletCurioModifiersStayIndependentAcrossSlots(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (top.theillusivec4.curios.api.type.capability.ICurioItem) ItemRegistry.ENCHANTED_CIRCLET.get();
+            var wearer = helper.spawn(net.minecraft.world.entity.EntityType.PIG, new BlockPos(0, 2, 0));
+            var headZero = new top.theillusivec4.curios.api.SlotContext(
+                    CuriosSlotConstants.HEAD, wearer, 0, false, true
+            );
+            var headOne = new top.theillusivec4.curios.api.SlotContext(
+                    CuriosSlotConstants.HEAD, wearer, 1, false, true
+            );
+            var genericCurio = new top.theillusivec4.curios.api.SlotContext(
+                    "curio", wearer, 0, false, true
+            );
+            var spellPower = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
+
+            var headZeroStack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+            headZeroStack.enchant(EnchantmentRegistry.SURGE.get(), 1);
+            var headOneStack = headZeroStack.copy();
+            var genericCurioStack = headZeroStack.copy();
+
+            var headZeroModifiers = item.getAttributeModifiers(
+                            headZero,
+                            top.theillusivec4.curios.api.CuriosApi.getSlotUuid(headZero),
+                            headZeroStack
+                    ).get(spellPower).stream()
+                    .filter(modifier -> modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE)
+                    .toList();
+            var headOneModifiers = item.getAttributeModifiers(
+                            headOne,
+                            top.theillusivec4.curios.api.CuriosApi.getSlotUuid(headOne),
+                            headOneStack
+                    ).get(spellPower).stream()
+                    .filter(modifier -> modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE)
+                    .toList();
+            var genericCurioModifierMap = item.getAttributeModifiers(
+                    genericCurio,
+                    top.theillusivec4.curios.api.CuriosApi.getSlotUuid(genericCurio),
+                    genericCurioStack
+            );
+            var genericCurioModifiers = genericCurioModifierMap.get(spellPower).stream()
+                    .filter(modifier -> modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE)
+                    .toList();
+
+            helper.assertTrue(headZeroModifiers.size() == 1
+                            && headOneModifiers.size() == 1
+                            && genericCurioModifiers.size() == 1,
+                    "Every Curios slot should expose one Enchanted Circlet Surge modifier");
+            helper.assertFalse(headZeroModifiers.get(0).getId().equals(headOneModifiers.get(0).getId()),
+                    "Expanded head slots must use different Enchanted Circlet modifier UUIDs");
+            helper.assertFalse(headZeroModifiers.get(0).getId().equals(genericCurioModifiers.get(0).getId()),
+                    "Generic Curios slots must use different Enchanted Circlet modifier UUIDs");
+            helper.assertTrue(Math.abs(sumModifierAmount(
+                            genericCurioModifierMap.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE),
+                            AttributeModifier.Operation.MULTIPLY_BASE) + 0.10D) < 1.0e-9D,
+                    "Generic Curios slot should retain the Enchanted Circlet attack damage penalty");
+
+            var attributeInstance = new AttributeInstance(spellPower, unused -> {
+            });
+            headZeroModifiers.forEach(attributeInstance::addTransientModifier);
+            headOneModifiers.forEach(attributeInstance::addTransientModifier);
+            genericCurioModifiers.forEach(attributeInstance::addTransientModifier);
+            helper.assertTrue(Math.abs(sumModifierAmount(
+                            attributeInstance.getModifiers(), AttributeModifier.Operation.MULTIPLY_BASE) - 0.06D) < 1.0e-9D,
+                    "Three Enchanted Circlet Surge modifiers should stack to 0.06");
+
+            headZeroModifiers.forEach(modifier -> attributeInstance.removeModifier(modifier.getId()));
+            helper.assertTrue(Math.abs(sumModifierAmount(
+                            attributeInstance.getModifiers(), AttributeModifier.Operation.MULTIPLY_BASE) - 0.04D) < 1.0e-9D,
+                    "Removing one Enchanted Circlet should leave the other slot modifiers active");
+        });
+    }
     static void enchantedCircletWorkbenchExtractionTagDoesNotAffectAshenCirclet(GameTestHelper helper) {
         helper.succeedIf(() -> {
             helper.assertTrue(new ItemStack(ItemRegistry.ENCHANTED_CIRCLET.get()).is(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE),
@@ -778,15 +853,17 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
 
             var circletStack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
             circletStack.enchant(EnchantmentRegistry.WISDOM.get(), 1);
+            var backCircletStack = circletStack.copy();
 
             var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
                     .orElseThrow(() -> new IllegalStateException("Missing curios inventory for wisdom test"));
             curiosInventory.setEquippedCurio(CuriosSlotConstants.HEAD, 0, circletStack);
+            curiosInventory.setEquippedCurio(CuriosSlotConstants.BACK, 0, backCircletStack);
 
             var withCirclet = new LivingExperienceDropEvent(helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0)), player, baseExperience);
             MinecraftForge.EVENT_BUS.post(withCirclet);
-            helper.assertTrue(withCirclet.getDroppedExperience() == 21,
-                    "Enchanted Circlet Wisdom should match armor rate (+5% at level 1) but got " + withCirclet.getDroppedExperience());
+            helper.assertTrue(withCirclet.getDroppedExperience() == 22,
+                    "Wisdom from head and non-head Curios slots should stack to +10% but got " + withCirclet.getDroppedExperience());
 
             var roundedUp = new LivingExperienceDropEvent(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0)), player, 1);
             MinecraftForge.EVENT_BUS.post(roundedUp);

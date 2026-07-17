@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.armor;
 
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
@@ -40,7 +41,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetSpellContainer {
+public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetSpellContainer, WisdomPolicy {
     private static final ResourceLocation ARMOR_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/stealth_rune_armor.png");
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
@@ -54,6 +55,11 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
         this.armorType = type;
         this.armorAttributeModifiers = StealthRuneArmorStats.createAttributeModifiers(type);
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public boolean isWisdomActiveWhileHeld() {
+        return false;
     }
 
     public boolean hasImbueSlot() {

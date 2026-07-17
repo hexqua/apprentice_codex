@@ -2,19 +2,26 @@ package jp.aquafactory.apprenticecodex.item.curios.circlets;
 
 import com.google.common.collect.ImmutableMultimap;
 import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
-import jp.aquafactory.apprenticecodex.item.offhand.OffhandMagicModifierHelper;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import org.jetbrains.annotations.NotNull;
-import top.theillusivec4.curios.api.SlotContext;
+
+import java.util.Set;
+import java.util.UUID;
 
 public class EnchantedCirclet extends AbstractCircletItem
-        implements NonDamageableAnvilMergeItem, OffhandMagicCompatibleItem {
+        implements NonDamageableAnvilMergeItem, OffhandMagicCompatibleItem, TranscendencePolicy,
+        AttributeEnchantmentPolicy, WisdomPolicy {
     private static final String ITEM_KEY = "enchanted_circlet";
     private static final AttributeContainer[] CIRCLET_ATTRIBUTES = {
             new AttributeContainer(
@@ -29,26 +36,36 @@ public class EnchantedCirclet extends AbstractCircletItem
     }
 
     @Override
+    public boolean isWisdomActiveWhileHeld() {
+        return false;
+    }
+
+    @Override
     public int getEnchantmentValue(ItemStack stack) {
-        return OffhandMagicModifierHelper.enchantmentValue();
+        // todo:バランス調整でもうちょっとエンチャント適性を上げる.
+        return 1;
     }
 
     @Override
     public boolean isEnchantable(@NotNull ItemStack stack) {
-        return OffhandMagicModifierHelper.isEnchantable(stack);
+        return getEnchantmentValue(stack) > 0;
     }
 
     @Override
-    protected void addAdditionalHeadModifiers(
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return ALL_ATTRIBUTE_ENCHANTMENTS;
+    }
+
+    @Override
+    protected void addAdditionalModifiers(
             ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
-            SlotContext slotContext,
             ItemStack stack,
-            String modifierSlotName
+            UUID slotUuid
     ) {
-        builder.putAll(OffhandMagicModifierHelper.buildEquippedModifiers(
+        builder.putAll(AttributeEnchantmentResolver.resolveMergedModifiers(
                 ImmutableMultimap.of(),
                 stack,
-                ITEM_KEY
+                "apprenticecodex." + ITEM_KEY + "." + slotUuid
         ));
     }
 }

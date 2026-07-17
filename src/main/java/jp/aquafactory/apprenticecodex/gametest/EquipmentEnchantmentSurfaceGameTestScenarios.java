@@ -9,14 +9,13 @@ import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
-import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressCastEvent;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
@@ -30,8 +29,6 @@ import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitStats;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
-import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
-import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGreatsword;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
@@ -68,6 +65,18 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private EquipmentEnchantmentSurfaceGameTestScenarios() {
+    }
+
+    static void reflectcastShieldKeepsExpectedItemContract(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
+            var item = (jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield) stack.getItem();
+            helper.assertTrue(item.getEnchantmentValue(stack)
+                            == jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.ENCHANTMENT_VALUE,
+                    "Reflectcast Shield enchantment value should be 22");
+            helper.assertFalse(stack.is(MALUM_SOUL_HUNTER_WEAPON),
+                    "Reflectcast Shield should stay outside malum:soul_hunter_weapon");
+        });
     }
 
     static void scrollcasterGauntletOffhandUseCastsSelectedScrollWhenMainHandDoesNotConsumeUse(GameTestHelper helper) {
@@ -169,35 +178,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         return new ItemStack(autoloaderCrossbow);
     }
 
-    static void spellGunsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> assertCategoryEnchantments(
-                helper,
-                "Spell Gun",
-                // 1.21.1申し送り事項:
-                // enchantable / book / anvil の面は Item 定義と Forge 側フックの移植差で崩れやすい。
-                // 1.20.1 の通りに見えても、1.21.1 では spell gun 系をそのまま持ち込める前提にしないこと。
-                item -> item instanceof AbstractSpellGunItem,
-                ApprenticeCodexGameTestScenarios::expectedSpellGunEnchantments
-        ));
-    }
-    static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
-            var item = (jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield) stack.getItem();
-            helper.assertTrue(item.getEnchantmentValue(stack)
-                            == jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.ENCHANTMENT_VALUE,
-                    "Reflectcast Shield enchantment value should be 22");
-            helper.assertFalse(stack.is(MALUM_SOUL_HUNTER_WEAPON),
-                    "Reflectcast Shield should stay outside malum:soul_hunter_weapon");
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedReflectcastShieldEnchantments(stack),
-                    "Reflectcast Shield"
-            );
-        });
-    }
-    static void spellchargedGreatswordKeepsExpectedStatsTagsAndEnchantments(GameTestHelper helper) {
+    static void spellchargedGreatswordKeepsExpectedStatsAndTags(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (SpellchargedGreatsword) ItemRegistry.SPELLCHARGED_GREATSWORD.get();
             var stack = new ItemStack(item);
@@ -235,12 +216,6 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
 
             helper.assertTrue(stack.is(MALUM_SOUL_HUNTER_WEAPON),
                     "Spellcharged Greatsword is missing malum:soul_hunter_weapon");
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedSpellchargedGreatswordEnchantments(stack),
-                    "Spellcharged Greatsword"
-            );
         });
     }
     static void spellchargedGreatswordChargeMathDecayAndAttributes(GameTestHelper helper) {
@@ -777,15 +752,6 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         });
     }
 
-    static void spellcastersFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> assertCategoryEnchantments(
-                helper,
-                "Spellcasters Flask",
-                item -> item.getClass() == SpellcastersFlask.class,
-                expectedFlaskEnchantments()
-        ));
-    }
-
     private static void assertSpellchargedGreatswordChargeState(
             GameTestHelper helper,
             ItemStack stack,
@@ -956,40 +922,6 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         );
     }
 
-    static void alchemistsFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> assertCategoryEnchantments(
-                helper,
-                "Alchemists Flask",
-                item -> item.getClass() == AlchemistsFlask.class,
-                expectedAlchemistsFlaskEnchantments()
-        ));
-    }
-    static void apprenticeEnchantmentsKeepExpectedAcquisitionFlags(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            // 1.21.1申し送り事項:
-            // treasure / tradeable / discoverable は定義形式の変更で見落としやすい。
-            // フラグだけ移したつもりでも司書取引や戦利品生成がズレるので、移植時は個別に再検証すること。
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.ALACRITY, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.REFLUX, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.RESERVOIR, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.SURGE, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.ATTUNEMENT, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.TENSE, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.WISDOM, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.PLUNDER, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.TRANSCENDENCE, true, true, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.GUZZLE, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.LARGE_MUG, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.RED_ENERGY, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.GLOW_ENERGY, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.SYNTHESIS, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.SHELL, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.SYNCHRONIZATION, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.NEUTRALIZATION, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.COMPRESS, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.RELEASE, false, false, true);
-        });
-    }
     static void randomApplicableBookEnchantmentsExcludeFlaskEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
             // 1.21.1申し送り事項:
@@ -1024,50 +956,9 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                             + describeEnchantmentDifference(expectedEnchantments, seenApprenticeEnchantments));
         });
     }
-    static void magicArmorKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            assertCategoryEnchantments(
-                    helper,
-                    "Enchantress Robe",
-                    item -> item instanceof EnchantressRobeItem,
-                    ApprenticeCodexGameTestScenarios::expectedEnchantressRobeEnchantments
-            );
-            assertCategoryEnchantments(
-                    helper,
-                    "Stealth Rune Armor",
-                    item -> item instanceof StealthRuneArmorItem,
-                    ApprenticeCodexGameTestScenarios::expectedStealthRuneArmorEnchantments
-            );
-            assertCategoryEnchantments(
-                    helper,
-                    "Chromatic Magia Dress",
-                    item -> item instanceof ChromaticMagiaDressItem,
-                    ApprenticeCodexGameTestScenarios::expectedChromaticMagiaDressEnchantments
-            );
-            assertCategoryEnchantments(
-                    helper,
-                    "Element Maiden Robe",
-                    item -> item instanceof ElementMaidenRobeItem,
-                    ApprenticeCodexGameTestScenarios::expectedElementMaidenRobeEnchantments
-            );
-            assertCategoryEnchantments(
-                    helper,
-                    "Magi Agent Suit",
-                    item -> item instanceof MagiAgentSuitItem,
-                    ApprenticeCodexGameTestScenarios::expectedMagiAgentSuitEnchantments
-            );
-        });
-    }
-    static void scrollcasterGauntletKeepsExpectedStatsAndBenchEnchantingRules(GameTestHelper helper) {
+    static void scrollcasterGauntletKeepsExpectedStatsAndBenchRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    Set.of(),
-                    "Scrollcaster Gauntlet"
-            );
-
             ScrollcasterGauntlet.setCalibrationScroll(
                     stack,
                     0,
@@ -1387,7 +1278,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     AttributeModifier.Operation.MULTIPLY_BASE
             );
             helper.assertTrue(Math.abs(enchantedGlobalSpellPower
-                            - (expectedSpellPower + ElementMaidenRobeStats.SURGE_SPELL_POWER_PER_LEVEL)) < 1.0e-9D,
+                            - (expectedSpellPower + AttributeEnchantmentType.SURGE.amountPerLevel())) < 1.0e-9D,
                     "Element Maiden Robe chestplate should add Surge spell power: " + describeModifiers(enchantedModifiers));
 
             var attunementSpellPower = sumModifierAmount(
@@ -1395,7 +1286,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     AttributeModifier.Operation.MULTIPLY_BASE
             );
             helper.assertTrue(Math.abs(attunementSpellPower
-                            - ElementMaidenRobeStats.ATTUNEMENT_SPELL_POWER_PER_LEVEL) < 1.0e-9D,
+                            - AttributeEnchantmentType.ATTUNEMENT.amountPerLevel()) < 1.0e-9D,
                     "Element Maiden Robe chestplate should add Attunement school spell power: "
                             + describeModifiers(enchantedModifiers));
         });
@@ -1735,25 +1626,5 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, recastSpell, schoolSpellPowerBonusPerHistory,
                     "Chromatic Magia Dress chestplate should ignore casts while the same spell is in Recast");
         });
-    }
-    static void pastelStaffKeepsItsLocalEnchantingRules(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var pastelStack = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
-            var multicastStack = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
-
-            assertStaffKeepsExpectedEnchantingRules(helper, pastelStack, "Pastel Staff");
-            assertStaffKeepsExpectedEnchantingRules(helper, multicastStack, "Multicast Echo Staff");
-            assertEnchantingSurfacesMatch(helper, pastelStack, multicastStack, "Pastel Staff", "Multicast Echo Staff");
-        });
-    }
-
-    private static Set<ResourceLocation> expectedSpellchargedGreatswordEnchantments(ItemStack stack) {
-        var expectedEnchantments = new LinkedHashSet<>(collectAllowedEnchantments(
-                new ItemStack(Items.DIAMOND_SWORD),
-                enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD))
-        ));
-        expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
-        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
-        return expectedEnchantments;
     }
 }

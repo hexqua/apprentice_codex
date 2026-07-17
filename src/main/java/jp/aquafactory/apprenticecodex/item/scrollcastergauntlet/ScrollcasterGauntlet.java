@@ -19,9 +19,13 @@ import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.*;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
-import jp.aquafactory.apprenticecodex.item.offhand.OffhandMagicModifierHelper;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.ScrollcasterGauntletRenderer;
@@ -82,7 +86,8 @@ import java.util.function.Consumer;
 public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
         ItemTransformPreservingCastAnimationItem,
         BetterCombatOffhandDualWieldingPolicyItem, SwingTriggeredMagicItem, PriorityOffhandUseDeferringItem, IJeiInfoItem,
-        SneakSelectionUiItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget {
+        SneakSelectionUiItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
+        TranscendencePolicy, AttributeEnchantmentPolicy, WisdomPolicy {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.scrollcaster_gauntlet.desc_";
 
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
@@ -161,6 +166,11 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
+    @Override
+    public boolean supportsDirectTranscendenceApplication() {
+        return false;
+    }
+
     public ScrollcasterGauntlet() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
@@ -174,7 +184,11 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     @Override
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
         return slot == EquipmentSlot.MAINHAND
-                ? OffhandMagicModifierHelper.buildEquippedModifiers(buildMainhandModifiers(stack), stack, "scrollcaster_gauntlet")
+                ? AttributeEnchantmentResolver.resolveMergedModifiers(
+                        buildMainhandModifiers(stack),
+                        stack,
+                        "apprenticecodex.scrollcaster_gauntlet"
+                )
                 : super.getAttributeModifiers(slot, stack);
     }
 
@@ -186,6 +200,11 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     @Override
     public int getEnchantmentValue(ItemStack stack) {
         return 0;
+    }
+
+    @Override
+    public boolean supportsDirectWisdomApplication() {
+        return false;
     }
 
     @Override
@@ -497,12 +516,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     private static boolean isExplicitlySupportedMagicEnchantment(Enchantment enchantment) {
-        return matches(enchantment, EnchantmentRegistry.ALACRITY)
-                || matches(enchantment, EnchantmentRegistry.REFLUX)
-                || matches(enchantment, EnchantmentRegistry.RESERVOIR)
-                || matches(enchantment, EnchantmentRegistry.TENSE)
-                || matches(enchantment, EnchantmentRegistry.SURGE)
-                || matches(enchantment, EnchantmentRegistry.ATTUNEMENT)
+        return AttributeEnchantmentType.from(enchantment).isPresent()
                 || matches(enchantment, EnchantmentRegistry.TRANSCENDENCE)
                 || matches(enchantment, EnchantmentRegistry.WISDOM);
     }

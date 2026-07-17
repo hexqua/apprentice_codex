@@ -6,12 +6,8 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.function.Predicate;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.UUID;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -19,8 +15,6 @@ import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
-import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -36,18 +30,13 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArrowItem;
-import net.minecraft.world.item.EnchantedBookItem;
-import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.Nullable;
 
 final class BowGameTestSupport {
@@ -185,105 +174,6 @@ final class BowGameTestSupport {
         );
     }
 
-    static void assertExactEnchantmentSurfaces(
-            GameTestHelper helper,
-            ItemStack stack,
-            Set<ResourceLocation> expectedEnchantments,
-            String itemName
-    ) {
-        assertExactEnchantmentSurfaces(
-                helper,
-                stack,
-                expectedEnchantments,
-                expectedEnchantments,
-                expectedEnchantments,
-                itemName
-        );
-    }
-
-    static void assertExactEnchantmentSurfaces(
-            GameTestHelper helper,
-            ItemStack stack,
-            Set<ResourceLocation> expectedEnchantingTableEnchantments,
-            Set<ResourceLocation> expectedBookEnchantments,
-            Set<ResourceLocation> expectedAnvilEnchantments,
-            String itemName
-    ) {
-        var item = stack.getItem();
-        var actualEnchantingTableEnchantments = collectAllowedEnchantments(
-                stack,
-                enchantment -> item.canApplyAtEnchantingTable(stack, enchantment)
-        );
-        helper.assertTrue(actualEnchantingTableEnchantments.equals(expectedEnchantingTableEnchantments),
-                itemName + " enchanting-table enchantments changed: "
-                        + describeEnchantmentDifference(expectedEnchantingTableEnchantments, actualEnchantingTableEnchantments));
-
-        var actualBookEnchantments = collectAllowedEnchantments(
-                stack,
-                enchantment -> item.isBookEnchantable(stack, createEnchantedBook(enchantment))
-        );
-        helper.assertTrue(actualBookEnchantments.equals(expectedBookEnchantments),
-                itemName + " book enchantments changed: "
-                        + describeEnchantmentDifference(expectedBookEnchantments, actualBookEnchantments));
-
-        if (item instanceof NonDamageableAnvilMergeItem mergeItem) {
-            var actualAnvilEnchantments = collectAllowedEnchantments(
-                    stack,
-                    enchantment -> mergeItem.isAnvilMergeEnchantmentAllowed(stack, enchantment)
-            );
-            helper.assertTrue(actualAnvilEnchantments.equals(expectedAnvilEnchantments),
-                    itemName + " anvil enchantments changed: "
-                            + describeEnchantmentDifference(expectedAnvilEnchantments, actualAnvilEnchantments));
-        }
-    }
-
-    static Set<ResourceLocation> expectedElementalBowEnchantments() {
-        var bowStack = new ItemStack(Items.BOW);
-        var expectedEnchantments = collectAllowedEnchantments(
-                bowStack,
-                enchantment -> Items.BOW.canApplyAtEnchantingTable(bowStack, enchantment)
-        );
-        expectedEnchantments.addAll(registryIdSet(
-                EnchantmentRegistry.TRANSCENDENCE,
-                EnchantmentRegistry.WISDOM,
-                EnchantmentRegistry.PLUNDER,
-                EnchantmentRegistry.SYNTHESIS
-        ));
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedElementalBowBookEnchantments() {
-        var bowStack = new ItemStack(Items.BOW);
-        var expectedEnchantments = collectAllowedEnchantments(
-                bowStack,
-                enchantment -> Items.BOW.isBookEnchantable(bowStack, createEnchantedBook(enchantment))
-        );
-        expectedEnchantments.addAll(registryIdSet(
-                EnchantmentRegistry.TRANSCENDENCE,
-                EnchantmentRegistry.WISDOM,
-                EnchantmentRegistry.PLUNDER,
-                EnchantmentRegistry.SYNTHESIS
-        ));
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> registryIdSet(RegistryObject<Enchantment>... enchantments) {
-        var ids = new LinkedHashSet<ResourceLocation>();
-        for (var enchantment : enchantments) {
-            var id = enchantment.getId();
-            if (id != null) {
-                ids.add(id);
-            }
-        }
-        return ids;
-    }
-
-    static List<Enchantment> getRegisteredEnchantments() {
-        return ForgeRegistries.ENCHANTMENTS.getValues().stream()
-                .sorted(Comparator.comparing(enchantment -> String.valueOf(ForgeRegistries.ENCHANTMENTS.getKey(enchantment))))
-                .toList();
-    }
-
     static void assertElementalBowSelection(
             GameTestHelper helper,
             ItemStack stack,
@@ -401,46 +291,6 @@ final class BowGameTestSupport {
                 .anyMatch(component -> component.getContents() instanceof TranslatableContents contents
                         && key.equals(contents.getKey()));
         helper.assertFalse(present, message + " (unexpected tooltip key=" + key + ")");
-    }
-
-    static Set<ResourceLocation> collectAllowedEnchantments(
-            ItemStack stack,
-            Predicate<Enchantment> predicate
-    ) {
-        var allowedEnchantments = new LinkedHashSet<ResourceLocation>();
-        for (var enchantment : getRegisteredEnchantments()) {
-            var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-            if (enchantmentId == null || !predicate.test(enchantment)) {
-                continue;
-            }
-            allowedEnchantments.add(enchantmentId);
-        }
-        return allowedEnchantments;
-    }
-
-    static ItemStack createEnchantedBook(Enchantment enchantment) {
-        return createEnchantedBook(new EnchantmentInstance(enchantment, 1));
-    }
-
-    static ItemStack createEnchantedBook(EnchantmentInstance... enchantments) {
-        var book = new ItemStack(Items.ENCHANTED_BOOK);
-        for (var enchantment : enchantments) {
-            EnchantedBookItem.addEnchantment(book, enchantment);
-        }
-        return book;
-    }
-
-    static String describeEnchantmentDifference(
-            Set<ResourceLocation> expectedEnchantments,
-            Set<ResourceLocation> actualEnchantments
-    ) {
-        var missingEnchantments = new LinkedHashSet<>(expectedEnchantments);
-        missingEnchantments.removeAll(actualEnchantments);
-
-        var unexpectedEnchantments = new LinkedHashSet<>(actualEnchantments);
-        unexpectedEnchantments.removeAll(expectedEnchantments);
-
-        return "missing=" + missingEnchantments + ", unexpected=" + unexpectedEnchantments;
     }
 
     static double sumModifierAmount(

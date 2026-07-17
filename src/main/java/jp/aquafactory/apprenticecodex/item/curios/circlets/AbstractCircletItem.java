@@ -5,7 +5,6 @@ import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
-import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -56,26 +55,22 @@ public abstract class AbstractCircletItem extends Item implements ICurioItem, IP
     @Override
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
         var baseModifiers = ICurioItem.super.getAttributeModifiers(slotContext, uuid, stack);
-        if (!CuriosSlotConstants.HEAD.equals(slotContext.identifier())) {
-            return baseModifiers;
-        }
-
         var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
         builder.putAll(baseModifiers);
 
-        var modifierSlotName = String.format("%s_%s", CuriosSlotConstants.HEAD, slotContext.index());
+        // Curios が保証する slot-unique UUID を使い、増設枠や汎用枠でも modifier を衝突させない。
+        var modifierSlotName = uuid.toString();
         for (var attributeContainer : circletAttributes) {
             builder.put(attributeContainer.attribute().get(), attributeContainer.createModifier(modifierSlotName));
         }
-        addAdditionalHeadModifiers(builder, slotContext, stack, modifierSlotName);
+        addAdditionalModifiers(builder, stack, uuid);
         return builder.build();
     }
 
-    protected void addAdditionalHeadModifiers(
+    protected void addAdditionalModifiers(
             ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
-            SlotContext slotContext,
             ItemStack stack,
-            String modifierSlotName
+            UUID slotUuid
     ) {
     }
 
