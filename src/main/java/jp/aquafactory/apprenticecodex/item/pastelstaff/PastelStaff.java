@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.pastelstaff;
 
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
@@ -42,7 +43,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem {
+public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem, WisdomPolicy {
     public static final String STONE_TINT_COLOR_TAG = "StoneTintColor";
     public static final String STONE_AFFINITY_SCHOOL_TAG = "StoneAffinitySchool";
     public static final int DEFAULT_STONE_TINT_COLOR = 0xFFFFFF;

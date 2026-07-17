@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -20,7 +21,7 @@ import java.util.Set;
 
 public class EnchantedCirclet extends AbstractCircletItem
         implements NonDamageableAnvilMergeItem, OffhandMagicCompatibleItem, TranscendencePolicy,
-        AttributeEnchantmentPolicy {
+        AttributeEnchantmentPolicy, WisdomPolicy {
     private static final String ITEM_KEY = "enchanted_circlet";
     private static final AttributeContainer[] CIRCLET_ATTRIBUTES = {
             new AttributeContainer(
@@ -32,6 +33,11 @@ public class EnchantedCirclet extends AbstractCircletItem
 
     public EnchantedCirclet() {
         super(Rarity.UNCOMMON, CIRCLET_ATTRIBUTES);
+    }
+
+    @Override
+    public boolean isWisdomActiveWhileHeld() {
+        return false;
     }
 
     @Override

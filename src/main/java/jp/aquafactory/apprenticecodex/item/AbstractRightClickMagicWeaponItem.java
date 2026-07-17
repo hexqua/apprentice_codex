@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.ChatFormatting;
@@ -52,7 +53,7 @@ import java.util.function.Supplier;
 
 public abstract class AbstractRightClickMagicWeaponItem extends Item
         implements IPresetSpellContainer, NonDamageableAnvilMergeItem, PriorityOffhandUseDeferringItem,
-        TranscendencePolicy {
+        TranscendencePolicy, WisdomPolicy {
     private static final String VANILLA_NAMESPACE = "minecraft";
     private static final String MALUM_NAMESPACE = "malum";
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =

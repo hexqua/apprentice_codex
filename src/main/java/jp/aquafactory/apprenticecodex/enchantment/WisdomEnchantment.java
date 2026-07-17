@@ -3,12 +3,11 @@ package jp.aquafactory.apprenticecodex.enchantment;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentCategory;
-import net.minecraft.world.item.enchantment.LootBonusEnchantment;
 import org.jetbrains.annotations.NotNull;
 
 public class WisdomEnchantment extends Enchantment {
     private static final EnchantmentCategory MAGIC_ITEM_CATEGORY =
-            EnchantmentCategory.create("apprenticecodex_wisdom_magic", MagicItemEnchantmentTargeting::isSupportedWisdomEnchantingItem);
+            EnchantmentCategory.create("apprenticecodex_wisdom_magic", WisdomPolicy::supportsDirectApplication);
 
     public WisdomEnchantment() {
         super(Enchantment.Rarity.RARE, MAGIC_ITEM_CATEGORY,

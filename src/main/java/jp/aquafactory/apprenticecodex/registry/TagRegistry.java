@@ -86,6 +86,10 @@ public final class TagRegistry {
                 createItemTag("mana_mending_denylist");
         public static final TagKey<Item> ENCHANTABLE_TRANSCENDENCE =
                 createItemTag("enchantable/transcendence");
+        public static final TagKey<Item> ENCHANTABLE_WISDOM =
+                createItemTag("enchantable/wisdom");
+        public static final TagKey<Item> ENCHANTABLE_PLUNDER =
+                createItemTag("enchantable/plunder");
     }
 
     public static final class EntityTypes {

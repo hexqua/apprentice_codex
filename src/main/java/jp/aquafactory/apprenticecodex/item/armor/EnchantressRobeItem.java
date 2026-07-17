@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.renderer.armor.EnchantressRobeRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -33,7 +34,8 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.function.Consumer;
 
-public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSpellContainer, TranscendencePolicy {
+public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSpellContainer, TranscendencePolicy,
+        WisdomPolicy {
     private static final double IMBUED_SCHOOL_SPELL_POWER_BONUS = 0.05D;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -45,6 +47,11 @@ public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSp
         this.armorType = type;
         this.robeAttributeModifiers = EnchantressRobeStats.createAttributeModifiers(type);
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public boolean isWisdomActiveWhileHeld() {
+        return false;
     }
 
     public boolean hasImbueSlot() {

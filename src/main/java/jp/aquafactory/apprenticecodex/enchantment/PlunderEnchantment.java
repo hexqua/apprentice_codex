@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class PlunderEnchantment extends Enchantment {
     private static final EnchantmentCategory MAGIC_ITEM_CATEGORY =
-            EnchantmentCategory.create("apprenticecodex_plunder_magic", MagicItemEnchantmentTargeting::isSupportedLootingMagicItem);
+            EnchantmentCategory.create("apprenticecodex_plunder_magic", PlunderTarget::supportsDirectApplication);
 
     public PlunderEnchantment() {
         super(Rarity.RARE, MAGIC_ITEM_CATEGORY, new EquipmentSlot[]{EquipmentSlot.MAINHAND});

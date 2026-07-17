@@ -44,7 +44,7 @@ public final class PlunderLootingLevelEvent {
     private static int sanitizeVanillaLootingLevel(int lootingLevel, Player player) {
         var mainHandItem = player.getMainHandItem();
         if (mainHandItem.isEmpty()
-                || !MagicItemEnchantmentTargeting.isSupportedLootingMagicItem(mainHandItem.getItem())) {
+                || !(mainHandItem.getItem() instanceof PlunderTarget)) {
             return lootingLevel;
         }
 
@@ -62,7 +62,7 @@ public final class PlunderLootingLevelEvent {
 
     private static int getPlunderLevel(ItemStack stack) {
         if (stack.isEmpty()
-                || !MagicItemEnchantmentTargeting.isSupportedLootingMagicItem(stack.getItem())) {
+                || !(stack.getItem() instanceof PlunderTarget)) {
             return 0;
         }
 

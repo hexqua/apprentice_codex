@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.armor;
 
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
@@ -39,7 +40,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPresetSpellContainer {
+public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPresetSpellContainer, WisdomPolicy {
     private static final ResourceLocation ARMOR_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/chromatic_magia_dress.png");
 
@@ -52,6 +53,11 @@ public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPres
         this.armorType = type;
         this.armorAttributeModifiers = ChromaticMagiaDressStats.createAttributeModifiers(type);
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public boolean isWisdomActiveWhileHeld() {
+        return false;
     }
 
     public Type getArmorType() {

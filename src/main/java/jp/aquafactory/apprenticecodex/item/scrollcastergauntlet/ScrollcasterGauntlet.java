@@ -23,6 +23,7 @@ import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.*;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
@@ -86,7 +87,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         ItemTransformPreservingCastAnimationItem,
         BetterCombatOffhandDualWieldingPolicyItem, SwingTriggeredMagicItem, PriorityOffhandUseDeferringItem, IJeiInfoItem,
         SneakSelectionUiItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
-        TranscendencePolicy, AttributeEnchantmentPolicy {
+        TranscendencePolicy, AttributeEnchantmentPolicy, WisdomPolicy {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.scrollcaster_gauntlet.desc_";
 
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
@@ -199,6 +200,11 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     @Override
     public int getEnchantmentValue(ItemStack stack) {
         return 0;
+    }
+
+    @Override
+    public boolean supportsDirectWisdomApplication() {
+        return false;
     }
 
     @Override

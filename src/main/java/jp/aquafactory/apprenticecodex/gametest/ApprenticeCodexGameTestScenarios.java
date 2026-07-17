@@ -11323,7 +11323,8 @@ public class ApprenticeCodexGameTestScenarios {
                 EnchantmentRegistry.LARGE_MUG,
                 EnchantmentRegistry.RED_ENERGY,
                 EnchantmentRegistry.GLOW_ENERGY,
-                EnchantmentRegistry.TRANSCENDENCE
+                EnchantmentRegistry.TRANSCENDENCE,
+                EnchantmentRegistry.WISDOM
         );
     }
 
