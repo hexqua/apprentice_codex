@@ -13,11 +13,15 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
+import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorStats;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.BulwarkGreatshieldRenderer;
@@ -51,15 +55,11 @@ import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class BulwarkGreatshield extends AbstractImbueShieldItem
-        implements GeoItem, IJeiInfoItem, SpellCalibrationAdjustmentTarget {
+        implements GeoItem, IJeiInfoItem, SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.bulwark_greatshield.desc_";
 
     public static final int DURABILITY = 2031;
@@ -88,7 +88,10 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
     private static final UUID GENERIC_RESIST_MODIFIER_ID = UUID.fromString("bd2b8a1f-b1a5-49ee-9370-4d2ab9385994");
     private static final UUID SCHOOL_RESIST_MODIFIER_ID = UUID.fromString("886ced13-4a4f-4623-9cbb-8900f65c52ac");
     private static final ItemStack SHIELD_ENCHANTMENT_PROBE = new ItemStack(Items.SHIELD);
-
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR
+    );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public BulwarkGreatshield() {
@@ -176,8 +179,8 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
             return base;
         }
 
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder().putAll(base);
-        builder.put(AttributeRegistry.SPELL_RESIST.get(), new AttributeModifier(
+        var extraBuilder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+        extraBuilder.put(AttributeRegistry.SPELL_RESIST.get(), new AttributeModifier(
                 GENERIC_RESIST_MODIFIER_ID,
                 "Bulwark greatshield spell resist",
                 ApprenticeCodexServerConfig.bulwarkGreatshieldGenericSpellResist(),
@@ -193,7 +196,7 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
             var school = entry.getKey();
             var schoolResist = MagicTools.resolveSchoolResistAttribute(school);
             if (schoolResist != null) {
-                builder.put(schoolResist, new AttributeModifier(
+                extraBuilder.put(schoolResist, new AttributeModifier(
                         SCHOOL_RESIST_MODIFIER_ID,
                         "Bulwark greatshield school spell resist",
                         schoolSpellResist * entry.getValue(),
@@ -201,6 +204,16 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
                 ));
             }
         }
+
+        var mergedExtraModifiers = AttributeEnchantmentResolver.resolveMergedModifiers(
+                extraBuilder.build(),
+                stack,
+                "apprenticecodex.bulwark_greatshield.merged"
+        );
+
+        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+        builder.putAll(base);
+        builder.putAll(mergedExtraModifiers);
         return builder.build();
     }
 
@@ -215,15 +228,23 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
     }
 
     @Override
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
+    }
+
+    @Override
     public boolean isValidRepairItem(@NotNull ItemStack toRepair, @NotNull ItemStack repair) {
         return repair.is(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get());
     }
 
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return enchantment.canApplyAtEnchantingTable(SHIELD_ENCHANTMENT_PROBE)
-                || EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get()
-                || EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get();
+        var attributeType = AttributeEnchantmentType.from(enchantment);
+        return attributeType.map(this::supportsDirectAttributeEnchantment).orElseGet(() ->
+                enchantment.canApplyAtEnchantingTable(SHIELD_ENCHANTMENT_PROBE)
+                        || enchantment == EnchantmentRegistry.TRANSCENDENCE.get()
+                        || enchantment == EnchantmentRegistry.WISDOM.get());
+
     }
 
     @Override

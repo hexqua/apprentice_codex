@@ -408,12 +408,12 @@ final class EnchantmentApplicationGameTestScenarios {
     private static void assertBulwarkAndParrycastRules(GameTestHelper helper) {
         var bulwark = ItemRegistry.BULWARK_GREATSHIELD.get();
         var bulwarkStack = new ItemStack(bulwark);
-        helper.assertTrue(bulwark.canApplyAtEnchantingTable(bulwarkStack, Enchantments.UNBREAKING),
-                "Bulwark Greatshield should accept shield durability enchantments");
-        helper.assertTrue(bulwark.canApplyAtEnchantingTable(bulwarkStack, EnchantmentRegistry.TRANSCENDENCE.get()),
-                "Bulwark Greatshield should accept Transcendence");
-        helper.assertTrue(bulwark.canApplyAtEnchantingTable(bulwarkStack, EnchantmentRegistry.WISDOM.get()),
-                "Bulwark Greatshield should accept Wisdom");
+        for (var enchantment : List.of(Enchantments.UNBREAKING, EnchantmentRegistry.RESERVOIR.get(),
+                EnchantmentRegistry.REFLUX.get(), EnchantmentRegistry.TRANSCENDENCE.get(),
+                EnchantmentRegistry.WISDOM.get())) {
+            helper.assertTrue(bulwark.canApplyAtEnchantingTable(bulwarkStack, enchantment),
+                    "Bulwark Greatshield Buckler should accept " + ForgeRegistries.ENCHANTMENTS.getKey(enchantment));
+        }
 
         var parrycast = ItemRegistry.PARRYCAST_BUCKLER.get();
         var parrycastStack = new ItemStack(parrycast);
