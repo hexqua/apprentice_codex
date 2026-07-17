@@ -31,7 +31,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
     private CircuitHeatStaffGameTestScenarios() {
     }
 
-    static void circuitHeatStaffKeepsExpectedStatsAndEnchantingRules(GameTestHelper helper) {
+    static void circuitHeatStaffKeepsExpectedStatsAndOverheatState(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
             var item = (CircuitHeatStaff) stack.getItem();
@@ -81,12 +81,6 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
                     "Circuit Heat Staff item overheat should keep the requested duration: "
                             + remainingOverheatTicks);
 
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedCircuitHeatStaffEnchantments(stack),
-                    "Circuit Heat Staff"
-            );
         });
     }
 

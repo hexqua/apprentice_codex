@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.UUID;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
-import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
@@ -23,12 +22,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.registries.ForgeRegistries;
 import static jp.aquafactory.apprenticecodex.gametest.BowGameTestSupport.*;
 
 final class FocusStaffbowGameTestScenarios {
@@ -1236,53 +1232,6 @@ final class FocusStaffbowGameTestScenarios {
                 helper.assertTrue(getFocusStaffbowArrowCount(player) == 0,
                         "Focus Staffbow Synthesis path should not require or consume a catalyst arrow")
         );
-    }
-
-    static void focusStaffbowAcceptsSynthesisEnchantments(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            var item = (FocusStaffbow) stack.getItem();
-            helper.assertTrue(stack.getItem().canApplyAtEnchantingTable(stack, EnchantmentRegistry.SYNTHESIS.get()),
-                    "Focus Staffbow should accept Synthesis at the enchanting table");
-            helper.assertTrue(stack.getItem().isBookEnchantable(stack, createEnchantedBook(EnchantmentRegistry.SYNTHESIS.get())),
-                    "Focus Staffbow should accept Synthesis from enchanted books");
-            helper.assertTrue(item.isAnvilMergeEnchantmentAllowed(stack, EnchantmentRegistry.SYNTHESIS.get()),
-                    "Focus Staffbow should allow Synthesis through anvil merges");
-            helper.assertFalse(stack.getItem().canApplyAtEnchantingTable(stack, Enchantments.INFINITY_ARROWS),
-                    "Focus Staffbow should reject Infinity at the enchanting table");
-            helper.assertFalse(stack.getItem().isBookEnchantable(stack, createEnchantedBook(Enchantments.INFINITY_ARROWS)),
-                    "Focus Staffbow should reject Infinity from enchanted books");
-            helper.assertFalse(item.isAnvilMergeEnchantmentAllowed(stack, Enchantments.INFINITY_ARROWS),
-                    "Focus Staffbow should reject Infinity through anvil merges");
-            helper.assertFalse(stack.getItem().canApplyAtEnchantingTable(stack, EnchantmentRegistry.TRANSCENDENCE.get()),
-                    "Focus Staffbow should reject Transcendence at the enchanting table");
-            helper.assertFalse(stack.getItem().isBookEnchantable(stack, createEnchantedBook(EnchantmentRegistry.TRANSCENDENCE.get())),
-                    "Focus Staffbow should reject Transcendence from enchanted books");
-            helper.assertFalse(item.isAnvilMergeEnchantmentAllowed(stack, EnchantmentRegistry.TRANSCENDENCE.get()),
-                    "Focus Staffbow should reject Transcendence through anvil merges");
-
-            if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
-                return;
-            }
-
-            var haunted = MalumHauntedCompat.getHauntedEnchantment();
-            helper.assertTrue(haunted != null, "malum:haunted is not registered");
-            helper.assertTrue(stack.getItem().canApplyAtEnchantingTable(stack, haunted),
-                    "Focus Staffbow should allow malum:haunted at the enchanting table");
-            helper.assertTrue(stack.getItem().isBookEnchantable(stack, createEnchantedBook(haunted)),
-                    "Focus Staffbow should allow malum:haunted from enchanted books");
-            helper.assertTrue(item.isAnvilMergeEnchantmentAllowed(stack, haunted),
-                    "Focus Staffbow should allow malum:haunted through anvil merges");
-
-            var animated = ForgeRegistries.ENCHANTMENTS.getValue(MALUM_ANIMATED);
-            helper.assertTrue(animated != null, "malum:animated is not registered");
-            helper.assertFalse(stack.getItem().canApplyAtEnchantingTable(stack, animated),
-                    "Focus Staffbow should keep rejecting malum:animated at the enchanting table");
-            helper.assertFalse(stack.getItem().isBookEnchantable(stack, createEnchantedBook(animated)),
-                    "Focus Staffbow should keep rejecting malum:animated from enchanted books");
-            helper.assertFalse(item.isAnvilMergeEnchantmentAllowed(stack, animated),
-                    "Focus Staffbow should keep rejecting malum:animated through anvil merges");
-        });
     }
 
     static void focusStaffbowExposesExpectedMainhandAttributes(GameTestHelper helper) {

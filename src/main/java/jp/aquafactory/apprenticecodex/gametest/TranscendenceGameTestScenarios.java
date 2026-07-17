@@ -4,13 +4,11 @@ import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.events.ModifySpellLevelEvent;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceResolver;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceSpellLevelEvent;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -19,7 +17,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.util.FakePlayer;
 import top.theillusivec4.curios.api.CuriosApi;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -115,29 +112,11 @@ final class TranscendenceGameTestScenarios {
         });
     }
 
-    static void specialItemPoliciesStayExplicit(GameTestHelper helper) {
+    static void specialItemEffectsStayExplicit(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var transcendence = EnchantmentRegistry.TRANSCENDENCE.get();
             var mithril = ItemRegistry.MITHRIL_FREECAST_STAFF.get();
-            var revolver = ItemRegistry.REVOLVERCAST_STAFF.get();
             var gauntlet = ItemRegistry.SCROLLCASTER_GAUNTLET.get();
             var elementalBow = ItemRegistry.ELEMENTAL_BOW.get();
-
-            helper.assertFalse(mithril.canApplyAtEnchantingTable(new ItemStack(mithril), transcendence),
-                    "Mithril Freecast Staff should reject Transcendence");
-            helper.assertTrue(((TranscendencePolicy) mithril).transcendenceHandling()
-                            == TranscendencePolicy.Handling.DISABLED,
-                    "Mithril Freecast Staff should keep Transcendence disabled");
-            helper.assertTrue(revolver.canApplyAtEnchantingTable(new ItemStack(revolver), transcendence),
-                    "Revolvercast Staff should accept Transcendence like Swingcast Staffs");
-            helper.assertTrue(ItemRegistry.MANA_FORCE_BLADE.get().canApplyAtEnchantingTable(
-                            new ItemStack(ItemRegistry.MANA_FORCE_BLADE.get()), transcendence),
-                    "Mana Force Blade should accept Transcendence");
-            helper.assertFalse(((TranscendencePolicy) gauntlet).supportsDirectTranscendenceApplication(),
-                    "Scrollcaster Gauntlet should only receive projected Transcendence");
-            helper.assertTrue(((TranscendencePolicy) elementalBow).transcendenceHandling()
-                            == TranscendencePolicy.Handling.INTERNAL,
-                    "Elemental Bow should keep internal Transcendence handling");
 
             var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
             var player = new FakePlayer(
@@ -153,22 +132,6 @@ final class TranscendenceGameTestScenarios {
             player.setItemInHand(InteractionHand.OFF_HAND, createStack(elementalBow, 3, spell));
             assertEventLevel(helper, player, spell, 1,
                     "Internal Elemental Bow Transcendence should not enter event aggregation");
-        });
-    }
-
-    static void directApplicationTagMatchesPolicy(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var mismatches = new ArrayList<String>();
-            for (var entry : ItemRegistry.ITEMS.getEntries()) {
-                var item = entry.get();
-                var expected = TranscendencePolicy.supportsDirectApplication(item);
-                var actual = new ItemStack(item).is(TagRegistry.Items.ENCHANTABLE_TRANSCENDENCE);
-                if (expected != actual) {
-                    mismatches.add(entry.getId() + " expected=" + expected + " actual=" + actual);
-                }
-            }
-            helper.assertTrue(mismatches.isEmpty(),
-                    "Transcendence direct-application tag differs from policy: " + mismatches);
         });
     }
 

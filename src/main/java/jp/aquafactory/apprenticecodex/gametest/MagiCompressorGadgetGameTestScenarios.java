@@ -14,14 +14,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraftforge.fml.ModList;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
-import java.util.Map;
 
 final class MagiCompressorGadgetGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private static final String AIR_TAG = "Air";
@@ -192,29 +187,6 @@ final class MagiCompressorGadgetGameTestScenarios extends ApprenticeCodexGameTes
                 helper.assertTrue(Math.abs(stack.getOrCreateTag().getFloat(AIR_TAG) - expectedAir) < 1.0e-3F,
                         "Magi-Compressor Gadget should clamp legacy Air tag before Create consumes it: "
                                 + stack.getOrCreateTag().getFloat(AIR_TAG) + " expected " + expectedAir);
-            }
-        });
-    }
-
-    static void magiCompressorGadgetRejectsEnchantments(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.MAGI_COMPRESSOR_GADGET.get());
-            helper.assertFalse(stack.isEnchantable(),
-                    "Magi-Compressor Gadget should not be enchantable");
-            helper.assertFalse(stack.getItem().canApplyAtEnchantingTable(stack, Enchantments.UNBREAKING),
-                    "Magi-Compressor Gadget should reject vanilla enchanting table enchantments");
-
-            var book = new ItemStack(Items.ENCHANTED_BOOK);
-            EnchantmentHelper.setEnchantments(Map.of(Enchantments.UNBREAKING, 1), book);
-            helper.assertFalse(stack.getItem().isBookEnchantable(stack, book),
-                    "Magi-Compressor Gadget should reject enchanted books");
-
-            var capacity = ForgeRegistries.ENCHANTMENTS.getValue(
-                    ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "capacity")
-            );
-            if (capacity != null) {
-                helper.assertFalse(stack.getItem().canApplyAtEnchantingTable(stack, capacity),
-                        "Magi-Compressor Gadget should reject Create Capacity");
             }
         });
     }

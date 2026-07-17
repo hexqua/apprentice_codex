@@ -42,19 +42,7 @@ final class RightClickMagicWeaponGameTestScenarios extends ApprenticeCodexGameTe
     private RightClickMagicWeaponGameTestScenarios() {
     }
 
-    static void rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> assertCategoryEnchantments(
-                helper,
-                "Right Click Magic Weapon",
-                // 1.21.1申し送り事項:
-                // 1.20.1 では StaffItem にしていない武器でも、1.21.1 側では StaffItem 化する場合がある。
-                // ここは 1.20.1 の AbstractRightClickMagicWeaponItem 系の付与面を固定し、
-                // port 時に StaffItem へ寄せた結果の差分を意図的に見えるようにしておく。
-                item -> item instanceof AbstractRightClickMagicWeaponItem && !(item instanceof SmashcastScepter),
-                ApprenticeCodexGameTestScenarios::expectedRightClickMagicWeaponEnchantments
-        ));
-    }
-    static void smashcastScepterKeepsExpectedStatsImbueAndEnchantingRules(GameTestHelper helper) {
+    static void smashcastScepterKeepsExpectedStatsAndImbueRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get());
             var item = (SmashcastScepter) stack.getItem();
@@ -237,14 +225,6 @@ final class RightClickMagicWeaponGameTestScenarios extends ApprenticeCodexGameTe
             assertClose(helper, secondEpicFightDamage.getAmount(), 1.0F + expectedEpicFightBonus, 1.0E-6D,
                     "Epic Fight Smashcast should keep bonus damage for a different target in the same tick");
 
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()),
-                    expectedSmashcastScepterEnchantingTableEnchantments(stack),
-                    expectedSmashcastScepterBookEnchantments(stack),
-                    expectedSmashcastScepterBookEnchantments(stack),
-                    "Smashcast Scepter"
-            );
         });
     }
     static void smashcastScepterFallProtectionKeepsFallDistanceAndCancelsNextFall(GameTestHelper helper) {

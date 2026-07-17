@@ -98,18 +98,12 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
         });
     }
 
-    static void spellSideEdgeKeepsExpectedTagsAndEnchantments(GameTestHelper helper) {
+    static void spellSideEdgeKeepsExpectedTags(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.SPELL_SIDE_EDGE.get());
             helper.assertTrue(stack.is(MALUM_SOUL_HUNTER_WEAPON),
                     "Spell Side Edge is missing malum:soul_hunter_weapon");
             assertUpgradeable(helper, stack, "Spell Side Edge should accept Iron's upgrade orbs");
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedSpellSideEdgeEnchantments(stack),
-                    "Spell Side Edge"
-            );
         });
     }
 

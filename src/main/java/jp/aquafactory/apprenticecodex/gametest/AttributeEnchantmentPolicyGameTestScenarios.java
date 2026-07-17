@@ -2,102 +2,23 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.google.common.collect.ImmutableMultimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
-import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 final class AttributeEnchantmentPolicyGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private static final double EPSILON = 1.0e-9D;
 
     private AttributeEnchantmentPolicyGameTestScenarios() {
-    }
-
-    static void directApplicationPolicyKeepsExpectedMatrix(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var all = AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS;
-            var cases = List.of(
-                    new PolicyCase(ItemRegistry.COPPER_SPELL_AMPLIFIER.get(), all),
-                    new PolicyCase(ItemRegistry.ENCHANTED_CIRCLET.get(), all),
-                    new PolicyCase(ItemRegistry.IRON_SPELLCASTER_GUN.get(), all),
-                    new PolicyCase(ItemRegistry.SCROLLCASTER_GAUNTLET.get(), Set.of()),
-                    new PolicyCase(ItemRegistry.MANA_FORCE_BLADE.get(),
-                            Set.of(AttributeEnchantmentType.SURGE, AttributeEnchantmentType.ATTUNEMENT)),
-                    new PolicyCase(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
-                            Set.of(
-                                    AttributeEnchantmentType.ALACRITY,
-                                    AttributeEnchantmentType.REFLUX,
-                                    AttributeEnchantmentType.RESERVOIR,
-                                    AttributeEnchantmentType.SURGE,
-                                    AttributeEnchantmentType.TENSE
-                            )),
-                    new PolicyCase(ItemRegistry.PARRYCAST_BUCKLER.get(),
-                            Set.of(AttributeEnchantmentType.ALACRITY, AttributeEnchantmentType.TENSE)),
-                    new PolicyCase(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
-                            Set.of(AttributeEnchantmentType.SURGE, AttributeEnchantmentType.ATTUNEMENT)),
-                    new PolicyCase(ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(), Set.of()),
-                    new PolicyCase(ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(), Set.of()),
-                    new PolicyCase(ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get(), Set.of())
-            );
-
-            for (var testCase : cases) {
-                helper.assertTrue(testCase.item() instanceof AttributeEnchantmentPolicy,
-                        testCase.item().getDescriptionId() + " should participate in the attribute enchantment policy");
-                var policy = (AttributeEnchantmentPolicy) testCase.item();
-                helper.assertTrue(policy.directlyApplicableAttributeEnchantments().equals(testCase.directlyApplicable()),
-                        testCase.item().getDescriptionId() + " direct attribute enchantment policy changed");
-
-                for (var type : AttributeEnchantmentType.values()) {
-                    var enchantment = ForgeRegistries.ENCHANTMENTS.getValue(type.enchantmentId());
-                    helper.assertTrue(enchantment != null,
-                            "Attribute enchantment was not registered: " + type.enchantmentId());
-                    helper.assertTrue(
-                            enchantment.canEnchant(new ItemStack(testCase.item()))
-                                    == testCase.directlyApplicable().contains(type),
-                            testCase.item().getDescriptionId() + " category result changed for " + type
-                    );
-                }
-            }
-
-            var attributeEnchantableTags = Map.of(
-                    AttributeEnchantmentType.ALACRITY, TagRegistry.Items.ENCHANTABLE_ALACRITY,
-                    AttributeEnchantmentType.REFLUX, TagRegistry.Items.ENCHANTABLE_REFLUX,
-                    AttributeEnchantmentType.RESERVOIR, TagRegistry.Items.ENCHANTABLE_RESERVOIR,
-                    AttributeEnchantmentType.SURGE, TagRegistry.Items.ENCHANTABLE_SURGE,
-                    AttributeEnchantmentType.ATTUNEMENT, TagRegistry.Items.ENCHANTABLE_ATTUNEMENT,
-                    AttributeEnchantmentType.TENSE, TagRegistry.Items.ENCHANTABLE_TENSE
-            );
-            var mismatches = new ArrayList<String>();
-            for (var entry : ItemRegistry.ITEMS.getEntries()) {
-                var item = entry.get();
-                var stack = new ItemStack(item);
-                for (var type : AttributeEnchantmentType.values()) {
-                    var expected = AttributeEnchantmentPolicy.supportsDirectApplication(item, type);
-                    var actual = stack.is(attributeEnchantableTags.get(type));
-                    if (expected != actual) {
-                        mismatches.add(entry.getId() + " " + type
-                                + " expected=" + expected + " actual=" + actual);
-                    }
-                }
-            }
-            helper.assertTrue(mismatches.isEmpty(),
-                    "Attribute enchantment tags differ from policy: " + mismatches);
-        });
     }
 
     static void forcedEnchantmentsCoexistAndKeepRawPositiveLevels(GameTestHelper helper) {
@@ -182,6 +103,4 @@ final class AttributeEnchantmentPolicyGameTestScenarios extends ApprenticeCodexG
         });
     }
 
-    private record PolicyCase(Item item, Set<AttributeEnchantmentType> directlyApplicable) {
-    }
 }

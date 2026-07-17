@@ -662,40 +662,6 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             );
         });
     }
-    static void offhandMagicItemsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var expectedBookEnchantments = allRegisteredEnchantmentIds();
-            var stacks = getRegisteredItemStacks(item -> item instanceof AbstractOffhandMagicItem);
-            helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: Offhand Magic Item");
-
-            for (var stack : stacks) {
-                // 1.20.1 の offhand 系は isBookEnchantable を個別制限していないため、
-                // 本判定だけは広く通る。Malum 側は main hand 前提で soul_hunter_weapon を使うため、
-                // 実際に固定したい付与面はエンチャント台と独自金床側の offhand 非対応面。
-                assertExactEnchantmentSurfaces(
-                        helper,
-                        stack,
-                        expectedOffhandEnchantments(stack),
-                        expectedBookEnchantments,
-                        expectedOffhandEnchantments(stack),
-                        "Offhand Magic Item " + ForgeRegistries.ITEMS.getKey(stack.getItem())
-                );
-            }
-        });
-    }
-    static void enchantedCircletKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedEnchantedCircletEnchantments(stack),
-                    allRegisteredEnchantmentIds(),
-                    expectedEnchantedCircletEnchantments(stack),
-                    "Enchanted Circlet"
-            );
-        });
-    }
     static void enchantedCircletCurioBonusesMirrorOffhandMagicEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());

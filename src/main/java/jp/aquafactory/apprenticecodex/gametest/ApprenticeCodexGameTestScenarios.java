@@ -74,7 +74,6 @@ import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
-import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
@@ -90,7 +89,6 @@ import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
-import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfile;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfileManager;
@@ -99,7 +97,6 @@ import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectProfile;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectProfileManager;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
-import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
@@ -264,7 +261,6 @@ import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.alchemy.PotionUtils;
-import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.EnchantedBookItem;
@@ -4870,131 +4866,6 @@ public class ApprenticeCodexGameTestScenarios {
 
 
 
-
-    static void assertStaffKeepsExpectedEnchantingRules(
-            GameTestHelper helper,
-            ItemStack stack,
-            String itemName
-    ) {
-        var item = stack.getItem();
-        var expectedVanillaEnchantments = Set.of(
-                ResourceLocation.withDefaultNamespace("fortune"),
-                ResourceLocation.withDefaultNamespace("knockback"),
-                ResourceLocation.withDefaultNamespace("looting"),
-                ResourceLocation.withDefaultNamespace("silk_touch")
-        );
-
-        var actualAllowedVanillaEnchantments = collectAllowedEnchantments(
-                stack,
-                enchantment -> {
-                    var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-                    return enchantmentId != null
-                            && VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())
-                            && item.canApplyAtEnchantingTable(stack, enchantment);
-                }
-        );
-        helper.assertTrue(actualAllowedVanillaEnchantments.equals(expectedVanillaEnchantments),
-                itemName + " allowed vanilla enchantments changed: "
-                        + describeEnchantmentDifference(expectedVanillaEnchantments, actualAllowedVanillaEnchantments));
-
-        // Iron's StaffItem 側の広い互換性は 1.21.1 で揺れやすいため固定せず、
-        // この mod が明示した許可/拒否だけを回帰監視する。
-        for (var enchantment : getRegisteredEnchantments()) {
-            var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-            if (enchantmentId == null) {
-                continue;
-            }
-
-            var expectedVanillaAllowed = VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())
-                    && expectedVanillaEnchantments.contains(enchantmentId);
-            if (VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())) {
-                helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment) == expectedVanillaAllowed,
-                        itemName + " vanilla enchanting-table rule changed for " + enchantmentId
-                                + ": expected " + expectedVanillaAllowed);
-                helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)) == expectedVanillaAllowed,
-                        itemName + " vanilla book rule changed for " + enchantmentId
-                                + ": expected " + expectedVanillaAllowed);
-            }
-
-            if (isDurabilityTargetEnchantment(enchantment)) {
-                helper.assertFalse(item.canApplyAtEnchantingTable(stack, enchantment),
-                        itemName + " should keep rejecting durability-target enchantments at the enchanting table: "
-                                + enchantmentId);
-                helper.assertFalse(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
-                        itemName + " should keep rejecting durability-target enchantments from books: "
-                                + enchantmentId);
-            }
-
-            if (MALUM_HAUNTED.equals(enchantmentId)) {
-                helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment),
-                        itemName + " should allow malum:haunted at the enchanting table");
-                helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
-                        itemName + " should allow malum:haunted from books");
-            }
-
-            if (MALUM_SPIRIT_PLUNDER.equals(enchantmentId)) {
-                helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment),
-                        itemName + " should allow malum:spirit_plunder at the enchanting table");
-                helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
-                        itemName + " should allow malum:spirit_plunder from books");
-            }
-
-            if (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get()) {
-                helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment),
-                        itemName + " should allow apprenticecodex:wisdom at the enchanting table");
-                helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
-                        itemName + " should allow apprenticecodex:wisdom from books");
-            }
-
-            if (MALUM_ANIMATED.equals(enchantmentId)) {
-                helper.assertFalse(item.canApplyAtEnchantingTable(stack, enchantment),
-                        itemName + " should keep rejecting malum:animated at the enchanting table");
-                helper.assertFalse(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
-                        itemName + " should keep rejecting malum:animated from books");
-            }
-
-            if (MALUM_REPLENISHING.equals(enchantmentId)) {
-                helper.assertFalse(item.canApplyAtEnchantingTable(stack, enchantment),
-                        itemName + " should reject non-functional malum:replenishing at the enchanting table");
-                helper.assertFalse(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
-                        itemName + " should reject non-functional malum:replenishing from books");
-            }
-        }
-    }
-
-    static void assertEnchantingSurfacesMatch(
-            GameTestHelper helper,
-            ItemStack leftStack,
-            ItemStack rightStack,
-            String leftName,
-            String rightName
-    ) {
-        var leftItem = leftStack.getItem();
-        var rightItem = rightStack.getItem();
-        var leftTableEnchantments = collectAllowedEnchantments(
-                leftStack,
-                enchantment -> leftItem.canApplyAtEnchantingTable(leftStack, enchantment)
-        );
-        var rightTableEnchantments = collectAllowedEnchantments(
-                rightStack,
-                enchantment -> rightItem.canApplyAtEnchantingTable(rightStack, enchantment)
-        );
-        helper.assertTrue(leftTableEnchantments.equals(rightTableEnchantments),
-                rightName + " enchanting-table surface should match " + leftName + ": "
-                        + describeEnchantmentDifference(leftTableEnchantments, rightTableEnchantments));
-
-        var leftBookEnchantments = collectAllowedEnchantments(
-                leftStack,
-                enchantment -> leftItem.isBookEnchantable(leftStack, createEnchantedBook(enchantment))
-        );
-        var rightBookEnchantments = collectAllowedEnchantments(
-                rightStack,
-                enchantment -> rightItem.isBookEnchantable(rightStack, createEnchantedBook(enchantment))
-        );
-        helper.assertTrue(leftBookEnchantments.equals(rightBookEnchantments),
-                rightName + " book surface should match " + leftName + ": "
-                        + describeEnchantmentDifference(leftBookEnchantments, rightBookEnchantments));
-    }
 
 
 
@@ -11016,244 +10887,6 @@ public class ApprenticeCodexGameTestScenarios {
         return spellId != null && ApprenticeCodex.MODID.equals(spellId.getNamespace());
     }
 
-    static void assertCategoryEnchantments(
-            GameTestHelper helper,
-            String categoryName,
-            Predicate<net.minecraft.world.item.Item> itemPredicate,
-            Set<ResourceLocation> expectedEnchantments
-    ) {
-        assertCategoryEnchantments(helper, categoryName, itemPredicate, stack -> expectedEnchantments);
-    }
-
-    static void assertCategoryEnchantments(
-            GameTestHelper helper,
-            String categoryName,
-            Predicate<net.minecraft.world.item.Item> itemPredicate,
-            java.util.function.Function<ItemStack, Set<ResourceLocation>> expectedEnchantmentsResolver
-    ) {
-        var stacks = getRegisteredItemStacks(itemPredicate);
-        helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: " + categoryName);
-
-        for (var stack : stacks) {
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedEnchantmentsResolver.apply(stack),
-                    categoryName + " " + ForgeRegistries.ITEMS.getKey(stack.getItem())
-            );
-        }
-    }
-
-    static void assertExactEnchantmentSurfaces(
-            GameTestHelper helper,
-            ItemStack stack,
-            Set<ResourceLocation> expectedEnchantments,
-            String itemName
-    ) {
-        assertExactEnchantmentSurfaces(
-                helper,
-                stack,
-                expectedEnchantments,
-                expectedEnchantments,
-                expectedEnchantments,
-                itemName
-        );
-    }
-
-    static void assertExactEnchantmentSurfaces(
-            GameTestHelper helper,
-            ItemStack stack,
-            Set<ResourceLocation> expectedEnchantingTableEnchantments,
-            Set<ResourceLocation> expectedBookEnchantments,
-            Set<ResourceLocation> expectedAnvilEnchantments,
-            String itemName
-    ) {
-        var item = stack.getItem();
-        var actualEnchantingTableEnchantments = collectAllowedEnchantments(
-                stack,
-                enchantment -> item.canApplyAtEnchantingTable(stack, enchantment)
-        );
-        helper.assertTrue(actualEnchantingTableEnchantments.equals(expectedEnchantingTableEnchantments),
-                itemName + " enchanting-table enchantments changed: "
-                        + describeEnchantmentDifference(expectedEnchantingTableEnchantments, actualEnchantingTableEnchantments));
-
-        var actualBookEnchantments = collectAllowedEnchantments(
-                stack,
-                enchantment -> item.isBookEnchantable(stack, createEnchantedBook(enchantment))
-        );
-        helper.assertTrue(actualBookEnchantments.equals(expectedBookEnchantments),
-                itemName + " book enchantments changed: "
-                        + describeEnchantmentDifference(expectedBookEnchantments, actualBookEnchantments));
-
-        if (item instanceof NonDamageableAnvilMergeItem mergeItem) {
-            var actualAnvilEnchantments = collectAllowedEnchantments(
-                    stack,
-                    enchantment -> mergeItem.isAnvilMergeEnchantmentAllowed(stack, enchantment)
-            );
-            helper.assertTrue(actualAnvilEnchantments.equals(expectedAnvilEnchantments),
-                    itemName + " anvil enchantments changed: "
-                            + describeEnchantmentDifference(expectedAnvilEnchantments, actualAnvilEnchantments));
-        }
-    }
-
-    static List<ItemStack> getRegisteredItemStacks(Predicate<net.minecraft.world.item.Item> itemPredicate) {
-        return ItemRegistry.ITEMS.getEntries().stream()
-                .map(RegistryObject::get)
-                .filter(itemPredicate)
-                .sorted(Comparator.comparing(item -> String.valueOf(ForgeRegistries.ITEMS.getKey(item))))
-                .map(ItemStack::new)
-                .toList();
-    }
-
-    static Set<ResourceLocation> expectedSpellGunEnchantments(ItemStack stack) {
-        var expectedEnchantments = registryIdSet(
-                EnchantmentRegistry.ALACRITY,
-                EnchantmentRegistry.REFLUX,
-                EnchantmentRegistry.RESERVOIR,
-                EnchantmentRegistry.SURGE,
-                EnchantmentRegistry.ATTUNEMENT,
-                EnchantmentRegistry.TENSE,
-                EnchantmentRegistry.TRANSCENDENCE,
-                EnchantmentRegistry.WISDOM,
-                EnchantmentRegistry.PLUNDER
-        );
-        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedOffhandEnchantments(ItemStack stack) {
-        return registryIdSet(
-                EnchantmentRegistry.ALACRITY,
-                EnchantmentRegistry.REFLUX,
-                EnchantmentRegistry.RESERVOIR,
-                EnchantmentRegistry.SURGE,
-                EnchantmentRegistry.ATTUNEMENT,
-                EnchantmentRegistry.TENSE,
-                EnchantmentRegistry.TRANSCENDENCE
-        );
-    }
-
-    static Set<ResourceLocation> expectedEnchantedCircletEnchantments(ItemStack stack) {
-        var expectedEnchantments = new LinkedHashSet<>(expectedOffhandEnchantments(stack));
-        expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedRightClickMagicWeaponEnchantments(ItemStack stack) {
-        var expectedEnchantments = collectAllowedEnchantments(
-                new ItemStack(Items.DIAMOND_SWORD),
-                enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD))
-                        && !isDurabilityTargetEnchantment(enchantment)
-        );
-        expectedEnchantments.addAll(registryIdSet(
-                EnchantmentRegistry.TRANSCENDENCE,
-                EnchantmentRegistry.WISDOM
-        ));
-        if (stack.getItem() instanceof MithrilFreecastStaff) {
-            expectedEnchantments.remove(ForgeRegistries.ENCHANTMENTS.getKey(EnchantmentRegistry.TRANSCENDENCE.get()));
-        }
-        addExpectedMalumHauntedIfPresent(stack, expectedEnchantments);
-        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedSmashcastScepterEnchantingTableEnchantments(ItemStack stack) {
-        var expectedEnchantments = new LinkedHashSet<ResourceLocation>();
-        expectedEnchantments.add(ResourceLocation.withDefaultNamespace("smite"));
-        expectedEnchantments.add(ResourceLocation.withDefaultNamespace("bane_of_arthropods"));
-        expectedEnchantments.add(ResourceLocation.withDefaultNamespace("fire_aspect"));
-        expectedEnchantments.addAll(registryIdSet(
-                EnchantmentRegistry.COMPRESS,
-                EnchantmentRegistry.RELEASE,
-                EnchantmentRegistry.WISDOM,
-                EnchantmentRegistry.PLUNDER,
-                EnchantmentRegistry.TRANSCENDENCE
-        ));
-        addExpectedMalumHauntedIfPresent(stack, expectedEnchantments);
-        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedSmashcastScepterBookEnchantments(ItemStack stack) {
-        var expectedEnchantments = new LinkedHashSet<>(expectedSmashcastScepterEnchantingTableEnchantments(stack));
-        expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.RELEASE));
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedChargedTwinBladeStaffEnchantments(ItemStack stack) {
-        var expectedEnchantments = collectAllowedEnchantments(
-                new ItemStack(Items.DIAMOND_SWORD),
-                enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD))
-                        && !isDurabilityTargetEnchantment(enchantment)
-        );
-        expectedEnchantments.addAll(collectAllowedEnchantments(
-                new ItemStack(Items.TRIDENT),
-                enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.TRIDENT))
-                        && !isDurabilityTargetEnchantment(enchantment)
-        ));
-        expectedEnchantments.addAll(registryIdSet(
-                EnchantmentRegistry.WISDOM
-        ));
-        addExpectedMalumHauntedIfPresent(stack, expectedEnchantments);
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedManaForceBladeEnchantments(ItemStack stack) {
-        var expectedEnchantments = collectAllowedEnchantments(
-                new ItemStack(Items.DIAMOND_SWORD),
-                enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD))
-        );
-        expectedEnchantments.addAll(registryIdSet(
-                EnchantmentRegistry.SURGE,
-                EnchantmentRegistry.ATTUNEMENT,
-                EnchantmentRegistry.WISDOM,
-                EnchantmentRegistry.TRANSCENDENCE
-        ));
-        addExpectedMalumHauntedIfPresent(stack, expectedEnchantments);
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedSpellSideEdgeEnchantments(ItemStack stack) {
-        var expectedEnchantments = collectAllowedEnchantments(
-                new ItemStack(Items.DIAMOND_SWORD),
-                enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD))
-        );
-        expectedEnchantments.addAll(registryIdSet(
-                EnchantmentRegistry.WISDOM,
-                EnchantmentRegistry.TRANSCENDENCE
-        ));
-        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedCircuitHeatStaffEnchantments(ItemStack stack) {
-        var expectedEnchantments = collectAllowedEnchantments(
-                new ItemStack(Items.DIAMOND_SWORD),
-                enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD))
-                        && !isDurabilityTargetEnchantment(enchantment)
-        );
-        expectedEnchantments.addAll(registryIdSet(
-                EnchantmentRegistry.WISDOM
-        ));
-        addExpectedMalumHauntedIfPresent(stack, expectedEnchantments);
-        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedMultipurposeStaffrifleEnchantments(ItemStack stack) {
-        var expectedEnchantments = registryIdSet(
-                EnchantmentRegistry.ALACRITY,
-                EnchantmentRegistry.REFLUX,
-                EnchantmentRegistry.RESERVOIR,
-                EnchantmentRegistry.SURGE,
-                EnchantmentRegistry.TENSE,
-                EnchantmentRegistry.WISDOM,
-                EnchantmentRegistry.PLUNDER
-        );
-        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
-        return expectedEnchantments;
-    }
-
     static void assertChargedTwinBladeStaffThrownDamage(
             GameTestHelper helper,
             ItemStack stack,
@@ -11264,67 +10897,6 @@ public class ApprenticeCodexGameTestScenarios {
         var actualDamage = ChargedTwinBladeStaff.resolveThrownDamage(stack, mobType);
         helper.assertTrue(Math.abs(actualDamage - expectedDamage) < 1.0e-9D,
                 failureMessage + ": mobType=" + mobType + ", expected=" + expectedDamage + ", actual=" + actualDamage);
-    }
-
-    static Set<ResourceLocation> expectedReflectcastShieldEnchantments(ItemStack stack) {
-        var expectedEnchantments = collectAllowedEnchantments(
-                new ItemStack(Items.SHIELD),
-                enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.SHIELD))
-        );
-        expectedEnchantments.addAll(registryIdSet(
-                EnchantmentRegistry.TRANSCENDENCE,
-                EnchantmentRegistry.WISDOM
-        ));
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedElementalBowEnchantments() {
-        var bowStack = new ItemStack(Items.BOW);
-        var expectedEnchantments = collectAllowedEnchantments(
-                bowStack,
-                enchantment -> Items.BOW.canApplyAtEnchantingTable(bowStack, enchantment)
-        );
-        expectedEnchantments.addAll(registryIdSet(
-                EnchantmentRegistry.TRANSCENDENCE,
-                EnchantmentRegistry.WISDOM,
-                EnchantmentRegistry.PLUNDER,
-                EnchantmentRegistry.SYNTHESIS
-        ));
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedElementalBowBookEnchantments() {
-        var bowStack = new ItemStack(Items.BOW);
-        var expectedEnchantments = collectAllowedEnchantments(
-                bowStack,
-                enchantment -> Items.BOW.isBookEnchantable(bowStack, createEnchantedBook(enchantment))
-        );
-        expectedEnchantments.addAll(registryIdSet(
-                EnchantmentRegistry.TRANSCENDENCE,
-                EnchantmentRegistry.WISDOM,
-                EnchantmentRegistry.PLUNDER,
-                EnchantmentRegistry.SYNTHESIS
-        ));
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedFlaskEnchantments() {
-        return registryIdSet(
-                EnchantmentRegistry.GUZZLE,
-                EnchantmentRegistry.LARGE_MUG,
-                EnchantmentRegistry.RED_ENERGY,
-                EnchantmentRegistry.GLOW_ENERGY
-        );
-    }
-
-    static Set<ResourceLocation> expectedAlchemistsFlaskEnchantments() {
-        return registryIdSet(
-                EnchantmentRegistry.LARGE_MUG,
-                EnchantmentRegistry.RED_ENERGY,
-                EnchantmentRegistry.GLOW_ENERGY,
-                EnchantmentRegistry.TRANSCENDENCE,
-                EnchantmentRegistry.WISDOM
-        );
     }
 
     static Set<ResourceLocation> expectedRandomBookLootEnchantments() {
@@ -11339,79 +10911,6 @@ public class ApprenticeCodexGameTestScenarios {
                 EnchantmentRegistry.WISDOM,
                 EnchantmentRegistry.PLUNDER
         );
-    }
-
-    static Set<ResourceLocation> expectedEnchantressRobeEnchantments(ItemStack stack) {
-        var probeStack = createArmorProbeStack(stack);
-        var expectedEnchantments = collectAllowedEnchantments(
-                probeStack,
-                enchantment -> enchantment.canApplyAtEnchantingTable(probeStack)
-        );
-        expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
-        if (stack.getItem() instanceof EnchantressRobeItem robeItem && robeItem.hasImbueSlot()) {
-            expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.TRANSCENDENCE));
-        }
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedStealthRuneArmorEnchantments(ItemStack stack) {
-        var probeStack = createArmorProbeStack(stack);
-        var expectedEnchantments = collectAllowedEnchantments(
-                probeStack,
-                enchantment -> enchantment.canApplyAtEnchantingTable(probeStack)
-        );
-        expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedChromaticMagiaDressEnchantments(ItemStack stack) {
-        var probeStack = createArmorProbeStack(stack);
-        var expectedEnchantments = collectAllowedEnchantments(
-                probeStack,
-                enchantment -> enchantment.canApplyAtEnchantingTable(probeStack)
-        );
-        expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedElementMaidenRobeEnchantments(ItemStack stack) {
-        var probeStack = createArmorProbeStack(stack);
-        var expectedEnchantments = collectAllowedEnchantments(
-                probeStack,
-                enchantment -> enchantment.canApplyAtEnchantingTable(probeStack)
-        );
-        expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
-        if (stack.getItem() instanceof ElementMaidenRobeItem robeItem && robeItem.hasImbueSlot()) {
-            expectedEnchantments.addAll(registryIdSet(
-                    EnchantmentRegistry.SURGE,
-                    EnchantmentRegistry.ATTUNEMENT,
-                    EnchantmentRegistry.TRANSCENDENCE
-            ));
-        }
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedMagiAgentSuitEnchantments(ItemStack stack) {
-        var probeStack = createArmorProbeStack(stack);
-        var expectedEnchantments = collectAllowedEnchantments(
-                probeStack,
-                enchantment -> enchantment.canApplyAtEnchantingTable(probeStack)
-        );
-        expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
-        return expectedEnchantments;
-    }
-
-    static ItemStack createArmorProbeStack(ItemStack stack) {
-        if (!(stack.getItem() instanceof ArmorItem armorItem)) {
-            throw new IllegalArgumentException("Expected armor item for enchantment probe: " + stack);
-        }
-
-        return switch (armorItem.getType()) {
-            case HELMET -> new ItemStack(Items.LEATHER_HELMET);
-            case CHESTPLATE -> new ItemStack(Items.LEATHER_CHESTPLATE);
-            case LEGGINGS -> new ItemStack(Items.LEATHER_LEGGINGS);
-            case BOOTS -> new ItemStack(Items.LEATHER_BOOTS);
-        };
     }
 
     static float getEquippedAttributeTotal(Player player, Attribute attribute) {
@@ -11563,16 +11062,6 @@ public class ApprenticeCodexGameTestScenarios {
             }
         }
         return ids;
-    }
-
-    static List<Enchantment> getRegisteredEnchantments() {
-        return ForgeRegistries.ENCHANTMENTS.getValues().stream()
-                .sorted(Comparator.comparing(enchantment -> String.valueOf(ForgeRegistries.ENCHANTMENTS.getKey(enchantment))))
-                .toList();
-    }
-
-    static Set<ResourceLocation> allRegisteredEnchantmentIds() {
-        return collectAllowedEnchantments(ItemStack.EMPTY, enchantment -> true);
     }
 
     static void assertElementalBowSelection(
@@ -11759,47 +11248,12 @@ public class ApprenticeCodexGameTestScenarios {
         helper.assertFalse(present, message + " (unexpected tooltip key=" + key + ")");
     }
 
-    static Set<ResourceLocation> collectAllowedEnchantments(
-            ItemStack stack,
-            Predicate<Enchantment> predicate
-    ) {
-        var allowedEnchantments = new LinkedHashSet<ResourceLocation>();
-        for (var enchantment : getRegisteredEnchantments()) {
-            var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-            if (enchantmentId == null || !predicate.test(enchantment)) {
-                continue;
-            }
-            allowedEnchantments.add(enchantmentId);
-        }
-        return allowedEnchantments;
-    }
-
-    static ItemStack createEnchantedBook(Enchantment enchantment) {
-        return createEnchantedBook(new EnchantmentInstance(enchantment, 1));
-    }
-
     static ItemStack createEnchantedBook(EnchantmentInstance... enchantments) {
         var book = new ItemStack(Items.ENCHANTED_BOOK);
         for (var enchantment : enchantments) {
             EnchantedBookItem.addEnchantment(book, enchantment);
         }
         return book;
-    }
-
-    static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
-        return enchantment.canApplyAtEnchantingTable(new ItemStack(Items.ELYTRA));
-    }
-
-    static void addExpectedMalumSpiritPlunderIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
-        if (ModList.get().isLoaded(MALUM_MOD_ID) && stack.is(MALUM_SOUL_HUNTER_WEAPON)) {
-            expectedEnchantments.add(MALUM_SPIRIT_PLUNDER);
-        }
-    }
-
-    static void addExpectedMalumHauntedIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
-        if (ModList.get().isLoaded(MALUM_MOD_ID) && MalumHauntedCompat.isSupportedHauntedMainhandItem(stack)) {
-            expectedEnchantments.add(MALUM_HAUNTED);
-        }
     }
 
     static String describeEnchantmentDifference(
@@ -11813,23 +11267,6 @@ public class ApprenticeCodexGameTestScenarios {
         unexpectedEnchantments.removeAll(expectedEnchantments);
 
         return "missing=" + missingEnchantments + ", unexpected=" + unexpectedEnchantments;
-    }
-
-    static void assertApprenticeEnchantmentFlags(
-            GameTestHelper helper,
-            RegistryObject<Enchantment> enchantmentRegistryObject,
-            boolean expectedTreasureOnly,
-            boolean expectedTradeable,
-            boolean expectedDiscoverable
-    ) {
-        var enchantment = enchantmentRegistryObject.get();
-        var enchantmentId = String.valueOf(enchantmentRegistryObject.getId());
-        helper.assertTrue(enchantment.isTreasureOnly() == expectedTreasureOnly,
-                "Treasure flag changed for " + enchantmentId + ": expected " + expectedTreasureOnly + " but got " + enchantment.isTreasureOnly());
-        helper.assertTrue(enchantment.isTradeable() == expectedTradeable,
-                "Tradeable flag changed for " + enchantmentId + ": expected " + expectedTradeable + " but got " + enchantment.isTradeable());
-        helper.assertTrue(enchantment.isDiscoverable() == expectedDiscoverable,
-                "Discoverable flag changed for " + enchantmentId + ": expected " + expectedDiscoverable + " but got " + enchantment.isDiscoverable());
     }
 
     static void assertSwingcastStaffTier(

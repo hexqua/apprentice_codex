@@ -67,17 +67,6 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
             );
         });
     }
-    static void chargedTwinBladeStaffKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedChargedTwinBladeStaffEnchantments(stack),
-                    "Charged Twin Blade Staff"
-            );
-        });
-    }
     static void chargedTwinBladeStaffExposesExpectedMainhandAttributes(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());

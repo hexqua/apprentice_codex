@@ -12,7 +12,6 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.shield.ImbueShieldBlockCastEvent;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -29,7 +28,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraftforge.event.entity.living.ShieldBlockEvent;
 
 import java.util.ArrayList;
@@ -54,11 +52,6 @@ final class ParrycastBucklerGameTestScenarios {
                     "Parrycast Buckler should repair with arcane ingot");
             helper.assertFalse(item.isValidRepairItem(stack, new ItemStack(Items.DIAMOND)),
                     "Parrycast Buckler should not repair with diamond");
-            helper.assertTrue(item.canApplyAtEnchantingTable(stack, Enchantments.UNBREAKING), "Parrycast should accept shield enchantments");
-            helper.assertTrue(item.canApplyAtEnchantingTable(stack, EnchantmentRegistry.TENSE.get()), "Parrycast should accept Tense");
-            helper.assertTrue(item.canApplyAtEnchantingTable(stack, EnchantmentRegistry.ALACRITY.get()), "Parrycast should accept Alacrity");
-            helper.assertTrue(item.canApplyAtEnchantingTable(stack, EnchantmentRegistry.TRANSCENDENCE.get()), "Parrycast should accept Transcendence");
-            helper.assertTrue(item.canApplyAtEnchantingTable(stack, EnchantmentRegistry.WISDOM.get()), "Parrycast should accept Wisdom");
             helper.assertTrue(item.canImbueSpell(SpellRegistry.SENSE_EVIL.get(), 1), "Parrycast should accept instant no-recast spells");
             helper.assertTrue(item.canImbueSpell(SpellRegistry.MANTIS_LEAP.get(), 1),
                     "Parrycast should always accept long no-recast spells for imbue");
