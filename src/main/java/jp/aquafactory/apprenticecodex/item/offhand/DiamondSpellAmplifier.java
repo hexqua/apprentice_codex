@@ -10,7 +10,7 @@ public class DiamondSpellAmplifier extends AbstractSpellAmplifierItem {
         super(
                 Rarity.UNCOMMON,
                 "diamond_spell_amplifier",
-                bonus(AttributeRegistry.CASTING_MOVESPEED, 0.25, AttributeModifier.Operation.ADD_VALUE)
+                bonus(AttributeRegistry.CASTING_MOVESPEED, 0.25, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
         );
     }
 
