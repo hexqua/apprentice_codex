@@ -24,6 +24,13 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
         helper.succeedIf(() -> {
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
                     AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS, "Spell Gun");
+            assertDefinitionSurface(helper, new ItemStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get()),
+                    Set.of(
+                            AttributeEnchantmentType.ALACRITY,
+                            AttributeEnchantmentType.REFLUX,
+                            AttributeEnchantmentType.RESERVOIR,
+                            AttributeEnchantmentType.TENSE
+                    ), "Swingcast Staff");
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get()),
                     Set.of(
                             AttributeEnchantmentType.ALACRITY,
@@ -46,6 +53,12 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
                     AttributeEnchantmentType.RESERVOIR,
                     AttributeEnchantmentType.SURGE,
                     AttributeEnchantmentType.ATTUNEMENT,
+                    AttributeEnchantmentType.TENSE
+            ));
+            assertDirectAttributePolicy(helper, ItemRegistry.COPPER_SWINGCAST_STAFF.get(), Set.of(
+                    AttributeEnchantmentType.ALACRITY,
+                    AttributeEnchantmentType.REFLUX,
+                    AttributeEnchantmentType.RESERVOIR,
                     AttributeEnchantmentType.TENSE
             ));
             assertDirectAttributePolicy(helper, ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(), Set.of(
