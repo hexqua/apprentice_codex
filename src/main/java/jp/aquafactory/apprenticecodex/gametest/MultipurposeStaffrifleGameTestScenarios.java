@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import java.util.ArrayList;
 
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
@@ -72,7 +73,7 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
                     helper,
                     enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get()),
                     AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.05D,
+                    AttributeEnchantmentType.REFLUX.amountPerLevel(),
                     "Multipurpose Staffrifle Reflux modifier changed"
             );
             assertSingleModifierAmount(
@@ -93,7 +94,7 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
                     helper,
                     enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get()),
                     AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.05D,
+                    AttributeEnchantmentType.TENSE.amountPerLevel(),
                     "Multipurpose Staffrifle Tense modifier changed"
             );
 

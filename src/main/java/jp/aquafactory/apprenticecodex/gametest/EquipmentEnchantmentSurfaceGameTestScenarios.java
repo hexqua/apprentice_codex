@@ -1002,7 +1002,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     helper,
                     modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get()),
                     AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.05D,
+                    AttributeEnchantmentType.REFLUX.amountPerLevel(),
                     "Scrollcaster Gauntlet Reflux modifier changed"
             );
             assertSingleModifierAmount(
@@ -1023,7 +1023,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     helper,
                     modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get()),
                     AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.05D,
+                    AttributeEnchantmentType.TENSE.amountPerLevel(),
                     "Scrollcaster Gauntlet Tense modifier changed"
             );
 
@@ -1038,7 +1038,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     helper,
                     modifiers.get(attunementAttribute),
                     AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.04D,
+                    AttributeEnchantmentType.ATTUNEMENT.amountPerLevel(),
                     "Scrollcaster Gauntlet Attunement modifier changed"
             );
         });

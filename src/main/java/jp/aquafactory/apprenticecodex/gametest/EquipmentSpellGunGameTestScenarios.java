@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
@@ -366,10 +367,12 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                             io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get(),
                             AttributeModifier.Operation.MULTIPLY_BASE, 0.02D),
                     new SpellgunAttributeCase(EnchantmentRegistry.ATTUNEMENT.get(), attunementAttribute,
-                            AttributeModifier.Operation.MULTIPLY_BASE, 0.04D),
+                            AttributeModifier.Operation.MULTIPLY_BASE,
+                            AttributeEnchantmentType.ATTUNEMENT.amountPerLevel()),
                     new SpellgunAttributeCase(EnchantmentRegistry.TENSE.get(),
                             io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get(),
-                            AttributeModifier.Operation.MULTIPLY_BASE, 0.05D)
+                            AttributeModifier.Operation.MULTIPLY_BASE,
+                            AttributeEnchantmentType.TENSE.amountPerLevel())
             );
             for (var attributeCase : cases) {
                 var stack = createInitializedPresetStack(item);
