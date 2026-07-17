@@ -547,11 +547,11 @@ final class EnchantmentApplicationGameTestScenarios {
     }
 
     private static Set<ResourceLocation> expectedMithrilFreecastStaffEnchantments(ItemStack stack) {
-        return expectedSwordBasedMagicWeaponEnchantments(stack, false);
+        return expectedSwingcastStavesEnchantments(stack, false);
     }
 
     private static Set<ResourceLocation> expectedRevolvercastStaffEnchantments(ItemStack stack) {
-        return expectedSwordBasedMagicWeaponEnchantments(stack, true);
+        return expectedSwingcastStavesEnchantments(stack, true);
     }
 
     private static Set<ResourceLocation> expectedCrystalBladedStaffEnchantments(ItemStack stack) {
