@@ -691,13 +691,7 @@ final class EnchantmentApplicationGameTestScenarios {
     }
 
     private static Set<ResourceLocation> expectedEnchantressRobeEnchantments(ItemStack stack) {
-        var probe = createArmorProbeStack(stack);
-        var expected = collectAllowedEnchantments(enchantment -> enchantment.canApplyAtEnchantingTable(probe));
-        expected.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
-        if (stack.getItem() instanceof EnchantressRobeItem robe && robe.hasImbueSlot()) {
-            expected.addAll(registryIdSet(EnchantmentRegistry.TRANSCENDENCE));
-        }
-        return expected;
+        return expectedNormalMagicArmorEnchantments(stack);
     }
 
     private static Set<ResourceLocation> expectedStealthRuneArmorEnchantments(ItemStack stack) {
