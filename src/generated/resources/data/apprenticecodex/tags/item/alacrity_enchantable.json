@@ -1,7 +1,5 @@
 {
   "values": [
-    "apprenticecodex:scrollcaster_gauntlet",
-    "apprenticecodex:element_maiden_robe_robe",
     "apprenticecodex:enchanted_circlet",
     "apprenticecodex:iron_spellcaster_gun",
     "apprenticecodex:copper_spellcaster_gun",
@@ -15,7 +13,8 @@
     "apprenticecodex:netherite_spell_amplifier",
     "apprenticecodex:photon_siphon",
     "apprenticecodex:explorers_cane",
-    "apprenticecodex:mana_force_blade",
-    "#apprenticecodex:spell_container_magic_enchantable"
+    "apprenticecodex:multipurpose_staffrifle",
+    "apprenticecodex:parrycast_buckler",
+    "#apprenticecodex:offhand_or_armor_magic_enchantable"
   ]
 }

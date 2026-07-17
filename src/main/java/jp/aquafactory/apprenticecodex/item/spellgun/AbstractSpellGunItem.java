@@ -93,12 +93,6 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_shatter_capable_weapon")
     );
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 1;
-    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
-            AttributeEnchantmentType.REFLUX,
-            AttributeEnchantmentType.RESERVOIR,
-            AttributeEnchantmentType.SURGE,
-            AttributeEnchantmentType.ATTUNEMENT
-    );
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
                     CalibrationAdjustmentRule.unique(
@@ -247,7 +241,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
     @Override
     public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
-        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
+        return ALL_ATTRIBUTE_ENCHANTMENTS;
     }
 
     @Override

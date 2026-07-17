@@ -23,12 +23,7 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
     static void itemSurfacesKeepExpectedMatrix(GameTestHelper helper) {
         helper.succeedIf(() -> {
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
-                    Set.of(
-                            AttributeEnchantmentType.REFLUX,
-                            AttributeEnchantmentType.RESERVOIR,
-                            AttributeEnchantmentType.SURGE,
-                            AttributeEnchantmentType.ATTUNEMENT
-                    ), "Spell Gun");
+                    AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS, "Spell Gun");
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get()),
                     Set.of(
                             AttributeEnchantmentType.ALACRITY,
@@ -46,10 +41,12 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
     static void directApplicationPoliciesKeepExpectedMatrix(GameTestHelper helper) {
         helper.succeedIf(() -> {
             assertDirectAttributePolicy(helper, ItemRegistry.IRON_SPELLCASTER_GUN.get(), Set.of(
+                    AttributeEnchantmentType.ALACRITY,
                     AttributeEnchantmentType.REFLUX,
                     AttributeEnchantmentType.RESERVOIR,
                     AttributeEnchantmentType.SURGE,
-                    AttributeEnchantmentType.ATTUNEMENT
+                    AttributeEnchantmentType.ATTUNEMENT,
+                    AttributeEnchantmentType.TENSE
             ));
             assertDirectAttributePolicy(helper, ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(), Set.of(
                     AttributeEnchantmentType.ALACRITY,
@@ -64,9 +61,13 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
             ));
 
             helper.assertTrue(WisdomPolicy.supportsDirectApplication(ItemRegistry.FOCUS_STAFFBOW.get()),
-                    "Focus Staffbow should keep its 1.21.1 Wisdom surface");
+                    "Focus Staffbow should keep its Wisdom surface");
+            helper.assertTrue(PlunderTarget.supportsDirectApplication(ItemRegistry.FOCUS_STAFFBOW.get()),
+                    "Focus Staffbow should keep its Plunder surface");
             helper.assertTrue(PlunderTarget.supportsDirectApplication(ItemRegistry.SMASHCAST_SCEPTER.get()),
                     "Smashcast Scepter should keep its Plunder surface");
+
+            assertDirectPoliciesReachApplicationSurfaces(helper);
         });
     }
 
@@ -81,9 +82,8 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
             helper.assertFalse(WisdomPolicy.supportsDirectApplication(scrollcaster),
                     "Scrollcaster Gauntlet Wisdom is synchronized through calibration");
 
-            var revolvercast = (TranscendencePolicy) ItemRegistry.REVOLVERCAST_STAFF.get();
-            helper.assertTrue(revolvercast.transcendenceHandling() == TranscendencePolicy.Handling.DISABLED,
-                    "Revolvercast Staff should keep the 1.21.1 Transcendence rejection");
+            helper.assertTrue(TranscendencePolicy.supportsDirectApplication(ItemRegistry.REVOLVERCAST_STAFF.get()),
+                    "Revolvercast Staff should accept Transcendence like the 1.20.1 implementation");
             var elementalBow = (TranscendencePolicy) ItemRegistry.ELEMENTAL_BOW.get();
             helper.assertTrue(elementalBow.transcendenceHandling() == TranscendencePolicy.Handling.INTERNAL,
                     "Elemental Bow should keep internal Transcendence handling");
@@ -146,5 +146,42 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
             helper.assertTrue(policy.supportsDirectAttributeEnchantment(type) == expected.contains(type),
                     item + " direct attribute policy changed for " + type);
         }
+    }
+
+    private static void assertDirectPoliciesReachApplicationSurfaces(GameTestHelper helper) {
+        var enchantments = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        for (var itemEntry : ItemRegistry.ITEMS.getEntries()) {
+            var item = itemEntry.get();
+            var stack = new ItemStack(item);
+            if (TranscendencePolicy.supportsDirectApplication(item)) {
+                assertApplicationSurface(helper, stack, enchantments.getOrThrow(Enchantments.TRANSCENDENCE));
+            }
+            if (WisdomPolicy.supportsDirectApplication(item)) {
+                assertApplicationSurface(helper, stack, enchantments.getOrThrow(Enchantments.WISDOM));
+            }
+            if (PlunderTarget.supportsDirectApplication(item)) {
+                assertApplicationSurface(helper, stack, enchantments.getOrThrow(Enchantments.PLUNDER));
+            }
+            for (var type : AttributeEnchantmentType.values()) {
+                if (AttributeEnchantmentPolicy.supportsDirectApplication(item, type)) {
+                    assertApplicationSurface(helper, stack, enchantments.getOrThrow(type.enchantmentKey()));
+                }
+            }
+        }
+    }
+
+    private static void assertApplicationSurface(
+            GameTestHelper helper,
+            ItemStack stack,
+            net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment> enchantment
+    ) {
+        var item = stack.getItem();
+        var enchantmentId = enchantment.unwrapKey().orElseThrow().location();
+        helper.assertTrue(enchantment.value().canEnchant(stack),
+                item + " is declared for " + enchantmentId + " but is absent from the definition tag");
+        helper.assertTrue(item.supportsEnchantment(stack, enchantment),
+                item + " is declared for " + enchantmentId + " but rejects normal book application");
+        helper.assertTrue(item.isPrimaryItemFor(stack, enchantment),
+                item + " is declared for " + enchantmentId + " but rejects enchanting-table application");
     }
 }

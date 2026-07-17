@@ -68,10 +68,10 @@ public final class FocusStaffbow extends CastingItem
     private static final float CLIENT_MANA_SAFE_MARGIN = 0.001F;
     private static final Set<ResourceLocation> ALLOWED_EXTRA_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom"),
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "plunder"),
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "synthesis")
     );
     private static final Set<ResourceLocation> EXCLUDED_EXTRA_ENCHANTMENTS = Set.of(
-            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "plunder"),
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "transcendence")
     );
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);

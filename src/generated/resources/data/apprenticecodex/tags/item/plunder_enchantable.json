@@ -1,9 +1,13 @@
 {
   "values": [
-    "apprenticecodex:smashcast_scepter",
     "apprenticecodex:scrollcaster_gauntlet",
+    "apprenticecodex:iron_spellcaster_gun",
+    "apprenticecodex:copper_spellcaster_gun",
+    "apprenticecodex:gold_spellcaster_gun",
+    "apprenticecodex:diamond_spellcaster_gun",
+    "apprenticecodex:focus_staffbow",
+    "apprenticecodex:smashcast_scepter",
     "apprenticecodex:multipurpose_staffrifle",
-    "#apprenticecodex:spell_gun_enchantable",
     "apprenticecodex:elemental_bow"
   ]
 }
