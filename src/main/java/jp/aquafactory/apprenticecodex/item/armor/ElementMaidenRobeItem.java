@@ -64,6 +64,11 @@ public class ElementMaidenRobeItem extends ArmorItem
         GeoItem.registerSyncedAnimatable(this);
     }
 
+    @Override
+    public boolean isWisdomActiveWhileHeld() {
+        return false;
+    }
+
     public Type getArmorType() {
         return getType();
     }

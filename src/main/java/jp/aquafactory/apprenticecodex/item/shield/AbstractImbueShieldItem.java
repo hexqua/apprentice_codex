@@ -39,7 +39,7 @@ import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 
 public abstract class AbstractImbueShieldItem extends ShieldItem implements IPresetSpellContainer, RestrictedSpellImbuableItem,
-        ManaBypassSpellItem, CastAnimationOverrideItem, TranscendencePolicy {
+        ManaBypassSpellItem, CastAnimationOverrideItem, TranscendencePolicy, WisdomPolicy {
     private static final int BLOCK_READY_TICKS = 5;
     private static final int SPELL_TRIGGER_WINDOW_TICKS = 15;
     private static final String TRIGGER_WINDOW_START_TAG_PREFIX = "ApprenticeCodexImbueShieldWindowStart.";

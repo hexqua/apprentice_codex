@@ -46,6 +46,11 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
         GeoItem.registerSyncedAnimatable(this);
     }
 
+    @Override
+    public boolean isWisdomActiveWhileHeld() {
+        return false;
+    }
+
     public boolean hasImbueSlot() {
         return getType() == Type.CHESTPLATE;
     }

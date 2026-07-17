@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
@@ -47,7 +48,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public abstract class AbstractSpellSideEdgeItem extends SwordItem
-        implements GeoItem, IPresetSpellContainer, UniqueItem, TranscendencePolicy {
+        implements GeoItem, IPresetSpellContainer, UniqueItem, TranscendencePolicy, WisdomPolicy {
     public static final float DISPLAY_ATTACK_DAMAGE = 4.0F;
     public static final int DURABILITY = 1561;
     public static final int ENCHANTMENT_VALUE = 22;

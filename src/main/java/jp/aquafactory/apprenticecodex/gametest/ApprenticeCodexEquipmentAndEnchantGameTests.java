@@ -1940,6 +1940,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void wisdomPlunderPoliciesMatchItemsAndGeneratedTags(GameTestHelper helper) {
+        WisdomPlunderPolicyGameTestScenarios.directApplicationPoliciesMatchItemsAndGeneratedTags(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void newlyUnifiedHeldTargetsApplyWisdomAndPlunder(GameTestHelper helper) {
+        WisdomPlunderPolicyGameTestScenarios.newlyUnifiedHeldTargetsApplyWisdomAndPlunder(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void equipmentOnlyAndUnsupportedWisdomPlunderItemsStayInactiveWhileHeld(GameTestHelper helper) {
+        WisdomPlunderPolicyGameTestScenarios.equipmentOnlyAndUnsupportedItemsDoNotApplyWhileHeld(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void forcedAttributeEnchantmentsCoexistAndKeepRawPositiveLevels(GameTestHelper helper) {
         AttributeEnchantmentPolicyGameTestScenarios.forcedEnchantmentsCoexistAndKeepRawPositiveLevels(helper);
     }

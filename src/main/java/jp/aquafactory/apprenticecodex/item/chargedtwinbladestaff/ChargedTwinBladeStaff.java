@@ -69,7 +69,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 
-public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDamageableAnvilMergeItem, UniqueItem {
+public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDamageableAnvilMergeItem, UniqueItem,
+        WisdomPolicy {
     public static final int THROW_THRESHOLD_TICKS = 10;
     private static final int USE_DURATION = 72000;
     private static final float THROW_POWER = 2.5F;

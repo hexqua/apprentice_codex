@@ -38,7 +38,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.List;
 import java.util.Set;
 
-public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem {
+public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem, WisdomPolicy {
     public static final String STONE_TINT_COLOR_TAG = "StoneTintColor";
     public static final String STONE_AFFINITY_SCHOOL_TAG = "StoneAffinitySchool";
     public static final int DEFAULT_STONE_TINT_COLOR = 0xFFFFFF;

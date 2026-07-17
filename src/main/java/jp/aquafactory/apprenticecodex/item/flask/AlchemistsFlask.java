@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.item.consumables.SimpleElixir;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -30,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class AlchemistsFlask extends AbstractPotionFlaskItem
         implements IPresetSpellContainer, RestrictedSpellImbuableItem, NonDamageableAnvilMergeItem, UniqueItem,
-        TranscendencePolicy {
+        TranscendencePolicy, WisdomPolicy {
     private static final int BASE_MAX_STORED_DOSES = 16;
     private static final int LARGE_MUG_BONUS_PER_LEVEL = 4;
 

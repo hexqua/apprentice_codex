@@ -36,7 +36,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class ZenithStaff extends StaffItem implements GeoItem, UniqueItem {
+public class ZenithStaff extends StaffItem implements GeoItem, UniqueItem, WisdomPolicy {
     private static final String MAIN_CONTROLLER = "main";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final StaffTier ZENITH_STAFF_TIER = new StaffTier(

@@ -46,6 +46,11 @@ public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPres
         GeoItem.registerSyncedAnimatable(this);
     }
 
+    @Override
+    public boolean isWisdomActiveWhileHeld() {
+        return false;
+    }
+
     public Type getArmorType() {
         return getType();
     }

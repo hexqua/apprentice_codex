@@ -30,7 +30,8 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.function.Consumer;
 
-public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSpellContainer, TranscendencePolicy {
+public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSpellContainer, TranscendencePolicy,
+        WisdomPolicy {
     private static final double IMBUED_SCHOOL_SPELL_POWER_BONUS = 0.05D;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -40,6 +41,11 @@ public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSp
         super(Holder.direct(EnchantressRobeStats.MATERIAL), type, EnchantressRobeStats.createProperties(type));
         this.robeAttributeModifiers = EnchantressRobeStats.createAttributeModifiers(type);
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public boolean isWisdomActiveWhileHeld() {
+        return false;
     }
 
     public boolean hasImbueSlot() {

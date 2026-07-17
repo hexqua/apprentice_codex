@@ -77,7 +77,8 @@ import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 
 public abstract class AbstractSpellGunItem extends Item implements IPresetSpellContainer, RestrictedSpellImbuableItem,
         ManaBypassSpellItem, CastAnimationOverrideItem, IJeiInfoItem, NonDamageableAnvilMergeItem,
-        SpellCalibrationAdjustmentTarget, TranscendencePolicy, AttributeEnchantmentPolicy {
+        SpellCalibrationAdjustmentTarget, TranscendencePolicy, AttributeEnchantmentPolicy, WisdomPolicy,
+        PlunderTarget {
     private static final String JEI_INFO_GROUP_ID = "spellgun_items";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.spellgun_items.desc_";
     private static final String MALUM_NAMESPACE = "malum";

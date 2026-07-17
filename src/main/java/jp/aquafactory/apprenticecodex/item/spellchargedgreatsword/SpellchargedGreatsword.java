@@ -60,7 +60,7 @@ import java.util.OptionalLong;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public final class SpellchargedGreatsword extends SwordItem implements GeoItem, IJeiInfoItem {
+public final class SpellchargedGreatsword extends SwordItem implements GeoItem, IJeiInfoItem, WisdomPolicy {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.spellcharged_greatsword.desc_";
     public static final int DURABILITY = 2031;
     public static final int ENCHANTMENT_VALUE = 22;

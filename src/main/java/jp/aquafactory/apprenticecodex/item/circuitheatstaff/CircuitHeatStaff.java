@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.circuitheatstaff;
 
+import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.item.weapons.ExtendedSwordItem;
@@ -65,7 +67,8 @@ import java.util.Set;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 
-public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, NonDamageableAnvilMergeItem, IJeiInfoItem {
+public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, NonDamageableAnvilMergeItem,
+        IJeiInfoItem, WisdomPolicy, PlunderTarget {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.circuit_heat_staff.desc_";
     private static final String FRAME_CONTROLLER = "frame";
     private static final String COG_CONTROLLER = "cog";

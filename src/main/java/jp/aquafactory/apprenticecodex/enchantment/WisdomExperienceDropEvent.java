@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.enchantment;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -80,7 +79,7 @@ public final class WisdomExperienceDropEvent {
 
     private static int getApplicableCurioWisdomLevel(Player player) {
         return CuriosApi.getCuriosInventory(player)
-                .map(inventory -> inventory.findCurios(stack -> stack.getItem() instanceof OffhandMagicCompatibleItem))
+                .map(inventory -> inventory.findCurios(stack -> stack.getItem() instanceof WisdomPolicy))
                 .orElse(List.of())
                 .stream()
                 .filter(slotResult -> CuriosSlotConstants.HEAD.equals(slotResult.slotContext().identifier()))
@@ -90,7 +89,8 @@ public final class WisdomExperienceDropEvent {
 
     private static int getHeldWisdomLevel(ItemStack stack) {
         if (stack.isEmpty()
-                || !MagicItemEnchantmentTargeting.isSupportedHeldWisdomMagicItem(stack.getItem())) {
+                || !(stack.getItem() instanceof WisdomPolicy policy)
+                || !policy.isWisdomActiveWhileHeld()) {
             return 0;
         }
 
