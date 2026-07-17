@@ -11,17 +11,30 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
-import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceKey;
@@ -35,11 +48,14 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 import net.minecraft.tags.TagKey;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
@@ -60,7 +76,8 @@ import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 
 public abstract class AbstractSpellGunItem extends Item implements IPresetSpellContainer, RestrictedSpellImbuableItem,
-        ManaBypassSpellItem, CastAnimationOverrideItem, IJeiInfoItem, NonDamageableAnvilMergeItem {
+        ManaBypassSpellItem, CastAnimationOverrideItem, IJeiInfoItem, NonDamageableAnvilMergeItem,
+        SpellCalibrationAdjustmentTarget {
     private static final String JEI_INFO_GROUP_ID = "spellgun_items";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.spellgun_items.desc_";
     private static final String MALUM_NAMESPACE = "malum";
@@ -76,6 +93,20 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     private static final double SURGE_SPELL_POWER_PER_LEVEL = 0.02D;
     private static final double ATTUNEMENT_SPELL_POWER_PER_LEVEL = 0.04D;
     private static final double TENSE_CAST_TIME_REDUCTION_PER_LEVEL = 0.05D;
+    public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 1;
+    private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
+            CalibrationAdjustmentProfile.of(
+                    CalibrationAdjustmentRule.unique(
+                            stack -> stack.is(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
+                            new CalibrationAdjustmentHint.SpecificItem(ItemRegistry.SILVER_SPELL_AMPLIFIER)
+                    )
+            );
+    private static final String CALIBRATION_TAG = "SpellgunCalibration";
+    private static final String ADJUSTMENT_TAG = "Adjustment";
+    private static final String ID_ONLY_ADJUSTMENT_ITEM_TAG = "AdjustmentItem";
+    private static final String ITEM_ID_TAG = "id";
+    private static final HolderLookup.Provider FALLBACK_SERIALIZATION_LOOKUP =
+            RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     public static final float EMPTY_CASING_RETURN_CHANCE = 0.5F;
     private final SpellGunConfig spellGunConfig;
     private final Supplier<? extends AbstractSpell> configuredSpell;
@@ -83,7 +114,6 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     private final boolean startsWithPresetSpell;
     private final String itemKey;
     private final List<AttributeBonus> handBonuses;
-    private final ItemAttributeModifiers baseMainhandModifiers;
 
     protected AbstractSpellGunItem(
             Properties properties,
@@ -109,7 +139,6 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         this.startsWithPresetSpell = true;
         this.itemKey = normalizeKeyToken(itemKey != null ? itemKey : getClass().getSimpleName());
         this.handBonuses = List.copyOf(handBonuses);
-        this.baseMainhandModifiers = buildBaseMainhandModifiers();
     }
 
     protected AbstractSpellGunItem(
@@ -136,7 +165,6 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         this.startsWithPresetSpell = false;
         this.itemKey = normalizeKeyToken(itemKey != null ? itemKey : getClass().getSimpleName());
         this.handBonuses = List.copyOf(handBonuses);
-        this.baseMainhandModifiers = buildBaseMainhandModifiers();
     }
 
     protected AbstractSpellGunItem(
@@ -191,12 +219,15 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     @Override
     public final @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
         var stack = player.getItemInHand(usedHand);
-        var castResult = tryCastSpell(player, stack, usedHand);
-        return switch (castResult) {
-            case SUCCESS -> InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
-            case FAIL -> InteractionResultHolder.fail(stack);
-            case NONE -> InteractionResultHolder.pass(stack);
-        };
+        if (usedHand == InteractionHand.MAIN_HAND) {
+            return InteractionResultHolder.pass(stack);
+        }
+
+        if (player instanceof ServerPlayer serverPlayer) {
+            tryTriggerImbuedSpell(serverPlayer, usedHand, null);
+        }
+        // オフハンド Spellgun が選ばれた後の失敗をメインハンドへフォールバックさせない。
+        return InteractionResultHolder.consume(stack);
     }
 
     @Override
@@ -227,12 +258,173 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     @Override
     public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
+        lines.add(Component.translatable(
+                "item." + ApprenticeCodex.MODID + ".common.spellgun.desc_1",
+                ImbueTooltipHelper.getAttackKeyName()
+        ).withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable(
+                "item." + ApprenticeCodex.MODID + ".common.spellgun.desc_2",
+                ImbueTooltipHelper.getUseKeyName()
+        ).withStyle(ChatFormatting.GRAY));
         appendSpellGunHelpTooltip(stack, lines);
     }
 
     @Override
     public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers(@NotNull ItemStack stack) {
-        return buildMainhandModifiers(stack, baseMainhandModifiers);
+        var slotGroup = usesOffhandAttributeModifiers(stack)
+                ? EquipmentSlotGroup.OFFHAND
+                : EquipmentSlotGroup.MAINHAND;
+        var handToken = slotGroup == EquipmentSlotGroup.OFFHAND ? "offhand" : "mainhand";
+        return buildHandModifiers(stack, slotGroup, handToken);
+    }
+
+    @Override
+    public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_SLOT_COUNT;
+    }
+
+    @Override
+    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
+        return getCalibrationAdjustment(targetStack, slot, serializationLookup());
+    }
+
+    @Override
+    public @NotNull ItemStack getCalibrationAdjustment(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
+        if (!isValidCalibrationAccess(targetStack, slot)) {
+            return ItemStack.EMPTY;
+        }
+
+        var customData = targetStack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return ItemStack.EMPTY;
+        }
+        var rootTag = customData.copyTag();
+        if (!rootTag.contains(CALIBRATION_TAG, Tag.TAG_COMPOUND)) {
+            return ItemStack.EMPTY;
+        }
+        var calibrationTag = rootTag.getCompound(CALIBRATION_TAG);
+        if (calibrationTag.contains(ADJUSTMENT_TAG, Tag.TAG_COMPOUND)) {
+            var adjustmentTag = calibrationTag.getCompound(ADJUSTMENT_TAG);
+            var adjustment = parseAdjustment(lookupProvider, adjustmentTag);
+            if (!adjustment.isEmpty()) {
+                return adjustment;
+            }
+            var fallbackAdjustment = createItemStack(adjustmentTag.getString(ITEM_ID_TAG));
+            if (!fallbackAdjustment.isEmpty()) {
+                return fallbackAdjustment;
+            }
+        }
+
+        return createItemStack(calibrationTag.getString(ID_ONLY_ADJUSTMENT_ITEM_TAG));
+    }
+
+    private static @NotNull ItemStack parseAdjustment(
+            @NotNull HolderLookup.Provider lookupProvider,
+            @NotNull CompoundTag adjustmentTag
+    ) {
+        if (adjustmentTag.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        return ItemStack.CODEC
+                .parse(lookupProvider.createSerializationContext(NbtOps.INSTANCE), adjustmentTag)
+                .result()
+                .orElse(ItemStack.EMPTY);
+    }
+
+    private static @NotNull ItemStack createItemStack(@NotNull String itemIdString) {
+        var itemId = ResourceLocation.tryParse(itemIdString);
+        if (itemId == null) {
+            return ItemStack.EMPTY;
+        }
+        var item = BuiltInRegistries.ITEM.get(itemId);
+        return item == Items.AIR ? ItemStack.EMPTY : new ItemStack(item);
+    }
+
+    @Override
+    public boolean trySetCalibrationAdjustment(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull ItemStack adjustment
+    ) {
+        return trySetCalibrationAdjustment(targetStack, slot, adjustment, serializationLookup());
+    }
+
+    @Override
+    public boolean trySetCalibrationAdjustment(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull ItemStack adjustment,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
+        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment, lookupProvider)) {
+            return false;
+        }
+
+        CustomData.update(DataComponents.CUSTOM_DATA, targetStack, rootTag -> {
+            if (adjustment.isEmpty()) {
+                rootTag.remove(CALIBRATION_TAG);
+                return;
+            }
+
+            var storedAdjustment = adjustment.copy();
+            storedAdjustment.setCount(1);
+            var calibrationTag = rootTag.contains(CALIBRATION_TAG, Tag.TAG_COMPOUND)
+                    ? rootTag.getCompound(CALIBRATION_TAG)
+                    : new CompoundTag();
+            calibrationTag.put(ADJUSTMENT_TAG, storedAdjustment.saveOptional(lookupProvider));
+            calibrationTag.remove(ID_ONLY_ADJUSTMENT_ITEM_TAG);
+            rootTag.put(CALIBRATION_TAG, calibrationTag);
+        });
+        return true;
+    }
+
+    @Override
+    public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_PROFILE;
+    }
+
+    public static boolean usesOffhandAttributeModifiers(@NotNull ItemStack stack) {
+        return !stack.isEmpty()
+                && stack.getItem() instanceof AbstractSpellGunItem spellGun
+                && ItemRegistry.SILVER_SPELL_AMPLIFIER.getId().equals(
+                        spellGun.getCalibrationAdjustmentItemId(stack)
+                );
+    }
+
+    private static boolean isValidCalibrationAccess(ItemStack stack, int slot) {
+        return slot == 0 && !stack.isEmpty() && stack.getItem() instanceof AbstractSpellGunItem;
+    }
+
+    private @Nullable ResourceLocation getCalibrationAdjustmentItemId(@NotNull ItemStack targetStack) {
+        var customData = targetStack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return null;
+        }
+
+        var rootTag = customData.copyTag();
+        if (!rootTag.contains(CALIBRATION_TAG, Tag.TAG_COMPOUND)) {
+            return null;
+        }
+
+        var calibrationTag = rootTag.getCompound(CALIBRATION_TAG);
+        if (calibrationTag.contains(ADJUSTMENT_TAG, Tag.TAG_COMPOUND)) {
+            var itemId = ResourceLocation.tryParse(
+                    calibrationTag.getCompound(ADJUSTMENT_TAG).getString(ITEM_ID_TAG)
+            );
+            if (itemId != null) {
+                return itemId;
+            }
+        }
+        return ResourceLocation.tryParse(calibrationTag.getString(ID_ONLY_ADJUSTMENT_ITEM_TAG));
+    }
+
+    private static HolderLookup.Provider serializationLookup() {
+        var server = ServerLifecycleHooks.getCurrentServer();
+        return server == null ? FALLBACK_SERIALIZATION_LOOKUP : server.registryAccess();
     }
 
     public final boolean canImbueSpell(SpellData spellData) {
@@ -315,6 +507,14 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
         var spellData = spellContainer.getSpellAtIndex(0);
         return spellData == SpellData.EMPTY ? null : spellData;
+    }
+
+    @Nullable
+    public final SpellData getImbuedSpellData(ItemStack stack) {
+        if (!ISpellContainer.isSpellContainer(stack)) {
+            initializeSpellContainer(stack);
+        }
+        return getPrimarySpellData(stack);
     }
 
     private boolean matchesConfiguredPresetSpell(@Nullable SpellData spellData) {
@@ -400,6 +600,11 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return spellGunConfig.overriddenSpellCooldownTicks();
     }
 
+    @Nullable
+    final Integer getAdjustedCooldownTicks(int originalCooldownTicks) {
+        return spellGunConfig.adjustedSpellCooldownTicks(originalCooldownTicks);
+    }
+
     final boolean isRecastCast(@Nullable MagicData magicData, @Nullable AbstractSpell spell) {
         return magicData != null
                 && spell != null
@@ -438,31 +643,61 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return !spellGunConfig.requireZeroInstantRecast() || spell.getRecastCount(spellLevel, null) <= 0;
     }
 
-    private CastResult tryCastSpell(Player player, ItemStack stack, InteractionHand usedHand) {
+    public final boolean tryTriggerImbuedSpell(ServerPlayer player, InteractionHand usedHand,
+                                                @Nullable BlockTargetData targetData) {
+        var stack = player.getItemInHand(usedHand);
+        if (stack.isEmpty() || stack.getItem() != this) {
+            return false;
+        }
+
         if (!ISpellContainer.isSpellContainer(stack)) {
             initializeSpellContainer(stack);
         }
 
         var spellContainer = ISpellContainer.get(stack);
         if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
-            return CastResult.NONE;
+            sendNotImbuedError(player, stack);
+            BlockTargetingHelper.clearPendingServerTarget(player);
+            return false;
         }
 
         var spellData = spellContainer.getSpellAtIndex(0);
-        if (spellData == SpellData.EMPTY || !canImbueSpell(spellData)) {
-            return CastResult.FAIL;
+        if (spellData == SpellData.EMPTY) {
+            sendNotImbuedError(player, stack);
+            BlockTargetingHelper.clearPendingServerTarget(player);
+            return false;
+        }
+
+        if (!canImbueSpell(spellData)) {
+            sendInvalidSpellError(player, stack, spellData);
+            BlockTargetingHelper.clearPendingServerTarget(player);
+            return false;
         }
 
         var spell = spellData.getSpell();
         var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
-        var slotId = usedHand == InteractionHand.OFF_HAND ? SpellSelectionManager.OFFHAND : SpellSelectionManager.MAINHAND;
-        return tryCastSpellWithoutMana(player, stack, spellData, spellLevel, slotId, spell)
-                ? CastResult.SUCCESS
-                : CastResult.FAIL;
+        var slotId = usedHand == InteractionHand.OFF_HAND
+                ? SpellSelectionManager.OFFHAND
+                : SpellSelectionManager.MAINHAND;
+
+        if (targetData != null) {
+            BlockTargetingHelper.setPendingServerTarget(player, spell.getSpellResource(), targetData);
+        }
+
+        try {
+            return tryCastSpellWithoutMana(player, stack, spellData, spellLevel, slotId, spell);
+        } finally {
+            BlockTargetingHelper.clearPendingServerTarget(player);
+        }
     }
 
     private boolean tryCastSpellWithoutMana(Player player, ItemStack stack, SpellData spellData, int spellLevel, String slotId, AbstractSpell spell) {
         var magicData = MagicData.getPlayerMagicData(player);
+        // attemptInitiateCast は既存詠唱を壊す場合があるため、同時入力は先に開始済みの詠唱を優先する。
+        if (magicData != null && magicData.isCasting()) {
+            return false;
+        }
+
         if (magicData == null || player.isCreative()) {
             var casted = spell.attemptInitiateCast(stack, spellLevel, player.level(), player, CastSource.SWORD, true, slotId);
             if (casted) {
@@ -482,7 +717,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         if (ammoItem != null && !isRecastCast(magicData, spell) && !SpellGunCastEvent.hasAmmo(player, player.getInventory(), ammoItem)) {
             if (player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
-                        Component.translatable("ui.apprenticecodex.missing_spell_gun_ammo", ammoItem.getDescription())
+                        Component.translatable("ui.apprenticecodex.spellgun.missing_ammo", ammoItem.getDescription())
                                 .withStyle(ChatFormatting.RED)
                 ));
             }
@@ -519,6 +754,27 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return true;
     }
 
+    private static void sendNotImbuedError(ServerPlayer player, ItemStack stack) {
+        player.connection.send(new ClientboundSetActionBarTextPacket(
+                Component.translatable("ui.apprenticecodex.spellgun.not_imbued", stack.getHoverName())
+                        .withStyle(ChatFormatting.RED)
+        ));
+    }
+
+    private static void sendInvalidSpellError(ServerPlayer player, ItemStack stack, SpellData spellData) {
+        player.connection.send(new ClientboundSetActionBarTextPacket(
+                createInvalidSpellError(player, stack, spellData)
+        ));
+    }
+
+    private static Component createInvalidSpellError(Player player, ItemStack stack, SpellData spellData) {
+        return Component.translatable(
+                "ui.apprenticecodex.spellgun.invalid_spell",
+                spellData.getSpell().getDisplayName(player),
+                stack.getHoverName()
+        ).withStyle(ChatFormatting.RED);
+    }
+
     @Override
     public String getJeiInfoTranslationKeyPrefix() {
         return JEI_INFO_KEY_PREFIX;
@@ -529,7 +785,10 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return JEI_INFO_GROUP_ID;
     }
 
-    private ItemAttributeModifiers buildBaseMainhandModifiers() {
+    private ItemAttributeModifiers buildBaseHandModifiers(
+            EquipmentSlotGroup slotGroup,
+            String handToken
+    ) {
         var builder = ItemAttributeModifiers.builder();
         for (int i = 0; i < handBonuses.size(); ++i) {
             var bonus = handBonuses.get(i);
@@ -541,19 +800,23 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             var attributeKey = resolveAttributeKey(bonus, i);
             var modifierId = ResourceLocation.fromNamespaceAndPath(
                     ApprenticeCodex.MODID,
-                    itemKey + "_mainhand_" + attributeKey + "_" + i
+                    itemKey + "_" + handToken + "_" + attributeKey + "_" + i
             );
             builder.add(
                     attribute,
                     new AttributeModifier(modifierId, bonus.amount(), bonus.operation()),
-                    EquipmentSlotGroup.MAINHAND
+                    slotGroup
             );
         }
         return builder.build();
     }
 
-    private ItemAttributeModifiers buildMainhandModifiers(ItemStack stack, ItemAttributeModifiers defaultModifiers) {
-        var baseModifiers = stripManagedEnchantmentModifiers(defaultModifiers);
+    private ItemAttributeModifiers buildHandModifiers(
+            ItemStack stack,
+            EquipmentSlotGroup slotGroup,
+            String handToken
+    ) {
+        var baseModifiers = buildBaseHandModifiers(slotGroup, handToken);
         if (stack == null || stack.isEmpty() || !stack.isEnchanted()) {
             return baseModifiers;
         }
@@ -583,28 +846,36 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                 AttributeRegistry.COOLDOWN_REDUCTION,
                 alacrityLevel * ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL,
                 AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                "alacrity_cooldown_reduction"
+                "alacrity_cooldown_reduction",
+                slotGroup,
+                handToken
         );
         addEnchantmentModifier(
                 builder,
                 AttributeRegistry.MANA_REGEN,
                 refluxLevel * REFLUX_MANA_REGEN_PER_LEVEL,
                 AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                "reflux_mana_regen"
+                "reflux_mana_regen",
+                slotGroup,
+                handToken
         );
         addEnchantmentModifier(
                 builder,
                 AttributeRegistry.MAX_MANA,
                 reservoirLevel * RESERVOIR_MAX_MANA_PER_LEVEL,
                 AttributeModifier.Operation.ADD_VALUE,
-                "reservoir_max_mana"
+                "reservoir_max_mana",
+                slotGroup,
+                handToken
         );
         addEnchantmentModifier(
                 builder,
                 AttributeRegistry.SPELL_POWER,
                 surgeLevel * SURGE_SPELL_POWER_PER_LEVEL,
                 AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                "surge_spell_power"
+                "surge_spell_power",
+                slotGroup,
+                handToken
         );
         if (attunementLevel > 0) {
             var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
@@ -615,7 +886,9 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                         BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementSpellPowerAttribute),
                         attunementLevel * ATTUNEMENT_SPELL_POWER_PER_LEVEL,
                         AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                        "attunement_spell_power"
+                        "attunement_spell_power",
+                        slotGroup,
+                        handToken
                 );
             }
         }
@@ -624,31 +897,14 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                 AttributeRegistry.CAST_TIME_REDUCTION,
                 tenseLevel * TENSE_CAST_TIME_REDUCTION_PER_LEVEL,
                 AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                "tense_cast_time_reduction"
+                "tense_cast_time_reduction",
+                slotGroup,
+                handToken
         );
 
-        return mergeTooltipEquivalentModifiers(builder.build(), itemKey + "_mainhand_merged");
-    }
-
-    private ItemAttributeModifiers stripManagedEnchantmentModifiers(ItemAttributeModifiers modifiers) {
-        if (modifiers.modifiers().isEmpty()) {
-            return modifiers;
-        }
-
-        var enchantModifierPrefix = itemKey + "_mainhand_enchant_";
-        var mergedModifierPrefix = itemKey + "_mainhand_merged_";
-        var builder = ItemAttributeModifiers.builder();
-        boolean changed = false;
-        for (var entry : modifiers.modifiers()) {
-            var modifierPath = entry.modifier().id().getPath();
-            if (modifierPath.startsWith(enchantModifierPrefix) || modifierPath.startsWith(mergedModifierPrefix)) {
-                changed = true;
-                continue;
-            }
-
-            builder.add(entry.attribute(), entry.modifier(), entry.slot());
-        }
-        return changed ? builder.build() : modifiers;
+        return mergeTooltipEquivalentModifiers(
+                builder.build(), itemKey + "_" + handToken + "_merged"
+        );
     }
 
     private void addEnchantmentModifier(
@@ -656,7 +912,9 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             Holder<Attribute> attribute,
             double amount,
             AttributeModifier.Operation operation,
-            String key
+            String key,
+            EquipmentSlotGroup slotGroup,
+            String handToken
     ) {
         if (amount == 0.0D) {
             return;
@@ -664,9 +922,9 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
         var modifierId = ResourceLocation.fromNamespaceAndPath(
                 ApprenticeCodex.MODID,
-                itemKey + "_mainhand_enchant_" + key
+                itemKey + "_" + handToken + "_enchant_" + key
         );
-        builder.add(attribute, new AttributeModifier(modifierId, amount, operation), EquipmentSlotGroup.MAINHAND);
+        builder.add(attribute, new AttributeModifier(modifierId, amount, operation), slotGroup);
     }
 
     private static ItemAttributeModifiers mergeTooltipEquivalentModifiers(
@@ -750,6 +1008,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ammo_title",
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ammo_none"
         );
+        ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
     }
 
     private List<Component> collectSpellGunAbilityTooltipSection() {
@@ -763,6 +1022,16 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             translatedLines.add(ImbueTooltipHelper.translatableGray(
                     "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_reduce_recast",
                     ImbueTooltipHelper.formatTooltipSeconds(overriddenCooldownTicks)
+            ));
+        }
+
+        var cooldownReductionTicks = spellGunConfig.cooldownReductionTicks();
+        var reducedCooldownMinimumTicks = spellGunConfig.reducedCooldownMinimumTicks();
+        if (cooldownReductionTicks != null && reducedCooldownMinimumTicks != null) {
+            translatedLines.add(ImbueTooltipHelper.translatableGray(
+                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_subtract_cooldown",
+                    ImbueTooltipHelper.formatTooltipSeconds(cooldownReductionTicks),
+                    ImbueTooltipHelper.formatTooltipSeconds(reducedCooldownMinimumTicks)
             ));
         }
 
@@ -859,6 +1128,8 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         FAIL
     }
 
+    // `key` は属性補正 ID 生成のシードに使う任意識別子。
+    // null の場合は属性の登録キーを優先して使用する。
     protected record AttributeBonus(
             Holder<Attribute> attribute,
             double amount,
@@ -870,7 +1141,6 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             Objects.requireNonNull(operation);
         }
     }
-
     private record MergeTarget(
             String attributeToken,
             AttributeModifier.Operation operation,
@@ -889,10 +1159,18 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             @Nullable IntSupplier maxInstantImbueCooldownTicksSupplier,
             boolean requireZeroInstantRecast,
             @Nullable IntSupplier overriddenSpellCooldownTicksSupplier,
+            @Nullable IntSupplier cooldownReductionTicksSupplier,
+            @Nullable IntSupplier reducedCooldownMinimumTicksSupplier,
             boolean instantLongCast
     ) {
         public SpellGunConfig {
             supportedCastTypes = Set.copyOf(Objects.requireNonNull(supportedCastTypes));
+            if ((cooldownReductionTicksSupplier == null) != (reducedCooldownMinimumTicksSupplier == null)) {
+                throw new IllegalArgumentException("Cooldown reduction and minimum suppliers must be configured together");
+            }
+            if (overriddenSpellCooldownTicksSupplier != null && cooldownReductionTicksSupplier != null) {
+                throw new IllegalArgumentException("Cooldown override and reduction cannot be configured together");
+            }
         }
 
         public boolean supports(SpellGunCastType castType) {
@@ -913,6 +1191,39 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             return overriddenSpellCooldownTicksSupplier == null
                     ? null
                     : Math.max(0, overriddenSpellCooldownTicksSupplier.getAsInt());
+        }
+
+        @Nullable
+        public Integer cooldownReductionTicks() {
+            return cooldownReductionTicksSupplier == null
+                    ? null
+                    : Math.max(0, cooldownReductionTicksSupplier.getAsInt());
+        }
+
+        @Nullable
+        public Integer reducedCooldownMinimumTicks() {
+            return reducedCooldownMinimumTicksSupplier == null
+                    ? null
+                    : Math.max(0, reducedCooldownMinimumTicksSupplier.getAsInt());
+        }
+
+        @Nullable
+        public Integer adjustedSpellCooldownTicks(int originalCooldownTicks) {
+            var overriddenTicks = overriddenSpellCooldownTicks();
+            if (overriddenTicks != null) {
+                return overriddenTicks;
+            }
+
+            var reductionTicks = cooldownReductionTicks();
+            var minimumTicks = reducedCooldownMinimumTicks();
+            if (reductionTicks == null || minimumTicks == null) {
+                return null;
+            }
+
+            var originalTicks = Math.max(0, originalCooldownTicks);
+            var reducedTicks = Math.max(minimumTicks, originalTicks - reductionTicks);
+            // 短縮能力で元のクールダウンを延長しないよう、設定下限より短い魔法は元値を維持する。
+            return Math.min(originalTicks, reducedTicks);
         }
     }
 

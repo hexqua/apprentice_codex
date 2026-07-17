@@ -73,12 +73,13 @@ public final class SpellGunCastEvent {
             return;
         }
 
-        var overriddenCooldown = spellGunItem.getOverriddenCooldownTicks();
-        if (overriddenCooldown == null) {
+        var adjustedCooldown = spellGunItem.getAdjustedCooldownTicks(event.getEffectiveCooldown());
+        if (adjustedCooldown == null) {
+            // Iron's のイベント値は詠唱時間を含まないため、調整なしの Diamond はその値を維持する。
             return;
         }
 
-        event.setEffectiveCooldown(overriddenCooldown);
+        event.setEffectiveCooldown(adjustedCooldown);
     }
 
     public static boolean hasAmmo(Player player, Inventory inventory, Item ammoItem) {

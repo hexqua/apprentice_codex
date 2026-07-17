@@ -25,8 +25,8 @@ public final class OffhandUpgradeAttributeEvent {
         applyStoredUpgradeData(
                 event,
                 EquipmentSlot.MAINHAND.getName(),
-                EquipmentSlot.OFFHAND.getName(),
-                EquipmentSlotGroup.OFFHAND
+            EquipmentSlot.OFFHAND.getName(),
+            EquipmentSlotGroup.OFFHAND
         );
     }
 

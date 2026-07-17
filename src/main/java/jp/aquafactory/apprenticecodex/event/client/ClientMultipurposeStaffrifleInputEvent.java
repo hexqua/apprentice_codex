@@ -154,7 +154,8 @@ public final class ClientMultipurposeStaffrifleInputEvent {
         }
 
         ClientMultipurposeStaffrifleCastContext.beginPending(player.getUUID(), player.getMainHandItem());
-        Networks.sendToServer(new ClientMultipurposeStaffrifleCastPacket(adsFullAuto));
+        var targetData = ClientBlockTargetSyncService.captureForEmbeddedCast(resolveSelectedSpellData(player));
+        Networks.sendToServer(new ClientMultipurposeStaffrifleCastPacket(adsFullAuto, targetData));
     }
 
     public static void trySendNonAdsSpecialCast(Minecraft minecraft) {

@@ -645,9 +645,13 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     new ItemStack(ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get()),
                     new ItemStack(ItemRegistry.BULWARK_GREATSHIELD.get()),
                     new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get()),
-                    new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get())
+                    new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get()),
+                    new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
+                    new ItemStack(ItemRegistry.COPPER_SPELLCASTER_GUN.get()),
+                    new ItemStack(ItemRegistry.GOLD_SPELLCASTER_GUN.get()),
+                    new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get())
             };
-            var expectedSlotCounts = new int[]{3, 3, 3, 1, 3, 3, 3, 3, 3};
+            var expectedSlotCounts = new int[]{3, 3, 3, 1, 3, 3, 3, 3, 3, 1, 1, 1, 1};
             var representativeAdjustments = new ItemStack[]{
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()),
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()),
@@ -657,7 +661,11 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()),
                     new ItemStack(ItemRegistry.WISDOM_SHARD.get()),
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.ICE_RUNE.get()),
-                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()),
+                    new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
+                    new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
+                    new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
+                    new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get())
             };
             for (var index = 0; index < targets.length; ++index) {
                 var stack = targets[index];

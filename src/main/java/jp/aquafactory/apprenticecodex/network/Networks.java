@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPack
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientSpellgunCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HeavenlyFistPulsePacket;
@@ -61,7 +62,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "56";
+    private static final String PROTOCOL_VERSION = "57";
 
     private Networks() {
     }
@@ -116,6 +117,11 @@ public final class Networks {
                 ClientMultipurposeStaffrifleCastPacket.TYPE,
                 ClientMultipurposeStaffrifleCastPacket.STREAM_CODEC,
                 ClientMultipurposeStaffrifleCastPacket::handle
+        );
+        registrar.playToServer(
+                ClientSpellgunCastPacket.TYPE,
+                ClientSpellgunCastPacket.STREAM_CODEC,
+                ClientSpellgunCastPacket::handle
         );
         registrar.playToServer(
                 ClientManaThrusterInputPacket.TYPE,

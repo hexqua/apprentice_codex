@@ -84,6 +84,7 @@ import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
+import jp.aquafactory.apprenticecodex.item.OffhandUsePriorityHelper;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
@@ -101,6 +102,7 @@ import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffManaCostEvent;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffPowerHelper;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterReadyStateSyncEvent;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterAttackEvent;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
@@ -479,6 +481,8 @@ final class RightClickMagicWeaponGameTestScenarios extends ApprenticeCodexGameTe
             ItemStack offhandStack,
             String profileName
     ) {
+        helper.assertTrue(OffhandUsePriorityHelper.isPriorityOffhandUseItem(offhandStack),
+                "Expected a supported priority offhand use item but got " + offhandStack);
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), profileName);
         var mainhandStack = new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, mainhandStack);
