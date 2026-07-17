@@ -15,9 +15,9 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import org.jetbrains.annotations.NotNull;
-import top.theillusivec4.curios.api.SlotContext;
 
 import java.util.Set;
+import java.util.UUID;
 
 public class EnchantedCirclet extends AbstractCircletItem
         implements NonDamageableAnvilMergeItem, OffhandMagicCompatibleItem, TranscendencePolicy,
@@ -57,16 +57,15 @@ public class EnchantedCirclet extends AbstractCircletItem
     }
 
     @Override
-    protected void addAdditionalHeadModifiers(
+    protected void addAdditionalModifiers(
             ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
-            SlotContext slotContext,
             ItemStack stack,
-            String modifierSlotName
+            UUID slotUuid
     ) {
         builder.putAll(AttributeEnchantmentResolver.resolveMergedModifiers(
                 ImmutableMultimap.of(),
                 stack,
-                "apprenticecodex." + ITEM_KEY
+                "apprenticecodex." + ITEM_KEY + "." + slotUuid
         ));
     }
 }

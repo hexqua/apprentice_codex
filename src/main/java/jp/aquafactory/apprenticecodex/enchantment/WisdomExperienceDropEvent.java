@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.enchantment;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -94,7 +93,6 @@ public final class WisdomExperienceDropEvent {
                 .map(inventory -> inventory.findCurios(stack -> stack.getItem() instanceof WisdomPolicy))
                 .orElse(List.of())
                 .stream()
-                .filter(slotResult -> CuriosSlotConstants.HEAD.equals(slotResult.slotContext().identifier()))
                 .mapToInt(slotResult -> slotResult.stack().getEnchantmentLevel(wisdom))
                 .sum();
     }

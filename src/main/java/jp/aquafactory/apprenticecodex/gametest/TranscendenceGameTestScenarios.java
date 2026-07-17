@@ -69,7 +69,7 @@ final class TranscendenceGameTestScenarios {
         });
     }
 
-    static void eventCollectsHeldArmorAndConfiguredCurios(GameTestHelper helper) {
+    static void eventCollectsHeldArmorAndAllCuriosSlots(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
             var player = new FakePlayer(
@@ -111,7 +111,7 @@ final class TranscendenceGameTestScenarios {
 
             curios.setEquippedCurio(CuriosSlotConstants.BACK, 0,
                     createStack(ItemRegistry.ENCHANTED_CIRCLET.get(), 3, spell));
-            assertEventLevel(helper, player, spell, 1, "Unsupported Curios slot should not participate");
+            assertEventLevel(helper, player, spell, 4, "Non-head Curios slot should participate");
         });
     }
 

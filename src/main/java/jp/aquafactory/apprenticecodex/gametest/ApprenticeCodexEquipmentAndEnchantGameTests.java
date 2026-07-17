@@ -89,8 +89,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void transcendenceEventCollectsHeldArmorAndConfiguredCurios(GameTestHelper helper) {
-        TranscendenceGameTestScenarios.eventCollectsHeldArmorAndConfiguredCurios(helper);
+    public static void transcendenceEventCollectsHeldArmorAndAllCuriosSlots(GameTestHelper helper) {
+        TranscendenceGameTestScenarios.eventCollectsHeldArmorAndAllCuriosSlots(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1414,6 +1414,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void enchantedCircletCurioBonusesMirrorOffhandMagicEnchantments(GameTestHelper helper) {
         OffhandAndBetterCombatGameTestScenarios.enchantedCircletCurioBonusesMirrorOffhandMagicEnchantments(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void enchantedCircletCurioModifiersStayIndependentAcrossSlots(GameTestHelper helper) {
+        OffhandAndBetterCombatGameTestScenarios.enchantedCircletCurioModifiersStayIndependentAcrossSlots(helper);
     }
 
     @GameTest(template = TEMPLATE)
