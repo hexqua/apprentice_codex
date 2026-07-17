@@ -85,13 +85,13 @@ final class TranscendenceGameTestScenarios {
             assertEventLevel(helper, player, spell, 3, "Offhand magic item should participate");
             player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
 
-            var heldRobe = createStack(ItemRegistry.ENCHANTRESS_ROBE.get(), 3, spell);
+            var heldRobe = createStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(), 3, spell);
             player.setItemInHand(InteractionHand.MAIN_HAND, heldRobe);
             assertEventLevel(helper, player, spell, 1, "Armor policy should not participate while held");
             player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
 
             for (var slot : ARMOR_SLOTS) {
-                player.setItemSlot(slot, createStack(ItemRegistry.ENCHANTRESS_ROBE.get(), 1, spell));
+                player.setItemSlot(slot, createStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(), 1, spell));
                 assertEventLevel(helper, player, spell, 2, "Armor policy should participate in " + slot);
                 player.setItemSlot(slot, ItemStack.EMPTY);
             }

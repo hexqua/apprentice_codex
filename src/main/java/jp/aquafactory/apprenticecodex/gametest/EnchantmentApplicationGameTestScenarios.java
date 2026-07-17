@@ -17,6 +17,13 @@ import java.util.Set;
  * 1.21.1 の enchantment definition / item tag を正とし、Java 側ポリシーとの境界を固定する。
  */
 final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameTestScenarios {
+    private static final Set<AttributeEnchantmentType> GENERAL_STAFF_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR,
+            AttributeEnchantmentType.TENSE
+    );
+
     private EnchantmentApplicationGameTestScenarios() {
     }
 
@@ -24,18 +31,12 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
         helper.succeedIf(() -> {
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
                     AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS, "Spell Gun");
-            var generalStaffEnchantments = Set.of(
-                    AttributeEnchantmentType.ALACRITY,
-                    AttributeEnchantmentType.REFLUX,
-                    AttributeEnchantmentType.RESERVOIR,
-                    AttributeEnchantmentType.TENSE
-            );
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get()),
-                    generalStaffEnchantments, "Swingcast Staff");
+                    GENERAL_STAFF_ENCHANTMENTS, "Swingcast Staff");
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()),
-                    generalStaffEnchantments, "Mithril Freecast Staff");
+                    GENERAL_STAFF_ENCHANTMENTS, "Mithril Freecast Staff");
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get()),
-                    generalStaffEnchantments, "Revolvercast Staff");
+                    GENERAL_STAFF_ENCHANTMENTS, "Revolvercast Staff");
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get()),
                     Set.of(
                             AttributeEnchantmentType.ALACRITY,
@@ -52,26 +53,14 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
 
     static void directApplicationPoliciesKeepExpectedMatrix(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            assertDirectAttributePolicy(helper, ItemRegistry.IRON_SPELLCASTER_GUN.get(), Set.of(
-                    AttributeEnchantmentType.ALACRITY,
-                    AttributeEnchantmentType.REFLUX,
-                    AttributeEnchantmentType.RESERVOIR,
-                    AttributeEnchantmentType.SURGE,
-                    AttributeEnchantmentType.ATTUNEMENT,
-                    AttributeEnchantmentType.TENSE
-            ));
-            var generalStaffEnchantments = Set.of(
-                    AttributeEnchantmentType.ALACRITY,
-                    AttributeEnchantmentType.REFLUX,
-                    AttributeEnchantmentType.RESERVOIR,
-                    AttributeEnchantmentType.TENSE
-            );
+            assertDirectAttributePolicy(helper, ItemRegistry.IRON_SPELLCASTER_GUN.get(),
+                    AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS);
             assertDirectAttributePolicy(helper, ItemRegistry.COPPER_SWINGCAST_STAFF.get(),
-                    generalStaffEnchantments);
+                    GENERAL_STAFF_ENCHANTMENTS);
             assertDirectAttributePolicy(helper, ItemRegistry.MITHRIL_FREECAST_STAFF.get(),
-                    generalStaffEnchantments);
+                    GENERAL_STAFF_ENCHANTMENTS);
             assertDirectAttributePolicy(helper, ItemRegistry.REVOLVERCAST_STAFF.get(),
-                    generalStaffEnchantments);
+                    GENERAL_STAFF_ENCHANTMENTS);
             assertDirectAttributePolicy(helper, ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(), Set.of(
                     AttributeEnchantmentType.ALACRITY,
                     AttributeEnchantmentType.REFLUX,
@@ -99,6 +88,8 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
         helper.succeedIf(() -> {
             helper.assertFalse(ItemRegistry.CIRCUIT_HEAT_STAFF.get() instanceof PlunderTarget,
                     "Circuit Heat Staff must not convert Plunder into Looting");
+            helper.assertFalse(ItemRegistry.ENCHANTRESS_ROBE.get() instanceof TranscendencePolicy,
+                    "Enchantress Robe must reject and ignore Transcendence");
 
             var scrollcaster = ItemRegistry.SCROLLCASTER_GAUNTLET.get();
             helper.assertFalse(TranscendencePolicy.supportsDirectApplication(scrollcaster),
