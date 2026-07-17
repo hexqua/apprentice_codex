@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceSpellLevelEvent;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
@@ -79,24 +80,27 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
 
             var offhand = stack.getAttributeModifiers(EquipmentSlot.OFFHAND);
             var mainhand = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
+            helper.assertTrue(ApprenticeCodexServerConfig.bulwarkGreatshieldGenericSpellResist() == 0.2D,
+                    "Bulwark generic spell resist should default to 0.2");
+            helper.assertTrue(ApprenticeCodexServerConfig.bulwarkGreatshieldSchoolSpellResist() == 0.2D,
+                    "Bulwark school spell resist per rune should default to 0.2");
             helper.assertTrue(offhand.get(AttributeRegistry.SPELL_RESIST.get()).stream()
-                            .anyMatch(modifier -> modifier.getAmount() == BulwarkGreatshield.GENERIC_SPELL_RESIST
+                            .anyMatch(modifier -> modifier.getAmount()
+                                    == ApprenticeCodexServerConfig.bulwarkGreatshieldGenericSpellResist()
                                     && modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE),
                     "Bulwark Greatshield should grant generic spell resist in offhand");
-            helper.assertFalse(mainhand.get(AttributeRegistry.SPELL_RESIST.get()).stream()
-                            .anyMatch(modifier -> modifier.getAmount() == BulwarkGreatshield.GENERIC_SPELL_RESIST),
+            helper.assertTrue(mainhand.get(AttributeRegistry.SPELL_RESIST.get()).isEmpty(),
                     "Bulwark Greatshield should not grant generic spell resist in mainhand");
         });
     }
 
-    static void bulwarkGreatshieldCalibrationSupportsThreeDistinctSchoolRunes(GameTestHelper helper) {
+    static void bulwarkGreatshieldCalibrationStacksRepeatedSchoolRunes(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = BowGameTestSupport.createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
                     "bulwark_greatshield_calibration_test");
             var stack = new ItemStack(ItemRegistry.BULWARK_GREATSHIELD.get());
             var fireRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get());
             var iceRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.ICE_RUNE.get());
-            var holyRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.HOLY_RUNE.get());
             var wisdomShard = new ItemStack(ItemRegistry.WISDOM_SHARD.get());
             var menu = new SpellCalibrationBenchMenu(0, player.getInventory());
             menu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).set(stack);
@@ -111,31 +115,55 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
 
             helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 0, fireRune),
                     "Bulwark should store its first school rune");
-            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(stack, 1, fireRune),
-                    "Bulwark should reject a rune for an already inserted School ID");
-            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 1, iceRune),
-                    "Bulwark should accept a rune for a different School ID");
-            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 2, holyRune),
-                    "Bulwark should fill its third slot with another School ID");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(stack, 1, fireRune),
+                    "Bulwark should allow a rune for an already inserted School ID");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 1, fireRune),
+                    "Bulwark should store a duplicate school rune");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 2, iceRune),
+                    "Bulwark should also accept a rune for a different School ID");
             helper.assertTrue(BulwarkGreatshield.getResolvedCalibrationSchools(stack).size() == 3,
                     "Bulwark should resolve all three inserted school runes");
 
             var offhand = stack.getAttributeModifiers(EquipmentSlot.OFFHAND);
             helper.assertTrue(offhand.get(AttributeRegistry.FIRE_MAGIC_RESIST.get()).stream()
-                            .anyMatch(modifier -> modifier.getAmount() == BulwarkGreatshield.SCHOOL_SPELL_RESIST
+                            .anyMatch(modifier -> modifier.getAmount() == 0.4D
                                     && modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE),
-                    "Fire rune should add 0.5 fire spell resist");
+                    "Two Fire Runes should add 0.4 fire spell resist");
+            helper.assertTrue(offhand.get(AttributeRegistry.FIRE_MAGIC_RESIST.get()).size() == 1,
+                    "Repeated Fire Runes should merge into one modifier");
             helper.assertTrue(offhand.get(AttributeRegistry.ICE_MAGIC_RESIST.get()).stream()
-                            .anyMatch(modifier -> modifier.getAmount() == BulwarkGreatshield.SCHOOL_SPELL_RESIST
+                            .anyMatch(modifier -> modifier.getAmount() == 0.2D
                                     && modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE),
-                    "Ice rune should add 0.5 ice spell resist");
-            helper.assertTrue(offhand.get(AttributeRegistry.HOLY_MAGIC_RESIST.get()).stream()
-                            .anyMatch(modifier -> modifier.getAmount() == BulwarkGreatshield.SCHOOL_SPELL_RESIST
-                                    && modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE),
-                    "Holy rune should add 0.5 holy spell resist");
+                    "One Ice Rune should add 0.2 ice spell resist");
             helper.assertTrue(offhand.get(AttributeRegistry.SPELL_RESIST.get()).stream()
-                            .anyMatch(modifier -> modifier.getAmount() == BulwarkGreatshield.GENERIC_SPELL_RESIST),
+                            .anyMatch(modifier -> modifier.getAmount() == 0.2D),
                     "School runes must not replace generic spell resist");
+
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 2, fireRune),
+                    "Bulwark should fill all three slots with the same School Rune");
+            offhand = stack.getAttributeModifiers(EquipmentSlot.OFFHAND);
+            helper.assertTrue(offhand.get(AttributeRegistry.FIRE_MAGIC_RESIST.get()).stream()
+                            .anyMatch(modifier -> Math.abs(modifier.getAmount() - 0.6D) < 1.0E-9D),
+                    "Three Fire Runes should add 0.6 fire spell resist");
+            helper.assertTrue(offhand.get(AttributeRegistry.ICE_MAGIC_RESIST.get()).isEmpty(),
+                    "Replacing the Ice Rune should remove ice spell resist");
+
+            try (var ignored = ApprenticeCodexServerConfig.useBulwarkGreatshieldConfigOverrideForGameTest(0.35D, 0.15D)) {
+                var overridden = stack.getAttributeModifiers(EquipmentSlot.OFFHAND);
+                helper.assertTrue(overridden.get(AttributeRegistry.SPELL_RESIST.get()).stream()
+                                .anyMatch(modifier -> modifier.getAmount() == 0.35D),
+                        "Generic spell resist should follow server config");
+                helper.assertTrue(overridden.get(AttributeRegistry.FIRE_MAGIC_RESIST.get()).stream()
+                                .anyMatch(modifier -> Math.abs(modifier.getAmount() - 0.45D) < 1.0E-9D),
+                        "Stacked school spell resist should follow server config per rune");
+            }
+            offhand = stack.getAttributeModifiers(EquipmentSlot.OFFHAND);
+            helper.assertTrue(offhand.get(AttributeRegistry.SPELL_RESIST.get()).stream()
+                            .anyMatch(modifier -> modifier.getAmount() == 0.2D),
+                    "Generic spell resist config should be restored after override");
+            helper.assertTrue(offhand.get(AttributeRegistry.FIRE_MAGIC_RESIST.get()).stream()
+                            .anyMatch(modifier -> Math.abs(modifier.getAmount() - 0.6D) < 1.0E-9D),
+                    "School spell resist config should be restored after override");
 
             helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 2, wisdomShard),
                     "Bulwark should allow Wisdom Shard to replace a school rune");

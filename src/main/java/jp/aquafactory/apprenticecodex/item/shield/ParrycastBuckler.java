@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.item.shield;
 
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
@@ -26,9 +25,7 @@ import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.ParrycastBucklerRenderer;
-import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
-import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -62,14 +59,12 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
@@ -81,12 +76,6 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
-                    CalibrationAdjustmentRule.uniqueBy(
-                            ScrollcasterSchoolRuneResolver::isSchoolRune,
-                            stack -> ScrollcasterSchoolRuneResolver.resolveSchool(stack)
-                                    .map(SchoolType::getId),
-                            CalibrationAdjustmentHints.schoolRunes()
-                    ),
                     CalibrationAdjustmentRule.unique(
                             MithrilFreecastStaff::isSilverRing,
                             CalibrationAdjustmentHints.silverRing()
@@ -96,7 +85,6 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
                             CalibrationAdjustmentHints.wisdomShard()
                     )
             );
-    private static final double SCHOOL_POWER_BONUS = 0.1D;
     private static final String CALIBRATION_TAG = "ParrycastBucklerCalibration";
     private static final String ADJUSTMENTS_TAG = "Adjustments";
     private static final String SLOT_TAG = "Slot";
@@ -118,11 +106,6 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
     private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation DEPLOY = RawAnimation.begin().thenPlayAndHold("deploy");
     private static final RawAnimation REMOVE_IDLE = RawAnimation.begin().thenPlay("remove").thenLoop("idle");
-    private static final UUID[] SCHOOL_POWER_IDS = {
-            UUID.fromString("23da0bec-c636-4454-9802-866f841b0a50"),
-            UUID.fromString("64de25e1-e97c-49d2-b522-58122aac8470"),
-            UUID.fromString("f4501063-c5a5-45d6-bdf5-dd67fde71768")
-    };
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public ParrycastBuckler() {
@@ -324,19 +307,8 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
                 stack,
                 "apprenticecodex.parrycast_buckler"
         );
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder().putAll(equippedBase);
-        Set<net.minecraft.resources.ResourceLocation> seen = new HashSet<>();
-        for (int i = 0; i < CALIBRATION_ADJUSTMENT_SLOT_COUNT; i++) {
-            var school = ScrollcasterSchoolRuneResolver.resolveSchool(readCalibrationAdjustment(stack, i)).orElse(null);
-            if (school == null || !seen.add(school.getId())) continue;
-            var attribute = MagicTools.resolveSchoolPowerAttribute(school);
-            if (attribute != null) {
-                builder.put(attribute, new AttributeModifier(SCHOOL_POWER_IDS[i],
-                        "Parrycast buckler school spell power", SCHOOL_POWER_BONUS, AttributeModifier.Operation.MULTIPLY_BASE));
-            }
-        }
         return MagicAttributeModifierHelper.mergeLinearMagicModifiers(
-                builder.build(),
+                equippedBase,
                 "apprenticecodex.parrycast_buckler.merged"
         );
     }

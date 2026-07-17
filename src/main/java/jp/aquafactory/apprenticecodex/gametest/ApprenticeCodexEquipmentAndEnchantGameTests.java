@@ -304,8 +304,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void bulwarkGreatshieldCalibrationSupportsThreeDistinctSchoolRunes(GameTestHelper helper) {
-        BulwarkGreatshieldGameTestScenarios.bulwarkGreatshieldCalibrationSupportsThreeDistinctSchoolRunes(helper);
+    public static void bulwarkGreatshieldCalibrationStacksRepeatedSchoolRunes(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.bulwarkGreatshieldCalibrationStacksRepeatedSchoolRunes(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -344,8 +344,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void parrycastBucklerSupportsThreeAdjustmentsAndSchoolDeduplication(GameTestHelper helper) {
-        ParrycastBucklerGameTestScenarios.parrycastBucklerSupportsThreeAdjustmentsAndSchoolDeduplication(helper);
+    public static void parrycastBucklerKeepsThreeAdjustmentsWithoutSchoolRunePower(GameTestHelper helper) {
+        ParrycastBucklerGameTestScenarios.parrycastBucklerKeepsThreeAdjustmentsWithoutSchoolRunePower(helper);
     }
 
     @GameTest(template = TEMPLATE)

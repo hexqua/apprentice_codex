@@ -443,6 +443,27 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.parrycastBucklerPerfectGuardReleaseCooldownGraceUses();
     }
 
+    public static double bulwarkGreatshieldGenericSpellResist() {
+        return ITEMS_CONFIG.bulwarkGreatshieldGenericSpellResist();
+    }
+
+    public static double bulwarkGreatshieldSchoolSpellResist() {
+        return ITEMS_CONFIG.bulwarkGreatshieldSchoolSpellResist();
+    }
+
+    public static GameTestConfigOverride useBulwarkGreatshieldConfigOverrideForGameTest(
+            double genericSpellResist,
+            double schoolSpellResist
+    ) {
+        var previousGenericSpellResist = ITEMS_CONFIG.bulwarkGreatshieldGenericSpellResist();
+        var previousSchoolSpellResist = ITEMS_CONFIG.bulwarkGreatshieldSchoolSpellResist();
+        ITEMS_CONFIG.setBulwarkGreatshieldConfigForGameTest(genericSpellResist, schoolSpellResist);
+        return () -> ITEMS_CONFIG.setBulwarkGreatshieldConfigForGameTest(
+                previousGenericSpellResist,
+                previousSchoolSpellResist
+        );
+    }
+
     public static float manaShieldCharmManaPerDamage() {
         return ITEMS_CONFIG.manaShieldCharmManaPerDamage();
     }
