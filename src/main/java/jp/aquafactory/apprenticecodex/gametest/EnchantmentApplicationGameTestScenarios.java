@@ -24,13 +24,18 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
         helper.succeedIf(() -> {
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
                     AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS, "Spell Gun");
+            var generalStaffEnchantments = Set.of(
+                    AttributeEnchantmentType.ALACRITY,
+                    AttributeEnchantmentType.REFLUX,
+                    AttributeEnchantmentType.RESERVOIR,
+                    AttributeEnchantmentType.TENSE
+            );
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get()),
-                    Set.of(
-                            AttributeEnchantmentType.ALACRITY,
-                            AttributeEnchantmentType.REFLUX,
-                            AttributeEnchantmentType.RESERVOIR,
-                            AttributeEnchantmentType.TENSE
-                    ), "Swingcast Staff");
+                    generalStaffEnchantments, "Swingcast Staff");
+            assertDefinitionSurface(helper, new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()),
+                    generalStaffEnchantments, "Mithril Freecast Staff");
+            assertDefinitionSurface(helper, new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get()),
+                    generalStaffEnchantments, "Revolvercast Staff");
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get()),
                     Set.of(
                             AttributeEnchantmentType.ALACRITY,
@@ -55,12 +60,18 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
                     AttributeEnchantmentType.ATTUNEMENT,
                     AttributeEnchantmentType.TENSE
             ));
-            assertDirectAttributePolicy(helper, ItemRegistry.COPPER_SWINGCAST_STAFF.get(), Set.of(
+            var generalStaffEnchantments = Set.of(
                     AttributeEnchantmentType.ALACRITY,
                     AttributeEnchantmentType.REFLUX,
                     AttributeEnchantmentType.RESERVOIR,
                     AttributeEnchantmentType.TENSE
-            ));
+            );
+            assertDirectAttributePolicy(helper, ItemRegistry.COPPER_SWINGCAST_STAFF.get(),
+                    generalStaffEnchantments);
+            assertDirectAttributePolicy(helper, ItemRegistry.MITHRIL_FREECAST_STAFF.get(),
+                    generalStaffEnchantments);
+            assertDirectAttributePolicy(helper, ItemRegistry.REVOLVERCAST_STAFF.get(),
+                    generalStaffEnchantments);
             assertDirectAttributePolicy(helper, ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(), Set.of(
                     AttributeEnchantmentType.ALACRITY,
                     AttributeEnchantmentType.REFLUX,

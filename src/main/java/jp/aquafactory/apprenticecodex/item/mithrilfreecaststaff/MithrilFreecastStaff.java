@@ -14,6 +14,9 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
@@ -57,6 +60,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
@@ -73,7 +77,7 @@ import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 
 public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
         implements GeoItem, CastAnimationOverrideItem, IJeiInfoItem, SwingTriggeredMagicItem,
-        ArcaneAnvilImbueBlockItem, SpellCalibrationAdjustmentTarget {
+        ArcaneAnvilImbueBlockItem, SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy {
     private static final String ITEM_KEY = "mithril_freecast_staff";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.mithril_freecast_staff.desc_";
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
@@ -104,6 +108,13 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
     private static final double SCHOOL_SPELL_POWER_BONUS = 0.15D;
     private static final ResourceLocation SPELL_POWER_MODIFIER_ID =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "mithril_freecast_staff.mainhand.spell_power");
+
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR,
+            AttributeEnchantmentType.TENSE
+    );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final ResourceLocation textureLocation = ResourceLocation.fromNamespaceAndPath(
@@ -177,6 +188,13 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
                 ),
                 EquipmentSlotGroup.MAINHAND
         );
+
+        AttributeEnchantmentResolver.addModifiers(
+                builder,
+                stack,
+                EquipmentSlotGroup.MAINHAND,
+                "mithril_freecast_staff_mainhand_enchant"
+        );
         return builder.build();
     }
 
@@ -198,6 +216,11 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
                               int slotId, boolean isSelected) {
         super.inventoryTick(stack, level, entity, slotId, isSelected);
         initializeSpellContainer(stack);
+    }
+
+    @Override
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
     }
 
     @Override
