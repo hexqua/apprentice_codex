@@ -543,7 +543,7 @@ final class EnchantmentApplicationGameTestScenarios {
     }
 
     private static Set<ResourceLocation> expectedSwingcastStaffEnchantments(ItemStack stack) {
-        return expectedSwordBasedMagicWeaponEnchantments(stack, true);
+        return expectedSwingcastStavesEnchantments(stack, true);
     }
 
     private static Set<ResourceLocation> expectedMithrilFreecastStaffEnchantments(ItemStack stack) {
@@ -564,6 +564,16 @@ final class EnchantmentApplicationGameTestScenarios {
 
     private static Set<ResourceLocation> expectedUniteLunaStaffEnchantments(ItemStack stack) {
         return expectedSwordBasedMagicWeaponEnchantments(stack, true);
+    }
+
+    private static Set<ResourceLocation> expectedSwingcastStavesEnchantments(
+            ItemStack stack,
+            boolean includeTranscendence
+    ) {
+        var expected = expectedSwordBasedMagicWeaponEnchantments(stack, includeTranscendence);
+        expected.addAll(registryIdSet(EnchantmentRegistry.RESERVOIR, EnchantmentRegistry.REFLUX,
+                EnchantmentRegistry.TENSE, EnchantmentRegistry.ALACRITY));
+        return expected;
     }
 
     private static Set<ResourceLocation> expectedSwordBasedMagicWeaponEnchantments(
