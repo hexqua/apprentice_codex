@@ -23,6 +23,10 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
             AttributeEnchantmentType.RESERVOIR,
             AttributeEnchantmentType.TENSE
     );
+    private static final Set<AttributeEnchantmentType> BULWARK_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR
+    );
 
     private EnchantmentApplicationGameTestScenarios() {
     }
@@ -39,6 +43,8 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
                     GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS, "Revolvercast Staff");
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get()),
                     GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS, "Stealth Rune Armor");
+            assertDefinitionSurface(helper, new ItemStack(ItemRegistry.BULWARK_GREATSHIELD.get()),
+                    BULWARK_ENCHANTMENTS, "Bulwark Greatshield");
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get()),
                     Set.of(
                             AttributeEnchantmentType.ALACRITY,
@@ -65,6 +71,7 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
                     GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS);
             assertDirectAttributePolicy(helper, ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),
                     GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS);
+            assertDirectAttributePolicy(helper, ItemRegistry.BULWARK_GREATSHIELD.get(), BULWARK_ENCHANTMENTS);
             assertDirectAttributePolicy(helper, ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(), Set.of(
                     AttributeEnchantmentType.ALACRITY,
                     AttributeEnchantmentType.REFLUX,

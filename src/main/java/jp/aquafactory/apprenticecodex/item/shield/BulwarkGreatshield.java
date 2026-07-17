@@ -11,6 +11,9 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
@@ -47,9 +50,10 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 
 public class BulwarkGreatshield extends AbstractImbueShieldItem
-        implements GeoItem, IJeiInfoItem, SpellCalibrationAdjustmentTarget {
+        implements GeoItem, IJeiInfoItem, SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.bulwark_greatshield.desc_";
 
     public static final int DURABILITY = 2031;
@@ -76,7 +80,10 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
     private static final ResourceLocation SCHOOL_RESIST_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(
             ApprenticeCodex.MODID, "bulwark_greatshield/school_spell_resist");
     private static final ItemStack SHIELD_ENCHANTMENT_PROBE = new ItemStack(Items.SHIELD);
-
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR
+    );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public BulwarkGreatshield() {
@@ -181,6 +188,12 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
                 ), net.minecraft.world.entity.EquipmentSlotGroup.OFFHAND);
             }
         }
+        AttributeEnchantmentResolver.addModifiers(
+                builder,
+                stack,
+                net.minecraft.world.entity.EquipmentSlotGroup.OFFHAND,
+                "bulwark_greatshield_offhand_enchant"
+        );
         return builder.build();
     }
 
@@ -192,6 +205,11 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
     @Override
     public int getEnchantmentValue(ItemStack stack) {
         return ENCHANTMENT_VALUE;
+    }
+
+    @Override
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
     }
 
     @Override
