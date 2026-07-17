@@ -9,15 +9,9 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.ArrayList;
-import java.util.Set;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class TranscendenceSpellLevelEvent {
-    private static final Set<String> SUPPORTED_CURIO_SLOTS = Set.of(
-            CuriosSlotConstants.HEAD,
-            CuriosSlotConstants.NECKLACE,
-            CuriosSlotConstants.FEET
-    );
     private static final EquipmentSlot[] ARMOR_SLOTS = {
             EquipmentSlot.HEAD,
             EquipmentSlot.CHEST,
@@ -45,7 +39,6 @@ public final class TranscendenceSpellLevelEvent {
         // Curios の識別子と inventory API は loader 接着側だけで扱い、共通 Resolver には持ち込まない。
         CuriosApi.getCuriosInventory(caster).ifPresent(inventory ->
                 inventory.findCurios(stack -> stack.getItem() instanceof TranscendencePolicy).stream()
-                        .filter(result -> SUPPORTED_CURIO_SLOTS.contains(result.slotContext().identifier()))
                         .map(result -> new TranscendenceResolver.Candidate(result.stack(), false))
                         .forEach(candidates::add)
         );

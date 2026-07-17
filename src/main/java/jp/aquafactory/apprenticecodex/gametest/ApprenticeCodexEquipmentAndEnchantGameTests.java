@@ -89,8 +89,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void transcendenceEventCollectsHeldArmorAndConfiguredCurios(GameTestHelper helper) {
-        TranscendenceGameTestScenarios.eventCollectsHeldArmorAndConfiguredCurios(helper);
+    public static void transcendenceEventCollectsHeldArmorAndAllCuriosSlots(GameTestHelper helper) {
+        TranscendenceGameTestScenarios.eventCollectsHeldArmorAndAllCuriosSlots(helper);
     }
 
     @GameTest(template = TEMPLATE)

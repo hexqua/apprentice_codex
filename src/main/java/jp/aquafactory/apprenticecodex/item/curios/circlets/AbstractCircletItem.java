@@ -68,11 +68,12 @@ public abstract class AbstractCircletItem extends Item implements ICurioItem, IP
         var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
         builder.putAll(baseModifiers);
 
-        var modifierSlotName = String.format("%s_%s", CuriosSlotConstants.HEAD, slotContext.index());
+        // Curios が保証する slot-unique UUID を使い、増設枠や汎用枠でも modifier を衝突させない。
+        var modifierSlotName = uuid.toString();
         for (var attributeContainer : circletAttributes) {
             builder.put(attributeContainer.attribute(), attributeContainer.createModifier(modifierSlotName));
         }
-        addAdditionalHeadModifiers(builder, slotContext, stack, modifierSlotName);
+        addAdditionalModifiers(builder, stack, uuid);
         return builder.build();
     }
 
@@ -80,7 +81,7 @@ public abstract class AbstractCircletItem extends Item implements ICurioItem, IP
             ImmutableMultimap.Builder<Holder<Attribute>, AttributeModifier> builder,
             SlotContext slotContext,
             ItemStack stack,
-            String modifierSlotName
+            UUID slotUuid
     ) {
     }
 
