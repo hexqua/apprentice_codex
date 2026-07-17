@@ -41,6 +41,9 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final String DENYLIST_CONFIG_BATCH =
             "apprenticecodex.satellite_followcast_amulet_denylist_config";
+    // 近隣テストの Magic Missile と共有設定上書きを拾わないよう、実行時 denylist 検証は単独バッチにする。
+    private static final String REMOTE_OWNER_DENYLIST_ISOLATED_BATCH =
+            "apprenticecodex.satellite_followcast_remote_owner_denylist_isolated";
 
     private ApprenticeCodexSatelliteFollowcastAmuletGameTests() {
     }
@@ -81,7 +84,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE, batch = REMOTE_OWNER_DENYLIST_ISOLATED_BATCH)
     public static void satelliteFollowcastAmuletRemoteOwnerDenylistBlocksRuntimeWithoutFallback(GameTestHelper helper) {
         var level = (ServerLevel) helper.getLevel();
         var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "satellite_followcast_remote_denylist_test");
