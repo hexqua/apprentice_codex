@@ -132,6 +132,12 @@ public final class ImbueTooltipHelper {
                 .toPlainString();
     }
 
+    public static int resolveClientCooldownReductionAdjustedTicks(int baseCooldownTicks) {
+        return FMLEnvironment.dist == Dist.CLIENT
+                ? ImbueCooldownTooltipClientHelper.resolveCooldownReductionAdjustedTicks(baseCooldownTicks)
+                : Math.max(0, baseCooldownTicks);
+    }
+
     public static boolean hasDetailsKeyDown() {
         return FMLEnvironment.dist == Dist.CLIENT && ImbueTooltipClientHelper.hasDetailsKeyDown();
     }

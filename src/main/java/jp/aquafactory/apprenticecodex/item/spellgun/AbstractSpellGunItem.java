@@ -933,7 +933,9 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         if (overriddenCooldownTicks != null) {
             translatedLines.add(ImbueTooltipHelper.translatableGray(
                     "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_reduce_recast",
-                    ImbueTooltipHelper.formatTooltipSeconds(overriddenCooldownTicks)
+                    ImbueTooltipHelper.formatTooltipSeconds(
+                            ImbueTooltipHelper.resolveClientCooldownReductionAdjustedTicks(overriddenCooldownTicks)
+                    )
             ));
         }
 

@@ -79,7 +79,7 @@ public final class SpellgunServerConfig {
                 .comment("Maximum spell cooldown ticks allowed for this Spellgun's imbue restriction. 0 disables this limit.")
                 .defineInRange("maxInstantImbueCooldownTicks", defaultMaxInstantImbueCooldownTicks, 0, MAX_CONFIGURED_TICKS);
         var overriddenSpellCooldownTicks = builder
-                .comment("Cooldown ticks applied after this Spellgun casts. 0 forces a 0-tick cooldown instead of using the original spell cooldown.")
+                .comment("Base cooldown ticks applied after this Spellgun casts, before the player's cooldown reduction attribute. 0 forces a 0-tick cooldown instead of using the original spell cooldown.")
                 .defineInRange("overriddenSpellCooldownTicks", defaultOverriddenSpellCooldownTicks, 0, MAX_CONFIGURED_TICKS);
         builder.pop();
 

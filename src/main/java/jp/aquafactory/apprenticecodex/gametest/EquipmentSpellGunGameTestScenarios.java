@@ -275,7 +275,6 @@ import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterials;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
@@ -361,6 +360,12 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestScenarios {
+    private static final ResourceLocation FIXED_COOLDOWN_REDUCTION_TEST_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath(
+                    ApprenticeCodex.MODID,
+                    "spellgun/fixed_cooldown_attribute_test"
+            );
+
     private EquipmentSpellGunGameTestScenarios() {
     }
     static void goldSpellcasterGunImbuedSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
@@ -456,6 +461,12 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             helper.assertTrue(containsTranslatableKey(copperLines,
                             "item.apprenticecodex.spellgun.tooltip.ability_reduce_recast"),
                     "Copper Spellcaster Gun should show its fixed cooldown ability");
+            assertTooltipStringArgument(helper, ironLines,
+                    "item.apprenticecodex.spellgun.tooltip.ability_reduce_recast", "0.2",
+                    "Iron Spellcaster Gun server tooltip should fall back to its fixed base cooldown");
+            assertTooltipStringArgument(helper, copperLines,
+                    "item.apprenticecodex.spellgun.tooltip.ability_reduce_recast", "1",
+                    "Copper Spellcaster Gun server tooltip should fall back to its fixed base cooldown");
             helper.assertTrue(containsTranslatableKey(goldLines,
                             "item.apprenticecodex.spellgun.tooltip.ability_subtract_cooldown")
                             && !containsTranslatableKey(goldLines,
@@ -1003,6 +1014,29 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                     "Diamond Spellcaster Gun should keep the original cooldown without adding cast time");
         });
     }
+
+    static void spellgunFixedCooldownUsesCooldownReductionAttribute(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellgun_fixed_cooldown_attribute_test");
+            var cooldownAttribute = player.getAttribute(
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION
+            );
+            helper.assertTrue(cooldownAttribute != null,
+                    "Spellgun fixed cooldown test player is missing cooldown reduction attribute");
+            cooldownAttribute.addTransientModifier(new AttributeModifier(
+                    FIXED_COOLDOWN_REDUCTION_TEST_MODIFIER_ID,
+                    0.25D,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+            ));
+
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            assertSpellgunCooldownAdjustment(helper, player, new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()), spell, 200, 3,
+                    "Iron Spellcaster Gun should apply cooldown reduction to its fixed base cooldown");
+            assertSpellgunCooldownAdjustment(helper, player, new ItemStack(ItemRegistry.COPPER_SPELLCASTER_GUN.get()), spell, 200, 15,
+                    "Copper Spellcaster Gun should apply cooldown reduction without the sword multiplier");
+        });
+    }
+
     static void spellgunZeroImbueCooldownLimitDisablesOnlyCooldownLimit(GameTestHelper helper) {
         helper.succeedIf(() -> {
             try (var ignored = ApprenticeCodexServerConfig.useSpellgunConfigOverrideForGameTest(new SpellgunServerConfig.Values(
@@ -1295,6 +1329,28 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
         return lines.stream().anyMatch(component ->
                 component.getContents() instanceof TranslatableContents contents && key.equals(contents.getKey())
         );
+    }
+
+    private static void assertTooltipStringArgument(
+            GameTestHelper helper,
+            List<Component> lines,
+            String key,
+            String expectedArgument,
+            String message
+    ) {
+        var matchingLine = lines.stream()
+                .filter(component -> component.getContents() instanceof TranslatableContents contents
+                        && key.equals(contents.getKey()))
+                .findFirst()
+                .orElse(null);
+        helper.assertTrue(matchingLine != null, message + " (tooltip key is missing)");
+        if (matchingLine == null || !(matchingLine.getContents() instanceof TranslatableContents contents)) {
+            return;
+        }
+
+        var args = contents.getArgs();
+        helper.assertTrue(args.length == 1 && expectedArgument.equals(args[0]),
+                message + ": expected=" + expectedArgument + ", actual=" + java.util.Arrays.toString(args));
     }
 
     @SuppressWarnings("unchecked")
