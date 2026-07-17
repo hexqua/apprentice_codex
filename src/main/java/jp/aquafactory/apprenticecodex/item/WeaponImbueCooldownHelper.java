@@ -20,9 +20,12 @@ public final class WeaponImbueCooldownHelper {
             CastSource castSource
     ) {
         var baseCooldown = resolveLimitedBaseCooldown(spell, player);
-        var playerCooldownModifier = player.getAttributeValue(AttributeRegistry.COOLDOWN_REDUCTION.get());
         var itemCooldownModifier = castSource == CastSource.SWORD ? ServerConfigs.SWORDS_CD_MULTIPLIER.get().floatValue() : 1.0f;
-        return (int) (baseCooldown * (2 - Utils.softCapFormula(playerCooldownModifier)) * itemCooldownModifier);
+        return (int) (baseCooldown * resolveCooldownReductionMultiplier(player) * itemCooldownModifier);
+    }
+
+    public static int applyCooldownReductionAttribute(int baseCooldown, Player player) {
+        return (int) (Math.max(0, baseCooldown) * resolveCooldownReductionMultiplier(player));
     }
 
     public static int getEffectiveSpellCooldownWithoutSwordMultiplier(
@@ -48,6 +51,11 @@ public final class WeaponImbueCooldownHelper {
                 : baseCooldown;
         var magiAgentSuitCooldown = MagiAgentSuitEffects.applyBootsCooldownDiscount(baseCooldown, spell, player);
         return selectStrongestLimitedBaseCooldown(baseCooldown, craftsmansDelightCooldown, magiAgentSuitCooldown);
+    }
+
+    private static double resolveCooldownReductionMultiplier(Player player) {
+        var playerCooldownModifier = player.getAttributeValue(AttributeRegistry.COOLDOWN_REDUCTION.get());
+        return 2 - Utils.softCapFormula(playerCooldownModifier);
     }
 
     public static int selectStrongestLimitedBaseCooldown(int baseCooldown, int... candidateCooldowns) {

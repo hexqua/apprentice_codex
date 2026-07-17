@@ -364,6 +364,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         EquipmentSpellGunGameTestScenarios.spellgunServerConfigDefaultsMatchBalanceValues(helper);
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void spellgunFixedCooldownUsesCooldownReductionAttribute(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellgunFixedCooldownUsesCooldownReductionAttribute(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = SPELLGUN_CONFIG_BATCH)
     public static void spellgunZeroImbueCooldownLimitDisablesOnlyCooldownLimit(GameTestHelper helper) {
         EquipmentSpellGunGameTestScenarios.spellgunZeroImbueCooldownLimitDisablesOnlyCooldownLimit(helper);
