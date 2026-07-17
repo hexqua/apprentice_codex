@@ -84,6 +84,41 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void enchantmentApplicationSurfacesKeepExpectedMatrix(GameTestHelper helper) {
+        EnchantmentApplicationGameTestScenarios.itemSurfacesKeepExpectedMatrix(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void enchantmentDirectApplicationPoliciesKeepExpectedMatrix(GameTestHelper helper) {
+        EnchantmentApplicationGameTestScenarios.directApplicationPoliciesKeepExpectedMatrix(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void enchantmentSpecialApplicationRulesStayExplicit(GameTestHelper helper) {
+        EnchantmentApplicationGameTestScenarios.specialApplicationRulesStayExplicit(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void apprenticeEnchantmentAcquisitionFlagsKeepExpectedValues(GameTestHelper helper) {
+        EnchantmentApplicationGameTestScenarios.acquisitionFlagsKeepExpectedValues(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void transcendenceResolverUsesMaximumMatchingEventLevel(GameTestHelper helper) {
+        TranscendenceGameTestScenarios.resolverUsesMaximumMatchingEventLevel(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void transcendenceEventCollectsHeldArmorAndAllCuriosSlots(GameTestHelper helper) {
+        TranscendenceGameTestScenarios.eventCollectsHeldArmorAndAllCuriosSlots(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void transcendenceSpecialItemEffectsStayExplicit(GameTestHelper helper) {
+        TranscendenceGameTestScenarios.specialItemEffectsStayExplicit(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void copperSpellAmplifierStartsWithBallLightningAndStacksAttunement(GameTestHelper helper) {
         OffhandAndBetterCombatGameTestScenarios.copperSpellAmplifierStartsWithBallLightningAndStacksAttunement(helper);
     }
@@ -94,8 +129,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void spellSideEdgeKeepsExpectedTagsAndEnchantments(GameTestHelper helper) {
-        SpellSideEdgeGameTestScenarios.spellSideEdgeKeepsExpectedTagsAndEnchantments(helper);
+    public static void spellSideEdgeKeepsExpectedTags(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.spellSideEdgeKeepsExpectedTags(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -481,11 +516,6 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void manaShieldCharmKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        ManaShieldCharmGameTestScenarios.manaShieldCharmKeepsExpectedEnchantmentSurfaces(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
     public static void manaShieldCharmExclusiveEnchantmentsStayMutuallyExclusive(GameTestHelper helper) {
         ManaShieldCharmGameTestScenarios.manaShieldCharmExclusiveEnchantmentsStayMutuallyExclusive(helper);
     }
@@ -673,11 +703,6 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE, batch = MAGI_COMPRESSOR_GADGET_CONFIG_BATCH)
     public static void magiCompressorGadgetBacktankSupplierClampsLegacyAirTag(GameTestHelper helper) {
         MagiCompressorGadgetGameTestScenarios.magiCompressorGadgetBacktankSupplierClampsLegacyAirTag(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void magiCompressorGadgetRejectsEnchantments(GameTestHelper helper) {
-        MagiCompressorGadgetGameTestScenarios.magiCompressorGadgetRejectsEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ABSORPTION_AMPLIFY_AMULET_CONFIG_BATCH)
@@ -913,6 +938,12 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void betterCombatRescueUsesPhysicalOffhandInventoryStack(GameTestHelper helper) {
         OffhandAndBetterCombatGameTestScenarios.betterCombatRescueUsesPhysicalOffhandInventoryStack(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void betterCombatHiddenNonOffhandMagicItemDoesNotApplyTranscendence(GameTestHelper helper) {
+        OffhandAndBetterCombatGameTestScenarios
+                .betterCombatHiddenNonOffhandMagicItemDoesNotApplyTranscendence(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1296,11 +1327,6 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void focusStaffbowAcceptsSynthesisEnchantments(GameTestHelper helper) {
-        FocusStaffbowGameTestScenarios.focusStaffbowAcceptsSynthesisEnchantments(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
     public static void focusStaffbowExposesExpectedMainhandAttributes(GameTestHelper helper) {
         FocusStaffbowGameTestScenarios.focusStaffbowExposesExpectedMainhandAttributes(helper);
     }
@@ -1353,16 +1379,6 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void spellCastParryingRingDiscardsBlockedProjectile(GameTestHelper helper) {
         SpellCastParryingRingGameTestScenarios.spellCastParryingRingDiscardsBlockedProjectile(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void chargedTwinBladeStaffKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffKeepsExpectedEnchantmentSurfaces(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void manaForceBladeKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        ManaForceBladeGameTestScenarios.manaForceBladeKeepsExpectedEnchantmentSurfaces(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1776,13 +1792,13 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        EquipmentEnchantmentSurfaceGameTestScenarios.reflectcastShieldKeepsExpectedEnchantmentSurfaces(helper);
+    public static void spellchargedGreatswordKeepsExpectedStatsAndTags(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordKeepsExpectedStatsTagsAndEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE)
-    public static void spellchargedGreatswordKeepsExpectedStatsTagsAndEnchantments(GameTestHelper helper) {
-        EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordKeepsExpectedStatsTagsAndEnchantments(helper);
+    public static void reflectcastShieldKeepsExpectedItemContract(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.reflectcastShieldKeepsExpectedItemContract(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1844,32 +1860,12 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void spellcastersFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        EquipmentEnchantmentSurfaceGameTestScenarios.spellcastersFlaskKeepsExpectedEnchantmentSurfaces(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void alchemistsFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        EquipmentEnchantmentSurfaceGameTestScenarios.alchemistsFlaskKeepsExpectedEnchantmentSurfaces(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void apprenticeEnchantmentsKeepExpectedAcquisitionFlags(GameTestHelper helper) {
-        EquipmentEnchantmentSurfaceGameTestScenarios.apprenticeEnchantmentsKeepExpectedAcquisitionFlags(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
     public static void randomApplicableBookEnchantmentsExcludeFlaskEnchantments(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.randomApplicableBookEnchantmentsExcludeFlaskEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE)
-    public static void magicArmorKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        EquipmentEnchantmentSurfaceGameTestScenarios.magicArmorKeepsExpectedEnchantmentSurfaces(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void scrollcasterGauntletKeepsExpectedStatsAndBenchEnchantingRules(GameTestHelper helper) {
+    public static void scrollcasterGauntletKeepsExpectedStatsAndBenchRules(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.scrollcasterGauntletKeepsExpectedStatsAndBenchEnchantingRules(helper);
     }
 
@@ -1906,6 +1902,36 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void elementMaidenRobeKeepsExpectedStatsImbueAndMagicEnchantments(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.elementMaidenRobeKeepsExpectedStatsImbueAndMagicEnchantments(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void newlyUnifiedHeldTargetsApplyWisdomAndPlunder(GameTestHelper helper) {
+        WisdomPlunderEffectGameTestScenarios.newlyUnifiedHeldTargetsApplyWisdomAndPlunder(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void equipmentOnlyAndUnsupportedWisdomPlunderItemsStayInactiveWhileHeld(GameTestHelper helper) {
+        WisdomPlunderEffectGameTestScenarios.equipmentOnlyAndUnsupportedItemsDoNotApplyWhileHeld(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void circuitHeatStaffKeepsVanillaLooting(GameTestHelper helper) {
+        WisdomPlunderEffectGameTestScenarios.circuitHeatStaffKeepsVanillaLooting(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void forcedAttributeEnchantmentsCoexistAndKeepRawPositiveLevels(GameTestHelper helper) {
+        AttributeEnchantmentPolicyGameTestScenarios.forcedEnchantmentsCoexistAndKeepRawPositiveLevels(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void attunementResolutionFailureIsNoOp(GameTestHelper helper) {
+        AttributeEnchantmentPolicyGameTestScenarios.attunementResolutionFailureIsNoOp(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magicAttributeMergeOnlyNormalizesLinearMagicAttributes(GameTestHelper helper) {
+        AttributeEnchantmentPolicyGameTestScenarios.mergeHelperOnlyNormalizesLinearMagicAttributes(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1959,13 +1985,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void circuitHeatStaffKeepsExpectedStatsAndEnchantingRules(GameTestHelper helper) {
-        CircuitHeatStaffGameTestScenarios.circuitHeatStaffKeepsExpectedStatsAndEnchantingRules(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void multipurposeStaffrifleKeepsExpectedStatsAndEnchantingRules(GameTestHelper helper) {
-        MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleKeepsExpectedStatsAndEnchantingRules(helper);
+    public static void multipurposeStaffrifleKeepsExpectedStats(GameTestHelper helper) {
+        MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleKeepsExpectedStats(helper);
     }
 
     @GameTest(template = TEMPLATE)

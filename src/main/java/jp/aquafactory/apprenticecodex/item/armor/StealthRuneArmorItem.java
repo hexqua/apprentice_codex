@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.renderer.armor.StealthRuneArmorRenderer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.model.HumanoidModel;
@@ -34,7 +35,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetSpellContainer {
+public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetSpellContainer, WisdomPolicy {
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -44,6 +45,11 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
         super(Holder.direct(StealthRuneArmorStats.MATERIAL), type, StealthRuneArmorStats.createProperties(type));
         this.armorAttributeModifiers = StealthRuneArmorStats.createAttributeModifiers(type);
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public boolean isWisdomActiveWhileHeld() {
+        return false;
     }
 
     public boolean hasImbueSlot() {

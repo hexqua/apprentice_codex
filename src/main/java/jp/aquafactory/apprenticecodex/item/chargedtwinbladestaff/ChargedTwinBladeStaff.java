@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffClientRenderState;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffClientTooltip;
@@ -69,7 +70,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 
-public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDamageableAnvilMergeItem, UniqueItem {
+public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDamageableAnvilMergeItem, UniqueItem,
+        WisdomPolicy {
     public static final int THROW_THRESHOLD_TICKS = 10;
     private static final int USE_DURATION = 72000;
     private static final float THROW_POWER = 2.5F;

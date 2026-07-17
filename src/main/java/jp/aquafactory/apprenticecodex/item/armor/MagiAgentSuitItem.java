@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
@@ -47,7 +48,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class MagiAgentSuitItem extends ArmorItem
-        implements GeoItem, IPresetSpellContainer, SpellCalibrationAdjustmentTarget {
+        implements GeoItem, IPresetSpellContainer, SpellCalibrationAdjustmentTarget, WisdomPolicy {
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 1;
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
@@ -71,6 +72,11 @@ public class MagiAgentSuitItem extends ArmorItem
         super(Holder.direct(MagiAgentSuitStats.MATERIAL), type, MagiAgentSuitStats.createProperties(type).fireResistant());
         this.armorAttributeModifiers = MagiAgentSuitStats.createAttributeModifiers(type);
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public boolean isWisdomActiveWhileHeld() {
+        return false;
     }
 
     public Type getArmorType() {

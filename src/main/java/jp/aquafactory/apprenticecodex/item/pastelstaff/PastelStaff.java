@@ -11,6 +11,7 @@ import io.redspace.ironsspellbooks.item.weapons.StaffItem;
 import io.redspace.ironsspellbooks.item.weapons.StaffTier;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -38,7 +39,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.List;
 import java.util.Set;
 
-public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem {
+public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem, WisdomPolicy {
     public static final String STONE_TINT_COLOR_TAG = "StoneTintColor";
     public static final String STONE_AFFINITY_SCHOOL_TAG = "StoneAffinitySchool";
     public static final int DEFAULT_STONE_TINT_COLOR = 0xFFFFFF;

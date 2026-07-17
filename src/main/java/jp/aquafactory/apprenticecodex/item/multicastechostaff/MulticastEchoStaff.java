@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import io.redspace.ironsspellbooks.item.weapons.StaffItem;
 import io.redspace.ironsspellbooks.item.weapons.StaffTier;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import net.minecraft.core.Holder;
@@ -25,7 +26,12 @@ import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.Set;
 
-public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem {
+public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem, WisdomPolicy {
+
+    @Override
+    public boolean isWisdomActiveWhileHeld() {
+        return true;
+    }
     private static final Set<ResourceLocation> EXTRA_SUPPORTED_ENCHANTMENTS = Set.of(
             ResourceLocation.withDefaultNamespace("fortune"),
             ResourceLocation.withDefaultNamespace("silk_touch")

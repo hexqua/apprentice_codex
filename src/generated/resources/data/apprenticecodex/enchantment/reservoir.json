@@ -13,10 +13,10 @@
     "base": 1,
     "per_level_above_first": 10
   },
-  "primary_items": "#apprenticecodex:magic_item_enchantable",
+  "primary_items": "#apprenticecodex:reservoir_enchantable",
   "slots": [
     "hand"
   ],
-  "supported_items": "#apprenticecodex:magic_item_enchantable",
+  "supported_items": "#apprenticecodex:reservoir_enchantable",
   "weight": 10
 }

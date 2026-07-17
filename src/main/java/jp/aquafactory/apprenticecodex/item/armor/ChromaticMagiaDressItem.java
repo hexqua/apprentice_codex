@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.renderer.armor.ChromaticMagiaDressRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
@@ -36,7 +37,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPresetSpellContainer {
+public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPresetSpellContainer, WisdomPolicy {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final ItemAttributeModifiers armorAttributeModifiers;
 
@@ -44,6 +45,11 @@ public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPres
         super(Holder.direct(ChromaticMagiaDressStats.MATERIAL), type, ChromaticMagiaDressStats.createProperties(type).fireResistant());
         this.armorAttributeModifiers = ChromaticMagiaDressStats.createAttributeModifiers(type);
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public boolean isWisdomActiveWhileHeld() {
+        return false;
     }
 
     public Type getArmorType() {

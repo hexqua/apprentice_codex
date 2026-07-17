@@ -11805,10 +11805,12 @@ public class ApprenticeCodexGameTestScenarios {
 
     static Set<ResourceLocation> expectedSpellGunEnchantments(ItemStack stack) {
         var expectedEnchantments = registryIdSet(
+                Enchantments.ALACRITY,
                 Enchantments.REFLUX,
                 Enchantments.RESERVOIR,
                 Enchantments.SURGE,
                 Enchantments.ATTUNEMENT,
+                Enchantments.TENSE,
                 Enchantments.TRANSCENDENCE,
                 Enchantments.WISDOM,
                 Enchantments.PLUNDER
@@ -11919,7 +11921,7 @@ public class ApprenticeCodexGameTestScenarios {
                 Enchantments.TRANSCENDENCE,
                 Enchantments.WISDOM
         ));
-        if (stack.getItem() instanceof MithrilFreecastStaff || stack.getItem() instanceof RevolvercastStaff) {
+        if (stack.getItem() instanceof MithrilFreecastStaff) {
             expectedEnchantments.remove(Enchantments.TRANSCENDENCE.location());
         }
         addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);

@@ -12,6 +12,8 @@ import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
+import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientConfigState;
@@ -59,16 +61,17 @@ import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 
 public final class FocusStaffbow extends CastingItem
-        implements GeoItem, NonDamageableAnvilMergeItem, UniqueItem, CastAnimationOverrideItem, IJeiInfoItem {
+        implements GeoItem, NonDamageableAnvilMergeItem, UniqueItem, CastAnimationOverrideItem, IJeiInfoItem,
+        WisdomPolicy, PlunderTarget {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.focus_staffbow.desc_";
     private static final int MAX_USE_DURATION = 72000;
     private static final float CLIENT_MANA_SAFE_MARGIN = 0.001F;
     private static final Set<ResourceLocation> ALLOWED_EXTRA_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom"),
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "plunder"),
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "synthesis")
     );
     private static final Set<ResourceLocation> EXCLUDED_EXTRA_ENCHANTMENTS = Set.of(
-            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "plunder"),
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "transcendence")
     );
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);

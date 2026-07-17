@@ -13,7 +13,12 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
-import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
+import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
@@ -23,7 +28,6 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
-import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
@@ -77,7 +81,8 @@ import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 
 public abstract class AbstractSpellGunItem extends Item implements IPresetSpellContainer, RestrictedSpellImbuableItem,
         ManaBypassSpellItem, CastAnimationOverrideItem, IJeiInfoItem, NonDamageableAnvilMergeItem,
-        SpellCalibrationAdjustmentTarget {
+        SpellCalibrationAdjustmentTarget, TranscendencePolicy, AttributeEnchantmentPolicy, WisdomPolicy,
+        PlunderTarget {
     private static final String JEI_INFO_GROUP_ID = "spellgun_items";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.spellgun_items.desc_";
     private static final String MALUM_NAMESPACE = "malum";
@@ -87,12 +92,6 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_shatter_capable_weapon")
     );
-    private static final double ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL = 0.02D;
-    private static final double REFLUX_MANA_REGEN_PER_LEVEL = 0.05D;
-    private static final double RESERVOIR_MAX_MANA_PER_LEVEL = 20.0D;
-    private static final double SURGE_SPELL_POWER_PER_LEVEL = 0.02D;
-    private static final double ATTUNEMENT_SPELL_POWER_PER_LEVEL = 0.04D;
-    private static final double TENSE_CAST_TIME_REDUCTION_PER_LEVEL = 0.05D;
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 1;
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
@@ -238,6 +237,11 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     @Override
     public boolean isEnchantable(@NotNull ItemStack stack) {
         return getEnchantmentValue(stack) > 0;
+    }
+
+    @Override
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return ALL_ATTRIBUTE_ENCHANTMENTS;
     }
 
     @Override
@@ -821,110 +825,18 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             return baseModifiers;
         }
 
-        var alacrityLevel = Enchantments.getLevel(stack, Enchantments.ALACRITY);
-        var refluxLevel = Enchantments.getLevel(stack, Enchantments.REFLUX);
-        var reservoirLevel = Enchantments.getLevel(stack, Enchantments.RESERVOIR);
-        var surgeLevel = Enchantments.getLevel(stack, Enchantments.SURGE);
-        var attunementLevel = Enchantments.getLevel(stack, Enchantments.ATTUNEMENT);
-        var tenseLevel = Enchantments.getLevel(stack, Enchantments.TENSE);
-        if (alacrityLevel <= 0
-                && refluxLevel <= 0
-                && reservoirLevel <= 0
-                && surgeLevel <= 0
-                && attunementLevel <= 0
-                && tenseLevel <= 0) {
-            return baseModifiers;
-        }
-
         var builder = ItemAttributeModifiers.builder();
         for (var entry : baseModifiers.modifiers()) {
             builder.add(entry.attribute(), entry.modifier(), entry.slot());
         }
-
-        addEnchantmentModifier(
-                builder,
-                AttributeRegistry.COOLDOWN_REDUCTION,
-                alacrityLevel * ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL,
-                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                "alacrity_cooldown_reduction",
-                slotGroup,
-                handToken
-        );
-        addEnchantmentModifier(
-                builder,
-                AttributeRegistry.MANA_REGEN,
-                refluxLevel * REFLUX_MANA_REGEN_PER_LEVEL,
-                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                "reflux_mana_regen",
-                slotGroup,
-                handToken
-        );
-        addEnchantmentModifier(
-                builder,
-                AttributeRegistry.MAX_MANA,
-                reservoirLevel * RESERVOIR_MAX_MANA_PER_LEVEL,
-                AttributeModifier.Operation.ADD_VALUE,
-                "reservoir_max_mana",
-                slotGroup,
-                handToken
-        );
-        addEnchantmentModifier(
-                builder,
-                AttributeRegistry.SPELL_POWER,
-                surgeLevel * SURGE_SPELL_POWER_PER_LEVEL,
-                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                "surge_spell_power",
-                slotGroup,
-                handToken
-        );
-        if (attunementLevel > 0) {
-            var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
-            var attunementSpellPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
-            if (attunementSpellPowerAttribute != null) {
-                addEnchantmentModifier(
-                        builder,
-                        BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementSpellPowerAttribute),
-                        attunementLevel * ATTUNEMENT_SPELL_POWER_PER_LEVEL,
-                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                        "attunement_spell_power",
-                        slotGroup,
-                        handToken
-                );
-            }
+        var prefix = itemKey + "_" + handToken + "_enchant";
+        if (!AttributeEnchantmentResolver.addModifiers(builder, stack, slotGroup, prefix)) {
+            return baseModifiers;
         }
-        addEnchantmentModifier(
-                builder,
-                AttributeRegistry.CAST_TIME_REDUCTION,
-                tenseLevel * TENSE_CAST_TIME_REDUCTION_PER_LEVEL,
-                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                "tense_cast_time_reduction",
-                slotGroup,
-                handToken
-        );
 
         return mergeTooltipEquivalentModifiers(
                 builder.build(), itemKey + "_" + handToken + "_merged"
         );
-    }
-
-    private void addEnchantmentModifier(
-            ItemAttributeModifiers.Builder builder,
-            Holder<Attribute> attribute,
-            double amount,
-            AttributeModifier.Operation operation,
-            String key,
-            EquipmentSlotGroup slotGroup,
-            String handToken
-    ) {
-        if (amount == 0.0D) {
-            return;
-        }
-
-        var modifierId = ResourceLocation.fromNamespaceAndPath(
-                ApprenticeCodex.MODID,
-                itemKey + "_" + handToken + "_enchant_" + key
-        );
-        builder.add(attribute, new AttributeModifier(modifierId, amount, operation), slotGroup);
     }
 
     private static ItemAttributeModifiers mergeTooltipEquivalentModifiers(

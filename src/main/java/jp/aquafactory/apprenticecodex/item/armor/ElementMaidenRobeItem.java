@@ -6,9 +6,13 @@ import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.armor.ElementMaidenRobeRenderer;
-import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.core.Holder;
@@ -45,9 +49,12 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
-public class ElementMaidenRobeItem extends ArmorItem implements GeoItem, IPresetSpellContainer, UniqueItem {
+public class ElementMaidenRobeItem extends ArmorItem
+        implements GeoItem, IPresetSpellContainer, UniqueItem, TranscendencePolicy,
+        AttributeEnchantmentPolicy, WisdomPolicy {
     private static final String DESCRIPTION_KEY = "item." + ApprenticeCodex.MODID + ".element_maiden_robe.desc";
     private static final String SPELLBOOK_SCHOOL_POWER_BONUSES_TAG = "ElementMaidenRobeSpellbookSchoolPowerBonuses";
     private static final String ATTRIBUTE_TAG = "Attribute";
@@ -62,12 +69,34 @@ public class ElementMaidenRobeItem extends ArmorItem implements GeoItem, IPreset
         GeoItem.registerSyncedAnimatable(this);
     }
 
+    @Override
+    public boolean isWisdomActiveWhileHeld() {
+        return false;
+    }
+
     public Type getArmorType() {
         return getType();
     }
 
     public boolean hasImbueSlot() {
         return getType() == Type.CHESTPLATE;
+    }
+
+    @Override
+    public boolean isTranscendenceActiveWhileHeld() {
+        return false;
+    }
+
+    @Override
+    public boolean supportsDirectTranscendenceApplication() {
+        return hasImbueSlot();
+    }
+
+    @Override
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return hasImbueSlot()
+                ? Set.of(AttributeEnchantmentType.SURGE, AttributeEnchantmentType.ATTUNEMENT)
+                : Set.of();
     }
 
     @Override
@@ -275,24 +304,12 @@ public class ElementMaidenRobeItem extends ArmorItem implements GeoItem, IPreset
             return;
         }
 
-        var surgeLevel = Enchantments.getLevel(stack, Enchantments.SURGE);
-        ElementMaidenRobeStats.addSurgeSpellPowerModifier(builder, getType(), surgeLevel);
-
-        var attunementLevel = Enchantments.getLevel(stack, Enchantments.ATTUNEMENT);
-        if (attunementLevel <= 0) {
-            return;
-        }
-
-        var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
-        var attunementSpellPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
-        if (attunementSpellPowerAttribute != null) {
-            ElementMaidenRobeStats.addAttunementSpellPowerModifier(
-                    builder,
-                    BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementSpellPowerAttribute),
-                    getType(),
-                    attunementLevel
-            );
-        }
+        AttributeEnchantmentResolver.addModifiers(
+                builder,
+                stack,
+                net.minecraft.world.entity.EquipmentSlotGroup.bySlot(getType().getSlot()),
+                "element_maiden_robe_chestplate_enchant"
+        );
     }
 
     private boolean isSupportedRobeEnchantment(ResourceLocation enchantmentId) {

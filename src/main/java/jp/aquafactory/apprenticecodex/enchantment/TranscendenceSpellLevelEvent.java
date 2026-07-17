@@ -1,37 +1,24 @@
 package jp.aquafactory.apprenticecodex.enchantment;
 
 import io.redspace.ironsspellbooks.api.events.ModifySpellLevelEvent;
-import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
-import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
-import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
-import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
-import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
-import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
-import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
-import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
-import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
-import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
-import jp.aquafactory.apprenticecodex.item.spellsideedge.AbstractSpellSideEdgeItem;
-import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeMirror;
-import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
-import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
-import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import top.theillusivec4.curios.api.CuriosApi;
 
-import java.util.List;
-import java.util.function.Predicate;
+import java.util.ArrayList;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class TranscendenceSpellLevelEvent {
+    private static final EquipmentSlot[] ARMOR_SLOTS = {
+            EquipmentSlot.HEAD,
+            EquipmentSlot.CHEST,
+            EquipmentSlot.LEGS,
+            EquipmentSlot.FEET
+    };
+
     private TranscendenceSpellLevelEvent() {
     }
 
@@ -42,100 +29,27 @@ public final class TranscendenceSpellLevelEvent {
             return;
         }
 
-        var addedLevels = getApplicableTranscendenceLevels(caster.getMainHandItem(), event.getSpell(), false)
-                + getApplicableTranscendenceLevels(caster.getOffhandItem(), event.getSpell(), true)
-                + getApplicableCurioTranscendenceLevels(caster, event.getSpell())
-                + getApplicableArmorTranscendenceLevels(caster.getItemBySlot(EquipmentSlot.CHEST), event.getSpell());
-        if (addedLevels <= 0) {
-            return;
+        var candidates = new ArrayList<TranscendenceResolver.Candidate>();
+        candidates.add(new TranscendenceResolver.Candidate(caster.getMainHandItem(), true));
+        candidates.add(new TranscendenceResolver.Candidate(caster.getOffhandItem(), true));
+        for (var slot : ARMOR_SLOTS) {
+            candidates.add(new TranscendenceResolver.Candidate(caster.getItemBySlot(slot), false));
         }
 
-        event.addLevels(addedLevels);
-    }
-
-    private static int getApplicableTranscendenceLevels(ItemStack stack, AbstractSpell spell, boolean isOffhandSlot) {
-        if (stack == null || stack.isEmpty()) {
-            return 0;
-        }
-
-        var item = stack.getItem();
-        // 魔法補助具は従来通りオフハンド限定、spell gun は両手、
-        // 右クリック武器系はメイン限定にする。
-        var isSupportedSlot =
-                (isOffhandSlot && (item instanceof AbstractOffhandMagicItem || item instanceof SpellSideEdgeMirror))
-                        || item instanceof AbstractSpellGunItem
-                        || item instanceof AlchemistsFlask
-                        || item instanceof BulwarkGreatshield
-                        || item instanceof ReflectcastShield
-                        || item instanceof ParrycastBuckler
-                        || (!isOffhandSlot && (item instanceof AbstractRightClickMagicWeaponItem
-                                || item instanceof AbstractSpellSideEdgeItem
-                                || item instanceof ScrollcasterGauntlet));
-        if (!isSupportedSlot) {
-            return 0;
-        }
-
-        var transcendenceLevel = Enchantments.getLevel(stack, Enchantments.TRANSCENDENCE);
-        if (transcendenceLevel <= 0 || !ISpellContainer.isSpellContainer(stack)) {
-            return 0;
-        }
-
-        var spellContainer = ISpellContainer.get(stack);
-        if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
-            return 0;
-        }
-
-        var imbuedSpell = spellContainer.getSpellAtIndex(0);
-        if (imbuedSpell == SpellData.EMPTY || !imbuedSpell.getSpell().equals(spell)) {
-            return 0;
-        }
-
-        return transcendenceLevel;
-    }
-
-    private static int getApplicableCurioTranscendenceLevels(LivingEntity caster, AbstractSpell spell) {
-        return CuriosApi.getCuriosInventory(caster)
-                .map(inventory -> inventory.findCurios(stack -> stack.getItem() instanceof OffhandMagicCompatibleItem))
-                .orElse(List.of())
-                .stream()
-                .filter(slotResult -> CuriosSlotConstants.HEAD.equals(slotResult.slotContext().identifier()))
-                .mapToInt(slotResult -> getApplicableSpellContainerTranscendenceLevels(slotResult.stack(), spell, item -> true))
-                .sum();
-    }
-
-    private static int getApplicableArmorTranscendenceLevels(ItemStack stack, AbstractSpell spell) {
-        return getApplicableSpellContainerTranscendenceLevels(
-                stack,
-                spell,
-                item -> item instanceof EnchantressRobeItem enchantressRobeItem && enchantressRobeItem.hasImbueSlot()
-                        || item instanceof ElementMaidenRobeItem elementRobeItem && elementRobeItem.hasImbueSlot()
+        // Curios の識別子と inventory API は loader 接着側だけで扱い、共通 Resolver には持ち込まない。
+        CuriosApi.getCuriosInventory(caster).ifPresent(inventory ->
+                inventory.findCurios(stack -> stack.getItem() instanceof TranscendencePolicy).stream()
+                        .map(result -> new TranscendenceResolver.Candidate(result.stack(), false))
+                        .forEach(candidates::add)
         );
-    }
 
-    private static int getApplicableSpellContainerTranscendenceLevels(
-            ItemStack stack,
-            AbstractSpell spell,
-            Predicate<Item> itemPredicate
-    ) {
-        if (stack == null || stack.isEmpty() || !itemPredicate.test(stack.getItem())) {
-            return 0;
+        var addedLevel = TranscendenceResolver.resolveMaxEventLevel(
+                event.getSpell(),
+                candidates,
+                stack -> Enchantments.getLevel(stack, Enchantments.TRANSCENDENCE)
+        );
+        if (addedLevel > 0) {
+            event.addLevels(addedLevel);
         }
-
-        var transcendenceLevel = Enchantments.getLevel(stack, Enchantments.TRANSCENDENCE);
-        if (transcendenceLevel <= 0 || !ISpellContainer.isSpellContainer(stack)) {
-            return 0;
-        }
-
-        var spellContainer = ISpellContainer.get(stack);
-        if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
-            return 0;
-        }
-
-        var imbuedSpell = spellContainer.getSpellAtIndex(0);
-        if (imbuedSpell == SpellData.EMPTY || !imbuedSpell.getSpell().equals(spell)) {
-            return 0;
-        }
-
-        return transcendenceLevel;
     }
 }

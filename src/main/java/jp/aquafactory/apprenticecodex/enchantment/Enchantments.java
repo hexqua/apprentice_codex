@@ -40,8 +40,12 @@ public final class Enchantments {
     public static final TagKey<Item> OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE = itemTag("offhand_or_armor_magic_enchantable");
     public static final TagKey<Item> SPELL_CONTAINER_MAGIC_ENCHANTABLE = itemTag("spell_container_magic_enchantable");
     public static final TagKey<Item> SPELL_GUN_ENCHANTABLE = itemTag("spell_gun_enchantable");
+    public static final TagKey<Item> ALACRITY_ENCHANTABLE = itemTag("alacrity_enchantable");
+    public static final TagKey<Item> REFLUX_ENCHANTABLE = itemTag("reflux_enchantable");
+    public static final TagKey<Item> RESERVOIR_ENCHANTABLE = itemTag("reservoir_enchantable");
     public static final TagKey<Item> SURGE_ENCHANTABLE = itemTag("surge_enchantable");
     public static final TagKey<Item> ATTUNEMENT_ENCHANTABLE = itemTag("attunement_enchantable");
+    public static final TagKey<Item> TENSE_ENCHANTABLE = itemTag("tense_enchantable");
     public static final TagKey<Item> DRINKABLE_FLASK_ENCHANTABLE = itemTag("drinkable_flask_enchantable");
     public static final TagKey<Item> ALCHEMISTS_FLASK_ENCHANTABLE = itemTag("alchemists_flask_enchantable");
     public static final TagKey<Item> FLASK_ENCHANTABLE = itemTag("flask_enchantable");
@@ -104,12 +108,12 @@ public final class Enchantments {
     public static void bootstrap(BootstrapContext<Enchantment> context) {
         HolderGetter<Item> itemLookup = context.lookup(Registries.ITEM);
         HolderGetter<Enchantment> enchantmentLookup = context.lookup(Registries.ENCHANTMENT);
-        var magicItems = itemLookup.getOrThrow(MAGIC_ITEM_ENCHANTABLE);
-        var offhandOrArmorMagicItems = itemLookup.getOrThrow(OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE);
-        var spellContainerMagicItems = itemLookup.getOrThrow(SPELL_CONTAINER_MAGIC_ENCHANTABLE);
-        var spellGunItems = itemLookup.getOrThrow(SPELL_GUN_ENCHANTABLE);
+        var alacrityItems = itemLookup.getOrThrow(ALACRITY_ENCHANTABLE);
+        var refluxItems = itemLookup.getOrThrow(REFLUX_ENCHANTABLE);
+        var reservoirItems = itemLookup.getOrThrow(RESERVOIR_ENCHANTABLE);
         var surgeItems = itemLookup.getOrThrow(SURGE_ENCHANTABLE);
         var attunementItems = itemLookup.getOrThrow(ATTUNEMENT_ENCHANTABLE);
+        var tenseItems = itemLookup.getOrThrow(TENSE_ENCHANTABLE);
         var drinkableFlaskItems = itemLookup.getOrThrow(DRINKABLE_FLASK_ENCHANTABLE);
         var flaskItems = itemLookup.getOrThrow(FLASK_ENCHANTABLE);
         var transcendenceItems = itemLookup.getOrThrow(TRANSCENDENCE_ENCHANTABLE);
@@ -123,8 +127,8 @@ public final class Enchantments {
                 REFLUX,
                 Enchantment.enchantment(
                                 Enchantment.definition(
-                                        magicItems,
-                                        magicItems,
+                                        refluxItems,
+                                        refluxItems,
                                         5,
                                         5,
                                         Enchantment.dynamicCost(1, 10),
@@ -141,8 +145,8 @@ public final class Enchantments {
                 RESERVOIR,
                 Enchantment.enchantment(
                                 Enchantment.definition(
-                                        magicItems,
-                                        magicItems,
+                                        reservoirItems,
+                                        reservoirItems,
                                         10,
                                         5,
                                         Enchantment.dynamicCost(1, 10),
@@ -159,8 +163,8 @@ public final class Enchantments {
                 ALACRITY,
                 Enchantment.enchantment(
                                 Enchantment.definition(
-                                        offhandOrArmorMagicItems,
-                                        offhandOrArmorMagicItems,
+                                        alacrityItems,
+                                        alacrityItems,
                                         5,
                                         5,
                                         Enchantment.dynamicCost(5, 8),
@@ -177,8 +181,8 @@ public final class Enchantments {
                 TENSE,
                 Enchantment.enchantment(
                                 Enchantment.definition(
-                                        offhandOrArmorMagicItems,
-                                        offhandOrArmorMagicItems,
+                                        tenseItems,
+                                        tenseItems,
                                         10,
                                         5,
                                         Enchantment.dynamicCost(5, 8),

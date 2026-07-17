@@ -13,7 +13,6 @@ import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
 import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshieldRuntime;
-import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;

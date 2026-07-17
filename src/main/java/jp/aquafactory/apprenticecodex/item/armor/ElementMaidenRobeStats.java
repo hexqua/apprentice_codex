@@ -22,8 +22,6 @@ import java.util.function.Supplier;
 
 public final class ElementMaidenRobeStats {
     public static final double MAX_MANA_BONUS = 150.0D;
-    public static final double SURGE_SPELL_POWER_PER_LEVEL = 0.02D;
-    public static final double ATTUNEMENT_SPELL_POWER_PER_LEVEL = 0.04D;
 
     private static final int DURABILITY_MULTIPLIER = 37;
     private static final int ENCHANTMENT_VALUE = 22;
@@ -103,37 +101,6 @@ public final class ElementMaidenRobeStats {
                 AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                 EquipmentSlotGroup.bySlot(type.getSlot()),
                 "element_maiden_robe_" + typeToken(type) + "_spell_power_config"
-        );
-    }
-
-    static void addSurgeSpellPowerModifier(
-            ItemAttributeModifiers.Builder builder,
-            ArmorItem.Type type,
-            int level
-    ) {
-        MagicArmorAttributeHelper.addModifier(
-                builder,
-                AttributeRegistry.SPELL_POWER,
-                level * SURGE_SPELL_POWER_PER_LEVEL,
-                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                EquipmentSlotGroup.bySlot(type.getSlot()),
-                "element_maiden_robe_" + typeToken(type) + "_surge_spell_power"
-        );
-    }
-
-    static void addAttunementSpellPowerModifier(
-            ItemAttributeModifiers.Builder builder,
-            Holder<Attribute> attribute,
-            ArmorItem.Type type,
-            int level
-    ) {
-        MagicArmorAttributeHelper.addModifier(
-                builder,
-                attribute,
-                level * ATTUNEMENT_SPELL_POWER_PER_LEVEL,
-                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                EquipmentSlotGroup.bySlot(type.getSlot()),
-                "element_maiden_robe_" + typeToken(type) + "_attunement_spell_power"
         );
     }
 

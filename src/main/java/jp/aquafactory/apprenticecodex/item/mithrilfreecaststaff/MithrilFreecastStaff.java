@@ -210,6 +210,11 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
+    public Handling transcendenceHandling() {
+        return Handling.DISABLED;
+    }
+
+    @Override
     public boolean tryTriggerSpellOnSwing(Player player, InteractionHand hand, boolean bypassChargeCheck) {
         if (player.level().isClientSide) {
             return false;

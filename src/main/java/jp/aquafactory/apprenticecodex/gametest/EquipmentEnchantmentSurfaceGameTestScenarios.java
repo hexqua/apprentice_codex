@@ -180,6 +180,7 @@ import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressStats;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeSchoolPowerBonusEvents;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeStats;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastCooldownMode;
 import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
@@ -363,6 +364,16 @@ import java.util.stream.Collectors;
 
 final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private EquipmentEnchantmentSurfaceGameTestScenarios() {
+    }
+
+    static void reflectcastShieldKeepsExpectedItemContract(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
+            var item = (jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield) stack.getItem();
+            helper.assertTrue(item.getEnchantmentValue(stack)
+                            == jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.ENCHANTMENT_VALUE,
+                    "Reflectcast Shield enchantment value should be 22");
+        });
     }
 
     static void scrollcasterGauntletOffhandUseCastsSelectedScrollWhenMainHandDoesNotConsumeUse(GameTestHelper helper) {
@@ -1876,7 +1887,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             );
             helper.assertTrue(Math.abs(enchantedGlobalSpellPower
-                            - (expectedSpellPower + ElementMaidenRobeStats.SURGE_SPELL_POWER_PER_LEVEL)) < 1.0e-9D,
+                            - (expectedSpellPower + AttributeEnchantmentType.SURGE.amountPerLevel())) < 1.0e-9D,
                     "Element Maiden Robe chestplate should add Surge spell power: " + describeModifiers(enchantedModifiers));
 
             var attunementSpellPower = sumModifierAmount(
@@ -1884,7 +1895,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             );
             helper.assertTrue(Math.abs(attunementSpellPower
-                            - ElementMaidenRobeStats.ATTUNEMENT_SPELL_POWER_PER_LEVEL) < 1.0e-9D,
+                            - AttributeEnchantmentType.ATTUNEMENT.amountPerLevel()) < 1.0e-9D,
                     "Element Maiden Robe chestplate should add Attunement school spell power: "
                             + describeModifiers(enchantedModifiers));
         });

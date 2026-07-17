@@ -5,9 +5,11 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
-import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
-import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -31,15 +33,11 @@ import java.util.function.Supplier;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 
 public abstract class AbstractOffhandMagicItem extends Item
-        implements IPresetSpellContainer, IJeiInfoItem, NonDamageableAnvilMergeItem {
-    private static final double ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL = 0.02D;
-    private static final double REFLUX_MANA_REGEN_PER_LEVEL = 0.05D;
-    private static final double RESERVOIR_MAX_MANA_PER_LEVEL = 20.0D;
-    private static final double SURGE_SPELL_POWER_PER_LEVEL = 0.02D;
-    private static final double ATTUNEMENT_SPELL_POWER_PER_LEVEL = 0.04D;
-    private static final double TENSE_CAST_TIME_REDUCTION_PER_LEVEL = 0.05D;
+        implements IPresetSpellContainer, IJeiInfoItem, NonDamageableAnvilMergeItem, TranscendencePolicy,
+        AttributeEnchantmentPolicy {
     private static final String JEI_INFO_GROUP_ID = "offhand_magic_items";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.offhand_magic_items.desc_";
+    private static final int ENCHANTMENT_VALUE = 1;
 
     private final Supplier<? extends AbstractSpell> configuredSpell;
     private final int configuredSpellLevel;
@@ -47,6 +45,11 @@ public abstract class AbstractOffhandMagicItem extends Item
     private final String itemKey;
     private final List<AttributeBonus> offhandBonuses;
     private final ItemAttributeModifiers baseOffhandModifiers;
+
+    @Override
+    public java.util.Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return ALL_ATTRIBUTE_ENCHANTMENTS;
+    }
 
     protected AbstractOffhandMagicItem(
             Supplier<? extends AbstractSpell> configuredSpell,
@@ -251,80 +254,15 @@ public abstract class AbstractOffhandMagicItem extends Item
         }
 
         var hasStackDependentModifiers = addStackDependentModifiers(builder, stack, itemKey + "_offhand_stack");
-        if (stack == null || stack.isEmpty() || !stack.isEnchanted()) {
-            return hasStackDependentModifiers
-                    ? mergeTooltipEquivalentModifiers(builder.build(), itemKey + "_offhand_merged")
-                    : baseModifiers;
+        var hasEnchantmentModifiers = AttributeEnchantmentResolver.addModifiers(
+                builder,
+                stack,
+                EquipmentSlotGroup.OFFHAND,
+                itemKey + "_offhand_enchant"
+        );
+        if (!hasStackDependentModifiers && !hasEnchantmentModifiers) {
+            return baseModifiers;
         }
-
-        var alacrityLevel = Enchantments.getLevel(stack, Enchantments.ALACRITY);
-        var refluxLevel = Enchantments.getLevel(stack, Enchantments.REFLUX);
-        var reservoirLevel = Enchantments.getLevel(stack, Enchantments.RESERVOIR);
-        var surgeLevel = Enchantments.getLevel(stack, Enchantments.SURGE);
-        var attunementLevel = Enchantments.getLevel(stack, Enchantments.ATTUNEMENT);
-        var tenseLevel = Enchantments.getLevel(stack, Enchantments.TENSE);
-
-        if (alacrityLevel <= 0
-                && refluxLevel <= 0
-                && reservoirLevel <= 0
-                && surgeLevel <= 0
-                && attunementLevel <= 0
-                && tenseLevel <= 0) {
-            return hasStackDependentModifiers
-                    ? mergeTooltipEquivalentModifiers(builder.build(), itemKey + "_offhand_merged")
-                    : baseModifiers;
-        }
-
-        addEnchantmentModifier(
-                builder,
-                AttributeRegistry.COOLDOWN_REDUCTION,
-                alacrityLevel * ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL,
-                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                "alacrity_cooldown_reduction"
-        );
-        addEnchantmentModifier(
-                builder,
-                AttributeRegistry.MANA_REGEN,
-                refluxLevel * REFLUX_MANA_REGEN_PER_LEVEL,
-                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                "reflux_mana_regen"
-        );
-        addEnchantmentModifier(
-                builder,
-                AttributeRegistry.MAX_MANA,
-                reservoirLevel * RESERVOIR_MAX_MANA_PER_LEVEL,
-                AttributeModifier.Operation.ADD_VALUE,
-                "reservoir_max_mana"
-        );
-        addEnchantmentModifier(
-                builder,
-                AttributeRegistry.SPELL_POWER,
-                surgeLevel * SURGE_SPELL_POWER_PER_LEVEL,
-                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                "surge_spell_power"
-        );
-
-        if (attunementLevel > 0) {
-            var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
-            var attunementSpellPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
-            if (attunementSpellPowerAttribute != null) {
-                addEnchantmentModifier(
-                        builder,
-                        BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementSpellPowerAttribute),
-                        attunementLevel * ATTUNEMENT_SPELL_POWER_PER_LEVEL,
-                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                        "attunement_spell_power"
-                );
-            }
-        }
-
-        addEnchantmentModifier(
-                builder,
-                AttributeRegistry.CAST_TIME_REDUCTION,
-                tenseLevel * TENSE_CAST_TIME_REDUCTION_PER_LEVEL,
-                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                "tense_cast_time_reduction"
-        );
 
         return mergeTooltipEquivalentModifiers(builder.build(), itemKey + "_offhand_merged");
     }
@@ -372,7 +310,7 @@ public abstract class AbstractOffhandMagicItem extends Item
             AttributeModifier.Operation operation,
             String key
     ) {
-        if (amount == 0.0D) {
+        if (attribute == null || amount == 0.0D) {
             return;
         }
 
@@ -380,7 +318,6 @@ public abstract class AbstractOffhandMagicItem extends Item
                 "apprenticecodex",
                 itemKey + "_offhand_enchant_" + key
         );
-
         builder.add(
                 attribute,
                 new AttributeModifier(modifierId, amount, operation),

@@ -110,7 +110,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
         });
     }
 
-    static void spellSideEdgeKeepsExpectedTagsAndEnchantments(GameTestHelper helper) {
+    static void spellSideEdgeKeepsExpectedTags(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.SPELL_SIDE_EDGE.get());
             helper.assertTrue(stack.is(MALUM_MAGIC_CAPABLE_WEAPON),

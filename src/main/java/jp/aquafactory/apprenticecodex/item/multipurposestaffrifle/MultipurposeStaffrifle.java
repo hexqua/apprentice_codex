@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.multipurposestaffrifle;
 
+import com.google.common.collect.ImmutableMultimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
@@ -14,6 +15,11 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
+import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleRateLimiter;
@@ -64,6 +70,7 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
@@ -72,7 +79,8 @@ import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunSpellListManager;
 
 public final class MultipurposeStaffrifle extends Item
-        implements GeoItem, NonDamageableAnvilMergeItem, IJeiInfoItem, CastAnimationOverrideItem {
+        implements GeoItem, NonDamageableAnvilMergeItem, IJeiInfoItem, CastAnimationOverrideItem,
+        AttributeEnchantmentPolicy, WisdomPolicy, PlunderTarget {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.multipurpose_staffrifle.desc_";
     private static final String MAIN_CONTROLLER = "main";
     private static final String FIRED_ANIMATION = "fired";
@@ -90,11 +98,13 @@ public final class MultipurposeStaffrifle extends Item
     private static final float BASE_EMPTY_CASING_RETURN_CHANCE = 0.0F;
     private static final float EQUIPPED_AMMO_POUCH_EMPTY_CASING_RETURN_CHANCE = 0.2F;
     private static final double SPELL_POWER_BONUS = 0.10D;
-    private static final double ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL = 0.02D;
-    private static final double REFLUX_MANA_REGEN_PER_LEVEL = 0.05D;
-    private static final double RESERVOIR_MAX_MANA_PER_LEVEL = 20.0D;
-    private static final double SURGE_SPELL_POWER_PER_LEVEL = 0.02D;
-    private static final double TENSE_CAST_TIME_REDUCTION_PER_LEVEL = 0.05D;
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR,
+            AttributeEnchantmentType.SURGE,
+            AttributeEnchantmentType.TENSE
+    );
     private static final ResourceLocation SPELL_POWER_MODIFIER_ID =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "multipurpose_staffrifle.mainhand.spell_power");
 
@@ -109,6 +119,11 @@ public final class MultipurposeStaffrifle extends Item
     @Override
     public String getJeiInfoTranslationKeyPrefix() {
         return JEI_INFO_KEY_PREFIX;
+    }
+
+    @Override
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
     }
 
     @Override
@@ -561,43 +576,20 @@ public final class MultipurposeStaffrifle extends Item
             return baseMainhandModifiers;
         }
 
-        var builder = ItemAttributeModifiers.builder();
-        addEnchantmentModifier(
-                builder,
-                AttributeRegistry.SPELL_POWER,
-                SPELL_POWER_BONUS + getEnchantmentLevel(stack, Enchantments.SURGE) * SURGE_SPELL_POWER_PER_LEVEL,
-                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                "apprenticecodex.multipurpose_staffrifle.mainhand.spell_power"
+        var base = ImmutableMultimap.<Holder<net.minecraft.world.entity.ai.attributes.Attribute>, AttributeModifier>builder();
+        for (var entry : baseMainhandModifiers.modifiers()) {
+            base.put(entry.attribute(), entry.modifier());
+        }
+        var merged = AttributeEnchantmentResolver.resolveMergedModifiers(
+                base.build(),
+                stack,
+                "multipurpose_staffrifle_mainhand"
         );
-        addEnchantmentModifier(
-                builder,
-                AttributeRegistry.COOLDOWN_REDUCTION,
-                getEnchantmentLevel(stack, Enchantments.ALACRITY) * ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL,
-                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                "apprenticecodex.multipurpose_staffrifle.mainhand.enchant.alacrity.cooldown_reduction"
-        );
-        addEnchantmentModifier(
-                builder,
-                AttributeRegistry.MANA_REGEN,
-                getEnchantmentLevel(stack, Enchantments.REFLUX) * REFLUX_MANA_REGEN_PER_LEVEL,
-                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                "apprenticecodex.multipurpose_staffrifle.mainhand.enchant.reflux.mana_regen"
-        );
-        addEnchantmentModifier(
-                builder,
-                AttributeRegistry.MAX_MANA,
-                getEnchantmentLevel(stack, Enchantments.RESERVOIR) * RESERVOIR_MAX_MANA_PER_LEVEL,
-                AttributeModifier.Operation.ADD_VALUE,
-                "apprenticecodex.multipurpose_staffrifle.mainhand.enchant.reservoir.max_mana"
-        );
-        addEnchantmentModifier(
-                builder,
-                AttributeRegistry.CAST_TIME_REDUCTION,
-                getEnchantmentLevel(stack, Enchantments.TENSE) * TENSE_CAST_TIME_REDUCTION_PER_LEVEL,
-                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                "apprenticecodex.multipurpose_staffrifle.mainhand.enchant.tense.cast_time_reduction"
-        );
-        return builder.build();
+        var result = ItemAttributeModifiers.builder();
+        for (var entry : merged.entries()) {
+            result.add(entry.getKey(), entry.getValue(), EquipmentSlotGroup.MAINHAND);
+        }
+        return result.build();
     }
 
     private static ItemAttributeModifiers buildBaseMainhandModifiers() {
@@ -610,30 +602,6 @@ public final class MultipurposeStaffrifle extends Item
                 ),
                 EquipmentSlotGroup.MAINHAND
         ).build();
-    }
-
-    private static void addEnchantmentModifier(ItemAttributeModifiers.Builder builder,
-                                               Holder<net.minecraft.world.entity.ai.attributes.Attribute> attribute,
-                                               double amount,
-                                               AttributeModifier.Operation operation,
-                                               String modifierIdSeed) {
-        if (amount == 0.0D) {
-            return;
-        }
-
-        builder.add(
-                attribute,
-                new AttributeModifier(
-                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, modifierIdSeed),
-                        amount,
-                        operation
-                ),
-                EquipmentSlotGroup.MAINHAND
-        );
-    }
-
-    private static int getEnchantmentLevel(ItemStack stack, ResourceKey<Enchantment> enchantment) {
-        return Enchantments.getLevel(stack, enchantment);
     }
 
     private static boolean isSupportedStaffrifleEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {

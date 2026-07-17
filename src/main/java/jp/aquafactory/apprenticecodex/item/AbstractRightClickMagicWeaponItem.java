@@ -7,6 +7,8 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.ChatFormatting;
@@ -46,7 +48,8 @@ import java.util.function.Supplier;
 import java.util.function.Predicate;
 
 public abstract class AbstractRightClickMagicWeaponItem extends Item
-        implements IPresetSpellContainer, NonDamageableAnvilMergeItem, PriorityOffhandUseDeferringItem {
+        implements IPresetSpellContainer, NonDamageableAnvilMergeItem, PriorityOffhandUseDeferringItem,
+        TranscendencePolicy, WisdomPolicy {
     private static final Set<ResourceLocation> ALLOWED_MAGIC_ITEM_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "transcendence"),
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom")

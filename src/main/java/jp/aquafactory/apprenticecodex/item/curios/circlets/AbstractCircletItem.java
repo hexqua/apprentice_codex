@@ -5,7 +5,6 @@ import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
-import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -61,26 +60,24 @@ public abstract class AbstractCircletItem extends Item implements ICurioItem, IP
             ItemStack stack
     ) {
         var baseModifiers = ICurioItem.super.getAttributeModifiers(slotContext, id, stack);
-        if (!CuriosSlotConstants.HEAD.equals(slotContext.identifier())) {
-            return baseModifiers;
-        }
-
         var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
         builder.putAll(baseModifiers);
 
-        var modifierSlotName = String.format("%s_%s", CuriosSlotConstants.HEAD, slotContext.index());
+        // Curios が保証する slot-unique ID を使い、増設枠や汎用枠でも modifier を衝突させない。
+        // Iron's の AttributeContainer は受け取った文字列を ResourceLocation の path に連結するため、
+        // Curios の namespace 区切りをそのまま渡さず、有効な path 文字だけへ正規化する。
+        var modifierSlotName = (id.getNamespace() + "_" + id.getPath()).replace('/', '_');
         for (var attributeContainer : circletAttributes) {
             builder.put(attributeContainer.attribute(), attributeContainer.createModifier(modifierSlotName));
         }
-        addAdditionalHeadModifiers(builder, slotContext, stack, modifierSlotName);
+        addAdditionalModifiers(builder, stack, id);
         return builder.build();
     }
 
-    protected void addAdditionalHeadModifiers(
+    protected void addAdditionalModifiers(
             ImmutableMultimap.Builder<Holder<Attribute>, AttributeModifier> builder,
-            SlotContext slotContext,
             ItemStack stack,
-            String modifierSlotName
+            ResourceLocation slotId
     ) {
     }
 
