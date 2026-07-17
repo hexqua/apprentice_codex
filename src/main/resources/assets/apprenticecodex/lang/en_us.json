@@ -199,7 +199,7 @@
   "item.apprenticecodex.spellstained_runic_tablet.desc.cast_time": "Cast time reduction: %1$s%% (highest same-school spell count: %2$s)",
   "item.apprenticecodex.spellstained_runic_tablet.desc.cast_time.insufficient": "Cast time reduction: %1$s%% (requires %2$s+ same-school spells)",
   "item.apprenticecodex.isekai_travel_guidebook.desc": "\"Welcome to the Minecraft world!\"",
-  "item.apprenticecodex.stealth_rune_armor.desc": "This armor dose not prevent invisibility effects.",
+  "item.apprenticecodex.stealth_rune_armor.desc": "This armor does not prevent invisibility effects.",
   "item.apprenticecodex.chromatic_magia_dress_hat.desc": "This armor is dyed with the \"COLOR\" of the spell casting.",
   "item.apprenticecodex.chromatic_magia_dress_coat.desc": "This armor is dyed with the \"COLOR\" of the recast spell.",
   "item.apprenticecodex.chromatic_magia_dress_leggings.desc": "This armor is dyed with the \"COLOR\" of the spell continuous casting.",
