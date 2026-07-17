@@ -90,6 +90,18 @@ public final class TagRegistry {
                 createItemTag("enchantable/wisdom");
         public static final TagKey<Item> ENCHANTABLE_PLUNDER =
                 createItemTag("enchantable/plunder");
+        public static final TagKey<Item> ENCHANTABLE_ALACRITY =
+                createItemTag("enchantable/alacrity");
+        public static final TagKey<Item> ENCHANTABLE_REFLUX =
+                createItemTag("enchantable/reflux");
+        public static final TagKey<Item> ENCHANTABLE_RESERVOIR =
+                createItemTag("enchantable/reservoir");
+        public static final TagKey<Item> ENCHANTABLE_SURGE =
+                createItemTag("enchantable/surge");
+        public static final TagKey<Item> ENCHANTABLE_ATTUNEMENT =
+                createItemTag("enchantable/attunement");
+        public static final TagKey<Item> ENCHANTABLE_TENSE =
+                createItemTag("enchantable/tense");
     }
 
     public static final class EntityTypes {

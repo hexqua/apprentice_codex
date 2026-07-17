@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -15,7 +16,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -70,6 +73,30 @@ final class AttributeEnchantmentPolicyGameTestScenarios extends ApprenticeCodexG
                     );
                 }
             }
+
+            var attributeEnchantableTags = Map.of(
+                    AttributeEnchantmentType.ALACRITY, TagRegistry.Items.ENCHANTABLE_ALACRITY,
+                    AttributeEnchantmentType.REFLUX, TagRegistry.Items.ENCHANTABLE_REFLUX,
+                    AttributeEnchantmentType.RESERVOIR, TagRegistry.Items.ENCHANTABLE_RESERVOIR,
+                    AttributeEnchantmentType.SURGE, TagRegistry.Items.ENCHANTABLE_SURGE,
+                    AttributeEnchantmentType.ATTUNEMENT, TagRegistry.Items.ENCHANTABLE_ATTUNEMENT,
+                    AttributeEnchantmentType.TENSE, TagRegistry.Items.ENCHANTABLE_TENSE
+            );
+            var mismatches = new ArrayList<String>();
+            for (var entry : ItemRegistry.ITEMS.getEntries()) {
+                var item = entry.get();
+                var stack = new ItemStack(item);
+                for (var type : AttributeEnchantmentType.values()) {
+                    var expected = AttributeEnchantmentPolicy.supportsDirectApplication(item, type);
+                    var actual = stack.is(attributeEnchantableTags.get(type));
+                    if (expected != actual) {
+                        mismatches.add(entry.getId() + " " + type
+                                + " expected=" + expected + " actual=" + actual);
+                    }
+                }
+            }
+            helper.assertTrue(mismatches.isEmpty(),
+                    "Attribute enchantment tags differ from policy: " + mismatches);
         });
     }
 
