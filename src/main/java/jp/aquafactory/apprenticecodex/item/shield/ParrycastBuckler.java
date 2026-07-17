@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.shield;
 
 import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
@@ -25,15 +24,11 @@ import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 import jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
-import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -61,7 +56,6 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -78,12 +72,6 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
-                    CalibrationAdjustmentRule.uniqueBy(
-                            ScrollcasterSchoolRuneResolver::isSchoolRune,
-                            stack -> ScrollcasterSchoolRuneResolver.resolveSchool(stack)
-                                    .map(SchoolType::getId),
-                            CalibrationAdjustmentHints.schoolRunes()
-                    ),
                     CalibrationAdjustmentRule.unique(
                             MithrilFreecastStaff::isSilverRing,
                             CalibrationAdjustmentHints.silverRing()
@@ -93,7 +81,6 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
                             CalibrationAdjustmentHints.wisdomShard()
                     )
             );
-    private static final double SCHOOL_POWER_BONUS = 0.1D;
     private static final String CALIBRATION_TAG = "ParrycastBucklerCalibration";
     private static final String USE_START_TICK_TAG = "ApprenticeCodexParrycastBucklerUseStart";
     private static final String SESSION_TRIGGERED_TAG = "ApprenticeCodexParrycastBucklerTriggered";
@@ -112,11 +99,6 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
     private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation DEPLOY = RawAnimation.begin().thenPlayAndHold("deploy");
     private static final RawAnimation REMOVE_IDLE = RawAnimation.begin().thenPlay("remove").thenLoop("idle");
-    private static final ResourceLocation[] SCHOOL_POWER_IDS = {
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "parrycast_buckler/school_spell_power_0"),
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "parrycast_buckler/school_spell_power_1"),
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "parrycast_buckler/school_spell_power_2")
-    };
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public ParrycastBuckler() {
@@ -315,20 +297,8 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
     public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
         var equippedBase = AttributeEnchantmentResolver.resolveMergedModifiers(
                 ImmutableMultimap.<Holder<Attribute>, AttributeModifier>of(), stack, "parrycast_buckler");
-        var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
-        builder.putAll(equippedBase);
-        Set<net.minecraft.resources.ResourceLocation> seen = new HashSet<>();
-        for (int i = 0; i < CALIBRATION_ADJUSTMENT_SLOT_COUNT; i++) {
-            var school = ScrollcasterSchoolRuneResolver.resolveSchool(readCalibrationAdjustment(stack, i)).orElse(null);
-            if (school == null || !seen.add(school.getId())) continue;
-            var attribute = MagicTools.resolveSchoolPowerAttribute(school);
-            if (attribute != null) {
-                builder.put(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute), new AttributeModifier(
-                        SCHOOL_POWER_IDS[i], SCHOOL_POWER_BONUS, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
-            }
-        }
         var merged = MagicAttributeModifierHelper.mergeLinearMagicModifiers(
-                builder.build(),
+                equippedBase,
                 "apprenticecodex.parrycast_buckler.merged"
         );
         var result = ItemAttributeModifiers.builder();

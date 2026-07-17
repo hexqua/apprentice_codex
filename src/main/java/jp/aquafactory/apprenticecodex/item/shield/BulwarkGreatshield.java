@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
@@ -44,6 +45,7 @@ import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 public class BulwarkGreatshield extends AbstractImbueShieldItem
@@ -55,10 +57,8 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
-                    CalibrationAdjustmentRule.uniqueBy(
+                    CalibrationAdjustmentRule.repeatable(
                             ScrollcasterSchoolRuneResolver::isSchoolRune,
-                            stack -> ScrollcasterSchoolRuneResolver.resolveSchool(stack)
-                                    .map(SchoolType::getId),
                             CalibrationAdjustmentHints.schoolRunes()
                     ),
                     CalibrationAdjustmentRule.unique(
@@ -69,8 +69,6 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
     public static final int DURABILITY_SUPPRESSION_TICKS = 20;
     public static final int CONTINUOUS_CAST_DELAY_TICKS = 20;
     public static final int MANA_RECOVERY_COOLDOWN_TICKS = 20;
-    public static final double GENERIC_SPELL_RESIST = 0.25D;
-    public static final double SCHOOL_SPELL_RESIST = 0.5D;
 
     private static final String CALIBRATION_TAG = "BulwarkGreatshieldCalibration";
     private static final ResourceLocation GENERIC_RESIST_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(
@@ -164,15 +162,21 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
         var builder = ItemAttributeModifiers.builder();
         builder.add(AttributeRegistry.SPELL_RESIST, new AttributeModifier(
                 GENERIC_RESIST_MODIFIER_ID,
-                GENERIC_SPELL_RESIST,
+                ApprenticeCodexServerConfig.bulwarkGreatshieldGenericSpellResist(),
                 AttributeModifier.Operation.ADD_MULTIPLIED_BASE
         ), net.minecraft.world.entity.EquipmentSlotGroup.OFFHAND);
+        var schoolRuneCounts = new LinkedHashMap<SchoolType, Integer>();
         for (var school : getResolvedCalibrationSchools(stack)) {
+            schoolRuneCounts.merge(school, 1, Integer::sum);
+        }
+        var schoolSpellResist = ApprenticeCodexServerConfig.bulwarkGreatshieldSchoolSpellResist();
+        for (var entry : schoolRuneCounts.entrySet()) {
+            var school = entry.getKey();
             var schoolResist = MagicTools.resolveSchoolResistAttribute(school);
             if (schoolResist != null) {
                 builder.add(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(schoolResist), new AttributeModifier(
                         SCHOOL_RESIST_MODIFIER_ID,
-                        SCHOOL_SPELL_RESIST,
+                        schoolSpellResist * entry.getValue(),
                         AttributeModifier.Operation.ADD_MULTIPLIED_BASE
                 ), net.minecraft.world.entity.EquipmentSlotGroup.OFFHAND);
             }
