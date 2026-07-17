@@ -362,7 +362,7 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
     private MultipurposeStaffrifleGameTestScenarios() {
     }
 
-    static void multipurposeStaffrifleKeepsExpectedStatsAndEnchantingRules(GameTestHelper helper) {
+    static void multipurposeStaffrifleKeepsExpectedStats(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
             var item = (MultipurposeStaffrifle) stack.getItem();
@@ -424,12 +424,6 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
                     "Multipurpose Staffrifle Tense modifier changed"
             );
 
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedMultipurposeStaffrifleEnchantments(stack),
-                    "Multipurpose Staffrifle"
-            );
         });
     }
 

@@ -365,6 +365,18 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
     private EquipmentEnchantmentSurfaceGameTestScenarios() {
     }
 
+    static void reflectcastShieldKeepsExpectedItemContract(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
+            var item = (jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield) stack.getItem();
+            helper.assertTrue(item.getEnchantmentValue(stack)
+                            == jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.ENCHANTMENT_VALUE,
+                    "Reflectcast Shield enchantment value should be 22");
+            helper.assertFalse(stack.is(MALUM_SOUL_HUNTER_WEAPON),
+                    "Reflectcast Shield should stay outside malum:soul_hunter_weapon");
+        });
+    }
+
     static void scrollcasterGauntletOffhandUseCastsSelectedScrollWhenMainHandDoesNotConsumeUse(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();

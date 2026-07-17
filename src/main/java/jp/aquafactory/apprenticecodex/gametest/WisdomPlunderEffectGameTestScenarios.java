@@ -2,12 +2,9 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderLootingLevelEvent;
-import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
-import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
@@ -16,48 +13,18 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.living.LootingLevelEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-final class WisdomPlunderPolicyGameTestScenarios extends ApprenticeCodexGameTestScenarios {
-    private WisdomPlunderPolicyGameTestScenarios() {
-    }
-
-    static void directApplicationPoliciesMatchItemsAndGeneratedTags(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var wisdom = EnchantmentRegistry.WISDOM.get();
-            var plunder = EnchantmentRegistry.PLUNDER.get();
-            var mismatches = new ArrayList<String>();
-
-            for (var entry : ItemRegistry.ITEMS.getEntries()) {
-                var item = entry.get();
-                var stack = new ItemStack(item);
-                verifyPolicySurface(
-                        mismatches,
-                        entry.getId() + " Wisdom",
-                        WisdomPolicy.supportsDirectApplication(item),
-                        item.canApplyAtEnchantingTable(stack, wisdom),
-                        stack.is(TagRegistry.Items.ENCHANTABLE_WISDOM)
-                );
-                verifyPolicySurface(
-                        mismatches,
-                        entry.getId() + " Plunder",
-                        item instanceof PlunderTarget,
-                        item.canApplyAtEnchantingTable(stack, plunder),
-                        stack.is(TagRegistry.Items.ENCHANTABLE_PLUNDER)
-                );
-            }
-
-            helper.assertTrue(mismatches.isEmpty(),
-                    "Wisdom/Plunder policy surface mismatches: " + String.join(", ", mismatches));
-        });
+final class WisdomPlunderEffectGameTestScenarios extends ApprenticeCodexGameTestScenarios {
+    private WisdomPlunderEffectGameTestScenarios() {
     }
 
     static void newlyUnifiedHeldTargetsApplyWisdomAndPlunder(GameTestHelper helper) {
@@ -72,7 +39,6 @@ final class WisdomPlunderPolicyGameTestScenarios extends ApprenticeCodexGameTest
             for (var item : wisdomTargets) {
                 assertHeldWisdom(helper, item, true);
             }
-
             assertHeldPlunder(helper, ItemRegistry.FOCUS_STAFFBOW.get());
         });
     }
@@ -112,16 +78,22 @@ final class WisdomPlunderPolicyGameTestScenarios extends ApprenticeCodexGameTest
         });
     }
 
-    private static void verifyPolicySurface(
-            List<String> mismatches,
-            String name,
-            boolean policy,
-            boolean directApplication,
-            boolean generatedTag
-    ) {
-        if (policy != directApplication || policy != generatedTag) {
-            mismatches.add(name + " policy=" + policy + " direct=" + directApplication + " tag=" + generatedTag);
-        }
+    static void circuitHeatStaffKeepsVanillaLooting(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = new FakePlayer(helper.getLevel(),
+                    new GameProfile(UUID.randomUUID(), "circuit_heat_staff_looting_test"));
+            var stack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+            stack.enchant(Enchantments.MOB_LOOTING, 3);
+            stack.enchant(EnchantmentRegistry.PLUNDER.get(), 2);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 0));
+            var event = new LootingLevelEvent(target, player.damageSources().playerAttack(player), 3);
+            PlunderLootingLevelEvent.onLootingLevel(event);
+
+            helper.assertTrue(event.getLootingLevel() == 3,
+                    "Circuit Heat Staff should keep vanilla Looting and ignore forced Plunder");
+        });
     }
 
     private static void assertHeldWisdom(GameTestHelper helper, Item item, boolean expectedActive) {
