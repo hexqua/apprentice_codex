@@ -74,7 +74,6 @@ final class WisdomPlunderPolicyGameTestScenarios extends ApprenticeCodexGameTest
             }
 
             assertHeldPlunder(helper, ItemRegistry.FOCUS_STAFFBOW.get());
-            assertHeldPlunder(helper, ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         });
     }
 

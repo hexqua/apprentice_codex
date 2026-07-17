@@ -11233,8 +11233,7 @@ public class ApprenticeCodexGameTestScenarios {
                         && !isDurabilityTargetEnchantment(enchantment)
         );
         expectedEnchantments.addAll(registryIdSet(
-                EnchantmentRegistry.WISDOM,
-                EnchantmentRegistry.PLUNDER
+                EnchantmentRegistry.WISDOM
         ));
         addExpectedMalumHauntedIfPresent(stack, expectedEnchantments);
         addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);

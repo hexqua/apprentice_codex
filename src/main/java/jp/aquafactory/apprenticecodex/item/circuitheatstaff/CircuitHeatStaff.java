@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.item.circuitheatstaff;
 
-import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
@@ -66,7 +65,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, NonDamageableAnvilMergeItem,
-        IJeiInfoItem, WisdomPolicy, PlunderTarget {
+        IJeiInfoItem, WisdomPolicy {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.circuit_heat_staff.desc_";
     private static final String FRAME_CONTROLLER = "frame";
     private static final String COG_CONTROLLER = "cog";
@@ -81,8 +80,7 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
     );
     private static final Set<ResourceLocation> ALLOWED_APPRENTICE_ENCHANTMENTS = Set.of(
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom"),
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "plunder")
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom")
     );
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
     private static final RawAnimation ANIM_IDLE_FRAME = RawAnimation.begin().thenLoop("idle_frame");
