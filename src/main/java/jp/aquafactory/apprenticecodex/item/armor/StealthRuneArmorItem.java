@@ -4,7 +4,11 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.renderer.armor.StealthRuneArmorRenderer;
 import net.minecraft.ChatFormatting;
@@ -13,6 +17,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
@@ -33,10 +38,18 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
-public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetSpellContainer, WisdomPolicy {
+public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetSpellContainer,
+        WisdomPolicy, TranscendencePolicy, AttributeEnchantmentPolicy {
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR,
+            AttributeEnchantmentType.TENSE
+    );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final ItemAttributeModifiers armorAttributeModifiers;
@@ -54,6 +67,21 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
 
     public boolean hasImbueSlot() {
         return getType() == Type.CHESTPLATE;
+    }
+
+    @Override
+    public boolean isTranscendenceActiveWhileHeld() {
+        return false;
+    }
+
+    @Override
+    public boolean supportsDirectTranscendenceApplication() {
+        return hasImbueSlot();
+    }
+
+    @Override
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
     }
 
     public static boolean isStealthRuneArmor(ItemStack stack) {
@@ -94,7 +122,7 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
             return;
         }
 
-        // 胴だけに魔法枠を持たせ、既存ローブ系と同じ装備感に揃える.
+        // 胴だけに魔法枠を持たせ、既存ローブ系と同じ装備感に揃える。
         ISpellContainer.set(itemStack, ISpellContainer.create(1, true, true));
     }
 
@@ -113,6 +141,12 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
                 getType(),
                 ApprenticeCodexServerConfig.stealthRuneArmorSpellPowerBonusPerPiece()
         );
+        AttributeEnchantmentResolver.addModifiers(
+                builder,
+                stack,
+                EquipmentSlotGroup.bySlot(getType().getSlot()),
+                "stealth_rune_armor_" + StealthRuneArmorStats.typeToken(getType()) + "_enchant"
+        );
         return builder.build();
     }
 
@@ -122,6 +156,10 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
             return true;
         }
 
+        var attributeEnchantment = AttributeEnchantmentType.from(enchantment);
+        if (attributeEnchantment.isPresent()) {
+            return supportsDirectAttributeEnchantment(attributeEnchantment.get());
+        }
         var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
         return enchantmentId != null && isSupportedArmorEnchantment(enchantmentId);
     }
@@ -138,11 +176,8 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
         }
 
         var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
-        if (enchantments.isEmpty()) {
-            return true;
-        }
-
-        return enchantments.keySet().stream().allMatch(enchantment -> supportsEnchantment(stack, enchantment));
+        return enchantments.isEmpty()
+                || enchantments.keySet().stream().allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     @Override
@@ -156,7 +191,12 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+    public void appendHoverText(
+            @NotNull ItemStack stack,
+            Item.TooltipContext context,
+            @NotNull List<Component> lines,
+            @NotNull TooltipFlag flag
+    ) {
         super.appendHoverText(stack, context, lines, flag);
         lines.add(Component.translatable("item." + ApprenticeCodex.MODID + ".stealth_rune_armor.desc")
                 .withStyle(ChatFormatting.GRAY));
@@ -167,7 +207,8 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
         return cache;
     }
 
-    private static boolean isSupportedArmorEnchantment(ResourceLocation enchantmentId) {
-        return enchantmentId.equals(Enchantments.WISDOM.location());
+    private boolean isSupportedArmorEnchantment(ResourceLocation enchantmentId) {
+        return enchantmentId.equals(Enchantments.WISDOM.location())
+                || hasImbueSlot() && enchantmentId.equals(Enchantments.TRANSCENDENCE.location());
     }
 }

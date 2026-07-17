@@ -50,7 +50,10 @@ public final class StealthRuneArmorStats {
             ENCHANTMENT_VALUE,
             SoundRegistry.VANILLA_INSCRIBE_MANA,
             REPAIR_INGREDIENT,
-            List.of(new ArmorMaterial.Layer(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "stealth_rune_armor"))),
+            List.of(new ArmorMaterial.Layer(ResourceLocation.fromNamespaceAndPath(
+                    ApprenticeCodex.MODID,
+                    "stealth_rune_armor"
+            ))),
             TOUGHNESS,
             KNOCKBACK_RESISTANCE
     );
@@ -114,7 +117,7 @@ public final class StealthRuneArmorStats {
         );
     }
 
-    private static String typeToken(ArmorItem.Type type) {
+    static String typeToken(ArmorItem.Type type) {
         return switch (type) {
             case HELMET -> "helmet";
             case CHESTPLATE -> "chestplate";
