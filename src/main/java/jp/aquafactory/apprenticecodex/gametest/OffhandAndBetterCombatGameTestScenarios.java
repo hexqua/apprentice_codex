@@ -160,7 +160,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     diamondStack,
                     io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CASTING_MOVESPEED.get(),
                     0.25D,
-                    AttributeModifier.Operation.ADDITION,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
                     "Diamond Spell Amplifier casting move speed bonus regression"
             );
 
@@ -172,7 +172,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     netheriteStack,
                     io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CASTING_MOVESPEED.get(),
                     0.50D,
-                    AttributeModifier.Operation.ADDITION,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
                     "Netherite Spell Amplifier casting move speed bonus regression"
             );
         });

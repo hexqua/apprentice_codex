@@ -12,7 +12,7 @@ public class NetheriteSpellAmplifier extends AbstractSpellAmplifierItem {
                 Rarity.RARE,
                 "netherite_spell_amplifier",
                 true,
-                bonus(AttributeRegistry.CASTING_MOVESPEED, 0.50, AttributeModifier.Operation.ADDITION),
+                bonus(AttributeRegistry.CASTING_MOVESPEED, 0.50, AttributeModifier.Operation.MULTIPLY_BASE),
                 bonus(Attributes.ARMOR, 4.0D, AttributeModifier.Operation.ADDITION),
                 bonus(Attributes.ARMOR_TOUGHNESS, 2.0D, AttributeModifier.Operation.ADDITION)
         );
