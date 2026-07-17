@@ -108,7 +108,7 @@ public final class StealthRuneArmorStats {
         return DEFENSE.getOrDefault(type, 0);
     }
 
-    private static String typeToken(ArmorItem.Type type) {
+    static String typeToken(ArmorItem.Type type) {
         return switch (type) {
             case HELMET -> "helmet";
             case CHESTPLATE -> "chestplate";

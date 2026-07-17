@@ -695,7 +695,13 @@ final class EnchantmentApplicationGameTestScenarios {
     }
 
     private static Set<ResourceLocation> expectedStealthRuneArmorEnchantments(ItemStack stack) {
-        return expectedNormalMagicArmorEnchantments(stack);
+        var expected = expectedNormalMagicArmorEnchantments(stack);
+        expected.addAll(registryIdSet(EnchantmentRegistry.RESERVOIR, EnchantmentRegistry.REFLUX,
+                EnchantmentRegistry.TENSE, EnchantmentRegistry.ALACRITY));
+        if (stack.getItem() instanceof StealthRuneArmorItem armor && armor.hasImbueSlot()) {
+            expected.addAll(registryIdSet(EnchantmentRegistry.TRANSCENDENCE));
+        }
+        return expected;
     }
 
     private static Set<ResourceLocation> expectedChromaticMagiaDressEnchantments(ItemStack stack) {
