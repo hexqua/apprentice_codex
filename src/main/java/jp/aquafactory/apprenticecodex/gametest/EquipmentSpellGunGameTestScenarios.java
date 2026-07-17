@@ -49,6 +49,7 @@ import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAtt
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
@@ -694,22 +695,28 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             var cases = List.of(
                     new SpellgunAttributeCase(enchantments.getOrThrow(Enchantments.ALACRITY),
                             io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION,
-                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE, 0.02D),
+                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                            AttributeEnchantmentType.ALACRITY.amountPerLevel()),
                     new SpellgunAttributeCase(enchantments.getOrThrow(Enchantments.REFLUX),
                             io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN,
-                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE, 0.05D),
+                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                            AttributeEnchantmentType.REFLUX.amountPerLevel()),
                     new SpellgunAttributeCase(enchantments.getOrThrow(Enchantments.RESERVOIR),
                             io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA,
-                            AttributeModifier.Operation.ADD_VALUE, 20.0D),
+                            AttributeModifier.Operation.ADD_VALUE,
+                            AttributeEnchantmentType.RESERVOIR.amountPerLevel()),
                     new SpellgunAttributeCase(enchantments.getOrThrow(Enchantments.SURGE),
                             io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER,
-                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE, 0.02D),
+                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                            AttributeEnchantmentType.SURGE.amountPerLevel()),
                     new SpellgunAttributeCase(enchantments.getOrThrow(Enchantments.ATTUNEMENT),
                             BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementAttribute),
-                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE, 0.04D),
+                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                            AttributeEnchantmentType.ATTUNEMENT.amountPerLevel()),
                     new SpellgunAttributeCase(enchantments.getOrThrow(Enchantments.TENSE),
                             io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION,
-                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE, 0.05D)
+                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                            AttributeEnchantmentType.TENSE.amountPerLevel())
             );
             for (var attributeCase : cases) {
                 var stack = createInitializedPresetStack(item);

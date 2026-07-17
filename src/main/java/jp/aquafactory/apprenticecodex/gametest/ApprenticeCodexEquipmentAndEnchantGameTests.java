@@ -1925,6 +1925,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void configuredAttributeEnchantmentAmountsKeepDefaultsAndScaleLinearly(GameTestHelper helper) {
+        AttributeEnchantmentPolicyGameTestScenarios.configuredAmountsPerLevelKeepDefaultsAndScaleLinearly(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void attunementResolutionFailureIsNoOp(GameTestHelper helper) {
         AttributeEnchantmentPolicyGameTestScenarios.attunementResolutionFailureIsNoOp(helper);
     }

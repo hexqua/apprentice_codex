@@ -1582,35 +1582,35 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     helper,
                     modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                    0.02D,
+                    AttributeEnchantmentType.ALACRITY.amountPerLevel(),
                     "Scrollcaster Gauntlet Alacrity modifier changed"
             );
             assertSingleModifierAmount(
                     helper,
                     modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                    0.05D,
+                    AttributeEnchantmentType.REFLUX.amountPerLevel(),
                     "Scrollcaster Gauntlet Reflux modifier changed"
             );
             assertSingleModifierAmount(
                     helper,
                     modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA),
                     AttributeModifier.Operation.ADD_VALUE,
-                    20.0D,
+                    AttributeEnchantmentType.RESERVOIR.amountPerLevel(),
                     "Scrollcaster Gauntlet Reservoir modifier changed"
             );
             assertSingleModifierAmount(
                     helper,
                     modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                    0.07D,
+                    0.05D + AttributeEnchantmentType.SURGE.amountPerLevel(),
                     "Scrollcaster Gauntlet base + Surge spell power modifier changed"
             );
             assertSingleModifierAmount(
                     helper,
                     modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                    0.05D,
+                    AttributeEnchantmentType.TENSE.amountPerLevel(),
                     "Scrollcaster Gauntlet Tense modifier changed"
             );
 
@@ -1625,7 +1625,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     helper,
                     modifiers.get(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementAttribute)),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                    0.04D,
+                    AttributeEnchantmentType.ATTUNEMENT.amountPerLevel(),
                     "Scrollcaster Gauntlet Attunement modifier changed"
             );
         });

@@ -69,6 +69,7 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
@@ -392,7 +393,8 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
 
             var enchantmentRegistry = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             stack.enchant(enchantmentRegistry.getOrThrow(Enchantments.ATTUNEMENT), 1);
-            assertModifierAmount(helper, item.getDefaultAttributeModifiers(stack), resolvedSpellPower, 0.14D,
+            assertModifierAmount(helper, item.getDefaultAttributeModifiers(stack), resolvedSpellPower,
+                    0.10D + AttributeEnchantmentType.ATTUNEMENT.amountPerLevel(),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     "Copper Spell Amplifier + Attunement stacking regression");
         });
@@ -783,8 +785,10 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     rescuedCopperModifiers.get(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(imbuedSpellPowerAttribute)),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             );
-            helper.assertTrue(Math.abs(rescuedAttunementBonus - 0.14D) < 1.0e-9D,
-                    "Better Combat rescue should keep Copper Spell Amplifier base + Attunement at +0.14 but got "
+            var expectedAttunementBonus = 0.10D + AttributeEnchantmentType.ATTUNEMENT.amountPerLevel();
+            helper.assertTrue(Math.abs(rescuedAttunementBonus - expectedAttunementBonus) < 1.0e-9D,
+                    "Better Combat rescue should keep Copper Spell Amplifier base + Attunement at "
+                            + expectedAttunementBonus + " but got "
                             + rescuedAttunementBonus + " modifiers=" + describeModifiers(rescuedCopperModifiers));
         });
     }
@@ -1114,7 +1118,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     slotContext,
                     stack,
                     BuiltInRegistries.ATTRIBUTE.wrapAsHolder(resolvedSpellPower),
-                    0.04D,
+                    AttributeEnchantmentType.ATTUNEMENT.amountPerLevel(),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     "Enchanted Circlet Attunement regression"
             );
@@ -1124,7 +1128,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     slotContext,
                     stack,
                     io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION,
-                    0.05D,
+                    AttributeEnchantmentType.TENSE.amountPerLevel(),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     "Enchanted Circlet Tense regression"
             );
