@@ -12153,11 +12153,7 @@ public class ApprenticeCodexGameTestScenarios {
                 registryAccess,
                 enchantment -> enchantment.value().canEnchant(probeStack)
         );
-        expectedEnchantments.addAll(registryIdSet(
-                Enchantments.ALACRITY,
-                Enchantments.TENSE,
-                Enchantments.WISDOM
-        ));
+        expectedEnchantments.addAll(registryIdSet(Enchantments.WISDOM));
         return expectedEnchantments;
     }
 

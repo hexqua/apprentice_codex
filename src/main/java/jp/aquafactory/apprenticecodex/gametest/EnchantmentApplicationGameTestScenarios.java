@@ -32,6 +32,13 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
             AttributeEnchantmentType.REFLUX,
             AttributeEnchantmentType.RESERVOIR
     );
+    private static final Set<ResourceKey<Enchantment>> SCROLLCASTER_CALIBRATION_ENCHANTMENTS = Set.of(
+            Enchantments.SURGE,
+            Enchantments.ATTUNEMENT,
+            Enchantments.TRANSCENDENCE,
+            Enchantments.WISDOM,
+            Enchantments.PLUNDER
+    );
 
     private EnchantmentApplicationGameTestScenarios() {
     }
@@ -61,7 +68,13 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.MANA_FORCE_BLADE.get()),
                     Set.of(AttributeEnchantmentType.SURGE, AttributeEnchantmentType.ATTUNEMENT),
                     "Mana Force Blade");
+            assertDefinitionSurface(helper, new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get()),
+                    Set.of(AttributeEnchantmentType.ALACRITY, AttributeEnchantmentType.TENSE),
+                    "Parrycast Buckler");
+            assertDefinitionSurface(helper, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_COAT.get()),
+                    Set.of(), "Magi Agent Suit");
             assertStaffEnchantmentSurfaces(helper);
+            assertFocusStaffbowEnchantmentSurface(helper);
         });
     }
 
@@ -98,7 +111,7 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
             helper.assertTrue(PlunderTarget.supportsDirectApplication(ItemRegistry.SMASHCAST_SCEPTER.get()),
                     "Smashcast Scepter should keep its Plunder surface");
 
-            assertDirectPoliciesReachApplicationSurfaces(helper);
+            assertPolicyDrivenApplicationSurfaces(helper);
         });
     }
 
@@ -212,6 +225,33 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
         }
     }
 
+    private static void assertFocusStaffbowEnchantmentSurface(GameTestHelper helper) {
+        var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+        var ironsStaffTag = TagKey.create(
+                Registries.ITEM,
+                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "staff")
+        );
+        helper.assertFalse(stack.is(ironsStaffTag),
+                "Focus Staffbow should stay outside irons_spellbooks:staff on 1.21.1");
+        for (var tagPath : Set.of("sword", "fire_aspect", "sharp_weapon", "weapon")) {
+            var tag = TagKey.create(
+                    Registries.ITEM,
+                    ResourceLocation.withDefaultNamespace("enchantable/" + tagPath)
+            );
+            helper.assertFalse(stack.is(tag),
+                    "Focus Staffbow should stay outside minecraft:enchantable/" + tagPath);
+        }
+        for (var enchantmentPath : Set.of(
+                "sharpness", "smite", "bane_of_arthropods", "knockback",
+                "fire_aspect", "looting", "sweeping_edge"
+        )) {
+            assertVanillaEnchantment(helper, stack, enchantmentPath, false, "Focus Staffbow");
+        }
+
+        var enchantments = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        assertApplicationSurface(helper, stack, enchantments.getOrThrow(Enchantments.SYNTHESIS));
+    }
+
     private static void assertVanillaEnchantment(
             GameTestHelper helper,
             ItemStack stack,
@@ -246,26 +286,70 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
         }
     }
 
-    private static void assertDirectPoliciesReachApplicationSurfaces(GameTestHelper helper) {
+    private static void assertPolicyDrivenApplicationSurfaces(GameTestHelper helper) {
         var enchantments = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
         for (var itemEntry : ItemRegistry.ITEMS.getEntries()) {
             var item = itemEntry.get();
             var stack = new ItemStack(item);
-            if (TranscendencePolicy.supportsDirectApplication(item)) {
-                assertApplicationSurface(helper, stack, enchantments.getOrThrow(Enchantments.TRANSCENDENCE));
-            }
-            if (WisdomPolicy.supportsDirectApplication(item)) {
-                assertApplicationSurface(helper, stack, enchantments.getOrThrow(Enchantments.WISDOM));
-            }
-            if (PlunderTarget.supportsDirectApplication(item)) {
-                assertApplicationSurface(helper, stack, enchantments.getOrThrow(Enchantments.PLUNDER));
-            }
+            assertPolicyDrivenApplicationSurface(
+                    helper,
+                    stack,
+                    enchantments.getOrThrow(Enchantments.TRANSCENDENCE),
+                    TranscendencePolicy.supportsDirectApplication(item)
+            );
+            assertPolicyDrivenApplicationSurface(
+                    helper,
+                    stack,
+                    enchantments.getOrThrow(Enchantments.WISDOM),
+                    WisdomPolicy.supportsDirectApplication(item)
+            );
+            assertPolicyDrivenApplicationSurface(
+                    helper,
+                    stack,
+                    enchantments.getOrThrow(Enchantments.PLUNDER),
+                    PlunderTarget.supportsDirectApplication(item)
+            );
             for (var type : AttributeEnchantmentType.values()) {
-                if (AttributeEnchantmentPolicy.supportsDirectApplication(item, type)) {
-                    assertApplicationSurface(helper, stack, enchantments.getOrThrow(type.enchantmentKey()));
-                }
+                assertPolicyDrivenApplicationSurface(
+                        helper,
+                        stack,
+                        enchantments.getOrThrow(type.enchantmentKey()),
+                        AttributeEnchantmentPolicy.supportsDirectApplication(item, type)
+                );
             }
         }
+    }
+
+    private static void assertPolicyDrivenApplicationSurface(
+            GameTestHelper helper,
+            ItemStack stack,
+            net.minecraft.core.Holder<Enchantment> enchantment,
+            boolean policyAllowsDirectApplication
+    ) {
+        var enchantmentKey = enchantment.unwrapKey().orElseThrow();
+        var scrollcasterCalibrationException = stack.is(ItemRegistry.SCROLLCASTER_GAUNTLET.get())
+                && SCROLLCASTER_CALIBRATION_ENCHANTMENTS.contains(enchantmentKey);
+        var expected = policyAllowsDirectApplication || scrollcasterCalibrationException;
+        var enchantableTag = TagKey.create(
+                Registries.ITEM,
+                ResourceLocation.fromNamespaceAndPath(
+                        enchantmentKey.location().getNamespace(),
+                        enchantmentKey.location().getPath() + "_enchantable"
+                )
+        );
+        var item = stack.getItem();
+        var enchantmentId = enchantmentKey.location();
+        helper.assertTrue(stack.is(enchantableTag) == expected,
+                item + " tag surface changed for " + enchantmentId + ": " + stack.is(enchantableTag));
+        helper.assertTrue(enchantment.value().canEnchant(stack) == expected,
+                item + " definition surface changed for " + enchantmentId + ": "
+                        + enchantment.value().canEnchant(stack));
+        helper.assertTrue(item.supportsEnchantment(stack, enchantment) == expected,
+                item + " enchanted-book surface changed for " + enchantmentId + ": "
+                        + item.supportsEnchantment(stack, enchantment));
+        helper.assertTrue(item.isPrimaryItemFor(stack, enchantment) == expected,
+                item + " enchanting-table surface changed for " + enchantmentId + ": "
+                        + item.isPrimaryItemFor(stack, enchantment));
     }
 
     private static void assertApplicationSurface(
