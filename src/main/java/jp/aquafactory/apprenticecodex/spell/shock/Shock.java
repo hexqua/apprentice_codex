@@ -45,7 +45,7 @@ public class Shock extends AbstractSpell {
             .setMinRarity(SpellRarity.COMMON)
             .setSchoolResource(SchoolRegistry.LIGHTNING_RESOURCE)
             .setMaxLevel(10)
-            .setCooldownSeconds(1.5)
+            .setCooldownSeconds(1)
             .build();
 
     public Shock() {
@@ -60,7 +60,7 @@ public class Shock extends AbstractSpell {
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(spellLevel), 0))
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 0))
         );
     }
 
@@ -69,8 +69,8 @@ public class Shock extends AbstractSpell {
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.SHOCK);
     }
 
-    private double getRange(int spellLevel) {
-        return 24 + (spellLevel - 1) * 2;
+    private double getRange() {
+        return 24;
     }
 
     @Override
@@ -96,7 +96,7 @@ public class Shock extends AbstractSpell {
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (!level.isClientSide) {
-            var castTarget = resolveCastTarget(level, spellLevel, entity);
+            var castTarget = resolveCastTarget(level, entity);
 
             if (castTarget.target() != null) {
                 var source = CombatTools.getDamageSource(level, entity, DamageTypes.SHOCK);
@@ -115,8 +115,8 @@ public class Shock extends AbstractSpell {
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 
-    private TargetingResult resolveCastTarget(Level level, int spellLevel, LivingEntity caster) {
-        var range = getRange(spellLevel);
+    private TargetingResult resolveCastTarget(Level level, LivingEntity caster) {
+        var range = getRange();
 
         var thinTarget = resolveRaycastTarget(caster, range, THIN_RAYCAST_WIDTH);
         if (thinTarget != null) {

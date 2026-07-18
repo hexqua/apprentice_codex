@@ -42,21 +42,21 @@ public class AutoMagnet extends AbstractSpell {
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(spellLevel, caster), 1)),
-                Component.translatable("ui.apprenticecodex.collect_cost_mana", (int) getCollectMana(spellLevel, caster))
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(spellLevel), 1)),
+                Component.translatable("ui.apprenticecodex.collect_cost_mana", (int) getCollectMana())
         );
     }
 
-    private double getRange(int spellLevel, LivingEntity caster){
-        return 8 * getSpellPower(spellLevel, caster) / 100.0;
+    private double getRange(int spellLevel){
+        return 8 * (spellLevel - 1) * 4;
     }
 
-    public double getCollectMana(int spellLevel, LivingEntity caster){
+    public double getCollectMana(){
         if (ApprenticeCodexServerConfig.autoMagnetDisableCollectManaCost()) {
             return 0.0;
         }
 
-        return Math.round(Math.max(0, 12 - getSpellPower(spellLevel, caster) / 50.0f));
+        return 10;
     }
 
     @Override
@@ -88,7 +88,7 @@ public class AutoMagnet extends AbstractSpell {
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (!level.isClientSide && entity instanceof ServerPlayer serverPlayer) {
             var collectionMode = AutoMagnetCollectionMode.fromCrouching(serverPlayer.isCrouching());
-            if (AutoMagnetFamiliarManager.toggle(serverPlayer, getRange(spellLevel, entity), getCollectMana(spellLevel, entity),
+            if (AutoMagnetFamiliarManager.toggle(serverPlayer, getRange(spellLevel), getCollectMana(),
                     collectionMode)) {
                 sendModeMessage(serverPlayer, collectionMode);
             }
