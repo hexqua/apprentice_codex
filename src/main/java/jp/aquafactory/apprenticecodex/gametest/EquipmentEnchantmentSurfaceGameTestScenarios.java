@@ -1800,7 +1800,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             }
         });
     }
-    static void elementMaidenRobeKeepsExpectedStatsImbueAndMagicEnchantments(GameTestHelper helper) {
+    static void elementMaidenRobeKeepsExpectedStatsAndImbueSurface(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
             var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
@@ -1867,37 +1867,6 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             helper.assertTrue(initialContainer != null
                             && initialContainer.getSpellAtIndex(0).getSpell() == SpellRegistry.DIVINE_POSSESSION.get(),
                     "Element Maiden Robe chestplate should initialize Divine Possession as its imbue spell");
-            var ballLightning = io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get();
-            ISpellContainer.createImbuedContainer(ballLightning, 1, chestStack);
-
-            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-            chestStack.enchant(enchantmentLookup.getOrThrow(Enchantments.SURGE), 1);
-            chestStack.enchant(enchantmentLookup.getOrThrow(Enchantments.ATTUNEMENT), 1);
-
-            var imbuedSchool = MagicTools.getImbuedSpellSchool(chestStack);
-            helper.assertTrue(imbuedSchool != null,
-                    "Element Maiden Robe chestplate test could not resolve imbued school");
-            var imbuedSpellPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
-            helper.assertTrue(imbuedSpellPowerAttribute != null,
-                    "Element Maiden Robe chestplate test could not resolve school spell power attribute");
-
-            var enchantedModifiers = toModifierMultimap(chestplate.getDefaultAttributeModifiers(chestStack));
-            var enchantedGlobalSpellPower = sumModifierAmount(
-                    enchantedModifiers.get(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(spellPowerAttribute)),
-                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
-            );
-            helper.assertTrue(Math.abs(enchantedGlobalSpellPower
-                            - (expectedSpellPower + AttributeEnchantmentType.SURGE.amountPerLevel())) < 1.0e-9D,
-                    "Element Maiden Robe chestplate should add Surge spell power: " + describeModifiers(enchantedModifiers));
-
-            var attunementSpellPower = sumModifierAmount(
-                    enchantedModifiers.get(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(imbuedSpellPowerAttribute)),
-                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
-            );
-            helper.assertTrue(Math.abs(attunementSpellPower
-                            - AttributeEnchantmentType.ATTUNEMENT.amountPerLevel()) < 1.0e-9D,
-                    "Element Maiden Robe chestplate should add Attunement school spell power: "
-                            + describeModifiers(enchantedModifiers));
         });
     }
 

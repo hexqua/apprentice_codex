@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
+import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.ChatFormatting;
@@ -194,7 +195,10 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
                 EquipmentSlotGroup.MAINHAND,
                 "mithril_freecast_staff_mainhand_enchant"
         );
-        return builder.build();
+        return MagicAttributeModifierHelper.mergeLinearMagicModifiers(
+                builder.build(),
+                "mithril_freecast_staff_mainhand_merged"
+        );
     }
 
     @Override

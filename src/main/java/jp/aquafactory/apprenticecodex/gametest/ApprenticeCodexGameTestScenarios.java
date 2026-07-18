@@ -5207,7 +5207,7 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    static void pastelStaffKeepsItsExtraMiningEnchantments(GameTestHelper helper) {
+    static void pastelStaffUsesSwordEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
             assertRequiredExtraEnchantments(
@@ -5216,6 +5216,13 @@ public class ApprenticeCodexGameTestScenarios {
                     requiredStaffExtraEnchantments(),
                     null,
                     "Pastel Staff required extra enchantment"
+            );
+            assertRejectedExtraEnchantments(
+                    helper,
+                    stack,
+                    staffMiningEnchantments(),
+                    null,
+                    "Pastel Staff should reject mining enchantment"
             );
             assertRejectedExtraEnchantments(
                     helper,
@@ -5239,7 +5246,7 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    static void multicastEchoStaffKeepsItsExtraMiningEnchantments(GameTestHelper helper) {
+    static void multicastEchoStaffUsesSwordEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
             assertRequiredExtraEnchantments(
@@ -5248,6 +5255,13 @@ public class ApprenticeCodexGameTestScenarios {
                     requiredStaffExtraEnchantments(),
                     null,
                     "Multicast Echo Staff required extra enchantment"
+            );
+            assertRejectedExtraEnchantments(
+                    helper,
+                    stack,
+                    staffMiningEnchantments(),
+                    null,
+                    "Multicast Echo Staff should reject mining enchantment"
             );
         });
     }
@@ -12033,9 +12047,14 @@ public class ApprenticeCodexGameTestScenarios {
 
     static Set<ResourceLocation> requiredStaffExtraEnchantments() {
         return registryIdSet(
-                net.minecraft.world.item.enchantment.Enchantments.FORTUNE,
-                net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH,
                 Enchantments.WISDOM
+        );
+    }
+
+    static Set<ResourceLocation> staffMiningEnchantments() {
+        return registryIdSet(
+                net.minecraft.world.item.enchantment.Enchantments.FORTUNE,
+                net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH
         );
     }
 
@@ -12134,11 +12153,7 @@ public class ApprenticeCodexGameTestScenarios {
                 registryAccess,
                 enchantment -> enchantment.value().canEnchant(probeStack)
         );
-        expectedEnchantments.addAll(registryIdSet(
-                Enchantments.ALACRITY,
-                Enchantments.TENSE,
-                Enchantments.WISDOM
-        ));
+        expectedEnchantments.addAll(registryIdSet(Enchantments.WISDOM));
         return expectedEnchantments;
     }
 

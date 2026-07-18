@@ -24,6 +24,7 @@ import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.RevolvercastStaffRenderer;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.ChatFormatting;
@@ -251,7 +252,10 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
                 EquipmentSlotGroup.MAINHAND,
                 "revolvercast_staff_mainhand_enchant"
         );
-        return builder.build();
+        return MagicAttributeModifierHelper.mergeLinearMagicModifiers(
+                builder.build(),
+                "revolvercast_staff_mainhand_merged"
+        );
     }
 
     @Override

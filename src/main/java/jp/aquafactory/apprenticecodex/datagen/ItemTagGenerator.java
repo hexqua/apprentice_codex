@@ -57,17 +57,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_TRIDENT = createTag("minecraft", "enchantable/trident");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_DURABILITY = createTag("minecraft", "enchantable/durability");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_EQUIPPABLE = createTag("minecraft", "enchantable/equippable");
-    private static final TagKey<Item> MINECRAFT_ENCHANTABLE_MINING_LOOT = createTag("minecraft", "enchantable/mining_loot");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_VANISHING = createTag("minecraft", "enchantable/vanishing");
     private static final TagKey<Item> MALUM_MAGIC_CAPABLE_WEAPON = createTag("malum", "magic_capable_weapon");
     private static final TagKey<Item> MALUM_SOUL_SHATTER_CAPABLE_WEAPON = createTag("malum", "soul_shatter_capable_weapon");
     private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = createTag("traveloptics", "can_cast_reversal");
     private static final TagKey<Item> HIDDEN_FROM_RECIPE_VIEWERS = createTag("c", "hidden_from_recipe_viewers");
-    private static final TagKey<Item> MAGIC_ITEM_ENCHANTABLE = Enchantments.MAGIC_ITEM_ENCHANTABLE;
-    private static final TagKey<Item> OFFHAND_MAGIC_ENCHANTABLE = Enchantments.OFFHAND_MAGIC_ENCHANTABLE;
-    private static final TagKey<Item> OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE = Enchantments.OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE;
-    private static final TagKey<Item> SPELL_CONTAINER_MAGIC_ENCHANTABLE = Enchantments.SPELL_CONTAINER_MAGIC_ENCHANTABLE;
-    private static final TagKey<Item> SPELL_GUN_ENCHANTABLE = Enchantments.SPELL_GUN_ENCHANTABLE;
     private static final TagKey<Item> ALACRITY_ENCHANTABLE = Enchantments.ALACRITY_ENCHANTABLE;
     private static final TagKey<Item> REFLUX_ENCHANTABLE = Enchantments.REFLUX_ENCHANTABLE;
     private static final TagKey<Item> RESERVOIR_ENCHANTABLE = Enchantments.RESERVOIR_ENCHANTABLE;
@@ -102,9 +96,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.UNITE_LUNA_STAFF.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.CIRCUIT_HEAT_STAFF.get(),
-                ItemRegistry.FOCUS_STAFFBOW.get(),
                 ItemRegistry.ZENITH_STAFF.get()
         );
+        // 1.21.1 の Iron's staff タグはバニラ剣系エンチャントへ合流するため、
+        // 1.20.1 で剣系を受け付けない Focus Staffbow は含めない。
         // Iron's Spells の JEI は Imbue 候補収集時に spell_container 未初期化スタックを落とすため、
         // 後付系Curiosアクセ は whitelist へ明示登録して JEI 上でも Arcane Anvil 対象として拾わせる。
         tag(IRONS_IMBUE_WHITELIST).add(
@@ -151,22 +146,16 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
                 ItemRegistry.SCROLLCASTER_GAUNTLET.get()
         );
-        // Focus Staffbow は StaffItem 継承に依存せず Staff 相当の主手エンチャ面を持たせたいので、
-        // sword 系 tag と Malum 互換 tag を明示追加する。専用 enchant はポリシーから自動収集する。
+        // Focus Staffbow は 1.20.1 と同様に専用魔法 enchant と互換 MOD の対象だけへ絞る。
         malumMagicCapableWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         tomagicReversalWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         synthesisEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
-        vanillaSwordEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
-        vanillaFireAspectEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
-        vanillaSharpWeaponEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
-        vanillaWeaponEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
 
         // Zenith Staff は通常 staff として扱いつつ、機能する主手武器向けの互換 enchant/tag だけ明示登録する。
         malumMagicCapableWeaponTag.add(ItemRegistry.ZENITH_STAFF.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.ZENITH_STAFF.get());
         tomagicReversalWeaponTag.add(ItemRegistry.ZENITH_STAFF.get());
-        tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.ZENITH_STAFF.get());
         vanillaSwordEnchantableTag.add(ItemRegistry.ZENITH_STAFF.get());
         vanillaFireAspectEnchantableTag.add(ItemRegistry.ZENITH_STAFF.get());
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.ZENITH_STAFF.get());
@@ -176,7 +165,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         malumMagicCapableWeaponTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
         tomagicReversalWeaponTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
-        tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
         vanillaSwordEnchantableTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
         vanillaFireAspectEnchantableTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
@@ -215,8 +203,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaWeaponEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
 
         // Multipurpose Staffrifle は main hand で射撃攻撃する武器なので、Malum の主手武器 tag へ明示登録する。
-        tag(MAGIC_ITEM_ENCHANTABLE).add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
-        tag(OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE).add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
 
         // Charged Twin Blade Staff は剣/トライデント両面の enchant を許可するが、耐久系と超越は除外する。
@@ -445,8 +431,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaDurabilityEnchantableTag.add(ItemRegistry.BOUND_BOW.get());
         // Synthesis はポリシー対象外なので個別に維持する。
         synthesisEnchantableTag.add(ItemRegistry.ELEMENTAL_BOW.get());
-        // 1.21.1 のバニラ enchantment JSON は Fortune / Silk Touch を mining_loot タグで判定する.
-        tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.PASTEL_STAFF.get());
         malumMagicCapableWeaponTag.add(ItemRegistry.PASTEL_STAFF.get());
         // 1.21.1 の Spirit Plunder は soul_shatter_capable_weapon 経由で supported_items を見ている。
         // Java 側の許可だけでは definition 判定を通らないため、Malum 側 tag も同じ面へ揃える。
@@ -454,28 +438,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.PASTEL_STAFF.get()
         );
         tag(TOMAGIC_REVERSAL_WEAPON).add(ItemRegistry.PASTEL_STAFF.get());
-        tag(MAGIC_ITEM_ENCHANTABLE).add(
-                ItemRegistry.IRON_SPELLCASTER_GUN.get(),
-                ItemRegistry.COPPER_SPELLCASTER_GUN.get(),
-                ItemRegistry.GOLD_SPELLCASTER_GUN.get(),
-                ItemRegistry.DIAMOND_SPELLCASTER_GUN.get(),
-                ItemRegistry.IRON_SPELL_AMPLIFIER.get(),
-                ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),
-                ItemRegistry.GOLD_SPELL_AMPLIFIER.get(),
-                ItemRegistry.DIAMOND_SPELL_AMPLIFIER.get(),
-                ItemRegistry.SILVER_SPELL_AMPLIFIER.get(),
-                ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get(),
-                ItemRegistry.PHOTON_SIPHON.get(),
-                ItemRegistry.EXPLORERS_CANE.get(),
-                ItemRegistry.ENCHANTED_CIRCLET.get()
-        );
-        // spell gun 専用 enchant は offhand 補助具を巻き込まないように個別タグで分離する.
-        tag(SPELL_GUN_ENCHANTABLE).add(
-                ItemRegistry.IRON_SPELLCASTER_GUN.get(),
-                ItemRegistry.COPPER_SPELLCASTER_GUN.get(),
-                ItemRegistry.GOLD_SPELLCASTER_GUN.get(),
-                ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()
-        );
         // 1.21.1 の enchantment JSON は supported_items tag を直接参照するため、
         // 飲用専用の Guzzle と共通 flask enchant 群を分離して誤適用を防ぐ。
         tag(DRINKABLE_FLASK_ENCHANTABLE).add(ItemRegistry.SPELLCASTERS_FLASK.get());
@@ -486,40 +448,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 .addTag(DRINKABLE_FLASK_ENCHANTABLE)
                 .addTag(ALCHEMISTS_FLASK_ENCHANTABLE);
         tag(MANA_SHIELD_CHARM_ENCHANTABLE).add(ItemRegistry.MANA_SHIELD_CHARM.get());
-        tag(OFFHAND_MAGIC_ENCHANTABLE).add(
-                ItemRegistry.IRON_SPELL_AMPLIFIER.get(),
-                ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),
-                ItemRegistry.GOLD_SPELL_AMPLIFIER.get(),
-                ItemRegistry.DIAMOND_SPELL_AMPLIFIER.get(),
-                ItemRegistry.SILVER_SPELL_AMPLIFIER.get(),
-                ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get(),
-                ItemRegistry.PHOTON_SIPHON.get(),
-                ItemRegistry.EXPLORERS_CANE.get(),
-                ItemRegistry.ENCHANTED_CIRCLET.get(),
-                ItemRegistry.PARRYCAST_BUCKLER.get()
-        );
-        // 付呪魔女防具は 1.20.1 と同様に叡智のみを許可し、専用エンチャ系タグから外す.
-        tag(OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE)
-                .addTag(OFFHAND_MAGIC_ENCHANTABLE)
-                .add(
-                        ItemRegistry.MAGI_AGENT_SUIT_HOOD.get(),
-                        ItemRegistry.MAGI_AGENT_SUIT_COAT.get(),
-                        ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get(),
-                        ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()
-                );
-        tag(SPELL_CONTAINER_MAGIC_ENCHANTABLE)
-                .addTag(OFFHAND_MAGIC_ENCHANTABLE)
-                .addTag(SPELL_GUN_ENCHANTABLE);
-        attributeEnchantableTags.get(AttributeEnchantmentType.ALACRITY)
-                .addTag(OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE);
-        attributeEnchantableTags.get(AttributeEnchantmentType.REFLUX)
-                .addTag(MAGIC_ITEM_ENCHANTABLE);
-        attributeEnchantableTags.get(AttributeEnchantmentType.RESERVOIR)
-                .addTag(MAGIC_ITEM_ENCHANTABLE);
-        surgeEnchantableTag.addTag(MAGIC_ITEM_ENCHANTABLE);
-        attunementEnchantableTag.addTag(SPELL_CONTAINER_MAGIC_ENCHANTABLE);
-        attributeEnchantableTags.get(AttributeEnchantmentType.TENSE)
-                .addTag(OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE);
 
         tag(CURIOS_RING).add(
                 ItemRegistry.SCARLET_THIRST.get(),

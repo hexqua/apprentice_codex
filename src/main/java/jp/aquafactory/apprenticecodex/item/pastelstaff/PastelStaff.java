@@ -37,17 +37,11 @@ import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.List;
-import java.util.Set;
 
 public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem, WisdomPolicy {
     public static final String STONE_TINT_COLOR_TAG = "StoneTintColor";
     public static final String STONE_AFFINITY_SCHOOL_TAG = "StoneAffinitySchool";
     public static final int DEFAULT_STONE_TINT_COLOR = 0xFFFFFF;
-
-    private static final Set<ResourceLocation> EXTRA_SUPPORTED_ENCHANTMENTS = Set.of(
-            ResourceLocation.withDefaultNamespace("fortune"),
-            ResourceLocation.withDefaultNamespace("silk_touch")
-    );
 
     private static final double BASE_STAFF_SPELL_POWER_BONUS = 0.10D;
     private static final StaffTier PASTEL_STAFF_WEAPON_TIER = new StaffTier(3.0F, -3.0F);
@@ -103,6 +97,10 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
 
     @Override
     public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        if (enchantment.is(net.minecraft.world.item.enchantment.Enchantments.FORTUNE)
+                || enchantment.is(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH)) {
+            return false;
+        }
         if (super.supportsEnchantment(stack, enchantment)) {
             return true;
         }
@@ -112,7 +110,7 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
             return true;
         }
 
-        return enchantmentId != null && EXTRA_SUPPORTED_ENCHANTMENTS.contains(enchantmentId);
+        return false;
     }
 
     @Override

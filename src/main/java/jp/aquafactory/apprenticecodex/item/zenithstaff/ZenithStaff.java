@@ -13,7 +13,6 @@ import jp.aquafactory.apprenticecodex.renderer.item.ZenithStaffRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -34,7 +33,6 @@ import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
 
 public class ZenithStaff extends StaffItem implements GeoItem, UniqueItem, WisdomPolicy {
@@ -49,11 +47,6 @@ public class ZenithStaff extends StaffItem implements GeoItem, UniqueItem, Wisdo
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             )
     );
-    private static final Set<ResourceLocation> EXTRA_SUPPORTED_ENCHANTMENTS = Set.of(
-            ResourceLocation.withDefaultNamespace("fortune"),
-            ResourceLocation.withDefaultNamespace("silk_touch")
-    );
-
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public ZenithStaff() {
@@ -103,6 +96,10 @@ public class ZenithStaff extends StaffItem implements GeoItem, UniqueItem, Wisdo
 
     @Override
     public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        if (enchantment.is(net.minecraft.world.item.enchantment.Enchantments.FORTUNE)
+                || enchantment.is(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH)) {
+            return false;
+        }
         if (super.supportsEnchantment(stack, enchantment)) {
             return true;
         }
@@ -113,7 +110,7 @@ public class ZenithStaff extends StaffItem implements GeoItem, UniqueItem, Wisdo
             return true;
         }
 
-        return enchantmentId != null && EXTRA_SUPPORTED_ENCHANTMENTS.contains(enchantmentId);
+        return false;
     }
 
     @Override

@@ -35,11 +35,6 @@ public final class Enchantments {
     public static final ResourceKey<Enchantment> SYNCHRONIZATION = key("synchronization");
     public static final ResourceKey<Enchantment> NEUTRALIZATION = key("neutralization");
 
-    public static final TagKey<Item> MAGIC_ITEM_ENCHANTABLE = itemTag("magic_item_enchantable");
-    public static final TagKey<Item> OFFHAND_MAGIC_ENCHANTABLE = itemTag("offhand_magic_enchantable");
-    public static final TagKey<Item> OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE = itemTag("offhand_or_armor_magic_enchantable");
-    public static final TagKey<Item> SPELL_CONTAINER_MAGIC_ENCHANTABLE = itemTag("spell_container_magic_enchantable");
-    public static final TagKey<Item> SPELL_GUN_ENCHANTABLE = itemTag("spell_gun_enchantable");
     public static final TagKey<Item> ALACRITY_ENCHANTABLE = itemTag("alacrity_enchantable");
     public static final TagKey<Item> REFLUX_ENCHANTABLE = itemTag("reflux_enchantable");
     public static final TagKey<Item> RESERVOIR_ENCHANTABLE = itemTag("reservoir_enchantable");
