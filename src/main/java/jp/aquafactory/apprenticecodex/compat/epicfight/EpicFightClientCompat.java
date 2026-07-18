@@ -13,6 +13,7 @@ import yesman.epicfight.api.event.IdentifierProvider;
 import yesman.epicfight.api.event.types.player.SkillCastEvent;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.gui.screen.config.ItemsPreferenceScreen;
+import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 
 public final class EpicFightClientCompat {
@@ -24,8 +25,9 @@ public final class EpicFightClientCompat {
             "apprenticecodex:spellgun_basic_attack_client"
     );
 
-    private static java.util.UUID installedSmashcastScepterPlayerId;
-    private static java.util.UUID installedSpellgunPlayerId;
+    // ディメンション移動では UUID が同じまま Patch が再生成されるため、登録済み Patch の同一性を追跡する。
+    private static LocalPlayerPatch installedSmashcastScepterPlayerPatch;
+    private static LocalPlayerPatch installedSpellgunPlayerPatch;
 
     private EpicFightClientCompat() {
     }
@@ -49,8 +51,8 @@ public final class EpicFightClientCompat {
     }
 
     public static void clear() {
-        installedSmashcastScepterPlayerId = null;
-        installedSpellgunPlayerId = null;
+        installedSmashcastScepterPlayerPatch = null;
+        installedSpellgunPlayerPatch = null;
     }
 
     public static boolean matchesAttackInput(InputConstants.Type type, int value) {
@@ -64,12 +66,11 @@ public final class EpicFightClientCompat {
     private static void installSmashcastScepterEvents() {
         var playerpatch = EpicFightCapabilities.getCachedLocalPlayerPatch();
         if (playerpatch == null || playerpatch.getOriginal() == null || !playerpatch.getOriginal().isAlive()) {
-            installedSmashcastScepterPlayerId = null;
+            installedSmashcastScepterPlayerPatch = null;
             return;
         }
 
-        var playerId = playerpatch.getOriginal().getUUID();
-        if (playerId.equals(installedSmashcastScepterPlayerId)) {
+        if (playerpatch == installedSmashcastScepterPlayerPatch) {
             return;
         }
 
@@ -78,19 +79,18 @@ public final class EpicFightClientCompat {
                 EpicFightClientCompat::onSkillCast,
                 SMASHCAST_SCEPTER_CLIENT_EVENT_ID
         );
-        installedSmashcastScepterPlayerId = playerId;
+        installedSmashcastScepterPlayerPatch = playerpatch;
     }
 
     private static void installSpellgunEvents() {
         var player = Minecraft.getInstance().player;
         var playerpatch = player != null ? EpicFightCapabilities.getLocalPlayerPatch(player) : null;
         if (playerpatch == null || playerpatch.getOriginal() == null || !playerpatch.getOriginal().isAlive()) {
-            installedSpellgunPlayerId = null;
+            installedSpellgunPlayerPatch = null;
             return;
         }
 
-        var playerId = playerpatch.getOriginal().getUUID();
-        if (playerId.equals(installedSpellgunPlayerId)) {
+        if (playerpatch == installedSpellgunPlayerPatch) {
             return;
         }
 
@@ -100,7 +100,7 @@ public final class EpicFightClientCompat {
                 SPELLGUN_BASIC_ATTACK_CLIENT_EVENT_ID,
                 -1
         );
-        installedSpellgunPlayerId = playerId;
+        installedSpellgunPlayerPatch = playerpatch;
     }
 
     private static void onSkillCast(SkillCastEvent event) {
