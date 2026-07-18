@@ -64,7 +64,7 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
     }
 
     private double getDistance(int spellLevel) {
-        return 4 + (spellLevel - 1) * 2.5;
+        return 8 + (spellLevel - 1) * 8;
     }
 
     @Override

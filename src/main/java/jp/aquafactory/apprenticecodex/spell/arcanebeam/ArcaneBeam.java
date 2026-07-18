@@ -35,20 +35,21 @@ public class ArcaneBeam extends AbstractSpell {
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.ENDER_RESOURCE)
             .setMaxLevel(5)
-            .setCooldownSeconds(20)
+            .setCooldownSeconds(12)
             .build();
 
     public ArcaneBeam() {
-        baseSpellPower = 100;
-        spellPowerPerLevel = 25;
+        baseSpellPower = 200;
+        spellPowerPerLevel = 100;
         baseManaCost = 5;
-        manaCostPerLevel = 4;
-        castTime = 100;
+        manaCostPerLevel = 5;
+        castTime = 60;
     }
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 0)),
                 Component.translatable("ui.apprenticecodex.arcane_charge_damage_multiplier", getChargeDamageAmplifier(spellLevel, caster))
         );
     }
@@ -59,7 +60,7 @@ public class ArcaneBeam extends AbstractSpell {
     }
 
     private int getChargeDamageAmplifier(int spellLevel, LivingEntity entity){
-        return 100 + Math.round((getSpellPower(spellLevel, entity) - 100) / 10.0f);
+        return Math.round((getSpellPower(spellLevel, entity) - 100) / 30.0f);
     }
 
     private float getRange(){
@@ -122,7 +123,7 @@ public class ArcaneBeam extends AbstractSpell {
             if (currentCharge != null)
             {
                 var chargeDamageAmplifier = getChargeDamageAmplifier(spellLevel, entity) * (currentCharge.getAmplifier() + 1);
-                beam.setDamage(baseDamage * chargeDamageAmplifier / 100.0f);
+                beam.setDamage(baseDamage * (1f + chargeDamageAmplifier / 100.0f));
             }
             else
             {
