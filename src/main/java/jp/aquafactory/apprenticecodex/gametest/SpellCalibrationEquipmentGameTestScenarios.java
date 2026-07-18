@@ -339,7 +339,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     new ItemStack(ItemRegistry.WISDOM_SHARD.get()),
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()),
                     new ItemStack(ItemRegistry.WISDOM_SHARD.get()),
-                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.ICE_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()),
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()),
                     new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
                     new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
@@ -392,16 +392,30 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
 
             var fireRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get());
             var iceRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.ICE_RUNE.get());
-            var parrycast = targets[7];
+            var bulwark = targets[6];
             helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
-                            parrycast, 0, fireRune),
-                    "Parrycast Buckler should accept its first school rune");
-            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
-                            parrycast, 1, fireRune),
-                    "Parrycast Buckler should reject a duplicate School ID");
+                            bulwark, 0, fireRune),
+                    "Bulwark Greatshield should accept its first school rune");
             helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
-                            parrycast, 1, iceRune),
-                    "Parrycast Buckler should accept a different School ID");
+                            bulwark, 1, fireRune),
+                    "Bulwark Greatshield should accept a duplicate School ID");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
+                            bulwark, 1, iceRune),
+                    "Bulwark Greatshield should accept a different School ID");
+
+            var parrycast = targets[7];
+            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
+                            parrycast, 0, fireRune),
+                    "Parrycast Buckler should reject School Runes");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            parrycast, 0, silverRing),
+                    "Parrycast Buckler should accept its first Silver Ring");
+            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
+                            parrycast, 1, silverRing),
+                    "Parrycast Buckler should reject a duplicate Silver Ring");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
+                            parrycast, 1, new ItemStack(ItemRegistry.WISDOM_SHARD.get())),
+                    "Parrycast Buckler should accept Wisdom Shard with Silver Ring");
 
             var sharpnessBook = new ItemStack(Items.ENCHANTED_BOOK);
             EnchantedBookItem.addEnchantment(sharpnessBook,

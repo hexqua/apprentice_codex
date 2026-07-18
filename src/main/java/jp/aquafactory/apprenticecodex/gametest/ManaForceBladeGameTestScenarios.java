@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeGuardLogic;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
@@ -59,7 +60,7 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
                     helper,
                     event.getModifiers().get(attunementAttribute),
                     AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.09D,
+                    0.05D + AttributeEnchantmentType.ATTUNEMENT.amountPerLevel(),
                     "Mana Force Blade Attunement and matching upgrade should merge into one display modifier"
                             + " spell=" + spell.getSpellResource()
                             + " school=" + imbuedSchool.getId()
@@ -104,7 +105,7 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
                     helper,
                     attunementModifiers.get(attunementAttribute),
                     AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.04D,
+                    AttributeEnchantmentType.ATTUNEMENT.amountPerLevel(),
                     "Mana Force Blade Attunement should add imbued school spell power"
                             + " spell=" + spell.getSpellResource()
                             + " school=" + imbuedSchool.getId()

@@ -135,6 +135,15 @@ public final class ImbueTooltipHelper {
                 .toPlainString();
     }
 
+    public static int resolveClientCooldownReductionAdjustedTicks(int baseCooldownTicks) {
+        // 基準tickをクライアント側へ渡すためラムダのキャプチャが必要で、safeCallWhenOnの参照検証は利用できない。
+        var adjustedTicks = DistExecutor.unsafeCallWhenOn(
+                Dist.CLIENT,
+                () -> () -> ImbueCooldownTooltipClientHelper.resolveCooldownReductionAdjustedTicks(baseCooldownTicks)
+        );
+        return adjustedTicks != null ? adjustedTicks : Math.max(0, baseCooldownTicks);
+    }
+
     public static boolean hasDetailsKeyDown() {
         return Boolean.TRUE.equals(DistExecutor.safeCallWhenOn(
                 Dist.CLIENT,

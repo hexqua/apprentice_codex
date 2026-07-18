@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
@@ -14,17 +15,15 @@ import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGaun
 import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
-import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
-import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
@@ -78,33 +77,52 @@ final class ParrycastBucklerGameTestScenarios {
         });
     }
 
-    static void parrycastBucklerSupportsThreeAdjustmentsAndSchoolDeduplication(GameTestHelper helper) {
+    static void parrycastBucklerKeepsThreeAdjustmentsWithoutSchoolRunePower(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = BowGameTestSupport.createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "parrycast_calibration_test");
             var stack = new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get());
             var menu = new SpellCalibrationBenchMenu(0, player.getInventory());
             menu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).set(stack);
             for (int i = 0; i < 3; i++) helper.assertTrue(menu.isAdjustmentSlotEnabled(i), "Parrycast adjustment slot should be enabled: " + i);
+            helper.assertFalse(menu.isAdjustmentSlotEnabled(3), "Parrycast should expose exactly three adjustment slots");
 
             var fireRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get());
-            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 0, fireRune);
-            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 1, fireRune);
-            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(stack, 2, new ItemStack(ItemRegistry.WISDOM_SHARD.get()));
+            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(stack, 0, fireRune),
+                    "Parrycast should reject School Runes");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack,
+                            0,
+                            new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())),
+                    "Parrycast should still accept Silver Ring");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 1, new ItemStack(ItemRegistry.WISDOM_SHARD.get())),
+                    "Parrycast should still accept Wisdom Shard");
             helper.assertTrue(ParrycastBuckler.hasWisdomShard(stack), "Wisdom Shard should be stored");
+
+            var calibration = stack.getOrCreateTagElement("ParrycastBucklerCalibration");
+            var legacyAdjustments = calibration.getList("Adjustments", net.minecraft.nbt.Tag.TAG_COMPOUND);
+            var legacyEntry = new CompoundTag();
+            legacyEntry.putInt("Slot", 2);
+            legacyEntry.put("Item", fireRune.save(new CompoundTag()));
+            legacyAdjustments.add(legacyEntry);
+            calibration.put("Adjustments", legacyAdjustments);
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.getCalibrationAdjustment(stack, 2).is(fireRune.getItem()),
+                    "Legacy School Rune should remain readable for removal");
+            helper.assertTrue(stack.getAttributeModifiers(net.minecraft.world.entity.EquipmentSlot.OFFHAND)
+                            .get(AttributeRegistry.FIRE_SPELL_POWER.get()).isEmpty(),
+                    "Legacy School Rune should not grant school spell power");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 2, ItemStack.EMPTY),
+                    "Legacy School Rune should remain removable");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.getCalibrationAdjustment(stack, 2).isEmpty(),
+                    "Removing a legacy School Rune should clear its slot");
+
             var tooltipLines = new ArrayList<Component>();
             stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
             assertTooltipKeyAt(helper, tooltipLines, 0,
                     "item.apprenticecodex.parrycast_buckler.desc");
             assertTooltipKeyAt(helper, tooltipLines, 1,
                     "item.apprenticecodex.parrycast_buckler.cast_wisdom");
-            var school = ScrollcasterSchoolRuneResolver.resolveSchool(fireRune).orElse(null);
-            var power = MagicTools.resolveSchoolPowerAttribute(school);
-            long matching = stack.getAttributeModifiers(EquipmentSlot.OFFHAND).get(power).stream()
-                    .filter(modifier -> modifier.getAmount() == 0.1D
-                            && modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE).count();
-            helper.assertTrue(matching == 1, "Duplicate school runes should grant one school power modifier");
-            helper.assertTrue(stack.getAttributeModifiers(EquipmentSlot.MAINHAND).get(power).isEmpty(),
-                    "School rune power should be limited to offhand");
         });
     }
 

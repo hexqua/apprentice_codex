@@ -18,9 +18,9 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.living.LootingLevelEvent;
 import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.List;
 import java.util.UUID;
 
 final class WisdomPlunderEffectGameTestScenarios extends ApprenticeCodexGameTestScenarios {
@@ -29,25 +29,26 @@ final class WisdomPlunderEffectGameTestScenarios extends ApprenticeCodexGameTest
 
     static void newlyUnifiedHeldTargetsApplyWisdomAndPlunder(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var wisdomTargets = List.of(
-                    ItemRegistry.FOCUS_STAFFBOW.get(),
-                    ItemRegistry.CIRCUIT_HEAT_STAFF.get(),
-                    ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
-                    ItemRegistry.SPELLCHARGED_GREATSWORD.get(),
-                    ItemRegistry.ALCHEMISTS_FLASK.get()
-            );
-            for (var item : wisdomTargets) {
-                assertHeldWisdom(helper, item, true);
-            }
-            assertHeldPlunder(helper, ItemRegistry.FOCUS_STAFFBOW.get());
+            // Better Combat は two_handed 武器を物理オフハンドに残しつつ、論理オフハンドから隠す。
+            var betterCombatTwoHandedOffhandActive = !ModList.get().isLoaded("bettercombat");
+            assertHeldWisdom(helper, ItemRegistry.FOCUS_STAFFBOW.get(), true,
+                    betterCombatTwoHandedOffhandActive);
+            assertHeldWisdom(helper, ItemRegistry.CIRCUIT_HEAT_STAFF.get(), true, true);
+            assertHeldWisdom(helper, ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(), true,
+                    betterCombatTwoHandedOffhandActive);
+            assertHeldWisdom(helper, ItemRegistry.SPELLCHARGED_GREATSWORD.get(), true,
+                    betterCombatTwoHandedOffhandActive);
+            assertHeldWisdom(helper, ItemRegistry.ALCHEMISTS_FLASK.get(), true, true);
+            assertHeldPlunder(helper, ItemRegistry.FOCUS_STAFFBOW.get(), true,
+                    betterCombatTwoHandedOffhandActive);
         });
     }
 
     static void equipmentOnlyAndUnsupportedItemsDoNotApplyWhileHeld(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            assertHeldWisdom(helper, ItemRegistry.ENCHANTRESS_ROBE.get(), false);
-            assertHeldWisdom(helper, ItemRegistry.ENCHANTED_CIRCLET.get(), false);
-            assertHeldWisdom(helper, Items.STICK, false);
+            assertHeldWisdom(helper, ItemRegistry.ENCHANTRESS_ROBE.get(), false, false);
+            assertHeldWisdom(helper, ItemRegistry.ENCHANTED_CIRCLET.get(), false, false);
+            assertHeldWisdom(helper, Items.STICK, false, false);
 
             var level = helper.getLevel();
             var armorPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_armor_policy_test"));
@@ -96,7 +97,12 @@ final class WisdomPlunderEffectGameTestScenarios extends ApprenticeCodexGameTest
         });
     }
 
-    private static void assertHeldWisdom(GameTestHelper helper, Item item, boolean expectedActive) {
+    private static void assertHeldWisdom(
+            GameTestHelper helper,
+            Item item,
+            boolean expectedMainhandActive,
+            boolean expectedOffhandActive
+    ) {
         var level = helper.getLevel();
         for (var hand : InteractionHand.values()) {
             var player = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "held_wisdom_policy_test"));
@@ -108,6 +114,9 @@ final class WisdomPlunderEffectGameTestScenarios extends ApprenticeCodexGameTest
                     Blocks.DIAMOND_ORE.defaultBlockState(), player);
             event.setExpToDrop(20);
             WisdomExperienceDropEvent.onBlockBreak(event);
+            var expectedActive = hand == InteractionHand.MAIN_HAND
+                    ? expectedMainhandActive
+                    : expectedOffhandActive;
             var expectedExperience = expectedActive ? 24 : 20;
             helper.assertTrue(event.getExpToDrop() == expectedExperience,
                     ForgeRegistries.ITEMS.getKey(item) + " " + hand + " Wisdom expected=" + expectedExperience
@@ -115,7 +124,12 @@ final class WisdomPlunderEffectGameTestScenarios extends ApprenticeCodexGameTest
         }
     }
 
-    private static void assertHeldPlunder(GameTestHelper helper, Item item) {
+    private static void assertHeldPlunder(
+            GameTestHelper helper,
+            Item item,
+            boolean expectedMainhandActive,
+            boolean expectedOffhandActive
+    ) {
         var level = helper.getLevel();
         for (var hand : InteractionHand.values()) {
             var player = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "held_plunder_policy_test"));
@@ -126,8 +140,13 @@ final class WisdomPlunderEffectGameTestScenarios extends ApprenticeCodexGameTest
             var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 0));
             var event = new LootingLevelEvent(target, player.damageSources().playerAttack(player), 0);
             PlunderLootingLevelEvent.onLootingLevel(event);
-            helper.assertTrue(event.getLootingLevel() == 2,
-                    ForgeRegistries.ITEMS.getKey(item) + " " + hand + " Plunder should set looting level to 2");
+            var expectedActive = hand == InteractionHand.MAIN_HAND
+                    ? expectedMainhandActive
+                    : expectedOffhandActive;
+            var expectedLootingLevel = expectedActive ? 2 : 0;
+            helper.assertTrue(event.getLootingLevel() == expectedLootingLevel,
+                    ForgeRegistries.ITEMS.getKey(item) + " " + hand + " Plunder expected="
+                            + expectedLootingLevel + " actual=" + event.getLootingLevel());
         }
     }
 }

@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.google.common.collect.ImmutableMultimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -13,6 +14,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.Map;
 import java.util.UUID;
 
 final class AttributeEnchantmentPolicyGameTestScenarios extends ApprenticeCodexGameTestScenarios {
@@ -47,6 +49,57 @@ final class AttributeEnchantmentPolicyGameTestScenarios extends ApprenticeCodexG
                         type.amountPerLevel() * level,
                         "Force-applied enchantment should keep its raw positive level: " + type
                 );
+            }
+        });
+    }
+
+    static void configuredAmountsPerLevelKeepDefaultsAndScaleLinearly(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var expectedDefaults = Map.of(
+                    AttributeEnchantmentType.ALACRITY, 0.02D,
+                    AttributeEnchantmentType.REFLUX, 0.05D,
+                    AttributeEnchantmentType.RESERVOIR, 20.0D,
+                    AttributeEnchantmentType.SURGE, 0.02D,
+                    AttributeEnchantmentType.ATTUNEMENT, 0.03D,
+                    AttributeEnchantmentType.TENSE, 0.04D
+            );
+            var level = 3;
+
+            for (var type : AttributeEnchantmentType.values()) {
+                var expectedDefault = expectedDefaults.get(type);
+                helper.assertTrue(Math.abs(type.amountPerLevel() - expectedDefault) < EPSILON,
+                        "Attribute enchantment default amount changed: " + type);
+
+                var configuredAmount = expectedDefault + 0.013D;
+                try (var ignored = ApprenticeCodexServerConfig
+                        .useAttributeEnchantmentAmountPerLevelOverrideForGameTest(type, configuredAmount)) {
+                    helper.assertTrue(Math.abs(type.amountPerLevel() - configuredAmount) < EPSILON,
+                            "Attribute enchantment config override did not apply: " + type);
+
+                    var stack = createInitializedPresetStack(ItemRegistry.COPPER_SPELL_AMPLIFIER.get());
+                    var enchantment = ForgeRegistries.ENCHANTMENTS.getValue(type.enchantmentId());
+                    helper.assertTrue(enchantment != null,
+                            "Attribute enchantment was not registered: " + type.enchantmentId());
+                    stack.enchant(enchantment, level);
+
+                    var attribute = type.resolveAttribute(stack);
+                    helper.assertTrue(attribute != null,
+                            "Initialized amplifier should resolve the configured attribute for " + type);
+                    var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+                    helper.assertTrue(AttributeEnchantmentResolver.addModifiers(
+                                    builder, stack, "gametest.configured." + type.configKey()),
+                            "Configured attribute enchantment should produce a modifier: " + type);
+                    assertSingleModifierAmount(
+                            helper,
+                            builder.build().get(attribute),
+                            type.operation(),
+                            configuredAmount * level,
+                            "Configured attribute enchantment should scale linearly: " + type
+                    );
+                }
+
+                helper.assertTrue(Math.abs(type.amountPerLevel() - expectedDefault) < EPSILON,
+                        "Attribute enchantment config override was not restored: " + type);
             }
         });
     }

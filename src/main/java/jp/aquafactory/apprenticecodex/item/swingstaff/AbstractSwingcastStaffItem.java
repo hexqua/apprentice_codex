@@ -9,11 +9,15 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.renderer.item.SwingcastStaffRenderer;
+import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -27,6 +31,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
@@ -39,17 +44,16 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem implements GeoItem, IJeiInfoItem {
+public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem
+        implements GeoItem, IJeiInfoItem, AttributeEnchantmentPolicy {
     private static final String JEI_INFO_GROUP_ID = "swingcast_staves";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.swingcast_staves.desc_";
 
@@ -59,6 +63,13 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final ResourceLocation textureLocation;
     private final SwingcastStaffTier tier;
+
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR,
+            AttributeEnchantmentType.TENSE
+    );
 
     protected AbstractSwingcastStaffItem(
             String itemKey,
@@ -144,9 +155,12 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
         var modifierSeedPrefix = "apprenticecodex."
                 + normalizeKeyToken(getDescriptionId())
                 + ".mainhand.stack";
-        return addStackDependentModifiers(builder, stack, modifierSeedPrefix)
-                ? builder.build()
-                : baseModifiers;
+        return AttributeEnchantmentResolver.resolveMergedModifiers(
+                baseModifiers,
+                stack,
+                modifierSeedPrefix,
+                this::addStackDependentModifiers
+        );
     }
 
     @Nullable
@@ -236,6 +250,17 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
     @Override
     public boolean shouldSuppressCastFinishAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
         return false;
+    }
+
+    @Override
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
+    }
+
+    @Override
+    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
+        var attributeEnchantment = AttributeEnchantmentType.from(enchantment);
+        return attributeEnchantment.map(this::supportsDirectAttributeEnchantment).orElse(super.canApplyAtEnchantingTable(stack, enchantment));
     }
 
     protected boolean passesAdditionalImbueConditions(AbstractSpell spell, int spellLevel) {
@@ -504,11 +529,6 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
             AttributeModifier.Operation operation,
             String modifierIdSeed
     ) {
-        if (attribute == null || amount == 0.0D) {
-            return;
-        }
-
-        var modifierId = UUID.nameUUIDFromBytes(modifierIdSeed.getBytes(StandardCharsets.UTF_8));
-        builder.put(attribute, new AttributeModifier(modifierId, modifierIdSeed, amount, operation));
+        MagicAttributeModifierHelper.addModifier(builder, attribute, amount, operation, modifierIdSeed);
     }
 }

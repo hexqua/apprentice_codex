@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import java.util.UUID;
 
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
@@ -74,7 +75,9 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     "Copper Spell Amplifier additive spell power bonus regression");
 
             stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
-            assertModifierAmount(helper, item, stack, resolvedSpellPower, 0.14D, AttributeModifier.Operation.MULTIPLY_BASE,
+            assertModifierAmount(helper, item, stack, resolvedSpellPower,
+                    0.10D + AttributeEnchantmentType.ATTUNEMENT.amountPerLevel(),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
                     "Copper Spell Amplifier + Attunement stacking regression");
         });
     }
@@ -160,7 +163,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     diamondStack,
                     io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CASTING_MOVESPEED.get(),
                     0.25D,
-                    AttributeModifier.Operation.ADDITION,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
                     "Diamond Spell Amplifier casting move speed bonus regression"
             );
 
@@ -172,7 +175,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     netheriteStack,
                     io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CASTING_MOVESPEED.get(),
                     0.50D,
-                    AttributeModifier.Operation.ADDITION,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
                     "Netherite Spell Amplifier casting move speed bonus regression"
             );
         });
@@ -455,8 +458,10 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     rescuedCopperModifiers.get(imbuedSpellPowerAttribute),
                     AttributeModifier.Operation.MULTIPLY_BASE
             );
-            helper.assertTrue(Math.abs(rescuedAttunementBonus - 0.14D) < 1.0e-9D,
-                    "Better Combat rescue should keep Copper Spell Amplifier base + Attunement at +0.14 but got "
+            var expectedAttunementBonus = 0.10D + AttributeEnchantmentType.ATTUNEMENT.amountPerLevel();
+            helper.assertTrue(Math.abs(rescuedAttunementBonus - expectedAttunementBonus) < 1.0e-9D,
+                    "Better Combat rescue should keep Copper Spell Amplifier base + Attunement at "
+                            + expectedAttunementBonus + " but got "
                             + rescuedAttunementBonus + " modifiers=" + describeModifiers(rescuedCopperModifiers));
         });
     }
@@ -746,7 +751,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     slotContext,
                     stack,
                     resolvedSpellPower,
-                    0.04D,
+                    AttributeEnchantmentType.ATTUNEMENT.amountPerLevel(),
                     AttributeModifier.Operation.MULTIPLY_BASE,
                     "Enchanted Circlet Attunement regression"
             );
@@ -756,7 +761,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     slotContext,
                     stack,
                     io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get(),
-                    0.05D,
+                    AttributeEnchantmentType.TENSE.amountPerLevel(),
                     AttributeModifier.Operation.MULTIPLY_BASE,
                     "Enchanted Circlet Tense regression"
             );

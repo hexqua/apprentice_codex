@@ -304,8 +304,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void bulwarkGreatshieldCalibrationSupportsThreeDistinctSchoolRunes(GameTestHelper helper) {
-        BulwarkGreatshieldGameTestScenarios.bulwarkGreatshieldCalibrationSupportsThreeDistinctSchoolRunes(helper);
+    public static void bulwarkGreatshieldCalibrationStacksRepeatedSchoolRunes(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.bulwarkGreatshieldCalibrationStacksRepeatedSchoolRunes(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -344,8 +344,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void parrycastBucklerSupportsThreeAdjustmentsAndSchoolDeduplication(GameTestHelper helper) {
-        ParrycastBucklerGameTestScenarios.parrycastBucklerSupportsThreeAdjustmentsAndSchoolDeduplication(helper);
+    public static void parrycastBucklerKeepsThreeAdjustmentsWithoutSchoolRunePower(GameTestHelper helper) {
+        ParrycastBucklerGameTestScenarios.parrycastBucklerKeepsThreeAdjustmentsWithoutSchoolRunePower(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -362,6 +362,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void spellgunServerConfigDefaultsMatchBalanceValues(GameTestHelper helper) {
         EquipmentSpellGunGameTestScenarios.spellgunServerConfigDefaultsMatchBalanceValues(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellgunFixedCooldownUsesCooldownReductionAttribute(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellgunFixedCooldownUsesCooldownReductionAttribute(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLGUN_CONFIG_BATCH)
@@ -1932,6 +1937,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void forcedAttributeEnchantmentsCoexistAndKeepRawPositiveLevels(GameTestHelper helper) {
         AttributeEnchantmentPolicyGameTestScenarios.forcedEnchantmentsCoexistAndKeepRawPositiveLevels(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void configuredAttributeEnchantmentAmountsKeepDefaultsAndScaleLinearly(GameTestHelper helper) {
+        AttributeEnchantmentPolicyGameTestScenarios.configuredAmountsPerLevelKeepDefaultsAndScaleLinearly(helper);
     }
 
     @GameTest(template = TEMPLATE)

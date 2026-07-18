@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
+import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
@@ -70,6 +71,16 @@ public final class SpellGunCastEvent {
 
         var castingItem = magicData.getPlayerCastingItem();
         if (!(castingItem.getItem() instanceof AbstractSpellGunItem spellGunItem)) {
+            return;
+        }
+
+        var overriddenCooldown = spellGunItem.getOverriddenCooldownTicks();
+        if (overriddenCooldown != null) {
+            // 固定値は最終値ではなく基準値として扱い、Iron's の SWORD 倍率を重ねず Attribute 短縮だけを適用する。
+            event.setEffectiveCooldown(WeaponImbueCooldownHelper.applyCooldownReductionAttribute(
+                    overriddenCooldown,
+                    player
+            ));
             return;
         }
 

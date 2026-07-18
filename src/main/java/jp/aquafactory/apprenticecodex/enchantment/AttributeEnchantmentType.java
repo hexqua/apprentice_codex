@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.enchantment;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -19,36 +20,39 @@ import java.util.function.Function;
  * Iron's の魔法 Attribute を増加させる6種のエンチャント効果定義。
  */
 public enum AttributeEnchantmentType {
-    ALACRITY("alacrity", "alacrity.cooldown_reduction", 0.02D,
+    ALACRITY("alacrity", "alacrityAmountPerLevel", "alacrity.cooldown_reduction", 0.02D,
             AttributeModifier.Operation.MULTIPLY_BASE, stack -> AttributeRegistry.COOLDOWN_REDUCTION.get()),
-    REFLUX("reflux", "reflux.mana_regen", 0.05D,
+    REFLUX("reflux", "refluxAmountPerLevel", "reflux.mana_regen", 0.05D,
             AttributeModifier.Operation.MULTIPLY_BASE, stack -> AttributeRegistry.MANA_REGEN.get()),
-    RESERVOIR("reservoir", "reservoir.max_mana", 20.0D,
+    RESERVOIR("reservoir", "reservoirAmountPerLevel", "reservoir.max_mana", 20.0D,
             AttributeModifier.Operation.ADDITION, stack -> AttributeRegistry.MAX_MANA.get()),
-    SURGE("surge", "surge.spell_power", 0.02D,
+    SURGE("surge", "surgeAmountPerLevel", "surge.spell_power", 0.02D,
             AttributeModifier.Operation.MULTIPLY_BASE, stack -> AttributeRegistry.SPELL_POWER.get()),
-    ATTUNEMENT("attunement", "attunement.spell_power", 0.04D,
+    ATTUNEMENT("attunement", "attunementAmountPerLevel", "attunement.spell_power", 0.03D,
             AttributeModifier.Operation.MULTIPLY_BASE,
             stack -> MagicTools.resolveSchoolPowerAttribute(MagicTools.getImbuedSpellSchool(stack))),
-    TENSE("tense", "tense.cast_time_reduction", 0.05D,
+    TENSE("tense", "tenseAmountPerLevel", "tense.cast_time_reduction", 0.04D,
             AttributeModifier.Operation.MULTIPLY_BASE, stack -> AttributeRegistry.CAST_TIME_REDUCTION.get());
 
     private final ResourceLocation enchantmentId;
+    private final String configKey;
     private final String modifierKey;
-    private final double amountPerLevel;
+    private final double defaultAmountPerLevel;
     private final AttributeModifier.Operation operation;
     private final Function<ItemStack, @Nullable Attribute> attributeResolver;
 
     AttributeEnchantmentType(
             String enchantmentPath,
+            String configKey,
             String modifierKey,
-            double amountPerLevel,
+            double defaultAmountPerLevel,
             AttributeModifier.Operation operation,
             Function<ItemStack, @Nullable Attribute> attributeResolver
     ) {
         this.enchantmentId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, enchantmentPath);
+        this.configKey = configKey;
         this.modifierKey = modifierKey;
-        this.amountPerLevel = amountPerLevel;
+        this.defaultAmountPerLevel = defaultAmountPerLevel;
         this.operation = operation;
         this.attributeResolver = attributeResolver;
     }
@@ -57,12 +61,20 @@ public enum AttributeEnchantmentType {
         return enchantmentId;
     }
 
+    public String configKey() {
+        return configKey;
+    }
+
     public String modifierKey() {
         return modifierKey;
     }
 
     public double amountPerLevel() {
-        return amountPerLevel;
+        return ApprenticeCodexServerConfig.attributeEnchantmentAmountPerLevel(this);
+    }
+
+    public double defaultAmountPerLevel() {
+        return defaultAmountPerLevel;
     }
 
     public AttributeModifier.Operation operation() {

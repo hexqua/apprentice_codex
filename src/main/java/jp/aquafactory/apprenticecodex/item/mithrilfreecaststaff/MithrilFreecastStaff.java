@@ -16,6 +16,9 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.*;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
@@ -54,15 +57,12 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
         implements GeoItem, CastAnimationOverrideItem, IJeiInfoItem, SwingTriggeredMagicItem,
-        ArcaneAnvilImbueBlockItem, SpellCalibrationAdjustmentTarget {
+        ArcaneAnvilImbueBlockItem, SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy {
     private static final String ITEM_KEY = "mithril_freecast_staff";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.mithril_freecast_staff.desc_";
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
@@ -90,6 +90,13 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
     private static final double GENERAL_SPELL_POWER_BONUS = 0.10D;
     private static final double SCHOOL_SPELL_POWER_BONUS = 0.15D;
     private static final UUID SPELL_POWER_MODIFIER_ID = UUID.fromString("c5a73ed3-47f1-47f2-9d2d-8eb2dc6426f3");
+
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR,
+            AttributeEnchantmentType.TENSE
+    );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final ResourceLocation textureLocation = ResourceLocation.fromNamespaceAndPath(
@@ -154,6 +161,12 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
                         AttributeModifier.Operation.MULTIPLY_BASE
                 )
         );
+
+        AttributeEnchantmentResolver.addModifiers(
+                builder,
+                stack,
+                "apprenticecodex.mithril_freecast_staff.enchant"
+        );
         return builder.build();
     }
 
@@ -178,12 +191,18 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
+    }
+
+    @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
         if (EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get()) {
             return false;
         }
 
-        return super.canApplyAtEnchantingTable(stack, enchantment);
+        var attributeEnchantment = AttributeEnchantmentType.from(enchantment);
+        return attributeEnchantment.map(this::supportsDirectAttributeEnchantment).orElse(super.canApplyAtEnchantingTable(stack, enchantment));
     }
 
     @Override

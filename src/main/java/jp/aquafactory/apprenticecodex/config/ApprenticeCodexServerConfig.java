@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerCo
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.LinearBuildServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
@@ -22,6 +23,7 @@ public final class ApprenticeCodexServerConfig {
     public static final ForgeConfigSpec SPEC;
     private static final ForgeConfigSpec.IntValue SAVED_ABSOLUTE_TICK_CLAMP_MAX_TICKS;
     private static final DamageMultiplierServerConfig DAMAGE_MULTIPLIER_CONFIG;
+    private static final AttributeEnchantmentsServerConfig ATTRIBUTE_ENCHANTMENTS_CONFIG;
     private static final BlocksServerConfig BLOCKS_CONFIG;
     private static final ItemsServerConfig ITEMS_CONFIG;
     private static final LootServerConfig LOOT_CONFIG;
@@ -37,6 +39,8 @@ public final class ApprenticeCodexServerConfig {
                 .defineInRange("savedAbsoluteTickClampMaxTicks", 20 * 60 * 5, 0, Integer.MAX_VALUE);
         builder.pop();
         DAMAGE_MULTIPLIER_CONFIG = DamageMultiplierServerConfig.define(builder, DamageMultiplierKey.values());
+        ATTRIBUTE_ENCHANTMENTS_CONFIG =
+                AttributeEnchantmentsServerConfig.define(builder, AttributeEnchantmentType.values());
         BLOCKS_CONFIG = BlocksServerConfig.define(builder);
         ITEMS_CONFIG = ItemsServerConfig.define(builder);
         LOOT_CONFIG = LootServerConfig.define(builder);
@@ -61,6 +65,19 @@ public final class ApprenticeCodexServerConfig {
         var previousValue = DAMAGE_MULTIPLIER_CONFIG.value(key);
         DAMAGE_MULTIPLIER_CONFIG.setValueForGameTest(key, value);
         return () -> DAMAGE_MULTIPLIER_CONFIG.setValueForGameTest(key, previousValue);
+    }
+
+    public static double attributeEnchantmentAmountPerLevel(AttributeEnchantmentType type) {
+        return ATTRIBUTE_ENCHANTMENTS_CONFIG.amountPerLevel(type);
+    }
+
+    public static GameTestConfigOverride useAttributeEnchantmentAmountPerLevelOverrideForGameTest(
+            AttributeEnchantmentType type,
+            double value
+    ) {
+        var previousValue = ATTRIBUTE_ENCHANTMENTS_CONFIG.amountPerLevel(type);
+        ATTRIBUTE_ENCHANTMENTS_CONFIG.setAmountPerLevelForGameTest(type, value);
+        return () -> ATTRIBUTE_ENCHANTMENTS_CONFIG.setAmountPerLevelForGameTest(type, previousValue);
     }
 
     public static boolean isSpellcasterWorkbenchRecipeDenied(ResourceLocation recipeId) {
@@ -424,6 +441,27 @@ public final class ApprenticeCodexServerConfig {
 
     public static int parrycastBucklerPerfectGuardReleaseCooldownGraceUses() {
         return ITEMS_CONFIG.parrycastBucklerPerfectGuardReleaseCooldownGraceUses();
+    }
+
+    public static double bulwarkGreatshieldGenericSpellResist() {
+        return ITEMS_CONFIG.bulwarkGreatshieldGenericSpellResist();
+    }
+
+    public static double bulwarkGreatshieldSchoolSpellResist() {
+        return ITEMS_CONFIG.bulwarkGreatshieldSchoolSpellResist();
+    }
+
+    public static GameTestConfigOverride useBulwarkGreatshieldConfigOverrideForGameTest(
+            double genericSpellResist,
+            double schoolSpellResist
+    ) {
+        var previousGenericSpellResist = ITEMS_CONFIG.bulwarkGreatshieldGenericSpellResist();
+        var previousSchoolSpellResist = ITEMS_CONFIG.bulwarkGreatshieldSchoolSpellResist();
+        ITEMS_CONFIG.setBulwarkGreatshieldConfigForGameTest(genericSpellResist, schoolSpellResist);
+        return () -> ITEMS_CONFIG.setBulwarkGreatshieldConfigForGameTest(
+                previousGenericSpellResist,
+                previousSchoolSpellResist
+        );
     }
 
     public static float manaShieldCharmManaPerDamage() {

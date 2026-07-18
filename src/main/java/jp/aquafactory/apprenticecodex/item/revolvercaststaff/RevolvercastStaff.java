@@ -17,6 +17,9 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.item.Scroll;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.*;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
@@ -47,6 +50,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
@@ -61,13 +65,14 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         implements GeoItem, CastAnimationOverrideItem, IJeiInfoItem, SwingTriggeredMagicItem,
         RestrictedSpellImbuableItem, ArcaneAnvilImbueBlockItem, StoredSpellCalibrationImbueTarget,
-        SpellCalibrationAdjustmentTarget {
+        SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy {
     private static final String ITEM_KEY = "revolvercast_staff";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.revolvercast_staff.desc_";
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
@@ -116,6 +121,13 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     private static final double SCHOOL_SPELL_POWER_BONUS = 0.15D;
     private static final UUID SPELL_POWER_MODIFIER_ID = UUID.fromString("c746a21b-7055-4fdf-8d47-c31d41041a46");
 
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR,
+            AttributeEnchantmentType.TENSE
+    );
+
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final ResourceLocation textureLocation = ResourceLocation.fromNamespaceAndPath(
             ApprenticeCodex.MODID,
@@ -158,6 +170,17 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         if (hasAnyCalibrationScroll(stack) || ISpellContainer.isSpellContainer(stack)) {
             refreshSelectedSpellContainer(stack);
         }
+    }
+
+    @Override
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
+    }
+
+    @Override
+    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
+        var attributeEnchantment = AttributeEnchantmentType.from(enchantment);
+        return attributeEnchantment.map(this::supportsDirectAttributeEnchantment).orElse(super.canApplyAtEnchantingTable(stack, enchantment));
     }
 
     @Override
@@ -205,6 +228,11 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
                         spellPowerAmount,
                         AttributeModifier.Operation.MULTIPLY_BASE
                 )
+        );
+        AttributeEnchantmentResolver.addModifiers(
+                builder,
+                stack,
+                "apprenticecodex.revolvercast_staff.enchant"
         );
         return builder.build();
     }

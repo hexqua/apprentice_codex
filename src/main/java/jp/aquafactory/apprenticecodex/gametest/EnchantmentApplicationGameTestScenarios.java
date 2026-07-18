@@ -5,7 +5,6 @@ import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
-import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
@@ -14,10 +13,9 @@ import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
-import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
-import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
@@ -62,9 +60,9 @@ final class EnchantmentApplicationGameTestScenarios {
             assertCategoryEnchantments(helper, "Spell Gun",
                     item -> item instanceof AbstractSpellGunItem,
                     EnchantmentApplicationGameTestScenarios::expectedSpellGunEnchantments);
-            assertCategoryEnchantments(helper, "Right Click Magic Weapon",
-                    item -> item instanceof AbstractRightClickMagicWeaponItem && !(item instanceof SmashcastScepter),
-                    EnchantmentApplicationGameTestScenarios::expectedRightClickMagicWeaponEnchantments);
+            assertCategoryEnchantments(helper, "Swingcast Staff",
+                    item -> item instanceof AbstractSwingcastStaffItem,
+                    EnchantmentApplicationGameTestScenarios::expectedSwingcastStaffEnchantments);
             assertCategoryEnchantments(helper, "Spellcasters Flask",
                     item -> item.getClass() == SpellcastersFlask.class,
                     stack -> expectedFlaskEnchantments());
@@ -118,6 +116,11 @@ final class EnchantmentApplicationGameTestScenarios {
                     registryIdSet(EnchantmentRegistry.SHELL, EnchantmentRegistry.SYNCHRONIZATION,
                             EnchantmentRegistry.NEUTRALIZATION),
                     "Mana Shield Charm");
+            assertMithrilFreecastStaffSurfaces(helper);
+            assertRevolvercastStaffSurfaces(helper);
+            assertCrystalBladedStaffSurfaces(helper);
+            assertIlluminateStellarStaffSurfaces(helper);
+            assertUniteLunaStaffSurfaces(helper);
             assertSmashcastScepterSurfaces(helper);
             assertElementalBowSurfaces(helper);
             assertOffhandSurfaces(helper);
@@ -164,6 +167,36 @@ final class EnchantmentApplicationGameTestScenarios {
             assertAcquisitionFlags(helper, EnchantmentRegistry.COMPRESS, false, false, true);
             assertAcquisitionFlags(helper, EnchantmentRegistry.RELEASE, false, false, true);
         });
+    }
+
+    private static void assertMithrilFreecastStaffSurfaces(GameTestHelper helper) {
+        var stack = new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
+        assertExactEnchantmentSurfaces(helper, stack,
+                expectedMithrilFreecastStaffEnchantments(stack), "Mithril Freecast Staff");
+    }
+
+    private static void assertRevolvercastStaffSurfaces(GameTestHelper helper) {
+        var stack = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
+        assertExactEnchantmentSurfaces(helper, stack,
+                expectedRevolvercastStaffEnchantments(stack), "Revolvercast Staff");
+    }
+
+    private static void assertCrystalBladedStaffSurfaces(GameTestHelper helper) {
+        var stack = new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
+        assertExactEnchantmentSurfaces(helper, stack,
+                expectedCrystalBladedStaffEnchantments(stack), "Crystal Bladed Staff");
+    }
+
+    private static void assertIlluminateStellarStaffSurfaces(GameTestHelper helper) {
+        var stack = new ItemStack(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get());
+        assertExactEnchantmentSurfaces(helper, stack,
+                expectedIlluminateStellarStaffEnchantments(stack), "Illuminate Stellar Staff");
+    }
+
+    private static void assertUniteLunaStaffSurfaces(GameTestHelper helper) {
+        var stack = new ItemStack(ItemRegistry.UNITE_LUNA_STAFF.get());
+        assertExactEnchantmentSurfaces(helper, stack,
+                expectedUniteLunaStaffEnchantments(stack), "Unite Luna Staff");
     }
 
     private static void assertCircuitHeatStaffSurfaces(GameTestHelper helper) {
@@ -375,12 +408,12 @@ final class EnchantmentApplicationGameTestScenarios {
     private static void assertBulwarkAndParrycastRules(GameTestHelper helper) {
         var bulwark = ItemRegistry.BULWARK_GREATSHIELD.get();
         var bulwarkStack = new ItemStack(bulwark);
-        helper.assertTrue(bulwark.canApplyAtEnchantingTable(bulwarkStack, Enchantments.UNBREAKING),
-                "Bulwark Greatshield should accept shield durability enchantments");
-        helper.assertTrue(bulwark.canApplyAtEnchantingTable(bulwarkStack, EnchantmentRegistry.TRANSCENDENCE.get()),
-                "Bulwark Greatshield should accept Transcendence");
-        helper.assertTrue(bulwark.canApplyAtEnchantingTable(bulwarkStack, EnchantmentRegistry.WISDOM.get()),
-                "Bulwark Greatshield should accept Wisdom");
+        for (var enchantment : List.of(Enchantments.UNBREAKING, EnchantmentRegistry.RESERVOIR.get(),
+                EnchantmentRegistry.REFLUX.get(), EnchantmentRegistry.TRANSCENDENCE.get(),
+                EnchantmentRegistry.WISDOM.get())) {
+            helper.assertTrue(bulwark.canApplyAtEnchantingTable(bulwarkStack, enchantment),
+                    "Bulwark Greatshield Buckler should accept " + ForgeRegistries.ENCHANTMENTS.getKey(enchantment));
+        }
 
         var parrycast = ItemRegistry.PARRYCAST_BUCKLER.get();
         var parrycastStack = new ItemStack(parrycast);
@@ -509,11 +542,48 @@ final class EnchantmentApplicationGameTestScenarios {
         return expected;
     }
 
-    private static Set<ResourceLocation> expectedRightClickMagicWeaponEnchantments(ItemStack stack) {
+    private static Set<ResourceLocation> expectedSwingcastStaffEnchantments(ItemStack stack) {
+        return expectedSwingcastStavesEnchantments(stack, true);
+    }
+
+    private static Set<ResourceLocation> expectedMithrilFreecastStaffEnchantments(ItemStack stack) {
+        return expectedSwingcastStavesEnchantments(stack, false);
+    }
+
+    private static Set<ResourceLocation> expectedRevolvercastStaffEnchantments(ItemStack stack) {
+        return expectedSwingcastStavesEnchantments(stack, true);
+    }
+
+    private static Set<ResourceLocation> expectedCrystalBladedStaffEnchantments(ItemStack stack) {
+        return expectedSwordBasedMagicWeaponEnchantments(stack, true);
+    }
+
+    private static Set<ResourceLocation> expectedIlluminateStellarStaffEnchantments(ItemStack stack) {
+        return expectedSwordBasedMagicWeaponEnchantments(stack, true);
+    }
+
+    private static Set<ResourceLocation> expectedUniteLunaStaffEnchantments(ItemStack stack) {
+        return expectedSwordBasedMagicWeaponEnchantments(stack, true);
+    }
+
+    private static Set<ResourceLocation> expectedSwingcastStavesEnchantments(
+            ItemStack stack,
+            boolean includeTranscendence
+    ) {
+        var expected = expectedSwordBasedMagicWeaponEnchantments(stack, includeTranscendence);
+        expected.addAll(registryIdSet(EnchantmentRegistry.RESERVOIR, EnchantmentRegistry.REFLUX,
+                EnchantmentRegistry.TENSE, EnchantmentRegistry.ALACRITY));
+        return expected;
+    }
+
+    private static Set<ResourceLocation> expectedSwordBasedMagicWeaponEnchantments(
+            ItemStack stack,
+            boolean includeTranscendence
+    ) {
         var expected = swordEnchantments(false);
-        expected.addAll(registryIdSet(EnchantmentRegistry.TRANSCENDENCE, EnchantmentRegistry.WISDOM));
-        if (stack.getItem() instanceof MithrilFreecastStaff) {
-            expected.remove(EnchantmentRegistry.TRANSCENDENCE.getId());
+        expected.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
+        if (includeTranscendence) {
+            expected.addAll(registryIdSet(EnchantmentRegistry.TRANSCENDENCE));
         }
         addExpectedMalumHauntedIfPresent(stack, expected);
         addExpectedMalumSpiritPlunderIfPresent(stack, expected);
@@ -621,17 +691,17 @@ final class EnchantmentApplicationGameTestScenarios {
     }
 
     private static Set<ResourceLocation> expectedEnchantressRobeEnchantments(ItemStack stack) {
-        var probe = createArmorProbeStack(stack);
-        var expected = collectAllowedEnchantments(enchantment -> enchantment.canApplyAtEnchantingTable(probe));
-        expected.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
-        if (stack.getItem() instanceof EnchantressRobeItem robe && robe.hasImbueSlot()) {
-            expected.addAll(registryIdSet(EnchantmentRegistry.TRANSCENDENCE));
-        }
-        return expected;
+        return expectedNormalMagicArmorEnchantments(stack);
     }
 
     private static Set<ResourceLocation> expectedStealthRuneArmorEnchantments(ItemStack stack) {
-        return expectedNormalMagicArmorEnchantments(stack);
+        var expected = expectedNormalMagicArmorEnchantments(stack);
+        expected.addAll(registryIdSet(EnchantmentRegistry.RESERVOIR, EnchantmentRegistry.REFLUX,
+                EnchantmentRegistry.TENSE, EnchantmentRegistry.ALACRITY));
+        if (stack.getItem() instanceof StealthRuneArmorItem armor && armor.hasImbueSlot()) {
+            expected.addAll(registryIdSet(EnchantmentRegistry.TRANSCENDENCE));
+        }
+        return expected;
     }
 
     private static Set<ResourceLocation> expectedChromaticMagiaDressEnchantments(ItemStack stack) {
