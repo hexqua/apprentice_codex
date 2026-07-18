@@ -63,6 +63,12 @@ public final class EpicFightClientCompat {
         return InputManager.isActionActive(EpicFightInputAction.ATTACK);
     }
 
+    public static boolean canHandleAttackInput() {
+        var player = Minecraft.getInstance().player;
+        var playerpatch = player != null ? EpicFightCapabilities.getLocalPlayerPatch(player) : null;
+        return playerpatch != null && playerpatch.canPlayAttackAnimation();
+    }
+
     private static void installSmashcastScepterEvents() {
         var playerpatch = EpicFightCapabilities.getCachedLocalPlayerPatch();
         if (playerpatch == null || playerpatch.getOriginal() == null || !playerpatch.getOriginal().isAlive()) {

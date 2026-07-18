@@ -23,7 +23,13 @@ public final class ClientSpellgunInputEvent {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onInteractionKeyMappingTriggered(InputEvent.InteractionKeyMappingTriggered event) {
-        if (!event.isAttack() || isEpicFightBattleMode()) {
+        if (!event.isAttack()) {
+            return;
+        }
+
+        // Epic Fight 20.14.17 は非 LivingEntity を照準すると BasicAttack を開始しないため、
+        // 処理可能な入力だけを委譲する。1.21.1 側では canPlayAttackAnimation の判定条件を再確認する。
+        if (isEpicFightBattleMode() && EpicFightClientCompat.canHandleAttackInput()) {
             return;
         }
 
