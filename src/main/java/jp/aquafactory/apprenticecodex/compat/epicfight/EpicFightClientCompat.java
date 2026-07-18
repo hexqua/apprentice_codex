@@ -1,14 +1,19 @@
 package jp.aquafactory.apprenticecodex.compat.epicfight;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import jp.aquafactory.apprenticecodex.event.client.ClientSpellgunInputEvent;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import yesman.epicfight.api.client.input.InputManager;
 import yesman.epicfight.api.client.input.action.EpicFightInputAction;
 import yesman.epicfight.api.event.EpicFightEventHooks;
 import yesman.epicfight.api.event.IdentifierProvider;
 import yesman.epicfight.api.event.types.player.SkillCastEvent;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.gui.screen.config.ItemsPreferenceScreen;
+import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 
 public final class EpicFightClientCompat {
@@ -16,8 +21,13 @@ public final class EpicFightClientCompat {
     private static final IdentifierProvider SMASHCAST_SCEPTER_CLIENT_EVENT_ID = IdentifierProvider.constant(
             "apprenticecodex:smashcast_scepter_client"
     );
+    private static final IdentifierProvider SPELLGUN_BASIC_ATTACK_CLIENT_EVENT_ID = IdentifierProvider.constant(
+            "apprenticecodex:spellgun_basic_attack_client"
+    );
 
-    private static java.util.UUID installedSmashcastScepterPlayerId;
+    // ディメンション移動では UUID が同じまま Patch が再生成されるため、登録済み Patch の同一性を追跡する。
+    private static LocalPlayerPatch installedSmashcastScepterPlayerPatch;
+    private static LocalPlayerPatch installedSpellgunPlayerPatch;
 
     private EpicFightClientCompat() {
     }
@@ -28,30 +38,45 @@ public final class EpicFightClientCompat {
     }
 
     public static void register() {
-        ItemsPreferenceScreen.registerWeaponCategorizedItemClasses(MultipurposeStaffrifle.class);
+        // RangedWeaponCapability は Find Weapon の自動判定対象外なので、アイテムクラスを明示登録する。
+        ItemsPreferenceScreen.registerWeaponCategorizedItemClasses(
+                MultipurposeStaffrifle.class,
+                AbstractSpellGunItem.class
+        );
     }
 
     public static void tick() {
         installSmashcastScepterEvents();
+        installSpellgunEvents();
     }
 
     public static void clear() {
-        installedSmashcastScepterPlayerId = null;
+        installedSmashcastScepterPlayerPatch = null;
+        installedSpellgunPlayerPatch = null;
     }
 
     public static boolean matchesAttackInput(InputConstants.Type type, int value) {
         return matchesKey(EpicFightInputAction.ATTACK.keyMapping(), type, value);
     }
 
+    public static boolean isAttackActive() {
+        return InputManager.isActionActive(EpicFightInputAction.ATTACK);
+    }
+
+    public static boolean canHandleAttackInput() {
+        var player = Minecraft.getInstance().player;
+        var playerpatch = player != null ? EpicFightCapabilities.getLocalPlayerPatch(player) : null;
+        return playerpatch != null && playerpatch.canPlayAttackAnimation();
+    }
+
     private static void installSmashcastScepterEvents() {
         var playerpatch = EpicFightCapabilities.getCachedLocalPlayerPatch();
         if (playerpatch == null || playerpatch.getOriginal() == null || !playerpatch.getOriginal().isAlive()) {
-            installedSmashcastScepterPlayerId = null;
+            installedSmashcastScepterPlayerPatch = null;
             return;
         }
 
-        var playerId = playerpatch.getOriginal().getUUID();
-        if (playerId.equals(installedSmashcastScepterPlayerId)) {
+        if (playerpatch == installedSmashcastScepterPlayerPatch) {
             return;
         }
 
@@ -60,7 +85,28 @@ public final class EpicFightClientCompat {
                 EpicFightClientCompat::onSkillCast,
                 SMASHCAST_SCEPTER_CLIENT_EVENT_ID
         );
-        installedSmashcastScepterPlayerId = playerId;
+        installedSmashcastScepterPlayerPatch = playerpatch;
+    }
+
+    private static void installSpellgunEvents() {
+        var player = Minecraft.getInstance().player;
+        var playerpatch = player != null ? EpicFightCapabilities.getLocalPlayerPatch(player) : null;
+        if (playerpatch == null || playerpatch.getOriginal() == null || !playerpatch.getOriginal().isAlive()) {
+            installedSpellgunPlayerPatch = null;
+            return;
+        }
+
+        if (playerpatch == installedSpellgunPlayerPatch) {
+            return;
+        }
+
+        playerpatch.getEventListener().registerContextAwareEvent(
+                EpicFightEventHooks.Player.CAST_SKILL,
+                (event, context) -> EpicFightClientCompat.onSpellgunSkillCast(event),
+                SPELLGUN_BASIC_ATTACK_CLIENT_EVENT_ID,
+                -1
+        );
+        installedSpellgunPlayerPatch = playerpatch;
     }
 
     private static void onSkillCast(SkillCastEvent event) {
@@ -70,6 +116,18 @@ public final class EpicFightClientCompat {
         )) {
             event.setStateExecutable(true);
         }
+    }
+
+    private static void onSpellgunSkillCast(SkillCastEvent event) {
+        if (!EpicFightSpellgunCompat.isMainhandSpellgunBasicAttack(
+                event.getPlayerPatch(),
+                event.getSkillContainer()
+        ) || event.isCanceled() || !event.isExecutable()) {
+            return;
+        }
+
+        // ComboAttacks を成功扱いのまま通し、サーバー側の COMBO_ATTACK で発射を合流させる。
+        ClientSpellgunInputEvent.trySendEpicFightMainhandCast();
     }
 
     private static boolean matchesKey(KeyMapping keyMapping, InputConstants.Type type, int value) {
