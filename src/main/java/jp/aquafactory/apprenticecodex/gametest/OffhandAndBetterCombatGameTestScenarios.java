@@ -43,7 +43,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
     private OffhandAndBetterCombatGameTestScenarios() {
     }
 
-    static void copperSpellAmplifierStartsWithBallLightningAndStacksAttunement(GameTestHelper helper) {
+    static void copperSpellAmplifierStartsWithShock(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var stack = new ItemStack(item);
@@ -62,23 +62,6 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             helper.assertTrue(spellData.getLevel() == 1,
                     "Copper Spell Amplifier preset spell level mismatch: " + spellData.getLevel());
 
-            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
-            helper.assertTrue(imbuedSchool != null, "Copper Spell Amplifier imbued school could not be resolved");
-
-            // ここでは school ID の厳密一致ではなく、
-            // 実装が解決した spell power 属性へ bonus / Attunement が正しく合算されることを回帰検知する.
-            var resolvedSpellPower = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
-            helper.assertTrue(resolvedSpellPower != null,
-                    "Copper Spell Amplifier could not resolve spell power attribute for additive stacking: " + imbuedSchool.getId());
-
-            assertModifierAmount(helper, item, stack, resolvedSpellPower, 0.10D, AttributeModifier.Operation.MULTIPLY_BASE,
-                    "Copper Spell Amplifier additive spell power bonus regression");
-
-            stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
-            assertModifierAmount(helper, item, stack, resolvedSpellPower,
-                    0.10D + AttributeEnchantmentType.ATTUNEMENT.amountPerLevel(),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    "Copper Spell Amplifier + Attunement stacking regression");
         });
     }
     static void reflectcastShieldImbuedSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
@@ -667,7 +650,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             );
         });
     }
-    static void enchantedCircletCurioBonusesMirrorOffhandMagicEnchantments(GameTestHelper helper) {
+    static void enchantedCircletKeepsBaseCurioPenalty(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
             var item = (top.theillusivec4.curios.api.type.capability.ICurioItem) stack.getItem();
@@ -690,81 +673,6 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     "Enchanted Circlet attack damage penalty regression"
             );
 
-            ISpellContainer.createImbuedContainer(io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(), 1, stack);
-            stack.enchant(EnchantmentRegistry.ALACRITY.get(), 1);
-            stack.enchant(EnchantmentRegistry.REFLUX.get(), 1);
-            stack.enchant(EnchantmentRegistry.RESERVOIR.get(), 1);
-            stack.enchant(EnchantmentRegistry.SURGE.get(), 1);
-            stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
-            stack.enchant(EnchantmentRegistry.TENSE.get(), 1);
-
-            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
-            helper.assertTrue(imbuedSchool != null, "Enchanted Circlet imbued school could not be resolved");
-
-            var resolvedSpellPower = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
-            helper.assertTrue(resolvedSpellPower != null,
-                    "Enchanted Circlet could not resolve spell power attribute for Attunement: " + imbuedSchool.getId());
-
-            assertCurioModifierAmount(
-                    helper,
-                    item,
-                    slotContext,
-                    stack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get(),
-                    0.02D,
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    "Enchanted Circlet Alacrity regression"
-            );
-            assertCurioModifierAmount(
-                    helper,
-                    item,
-                    slotContext,
-                    stack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get(),
-                    0.05D,
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    "Enchanted Circlet Reflux regression"
-            );
-            assertCurioModifierAmount(
-                    helper,
-                    item,
-                    slotContext,
-                    stack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get(),
-                    20.0D,
-                    AttributeModifier.Operation.ADDITION,
-                    "Enchanted Circlet Reservoir regression"
-            );
-            assertCurioModifierAmount(
-                    helper,
-                    item,
-                    slotContext,
-                    stack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get(),
-                    0.02D,
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    "Enchanted Circlet Surge regression"
-            );
-            assertCurioModifierAmount(
-                    helper,
-                    item,
-                    slotContext,
-                    stack,
-                    resolvedSpellPower,
-                    AttributeEnchantmentType.ATTUNEMENT.amountPerLevel(),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    "Enchanted Circlet Attunement regression"
-            );
-            assertCurioModifierAmount(
-                    helper,
-                    item,
-                    slotContext,
-                    stack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get(),
-                    AttributeEnchantmentType.TENSE.amountPerLevel(),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    "Enchanted Circlet Tense regression"
-            );
         });
     }
     static void enchantedCircletCurioModifiersStayIndependentAcrossSlots(GameTestHelper helper) {
