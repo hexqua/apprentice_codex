@@ -180,6 +180,7 @@
   "item.apprenticecodex.common.imbue_tooltip.cooldown": "クールダウン中(%1$d秒)",
   "item.apprenticecodex.common.spellgun.desc_1": "利き手に持っている時、[%1$s]で魔法を詠唱する。",
   "item.apprenticecodex.common.spellgun.desc_2": "オフハンドに持っている時、[%1$s]で魔法を詠唱する。",
+  "item.apprenticecodex.common.spellgun.epicfight.offhand_warning": "オフハンドに持っている間、ガードスキルが使用できなくなる。",
   "item.apprenticecodex.wisdom_shard.desc": "一部アイテムの調整用アイテムとして装着できる。",
   "item.apprenticecodex.apprentice_desk.disabled_tooltip": "使い走り魔術師の職業ブロックとしてのみ機能する。",
   "item.apprenticecodex.spell_dispenser.creative_tooltip": "クリエイティブバージョン",

@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.compat.epicfight;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModList;
 
@@ -16,6 +18,8 @@ public final class EpicFightCompat {
             "jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightScrollcasterGauntletCompat";
     private static final String SPELLCHARGED_GREATSWORD_COMPAT_CLASS =
             "jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSpellchargedGreatswordCompat";
+    private static final String SPELLGUN_COMPAT_CLASS =
+            "jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSpellgunCompat";
 
     private EpicFightCompat() {
     }
@@ -31,6 +35,7 @@ public final class EpicFightCompat {
             registerCompat(SMASHCAST_SCEPTER_COMPAT_CLASS, modEventBus);
             registerCompat(SCROLLCASTER_GAUNTLET_COMPAT_CLASS, modEventBus);
             registerCompat(SPELLCHARGED_GREATSWORD_COMPAT_CLASS, modEventBus);
+            registerCompat(SPELLGUN_COMPAT_CLASS, modEventBus);
         } catch (ReflectiveOperationException exception) {
             throw new IllegalStateException("Epic Fight 互換の初期化に失敗しました", exception);
         }
@@ -41,5 +46,33 @@ public final class EpicFightCompat {
     private static void registerCompat(String className, IEventBus modEventBus) throws ReflectiveOperationException {
         var compatClass = Class.forName(className);
         compatClass.getMethod("register", IEventBus.class).invoke(null, modEventBus);
+    }
+
+    public static boolean canUseOffhandSpellgun(ServerPlayer player) {
+        if (!ModList.get().isLoaded(MOD_ID)) {
+            return true;
+        }
+
+        try {
+            var compatClass = Class.forName(SPELLGUN_COMPAT_CLASS);
+            return (boolean) compatClass.getMethod("canUseOffhandSpellgun", ServerPlayer.class).invoke(null, player);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Epic Fight のSpellgunオフハンド判定に失敗しました", exception);
+        }
+    }
+
+    public static boolean queueMainhandSpellgunCast(ServerPlayer player, BlockTargetData targetData) {
+        if (!ModList.get().isLoaded(MOD_ID)) {
+            return false;
+        }
+
+        try {
+            var compatClass = Class.forName(SPELLGUN_COMPAT_CLASS);
+            return (boolean) compatClass
+                    .getMethod("queueMainhandCast", ServerPlayer.class, BlockTargetData.class)
+                    .invoke(null, player, targetData);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Epic Fight のSpellgunメインハンド発動保留に失敗しました", exception);
+        }
     }
 }

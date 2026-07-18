@@ -13,6 +13,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
@@ -51,6 +52,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.tags.TagKey;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -225,6 +227,10 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         }
 
         if (player instanceof ServerPlayer serverPlayer) {
+            // Epic Fight が両手武器として扱う組み合わせでは、非表示のオフハンドから発射させない。
+            if (!EpicFightCompat.canUseOffhandSpellgun(serverPlayer)) {
+                return InteractionResultHolder.pass(stack);
+            }
             tryTriggerImbuedSpell(serverPlayer, usedHand, null);
         }
         // オフハンド Spellgun が選ばれた後の失敗をメインハンドへフォールバックさせない。
@@ -290,6 +296,11 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                 "item." + ApprenticeCodex.MODID + ".common.spellgun.desc_2",
                 ImbueTooltipHelper.getUseKeyName()
         ).withStyle(ChatFormatting.GRAY));
+        if (ModList.get().isLoaded(EpicFightCompat.MOD_ID)) {
+            lines.add(Component.translatable(
+                    "item." + ApprenticeCodex.MODID + ".common.spellgun.epicfight.offhand_warning"
+            ).withStyle(ChatFormatting.YELLOW));
+        }
         appendSpellGunHelpTooltip(stack, lines);
     }
 
