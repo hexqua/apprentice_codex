@@ -46,6 +46,16 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = createTag("malum", "soul_hunter_weapon");
     private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = createTag("traveloptics", "can_cast_reversal");
     private static final TagKey<Item> HIDDEN_FROM_RECIPE_VIEWERS = createTag("c", "hidden_from_recipe_viewers");
+    // ローカル名を 1.21.1 側と揃え、Forge 固有のタグ定義場所だけをこの接着部分へ閉じ込める。
+    private static final TagKey<Item> ALACRITY_ENCHANTABLE = TagRegistry.Items.ALACRITY_ENCHANTABLE;
+    private static final TagKey<Item> REFLUX_ENCHANTABLE = TagRegistry.Items.REFLUX_ENCHANTABLE;
+    private static final TagKey<Item> RESERVOIR_ENCHANTABLE = TagRegistry.Items.RESERVOIR_ENCHANTABLE;
+    private static final TagKey<Item> SURGE_ENCHANTABLE = TagRegistry.Items.SURGE_ENCHANTABLE;
+    private static final TagKey<Item> ATTUNEMENT_ENCHANTABLE = TagRegistry.Items.ATTUNEMENT_ENCHANTABLE;
+    private static final TagKey<Item> TENSE_ENCHANTABLE = TagRegistry.Items.TENSE_ENCHANTABLE;
+    private static final TagKey<Item> TRANSCENDENCE_ENCHANTABLE = TagRegistry.Items.TRANSCENDENCE_ENCHANTABLE;
+    private static final TagKey<Item> WISDOM_ENCHANTABLE = TagRegistry.Items.WISDOM_ENCHANTABLE;
+    private static final TagKey<Item> PLUNDER_ENCHANTABLE = TagRegistry.Items.PLUNDER_ENCHANTABLE;
 
     public ItemTagGenerator(
             PackOutput output,
@@ -124,16 +134,16 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ZENITH_STAFF.get()
         );
 
-        var transcendenceEnchantableTag = tag(TagRegistry.Items.ENCHANTABLE_TRANSCENDENCE);
-        var wisdomEnchantableTag = tag(TagRegistry.Items.ENCHANTABLE_WISDOM);
-        var plunderEnchantableTag = tag(TagRegistry.Items.ENCHANTABLE_PLUNDER);
+        var transcendenceEnchantableTag = tag(TRANSCENDENCE_ENCHANTABLE);
+        var wisdomEnchantableTag = tag(WISDOM_ENCHANTABLE);
+        var plunderEnchantableTag = tag(PLUNDER_ENCHANTABLE);
         var attributeEnchantableTags = Map.of(
-                AttributeEnchantmentType.ALACRITY, tag(TagRegistry.Items.ENCHANTABLE_ALACRITY),
-                AttributeEnchantmentType.REFLUX, tag(TagRegistry.Items.ENCHANTABLE_REFLUX),
-                AttributeEnchantmentType.RESERVOIR, tag(TagRegistry.Items.ENCHANTABLE_RESERVOIR),
-                AttributeEnchantmentType.SURGE, tag(TagRegistry.Items.ENCHANTABLE_SURGE),
-                AttributeEnchantmentType.ATTUNEMENT, tag(TagRegistry.Items.ENCHANTABLE_ATTUNEMENT),
-                AttributeEnchantmentType.TENSE, tag(TagRegistry.Items.ENCHANTABLE_TENSE)
+                AttributeEnchantmentType.ALACRITY, tag(ALACRITY_ENCHANTABLE),
+                AttributeEnchantmentType.REFLUX, tag(REFLUX_ENCHANTABLE),
+                AttributeEnchantmentType.RESERVOIR, tag(RESERVOIR_ENCHANTABLE),
+                AttributeEnchantmentType.SURGE, tag(SURGE_ENCHANTABLE),
+                AttributeEnchantmentType.ATTUNEMENT, tag(ATTUNEMENT_ENCHANTABLE),
+                AttributeEnchantmentType.TENSE, tag(TENSE_ENCHANTABLE)
         );
 
         // 所謂魔法武器全般を自動で登録するようにする.

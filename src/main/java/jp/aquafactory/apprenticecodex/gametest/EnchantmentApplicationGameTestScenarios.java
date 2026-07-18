@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -52,6 +53,15 @@ import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGame
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.registryIdSet;
 
 final class EnchantmentApplicationGameTestScenarios {
+    private static final Map<AttributeEnchantmentType, TagKey<Item>> ATTRIBUTE_ENCHANTABLE_TAGS = Map.of(
+            AttributeEnchantmentType.ALACRITY, TagRegistry.Items.ALACRITY_ENCHANTABLE,
+            AttributeEnchantmentType.REFLUX, TagRegistry.Items.REFLUX_ENCHANTABLE,
+            AttributeEnchantmentType.RESERVOIR, TagRegistry.Items.RESERVOIR_ENCHANTABLE,
+            AttributeEnchantmentType.SURGE, TagRegistry.Items.SURGE_ENCHANTABLE,
+            AttributeEnchantmentType.ATTUNEMENT, TagRegistry.Items.ATTUNEMENT_ENCHANTABLE,
+            AttributeEnchantmentType.TENSE, TagRegistry.Items.TENSE_ENCHANTABLE
+    );
+
     private EnchantmentApplicationGameTestScenarios() {
     }
 
@@ -129,6 +139,7 @@ final class EnchantmentApplicationGameTestScenarios {
 
     static void directApplicationPoliciesKeepExpectedMatrix(GameTestHelper helper) {
         helper.succeedIf(() -> {
+            assertEnchantableTagIds(helper);
             assertWisdomPlunderPoliciesAndTags(helper);
             assertAttributePoliciesAndTags(helper);
             assertTranscendencePoliciesAndTag(helper);
@@ -257,11 +268,11 @@ final class EnchantmentApplicationGameTestScenarios {
             verifyPolicySurface(mismatches, entry.getId() + " Wisdom",
                     WisdomPolicy.supportsDirectApplication(item),
                     item.canApplyAtEnchantingTable(stack, wisdom),
-                    stack.is(TagRegistry.Items.ENCHANTABLE_WISDOM));
+                    stack.is(TagRegistry.Items.WISDOM_ENCHANTABLE));
             verifyPolicySurface(mismatches, entry.getId() + " Plunder",
                     item instanceof PlunderTarget,
                     item.canApplyAtEnchantingTable(stack, plunder),
-                    stack.is(TagRegistry.Items.ENCHANTABLE_PLUNDER));
+                    stack.is(TagRegistry.Items.PLUNDER_ENCHANTABLE));
         }
         helper.assertTrue(mismatches.isEmpty(),
                 "Wisdom/Plunder policy surface mismatches: " + String.join(", ", mismatches));
@@ -303,21 +314,13 @@ final class EnchantmentApplicationGameTestScenarios {
             }
         }
 
-        var tags = Map.of(
-                AttributeEnchantmentType.ALACRITY, TagRegistry.Items.ENCHANTABLE_ALACRITY,
-                AttributeEnchantmentType.REFLUX, TagRegistry.Items.ENCHANTABLE_REFLUX,
-                AttributeEnchantmentType.RESERVOIR, TagRegistry.Items.ENCHANTABLE_RESERVOIR,
-                AttributeEnchantmentType.SURGE, TagRegistry.Items.ENCHANTABLE_SURGE,
-                AttributeEnchantmentType.ATTUNEMENT, TagRegistry.Items.ENCHANTABLE_ATTUNEMENT,
-                AttributeEnchantmentType.TENSE, TagRegistry.Items.ENCHANTABLE_TENSE
-        );
         var mismatches = new ArrayList<String>();
         for (var entry : ItemRegistry.ITEMS.getEntries()) {
             var item = entry.get();
             var stack = new ItemStack(item);
             for (var type : AttributeEnchantmentType.values()) {
                 var expected = AttributeEnchantmentPolicy.supportsDirectApplication(item, type);
-                if (expected != stack.is(tags.get(type))) {
+                if (expected != stack.is(ATTRIBUTE_ENCHANTABLE_TAGS.get(type))) {
                     mismatches.add(entry.getId() + " " + type);
                 }
             }
@@ -350,13 +353,39 @@ final class EnchantmentApplicationGameTestScenarios {
         var mismatches = new ArrayList<String>();
         for (var entry : ItemRegistry.ITEMS.getEntries()) {
             var expected = TranscendencePolicy.supportsDirectApplication(entry.get());
-            var actual = new ItemStack(entry.get()).is(TagRegistry.Items.ENCHANTABLE_TRANSCENDENCE);
+            var actual = new ItemStack(entry.get()).is(TagRegistry.Items.TRANSCENDENCE_ENCHANTABLE);
             if (expected != actual) {
                 mismatches.add(entry.getId() + " expected=" + expected + " actual=" + actual);
             }
         }
         helper.assertTrue(mismatches.isEmpty(),
                 "Transcendence direct-application tag differs from policy: " + mismatches);
+    }
+
+    private static void assertEnchantableTagIds(GameTestHelper helper) {
+        for (var entry : ATTRIBUTE_ENCHANTABLE_TAGS.entrySet()) {
+            assertEnchantableTagId(helper, entry.getValue(), entry.getKey().enchantmentId());
+        }
+        assertEnchantableTagId(helper, TagRegistry.Items.TRANSCENDENCE_ENCHANTABLE,
+                EnchantmentRegistry.TRANSCENDENCE.getId());
+        assertEnchantableTagId(helper, TagRegistry.Items.WISDOM_ENCHANTABLE,
+                EnchantmentRegistry.WISDOM.getId());
+        assertEnchantableTagId(helper, TagRegistry.Items.PLUNDER_ENCHANTABLE,
+                EnchantmentRegistry.PLUNDER.getId());
+    }
+
+    private static void assertEnchantableTagId(
+            GameTestHelper helper,
+            TagKey<Item> tag,
+            ResourceLocation enchantmentId
+    ) {
+        var expected = ResourceLocation.fromNamespaceAndPath(
+                enchantmentId.getNamespace(),
+                enchantmentId.getPath() + "_enchantable"
+        );
+        helper.assertTrue(tag.location().equals(expected),
+                "Enchantable tag id should match the 1.21.1 contract: expected="
+                        + expected + " actual=" + tag.location());
     }
 
     private static void assertFocusStaffbowRules(GameTestHelper helper) {

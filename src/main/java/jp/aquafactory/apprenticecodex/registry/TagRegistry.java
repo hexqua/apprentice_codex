@@ -20,6 +20,11 @@ public final class TagRegistry {
         return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, name));
     }
 
+    private static TagKey<Item> createEnchantableItemTag(String enchantmentPath) {
+        // 論理 ID は 1.21.1 と揃え、tags/items と tags/item の配置差は各バージョンの datagen に任せる。
+        return createItemTag(enchantmentPath + "_enchantable");
+    }
+
     private static TagKey<EntityType<?>> createEntityTypeTag(String name) {
         return TagKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, name));
     }
@@ -84,24 +89,24 @@ public final class TagRegistry {
                 createItemTag("spell_autonomy_card_crafting_materials");
         public static final TagKey<Item> MANA_MENDING_DENYLIST =
                 createItemTag("mana_mending_denylist");
-        public static final TagKey<Item> ENCHANTABLE_TRANSCENDENCE =
-                createItemTag("enchantable/transcendence");
-        public static final TagKey<Item> ENCHANTABLE_WISDOM =
-                createItemTag("enchantable/wisdom");
-        public static final TagKey<Item> ENCHANTABLE_PLUNDER =
-                createItemTag("enchantable/plunder");
-        public static final TagKey<Item> ENCHANTABLE_ALACRITY =
-                createItemTag("enchantable/alacrity");
-        public static final TagKey<Item> ENCHANTABLE_REFLUX =
-                createItemTag("enchantable/reflux");
-        public static final TagKey<Item> ENCHANTABLE_RESERVOIR =
-                createItemTag("enchantable/reservoir");
-        public static final TagKey<Item> ENCHANTABLE_SURGE =
-                createItemTag("enchantable/surge");
-        public static final TagKey<Item> ENCHANTABLE_ATTUNEMENT =
-                createItemTag("enchantable/attunement");
-        public static final TagKey<Item> ENCHANTABLE_TENSE =
-                createItemTag("enchantable/tense");
+        public static final TagKey<Item> ALACRITY_ENCHANTABLE =
+                createEnchantableItemTag("alacrity");
+        public static final TagKey<Item> REFLUX_ENCHANTABLE =
+                createEnchantableItemTag("reflux");
+        public static final TagKey<Item> RESERVOIR_ENCHANTABLE =
+                createEnchantableItemTag("reservoir");
+        public static final TagKey<Item> SURGE_ENCHANTABLE =
+                createEnchantableItemTag("surge");
+        public static final TagKey<Item> ATTUNEMENT_ENCHANTABLE =
+                createEnchantableItemTag("attunement");
+        public static final TagKey<Item> TENSE_ENCHANTABLE =
+                createEnchantableItemTag("tense");
+        public static final TagKey<Item> TRANSCENDENCE_ENCHANTABLE =
+                createEnchantableItemTag("transcendence");
+        public static final TagKey<Item> WISDOM_ENCHANTABLE =
+                createEnchantableItemTag("wisdom");
+        public static final TagKey<Item> PLUNDER_ENCHANTABLE =
+                createEnchantableItemTag("plunder");
     }
 
     public static final class EntityTypes {
