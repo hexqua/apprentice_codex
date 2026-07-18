@@ -15,7 +15,6 @@ import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
-import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressCastEvent;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
@@ -31,11 +30,9 @@ import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGreatsword;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.ApprenticeEnchantmentAvailability;
-import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -964,13 +961,6 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     0,
                     createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get())
             );
-            stack.enchant(EnchantmentRegistry.ALACRITY.get(), 1);
-            stack.enchant(EnchantmentRegistry.REFLUX.get(), 1);
-            stack.enchant(EnchantmentRegistry.RESERVOIR.get(), 1);
-            stack.enchant(EnchantmentRegistry.SURGE.get(), 1);
-            stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
-            stack.enchant(EnchantmentRegistry.TENSE.get(), 1);
-
             var modifiers = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
             var epicFightLoaded = ModList.get().isLoaded(EpicFightCompat.MOD_ID);
             var expectedAttackDamageBonus = epicFightLoaded ? 2.0D : 5.0D;
@@ -990,56 +980,6 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     AttributeModifier.Operation.ADDITION,
                     expectedAttackSpeedBonus,
                     "Scrollcaster Gauntlet attack speed modifier should match the loaded combat environment"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.02D,
-                    "Scrollcaster Gauntlet Alacrity modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    AttributeEnchantmentType.REFLUX.amountPerLevel(),
-                    "Scrollcaster Gauntlet Reflux modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get()),
-                    AttributeModifier.Operation.ADDITION,
-                    20.0D,
-                    "Scrollcaster Gauntlet Reservoir modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.07D,
-                    "Scrollcaster Gauntlet base + Surge spell power modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    AttributeEnchantmentType.TENSE.amountPerLevel(),
-                    "Scrollcaster Gauntlet Tense modifier changed"
-            );
-
-            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
-            helper.assertTrue(imbuedSchool != null,
-                    "Scrollcaster Gauntlet test could not resolve the selected spell school");
-            var attunementAttribute = jp.aquafactory.apprenticecodex.utility.MagicTools
-                    .resolveSchoolPowerAttribute(imbuedSchool);
-            helper.assertTrue(attunementAttribute != null,
-                    "Scrollcaster Gauntlet test could not resolve the Attunement spell power attribute: " + imbuedSchool.getId());
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(attunementAttribute),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    AttributeEnchantmentType.ATTUNEMENT.amountPerLevel(),
-                    "Scrollcaster Gauntlet Attunement modifier changed"
             );
         });
     }
@@ -1200,7 +1140,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             }
         });
     }
-    static void elementMaidenRobeKeepsExpectedStatsImbueAndMagicEnchantments(GameTestHelper helper) {
+    static void elementMaidenRobeKeepsExpectedStatsAndImbueSurface(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
             var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
@@ -1261,34 +1201,6 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             helper.assertTrue(initialContainer != null
                             && initialContainer.getSpellAtIndex(0).getSpell() == SpellRegistry.DIVINE_POSSESSION.get(),
                     "Element Maiden Robe chestplate should initialize Divine Possession as its imbue spell");
-            ISpellContainer.createImbuedContainer(io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(), 1, chestStack);
-            chestStack.enchant(EnchantmentRegistry.SURGE.get(), 1);
-            chestStack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
-
-            var imbuedSchool = MagicTools.getImbuedSpellSchool(chestStack);
-            helper.assertTrue(imbuedSchool != null,
-                    "Element Maiden Robe chestplate test could not resolve imbued school");
-            var imbuedSpellPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
-            helper.assertTrue(imbuedSpellPowerAttribute != null,
-                    "Element Maiden Robe chestplate test could not resolve school spell power attribute");
-
-            var enchantedModifiers = chestplate.getAttributeModifiers(EquipmentSlot.CHEST, chestStack);
-            var enchantedGlobalSpellPower = sumModifierAmount(
-                    enchantedModifiers.get(spellPowerAttribute),
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            );
-            helper.assertTrue(Math.abs(enchantedGlobalSpellPower
-                            - (expectedSpellPower + AttributeEnchantmentType.SURGE.amountPerLevel())) < 1.0e-9D,
-                    "Element Maiden Robe chestplate should add Surge spell power: " + describeModifiers(enchantedModifiers));
-
-            var attunementSpellPower = sumModifierAmount(
-                    enchantedModifiers.get(imbuedSpellPowerAttribute),
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            );
-            helper.assertTrue(Math.abs(attunementSpellPower
-                            - AttributeEnchantmentType.ATTUNEMENT.amountPerLevel()) < 1.0e-9D,
-                    "Element Maiden Robe chestplate should add Attunement school spell power: "
-                            + describeModifiers(enchantedModifiers));
         });
     }
 

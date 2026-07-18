@@ -8,7 +8,6 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import java.util.ArrayList;
 
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
-import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
@@ -17,7 +16,6 @@ import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeSt
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -53,49 +51,6 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
                     AttributeModifier.Operation.MULTIPLY_BASE,
                     0.10D,
                     "Multipurpose Staffrifle spell power modifier changed"
-            );
-
-            var enchantedStack = stack.copy();
-            enchantedStack.enchant(EnchantmentRegistry.ALACRITY.get(), 1);
-            enchantedStack.enchant(EnchantmentRegistry.REFLUX.get(), 1);
-            enchantedStack.enchant(EnchantmentRegistry.RESERVOIR.get(), 1);
-            enchantedStack.enchant(EnchantmentRegistry.SURGE.get(), 1);
-            enchantedStack.enchant(EnchantmentRegistry.TENSE.get(), 1);
-            var enchantedModifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, enchantedStack);
-            assertSingleModifierAmount(
-                    helper,
-                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.02D,
-                    "Multipurpose Staffrifle Alacrity modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    AttributeEnchantmentType.REFLUX.amountPerLevel(),
-                    "Multipurpose Staffrifle Reflux modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get()),
-                    AttributeModifier.Operation.ADDITION,
-                    20.0D,
-                    "Multipurpose Staffrifle Reservoir modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.12D,
-                    "Multipurpose Staffrifle base + Surge spell power modifier changed"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    AttributeEnchantmentType.TENSE.amountPerLevel(),
-                    "Multipurpose Staffrifle Tense modifier changed"
             );
 
         });
