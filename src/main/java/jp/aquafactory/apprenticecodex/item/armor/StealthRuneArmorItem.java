@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.renderer.armor.StealthRuneArmorRenderer;
+import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.core.Holder;
@@ -147,7 +148,10 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
                 EquipmentSlotGroup.bySlot(getType().getSlot()),
                 "stealth_rune_armor_" + StealthRuneArmorStats.typeToken(getType()) + "_enchant"
         );
-        return builder.build();
+        return MagicAttributeModifierHelper.mergeLinearMagicModifiers(
+                builder.build(),
+                "stealth_rune_armor_" + StealthRuneArmorStats.typeToken(getType()) + "_merged"
+        );
     }
 
     @Override

@@ -8,8 +8,10 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -79,6 +81,55 @@ public final class MagicAttributeModifierHelper {
         return builder.build();
     }
 
+    public static ItemAttributeModifiers mergeLinearMagicModifiers(
+            ItemAttributeModifiers modifiers,
+            String modifierSeedPrefix
+    ) {
+        if (modifiers.modifiers().isEmpty()) {
+            return modifiers;
+        }
+
+        var merged = new LinkedHashMap<ItemMergeTarget, Double>();
+        var passthrough = new ArrayList<ItemAttributeModifiers.Entry>();
+        for (var entry : modifiers.modifiers()) {
+            var modifier = entry.modifier();
+            var operation = modifier.operation();
+            if (!(entry.attribute().value() instanceof IMagicAttribute)
+                    || (operation != AttributeModifier.Operation.ADD_VALUE
+                    && operation != AttributeModifier.Operation.ADD_MULTIPLIED_BASE)) {
+                passthrough.add(entry);
+                continue;
+            }
+
+            merged.merge(
+                    new ItemMergeTarget(entry.attribute(), operation, entry.slot()),
+                    modifier.amount(),
+                    Double::sum
+            );
+        }
+
+        var builder = ItemAttributeModifiers.builder();
+        for (var entry : merged.entrySet()) {
+            var target = entry.getKey();
+            var amount = entry.getValue();
+            if (amount == 0.0D) {
+                continue;
+            }
+
+            var modifierIdSeed = modifierSeedPrefix
+                    + "." + resolveAttributeToken(target.attribute())
+                    + "." + target.operation().name().toLowerCase(Locale.ROOT);
+            builder.add(
+                    target.attribute(),
+                    new AttributeModifier(createModifierId(modifierIdSeed), amount, target.operation()),
+                    target.slot()
+            );
+        }
+
+        passthrough.forEach(entry -> builder.add(entry.attribute(), entry.modifier(), entry.slot()));
+        return builder.build();
+    }
+
     private static String resolveAttributeToken(Holder<Attribute> attribute) {
         var registryKey = attribute.unwrapKey().map(ResourceKey::location).orElseGet(() ->
                 BuiltInRegistries.ATTRIBUTE.getKey(attribute.value()));
@@ -101,5 +152,12 @@ public final class MagicAttributeModifierHelper {
     }
 
     private record MergeTarget(Holder<Attribute> attribute, AttributeModifier.Operation operation) {
+    }
+
+    private record ItemMergeTarget(
+            Holder<Attribute> attribute,
+            AttributeModifier.Operation operation,
+            EquipmentSlotGroup slot
+    ) {
     }
 }

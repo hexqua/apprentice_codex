@@ -234,18 +234,17 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
                     ),
                     EquipmentSlotGroup.MAINHAND
             );
-            return builder.build();
+        } else {
+            builder.add(
+                    BuiltInRegistries.ATTRIBUTE.wrapAsHolder(spellPowerAttribute),
+                    new AttributeModifier(
+                            SPELL_POWER_MODIFIER_ID,
+                            spellPowerAmount,
+                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                    ),
+                    EquipmentSlotGroup.MAINHAND
+            );
         }
-
-        builder.add(
-                BuiltInRegistries.ATTRIBUTE.wrapAsHolder(spellPowerAttribute),
-                new AttributeModifier(
-                        SPELL_POWER_MODIFIER_ID,
-                        spellPowerAmount,
-                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE
-                ),
-                EquipmentSlotGroup.MAINHAND
-        );
         AttributeEnchantmentResolver.addModifiers(
                 builder,
                 stack,
