@@ -124,7 +124,7 @@ public final class EpicFightSpellgunCompat {
         return playerPatch == null || playerPatch.isVanillaMode() || playerPatch.isOffhandItemValid();
     }
 
-    public static boolean shouldPrioritizeOffhandSpellgun(PlayerPatch<?> playerPatch) {
+    public static boolean isGuardDisabledByOffhandSpellgun(PlayerPatch<?> playerPatch) {
         return playerPatch != null
                 && playerPatch.isEpicFightMode()
                 && playerPatch.getOriginal().getOffhandItem().getItem() instanceof AbstractSpellGunItem

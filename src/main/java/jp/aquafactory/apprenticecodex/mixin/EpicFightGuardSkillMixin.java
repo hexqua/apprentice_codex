@@ -11,12 +11,14 @@ import yesman.epicfight.skill.guard.GuardSkill;
 @Mixin(value = GuardSkill.class, remap = false)
 public abstract class EpicFightGuardSkillMixin {
     @Inject(method = "canExecute", at = @At("HEAD"), cancellable = true)
-    private void apprenticecodex$prioritizeValidOffhandSpellgun(
+    private void apprenticecodex$disableGuardForValidOffhandSpellgun(
             SkillContainer container,
             CallbackInfoReturnable<Boolean> callback
     ) {
-        // 同じ右入力でガードと使用を同時実行せず、有効なオフハンドSpellgunを優先する。
-        if (EpicFightSpellgunCompat.shouldPrioritizeOffhandSpellgun(container.getExecutor())) {
+        // 遠距離攻撃手段をオフハンドに維持したままガードも併用できないよう、
+        // 入力割り当てにかかわらず、使用可能なオフハンドSpellgun装備中は意図的にガードを無効化する。
+        // 1.21.1 側では GuardSkill.canExecute の呼び出し経路を再確認する。
+        if (EpicFightSpellgunCompat.isGuardDisabledByOffhandSpellgun(container.getExecutor())) {
             callback.setReturnValue(false);
         }
     }

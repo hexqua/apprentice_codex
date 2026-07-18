@@ -175,6 +175,7 @@
   "item.apprenticecodex.common.desc.spell_hint_open": "适用法术：",
   "item.apprenticecodex.common.spellgun.desc_1": "主手持有时，按[%1$s]施放法术。",
   "item.apprenticecodex.common.spellgun.desc_2": "副手持有时，按[%1$s]施放法术。",
+  "item.apprenticecodex.common.spellgun.epicfight.offhand_warning": "持于副手期间，无法使用格挡技能。",
   "item.apprenticecodex.wisdom_shard.desc": "可作为部分装备的调整用物品安装。",
   "item.apprenticecodex.apprentice_desk.disabled_tooltip": "仅作为跑腿法师的工作站点方块时生效。",
   "item.apprenticecodex.spell_dispenser.creative_tooltip": "创造版",

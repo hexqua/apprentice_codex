@@ -52,6 +52,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.tags.TagKey;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -295,6 +296,11 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                 "item." + ApprenticeCodex.MODID + ".common.spellgun.desc_2",
                 ImbueTooltipHelper.getUseKeyName()
         ).withStyle(ChatFormatting.GRAY));
+        if (ModList.get().isLoaded(EpicFightCompat.MOD_ID)) {
+            lines.add(Component.translatable(
+                    "item." + ApprenticeCodex.MODID + ".common.spellgun.epicfight.offhand_warning"
+            ).withStyle(ChatFormatting.YELLOW));
+        }
         appendSpellGunHelpTooltip(stack, lines);
     }
 

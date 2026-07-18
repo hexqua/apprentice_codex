@@ -182,6 +182,17 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                         item.getDescriptionId() + " should show the common offhand operation tooltip second");
                 assertTooltipKeyArgument(helper, stack, 1, "key.use",
                         item.getDescriptionId() + " should use the configured use key name");
+                if (ModList.get().isLoaded(EpicFightCompat.MOD_ID)) {
+                    assertTooltipKeyAt(helper, stack, 2,
+                            "item.apprenticecodex.common.spellgun.epicfight.offhand_warning",
+                            item.getDescriptionId() + " should show the Epic Fight offhand Guard warning third");
+                } else {
+                    var lines = new ArrayList<Component>();
+                    item.appendHoverText(stack, helper.getLevel(), lines, TooltipFlag.Default.NORMAL);
+                    helper.assertFalse(containsTranslatableKey(lines,
+                                    "item.apprenticecodex.common.spellgun.epicfight.offhand_warning"),
+                            item.getDescriptionId() + " should hide the Epic Fight offhand Guard warning without Epic Fight");
+                }
             }
         });
     }
@@ -888,7 +899,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             helper.assertTrue(canUseEpicFightOffhandSpellgun(swordPlayer),
                     "A one-hand Epic Fight sword should allow the offhand Spellgun");
             helper.assertFalse(canExecuteEpicFightGuard(swordPlayer),
-                    "Guard should not execute while a valid offhand Spellgun has right-click priority");
+                    "Guard should be intentionally disabled while a valid offhand Spellgun provides ranged attacks");
 
             var axePlayer = createEquipmentTestPlayer(helper, new BlockPos(2, 2, 0),
                     "spellgun_epicfight_axe_offhand_test");
@@ -901,7 +912,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             helper.assertTrue(canUseEpicFightOffhandSpellgun(axePlayer),
                     "A one-hand Epic Fight axe should allow the offhand Spellgun");
             helper.assertFalse(canExecuteEpicFightGuard(axePlayer),
-                    "Guard should not execute for an axe while a valid offhand Spellgun has right-click priority");
+                    "Guard should be intentionally disabled for an axe while a valid offhand Spellgun provides ranged attacks");
 
             var spear = ForgeRegistries.ITEMS.getValue(
                     ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MOD_ID, "iron_spear")
