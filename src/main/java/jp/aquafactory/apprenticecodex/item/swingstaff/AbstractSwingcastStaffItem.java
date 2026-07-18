@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -159,9 +160,13 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem
                 EquipmentSlotGroup.MAINHAND,
                 itemKey + "_mainhand_enchant"
         );
-        return hasStackDependentModifiers || hasEnchantmentModifiers
-                ? builder.build()
-                : baseModifiers;
+        if (!hasStackDependentModifiers && !hasEnchantmentModifiers) {
+            return baseModifiers;
+        }
+        return MagicAttributeModifierHelper.mergeLinearMagicModifiers(
+                builder.build(),
+                itemKey + "_mainhand_merged"
+        );
     }
 
     @Nullable

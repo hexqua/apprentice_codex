@@ -19,12 +19,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
-import java.util.Set;
 
 public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem, WisdomPolicy {
 
@@ -32,11 +30,6 @@ public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpe
     public boolean isWisdomActiveWhileHeld() {
         return true;
     }
-    private static final Set<ResourceLocation> EXTRA_SUPPORTED_ENCHANTMENTS = Set.of(
-            ResourceLocation.withDefaultNamespace("fortune"),
-            ResourceLocation.withDefaultNamespace("silk_touch")
-    );
-
     private static final StaffTier MULTICAST_ECHO_STAFF_TIER = new StaffTier(
             3.0F,
             -3.0F,
@@ -93,6 +86,10 @@ public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpe
 
     @Override
     public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        if (enchantment.is(net.minecraft.world.item.enchantment.Enchantments.FORTUNE)
+                || enchantment.is(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH)) {
+            return false;
+        }
         if (super.supportsEnchantment(stack, enchantment)) {
             return true;
         }
@@ -102,7 +99,7 @@ public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpe
             return true;
         }
 
-        return enchantmentId != null && EXTRA_SUPPORTED_ENCHANTMENTS.contains(enchantmentId);
+        return false;
     }
 
     @Override

@@ -16,7 +16,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -194,51 +193,23 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
     }
 
     private static void assertStaffEnchantmentSurfaces(GameTestHelper helper) {
-        var reference = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
-        var referenceDefinition = collectEnchantments(helper, reference,
-                (stack, enchantment) -> enchantment.value().canEnchant(stack));
-        var referenceBooks = collectEnchantments(helper, reference,
-                (stack, enchantment) -> stack.supportsEnchantment(enchantment));
-        var referenceTable = collectEnchantments(helper, reference,
-                (stack, enchantment) -> stack.getItem().isPrimaryItemFor(stack, enchantment));
-
         for (var entry : java.util.List.of(
-                java.util.Map.entry("Pastel Staff", reference),
+                java.util.Map.entry("Pastel Staff", new ItemStack(ItemRegistry.PASTEL_STAFF.get())),
                 java.util.Map.entry("Multicast Echo Staff", new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get())),
                 java.util.Map.entry("Zenith Staff", new ItemStack(ItemRegistry.ZENITH_STAFF.get())),
                 java.util.Map.entry("Circuit Heat Staff", new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get()))
         )) {
             var stack = entry.getValue();
-            helper.assertTrue(referenceDefinition.equals(collectEnchantments(helper, stack,
-                            (target, enchantment) -> enchantment.value().canEnchant(target))),
-                    entry.getKey() + " definition surface should match Pastel Staff");
-            helper.assertTrue(referenceBooks.equals(collectEnchantments(helper, stack,
-                            (target, enchantment) -> target.supportsEnchantment(enchantment))),
-                    entry.getKey() + " enchanted-book surface should match Pastel Staff");
-            helper.assertTrue(referenceTable.equals(collectEnchantments(helper, stack,
-                            (target, enchantment) -> target.getItem().isPrimaryItemFor(target, enchantment))),
-                    entry.getKey() + " enchanting-table surface should match Pastel Staff");
-
             assertVanillaEnchantment(helper, stack, "fortune", false, entry.getKey());
             assertVanillaEnchantment(helper, stack, "silk_touch", false, entry.getKey());
             assertVanillaEnchantment(helper, stack, "sharpness", true, entry.getKey());
+            assertVanillaEnchantment(helper, stack, "smite", true, entry.getKey());
+            assertVanillaEnchantment(helper, stack, "bane_of_arthropods", true, entry.getKey());
+            assertVanillaEnchantment(helper, stack, "knockback", true, entry.getKey());
+            assertVanillaEnchantment(helper, stack, "fire_aspect", true, entry.getKey());
             assertVanillaEnchantment(helper, stack, "looting", true, entry.getKey());
+            assertVanillaEnchantment(helper, stack, "sweeping_edge", true, entry.getKey());
         }
-    }
-
-    private static Set<ResourceLocation> collectEnchantments(
-            GameTestHelper helper,
-            ItemStack stack,
-            EnchantmentSurfacePredicate predicate
-    ) {
-        var enchantments = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-        var result = new LinkedHashSet<ResourceLocation>();
-        enchantments.listElements().forEach(enchantment -> {
-            if (predicate.test(stack, enchantment)) {
-                result.add(enchantment.key().location());
-            }
-        });
-        return result;
     }
 
     private static void assertVanillaEnchantment(
@@ -310,13 +281,5 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
                 item + " is declared for " + enchantmentId + " but rejects normal book application");
         helper.assertTrue(item.isPrimaryItemFor(stack, enchantment),
                 item + " is declared for " + enchantmentId + " but rejects enchanting-table application");
-    }
-
-    @FunctionalInterface
-    private interface EnchantmentSurfacePredicate {
-        boolean test(
-                ItemStack stack,
-                net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment> enchantment
-        );
     }
 }

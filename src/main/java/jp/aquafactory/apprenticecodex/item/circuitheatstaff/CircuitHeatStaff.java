@@ -160,6 +160,10 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
 
     @Override
     public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        if (enchantment.is(net.minecraft.world.item.enchantment.Enchantments.FORTUNE)
+                || enchantment.is(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH)) {
+            return false;
+        }
         var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
         if (enchantmentId == null || isDurabilityTargetEnchantment(enchantment)) {
             return false;

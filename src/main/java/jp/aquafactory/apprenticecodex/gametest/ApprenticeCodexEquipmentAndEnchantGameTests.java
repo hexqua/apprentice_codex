@@ -2005,13 +2005,13 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void pastelStaffKeepsItsExtraMiningEnchantments(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.pastelStaffKeepsItsExtraMiningEnchantments(helper);
+    public static void pastelStaffUsesSwordEnchantments(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.pastelStaffUsesSwordEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE)
-    public static void multicastEchoStaffKeepsItsExtraMiningEnchantments(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.multicastEchoStaffKeepsItsExtraMiningEnchantments(helper);
+    public static void multicastEchoStaffUsesSwordEnchantments(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multicastEchoStaffUsesSwordEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE)
