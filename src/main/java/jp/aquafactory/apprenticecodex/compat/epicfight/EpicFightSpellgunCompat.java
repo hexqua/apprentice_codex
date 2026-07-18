@@ -162,6 +162,16 @@ public final class EpicFightSpellgunCompat {
         return playerPatch.isEpicFightMode();
     }
 
+    public static boolean enterVanillaMode(ServerPlayer player) {
+        var playerPatch = EpicFightCapabilities.getEntityPatch(player, PlayerPatch.class);
+        if (playerPatch == null) {
+            return false;
+        }
+
+        playerPatch.toVanillaMode(false);
+        return playerPatch.isVanillaMode();
+    }
+
     public static boolean hasExpectedSpellgunCapability(ServerPlayer player, ItemStack stack) {
         var playerPatch = EpicFightCapabilities.getEntityPatch(player, PlayerPatch.class);
         var capability = EpicFightCapabilities.getItemStackCapability(stack);

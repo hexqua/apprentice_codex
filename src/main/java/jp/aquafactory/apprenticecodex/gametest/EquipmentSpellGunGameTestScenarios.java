@@ -1255,13 +1255,11 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             helper.assertTrue(enterEpicFightBattleMode(axePlayer),
                     "Spellgun axe offhand test should enter Epic Fight battle mode");
             axePlayer.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIAMOND_AXE));
-            helper.assertTrue(canExecuteEpicFightGuard(axePlayer),
-                    "A one-hand Epic Fight axe should allow Guard while the offhand is empty");
             axePlayer.setItemInHand(InteractionHand.OFF_HAND, spellgun.copy());
             helper.assertTrue(canUseEpicFightOffhandSpellgun(axePlayer),
                     "A one-hand Epic Fight axe should allow the offhand Spellgun");
-            helper.assertFalse(canExecuteEpicFightGuard(axePlayer),
-                    "Guard should be intentionally disabled for an axe while a valid offhand Spellgun provides ranged attacks");
+            // Epic Fight 21.17.3.1 の axe preset は単体でも Guard 実行条件を満たさないため、
+            // Guard 無効化の差分は sword で検証し、axe では one-hand のオフハンド可否だけを検証する。
 
             var spear = BuiltInRegistries.ITEM.get(
                     ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MOD_ID, "iron_spear")
@@ -1271,6 +1269,8 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                     "spellgun_epicfight_spear_offhand_test");
             spearPlayer.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(spear));
             spearPlayer.setItemInHand(InteractionHand.OFF_HAND, spellgun.copy());
+            helper.assertTrue(enterEpicFightVanillaMode(spearPlayer),
+                    "Spellgun spear offhand test should enter Epic Fight vanilla mode");
             helper.assertTrue(canUseEpicFightOffhandSpellgun(spearPlayer),
                     "Epic Fight vanilla mode should keep vanilla offhand Spellgun use behavior");
             helper.assertTrue(enterEpicFightBattleMode(spearPlayer),
@@ -1300,6 +1300,14 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
     private static boolean enterEpicFightBattleMode(Object player) {
         return invokeEpicFightSpellgunBoolean(
                 "enterBattleMode",
+                new Class<?>[]{net.minecraft.server.level.ServerPlayer.class},
+                player
+        );
+    }
+
+    private static boolean enterEpicFightVanillaMode(Object player) {
+        return invokeEpicFightSpellgunBoolean(
+                "enterVanillaMode",
                 new Class<?>[]{net.minecraft.server.level.ServerPlayer.class},
                 player
         );

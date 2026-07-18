@@ -27,9 +27,9 @@ public final class ClientSpellgunInputEvent {
             return;
         }
 
-        // Epic Fight 20.14.17 は非 LivingEntity を照準すると BasicAttack を開始しないため、
+        // Epic Fight 21.17.3.1 は非 LivingEntity を照準すると ComboAttacks を開始しないため、
         // Epic Fight Attack が実際に押され、且つ処理可能な入力だけを委譲する。
-        // 通常攻撃と別割り当てなら Forge 側で処理する。1.21.1 側では入力 API と判定条件を再確認する。
+        // 通常攻撃と別割り当てなら NeoForge 側で処理する。
         if (isEpicFightBattleMode()
                 && EpicFightClientCompat.isAttackActive()
                 && EpicFightClientCompat.canHandleAttackInput()) {
@@ -93,9 +93,9 @@ public final class ClientSpellgunInputEvent {
             return;
         }
 
-        // Controlify 2.1.7 では Epic Fight の攻撃アクションと通常攻撃が個別に再割り当てできる。
-        // 前者だけが押されると Forge の InteractionKeyMappingTriggered を経由しないため、
-        // Epic Fight が処理できない攻撃入力を tick 側で補足する。1.21.1 側では入力 API と実行順を再確認する。
+        // Controlify 2.5.0 では Epic Fight の攻撃アクションと通常攻撃が個別に再割り当てできる。
+        // 前者だけが押されると NeoForge の InteractionKeyMappingTriggered を経由しないため、
+        // Epic Fight が処理できない攻撃入力を tick 側で補足する。
         trySendMainhandCast();
     }
 
