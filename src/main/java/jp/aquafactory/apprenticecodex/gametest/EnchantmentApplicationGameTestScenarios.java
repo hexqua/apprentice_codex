@@ -440,30 +440,44 @@ final class EnchantmentApplicationGameTestScenarios {
     private static void assertLocalStaffRules(GameTestHelper helper) {
         var pastel = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
         var multicast = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
+        var zenith = new ItemStack(ItemRegistry.ZENITH_STAFF.get());
+        var circuitHeat = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         assertLocalStaffRules(helper, pastel, "Pastel Staff");
         assertLocalStaffRules(helper, multicast, "Multicast Echo Staff");
+        assertLocalStaffRules(helper, zenith, "Zenith Staff");
+        assertLocalStaffRules(helper, circuitHeat, "Circuit Heat Staff");
 
         var pastelTable = collectAllowedEnchantments(enchantment ->
                 pastel.getItem().canApplyAtEnchantingTable(pastel, enchantment));
-        var multicastTable = collectAllowedEnchantments(enchantment ->
-                multicast.getItem().canApplyAtEnchantingTable(multicast, enchantment));
-        helper.assertTrue(pastelTable.equals(multicastTable),
-                "Multicast Echo Staff enchanting-table surface should match Pastel Staff");
-
         var pastelBooks = collectAllowedEnchantments(enchantment ->
                 pastel.getItem().isBookEnchantable(pastel, createEnchantedBook(enchantment)));
-        var multicastBooks = collectAllowedEnchantments(enchantment ->
-                multicast.getItem().isBookEnchantable(multicast, createEnchantedBook(enchantment)));
-        helper.assertTrue(pastelBooks.equals(multicastBooks),
-                "Multicast Echo Staff book surface should match Pastel Staff");
+        for (var entry : List.of(
+                Map.entry("Multicast Echo Staff", multicast),
+                Map.entry("Zenith Staff", zenith),
+                Map.entry("Circuit Heat Staff", circuitHeat)
+        )) {
+            var stack = entry.getValue();
+            var table = collectAllowedEnchantments(enchantment ->
+                    stack.getItem().canApplyAtEnchantingTable(stack, enchantment));
+            helper.assertTrue(pastelTable.equals(table),
+                    entry.getKey() + " enchanting-table surface should match Pastel Staff");
+
+            var books = collectAllowedEnchantments(enchantment ->
+                    stack.getItem().isBookEnchantable(stack, createEnchantedBook(enchantment)));
+            helper.assertTrue(pastelBooks.equals(books),
+                    entry.getKey() + " book surface should match Pastel Staff");
+        }
     }
 
     private static void assertLocalStaffRules(GameTestHelper helper, ItemStack stack, String itemName) {
         var expectedVanilla = Set.of(
-                ResourceLocation.withDefaultNamespace("fortune"),
+                ResourceLocation.withDefaultNamespace("bane_of_arthropods"),
+                ResourceLocation.withDefaultNamespace("fire_aspect"),
                 ResourceLocation.withDefaultNamespace("knockback"),
                 ResourceLocation.withDefaultNamespace("looting"),
-                ResourceLocation.withDefaultNamespace("silk_touch")
+                ResourceLocation.withDefaultNamespace("sharpness"),
+                ResourceLocation.withDefaultNamespace("smite"),
+                ResourceLocation.withDefaultNamespace("sweeping")
         );
         for (var enchantment : getRegisteredEnchantments()) {
             var id = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);

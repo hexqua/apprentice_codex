@@ -1,36 +1,20 @@
 package jp.aquafactory.apprenticecodex.item;
 
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.Set;
-
 public final class StaffEnchantmentTargeting {
-    private static final String VANILLA_NAMESPACE = "minecraft";
     private static final String MALUM_NAMESPACE = "malum";
-    private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
-            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
     private static final ResourceLocation MALUM_REPLENISHING =
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "replenishing");
-    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
-            net.minecraft.core.registries.Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
-    );
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_SWORD);
-    private static final Set<ResourceLocation> ALLOWED_VANILLA_WEAPON_ENCHANTMENTS = Set.of(
-            ResourceLocation.withDefaultNamespace("looting"),
-            ResourceLocation.withDefaultNamespace("knockback"),
-            ResourceLocation.withDefaultNamespace("fortune"),
-            ResourceLocation.withDefaultNamespace("silk_touch")
-    );
 
     private StaffEnchantmentTargeting() {
     }
@@ -51,21 +35,18 @@ public final class StaffEnchantmentTargeting {
             return false;
         }
 
-        if (MalumHauntedCompat.isHauntedEnchantment(enchantmentId)
-                && MalumHauntedCompat.isSupportedHauntedMainhandItem(stack)) {
-            return true;
-        }
-
-        if (MALUM_SPIRIT_PLUNDER.equals(enchantmentId) && stack.is(MALUM_SOUL_HUNTER_WEAPON)) {
-            return true;
+        if (MalumHauntedCompat.isHauntedEnchantment(enchantmentId)) {
+            return MalumHauntedCompat.isSupportedHauntedMainhandItem(stack);
         }
 
         if (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get()) {
-            return true;
+            return WisdomPolicy.supportsDirectApplication(stack.getItem());
         }
 
-        if (VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())) {
-            return ALLOWED_VANILLA_WEAPON_ENCHANTMENTS.contains(enchantmentId);
+        // Forge の canApplyAtEnchantingTable(stack) はアイテム側へ戻って再帰するため、
+        // Spirit Plunder など、タグで staff を対象に加える外部エンチャントはカテゴリ判定を直接尊重する。
+        if (enchantment.category.canEnchant(stack.getItem())) {
+            return true;
         }
 
         return enchantment.canApplyAtEnchantingTable(SWORD_ENCHANTMENT_PROBE_STACK);

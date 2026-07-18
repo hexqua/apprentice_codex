@@ -16,11 +16,10 @@ import io.redspace.ironsspellbooks.item.weapons.StaffItem;
 import io.redspace.ironsspellbooks.item.weapons.StaffTier;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import io.redspace.ironsspellbooks.render.ClientStaffItemExtensions;
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
-import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
+import jp.aquafactory.apprenticecodex.item.StaffEnchantmentTargeting;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.renderer.item.CircuitHeatStaffRenderer;
 import jp.aquafactory.apprenticecodex.utility.PersistentGameTimeSanitizer;
@@ -31,7 +30,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
@@ -39,7 +37,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -48,7 +45,6 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -61,7 +57,6 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
 
 public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, NonDamageableAnvilMergeItem,
@@ -71,18 +66,6 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
     private static final String COG_CONTROLLER = "cog";
     private static final String OVERHEAT_EXPIRE_GAME_TIME_TAG = "CircuitHeatStaffOverheatExpireGameTime";
     private static final String OVERHEAT_DURATION_TICKS_TAG = "CircuitHeatStaffOverheatDurationTicks";
-    private static final String VANILLA_NAMESPACE = "minecraft";
-    private static final String MALUM_NAMESPACE = "malum";
-    private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
-            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
-    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
-            net.minecraft.core.registries.Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
-    );
-    private static final Set<ResourceLocation> ALLOWED_APPRENTICE_ENCHANTMENTS = Set.of(
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom")
-    );
-    private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
     private static final RawAnimation ANIM_IDLE_FRAME = RawAnimation.begin().thenLoop("idle_frame");
     private static final RawAnimation ANIM_IDLE_COG = RawAnimation.begin().thenLoop("idle_cog");
     private static final int ENCHANTMENT_VALUE = 14;
@@ -172,30 +155,7 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
 
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-        if (enchantmentId == null || isDurabilityTargetEnchantment(enchantment)) {
-            return false;
-        }
-
-        if (MalumHauntedCompat.isAnimatedEnchantment(enchantmentId)) {
-            return false;
-        }
-
-        if (MalumHauntedCompat.isHauntedEnchantment(enchantmentId)
-                && MalumHauntedCompat.isSupportedHauntedMainhandItem(stack)) {
-            return true;
-        }
-
-        if (MALUM_SPIRIT_PLUNDER.equals(enchantmentId) && stack.is(MALUM_SOUL_HUNTER_WEAPON)) {
-            return true;
-        }
-
-        if (ALLOWED_APPRENTICE_ENCHANTMENTS.contains(enchantmentId)) {
-            return true;
-        }
-
-        return VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())
-                && enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD));
+        return StaffEnchantmentTargeting.canApplyAtEnchantingTable(stack, enchantment);
     }
 
     @Override
@@ -481,10 +441,6 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
 
         var capTicks = ApprenticeCodexServerConfig.circuitHeatStaffOverheatDurationCapTicks();
         return Math.max(capTicks, 0);
-    }
-
-    private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
-        return enchantment.canApplyAtEnchantingTable(DURABILITY_ENCHANTMENT_PROBE_STACK);
     }
 
     @OnlyIn(Dist.CLIENT)

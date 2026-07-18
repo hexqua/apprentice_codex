@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff;
+import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff;
@@ -61,6 +62,7 @@ public final class MalumHauntedCompat {
         return item instanceof PastelStaff
                 || item instanceof MulticastEchoStaff
                 || item instanceof ZenithStaff
+                || item instanceof CircuitHeatStaff
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof FocusStaffbow
                 || item instanceof ChargedTwinBladeStaff
