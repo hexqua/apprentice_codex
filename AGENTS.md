@@ -59,6 +59,7 @@
 ./gradlew.bat runClientEasyMagic
 ./gradlew.bat runClientBetterCombat
 ./gradlew.bat runClientEpicFight
+./gradlew.bat runClientEpicFightController
 ./gradlew.bat runClientCompatEasyBetter
 ```
 - 一時的な optional MOD 追加:
@@ -80,6 +81,7 @@ Get-ChildItem build\libs\*.jar
 - `runGameTestServerEasyMagic` は Puzzles Lib / Easy Magic 連携の確認に使う。
 - `runGameTestServerBetterCombat` は Cloth Config / Better Combat 連携の確認に使う。
 - `runGameTestServerEpicFight` は Epic Fight 連携の確認に使う。
+- `runClientEpicFightController` は Epic Fight / Controlify / YACL を入れ、実機コントローラー入力を確認する。
 - `runClientCompatEasyBetter` は compat + EasyMagic + Better Combat を入れた実環境寄りの手動バランス確認用。Epic Fight は含めず、自動テスト対象にも含めない。
 - Better Combat と Epic Fight は干渉が大きいため、通常確認では同時投入しない。
 - optional MOD の runtime 切替は Gradle の実行構成または `-PdevRuntimeMods=...` で行う。`build.gradle` の `runtimeOnly` コメントアウト解除運用は使わない。

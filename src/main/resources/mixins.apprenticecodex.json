@@ -24,6 +24,7 @@
     "EnchantmentHelperMixin",
     "EntitySharedFlagAccessor",
     "EfisCompatPlayerAnimationEventsMixin",
+    "EpicFightGuardSkillMixin",
     "EpicFightLivingEntityPatchMixin",
     "EpicFightPlayerPatchMixin",
     "ItemNameMixin",

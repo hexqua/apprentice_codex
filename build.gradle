@@ -30,6 +30,8 @@ def optionalRuntimeModuleConfigurations = [
         cloth_config   : 'clothConfigRuntimeOnly',
         better_combat  : 'betterCombatRuntimeOnly',
         epic_fight     : 'epicFightRuntimeOnly',
+        controlify     : 'controlifyRuntimeOnly',
+        yacl           : 'yaclRuntimeOnly',
         lodestone      : 'lodestoneRuntimeOnly',
         malum          : 'malumRuntimeOnly',
 ]
@@ -44,6 +46,7 @@ def optionalRuntimeProfileModules = [
         easy_magic          : ['puzzles_lib', 'easy_magic'],
         better_combat       : ['cloth_config', 'better_combat'],
         epic_fight          : ['epic_fight'],
+        epic_fight_controller: ['epic_fight', 'yacl', 'controlify'],
         compat_easy_better  : ['create', 'botania', 'lodestone', 'malum', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
 ]
 
@@ -52,6 +55,8 @@ def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
         easymagic     : ['puzzles_lib', 'easy_magic'],
         bettercombat  : ['cloth_config', 'better_combat'],
         epicfight     : ['epic_fight'],
+        epicfightcontroller: ['epic_fight', 'yacl', 'controlify'],
+        controlify    : ['yacl', 'controlify'],
         create        : ['create'],
         botania       : ['botania'],
         lodestone     : ['lodestone'],
@@ -73,6 +78,8 @@ def optionalRuntimeModuleModIds = [
         cloth_config   : 'cloth_config',
         better_combat  : 'bettercombat',
         epic_fight     : 'epicfight',
+        controlify     : 'controlify',
+        yacl           : 'yet_another_config_lib_v3',
         lodestone      : 'lodestone',
         malum          : 'malum',
 ]
@@ -176,6 +183,13 @@ minecraft {
             parent null, 'client'
             taskName 'runClientEpicFight'
             lazyToken 'client_runtime_mod_classes', clientRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['epic_fight']))
+            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{client_runtime_mod_classes}"
+        }
+
+        clientEpicFightController {
+            parent null, 'client'
+            taskName 'runClientEpicFightController'
+            lazyToken 'client_runtime_mod_classes', clientRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['epic_fight_controller']))
             environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{client_runtime_mod_classes}"
         }
 
@@ -361,6 +375,9 @@ dependencies {
     // ランタイムは epic_fight profile で20.14系最新を使い、最新側の挙動を見る.
     compileOnly "maven.modrinth:epic-fight:${epicfight_compile_modrinth_version_id}"
     add(optionalRuntimeModuleConfigurations.epic_fight, fg.deobf("maven.modrinth:epic-fight:${epicfight_runtime_modrinth_version_id}"))
+    // Epic Fight対応済みのControlify Forgifiedを、専用client profileだけで検証する。
+    add(optionalRuntimeModuleConfigurations.yacl, fg.deobf("maven.modrinth:yacl:${yacl_version}"))
+    add(optionalRuntimeModuleConfigurations.controlify, fg.deobf("maven.modrinth:${controlify_modrinth_project_id}:${controlify_modrinth_version_id}"))
 
     // Lootr.
     // TreasureDivination が Lootr の個人開封済み判定へ接続するためのコンパイル用.

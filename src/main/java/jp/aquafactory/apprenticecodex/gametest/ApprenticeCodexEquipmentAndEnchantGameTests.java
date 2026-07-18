@@ -420,6 +420,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellgunsUseOneHandRangedEpicFightCapabilityWithoutInnate(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellgunsUseOneHandRangedEpicFightCapabilityWithoutInnate(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellgunEpicFightOffhandPolicyUsesOnlyValidOneHandMainhands(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellgunEpicFightOffhandPolicyUsesOnlyValidOneHandMainhands(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellcasterGunTooltipsUseCommonOperationDescriptions(GameTestHelper helper) {
         EquipmentSpellGunGameTestScenarios.spellcasterGunTooltipsUseCommonOperationDescriptions(helper);
     }
