@@ -24,7 +24,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerPlayer;
@@ -120,8 +119,8 @@ final class ParrycastBucklerGameTestScenarios {
             helper.assertTrue(ParrycastBuckler.hasWisdomShard(stack), "Wisdom Shard should be stored");
 
             CustomData.update(DataComponents.CUSTOM_DATA, stack, root -> {
-                var calibration = new CompoundTag();
-                var legacyAdjustments = new ListTag();
+                var calibration = root.getCompound("ParrycastBucklerCalibration");
+                var legacyAdjustments = calibration.getList("Adjustments", net.minecraft.nbt.Tag.TAG_COMPOUND);
                 var legacyEntry = new CompoundTag();
                 legacyEntry.putInt("Slot", 2);
                 legacyEntry.putString("Item", BuiltInRegistries.ITEM.getKey(fireRune.getItem()).toString());

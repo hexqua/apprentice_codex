@@ -468,7 +468,8 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
                     BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementAttribute),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             );
-            helper.assertTrue(Math.abs(effectiveAttunementSpellPower - 0.04D) < 1.0e-9D,
+            helper.assertTrue(Math.abs(effectiveAttunementSpellPower
+                            - AttributeEnchantmentType.ATTUNEMENT.amountPerLevel()) < 1.0e-9D,
                     "Mana Force Blade Attunement should apply school spell power in main hand"
                             + " spell=" + spell.getSpellResource()
                             + " school=" + imbuedSchool.getId()
