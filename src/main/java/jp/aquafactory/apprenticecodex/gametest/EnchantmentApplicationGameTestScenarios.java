@@ -249,7 +249,10 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
             String itemName
     ) {
         var enchantments = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-        var enchantment = enchantments.get(ResourceLocation.withDefaultNamespace(enchantmentPath)).orElseThrow();
+        var enchantment = enchantments.getOrThrow(ResourceKey.create(
+                Registries.ENCHANTMENT,
+                ResourceLocation.withDefaultNamespace(enchantmentPath)
+        ));
         helper.assertTrue(enchantment.value().canEnchant(stack) == expected,
                 itemName + " definition rule changed for " + enchantmentPath);
         helper.assertTrue(stack.supportsEnchantment(enchantment) == expected,

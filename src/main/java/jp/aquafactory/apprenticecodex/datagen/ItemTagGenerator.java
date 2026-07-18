@@ -57,7 +57,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_TRIDENT = createTag("minecraft", "enchantable/trident");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_DURABILITY = createTag("minecraft", "enchantable/durability");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_EQUIPPABLE = createTag("minecraft", "enchantable/equippable");
-    private static final TagKey<Item> MINECRAFT_ENCHANTABLE_MINING_LOOT = createTag("minecraft", "enchantable/mining_loot");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_VANISHING = createTag("minecraft", "enchantable/vanishing");
     private static final TagKey<Item> MALUM_MAGIC_CAPABLE_WEAPON = createTag("malum", "magic_capable_weapon");
     private static final TagKey<Item> MALUM_SOUL_SHATTER_CAPABLE_WEAPON = createTag("malum", "soul_shatter_capable_weapon");
@@ -166,7 +165,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         malumMagicCapableWeaponTag.add(ItemRegistry.ZENITH_STAFF.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.ZENITH_STAFF.get());
         tomagicReversalWeaponTag.add(ItemRegistry.ZENITH_STAFF.get());
-        tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.ZENITH_STAFF.get());
         vanillaSwordEnchantableTag.add(ItemRegistry.ZENITH_STAFF.get());
         vanillaFireAspectEnchantableTag.add(ItemRegistry.ZENITH_STAFF.get());
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.ZENITH_STAFF.get());
@@ -176,7 +174,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         malumMagicCapableWeaponTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
         tomagicReversalWeaponTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
-        tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
         vanillaSwordEnchantableTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
         vanillaFireAspectEnchantableTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.MULTICAST_ECHO_STAFF.get());
@@ -445,8 +442,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaDurabilityEnchantableTag.add(ItemRegistry.BOUND_BOW.get());
         // Synthesis はポリシー対象外なので個別に維持する。
         synthesisEnchantableTag.add(ItemRegistry.ELEMENTAL_BOW.get());
-        // 1.21.1 のバニラ enchantment JSON は Fortune / Silk Touch を mining_loot タグで判定する.
-        tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.PASTEL_STAFF.get());
         malumMagicCapableWeaponTag.add(ItemRegistry.PASTEL_STAFF.get());
         // 1.21.1 の Spirit Plunder は soul_shatter_capable_weapon 経由で supported_items を見ている。
         // Java 側の許可だけでは definition 判定を通らないため、Malum 側 tag も同じ面へ揃える。
