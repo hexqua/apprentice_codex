@@ -12,6 +12,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
@@ -223,6 +224,10 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         }
 
         if (player instanceof ServerPlayer serverPlayer) {
+            // Epic Fight が両手武器として扱う組み合わせでは、非表示のオフハンドから発射させない。
+            if (!EpicFightCompat.canUseOffhandSpellgun(serverPlayer)) {
+                return InteractionResultHolder.pass(stack);
+            }
             tryTriggerImbuedSpell(serverPlayer, usedHand, null);
         }
         // オフハンド Spellgun が選ばれた後の失敗をメインハンドへフォールバックさせない。

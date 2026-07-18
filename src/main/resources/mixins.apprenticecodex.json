@@ -24,6 +24,7 @@
     "FluidStackMixin",
     "EntitySharedFlagAccessor",
     "EfisCompatPlayerAnimationEventsMixin",
+    "EpicFightGuardSkillMixin",
     "EpicFightLivingEntityPatchMixin",
     "EpicFightPlayerPatchMixin",
     "IronsSpellbooksSchoolSpellCacheHotfixMixin",

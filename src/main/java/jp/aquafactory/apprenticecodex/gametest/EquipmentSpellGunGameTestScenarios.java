@@ -46,6 +46,7 @@ import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWork
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat;
+import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
@@ -1178,6 +1179,165 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             helper.assertTrue(offhandUse.getResult().consumesAction(),
                     "Selected offhand Spellgun should consume right-click even when it is not imbued");
         });
+    }
+
+    static void spellgunsUseOneHandRangedEpicFightCapabilityWithoutInnate(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(EpicFightCompat.MOD_ID)) {
+                return;
+            }
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "spellgun_epicfight_capability_test");
+            for (var spellgun : List.of(
+                    new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
+                    new ItemStack(ItemRegistry.COPPER_SPELLCASTER_GUN.get()),
+                    new ItemStack(ItemRegistry.GOLD_SPELLCASTER_GUN.get()),
+                    new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get())
+            )) {
+                helper.assertTrue(hasExpectedEpicFightSpellgunCapability(player, spellgun),
+                        spellgun.getDescriptionId()
+                                + " should use the one-hand ranged Epic Fight capability without an innate skill");
+            }
+
+            player.setItemInHand(
+                    InteractionHand.MAIN_HAND,
+                    new ItemStack(ItemRegistry.COPPER_SPELLCASTER_GUN.get())
+            );
+            helper.assertTrue(enterEpicFightBattleMode(player),
+                    "Spellgun basic attack integration test should enter Epic Fight battle mode");
+            helper.assertTrue(isEpicFightMainhandSpellgunBasicAttack(player),
+                    "Epic Fight basic attack should recognize a mainhand Spellgun");
+            helper.assertTrue(hasNoEpicFightSpellgunAttackMotion(player, player.getMainHandItem()),
+                    "Epic Fight basic attack should leave Spellgun casting without an Epic Fight motion");
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIAMOND_SWORD));
+            helper.assertFalse(isEpicFightMainhandSpellgunBasicAttack(player),
+                    "Epic Fight Spellgun basic attack handling should not affect non-Spellgun weapons");
+        });
+    }
+
+    static void spellgunEpicFightOffhandPolicyUsesOnlyValidOneHandMainhands(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(EpicFightCompat.MOD_ID)) {
+                return;
+            }
+
+            var spellgun = new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get());
+            var swordPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "spellgun_epicfight_sword_offhand_test");
+            helper.assertTrue(enterEpicFightBattleMode(swordPlayer),
+                    "Spellgun sword offhand test should enter Epic Fight battle mode");
+            swordPlayer.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIAMOND_SWORD));
+            helper.assertTrue(canExecuteEpicFightGuard(swordPlayer),
+                    "A one-hand Epic Fight sword should allow Guard while the offhand is empty");
+            swordPlayer.setItemInHand(InteractionHand.OFF_HAND, spellgun.copy());
+            helper.assertTrue(canUseEpicFightOffhandSpellgun(swordPlayer),
+                    "A one-hand Epic Fight sword should allow the offhand Spellgun");
+            helper.assertFalse(canExecuteEpicFightGuard(swordPlayer),
+                    "Guard should not execute while a valid offhand Spellgun has right-click priority");
+
+            var axePlayer = createEquipmentTestPlayer(helper, new BlockPos(2, 2, 0),
+                    "spellgun_epicfight_axe_offhand_test");
+            helper.assertTrue(enterEpicFightBattleMode(axePlayer),
+                    "Spellgun axe offhand test should enter Epic Fight battle mode");
+            axePlayer.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIAMOND_AXE));
+            helper.assertTrue(canExecuteEpicFightGuard(axePlayer),
+                    "A one-hand Epic Fight axe should allow Guard while the offhand is empty");
+            axePlayer.setItemInHand(InteractionHand.OFF_HAND, spellgun.copy());
+            helper.assertTrue(canUseEpicFightOffhandSpellgun(axePlayer),
+                    "A one-hand Epic Fight axe should allow the offhand Spellgun");
+            helper.assertFalse(canExecuteEpicFightGuard(axePlayer),
+                    "Guard should not execute for an axe while a valid offhand Spellgun has right-click priority");
+
+            var spear = BuiltInRegistries.ITEM.get(
+                    ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MOD_ID, "iron_spear")
+            );
+            helper.assertTrue(spear != Items.AIR, "Missing epicfight:iron_spear for the Spellgun offhand policy test");
+            var spearPlayer = createEquipmentTestPlayer(helper, new BlockPos(4, 2, 0),
+                    "spellgun_epicfight_spear_offhand_test");
+            spearPlayer.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(spear));
+            spearPlayer.setItemInHand(InteractionHand.OFF_HAND, spellgun.copy());
+            helper.assertTrue(canUseEpicFightOffhandSpellgun(spearPlayer),
+                    "Epic Fight vanilla mode should keep vanilla offhand Spellgun use behavior");
+            helper.assertTrue(enterEpicFightBattleMode(spearPlayer),
+                    "Spellgun spear offhand test should enter Epic Fight battle mode");
+            helper.assertFalse(canUseEpicFightOffhandSpellgun(spearPlayer),
+                    "Epic Fight spear should not gain its shield-only one-hand behavior from an offhand Spellgun");
+
+            var rejectedUse = spellgun.getItem().use(
+                    helper.getLevel(),
+                    spearPlayer,
+                    InteractionHand.OFF_HAND
+            );
+            helper.assertFalse(rejectedUse.getResult().consumesAction(),
+                    "An invalid Epic Fight offhand Spellgun use should pass without casting");
+        });
+    }
+
+    private static boolean hasExpectedEpicFightSpellgunCapability(Object player, ItemStack stack) {
+        return invokeEpicFightSpellgunBoolean(
+                "hasExpectedSpellgunCapability",
+                new Class<?>[]{net.minecraft.server.level.ServerPlayer.class, ItemStack.class},
+                player,
+                stack
+        );
+    }
+
+    private static boolean enterEpicFightBattleMode(Object player) {
+        return invokeEpicFightSpellgunBoolean(
+                "enterBattleMode",
+                new Class<?>[]{net.minecraft.server.level.ServerPlayer.class},
+                player
+        );
+    }
+
+    private static boolean isEpicFightMainhandSpellgunBasicAttack(Object player) {
+        return invokeEpicFightSpellgunBoolean(
+                "isMainhandSpellgunBasicAttack",
+                new Class<?>[]{net.minecraft.server.level.ServerPlayer.class},
+                player
+        );
+    }
+
+    private static boolean hasNoEpicFightSpellgunAttackMotion(Object player, ItemStack stack) {
+        return invokeEpicFightSpellgunBoolean(
+                "hasNoSpellgunAttackMotion",
+                new Class<?>[]{net.minecraft.server.level.ServerPlayer.class, ItemStack.class},
+                player,
+                stack
+        );
+    }
+
+    private static boolean canUseEpicFightOffhandSpellgun(Object player) {
+        return invokeEpicFightSpellgunBoolean(
+                "canUseOffhandSpellgun",
+                new Class<?>[]{net.minecraft.server.level.ServerPlayer.class},
+                player
+        );
+    }
+
+    private static boolean canExecuteEpicFightGuard(Object player) {
+        return invokeEpicFightSpellgunBoolean(
+                "canExecuteGuard",
+                new Class<?>[]{net.minecraft.server.level.ServerPlayer.class},
+                player
+        );
+    }
+
+    private static boolean invokeEpicFightSpellgunBoolean(
+            String methodName,
+            Class<?>[] parameterTypes,
+            Object... arguments
+    ) {
+        try {
+            var compatClass = Class.forName(
+                    "jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSpellgunCompat"
+            );
+            return (boolean) compatClass.getMethod(methodName, parameterTypes).invoke(null, arguments);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Failed to inspect Spellgun Epic Fight compatibility", exception);
+        }
     }
 
     static void invalidSpellgunSpellUsesDedicatedError(GameTestHelper helper) {

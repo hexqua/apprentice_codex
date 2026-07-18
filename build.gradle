@@ -76,6 +76,8 @@ def optionalRuntimeModuleConfigurations = [
         cloth_config   : 'clothConfigRuntimeOnly',
         better_combat  : 'betterCombatRuntimeOnly',
         epic_fight     : 'epicFightRuntimeOnly',
+        controlify     : 'controlifyRuntimeOnly',
+        yacl           : 'yaclRuntimeOnly',
         lodestone      : 'lodestoneRuntimeOnly',
         malum          : 'malumRuntimeOnly',
 ]
@@ -86,11 +88,12 @@ def clientRuntimeModuleConfigurations = [
 ]
 
 def optionalRuntimeProfileModules = [
-        compat            : ['create', 'lodestone', 'malum'],
-        easy_magic        : ['puzzles_lib', 'easy_magic'],
-        better_combat     : ['cloth_config', 'better_combat'],
-        epic_fight        : ['epic_fight'],
-        compat_easy_better: ['create', 'lodestone', 'malum', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
+        compat              : ['create', 'lodestone', 'malum'],
+        easy_magic          : ['puzzles_lib', 'easy_magic'],
+        better_combat       : ['cloth_config', 'better_combat'],
+        epic_fight          : ['epic_fight'],
+        epic_fight_controller: ['epic_fight', 'yacl', 'controlify'],
+        compat_easy_better  : ['create', 'lodestone', 'malum', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
 ]
 
 def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
@@ -98,6 +101,8 @@ def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
         easymagic     : ['puzzles_lib', 'easy_magic'],
         bettercombat  : ['cloth_config', 'better_combat'],
         epicfight     : ['epic_fight'],
+        epicfightcontroller: ['epic_fight', 'yacl', 'controlify'],
+        controlify    : ['yacl', 'controlify'],
         create        : ['create'],
         lodestone     : ['lodestone'],
         malum         : ['lodestone', 'malum'],
@@ -186,6 +191,11 @@ neoForge {
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
+        clientEpicFightController {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
         clientCompatEasyBetter {
             client()
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
@@ -267,7 +277,7 @@ configurations {
     }
 }
 
-['client', 'clientCompat', 'clientEasyMagic', 'clientBetterCombat', 'clientEpicFight', 'clientCompatEasyBetter'].each {
+['client', 'clientCompat', 'clientEasyMagic', 'clientBetterCombat', 'clientEpicFight', 'clientEpicFightController', 'clientCompatEasyBetter'].each {
     extendRunJavaClasspathWithClientRuntimeModules(it)
 }
 
@@ -275,6 +285,7 @@ extendRunJavaClasspathWithOptionalRuntimeModules('clientCompat', expandOptionalR
 extendRunJavaClasspathWithOptionalRuntimeModules('clientEasyMagic', expandOptionalRuntimeModules(['easy_magic']))
 extendRunJavaClasspathWithOptionalRuntimeModules('clientBetterCombat', expandOptionalRuntimeModules(['better_combat']))
 extendRunJavaClasspathWithOptionalRuntimeModules('clientEpicFight', expandOptionalRuntimeModules(['epic_fight']))
+extendRunJavaClasspathWithOptionalRuntimeModules('clientEpicFightController', expandOptionalRuntimeModules(['epic_fight_controller']))
 extendRunJavaClasspathWithOptionalRuntimeModules('clientCompatEasyBetter', expandOptionalRuntimeModules(['compat_easy_better']))
 extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerCompat', expandOptionalRuntimeModules(['compat']))
 extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerEasyMagic', expandOptionalRuntimeModules(['easy_magic']))
@@ -330,6 +341,11 @@ dependencies {
     // ランタイムは epic_fight profile から読み込む.
     compileOnly "maven.modrinth:epic-fight:${epicfight_version}"
     add(optionalRuntimeModuleConfigurations.epic_fight, "maven.modrinth:epic-fight:${epicfight_version}")
+    // Epic Fight が対応する Controlify と必須設定ライブラリを、専用 client profile だけで検証する。
+    add(optionalRuntimeModuleConfigurations.yacl,
+            "maven.modrinth:${yacl_modrinth_project_id}:${yacl_modrinth_version_id}")
+    add(optionalRuntimeModuleConfigurations.controlify,
+            "maven.modrinth:${controlify_modrinth_project_id}:${controlify_modrinth_version_id}")
 
     // Lootr.
     // TreasureDivination が Lootr の個人開封済み判定へ接続するためのコンパイル用.
