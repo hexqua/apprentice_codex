@@ -9,8 +9,12 @@ import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -64,6 +68,7 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
 
     static void directApplicationPoliciesKeepExpectedMatrix(GameTestHelper helper) {
         helper.succeedIf(() -> {
+            assertEnchantableTagIds(helper);
             assertDirectAttributePolicy(helper, ItemRegistry.IRON_SPELLCASTER_GUN.get(),
                     AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS);
             assertDirectAttributePolicy(helper, ItemRegistry.COPPER_SWINGCAST_STAFF.get(),
@@ -96,6 +101,37 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
 
             assertDirectPoliciesReachApplicationSurfaces(helper);
         });
+    }
+
+    private static void assertEnchantableTagIds(GameTestHelper helper) {
+        for (var entry : java.util.List.of(
+                java.util.Map.entry(Enchantments.ALACRITY_ENCHANTABLE, Enchantments.ALACRITY),
+                java.util.Map.entry(Enchantments.REFLUX_ENCHANTABLE, Enchantments.REFLUX),
+                java.util.Map.entry(Enchantments.RESERVOIR_ENCHANTABLE, Enchantments.RESERVOIR),
+                java.util.Map.entry(Enchantments.SURGE_ENCHANTABLE, Enchantments.SURGE),
+                java.util.Map.entry(Enchantments.ATTUNEMENT_ENCHANTABLE, Enchantments.ATTUNEMENT),
+                java.util.Map.entry(Enchantments.TENSE_ENCHANTABLE, Enchantments.TENSE),
+                java.util.Map.entry(Enchantments.TRANSCENDENCE_ENCHANTABLE, Enchantments.TRANSCENDENCE),
+                java.util.Map.entry(Enchantments.WISDOM_ENCHANTABLE, Enchantments.WISDOM),
+                java.util.Map.entry(Enchantments.PLUNDER_ENCHANTABLE, Enchantments.PLUNDER)
+        )) {
+            assertEnchantableTagId(helper, entry.getKey(), entry.getValue());
+        }
+    }
+
+    private static void assertEnchantableTagId(
+            GameTestHelper helper,
+            TagKey<Item> tag,
+            ResourceKey<Enchantment> enchantment
+    ) {
+        var enchantmentId = enchantment.location();
+        var expected = ResourceLocation.fromNamespaceAndPath(
+                enchantmentId.getNamespace(),
+                enchantmentId.getPath() + "_enchantable"
+        );
+        helper.assertTrue(tag.location().equals(expected),
+                "Enchantable tag id should match the 1.21.1 contract: expected="
+                        + expected + " actual=" + tag.location());
     }
 
     static void specialApplicationRulesStayExplicit(GameTestHelper helper) {
