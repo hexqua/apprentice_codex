@@ -119,8 +119,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void copperSpellAmplifierStartsWithBallLightningAndStacksAttunement(GameTestHelper helper) {
-        OffhandAndBetterCombatGameTestScenarios.copperSpellAmplifierStartsWithBallLightningAndStacksAttunement(helper);
+    public static void copperSpellAmplifierStartsWithShock(GameTestHelper helper) {
+        OffhandAndBetterCombatGameTestScenarios.copperSpellAmplifierStartsWithShock(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -972,8 +972,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void enchantedCircletCurioBonusesMirrorOffhandMagicEnchantments(GameTestHelper helper) {
-        OffhandAndBetterCombatGameTestScenarios.enchantedCircletCurioBonusesMirrorOffhandMagicEnchantments(helper);
+    public static void enchantedCircletKeepsBaseCurioPenalty(GameTestHelper helper) {
+        OffhandAndBetterCombatGameTestScenarios.enchantedCircletKeepsBaseCurioPenalty(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1905,8 +1905,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void elementMaidenRobeKeepsExpectedStatsImbueAndMagicEnchantments(GameTestHelper helper) {
-        EquipmentEnchantmentSurfaceGameTestScenarios.elementMaidenRobeKeepsExpectedStatsImbueAndMagicEnchantments(helper);
+    public static void elementMaidenRobeKeepsExpectedStatsAndImbueSurface(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.elementMaidenRobeKeepsExpectedStatsAndImbueSurface(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1942,6 +1942,31 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void magicAttributeMergeOnlyNormalizesLinearMagicAttributes(GameTestHelper helper) {
         AttributeEnchantmentPolicyGameTestScenarios.mergeHelperOnlyNormalizesLinearMagicAttributes(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void attributeEnchantmentsApplyInMainhand(GameTestHelper helper) {
+        AttributeEnchantmentEffectGameTestScenarios.attributeEnchantmentsApplyInMainhand(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void attributeEnchantmentsApplyInOffhand(GameTestHelper helper) {
+        AttributeEnchantmentEffectGameTestScenarios.attributeEnchantmentsApplyInOffhand(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void attributeEnchantmentsApplyOnArmor(GameTestHelper helper) {
+        AttributeEnchantmentEffectGameTestScenarios.attributeEnchantmentsApplyOnArmor(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void attributeEnchantmentsApplyInCurios(GameTestHelper helper) {
+        AttributeEnchantmentEffectGameTestScenarios.attributeEnchantmentsApplyInCurios(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void attributeEnchantmentsMergeWithExistingAttributes(GameTestHelper helper) {
+        AttributeEnchantmentEffectGameTestScenarios.attributeEnchantmentsMergeWithExistingAttributes(helper);
     }
 
     @GameTest(template = TEMPLATE)
