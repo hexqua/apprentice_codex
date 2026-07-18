@@ -72,16 +72,32 @@ public final class ClientSpellgunInputEvent {
 
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.END && !isAttackActive()) {
+        if (event.phase != TickEvent.Phase.END) {
+            return;
+        }
+
+        var epicFightBattleMode = isEpicFightBattleMode();
+        var attackActive = epicFightBattleMode
+                ? EpicFightClientCompat.isAttackActive()
+                : Minecraft.getInstance().options.keyAttack.isDown();
+
+        if (epicFightBattleMode && attackActive) {
+            trySendUnhandledEpicFightAttackCast();
+        } else if (!attackActive) {
             attackLocked = false;
         }
     }
 
-    private static boolean isAttackActive() {
-        if (isEpicFightBattleMode()) {
-            return EpicFightClientCompat.isAttackActive();
+    private static void trySendUnhandledEpicFightAttackCast() {
+        var minecraft = Minecraft.getInstance();
+        if (minecraft.screen != null || EpicFightClientCompat.canHandleAttackInput()) {
+            return;
         }
-        return Minecraft.getInstance().options.keyAttack.isDown();
+
+        // Controlify 2.1.7 では Epic Fight の攻撃アクションと通常攻撃が個別に再割り当てできる。
+        // 前者だけが押されると Forge の InteractionKeyMappingTriggered を経由しないため、
+        // Epic Fight が処理できない攻撃入力を tick 側で補足する。1.21.1 側では入力 API と実行順を再確認する。
+        trySendMainhandCast();
     }
 
     private static boolean isEpicFightBattleMode() {
