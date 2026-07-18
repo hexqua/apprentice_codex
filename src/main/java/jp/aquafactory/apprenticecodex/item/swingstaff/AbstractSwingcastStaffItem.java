@@ -7,6 +7,9 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
@@ -43,7 +46,8 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem implements GeoItem, IJeiInfoItem {
+public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem
+        implements GeoItem, IJeiInfoItem, AttributeEnchantmentPolicy {
     private static final String JEI_INFO_GROUP_ID = "swingcast_staves";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.swingcast_staves.desc_";
 
@@ -54,6 +58,13 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
     private final String itemKey;
     private final ResourceLocation textureLocation;
     private final SwingcastStaffTier tier;
+
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR,
+            AttributeEnchantmentType.TENSE
+    );
 
     protected AbstractSwingcastStaffItem(
             String itemKey,
@@ -141,7 +152,14 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
             builder.add(entry.attribute(), entry.modifier(), entry.slot());
         }
 
-        return addStackDependentModifiers(builder, stack, itemKey + "_mainhand_stack")
+        var hasStackDependentModifiers = addStackDependentModifiers(builder, stack, itemKey + "_mainhand_stack");
+        var hasEnchantmentModifiers = AttributeEnchantmentResolver.addModifiers(
+                builder,
+                stack,
+                EquipmentSlotGroup.MAINHAND,
+                itemKey + "_mainhand_enchant"
+        );
+        return hasStackDependentModifiers || hasEnchantmentModifiers
                 ? builder.build()
                 : baseModifiers;
     }
@@ -233,6 +251,11 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
     @Override
     public boolean shouldSuppressCastFinishAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
         return false;
+    }
+
+    @Override
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
     }
 
     protected boolean passesAdditionalImbueConditions(AbstractSpell spell, int spellLevel) {

@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.config;
 import jp.aquafactory.apprenticecodex.config.item.CraftsmansDelightServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.CircuitHeatStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ChromaticMagiaDressServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.BulwarkGreatshieldServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ElementalBowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FocusStaffbowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerConfig;
@@ -46,6 +47,7 @@ final class ItemsServerConfig {
     private final IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig;
     private final ManaForceBladeServerConfig manaForceBladeConfig;
     private final ParrycastBucklerServerConfig parrycastBucklerConfig;
+    private final BulwarkGreatshieldServerConfig bulwarkGreatshieldConfig;
     private final MagiCompressorGadgetServerConfig magiCompressorGadgetConfig;
     private final ManaShieldCharmServerConfig manaShieldCharmConfig;
     private final ManaThrusterServerConfig manaThrusterConfig;
@@ -76,6 +78,7 @@ final class ItemsServerConfig {
             IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig,
             ManaForceBladeServerConfig manaForceBladeConfig,
             ParrycastBucklerServerConfig parrycastBucklerConfig,
+            BulwarkGreatshieldServerConfig bulwarkGreatshieldConfig,
             MagiCompressorGadgetServerConfig magiCompressorGadgetConfig,
             ManaShieldCharmServerConfig manaShieldCharmConfig,
             ManaThrusterServerConfig manaThrusterConfig,
@@ -105,6 +108,7 @@ final class ItemsServerConfig {
         this.isekaiTravelGuidebookConfig = isekaiTravelGuidebookConfig;
         this.manaForceBladeConfig = manaForceBladeConfig;
         this.parrycastBucklerConfig = parrycastBucklerConfig;
+        this.bulwarkGreatshieldConfig = bulwarkGreatshieldConfig;
         this.magiCompressorGadgetConfig = magiCompressorGadgetConfig;
         this.manaShieldCharmConfig = manaShieldCharmConfig;
         this.manaThrusterConfig = manaThrusterConfig;
@@ -137,6 +141,7 @@ final class ItemsServerConfig {
         var isekaiTravelGuidebookConfig = IsekaiTravelGuidebookServerConfig.define(builder);
         var manaForceBladeConfig = ManaForceBladeServerConfig.define(builder);
         var parrycastBucklerConfig = ParrycastBucklerServerConfig.define(builder);
+        var bulwarkGreatshieldConfig = BulwarkGreatshieldServerConfig.define(builder);
         var magiCompressorGadgetConfig = MagiCompressorGadgetServerConfig.define(builder);
         var manaShieldCharmConfig = ManaShieldCharmServerConfig.define(builder);
         var manaThrusterConfig = ManaThrusterServerConfig.define(builder);
@@ -168,6 +173,7 @@ final class ItemsServerConfig {
                 isekaiTravelGuidebookConfig,
                 manaForceBladeConfig,
                 parrycastBucklerConfig,
+                bulwarkGreatshieldConfig,
                 magiCompressorGadgetConfig,
                 manaShieldCharmConfig,
                 manaThrusterConfig,
@@ -362,6 +368,14 @@ final class ItemsServerConfig {
 
     int parrycastBucklerPerfectGuardReleaseCooldownGraceUses() {
         return parrycastBucklerConfig.perfectGuardReleaseCooldownGraceUses();
+    }
+
+    double bulwarkGreatshieldGenericSpellResist() {
+        return bulwarkGreatshieldConfig.genericSpellResist();
+    }
+
+    double bulwarkGreatshieldSchoolSpellResist() {
+        return bulwarkGreatshieldConfig.schoolSpellResist();
     }
 
     float manaShieldCharmManaPerDamage() {
@@ -758,6 +772,10 @@ final class ItemsServerConfig {
             double maxAir
     ) {
         magiCompressorGadgetConfig.setForGameTest(manaCostPerSecond, airFillPerSecond, maxAir);
+    }
+
+    void setBulwarkGreatshieldConfigForGameTest(double genericSpellResist, double schoolSpellResist) {
+        bulwarkGreatshieldConfig.setForGameTest(genericSpellResist, schoolSpellResist);
     }
 
     void setFocusStaffbowConfigForGameTest(

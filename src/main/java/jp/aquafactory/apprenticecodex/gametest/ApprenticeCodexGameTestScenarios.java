@@ -69,6 +69,7 @@ import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerC
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
 import jp.aquafactory.apprenticecodex.event.ErrandMageVillagerTradesEvent;
 import jp.aquafactory.apprenticecodex.event.errandmage.ErrandMageTradeManager;
@@ -11923,6 +11924,11 @@ public class ApprenticeCodexGameTestScenarios {
         ));
         if (stack.getItem() instanceof MithrilFreecastStaff) {
             expectedEnchantments.remove(Enchantments.TRANSCENDENCE.location());
+        }
+        if (stack.getItem() instanceof AttributeEnchantmentPolicy policy) {
+            for (var type : policy.directlyApplicableAttributeEnchantments()) {
+                expectedEnchantments.add(type.enchantmentKey().location());
+            }
         }
         addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
         addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedEnchantments);

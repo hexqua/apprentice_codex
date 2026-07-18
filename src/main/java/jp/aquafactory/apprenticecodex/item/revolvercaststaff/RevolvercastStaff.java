@@ -15,6 +15,9 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.item.Scroll;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -63,6 +66,7 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
@@ -83,7 +87,7 @@ import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         implements GeoItem, CastAnimationOverrideItem, IJeiInfoItem, SwingTriggeredMagicItem,
         RestrictedSpellImbuableItem, ArcaneAnvilImbueBlockItem, StoredSpellCalibrationImbueTarget,
-        SpellCalibrationAdjustmentTarget {
+        SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy {
     private static final String ITEM_KEY = "revolvercast_staff";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.revolvercast_staff.desc_";
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
@@ -135,6 +139,13 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     private static final ResourceLocation SPELL_POWER_MODIFIER_ID =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "revolvercast_staff.mainhand.spell_power");
 
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR,
+            AttributeEnchantmentType.TENSE
+    );
+
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final ResourceLocation textureLocation = ResourceLocation.fromNamespaceAndPath(
             ApprenticeCodex.MODID,
@@ -180,6 +191,11 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
+    }
+
+    @Override
     public void initializeSpellContainer(ItemStack stack) {
         refreshSelectedSpellContainer(stack);
     }
@@ -218,17 +234,22 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
                     ),
                     EquipmentSlotGroup.MAINHAND
             );
-            return builder.build();
+        } else {
+            builder.add(
+                    BuiltInRegistries.ATTRIBUTE.wrapAsHolder(spellPowerAttribute),
+                    new AttributeModifier(
+                            SPELL_POWER_MODIFIER_ID,
+                            spellPowerAmount,
+                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                    ),
+                    EquipmentSlotGroup.MAINHAND
+            );
         }
-
-        builder.add(
-                BuiltInRegistries.ATTRIBUTE.wrapAsHolder(spellPowerAttribute),
-                new AttributeModifier(
-                        SPELL_POWER_MODIFIER_ID,
-                        spellPowerAmount,
-                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE
-                ),
-                EquipmentSlotGroup.MAINHAND
+        AttributeEnchantmentResolver.addModifiers(
+                builder,
+                stack,
+                EquipmentSlotGroup.MAINHAND,
+                "revolvercast_staff_mainhand_enchant"
         );
         return builder.build();
     }

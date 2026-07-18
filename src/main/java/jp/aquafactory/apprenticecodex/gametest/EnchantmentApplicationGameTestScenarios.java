@@ -17,6 +17,17 @@ import java.util.Set;
  * 1.21.1 の enchantment definition / item tag を正とし、Java 側ポリシーとの境界を固定する。
  */
 final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameTestScenarios {
+    private static final Set<AttributeEnchantmentType> GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR,
+            AttributeEnchantmentType.TENSE
+    );
+    private static final Set<AttributeEnchantmentType> BULWARK_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR
+    );
+
     private EnchantmentApplicationGameTestScenarios() {
     }
 
@@ -24,6 +35,16 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
         helper.succeedIf(() -> {
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
                     AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS, "Spell Gun");
+            assertDefinitionSurface(helper, new ItemStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get()),
+                    GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS, "Swingcast Staff");
+            assertDefinitionSurface(helper, new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()),
+                    GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS, "Mithril Freecast Staff");
+            assertDefinitionSurface(helper, new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get()),
+                    GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS, "Revolvercast Staff");
+            assertDefinitionSurface(helper, new ItemStack(ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get()),
+                    GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS, "Stealth Rune Armor");
+            assertDefinitionSurface(helper, new ItemStack(ItemRegistry.BULWARK_GREATSHIELD.get()),
+                    BULWARK_ENCHANTMENTS, "Bulwark Greatshield");
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get()),
                     Set.of(
                             AttributeEnchantmentType.ALACRITY,
@@ -40,14 +61,17 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
 
     static void directApplicationPoliciesKeepExpectedMatrix(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            assertDirectAttributePolicy(helper, ItemRegistry.IRON_SPELLCASTER_GUN.get(), Set.of(
-                    AttributeEnchantmentType.ALACRITY,
-                    AttributeEnchantmentType.REFLUX,
-                    AttributeEnchantmentType.RESERVOIR,
-                    AttributeEnchantmentType.SURGE,
-                    AttributeEnchantmentType.ATTUNEMENT,
-                    AttributeEnchantmentType.TENSE
-            ));
+            assertDirectAttributePolicy(helper, ItemRegistry.IRON_SPELLCASTER_GUN.get(),
+                    AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS);
+            assertDirectAttributePolicy(helper, ItemRegistry.COPPER_SWINGCAST_STAFF.get(),
+                    GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS);
+            assertDirectAttributePolicy(helper, ItemRegistry.MITHRIL_FREECAST_STAFF.get(),
+                    GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS);
+            assertDirectAttributePolicy(helper, ItemRegistry.REVOLVERCAST_STAFF.get(),
+                    GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS);
+            assertDirectAttributePolicy(helper, ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),
+                    GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS);
+            assertDirectAttributePolicy(helper, ItemRegistry.BULWARK_GREATSHIELD.get(), BULWARK_ENCHANTMENTS);
             assertDirectAttributePolicy(helper, ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(), Set.of(
                     AttributeEnchantmentType.ALACRITY,
                     AttributeEnchantmentType.REFLUX,
@@ -75,6 +99,12 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
         helper.succeedIf(() -> {
             helper.assertFalse(ItemRegistry.CIRCUIT_HEAT_STAFF.get() instanceof PlunderTarget,
                     "Circuit Heat Staff must not convert Plunder into Looting");
+            helper.assertFalse(ItemRegistry.ENCHANTRESS_ROBE.get() instanceof TranscendencePolicy,
+                    "Enchantress Robe must reject and ignore Transcendence");
+            helper.assertTrue(TranscendencePolicy.supportsDirectApplication(ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get()),
+                    "Stealth Rune chest armor should accept Transcendence");
+            helper.assertFalse(TranscendencePolicy.supportsDirectApplication(ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get()),
+                    "Stealth Rune non-chest armor should reject Transcendence");
 
             var scrollcaster = ItemRegistry.SCROLLCASTER_GAUNTLET.get();
             helper.assertFalse(TranscendencePolicy.supportsDirectApplication(scrollcaster),
@@ -93,27 +123,17 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
     static void acquisitionFlagsKeepExpectedValues(GameTestHelper helper) {
         helper.succeedIf(() -> {
             for (var enchantment : Set.of(
-                    Enchantments.ALACRITY,
-                    Enchantments.REFLUX,
-                    Enchantments.RESERVOIR,
-                    Enchantments.SURGE,
-                    Enchantments.ATTUNEMENT,
-                    Enchantments.TENSE,
-                    Enchantments.WISDOM,
-                    Enchantments.PLUNDER
+                    Enchantments.ALACRITY, Enchantments.REFLUX, Enchantments.RESERVOIR,
+                    Enchantments.SURGE, Enchantments.ATTUNEMENT, Enchantments.TENSE,
+                    Enchantments.WISDOM, Enchantments.PLUNDER
             )) {
                 assertApprenticeEnchantmentFlags(helper, enchantment, false, true, true, true);
             }
             assertApprenticeEnchantmentFlags(helper, Enchantments.TRANSCENDENCE, true, false, true, true);
             for (var enchantment : Set.of(
-                    Enchantments.GUZZLE,
-                    Enchantments.LARGE_MUG,
-                    Enchantments.RED_ENERGY,
-                    Enchantments.GLOW_ENERGY,
-                    Enchantments.SYNTHESIS,
-                    Enchantments.SHELL,
-                    Enchantments.SYNCHRONIZATION,
-                    Enchantments.NEUTRALIZATION
+                    Enchantments.GUZZLE, Enchantments.LARGE_MUG, Enchantments.RED_ENERGY,
+                    Enchantments.GLOW_ENERGY, Enchantments.SYNTHESIS, Enchantments.SHELL,
+                    Enchantments.SYNCHRONIZATION, Enchantments.NEUTRALIZATION
             )) {
                 assertApprenticeEnchantmentFlags(helper, enchantment, false, true, false, false);
             }

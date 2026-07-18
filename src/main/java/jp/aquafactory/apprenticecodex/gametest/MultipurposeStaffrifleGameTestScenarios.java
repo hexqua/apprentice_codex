@@ -82,6 +82,7 @@ import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
@@ -392,35 +393,35 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
                     helper,
                     enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                    0.02D,
+                    AttributeEnchantmentType.ALACRITY.amountPerLevel(),
                     "Multipurpose Staffrifle Alacrity modifier changed"
             );
             assertSingleModifierAmount(
                     helper,
                     enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                    0.05D,
+                    AttributeEnchantmentType.REFLUX.amountPerLevel(),
                     "Multipurpose Staffrifle Reflux modifier changed"
             );
             assertSingleModifierAmount(
                     helper,
                     enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA),
                     AttributeModifier.Operation.ADD_VALUE,
-                    20.0D,
+                    AttributeEnchantmentType.RESERVOIR.amountPerLevel(),
                     "Multipurpose Staffrifle Reservoir modifier changed"
             );
             assertSingleModifierAmount(
                     helper,
                     enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                    0.12D,
+                    0.10D + AttributeEnchantmentType.SURGE.amountPerLevel(),
                     "Multipurpose Staffrifle base + Surge spell power modifier changed"
             );
             assertSingleModifierAmount(
                     helper,
                     enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                    0.05D,
+                    AttributeEnchantmentType.TENSE.amountPerLevel(),
                     "Multipurpose Staffrifle Tense modifier changed"
             );
 

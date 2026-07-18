@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.Holder;
@@ -14,13 +15,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 
 public final class OffhandMagicModifierHelper {
-    private static final double ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL = 0.02D;
-    private static final double REFLUX_MANA_REGEN_PER_LEVEL = 0.05D;
-    private static final double RESERVOIR_MAX_MANA_PER_LEVEL = 20.0D;
-    private static final double SURGE_SPELL_POWER_PER_LEVEL = 0.02D;
-    private static final double ATTUNEMENT_SPELL_POWER_PER_LEVEL = 0.04D;
-    private static final double TENSE_CAST_TIME_REDUCTION_PER_LEVEL = 0.05D;
-
     private OffhandMagicModifierHelper() {
     }
 
@@ -54,28 +48,28 @@ public final class OffhandMagicModifierHelper {
         addEquippedModifier(
                 builder,
                 AttributeRegistry.COOLDOWN_REDUCTION,
-                alacrityLevel * ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL,
+                alacrityLevel * AttributeEnchantmentType.ALACRITY.amountPerLevel(),
                 AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                 createModifierId(itemKey, "alacrity_cooldown_reduction")
         );
         addEquippedModifier(
                 builder,
                 AttributeRegistry.MANA_REGEN,
-                refluxLevel * REFLUX_MANA_REGEN_PER_LEVEL,
+                refluxLevel * AttributeEnchantmentType.REFLUX.amountPerLevel(),
                 AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                 createModifierId(itemKey, "reflux_mana_regen")
         );
         addEquippedModifier(
                 builder,
                 AttributeRegistry.MAX_MANA,
-                reservoirLevel * RESERVOIR_MAX_MANA_PER_LEVEL,
+                reservoirLevel * AttributeEnchantmentType.RESERVOIR.amountPerLevel(),
                 AttributeModifier.Operation.ADD_VALUE,
                 createModifierId(itemKey, "reservoir_max_mana")
         );
         addEquippedModifier(
                 builder,
                 AttributeRegistry.SPELL_POWER,
-                surgeLevel * SURGE_SPELL_POWER_PER_LEVEL,
+                surgeLevel * AttributeEnchantmentType.SURGE.amountPerLevel(),
                 AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                 createModifierId(itemKey, "surge_spell_power")
         );
@@ -87,7 +81,7 @@ public final class OffhandMagicModifierHelper {
                 addEquippedModifier(
                         builder,
                         BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementSpellPowerAttribute),
-                        attunementLevel * ATTUNEMENT_SPELL_POWER_PER_LEVEL,
+                        attunementLevel * AttributeEnchantmentType.ATTUNEMENT.amountPerLevel(),
                         AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                         createModifierId(itemKey, "attunement_spell_power")
                 );
@@ -97,7 +91,7 @@ public final class OffhandMagicModifierHelper {
         addEquippedModifier(
                 builder,
                 AttributeRegistry.CAST_TIME_REDUCTION,
-                tenseLevel * TENSE_CAST_TIME_REDUCTION_PER_LEVEL,
+                tenseLevel * AttributeEnchantmentType.TENSE.amountPerLevel(),
                 AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                 createModifierId(itemKey, "tense_cast_time_reduction")
         );

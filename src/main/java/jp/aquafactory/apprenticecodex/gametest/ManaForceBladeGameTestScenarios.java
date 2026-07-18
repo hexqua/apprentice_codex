@@ -185,6 +185,7 @@ import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.CreativeTabRegistry;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeConfigState;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeGuardLogic;
@@ -398,7 +399,7 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
                     helper,
                     modifiers.get(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementAttribute)),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                    0.09D,
+                    0.05D + AttributeEnchantmentType.ATTUNEMENT.amountPerLevel(),
                     "Mana Force Blade Attunement and matching upgrade should merge into one display modifier"
                             + " spell=" + spell.getSpellResource()
                             + " school=" + imbuedSchool.getId()
@@ -454,7 +455,7 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
                     helper,
                     attunementModifiers.get(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementAttribute)),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                    0.04D,
+                    AttributeEnchantmentType.ATTUNEMENT.amountPerLevel(),
                     "Mana Force Blade Attunement should add imbued school spell power"
                             + " spell=" + spell.getSpellResource()
                             + " school=" + imbuedSchool.getId()
@@ -467,7 +468,8 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
                     BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementAttribute),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             );
-            helper.assertTrue(Math.abs(effectiveAttunementSpellPower - 0.04D) < 1.0e-9D,
+            helper.assertTrue(Math.abs(effectiveAttunementSpellPower
+                            - AttributeEnchantmentType.ATTUNEMENT.amountPerLevel()) < 1.0e-9D,
                     "Mana Force Blade Attunement should apply school spell power in main hand"
                             + " spell=" + spell.getSpellResource()
                             + " school=" + imbuedSchool.getId()
