@@ -28,8 +28,11 @@ public final class ClientSpellgunInputEvent {
         }
 
         // Epic Fight 20.14.17 は非 LivingEntity を照準すると BasicAttack を開始しないため、
-        // 処理可能な入力だけを委譲する。1.21.1 側では canPlayAttackAnimation の判定条件を再確認する。
-        if (isEpicFightBattleMode() && EpicFightClientCompat.canHandleAttackInput()) {
+        // Epic Fight Attack が実際に押され、且つ処理可能な入力だけを委譲する。
+        // 通常攻撃と別割り当てなら Forge 側で処理する。1.21.1 側では入力 API と判定条件を再確認する。
+        if (isEpicFightBattleMode()
+                && EpicFightClientCompat.isAttackActive()
+                && EpicFightClientCompat.canHandleAttackInput()) {
             return;
         }
 
