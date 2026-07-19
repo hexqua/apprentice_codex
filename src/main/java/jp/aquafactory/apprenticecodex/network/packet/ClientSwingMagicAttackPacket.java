@@ -2,8 +2,8 @@ package jp.aquafactory.apprenticecodex.network.packet;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
-import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffAttackContextManager;
+import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRingAttackTrigger;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -59,14 +59,7 @@ public record ClientSwingMagicAttackPacket(
                 return;
             }
 
-            if (stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem
-                    && swingTriggeredMagicItem.canTriggerSpellOnSwing(sender, packet.hand())) {
-                swingTriggeredMagicItem.tryTriggerSpellOnSwing(
-                        sender,
-                        packet.hand(),
-                        packet.bypassChargeCheck()
-                );
-            }
+            AttackcastRingAttackTrigger.tryTriggerAttack(sender, packet.hand(), packet.bypassChargeCheck());
         });
     }
 }

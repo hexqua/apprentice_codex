@@ -1,17 +1,22 @@
 package jp.aquafactory.apprenticecodex.item.curios.attackcastring;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -27,7 +32,7 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AttackcastRing extends Item implements ICurioItem, RestrictedSpellImbuableItem {
+public class AttackcastRing extends Item implements ICurioItem, RestrictedSpellImbuableItem, CastAnimationOverrideItem {
     final String slotIdentifier;
 
     public AttackcastRing() {
@@ -107,6 +112,67 @@ public class AttackcastRing extends Item implements ICurioItem, RestrictedSpellI
         return spell != null && spell != SpellRegistry.none() && spell.getCastType() == CastType.INSTANT;
     }
 
+    public boolean tryTriggerImbuedSpell(ServerPlayer player, ItemStack stack, String castingSlot) {
+        initializeSpellContainer(stack);
+        var spellContainer = ISpellContainer.get(stack);
+        if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
+            return false;
+        }
+
+        var spellData = spellContainer.getSpellAtIndex(0);
+        if (!canImbueSpell(spellData)) {
+            return false;
+        }
+
+        var spell = spellData.getSpell();
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData == null || magicData.getPlayerCooldowns().isOnCooldown(spell)) {
+            // 攻撃のたびに同じ警告が出ないよう、クールダウンだけは Iron's Spells の通知前に除外する。
+            return false;
+        }
+
+        var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
+        try (var ignored = SwingcastStaffCastContext.open(player.getUUID(), stack, spell)) {
+            if (!spell.attemptInitiateCast(
+                    stack,
+                    spellLevel,
+                    player.level(),
+                    player,
+                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD,
+                    true,
+                    castingSlot
+            )) {
+                return false;
+            }
+
+            // MagicData は同時に 1 詠唱しか保持できないため、Instant を通常 tick と同じ順序で完了させて次の指輪へ進む。
+            // 1.21.1 側では Iron's Spells の詠唱完了 API と packet 順序を再確認する。
+            spell.castSpell(player.level(), spellLevel, player, magicData.getCastSource(), true);
+            spell.onServerCastComplete(player.level(), spellLevel, player, magicData, false);
+            return true;
+        }
+    }
+
+    @Override
+    public boolean shouldSuppressCastStartAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
+        return matchesImbuedSpell(stack, spell);
+    }
+
+    @Override
+    public boolean shouldOverrideCastStartAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
+        return matchesImbuedSpell(stack, spell);
+    }
+
+    @Override
+    public AnimationHolder getCastStartAnimation(ItemStack stack, AbstractSpell spell, int spellLevel) {
+        return AnimationHolder.pass();
+    }
+
+    @Override
+    public boolean shouldSuppressCastFinishAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
+        return matchesImbuedSpell(stack, spell);
+    }
+
     @Override
     public void normalizeImbuedSpellContainer(ItemStack stack) {
         if (stack == null || stack.isEmpty()) {
@@ -184,6 +250,20 @@ public class AttackcastRing extends Item implements ICurioItem, RestrictedSpellI
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_instant_only"
         ));
         return translatedLines;
+    }
+
+    private static boolean matchesImbuedSpell(ItemStack stack, @Nullable AbstractSpell spell) {
+        if (spell == null || !ISpellContainer.isSpellContainer(stack)) {
+            return false;
+        }
+
+        var spellContainer = ISpellContainer.get(stack);
+        if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
+            return false;
+        }
+
+        var spellData = spellContainer.getSpellAtIndex(0);
+        return spellData != SpellData.EMPTY && spell.equals(spellData.getSpell());
     }
 
 }

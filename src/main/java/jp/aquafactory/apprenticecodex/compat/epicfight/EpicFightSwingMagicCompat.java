@@ -1,9 +1,9 @@
 package jp.aquafactory.apprenticecodex.compat.epicfight;
 
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
-import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffAttackContextManager;
+import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRingAttackTrigger;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -344,8 +344,6 @@ public final class EpicFightSwingMagicCompat {
                     true,
                     CRYSTAL_BLADED_STAFF_MISS_EVALUATION_DELAY_TICKS
             );
-        } else if (stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem) {
-            return swingTriggeredMagicItem.tryTriggerSpellOnSwing(player, triggerHand, true);
         } else if (triggerHand == InteractionHand.MAIN_HAND
                 && player instanceof ServerPlayer serverPlayer
                 && stack.getItem() instanceof MultipurposeStaffrifle staffrifle) {
@@ -353,6 +351,10 @@ public final class EpicFightSwingMagicCompat {
                 playStaffrifleShotAnimation(serverPlayer);
                 return true;
             }
+        }
+        if (player instanceof ServerPlayer serverPlayer
+                && AttackcastRingAttackTrigger.tryTriggerAttack(serverPlayer, triggerHand, true)) {
+            return true;
         }
         return false;
     }
@@ -402,8 +404,8 @@ public final class EpicFightSwingMagicCompat {
 
     private static boolean isSupportedAttackTriggeredItem(Player player, InteractionHand hand) {
         var stack = player.getItemInHand(hand);
-        if (stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem) {
-            return swingTriggeredMagicItem.canTriggerSpellOnSwing(player, hand);
+        if (AttackcastRingAttackTrigger.canTriggerAttack(player, hand)) {
+            return true;
         }
         return stack.getItem() instanceof MultipurposeStaffrifle;
     }
