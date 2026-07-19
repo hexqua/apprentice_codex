@@ -4,9 +4,11 @@ import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeSt
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffAttackContextManager;
 import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRingAttackTrigger;
+import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.AttackAnimation;
@@ -327,13 +329,18 @@ public final class EpicFightSwingMagicCompat {
                     true,
                     CRYSTAL_BLADED_STAFF_MISS_EVALUATION_DELAY_TICKS
             );
-        } else if (triggerHand == InteractionHand.MAIN_HAND
-                && player instanceof ServerPlayer serverPlayer
-                && stack.getItem() instanceof MultipurposeStaffrifle staffrifle) {
-            if (staffrifle.tryTriggerSelectedSpell(serverPlayer, false)) {
+        }
+        if (triggerHand == InteractionHand.MAIN_HAND
+                && usesDedicatedAttackPathWithoutAttackcastRingFallback(stack.getItem())) {
+            if (player instanceof ServerPlayer serverPlayer
+                    && stack.getItem() instanceof MultipurposeStaffrifle staffrifle
+                    && staffrifle.tryTriggerSelectedSpell(serverPlayer, false)) {
                 playStaffrifleShotAnimation(serverPlayer);
                 return true;
             }
+
+            // 専用攻撃経路が失敗した場合も、通常クライアント経路と同様に指輪へはフォールバックさせない。
+            return false;
         }
         if (player instanceof ServerPlayer serverPlayer
                 && AttackcastRingAttackTrigger.tryTriggerAttack(serverPlayer, triggerHand, true)) {
@@ -391,6 +398,10 @@ public final class EpicFightSwingMagicCompat {
             return true;
         }
         return stack.getItem() instanceof MultipurposeStaffrifle;
+    }
+
+    private static boolean usesDedicatedAttackPathWithoutAttackcastRingFallback(Item item) {
+        return item instanceof MultipurposeStaffrifle || item instanceof AbstractSpellGunItem;
     }
 
     private static InteractionHand resolveAttackHand(AttackPhaseEndEvent event) {
