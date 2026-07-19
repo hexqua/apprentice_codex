@@ -63,7 +63,7 @@ public class ArcaneBeam extends AbstractSpell {
         return Math.round((getSpellPower(spellLevel, entity) - 100) / 30.0f);
     }
 
-    private float getRange(){
+    static float getRange(){
         return 32f;
     }
 
