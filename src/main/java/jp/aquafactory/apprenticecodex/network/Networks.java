@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimo
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmScrollcasterGauntletIndexPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmStorageStabilizerSpellPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientEpicFightAttackcastRingTargetsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
@@ -62,7 +63,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "58";
+    private static final String PROTOCOL_VERSION = "59";
 
     private Networks() {
     }
@@ -112,6 +113,11 @@ public final class Networks {
                 ClientSwingMagicAttackPacket.TYPE,
                 ClientSwingMagicAttackPacket.STREAM_CODEC,
                 ClientSwingMagicAttackPacket::handle
+        );
+        registrar.playToServer(
+                ClientEpicFightAttackcastRingTargetsPacket.TYPE,
+                ClientEpicFightAttackcastRingTargetsPacket.STREAM_CODEC,
+                ClientEpicFightAttackcastRingTargetsPacket::handle
         );
         registrar.playToServer(
                 ClientMultipurposeStaffrifleCastPacket.TYPE,
