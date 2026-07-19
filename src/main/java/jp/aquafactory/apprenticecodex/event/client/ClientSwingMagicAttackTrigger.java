@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.event.client;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
-import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
+import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRingAttackTrigger;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import net.minecraft.client.Minecraft;
@@ -75,16 +75,13 @@ public final class ClientSwingMagicAttackTrigger {
         }
 
         var stack = player.getItemInHand(hand);
-        if (!(stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem)) {
+        if (!AttackcastRingAttackTrigger.canTriggerAttack(player, hand)) {
             if (logEmptyHandFailure && stack.isEmpty()) {
                 ApprenticeCodex.LOGGER.error(
                         "Better Combat swing magic trigger skipped because {} resolved to an empty stack.",
                         hand
                 );
             }
-            return false;
-        }
-        if (!swingTriggeredMagicItem.canTriggerSpellOnSwing(player, hand)) {
             return false;
         }
 

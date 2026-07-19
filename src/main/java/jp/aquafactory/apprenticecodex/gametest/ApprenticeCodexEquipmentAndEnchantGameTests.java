@@ -1317,6 +1317,41 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void attackcastRingSupportsOnlyRemovableInstantSpells(GameTestHelper helper) {
+        AttackcastRingGameTestScenarios.attackcastRingSupportsOnlyRemovableInstantSpells(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void attackcastRingConsumesManaAndAddsCooldown(GameTestHelper helper) {
+        AttackcastRingGameTestScenarios.attackcastRingConsumesManaAndAddsCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void attackcastRingSilentlySkipsCooldownAndFailsWithoutMana(GameTestHelper helper) {
+        AttackcastRingGameTestScenarios.attackcastRingSilentlySkipsCooldownAndFailsWithoutMana(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void attackcastRingCastsAllEquippedRingsInSlotOrder(GameTestHelper helper) {
+        AttackcastRingGameTestScenarios.attackcastRingCastsAllEquippedRingsInSlotOrder(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void attackcastRingDefersToSuccessfulHeldSwingcast(GameTestHelper helper) {
+        AttackcastRingGameTestScenarios.attackcastRingDefersToSuccessfulHeldSwingcast(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void attackcastRingRequiresFullChargeOutsideCompatTiming(GameTestHelper helper) {
+        AttackcastRingGameTestScenarios.attackcastRingRequiresFullChargeOutsideCompatTiming(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void attackcastRingEpicFightAttackPhaseUsesEquippedRing(GameTestHelper helper) {
+        AttackcastRingGameTestScenarios.attackcastRingEpicFightAttackPhaseUsesEquippedRing(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void crystalBladedStaffStartsWithHiddenManaSlash(GameTestHelper helper) {
         SwingcastStaffGameTestScenarios.crystalBladedStaffStartsWithHiddenManaSlash(helper);
     }
