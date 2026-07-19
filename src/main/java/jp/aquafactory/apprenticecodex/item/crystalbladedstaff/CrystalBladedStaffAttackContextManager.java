@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.crystalbladedstaff;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
@@ -213,6 +214,12 @@ public final class CrystalBladedStaffAttackContextManager {
     }
 
     private static void triggerPendingAttack(ServerPlayer player, PendingMissTrigger trigger, boolean hit) {
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData == null || magicData.isCasting()) {
+            // 遅延中に別の詠唱が始まった場合も、手持ち側の attemptInitiateCast でキャンセルしない。
+            return;
+        }
+
         var stack = player.getItemInHand(trigger.hand());
         // 遅延中に持ち替えた場合は不発にする。SpellDataを固定して別経路で詠唱すると契約が広がるため、
         // 1-2tickのエッジケースには、振った同一スタックが手に残っている場合だけ通常経路へ渡す。
