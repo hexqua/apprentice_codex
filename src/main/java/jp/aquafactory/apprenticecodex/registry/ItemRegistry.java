@@ -39,6 +39,7 @@ import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
+import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRing;
 import jp.aquafactory.apprenticecodex.item.curios.circlets.AshenCirclet;
 import jp.aquafactory.apprenticecodex.item.curios.circlets.EnchantedCirclet;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
@@ -314,6 +315,8 @@ public final class ItemRegistry {
             ITEMS.register("jumpcast_charm", JumpcastCharm::new);
     public static final DeferredHolder<Item, Item> SPELL_CAST_PARRYING_RING =
             ITEMS.register("spell_cast_parrying_ring", SpellCastParryingRing::new);
+    public static final DeferredHolder<Item, Item> ATTACKCAST_RING =
+            ITEMS.register("attackcast_ring", AttackcastRing::new);
     public static final DeferredHolder<Item, Item> ASHEN_CIRCLET =
             ITEMS.register("ashen_circlet", AshenCirclet::new);
     public static final DeferredHolder<Item, Item> ENCHANTED_CIRCLET =
