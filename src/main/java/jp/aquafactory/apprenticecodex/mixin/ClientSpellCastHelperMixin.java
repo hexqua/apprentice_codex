@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowStartSound
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldClientEffectState;
+import jp.aquafactory.apprenticecodex.utility.SpellSelectionStackResolver;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -214,7 +215,8 @@ public abstract class ClientSpellCastHelperMixin {
         if (SpellSelectionManager.OFFHAND.equals(castingSlot)) {
             return apprentice_codex$resolveOffhandStack(player);
         }
-        return ItemStack.EMPTY;
+        // Curios 発動では identifier_index が同期されるため、装備中の実スタックから animation override を解決する。
+        return SpellSelectionStackResolver.resolveSelectionStack(player, castingSlot);
     }
 
     @Unique
