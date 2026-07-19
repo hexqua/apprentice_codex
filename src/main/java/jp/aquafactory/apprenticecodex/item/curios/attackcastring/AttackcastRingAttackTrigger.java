@@ -37,6 +37,10 @@ public final class AttackcastRingAttackTrigger {
             return true;
         }
 
+        return tryTriggerEquippedRings(player);
+    }
+
+    public static boolean tryTriggerEquippedRings(ServerPlayer player) {
         var casted = false;
         for (var equippedRing : getEquippedRings(player)) {
             if (equippedRing.stack().getItem() instanceof AttackcastRing ring

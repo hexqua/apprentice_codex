@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.gametest;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
+import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffAttackContextManager;
 import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRing;
 import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRingAttackTrigger;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
@@ -10,6 +12,7 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -170,12 +173,72 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
         helper.succeed();
     }
 
+    static void attackcastRingFallsBackAfterCrystalBladedStaffHit(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "attackcast_ring_crystal_hit");
+        var staffStack = createCrystalBladedStaffStack();
+        player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+        var ringSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get();
+        equipRing(player, 0, createRingStack(helper, ringSpell));
+        var magicData = requireMagicData(helper, player);
+        magicData.setMana(1000.0F);
+
+        helper.assertTrue(
+                CrystalBladedStaffAttackContextManager.requestMissTrigger(
+                        player,
+                        InteractionHand.MAIN_HAND,
+                        true,
+                        2
+                ),
+                "Crystal Bladed Staff hit should create a pending Attackcast Ring fallback"
+        );
+        var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0));
+        helper.assertTrue(target.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F),
+                "Crystal Bladed Staff Attackcast Ring hit test should deal direct player attack damage");
+
+        helper.runAfterDelay(4, () -> {
+            helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(ringSpell),
+                    "Crystal Bladed Staff hit should suppress Mana Slash and cast the Attackcast Ring");
+            helper.succeed();
+        });
+    }
+
+    static void attackcastRingFallsBackAfterCrystalBladedStaffMissFailure(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "attackcast_ring_crystal_miss_failure");
+        var staffStack = createCrystalBladedStaffStack();
+        player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+        var staffSpell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
+        var ringSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get();
+        equipRing(player, 0, createRingStack(helper, ringSpell));
+        var magicData = requireMagicData(helper, player);
+        magicData.setMana(1000.0F);
+        io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(
+                player,
+                staffSpell,
+                io.redspace.ironsspellbooks.api.spells.CastSource.SWORD
+        );
+
+        helper.assertTrue(
+                CrystalBladedStaffAttackContextManager.requestMissTrigger(player, InteractionHand.MAIN_HAND, true),
+                "Crystal Bladed Staff miss should create a pending Attackcast Ring fallback"
+        );
+
+        helper.succeedWhen(() -> helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(ringSpell),
+                "Failed Crystal Bladed Staff miss cast should fall back to the Attackcast Ring"));
+    }
+
     private static ItemStack createRingStack(GameTestHelper helper, AbstractSpell spell) {
         var stack = new ItemStack(ItemRegistry.ATTACKCAST_RING.get());
         var mutable = ISpellContainer.create(1, false, false).mutableCopy();
         helper.assertTrue(mutable.addSpellAtIndex(spell, 1, 0, false),
                 "Attackcast Ring test could not imbue " + spell.getSpellId());
         ISpellContainer.set(stack, mutable.toImmutable());
+        return stack;
+    }
+
+    private static ItemStack createCrystalBladedStaffStack() {
+        var item = (CrystalBladedStaff) ItemRegistry.CRYSTAL_BLADED_STAFF.get();
+        var stack = new ItemStack(item);
+        item.initializeSpellContainer(stack);
         return stack;
     }
 

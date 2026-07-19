@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.crystalbladedstaff;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
+import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRingAttackTrigger;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -189,9 +190,9 @@ public final class CrystalBladedStaffAttackContextManager {
                 player = trigger.player();
             }
             if (player != null
-                    && player.serverLevel() == serverLevel
-                    && !hasRecentHit(serverLevel, triggerKey.playerUuid(), trigger.hand(), trigger.requestGameTime())) {
-                triggerMissSpell(player, trigger);
+                    && player.serverLevel() == serverLevel) {
+                var hit = hasRecentHit(serverLevel, triggerKey.playerUuid(), trigger.hand(), trigger.requestGameTime());
+                triggerPendingAttack(player, trigger, hit);
             }
             iterator.remove();
         }
@@ -201,7 +202,7 @@ public final class CrystalBladedStaffAttackContextManager {
         }
     }
 
-    private static void triggerMissSpell(ServerPlayer player, PendingMissTrigger trigger) {
+    private static void triggerPendingAttack(ServerPlayer player, PendingMissTrigger trigger, boolean hit) {
         var stack = player.getItemInHand(trigger.hand());
         // 遅延中に持ち替えた場合は不発にする。SpellDataを固定して別経路で詠唱すると契約が広がるため、
         // 1-2tickのエッジケースには、振った同一スタックが手に残っている場合だけ通常経路へ渡す。
@@ -213,10 +214,16 @@ public final class CrystalBladedStaffAttackContextManager {
             return;
         }
 
-        if (stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem
+        if (!hit
+                && stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem
                 && swingTriggeredMagicItem.canTriggerSpellOnSwing(player, trigger.hand())) {
-            swingTriggeredMagicItem.tryTriggerSpellOnSwing(player, trigger.hand(), trigger.bypassChargeCheck());
+            if (swingTriggeredMagicItem.tryTriggerSpellOnSwing(player, trigger.hand(), trigger.bypassChargeCheck())) {
+                return;
+            }
         }
+
+        // 命中時は杖魔法を抑止し、空振り時は杖魔法が開始できなかった場合だけ指輪へフォールバックする。
+        AttackcastRingAttackTrigger.tryTriggerEquippedRings(player);
     }
 
     public static void recordRecentCrystalBladedStaffHit(ServerPlayer attacker, InteractionHand hand) {

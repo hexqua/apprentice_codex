@@ -4,6 +4,8 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRingAttackTrigger;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import net.minecraft.client.Minecraft;
@@ -75,6 +77,14 @@ public final class ClientSwingMagicAttackTrigger {
         }
 
         var stack = player.getItemInHand(hand);
+        // 専用の攻撃入力パケットを持つ武器へ汎用 swing パケットも送ると、後着の指輪詠唱が
+        // 先に始まった即時詠唱をキャンセルする。専用経路だけに発動の優先順位を委ねる。
+        if (hand == InteractionHand.MAIN_HAND
+                && (stack.getItem() instanceof MultipurposeStaffrifle
+                        || stack.getItem() instanceof AbstractSpellGunItem)) {
+            return false;
+        }
+
         if (!AttackcastRingAttackTrigger.canTriggerAttack(player, hand)) {
             if (logEmptyHandFailure && stack.isEmpty()) {
                 ApprenticeCodex.LOGGER.error(
