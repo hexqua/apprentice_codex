@@ -1,7 +1,11 @@
 package jp.aquafactory.apprenticecodex.item.curios.attackcastring;
 
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -25,6 +29,11 @@ public final class AttackcastRingAttackTrigger {
     }
 
     public static boolean tryTriggerAttack(ServerPlayer player, InteractionHand hand, boolean bypassChargeCheck) {
+        return tryTriggerAttack(player, hand, bypassChargeCheck, List.of());
+    }
+
+    public static boolean tryTriggerAttack(ServerPlayer player, InteractionHand hand, boolean bypassChargeCheck,
+                                           List<BlockTargetData> ringTargets) {
         if (!bypassChargeCheck && !AbstractRightClickMagicWeaponItem.isFullyChargedAttack(player)) {
             return false;
         }
@@ -37,18 +46,46 @@ public final class AttackcastRingAttackTrigger {
             return true;
         }
 
-        return tryTriggerEquippedRings(player);
+        return tryTriggerEquippedRings(player, ringTargets);
     }
 
     public static boolean tryTriggerEquippedRings(ServerPlayer player) {
+        return tryTriggerEquippedRings(player, List.of());
+    }
+
+    public static boolean tryTriggerEquippedRings(ServerPlayer player, List<BlockTargetData> ringTargets) {
         var casted = false;
-        for (var equippedRing : getEquippedRings(player)) {
-            if (equippedRing.stack().getItem() instanceof AttackcastRing ring
-                    && ring.tryTriggerImbuedSpell(player, equippedRing.stack(), castingSlot(equippedRing))) {
-                casted = true;
+        var equippedRings = getEquippedRings(player);
+        for (var index = 0; index < equippedRings.size(); ++index) {
+            var equippedRing = equippedRings.get(index);
+            if (equippedRing.stack().getItem() instanceof AttackcastRing ring) {
+                var spellData = getImbuedSpellData(equippedRing);
+                if (spellData != SpellData.EMPTY) {
+                    BlockTargetingHelper.setPendingServerTarget(
+                            player,
+                            spellData.getSpell().getSpellResource(),
+                            index < ringTargets.size() ? ringTargets.get(index) : null
+                    );
+                } else {
+                    BlockTargetingHelper.clearPendingServerTarget(player);
+                }
+                try {
+                    if (ring.tryTriggerImbuedSpell(player, equippedRing.stack(), castingSlot(equippedRing))) {
+                        casted = true;
+                    }
+                } finally {
+                    // 失敗時に対象が消費されなくても、別の詠唱へ持ち越さない。
+                    BlockTargetingHelper.clearPendingServerTarget(player);
+                }
             }
         }
         return casted;
+    }
+
+    public static List<SpellData> getEquippedSpellData(Player player) {
+        return getEquippedRings(player).stream()
+                .map(AttackcastRingAttackTrigger::getImbuedSpellData)
+                .toList();
     }
 
     public static boolean hasEquippedRing(Player player) {
@@ -69,5 +106,12 @@ public final class AttackcastRingAttackTrigger {
 
     private static String castingSlot(SlotResult result) {
         return result.slotContext().identifier() + "_" + result.slotContext().index();
+    }
+
+    private static SpellData getImbuedSpellData(SlotResult result) {
+        var container = ISpellContainer.get(result.stack());
+        return container != null && container.getActiveSpellCount() > 0
+                ? container.getSpellAtIndex(0)
+                : SpellData.EMPTY;
     }
 }

@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.event.client;
 
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRingAttackTrigger;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockHitTargetingSpell;
@@ -18,6 +19,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public final class ClientBlockTargetSyncService {
     @Nullable
@@ -64,6 +67,12 @@ public final class ClientBlockTargetSyncService {
         var targetData = captureTargetData(spell, player, resolveSpellLevel(spellData, player), targetingSpell);
         ClientPlacementPreviewManager.rememberPendingTarget(spellResource, targetData);
         return targetData;
+    }
+
+    public static List<BlockTargetData> captureForAttackcastRings(Player player) {
+        return AttackcastRingAttackTrigger.getEquippedSpellData(player).stream()
+                .map(ClientBlockTargetSyncService::captureForEmbeddedCast)
+                .toList();
     }
 
     private static boolean trySend(SpellData spellData, Player player, int spellLevel, int quickCastSlot, boolean initiateCast) {

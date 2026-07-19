@@ -59,7 +59,13 @@ public final class ClientSwingMagicAttackTrigger {
 
         LAST_SENT_TICKS.put(hand, player.level().getGameTime());
         ClientSwingcastStaffCastContext.beginPending(player.getUUID(), player.getItemInHand(hand));
-        Networks.sendToServer(new ClientSwingMagicAttackPacket(bypassChargeCheck, hand, missEvaluationDelayTicks));
+        var ringTargets = ClientBlockTargetSyncService.captureForAttackcastRings(player);
+        Networks.sendToServer(new ClientSwingMagicAttackPacket(
+                bypassChargeCheck,
+                hand,
+                missEvaluationDelayTicks,
+                ringTargets
+        ));
     }
 
     private static boolean canSend(

@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
 import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRingAttackTrigger;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -20,6 +21,7 @@ import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.WeakHashMap;
@@ -44,6 +46,16 @@ public final class CrystalBladedStaffAttackContextManager {
             boolean bypassChargeCheck,
             int evaluationDelayTicks
     ) {
+        return requestMissTrigger(player, hand, bypassChargeCheck, evaluationDelayTicks, List.of());
+    }
+
+    public static boolean requestMissTrigger(
+            ServerPlayer player,
+            InteractionHand hand,
+            boolean bypassChargeCheck,
+            int evaluationDelayTicks,
+            List<BlockTargetData> ringTargets
+    ) {
         if (player == null || player.isSpectator()) {
             return false;
         }
@@ -62,7 +74,8 @@ public final class CrystalBladedStaffAttackContextManager {
                 hand,
                 stack,
                 bypassChargeCheck,
-                Math.max(1, evaluationDelayTicks)
+                Math.max(1, evaluationDelayTicks),
+                List.copyOf(ringTargets)
         ));
         return true;
     }
@@ -220,7 +233,7 @@ public final class CrystalBladedStaffAttackContextManager {
         }
 
         // 命中時は杖魔法を抑止し、空振り時は杖魔法が開始できなかった場合だけ指輪へフォールバックする。
-        AttackcastRingAttackTrigger.tryTriggerEquippedRings(player);
+        AttackcastRingAttackTrigger.tryTriggerEquippedRings(player, trigger.ringTargets());
     }
 
     public static void recordRecentCrystalBladedStaffHit(ServerPlayer attacker, InteractionHand hand) {
@@ -312,7 +325,8 @@ public final class CrystalBladedStaffAttackContextManager {
             InteractionHand hand,
             ItemStack stack,
             boolean bypassChargeCheck,
-            int evaluationDelayTicks
+            int evaluationDelayTicks,
+            List<BlockTargetData> ringTargets
     ) {
         private long evaluationGameTime() {
             return requestGameTime + evaluationDelayTicks;
