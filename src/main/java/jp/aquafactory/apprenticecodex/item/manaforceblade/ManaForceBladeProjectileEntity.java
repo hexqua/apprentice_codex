@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.manaforceblade;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
+import jp.aquafactory.apprenticecodex.utility.ProjectileCollisionTools;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -76,18 +77,38 @@ public class ManaForceBladeProjectileEntity extends Projectile {
             }
 
             var hitResult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-            if (hitResult.getType() != HitResult.Type.MISS && !EventHooks.onProjectileImpact(this, hitResult)) {
-                onHit(hitResult);
+            var cancelledBlockHit = (BlockHitResult) null;
+            if (hitResult.getType() != HitResult.Type.MISS) {
+                if (EventHooks.onProjectileImpact(this, hitResult)) {
+                    if (hitResult instanceof BlockHitResult blockHit) {
+                        cancelledBlockHit = blockHit;
+                    }
+                } else {
+                    onHit(hitResult);
+                }
             }
 
             if (isRemoved()) {
                 return;
             }
 
-            move(MoverType.SELF, getDeltaMovement());
-            // 中心線のレイキャストが外れても当たり箱が障害物を擦るため、move の物理衝突も着弾として扱う。
+            var movementStart = position();
+            var requestedMovement = getDeltaMovement();
+            move(MoverType.SELF, requestedMovement);
             if (horizontalCollision || verticalCollision) {
-                discard();
+                var physicalHit = cancelledBlockHit != null
+                        ? cancelledBlockHit
+                        : ProjectileCollisionTools.findPhysicalBlockHit(this, movementStart, requestedMovement);
+                if (physicalHit == null) {
+                    discard();
+                } else if (cancelledBlockHit != null || EventHooks.onProjectileImpact(this, physicalHit)) {
+                    ProjectileCollisionTools.continueAfterCancelledImpact(this, movementStart, requestedMovement);
+                } else {
+                    setDeltaMovement(requestedMovement);
+                    onHit(physicalHit);
+                }
+            }
+            if (isRemoved()) {
                 return;
             }
             ProjectileUtil.rotateTowardsMovement(this, 1);
