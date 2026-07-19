@@ -117,7 +117,7 @@ public class ArcaneBeam extends AbstractSpell {
 
             var beamPos = calculateBeamPosition(entity);
             beam.moveTo(beamPos.x, beamPos.y, beamPos.z, entity.getYRot(), entity.getXRot());
-            beam.setup(0x30AA88FF, 0x80DDAAFF, getRange(), 0.1f);
+            beam.setup(0x30AA88FF, 0x80DDAAFF, getRange(), 0.25f);
             beam.updateLength(getRange(), level);
 
             var baseDamage = getDamage(spellLevel, entity);
@@ -170,7 +170,7 @@ public class ArcaneBeam extends AbstractSpell {
 
     private static Vec3 calculateBeamPosition(LivingEntity entity){
         // ちょっと下にして見えやすくする.
-        return entity.getEyePosition(1.0f).add(0, -0.4, 0).add(entity.getLookAngle().scale(0.75f));
+        return entity.getEyePosition(1.0f).add(0, -0.7, 0).add(entity.getLookAngle().scale(0.75f));
     }
 
     public static class BeamCastData implements ICastDataSerializable {
