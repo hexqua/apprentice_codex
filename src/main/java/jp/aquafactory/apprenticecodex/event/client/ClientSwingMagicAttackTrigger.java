@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacke
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumMap;
@@ -77,11 +78,11 @@ public final class ClientSwingMagicAttackTrigger {
         }
 
         var stack = player.getItemInHand(hand);
-        // 専用の攻撃入力パケットを持つ武器へ汎用 swing パケットも送ると、後着の指輪詠唱が
-        // 先に始まった即時詠唱をキャンセルする。専用経路だけに発動の優先順位を委ねる。
+        // 専用攻撃経路の詠唱が成立しない場合も Attackcast Ring へはフォールバックさせない仕様。
+        // 汎用 swing パケットを併送すると、後着の指輪詠唱が先に始まった即時詠唱をキャンセルするため、
+        // これらの武器では専用経路だけに発動の優先順位を委ねる。
         if (hand == InteractionHand.MAIN_HAND
-                && (stack.getItem() instanceof MultipurposeStaffrifle
-                        || stack.getItem() instanceof AbstractSpellGunItem)) {
+                && usesDedicatedAttackPathWithoutAttackcastRingFallback(stack.getItem())) {
             return false;
         }
 
@@ -101,5 +102,9 @@ public final class ClientSwingMagicAttackTrigger {
         }
 
         return player.level().getGameTime() != LAST_SENT_TICKS.getOrDefault(hand, Long.MIN_VALUE);
+    }
+
+    private static boolean usesDedicatedAttackPathWithoutAttackcastRingFallback(Item item) {
+        return item instanceof MultipurposeStaffrifle || item instanceof AbstractSpellGunItem;
     }
 }
