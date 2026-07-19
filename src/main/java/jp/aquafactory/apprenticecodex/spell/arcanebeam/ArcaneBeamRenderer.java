@@ -5,7 +5,9 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -21,6 +23,10 @@ public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
 
     // バニラのビーコンを使う.
     private static final ResourceLocation BEAM_TEX = ResourceLocation.withDefaultNamespace("textures/entity/beacon_beam.png");
+    private static final RenderType BEAM_RENDER_TYPE = ApprenticeRenderTypes.entityAdditiveGlowNoCullColorOnly(
+            "arcane_beam_additive",
+            BEAM_TEX
+    );
 
     public ArcaneBeamRenderer(EntityRendererProvider.Context ctx) {
         super(ctx);
@@ -48,17 +54,17 @@ public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
         var time = (entity.tickCount + partialTicks) * 0.25f;
 
         // ビーコンのように回転しつつ流れるようにする.
-        var vc = buffer.getBuffer(ApprenticeRenderTypes.beamNoCull(BEAM_TEX));
+        var vc = buffer.getBuffer(BEAM_RENDER_TYPE);
         poseStack.pushPose();
         poseStack.mulPose(q);
         poseStack.mulPose(Axis.YP.rotationDegrees((entity.tickCount + partialTicks) * 7.1f));
-        drawBeam(poseStack, vc, length, radius, outArgb, packedLight, time);
+        drawBeam(poseStack, vc, length, radius, outArgb, LightTexture.FULL_BRIGHT, time);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.mulPose(q);
         poseStack.mulPose(Axis.YP.rotationDegrees((entity.tickCount + partialTicks) * 3.3f));
-        drawBeam(poseStack, vc, length, radius * 0.7f, inArgb, packedLight, time);
+        drawBeam(poseStack, vc, length, radius * 0.5f, inArgb, LightTexture.FULL_BRIGHT, time);
         poseStack.popPose();
 
         super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);

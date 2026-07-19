@@ -117,7 +117,7 @@ public class ArcaneBeam extends AbstractSpell {
 
             var beamPos = calculateBeamPosition(entity);
             beam.moveTo(beamPos.x, beamPos.y, beamPos.z, entity.getYRot(), entity.getXRot());
-            beam.setup(0x88AA88FF, 0xFFDDAAFF, getRange(), 0.1f);
+            beam.setup(0x30AA88FF, 0x80DDAAFF, getRange(), 0.1f);
             beam.updateLength(getRange(), level);
 
             var baseDamage = getDamage(spellLevel, entity);
