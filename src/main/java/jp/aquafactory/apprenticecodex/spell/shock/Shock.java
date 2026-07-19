@@ -90,7 +90,7 @@ public class Shock extends AbstractSpell {
 
     @Override
     public Optional<SoundEvent> getCastFinishSound() {
-        return Optional.of(SoundRegistry.LIGHTNING_CAST.get());
+        return Optional.of(SoundRegistry.SMALL_LIGHTNING_STRIKE.get());
     }
 
     @Override
