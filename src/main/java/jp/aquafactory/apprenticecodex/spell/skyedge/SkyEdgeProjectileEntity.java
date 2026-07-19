@@ -8,6 +8,8 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
+import jp.aquafactory.apprenticecodex.utility.ForgeProjectileImpactTools;
+import jp.aquafactory.apprenticecodex.utility.ProjectileCollisionTools;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -81,20 +83,45 @@ public class SkyEdgeProjectileEntity extends Projectile implements AntiMagicSusc
 
             if (canShooting(0)) {
                 var hitresult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-                if (hitresult.getType() != HitResult.Type.MISS && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitresult)) {
-                    onHit(hitresult);
+                var cancelledBlockHit = (BlockHitResult) null;
+                if (hitresult.getType() != HitResult.Type.MISS) {
+                    var impactAction = ForgeProjectileImpactTools.resolveImpactAction(this, hitresult);
+                    if (impactAction == ForgeProjectileImpactTools.ImpactAction.CONTINUE) {
+                        if (hitresult instanceof BlockHitResult blockHit) {
+                            cancelledBlockHit = blockHit;
+                        }
+                    } else if (impactAction == ForgeProjectileImpactTools.ImpactAction.PROCESS) {
+                        onHit(hitresult);
+                    } else {
+                        discard();
+                    }
                 }
 
                 if (isRemoved()) {
                     return;
                 }
 
+                var movementStart = position();
                 var requestedMovement = getDeltaMovement();
                 move(MoverType.SELF, requestedMovement);
-                // 中心線のレイキャストが外れても当たり箱が障害物を擦るため、move の物理衝突も着弾として扱う。
                 if (horizontalCollision || verticalCollision) {
-                    onImpact(level, 0.1, false, requestedMovement);
-                    discard();
+                    var physicalHit = cancelledBlockHit != null
+                            ? cancelledBlockHit
+                            : ProjectileCollisionTools.findPhysicalBlockHit(this, movementStart, requestedMovement);
+                    var impactAction = physicalHit == null || cancelledBlockHit != null
+                            ? ForgeProjectileImpactTools.ImpactAction.CONTINUE
+                            : ForgeProjectileImpactTools.resolveImpactAction(this, physicalHit);
+                    if (physicalHit != null && impactAction == ForgeProjectileImpactTools.ImpactAction.CONTINUE) {
+                        ProjectileCollisionTools.continueAfterCancelledImpact(this, movementStart, requestedMovement);
+                    } else if (physicalHit != null && impactAction == ForgeProjectileImpactTools.ImpactAction.PROCESS) {
+                        setDeltaMovement(requestedMovement);
+                        onHit(physicalHit);
+                    } else {
+                        onImpact(level, 0.1, false, requestedMovement);
+                        discard();
+                    }
+                }
+                if (isRemoved()) {
                     return;
                 }
                 ProjectileUtil.rotateTowardsMovement(this, 1);

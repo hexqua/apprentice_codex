@@ -313,6 +313,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import io.netty.buffer.Unpooled;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.GrindstoneEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.TickEvent;
@@ -9093,6 +9094,97 @@ public class ApprenticeCodexGameTestScenarios {
                 projectile.discard();
             });
             helper.succeed();
+        });
+    }
+
+    static void straightProjectilesRespectCancelledBlockImpacts(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var caster = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "straight_projectile_cancelled_collision_test");
+        helper.setBlock(new BlockPos(3, 3, 2), Blocks.STONE);
+
+        var grazingStart = helper.absoluteVec(new Vec3(1.5D, 3.25D, 1.9D));
+        var centerHitStart = helper.absoluteVec(new Vec3(1.5D, 3.25D, 2.5D));
+        var grazingProjectiles = spawnStraightProjectileCollisionTestSet(level, caster, grazingStart);
+        var centerHitProjectiles = spawnStraightProjectileCollisionTestSet(level, caster, centerHitStart);
+        var cancelledProjectiles = new LinkedHashSet<Projectile>();
+        cancelledProjectiles.addAll(grazingProjectiles.values());
+        cancelledProjectiles.addAll(centerHitProjectiles.values());
+        var impactCount = new AtomicInteger();
+        java.util.function.Consumer<ProjectileImpactEvent> impactListener = event -> {
+            if (cancelledProjectiles.contains(event.getProjectile())
+                    && event.getRayTraceResult() instanceof BlockHitResult) {
+                impactCount.incrementAndGet();
+                // Forge 1.20.1 が維持する旧 MOD 向けの実キャンセル経路を検証する。
+                ((net.minecraftforge.eventbus.api.Event) event).setCanceled(true);
+            }
+        };
+
+        MinecraftForge.EVENT_BUS.addListener(impactListener);
+        helper.runAtTickTime(2, () -> {
+            try {
+                helper.assertTrue(impactCount.get() >= cancelledProjectiles.size(),
+                        "Each center or bounding-box block impact should fire ProjectileImpactEvent: "
+                                + impactCount.get() + " / " + cancelledProjectiles.size());
+                cancelledProjectiles.forEach(projectile -> {
+                    helper.assertFalse(projectile.isRemoved(),
+                            projectile.getType() + " should continue after a canceled block impact");
+                    helper.assertTrue(projectile.getX() > grazingStart.x + 2.0D,
+                            projectile.getType() + " should preserve movement after a canceled block impact");
+                    helper.assertTrue(projectile.getDeltaMovement().x > 1.0D,
+                            projectile.getType() + " should preserve velocity after a canceled block impact");
+                    projectile.discard();
+                });
+                helper.succeed();
+            } finally {
+                MinecraftForge.EVENT_BUS.unregister(impactListener);
+            }
+        });
+    }
+
+    static void straightProjectilesRespectNonDefaultBlockImpactResults(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var caster = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "straight_projectile_impact_result_test");
+        helper.setBlock(new BlockPos(3, 3, 2), Blocks.STONE);
+
+        var grazingStart = helper.absoluteVec(new Vec3(1.5D, 3.25D, 1.9D));
+        var skipEntityProjectiles = spawnStraightProjectileCollisionTestSet(level, caster, grazingStart);
+        var stopAtCurrentProjectiles = spawnStraightProjectileCollisionTestSet(level, caster, grazingStart);
+        var stopWithoutDamageProjectiles = spawnStraightProjectileCollisionTestSet(level, caster, grazingStart);
+        var testedProjectiles = new LinkedHashSet<Projectile>();
+        testedProjectiles.addAll(skipEntityProjectiles.values());
+        testedProjectiles.addAll(stopAtCurrentProjectiles.values());
+        testedProjectiles.addAll(stopWithoutDamageProjectiles.values());
+        var impactCount = new AtomicInteger();
+        java.util.function.Consumer<ProjectileImpactEvent> impactListener = event -> {
+            if (!(event.getRayTraceResult() instanceof BlockHitResult)) {
+                return;
+            }
+            if (skipEntityProjectiles.containsValue(event.getProjectile())) {
+                impactCount.incrementAndGet();
+                event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
+            } else if (stopAtCurrentProjectiles.containsValue(event.getProjectile())) {
+                impactCount.incrementAndGet();
+                event.setImpactResult(ProjectileImpactEvent.ImpactResult.STOP_AT_CURRENT);
+            } else if (stopWithoutDamageProjectiles.containsValue(event.getProjectile())) {
+                impactCount.incrementAndGet();
+                event.setImpactResult(ProjectileImpactEvent.ImpactResult.STOP_AT_CURRENT_NO_DAMAGE);
+            }
+        };
+
+        MinecraftForge.EVENT_BUS.addListener(impactListener);
+        helper.runAtTickTime(2, () -> {
+            try {
+                helper.assertTrue(impactCount.get() >= testedProjectiles.size(),
+                        "Each non-default block impact should fire ProjectileImpactEvent: "
+                                + impactCount.get() + " / " + testedProjectiles.size());
+                testedProjectiles.forEach(projectile -> helper.assertTrue(projectile.isRemoved(),
+                        projectile.getType() + " should stop for a non-default block impact result"));
+                helper.succeed();
+            } finally {
+                MinecraftForge.EVENT_BUS.unregister(impactListener);
+            }
         });
     }
 

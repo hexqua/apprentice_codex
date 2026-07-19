@@ -806,6 +806,16 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.straightProjectilesTreatBoundingBoxGrazesAsBlockImpacts(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = STRAIGHT_PROJECTILE_COLLISION_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void straightProjectilesRespectCancelledBlockImpacts(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.straightProjectilesRespectCancelledBlockImpacts(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = STRAIGHT_PROJECTILE_COLLISION_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void straightProjectilesRespectNonDefaultBlockImpactResults(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.straightProjectilesRespectNonDefaultBlockImpactResults(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = COUNTERSPELL_COMPAT_ISOLATED_BATCH, timeoutTicks = 40)
     public static void magicSpearAntiMagicBurstDoesNotRestart(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.magicSpearAntiMagicBurstDoesNotRestart(helper);
