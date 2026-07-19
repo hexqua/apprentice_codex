@@ -103,6 +103,10 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "attackcast_ring_active_cast");
         var activeSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIREBALL_SPELL.get();
         var ringSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get();
+        var heldItem = (AbstractSwingcastStaffItem) ItemRegistry.COPPER_SWINGCAST_STAFF.get();
+        var heldStack = new ItemStack(heldItem);
+        heldItem.initializeSpellContainer(heldStack);
+        player.setItemInHand(InteractionHand.MAIN_HAND, heldStack);
         equipRing(player, 0, createRingStack(helper, ringSpell));
         var magicData = requireMagicData(helper, player);
         magicData.setMana(1000.0F);
@@ -117,7 +121,7 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
         var manaBefore = magicData.getMana();
 
         helper.assertTrue(!AttackcastRingAttackTrigger.tryTriggerAttack(player, InteractionHand.MAIN_HAND, true),
-                "Attackcast Ring should skip while another spell is casting");
+                "Held Swingcast and Attackcast Ring should both skip while another spell is casting");
         helper.assertTrue(magicData.isCasting(),
                 "Attackcast Ring should not cancel the active cast");
         helper.assertTrue(activeSpell.getSpellId().equals(magicData.getCastingSpellId()),
@@ -344,6 +348,47 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
 
         helper.succeedWhen(() -> helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(ringSpell),
                 "Failed Crystal Bladed Staff miss cast should fall back to the Attackcast Ring"));
+    }
+
+    static void attackcastRingCrystalBladedStaffDoesNotInterruptActiveCast(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "attackcast_ring_crystal_active_cast");
+        player.setItemInHand(InteractionHand.MAIN_HAND, createCrystalBladedStaffStack());
+        var activeSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIREBALL_SPELL.get();
+        var ringSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get();
+        equipRing(player, 0, createRingStack(helper, ringSpell));
+        var magicData = requireMagicData(helper, player);
+        magicData.setMana(1000.0F);
+        magicData.setSyncedData(new io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData(player));
+        magicData.initiateCast(
+                activeSpell,
+                1,
+                60,
+                io.redspace.ironsspellbooks.api.spells.CastSource.SPELLBOOK,
+                "gametest"
+        );
+        var manaBefore = magicData.getMana();
+
+        helper.assertTrue(
+                CrystalBladedStaffAttackContextManager.requestMissTrigger(
+                        player,
+                        InteractionHand.MAIN_HAND,
+                        true,
+                        1
+                ),
+                "Crystal Bladed Staff should queue its delayed Attackcast Ring fallback"
+        );
+        helper.runAfterDelay(3, () -> {
+            helper.assertTrue(magicData.isCasting(),
+                    "Crystal Bladed Staff fallback should preserve the active cast");
+            helper.assertTrue(activeSpell.getSpellId().equals(magicData.getCastingSpellId()),
+                    "Crystal Bladed Staff fallback should not replace the active spell");
+            helper.assertTrue(!magicData.getPlayerCooldowns().isOnCooldown(ringSpell),
+                    "Crystal Bladed Staff fallback should leave Attackcast Ring untouched");
+            helper.assertTrue(magicData.getMana() == manaBefore,
+                    "Skipped Crystal Bladed Staff fallback should not consume mana");
+            helper.succeed();
+        });
     }
 
     private static ItemStack createRingStack(GameTestHelper helper, AbstractSpell spell) {

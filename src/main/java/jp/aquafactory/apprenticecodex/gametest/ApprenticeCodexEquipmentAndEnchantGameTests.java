@@ -1377,6 +1377,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void attackcastRingCrystalBladedStaffDoesNotInterruptActiveCast(GameTestHelper helper) {
+        AttackcastRingGameTestScenarios.attackcastRingCrystalBladedStaffDoesNotInterruptActiveCast(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void crystalBladedStaffStartsWithHiddenManaSlash(GameTestHelper helper) {
         SwingcastStaffGameTestScenarios.crystalBladedStaffStartsWithHiddenManaSlash(helper);
     }

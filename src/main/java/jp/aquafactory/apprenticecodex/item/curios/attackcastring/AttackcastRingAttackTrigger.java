@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.curios.attackcastring;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
@@ -35,6 +36,12 @@ public final class AttackcastRingAttackTrigger {
     public static boolean tryTriggerAttack(ServerPlayer player, InteractionHand hand, boolean bypassChargeCheck,
                                            List<BlockTargetData> ringTargets) {
         if (!bypassChargeCheck && !AbstractRightClickMagicWeaponItem.isFullyChargedAttack(player)) {
+            return false;
+        }
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData == null || magicData.isCasting()) {
+            // 手持ち側の attemptInitiateCast も既存詠唱をキャンセルするため、指輪へのフォールバックより前に止める。
             return false;
         }
 
