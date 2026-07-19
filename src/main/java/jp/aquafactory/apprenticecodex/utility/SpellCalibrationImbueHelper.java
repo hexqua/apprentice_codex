@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.item.Scroll;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
+import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRing;
 import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
@@ -400,6 +401,8 @@ public final class SpellCalibrationImbueHelper {
             autocastAmulet.initializeSpellContainer(stack);
         } else if (stack.getItem() instanceof JumpcastCharm jumpcastCharm) {
             jumpcastCharm.initializeSpellContainer(stack);
+        } else if (stack.getItem() instanceof AttackcastRing attackcastRing) {
+            attackcastRing.initializeSpellContainer(stack);
         } else if (stack.getItem() instanceof SatelliteFollowcastAmulet satelliteFollowcastAmulet) {
             satelliteFollowcastAmulet.initializeSpellContainer(stack);
         }

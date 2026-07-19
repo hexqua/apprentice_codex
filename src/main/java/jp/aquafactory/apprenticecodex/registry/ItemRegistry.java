@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.item.boundweapon.BoundSwordItem;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
+import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRing;
 import jp.aquafactory.apprenticecodex.item.curios.circlets.AshenCirclet;
 import jp.aquafactory.apprenticecodex.item.curios.circlets.EnchantedCirclet;
 import jp.aquafactory.apprenticecodex.item.curios.jumpcastcharm.JumpcastCharm;
@@ -301,6 +302,8 @@ public final class ItemRegistry {
             ITEMS.register("jumpcast_charm", JumpcastCharm::new);
     public static final RegistryObject<Item> SPELL_CAST_PARRYING_RING =
             ITEMS.register("spell_cast_parrying_ring", SpellCastParryingRing::new);
+    public static final RegistryObject<Item> ATTACKCAST_RING =
+            ITEMS.register("attackcast_ring", AttackcastRing::new);
     public static final RegistryObject<Item> ASHEN_CIRCLET =
             ITEMS.register("ashen_circlet", AshenCirclet::new);
     public static final RegistryObject<Item> ENCHANTED_CIRCLET =

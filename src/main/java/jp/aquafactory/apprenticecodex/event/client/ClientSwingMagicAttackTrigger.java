@@ -3,12 +3,16 @@ package jp.aquafactory.apprenticecodex.event.client;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
-import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
+import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRingAttackTrigger;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.ClientEpicFightAttackcastRingTargetsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumMap;
@@ -42,6 +46,23 @@ public final class ClientSwingMagicAttackTrigger {
         trySend(minecraft, hand, true, true, DEFAULT_MISS_EVALUATION_DELAY_TICKS);
     }
 
+    public static void trySyncTargetsForEpicFight(Minecraft minecraft) {
+        var player = minecraft.player;
+        if (minecraft.screen != null || player == null || player.isSpectator()) {
+            return;
+        }
+
+        var stack = player.getMainHandItem();
+        if (usesDedicatedAttackPathWithoutAttackcastRingFallback(stack.getItem())
+                || !AttackcastRingAttackTrigger.hasEquippedRing(player)) {
+            return;
+        }
+
+        Networks.sendToServer(new ClientEpicFightAttackcastRingTargetsPacket(
+                ClientBlockTargetSyncService.captureForAttackcastRings(player)
+        ));
+    }
+
     private static void trySend(
             Minecraft minecraft,
             InteractionHand hand,
@@ -56,7 +77,13 @@ public final class ClientSwingMagicAttackTrigger {
 
         LAST_SENT_TICKS.put(hand, player.level().getGameTime());
         ClientSwingcastStaffCastContext.beginPending(player.getUUID(), player.getItemInHand(hand));
-        Networks.sendToServer(new ClientSwingMagicAttackPacket(bypassChargeCheck, hand, missEvaluationDelayTicks));
+        var ringTargets = ClientBlockTargetSyncService.captureForAttackcastRings(player);
+        Networks.sendToServer(new ClientSwingMagicAttackPacket(
+                bypassChargeCheck,
+                hand,
+                missEvaluationDelayTicks,
+                ringTargets
+        ));
     }
 
     private static boolean canSend(
@@ -75,16 +102,21 @@ public final class ClientSwingMagicAttackTrigger {
         }
 
         var stack = player.getItemInHand(hand);
-        if (!(stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem)) {
+        // 専用攻撃経路の詠唱が成立しない場合も Attackcast Ring へはフォールバックさせない仕様。
+        // 汎用 swing パケットを併送すると、後着の指輪詠唱が先に始まった即時詠唱をキャンセルするため、
+        // これらの武器では専用経路だけに発動の優先順位を委ねる。
+        if (hand == InteractionHand.MAIN_HAND
+                && usesDedicatedAttackPathWithoutAttackcastRingFallback(stack.getItem())) {
+            return false;
+        }
+
+        if (!AttackcastRingAttackTrigger.canTriggerAttack(player, hand)) {
             if (logEmptyHandFailure && stack.isEmpty()) {
                 ApprenticeCodex.LOGGER.error(
                         "Better Combat swing magic trigger skipped because {} resolved to an empty stack.",
                         hand
                 );
             }
-            return false;
-        }
-        if (!swingTriggeredMagicItem.canTriggerSpellOnSwing(player, hand)) {
             return false;
         }
 
@@ -94,5 +126,9 @@ public final class ClientSwingMagicAttackTrigger {
         }
 
         return player.level().getGameTime() != LAST_SENT_TICKS.getOrDefault(hand, Long.MIN_VALUE);
+    }
+
+    private static boolean usesDedicatedAttackPathWithoutAttackcastRingFallback(Item item) {
+        return item instanceof MultipurposeStaffrifle || item instanceof AbstractSpellGunItem;
     }
 }

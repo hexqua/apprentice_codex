@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimo
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmScrollcasterGauntletIndexPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmStorageStabilizerSpellPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientEpicFightAttackcastRingTargetsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
@@ -65,7 +66,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "57";
+    private static final String PROTOCOL_VERSION = "59";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -176,6 +177,14 @@ public final class Networks {
                 ClientSwingMagicAttackPacket::encode,
                 ClientSwingMagicAttackPacket::decode,
                 ClientSwingMagicAttackPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                ClientEpicFightAttackcastRingTargetsPacket.class,
+                ClientEpicFightAttackcastRingTargetsPacket::encode,
+                ClientEpicFightAttackcastRingTargetsPacket::decode,
+                ClientEpicFightAttackcastRingTargetsPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER)
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
