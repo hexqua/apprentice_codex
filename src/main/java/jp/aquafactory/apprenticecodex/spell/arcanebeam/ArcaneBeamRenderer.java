@@ -5,11 +5,14 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
@@ -19,8 +22,14 @@ import org.joml.Vector3f;
 
 public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
 
+    private static final float APPEAR_ANIMATION_TICKS = 5.0f;
+
     // バニラのビーコンを使う.
     private static final ResourceLocation BEAM_TEX = ResourceLocation.withDefaultNamespace("textures/entity/beacon_beam.png");
+    private static final RenderType BEAM_RENDER_TYPE = ApprenticeRenderTypes.entityAdditiveGlowNoCullColorOnly(
+            "arcane_beam_additive",
+            BEAM_TEX
+    );
 
     public ArcaneBeamRenderer(EntityRendererProvider.Context ctx) {
         super(ctx);
@@ -39,8 +48,11 @@ public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
         var q = new Quaternionf().rotationTo(from, to);
 
 
-        var length = entity.getLength();
-        var radius = entity.getRadius();
+        var animationProgress = Mth.clamp((entity.tickCount + partialTicks) / APPEAR_ANIMATION_TICKS, 0.0f, 1.0f);
+        var animationScale = easeOutCubic(animationProgress);
+        // 壁までの距離ではなく最大射程を伸ばし、壁へ到達した時点で見た目だけを止める.
+        var length = Math.min(entity.getLength(), ArcaneBeam.getRange() * animationScale);
+        var radius = entity.getRadius() * animationScale;
         var outArgb = entity.getColorARGBOuter();
         var inArgb = entity.getColorARGBInner();
 
@@ -48,17 +60,17 @@ public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
         var time = (entity.tickCount + partialTicks) * 0.25f;
 
         // ビーコンのように回転しつつ流れるようにする.
-        var vc = buffer.getBuffer(ApprenticeRenderTypes.beamNoCull(BEAM_TEX));
+        var vc = buffer.getBuffer(BEAM_RENDER_TYPE);
         poseStack.pushPose();
         poseStack.mulPose(q);
         poseStack.mulPose(Axis.YP.rotationDegrees((entity.tickCount + partialTicks) * 7.1f));
-        drawBeam(poseStack, vc, length, radius, outArgb, packedLight, time);
+        drawBeam(poseStack, vc, length, radius, outArgb, LightTexture.FULL_BRIGHT, time);
         poseStack.popPose();
 
         poseStack.pushPose();
         poseStack.mulPose(q);
         poseStack.mulPose(Axis.YP.rotationDegrees((entity.tickCount + partialTicks) * 3.3f));
-        drawBeam(poseStack, vc, length, radius * 0.7f, inArgb, packedLight, time);
+        drawBeam(poseStack, vc, length, radius * 0.5f, inArgb, LightTexture.FULL_BRIGHT, time);
         poseStack.popPose();
 
         super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
@@ -68,6 +80,11 @@ public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
     @Override
     public @NotNull ResourceLocation getTextureLocation(@NotNull ArcaneBeamEntity entity) {
         return BEAM_TEX;
+    }
+
+    private static float easeOutCubic(float value) {
+        var inverse = 1.0f - value;
+        return 1.0f - inverse * inverse * inverse;
     }
 
     private void drawBeam(PoseStack poseStack, VertexConsumer consumer, float length, float radius, int argb, int packedLight, float uvParameter){

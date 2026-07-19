@@ -96,6 +96,7 @@ import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectHandler;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectProfile;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffMobEffectProfileManager;
+import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeProjectileEntity;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
@@ -251,6 +252,7 @@ import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.InteractionHand;
@@ -311,6 +313,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import io.netty.buffer.Unpooled;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.GrindstoneEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.TickEvent;
@@ -9066,6 +9069,157 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(target.hasEffect(MobEffects.POISON),
                     "Counterspell projectile fizzle should not apply potion effects");
         });
+    }
+
+    static void straightProjectilesTreatBoundingBoxGrazesAsBlockImpacts(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var caster = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "straight_projectile_collision_test");
+        helper.setBlock(new BlockPos(3, 3, 2), Blocks.STONE);
+
+        // 中心はブロックの外側を通るが、幅 0.25 の当たり箱だけが z=2 の面を擦る軌道。
+        var grazingStart = helper.absoluteVec(new Vec3(1.5D, 3.25D, 1.9D));
+        var clearStart = helper.absoluteVec(new Vec3(1.5D, 3.25D, 4.5D));
+        var grazingProjectiles = spawnStraightProjectileCollisionTestSet(level, caster, grazingStart);
+        var clearProjectiles = spawnStraightProjectileCollisionTestSet(level, caster, clearStart);
+
+        helper.runAtTickTime(2, () -> {
+            grazingProjectiles.forEach((name, projectile) -> helper.assertTrue(projectile.isRemoved(),
+                    name + " should treat a bounding-box block graze as an impact"));
+            clearProjectiles.forEach((name, projectile) -> {
+                helper.assertFalse(projectile.isRemoved(),
+                        name + " should remain active without a physical collision");
+                helper.assertTrue(projectile.position().distanceToSqr(clearStart) > 1.0D,
+                        name + " should preserve unobstructed straight movement");
+                projectile.discard();
+            });
+            helper.succeed();
+        });
+    }
+
+    static void straightProjectilesRespectCancelledBlockImpacts(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var caster = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "straight_projectile_cancelled_collision_test");
+        helper.setBlock(new BlockPos(3, 3, 2), Blocks.STONE);
+
+        var grazingStart = helper.absoluteVec(new Vec3(1.5D, 3.25D, 1.9D));
+        var centerHitStart = helper.absoluteVec(new Vec3(1.5D, 3.25D, 2.5D));
+        var grazingProjectiles = spawnStraightProjectileCollisionTestSet(level, caster, grazingStart);
+        var centerHitProjectiles = spawnStraightProjectileCollisionTestSet(level, caster, centerHitStart);
+        var cancelledProjectiles = new LinkedHashSet<Projectile>();
+        cancelledProjectiles.addAll(grazingProjectiles.values());
+        cancelledProjectiles.addAll(centerHitProjectiles.values());
+        var impactCount = new AtomicInteger();
+        java.util.function.Consumer<ProjectileImpactEvent> impactListener = event -> {
+            if (cancelledProjectiles.contains(event.getProjectile())
+                    && event.getRayTraceResult() instanceof BlockHitResult) {
+                impactCount.incrementAndGet();
+                // Forge 1.20.1 が維持する旧 MOD 向けの実キャンセル経路を検証する。
+                ((net.minecraftforge.eventbus.api.Event) event).setCanceled(true);
+            }
+        };
+
+        MinecraftForge.EVENT_BUS.addListener(impactListener);
+        helper.runAtTickTime(2, () -> {
+            try {
+                helper.assertTrue(impactCount.get() >= cancelledProjectiles.size(),
+                        "Each center or bounding-box block impact should fire ProjectileImpactEvent: "
+                                + impactCount.get() + " / " + cancelledProjectiles.size());
+                cancelledProjectiles.forEach(projectile -> {
+                    helper.assertFalse(projectile.isRemoved(),
+                            projectile.getType() + " should continue after a canceled block impact");
+                    helper.assertTrue(projectile.getX() > grazingStart.x + 2.0D,
+                            projectile.getType() + " should preserve movement after a canceled block impact");
+                    helper.assertTrue(projectile.getDeltaMovement().x > 1.0D,
+                            projectile.getType() + " should preserve velocity after a canceled block impact");
+                    projectile.discard();
+                });
+                helper.succeed();
+            } finally {
+                MinecraftForge.EVENT_BUS.unregister(impactListener);
+            }
+        });
+    }
+
+    static void straightProjectilesRespectNonDefaultBlockImpactResults(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var caster = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "straight_projectile_impact_result_test");
+        helper.setBlock(new BlockPos(3, 3, 2), Blocks.STONE);
+
+        var grazingStart = helper.absoluteVec(new Vec3(1.5D, 3.25D, 1.9D));
+        var skipEntityProjectiles = spawnStraightProjectileCollisionTestSet(level, caster, grazingStart);
+        var stopAtCurrentProjectiles = spawnStraightProjectileCollisionTestSet(level, caster, grazingStart);
+        var stopWithoutDamageProjectiles = spawnStraightProjectileCollisionTestSet(level, caster, grazingStart);
+        var testedProjectiles = new LinkedHashSet<Projectile>();
+        testedProjectiles.addAll(skipEntityProjectiles.values());
+        testedProjectiles.addAll(stopAtCurrentProjectiles.values());
+        testedProjectiles.addAll(stopWithoutDamageProjectiles.values());
+        var impactCount = new AtomicInteger();
+        java.util.function.Consumer<ProjectileImpactEvent> impactListener = event -> {
+            if (!(event.getRayTraceResult() instanceof BlockHitResult)) {
+                return;
+            }
+            if (skipEntityProjectiles.containsValue(event.getProjectile())) {
+                impactCount.incrementAndGet();
+                event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
+            } else if (stopAtCurrentProjectiles.containsValue(event.getProjectile())) {
+                impactCount.incrementAndGet();
+                event.setImpactResult(ProjectileImpactEvent.ImpactResult.STOP_AT_CURRENT);
+            } else if (stopWithoutDamageProjectiles.containsValue(event.getProjectile())) {
+                impactCount.incrementAndGet();
+                event.setImpactResult(ProjectileImpactEvent.ImpactResult.STOP_AT_CURRENT_NO_DAMAGE);
+            }
+        };
+
+        MinecraftForge.EVENT_BUS.addListener(impactListener);
+        helper.runAtTickTime(2, () -> {
+            try {
+                helper.assertTrue(impactCount.get() >= testedProjectiles.size(),
+                        "Each non-default block impact should fire ProjectileImpactEvent: "
+                                + impactCount.get() + " / " + testedProjectiles.size());
+                testedProjectiles.forEach(projectile -> helper.assertTrue(projectile.isRemoved(),
+                        projectile.getType() + " should stop for a non-default block impact result"));
+                helper.succeed();
+            } finally {
+                MinecraftForge.EVENT_BUS.unregister(impactListener);
+            }
+        });
+    }
+
+    private static Map<String, Projectile> spawnStraightProjectileCollisionTestSet(
+            ServerLevel level,
+            LivingEntity caster,
+            Vec3 position
+    ) {
+        var direction = new Vec3(1.0D, 0.0D, 0.0D);
+        var speed = 1.55D;
+        var projectiles = new LinkedHashMap<String, Projectile>();
+
+        var skyEdge = new SkyEdgeProjectileEntity(EntityRegistry.SKY_EDGE_PROJECTILE.get(), level, caster);
+        skyEdge.setProjectileVelocity(direction, speed);
+        projectiles.put("Sky Edge", skyEdge);
+
+        var inscribeIce = new InscribeIceDaggerEntity(EntityRegistry.INSCRIBE_ICE_DAGGER.get(), level, caster);
+        inscribeIce.setProjectileVelocity(direction, speed);
+        projectiles.put("Inscribe Ice dagger", inscribeIce);
+
+        var manaForceBlade = new ManaForceBladeProjectileEntity(
+                EntityRegistry.MANA_FORCE_BLADE_PROJECTILE.get(), level, caster);
+        manaForceBlade.setProjectileVelocity(direction, speed);
+        projectiles.put("Mana Force Blade projectile", manaForceBlade);
+
+        var mysticShield = new MysticShieldProjectileEntity(
+                EntityRegistry.MYSTIC_SHIELD_PROJECTILE.get(), level, caster);
+        mysticShield.shoot(direction);
+        projectiles.put("Mystic Shield projectile", mysticShield);
+
+        projectiles.values().forEach(projectile -> {
+            projectile.setPos(position);
+            level.addFreshEntity(projectile);
+        });
+        return projectiles;
     }
 
     static void magicSpearAntiMagicBurstDoesNotRestart(GameTestHelper helper) {

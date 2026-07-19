@@ -42,9 +42,9 @@ public class MagicSpear extends AbstractSpell {
             .build();
 
     public MagicSpear() {
-        baseSpellPower = 900;
-        spellPowerPerLevel = 200;
-        baseManaCost = 100;
+        baseSpellPower = 600;
+        spellPowerPerLevel = 300;
+        baseManaCost = 30;
         manaCostPerLevel = 30;
         castTime = 0;
     }

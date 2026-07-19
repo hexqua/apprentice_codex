@@ -11,6 +11,8 @@ import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.ForgeProjectileImpactTools;
+import jp.aquafactory.apprenticecodex.utility.ProjectileCollisionTools;
 import net.minecraft.util.Mth;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
@@ -92,13 +94,43 @@ public class InscribeIceDaggerEntity extends Projectile implements AntiMagicSusc
             }
 
             var hitResult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-            if (hitResult.getType() != HitResult.Type.MISS
-                    && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitResult)) {
-                onHit(hitResult);
+            var cancelledBlockHit = (BlockHitResult) null;
+            if (hitResult.getType() != HitResult.Type.MISS) {
+                var impactAction = ForgeProjectileImpactTools.resolveImpactAction(this, hitResult);
+                if (impactAction == ForgeProjectileImpactTools.ImpactAction.CONTINUE) {
+                    if (hitResult instanceof BlockHitResult blockHit) {
+                        cancelledBlockHit = blockHit;
+                    }
+                } else if (impactAction == ForgeProjectileImpactTools.ImpactAction.PROCESS) {
+                    onHit(hitResult);
+                } else {
+                    discard();
+                }
             }
 
             if (!isRemoved()) {
-                move(MoverType.SELF, getDeltaMovement());
+                var movementStart = position();
+                var requestedMovement = getDeltaMovement();
+                move(MoverType.SELF, requestedMovement);
+                if (horizontalCollision || verticalCollision) {
+                    var physicalHit = cancelledBlockHit != null
+                            ? cancelledBlockHit
+                            : ProjectileCollisionTools.findPhysicalBlockHit(this, movementStart, requestedMovement);
+                    var impactAction = physicalHit == null || cancelledBlockHit != null
+                            ? ForgeProjectileImpactTools.ImpactAction.CONTINUE
+                            : ForgeProjectileImpactTools.resolveImpactAction(this, physicalHit);
+                    if (physicalHit != null && impactAction == ForgeProjectileImpactTools.ImpactAction.CONTINUE) {
+                        ProjectileCollisionTools.continueAfterCancelledImpact(this, movementStart, requestedMovement);
+                    } else if (physicalHit != null && impactAction == ForgeProjectileImpactTools.ImpactAction.PROCESS) {
+                        setDeltaMovement(requestedMovement);
+                        onHit(physicalHit);
+                    } else {
+                        discard();
+                    }
+                }
+                if (isRemoved()) {
+                    return;
+                }
                 ProjectileUtil.rotateTowardsMovement(this, 1.0F);
             }
         } else {

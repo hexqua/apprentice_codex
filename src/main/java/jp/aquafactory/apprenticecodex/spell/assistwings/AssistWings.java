@@ -49,12 +49,12 @@ public class AssistWings extends AbstractSpell {
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.apprenticecodex.jumps_count", Utils.stringTruncation(getJumpCount(spellLevel, caster), 1))
+                Component.translatable("ui.apprenticecodex.jumps_count", Utils.stringTruncation(getJumpCount(spellLevel), 1))
         );
     }
 
-    private int getJumpCount(int spellLevel, LivingEntity entity){
-        return 1 + Math.round(getSpellPower(spellLevel, entity) / 100.0f);
+    private int getJumpCount(int spellLevel){
+        return 1 + spellLevel;
     }
 
     @Override
@@ -99,7 +99,7 @@ public class AssistWings extends AbstractSpell {
             return true;
         }
 
-        var canJump = codexData.get(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE).doneJump < getJumpCount(spellLevel, entity);
+        var canJump = codexData.get(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE).doneJump < getJumpCount(spellLevel);
         if (!canJump){
             if (entity instanceof ServerPlayer serverPlayer) {
                 serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.cant_jump_more", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
@@ -133,7 +133,7 @@ public class AssistWings extends AbstractSpell {
             }
 
             // ラスト1回は音でわかりやすくする.
-            if (spell.doneJump == getJumpCount(spellLevel, entity)) {
+            if (spell.doneJump == getJumpCount(spellLevel)) {
                 playAirJumpLimitSound(level, entity);
             }
 

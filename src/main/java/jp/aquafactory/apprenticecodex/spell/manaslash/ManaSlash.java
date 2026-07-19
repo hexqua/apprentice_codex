@@ -54,8 +54,8 @@ public class ManaSlash extends AbstractSpell {
             .build();
 
     public ManaSlash() {
-        baseSpellPower = 75;
-        spellPowerPerLevel = 50;
+        baseSpellPower = 50;
+        spellPowerPerLevel = 25;
         baseManaCost = 30;
         manaCostPerLevel = 0;
         castTime = 0;

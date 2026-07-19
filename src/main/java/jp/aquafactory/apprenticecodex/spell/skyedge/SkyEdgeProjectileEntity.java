@@ -8,6 +8,8 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
+import jp.aquafactory.apprenticecodex.utility.ForgeProjectileImpactTools;
+import jp.aquafactory.apprenticecodex.utility.ProjectileCollisionTools;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -81,11 +83,47 @@ public class SkyEdgeProjectileEntity extends Projectile implements AntiMagicSusc
 
             if (canShooting(0)) {
                 var hitresult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-                if (hitresult.getType() != HitResult.Type.MISS && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitresult)) {
-                    onHit(hitresult);
+                var cancelledBlockHit = (BlockHitResult) null;
+                if (hitresult.getType() != HitResult.Type.MISS) {
+                    var impactAction = ForgeProjectileImpactTools.resolveImpactAction(this, hitresult);
+                    if (impactAction == ForgeProjectileImpactTools.ImpactAction.CONTINUE) {
+                        if (hitresult instanceof BlockHitResult blockHit) {
+                            cancelledBlockHit = blockHit;
+                        }
+                    } else if (impactAction == ForgeProjectileImpactTools.ImpactAction.PROCESS) {
+                        onHit(hitresult);
+                    } else {
+                        discard();
+                    }
                 }
 
-                move(MoverType.SELF, getDeltaMovement());
+                if (isRemoved()) {
+                    return;
+                }
+
+                var movementStart = position();
+                var requestedMovement = getDeltaMovement();
+                move(MoverType.SELF, requestedMovement);
+                if (horizontalCollision || verticalCollision) {
+                    var physicalHit = cancelledBlockHit != null
+                            ? cancelledBlockHit
+                            : ProjectileCollisionTools.findPhysicalBlockHit(this, movementStart, requestedMovement);
+                    var impactAction = physicalHit == null || cancelledBlockHit != null
+                            ? ForgeProjectileImpactTools.ImpactAction.CONTINUE
+                            : ForgeProjectileImpactTools.resolveImpactAction(this, physicalHit);
+                    if (physicalHit != null && impactAction == ForgeProjectileImpactTools.ImpactAction.CONTINUE) {
+                        ProjectileCollisionTools.continueAfterCancelledImpact(this, movementStart, requestedMovement);
+                    } else if (physicalHit != null && impactAction == ForgeProjectileImpactTools.ImpactAction.PROCESS) {
+                        setDeltaMovement(requestedMovement);
+                        onHit(physicalHit);
+                    } else {
+                        onImpact(level, 0.1, false, requestedMovement);
+                        discard();
+                    }
+                }
+                if (isRemoved()) {
+                    return;
+                }
                 ProjectileUtil.rotateTowardsMovement(this, 1);
             }
 
@@ -200,12 +238,15 @@ public class SkyEdgeProjectileEntity extends Projectile implements AntiMagicSusc
     }
 
     private void onImpact(Level level, double impactDistance, boolean isImpactOnEntity) {
+        onImpact(level, impactDistance, isImpactOnEntity, getDeltaMovement());
+    }
+
+    private void onImpact(Level level, double impactDistance, boolean isImpactOnEntity, Vec3 impactDirection) {
        AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
 
         if (level instanceof ServerLevel server){
             // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
-            var dir = getDeltaMovement();
-            var impactPos = position().add(dir.scale(impactDistance));
+            var impactPos = position().add(impactDirection.scale(impactDistance));
             server.sendParticles(
                     ParticleTypes.ENCHANTED_HIT,
                     impactPos.x, impactPos.y, impactPos.z,
