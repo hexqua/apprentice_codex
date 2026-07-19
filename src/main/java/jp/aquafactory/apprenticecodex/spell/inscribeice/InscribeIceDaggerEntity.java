@@ -116,6 +116,13 @@ public class InscribeIceDaggerEntity extends Projectile implements AntiMagicSusc
             if (!isRemoved()) {
                 var movement = getDeltaMovement();
                 move(MoverType.SELF, movement);
+                // 中心線のレイキャストが外れても当たり箱が障害物を擦るため、move の物理衝突も着弾として扱う。
+                if ((horizontalCollision || verticalCollision) && tickCount > BLOCK_COLLISION_GRACE_TICKS) {
+                    triggerImpact();
+                    playHitSound();
+                    discard();
+                    return;
+                }
                 if (tickCount <= BLOCK_COLLISION_GRACE_TICKS) {
                     setDeltaMovement(movement);
                 }

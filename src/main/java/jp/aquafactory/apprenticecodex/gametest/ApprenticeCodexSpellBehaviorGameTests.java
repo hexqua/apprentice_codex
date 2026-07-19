@@ -38,6 +38,8 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String MIST_FORM_ISOLATED_BATCH = "apprenticecodex.mist_form_isolated";
     private static final String COUNTERSPELL_COMPAT_ISOLATED_BATCH = "apprenticecodex.counterspell_compat_isolated";
     private static final String INSCRIBE_ICE_ISOLATED_BATCH = "apprenticecodex.inscribe_ice_isolated";
+    private static final String STRAIGHT_PROJECTILE_COLLISION_ISOLATED_BATCH =
+            "apprenticecodex.straight_projectile_collision_isolated";
     private static final String DUAL_ACROBAT_ISOLATED_BATCH = "apprenticecodex.dual_acrobat_isolated";
     private static final String HEAVENLY_FIST_ISOLATED_BATCH = "apprenticecodex.heavenly_fist_isolated";
     private static final String HEAVENLY_FIST_CREATE_PRESSING_DENYLIST_BATCH =
@@ -805,6 +807,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = COUNTERSPELL_COMPAT_ISOLATED_BATCH, timeoutTicks = 40)
     public static void counterspellCompatProjectilesFizzleHarmlessly(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.counterspellCompatProjectilesFizzleHarmlessly(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = STRAIGHT_PROJECTILE_COLLISION_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void straightProjectilesTreatBoundingBoxGrazesAsBlockImpacts(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.straightProjectilesTreatBoundingBoxGrazesAsBlockImpacts(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = COUNTERSPELL_COMPAT_ISOLATED_BATCH, timeoutTicks = 40)

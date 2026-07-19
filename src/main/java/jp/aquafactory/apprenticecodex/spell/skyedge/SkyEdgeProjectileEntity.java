@@ -86,7 +86,18 @@ public class SkyEdgeProjectileEntity extends Projectile implements AntiMagicSusc
                     onHit(hitresult);
                 }
 
-                move(MoverType.SELF, getDeltaMovement());
+                if (isRemoved()) {
+                    return;
+                }
+
+                var requestedMovement = getDeltaMovement();
+                move(MoverType.SELF, requestedMovement);
+                // 中心線のレイキャストが外れても当たり箱が障害物を擦るため、move の物理衝突も着弾として扱う。
+                if (horizontalCollision || verticalCollision) {
+                    onImpact(level, 0.1, false, requestedMovement);
+                    discard();
+                    return;
+                }
                 ProjectileUtil.rotateTowardsMovement(this, 1);
             }
 
@@ -201,12 +212,15 @@ public class SkyEdgeProjectileEntity extends Projectile implements AntiMagicSusc
     }
 
     private void onImpact(Level level, double impactDistance, boolean isImpactOnEntity) {
+        onImpact(level, impactDistance, isImpactOnEntity, getDeltaMovement());
+    }
+
+    private void onImpact(Level level, double impactDistance, boolean isImpactOnEntity, Vec3 impactDirection) {
        AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
 
         if (level instanceof ServerLevel server){
             // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
-            var dir = getDeltaMovement();
-            var impactPos = position().add(dir.scale(impactDistance));
+            var impactPos = position().add(impactDirection.scale(impactDistance));
             server.sendParticles(
                     ParticleTypes.ENCHANTED_HIT,
                     impactPos.x, impactPos.y, impactPos.z,
