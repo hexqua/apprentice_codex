@@ -79,7 +79,16 @@ public class ManaForceBladeProjectileEntity extends Projectile {
                 onHit(hitResult);
             }
 
+            if (isRemoved()) {
+                return;
+            }
+
             move(MoverType.SELF, getDeltaMovement());
+            // 中心線のレイキャストが外れても当たり箱が障害物を擦るため、move の物理衝突も着弾として扱う。
+            if (horizontalCollision || verticalCollision) {
+                discard();
+                return;
+            }
             ProjectileUtil.rotateTowardsMovement(this, 1);
         }
 
