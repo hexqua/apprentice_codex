@@ -171,7 +171,9 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity,
             }
 
             damagedEntityIds.add(target.getUUID());
-            CombatTools.applyDamage(target, damage, source, school, CombatTools.KnockbackTypes.DEFAULT);
+            if (CombatTools.applyDamage(target, damage, source, school, CombatTools.KnockbackTypes.DEFAULT)) {
+                MoonLightCounterspellEffect.applyAfterSuccessfulDamage(source, target, owner);
+            }
         }
     }
 

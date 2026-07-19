@@ -737,7 +737,7 @@
   "spell.apprenticecodex.higanbana.guide": "Summons a cursed magical blade. Use it again to unleash a flurry of strikes. Its damage is low, but it heals you for 100% of the damage dealt.",
   "spell.apprenticecodex.thermal_process.guide": "Summons a magical flamethrower to sear whatever lies in your line of sight. Keeping the heat on a target applies an intense heat effect. You can also beam it at smeltable items to process them. It will not set the surroundings—or anything unrelated—on fire.",
   "spell.apprenticecodex.earth_forge.guide": "Creates a flat patch of dirt blocks at your line of sight. While sneaking, the area is reduced to a single block.",
-  "spell.apprenticecodex.moon_light.guide": "Summons a katana from beyond the laws of this world and delivers a single flash-cut. The blade's moonlit power then rends space—sharp and deep. The cast cannot be interrupted.",
+  "spell.apprenticecodex.moon_light.guide": "Summons a katana from beyond the laws of this world and delivers a single flash-cut. The blade's magic rends space—sharp and deep—and severs both magical effects on its target and spellcasting itself. The cast cannot be interrupted.",
   "spell.apprenticecodex.mana_charge.guide": "Recover mana quickly during casting.",
   "spell.apprenticecodex.mana_mending.guide": "Channels your mana into a damaged item in your hands to repair it. If both hands hold items, the offhand is preferred. You cannot cast it unless you are directly holding a damaged item.",
   "spell.apprenticecodex.mana_slash.guide": "A latent spell unique to the Crystal Bladed Staff. Launches a blade of condensed mana. Its damage scales with the staff's attack damage. On hit, it creates orbs that restore mana.",
