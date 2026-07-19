@@ -45,6 +45,7 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity,
     public static final float MAX_NOTCH_DEPTH = 4.0f;
     private static final int PORTAL_PARTICLE_COUNT_PER_EMITTER = 2;
     private static final int PORTAL_VERTICAL_EMITTER_COUNT = 7;
+    private static final float PORTAL_EMITTER_SPAWN_CHANCE = 0.7f;
     private static final float SEGMENT_MARGIN_BLOCKS = 0.05f;
 
     private static final EntityDataAccessor<Float> DISTANCE_BLOCKS =
@@ -248,14 +249,21 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity,
 
         var bottomLeft = frontCenter.add(frontDepthOffset).add(leftOffset);
         var bottomRight = frontCenter.add(frontDepthOffset).add(rightOffset);
-        var verticalSegments = Math.max(1, PORTAL_VERTICAL_EMITTER_COUNT - 1);
-        for (var i = 0; i <= verticalSegments; ++i) {
-            var ratio = i / (double) verticalSegments;
-            var verticalOffset = up.scale(AREA_HEIGHT_BLOCKS * ratio);
-            var verticalBias = Mth.lerp((float) ratio, -0.015f, 0.015f);
-
-            spawnPortalEmitter(level, bottomLeft.add(verticalOffset), forward, 0.025, verticalBias);
-            spawnPortalEmitter(level, bottomRight.add(verticalOffset), forward, 0.025, verticalBias);
+        var random = level.getRandom();
+        for (var i = 0; i < PORTAL_VERTICAL_EMITTER_COUNT; ++i) {
+            // 高さを帯ごとに乱し、左右も独立して間引くことで、切断面の輪郭を保ちながら等間隔の列を崩す。
+            if (random.nextFloat() < PORTAL_EMITTER_SPAWN_CHANCE) {
+                var leftRatio = (i + random.nextDouble()) / PORTAL_VERTICAL_EMITTER_COUNT;
+                var leftVerticalOffset = up.scale(AREA_HEIGHT_BLOCKS * leftRatio);
+                var leftVerticalBias = Mth.lerp((float) leftRatio, -0.015f, 0.015f);
+                spawnPortalEmitter(level, bottomLeft.add(leftVerticalOffset), forward, 0.025, leftVerticalBias);
+            }
+            if (random.nextFloat() < PORTAL_EMITTER_SPAWN_CHANCE) {
+                var rightRatio = (i + random.nextDouble()) / PORTAL_VERTICAL_EMITTER_COUNT;
+                var rightVerticalOffset = up.scale(AREA_HEIGHT_BLOCKS * rightRatio);
+                var rightVerticalBias = Mth.lerp((float) rightRatio, -0.015f, 0.015f);
+                spawnPortalEmitter(level, bottomRight.add(rightVerticalOffset), forward, 0.025, rightVerticalBias);
+            }
         }
     }
 
