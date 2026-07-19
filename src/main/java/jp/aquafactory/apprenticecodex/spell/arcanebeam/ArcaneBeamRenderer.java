@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
@@ -20,6 +21,8 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
+
+    private static final float APPEAR_ANIMATION_TICKS = 5.0f;
 
     // バニラのビーコンを使う.
     private static final ResourceLocation BEAM_TEX = ResourceLocation.withDefaultNamespace("textures/entity/beacon_beam.png");
@@ -45,8 +48,11 @@ public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
         var q = new Quaternionf().rotationTo(from, to);
 
 
-        var length = entity.getLength();
-        var radius = entity.getRadius();
+        var animationProgress = Mth.clamp((entity.tickCount + partialTicks) / APPEAR_ANIMATION_TICKS, 0.0f, 1.0f);
+        var animationScale = easeOutCubic(animationProgress);
+        // 壁までの距離ではなく最大射程を伸ばし、壁へ到達した時点で見た目だけを止める.
+        var length = Math.min(entity.getLength(), ArcaneBeam.getRange() * animationScale);
+        var radius = entity.getRadius() * animationScale;
         var outArgb = entity.getColorARGBOuter();
         var inArgb = entity.getColorARGBInner();
 
@@ -74,6 +80,11 @@ public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
     @Override
     public @NotNull ResourceLocation getTextureLocation(@NotNull ArcaneBeamEntity entity) {
         return BEAM_TEX;
+    }
+
+    private static float easeOutCubic(float value) {
+        var inverse = 1.0f - value;
+        return 1.0f - inverse * inverse * inverse;
     }
 
     private void drawBeam(PoseStack poseStack, VertexConsumer consumer, float length, float radius, int argb, int packedLight, float uvParameter){
