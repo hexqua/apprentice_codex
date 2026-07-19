@@ -37,6 +37,8 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String ECHO_CAST_MULTICAST_LIMIT_BATCH = "apprenticecodex.echo_cast_multicast_limit";
     private static final String MIST_FORM_ISOLATED_BATCH = "apprenticecodex.mist_form_isolated";
     private static final String COUNTERSPELL_COMPAT_ISOLATED_BATCH = "apprenticecodex.counterspell_compat_isolated";
+    private static final String MOON_LIGHT_COUNTERSPELL_ISOLATED_BATCH =
+            "apprenticecodex.moon_light_counterspell_isolated";
     private static final String INSCRIBE_ICE_ISOLATED_BATCH = "apprenticecodex.inscribe_ice_isolated";
     private static final String STRAIGHT_PROJECTILE_COLLISION_ISOLATED_BATCH =
             "apprenticecodex.straight_projectile_collision_isolated";
@@ -827,6 +829,31 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = COUNTERSPELL_COMPAT_ISOLATED_BATCH)
     public static void counterspellCompatSpecialPlayerTargetBehaviors(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.counterspellCompatSpecialPlayerTargetBehaviors(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MOON_LIGHT_COUNTERSPELL_ISOLATED_BATCH)
+    public static void moonLightSuccessfulDamageAppliesCounterspellEffects(GameTestHelper helper) {
+        MoonLightCounterspellGameTestScenarios.successfulDamageAppliesCounterspellEffects(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MOON_LIGHT_COUNTERSPELL_ISOLATED_BATCH)
+    public static void moonLightFailedDamageDoesNotApplyCounterspellEffects(GameTestHelper helper) {
+        MoonLightCounterspellGameTestScenarios.failedDamageDoesNotApplyCounterspellEffects(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MOON_LIGHT_COUNTERSPELL_ISOLATED_BATCH)
+    public static void moonLightCanceledCounterspellEventKeepsAdditionalEffects(GameTestHelper helper) {
+        MoonLightCounterspellGameTestScenarios.canceledCounterspellEventKeepsAdditionalEffects(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MOON_LIGHT_COUNTERSPELL_ISOLATED_BATCH)
+    public static void moonLightSuccessfulDamageCancelsMagicEntityCast(GameTestHelper helper) {
+        MoonLightCounterspellGameTestScenarios.successfulDamageCancelsMagicEntityCast(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MOON_LIGHT_COUNTERSPELL_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void moonLightChargeCutAppliesCounterspellEffects(GameTestHelper helper) {
+        MoonLightCounterspellGameTestScenarios.chargeCutAppliesCounterspellEffects(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH)
