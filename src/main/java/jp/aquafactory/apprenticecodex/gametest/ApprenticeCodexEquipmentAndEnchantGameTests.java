@@ -1552,6 +1552,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void attackcastRingFallsBackAfterCrystalBladedStaffHit(GameTestHelper helper) {
+        AttackcastRingGameTestScenarios.attackcastRingFallsBackAfterCrystalBladedStaffHit(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void attackcastRingFallsBackAfterCrystalBladedStaffMissFailure(GameTestHelper helper) {
+        AttackcastRingGameTestScenarios.attackcastRingFallsBackAfterCrystalBladedStaffMissFailure(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void crystalBladedStaffStartsWithHiddenManaSlash(GameTestHelper helper) {
         SwingcastStaffGameTestScenarios.crystalBladedStaffStartsWithHiddenManaSlash(helper);
     }
