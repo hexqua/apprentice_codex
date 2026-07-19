@@ -9,12 +9,18 @@ import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRing;
 import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRingAttackTrigger;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.Vec3;
+
+import java.util.List;
 
 final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private AttackcastRingGameTestScenarios() {
@@ -228,6 +234,62 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
         );
         helper.assertTrue(!magicData.getPlayerCooldowns().isOnCooldown(ringSpell),
                 "Epic Fight Staffrifle should leave Attackcast Ring untouched after failure");
+        helper.succeed();
+    }
+
+    static void attackcastRingEpicFightUsesSyncedBlockTarget(GameTestHelper helper) {
+        if (!net.minecraftforge.fml.ModList.get().isLoaded(
+                jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat.MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "attackcast_ring_epic_fight_block_target");
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIAMOND_SWORD));
+        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.RIFT_HOLE.get();
+        equipRing(player, 0, createRingStack(helper, spell));
+        var magicData = requireMagicData(helper, player);
+        var maxMana = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get());
+        helper.assertTrue(maxMana != null, "Epic Fight Attackcast Ring test should resolve max mana");
+        maxMana.setBaseValue(1000.0D);
+        magicData.setMana(1000.0F);
+        magicData.getSyncedData().learnSpell(spell, false);
+
+        var targetPos = new BlockPos(2, 2, 0);
+        helper.setBlock(targetPos, Blocks.STONE);
+        var absoluteTargetPos = helper.absolutePos(targetPos);
+        var targetData = new BlockTargetData();
+        targetData.setTarget(
+                absoluteTargetPos,
+                Direction.WEST,
+                Vec3.atCenterOf(absoluteTargetPos),
+                absoluteTargetPos.relative(Direction.WEST),
+                Direction.EAST
+        );
+
+        helper.assertTrue(
+                jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper
+                        .validateTarget(helper.getLevel(), player, 16.0D, targetData)
+                        .isPresent(),
+                "Epic Fight Attackcast Ring test target should pass server validation"
+        );
+        helper.assertTrue(
+                jp.aquafactory.apprenticecodex.spell.rifthole.RiftHoleBlockSafety
+                        .canReplace(helper.getLevel(), absoluteTargetPos),
+                "Epic Fight Attackcast Ring test target should be replaceable by Rift Hole"
+        );
+        helper.assertTrue(
+                jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat
+                        .queueAttackcastRingTargets(player, List.of(targetData)),
+                "Epic Fight should queue the Attackcast Ring block target"
+        );
+        helper.assertTrue(
+                jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat
+                        .triggerSwingMagicFromAttackPhase(player, InteractionHand.MAIN_HAND, -1, 2),
+                "Epic Fight Attackcast Ring should cast with its synced block target"
+        );
+        helper.assertBlockPresent(jp.aquafactory.apprenticecodex.registry.BlockRegistry.RIFT_HOLE.get(), targetPos);
         helper.succeed();
     }
 

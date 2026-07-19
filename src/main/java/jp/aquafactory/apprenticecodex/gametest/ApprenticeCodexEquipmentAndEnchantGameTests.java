@@ -1362,6 +1362,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void attackcastRingEpicFightUsesSyncedBlockTarget(GameTestHelper helper) {
+        AttackcastRingGameTestScenarios.attackcastRingEpicFightUsesSyncedBlockTarget(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void attackcastRingFallsBackAfterCrystalBladedStaffHit(GameTestHelper helper) {
         AttackcastRingGameTestScenarios.attackcastRingFallsBackAfterCrystalBladedStaffHit(helper);
     }

@@ -6,6 +6,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModList;
 
+import java.util.List;
+
 public final class EpicFightCompat {
     public static final String MOD_ID = "epicfight";
     private static final String CHARGED_TWIN_BLADE_STAFF_COMPAT_CLASS =
@@ -20,6 +22,8 @@ public final class EpicFightCompat {
             "jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSpellchargedGreatswordCompat";
     private static final String SPELLGUN_COMPAT_CLASS =
             "jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSpellgunCompat";
+    private static final String SWING_MAGIC_COMPAT_CLASS =
+            "jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat";
 
     private EpicFightCompat() {
     }
@@ -73,6 +77,21 @@ public final class EpicFightCompat {
                     .invoke(null, player, targetData);
         } catch (ReflectiveOperationException exception) {
             throw new IllegalStateException("Epic Fight のSpellgunメインハンド発動保留に失敗しました", exception);
+        }
+    }
+
+    public static boolean queueAttackcastRingTargets(ServerPlayer player, List<BlockTargetData> ringTargets) {
+        if (!ModList.get().isLoaded(MOD_ID)) {
+            return false;
+        }
+
+        try {
+            var compatClass = Class.forName(SWING_MAGIC_COMPAT_CLASS);
+            return (boolean) compatClass
+                    .getMethod("queueAttackcastRingTargets", ServerPlayer.class, List.class)
+                    .invoke(null, player, ringTargets);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Epic Fight のAttackcast Ring対象同期に失敗しました", exception);
         }
     }
 }

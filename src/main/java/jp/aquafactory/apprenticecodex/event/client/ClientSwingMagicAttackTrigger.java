@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRingA
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.ClientEpicFightAttackcastRingTargetsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -43,6 +44,23 @@ public final class ClientSwingMagicAttackTrigger {
 
     public static void trySendForBetterCombat(Minecraft minecraft, InteractionHand hand) {
         trySend(minecraft, hand, true, true, DEFAULT_MISS_EVALUATION_DELAY_TICKS);
+    }
+
+    public static void trySyncTargetsForEpicFight(Minecraft minecraft) {
+        var player = minecraft.player;
+        if (minecraft.screen != null || player == null || player.isSpectator()) {
+            return;
+        }
+
+        var stack = player.getMainHandItem();
+        if (usesDedicatedAttackPathWithoutAttackcastRingFallback(stack.getItem())
+                || !AttackcastRingAttackTrigger.hasEquippedRing(player)) {
+            return;
+        }
+
+        Networks.sendToServer(new ClientEpicFightAttackcastRingTargetsPacket(
+                ClientBlockTargetSyncService.captureForAttackcastRings(player)
+        ));
     }
 
     private static void trySend(

@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffAttackContextManager;
 import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRingAttackTrigger;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -42,7 +43,9 @@ public final class EpicFightSwingMagicCompat {
     private static final ConcurrentMap<TriggerKey, Long> LAST_TRIGGERED_TICKS = new ConcurrentHashMap<>();
     private static final ConcurrentMap<UUID, List<TimedTrigger>> TIMED_TRIGGERS = new ConcurrentHashMap<>();
     private static final ConcurrentMap<UUID, Integer> ACTIVE_SCHEDULED_ANIMATION_IDS = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<UUID, PendingRingTargets> PENDING_RING_TARGETS = new ConcurrentHashMap<>();
     private static final int CRYSTAL_BLADED_STAFF_MISS_EVALUATION_DELAY_TICKS = 2;
+    private static final int PENDING_RING_TARGET_LIFETIME_TICKS = 40;
 
     private EpicFightSwingMagicCompat() {
     }
@@ -84,6 +87,10 @@ public final class EpicFightSwingMagicCompat {
     }
 
     public static void tick(ServerPlayer player) {
+        var pendingRingTargets = PENDING_RING_TARGETS.get(player.getUUID());
+        if (pendingRingTargets != null && pendingRingTargets.isExpired(player.level().getGameTime())) {
+            PENDING_RING_TARGETS.remove(player.getUUID(), pendingRingTargets);
+        }
         processTimedTriggers(player);
     }
 
@@ -93,6 +100,7 @@ public final class EpicFightSwingMagicCompat {
         LAST_TRIGGERED_TICKS.keySet().removeIf(key -> key.playerId().equals(playerId));
         TIMED_TRIGGERS.remove(playerId);
         ACTIVE_SCHEDULED_ANIMATION_IDS.remove(playerId);
+        PENDING_RING_TARGETS.remove(playerId);
     }
 
     private static void onAnimationBegin(AnimationBeginEvent event) {
@@ -144,6 +152,9 @@ public final class EpicFightSwingMagicCompat {
         var player = event.getPlayerPatch().getOriginal();
         var playerId = player.getUUID();
         var animation = event.getAnimation();
+        if (animation instanceof AttackAnimation) {
+            PENDING_RING_TARGETS.remove(playerId);
+        }
         var activeScheduledAnimationId = ACTIVE_SCHEDULED_ANIMATION_IDS.get(playerId);
         if (animation != null && activeScheduledAnimationId != null && activeScheduledAnimationId == animation.getId()) {
             TIMED_TRIGGERS.remove(playerId);
@@ -298,6 +309,24 @@ public final class EpicFightSwingMagicCompat {
         return triggerSwingMagic(player, hand, TriggerSource.ATTACK_PHASE, animationId, triggerIndex);
     }
 
+    public static boolean queueAttackcastRingTargets(ServerPlayer player, List<BlockTargetData> ringTargets) {
+        if (player.isSpectator() || !AttackcastRingAttackTrigger.hasEquippedRing(player)) {
+            return false;
+        }
+
+        var copiedTargets = ringTargets == null
+                ? List.<BlockTargetData>of()
+                : ringTargets.stream().map(BlockTargetData::copy).toList();
+        PENDING_RING_TARGETS.put(
+                player.getUUID(),
+                new PendingRingTargets(
+                        copiedTargets,
+                        player.level().getGameTime() + PENDING_RING_TARGET_LIFETIME_TICKS
+                )
+        );
+        return true;
+    }
+
     public static InteractionHand resolveSwingMagicTriggerHand(Player player, InteractionHand hand) {
         return EpicFightScrollcasterGauntletOffhandBridge.resolveSwingMagicHand(player, hand);
     }
@@ -309,44 +338,63 @@ public final class EpicFightSwingMagicCompat {
             int animationId,
             int triggerIndex
     ) {
-        var triggerHand = resolveSwingMagicTriggerHand(player, hand);
-        var stack = player.getItemInHand(triggerHand);
-        if (!isSupportedAttackTriggeredItem(player, triggerHand)) {
-            return false;
-        }
-
-        var triggerKey = new TriggerKey(player.getUUID(), triggerHand, source, animationId, triggerIndex);
-        var gameTime = player.level().getGameTime();
-        var lastTriggeredTick = LAST_TRIGGERED_TICKS.put(triggerKey, gameTime);
-        if (lastTriggeredTick != null && lastTriggeredTick == gameTime) {
-            return false;
-        }
-
-        if (CrystalBladedStaff.isCrystalBladedStaff(stack) && player instanceof ServerPlayer serverPlayer) {
-            return CrystalBladedStaffAttackContextManager.requestMissTrigger(
-                    serverPlayer,
-                    triggerHand,
-                    true,
-                    CRYSTAL_BLADED_STAFF_MISS_EVALUATION_DELAY_TICKS
-            );
-        }
-        if (triggerHand == InteractionHand.MAIN_HAND
-                && usesDedicatedAttackPathWithoutAttackcastRingFallback(stack.getItem())) {
-            if (player instanceof ServerPlayer serverPlayer
-                    && stack.getItem() instanceof MultipurposeStaffrifle staffrifle
-                    && staffrifle.tryTriggerSelectedSpell(serverPlayer, false)) {
-                playStaffrifleShotAnimation(serverPlayer);
-                return true;
+        var ringTargets = getPendingRingTargets(player);
+        try {
+            var triggerHand = resolveSwingMagicTriggerHand(player, hand);
+            var stack = player.getItemInHand(triggerHand);
+            if (!isSupportedAttackTriggeredItem(player, triggerHand)) {
+                return false;
             }
 
-            // 専用攻撃経路が失敗した場合も、通常クライアント経路と同様に指輪へはフォールバックさせない。
+            var triggerKey = new TriggerKey(player.getUUID(), triggerHand, source, animationId, triggerIndex);
+            var gameTime = player.level().getGameTime();
+            var lastTriggeredTick = LAST_TRIGGERED_TICKS.put(triggerKey, gameTime);
+            if (lastTriggeredTick != null && lastTriggeredTick == gameTime) {
+                return false;
+            }
+
+            if (CrystalBladedStaff.isCrystalBladedStaff(stack) && player instanceof ServerPlayer serverPlayer) {
+                return CrystalBladedStaffAttackContextManager.requestMissTrigger(
+                        serverPlayer,
+                        triggerHand,
+                        true,
+                        CRYSTAL_BLADED_STAFF_MISS_EVALUATION_DELAY_TICKS,
+                        ringTargets
+                );
+            }
+            if (triggerHand == InteractionHand.MAIN_HAND
+                    && usesDedicatedAttackPathWithoutAttackcastRingFallback(stack.getItem())) {
+                if (player instanceof ServerPlayer serverPlayer
+                        && stack.getItem() instanceof MultipurposeStaffrifle staffrifle
+                        && staffrifle.tryTriggerSelectedSpell(serverPlayer, false)) {
+                    playStaffrifleShotAnimation(serverPlayer);
+                    return true;
+                }
+
+                // 専用攻撃経路が失敗した場合も、通常クライアント経路と同様に指輪へはフォールバックさせない。
+                return false;
+            }
+            if (player instanceof ServerPlayer serverPlayer
+                    && AttackcastRingAttackTrigger.tryTriggerAttack(serverPlayer, triggerHand, true, ringTargets)) {
+                return true;
+            }
             return false;
+        } finally {
+            if (source == TriggerSource.ATTACK_PHASE) {
+                PENDING_RING_TARGETS.remove(player.getUUID());
+            }
         }
-        if (player instanceof ServerPlayer serverPlayer
-                && AttackcastRingAttackTrigger.tryTriggerAttack(serverPlayer, triggerHand, true)) {
-            return true;
+    }
+
+    private static List<BlockTargetData> getPendingRingTargets(Player player) {
+        var pendingTargets = PENDING_RING_TARGETS.get(player.getUUID());
+        if (pendingTargets == null || pendingTargets.isExpired(player.level().getGameTime())) {
+            if (pendingTargets != null) {
+                PENDING_RING_TARGETS.remove(player.getUUID(), pendingTargets);
+            }
+            return List.of();
         }
-        return false;
+        return pendingTargets.targets();
     }
 
     public static void playStaffrifleShotAnimation(ServerPlayer player) {
@@ -440,5 +488,11 @@ public final class EpicFightSwingMagicCompat {
     }
 
     private record TimedTrigger(long triggerTick, int animationId, int index, InteractionHand preferredHand) {
+    }
+
+    private record PendingRingTargets(List<BlockTargetData> targets, long expiresAt) {
+        private boolean isExpired(long gameTime) {
+            return gameTime > expiresAt;
+        }
     }
 }
