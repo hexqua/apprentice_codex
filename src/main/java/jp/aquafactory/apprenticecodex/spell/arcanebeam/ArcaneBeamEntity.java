@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.spell.arcanebeam;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
+import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
@@ -10,6 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.TraceableEntity;
@@ -20,6 +23,11 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public class ArcaneBeamEntity extends Entity implements TraceableEntity {
+
+    private static final float TRAVELING_SPARK_SPACING = 6.0f;
+    private static final float TRAVELING_SPARK_SPEED = 1.2f;
+    private static final float TRAVELING_SPARK_RADIUS_SCALE = 1.6f;
+    private static final int MAX_TRAVELING_SPARKS = 5;
 
     private static final EntityDataAccessor<Integer> COLOR_ARGB_OUTER =
             SynchedEntityData.defineId(ArcaneBeamEntity.class, EntityDataSerializers.INT);
@@ -65,6 +73,7 @@ public class ArcaneBeamEntity extends Entity implements TraceableEntity {
             var tip = position().add(getLookAngle().normalize().scale(getLength()));
             EffectTools.createParticle(level, ParticleTypes.END_ROD, tip, getRadius() * 1.5, getRadius() / 3.0f);
             EffectTools.createParticle(level, ParticleTypes.FIREWORK, tip, getRadius() * 2.5, getRadius() / 2.0f);
+            spawnTravelingSparks(level);
         }
 
         if(level.isClientSide){
@@ -99,6 +108,59 @@ public class ArcaneBeamEntity extends Entity implements TraceableEntity {
         for(var entity : entities){
             CombatTools.applyDamage(entity, damage, source, SpellRegistry.ARCANE_BEAM.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
         }
+    }
+
+    private void spawnTravelingSparks(Level level) {
+        var length = getLength();
+        if (length <= 0.1f) {
+            return;
+        }
+
+        // 生成後はビームへ追従させず、粒子自身の速度で表面の少し外側を前方へ流す。
+        var sparkCount = Mth.clamp(Mth.ceil(length / TRAVELING_SPARK_SPACING), 1, MAX_TRAVELING_SPARKS);
+        var spacing = length / sparkCount;
+        var direction = getLookAngle().normalize();
+        var upSeed = Math.abs(direction.y) < 0.95 ? new Vec3(0.0, 1.0, 0.0) : new Vec3(1.0, 0.0, 0.0);
+        var right = direction.cross(upSeed).normalize();
+        var up = right.cross(direction).normalize();
+        var surfaceRadius = getRadius() * TRAVELING_SPARK_RADIUS_SCALE;
+        var velocity = direction.scale(TRAVELING_SPARK_SPEED);
+        var spark = createTravelingSpark();
+
+        for (var i = 0; i < sparkCount; i++) {
+            var distance = spacing * i;
+            var angle = random.nextDouble() * Math.PI * 2.0;
+            var surfaceOffset = right.scale(Math.cos(angle) * surfaceRadius)
+                    .add(up.scale(Math.sin(angle) * surfaceRadius));
+            var sparkPosition = position().add(direction.scale(distance)).add(surfaceOffset);
+            level.addParticle(spark, sparkPosition.x, sparkPosition.y, sparkPosition.z,
+                    velocity.x, velocity.y, velocity.z);
+        }
+    }
+
+    private AdditiveGlowParticleOptions createTravelingSpark() {
+        var color = getColorARGBOuter();
+        var red = ((color >> 16) & 0xFF) / 255.0f;
+        var green = ((color >> 8) & 0xFF) / 255.0f;
+        var blue = (color & 0xFF) / 255.0f;
+        return new AdditiveGlowParticleOptions(
+                ParticleRegistry.ADDITIVE_SPARK.get(),
+                0.1f,
+                red,
+                green,
+                blue,
+                1,
+                4,
+                1,
+                0.8f,
+                1.15f,
+                0.6f,
+                0.85f,
+                0.05f,
+                0.35f,
+                0.35f,
+                true
+        );
     }
 
     @Override

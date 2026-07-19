@@ -14,9 +14,12 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
+import software.bernie.geckolib.util.RenderUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +29,7 @@ public class MoonLightKatanaRenderer extends GeoEntityRenderer<MoonLightKatanaEn
     private static final String TRAIL_ROOT_BONE = "trail_root";
     private static final String SCABBARD_TOP_BONE = "scabbard_top";
     private static final String SCABBARD_BOTTOM_BONE = "scabbard_bottom";
+    private static final String SCABBARD_BASE_BONE = "scabbard_base";
     private static final DustParticleOptions CHARGING_PARTICLE =
             new DustParticleOptions(new Vector3f(1.0f, 0.85f, 0.1f), 1.0f);
     private static final int CHARGE_PARTICLE_SEGMENTS = 5;
@@ -35,6 +39,7 @@ public class MoonLightKatanaRenderer extends GeoEntityRenderer<MoonLightKatanaEn
     private Vec3 scabbardTopBonePosition;
     private Vec3 scabbardBottomBonePosition;
     private final Map<java.util.UUID, Long> lastChargeParticleTick = new HashMap<>();
+    private boolean renderingScabbardBase;
 
     public MoonLightKatanaRenderer(EntityRendererProvider.Context pContext) {
         super(pContext, new MoonLightKatanaModel<>());
@@ -112,6 +117,23 @@ public class MoonLightKatanaRenderer extends GeoEntityRenderer<MoonLightKatanaEn
     }
 
     @Override
+    public void postRender(PoseStack poseStack, MoonLightKatanaEntity animatable, BakedGeoModel model,
+                           MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
+                           int packedLight, int packedOverlay, int colour) {
+        super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight,
+                packedOverlay, colour);
+
+        if (isReRender) {
+            return;
+        }
+
+        renderScabbardBasePass(
+                model, poseStack, bufferSource, animatable, partialTick,
+                packedLight, packedOverlay, colour
+        );
+    }
+
+    @Override
     public void renderRecursively(PoseStack poseStack, MoonLightKatanaEntity animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
                                   int packedLight, int packedOverlay, int colour) {
@@ -124,10 +146,104 @@ public class MoonLightKatanaRenderer extends GeoEntityRenderer<MoonLightKatanaEn
             }
         }
 
+        var scabbardBaseBone = isBoneOrChildOf(bone, SCABBARD_BASE_BONE);
+        if (!renderingScabbardBase && scabbardBaseBone) {
+            renderChildBonesOnly(
+                    poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
+                    packedLight, packedOverlay, colour
+            );
+            return;
+        }
+
+        if (renderingScabbardBase) {
+            if (scabbardBaseBone) {
+                super.renderRecursively(
+                        poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
+                        packedLight, packedOverlay, colour
+                );
+                return;
+            }
+
+            renderChildBonesOnly(
+                    poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
+                    packedLight, packedOverlay, colour
+            );
+            return;
+        }
+
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
                 packedLight, packedOverlay, colour
         );
+    }
+
+    @Override
+    public void doPostRenderCleanup() {
+        super.doPostRenderCleanup();
+        renderingScabbardBase = false;
+    }
+
+    private void renderScabbardBasePass(BakedGeoModel model, PoseStack poseStack, MultiBufferSource bufferSource,
+                                        MoonLightKatanaEntity animatable, float partialTick,
+                                        int packedLight, int packedOverlay, int colour) {
+        var portalRenderType = RenderType.endPortal();
+        renderingScabbardBase = true;
+        try {
+            // 再帰描画の途中で RenderType を切り替えず、鞘本体だけを独立したパスで描画する。
+            this.reRender(
+                    model,
+                    poseStack,
+                    bufferSource,
+                    animatable,
+                    portalRenderType,
+                    bufferSource.getBuffer(portalRenderType),
+                    partialTick,
+                    packedLight,
+                    packedOverlay,
+                    colour
+            );
+        } finally {
+            renderingScabbardBase = false;
+        }
+    }
+
+    private void renderChildBonesOnly(PoseStack poseStack, MoonLightKatanaEntity animatable, GeoBone bone,
+                                      RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
+                                      boolean isReRender, float partialTick, int packedLight, int packedOverlay,
+                                      int colour) {
+        poseStack.pushPose();
+
+        if (bone.isTrackingMatrices()) {
+            Matrix4f poseState = new Matrix4f(poseStack.last().pose());
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.entityRenderTranslations));
+        }
+
+        RenderUtil.prepMatrixForBone(poseStack, bone);
+        renderChildBones(
+                poseStack,
+                animatable,
+                bone,
+                renderType,
+                bufferSource,
+                buffer,
+                isReRender,
+                partialTick,
+                packedLight,
+                packedOverlay,
+                colour
+        );
+        poseStack.popPose();
+    }
+
+    private static boolean isBoneOrChildOf(GeoBone bone, String rootBoneName) {
+        for (GeoBone current = bone; current != null; current = current.getParent()) {
+            if (rootBoneName.equals(current.getName())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static Vec3 boneWorldPosition(GeoBone bone) {

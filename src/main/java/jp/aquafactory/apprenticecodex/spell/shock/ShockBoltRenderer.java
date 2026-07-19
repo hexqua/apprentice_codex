@@ -30,7 +30,6 @@ public class ShockBoltRenderer extends EntityRenderer<ShockBoltEntity> {
 
     private static final float OUTER_WIDTH = 0.24f;
     private static final float INNER_WIDTH = 0.11f;
-    private static final float IMPACT_SIZE = 0.45f;
 
     public ShockBoltRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -63,10 +62,6 @@ public class ShockBoltRenderer extends EntityRenderer<ShockBoltEntity> {
                 OUTER_WIDTH, 0.42f, 0.86f, 1.00f, 0.42f * alphaScale);
         drawPath(entity, poseStack, consumer, cameraPos, points, visibleStart, scrollV + 0.35f,
                 INNER_WIDTH, 0.92f, 0.98f, 1.00f, 0.86f * alphaScale);
-
-        if (entity.hasImpact()) {
-            drawImpactFlash(entity, poseStack, consumer, cameraPos, localEnd, alphaScale);
-        }
 
         super.render(entity, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
     }
@@ -206,30 +201,6 @@ public class ShockBoltRenderer extends EntityRenderer<ShockBoltEntity> {
         addVertex(pose.pose(), pose.normal(), consumer, startRight, 1.0f, v0, red, green, blue, alpha, normal);
         addVertex(pose.pose(), pose.normal(), consumer, endRight, 1.0f, v1, red, green, blue, alpha, normal);
         addVertex(pose.pose(), pose.normal(), consumer, endLeft, 0.0f, v1, red, green, blue, alpha, normal);
-    }
-
-    private static void drawImpactFlash(ShockBoltEntity entity, PoseStack poseStack, VertexConsumer consumer,
-                                        Vec3 cameraPos, Vec3 localEnd, float alphaScale) {
-        var toCamera = cameraPos.subtract(entity.position().add(localEnd));
-        if (toCamera.lengthSqr() <= 1.0e-6) {
-            toCamera = new Vec3(0.0, 1.0, 0.0);
-        }
-
-        var forward = toCamera.normalize();
-        var upSeed = Math.abs(forward.y) < 0.95 ? new Vec3(0.0, 1.0, 0.0) : new Vec3(1.0, 0.0, 0.0);
-        var right = forward.cross(upSeed).normalize().scale(IMPACT_SIZE);
-        var up = right.cross(forward).normalize().scale(IMPACT_SIZE);
-        var pose = poseStack.last();
-        var alpha = 0.28f * alphaScale;
-
-        addVertex(pose.pose(), pose.normal(), consumer, localEnd.subtract(right).subtract(up),
-                0.0f, 1.0f, 0.80f * alpha, 0.95f * alpha, 1.00f * alpha, alpha, forward);
-        addVertex(pose.pose(), pose.normal(), consumer, localEnd.add(right).subtract(up),
-                1.0f, 1.0f, 0.80f * alpha, 0.95f * alpha, 1.00f * alpha, alpha, forward);
-        addVertex(pose.pose(), pose.normal(), consumer, localEnd.add(right).add(up),
-                1.0f, 0.0f, 0.80f * alpha, 0.95f * alpha, 1.00f * alpha, alpha, forward);
-        addVertex(pose.pose(), pose.normal(), consumer, localEnd.subtract(right).add(up),
-                0.0f, 0.0f, 0.80f * alpha, 0.95f * alpha, 1.00f * alpha, alpha, forward);
     }
 
     private static void addVertex(Matrix4f poseMatrix, Matrix3f normalMatrix, VertexConsumer consumer, Vec3 position,

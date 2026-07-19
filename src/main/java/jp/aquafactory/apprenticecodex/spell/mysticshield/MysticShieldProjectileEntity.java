@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.ProjectileCollisionTools;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -70,15 +71,40 @@ public class MysticShieldProjectileEntity extends Projectile implements AntiMagi
         }
 
         var hitResult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-        if (hitResult.getType() != HitResult.Type.MISS && !EventHooks.onProjectileImpact(this, hitResult)) {
-            onHit(hitResult);
+        var cancelledBlockHit = (BlockHitResult) null;
+        if (hitResult.getType() != HitResult.Type.MISS) {
+            if (EventHooks.onProjectileImpact(this, hitResult)) {
+                if (hitResult instanceof BlockHitResult blockHit) {
+                    cancelledBlockHit = blockHit;
+                }
+            } else {
+                onHit(hitResult);
+            }
         }
 
         if (isRemoved()) {
             return;
         }
 
-        move(MoverType.SELF, getDeltaMovement());
+        var movementStart = position();
+        var requestedMovement = getDeltaMovement();
+        move(MoverType.SELF, requestedMovement);
+        if (horizontalCollision || verticalCollision) {
+            var physicalHit = cancelledBlockHit != null
+                    ? cancelledBlockHit
+                    : ProjectileCollisionTools.findPhysicalBlockHit(this, movementStart, requestedMovement);
+            if (physicalHit == null) {
+                discard();
+            } else if (cancelledBlockHit != null || EventHooks.onProjectileImpact(this, physicalHit)) {
+                ProjectileCollisionTools.continueAfterCancelledImpact(this, movementStart, requestedMovement);
+            } else {
+                setDeltaMovement(requestedMovement);
+                onHit(physicalHit);
+            }
+        }
+        if (isRemoved()) {
+            return;
+        }
         ProjectileUtil.rotateTowardsMovement(this, 1.0f);
     }
 

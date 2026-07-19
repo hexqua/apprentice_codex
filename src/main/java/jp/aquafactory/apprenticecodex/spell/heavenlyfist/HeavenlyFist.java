@@ -53,8 +53,8 @@ public class HeavenlyFist extends AbstractSpell implements ICraftsmansDelightAff
     public HeavenlyFist() {
         baseSpellPower = 100;
         spellPowerPerLevel = 50;
-        baseManaCost = 60;
-        manaCostPerLevel = 10;
+        baseManaCost = 80;
+        manaCostPerLevel = 20;
         castTime = 0;
     }
 

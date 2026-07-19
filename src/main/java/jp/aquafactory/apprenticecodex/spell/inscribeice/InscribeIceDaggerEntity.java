@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.ProjectileCollisionTools;
 import net.minecraft.util.Mth;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -108,16 +109,55 @@ public class InscribeIceDaggerEntity extends Projectile implements AntiMagicSusc
             }
 
             var hitResult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-            if (hitResult.getType() != HitResult.Type.MISS
-                    && !EventHooks.onProjectileImpact(this, hitResult)) {
-                onHit(hitResult);
+            var notifiedBlockHit = (BlockHitResult) null;
+            var notifiedBlockHitCancelled = false;
+            if (hitResult.getType() != HitResult.Type.MISS) {
+                var impactCancelled = EventHooks.onProjectileImpact(this, hitResult);
+                if (hitResult instanceof BlockHitResult blockHit) {
+                    notifiedBlockHit = blockHit;
+                    notifiedBlockHitCancelled = impactCancelled;
+                }
+                if (!impactCancelled) {
+                    onHit(hitResult);
+                }
             }
 
             if (!isRemoved()) {
-                var movement = getDeltaMovement();
-                move(MoverType.SELF, movement);
+                var movementStart = position();
+                var requestedMovement = getDeltaMovement();
+                move(MoverType.SELF, requestedMovement);
+                if (horizontalCollision || verticalCollision) {
+                    // 中心線側で通知済みなら判定結果も引き継ぎ、同一接触を二重通知しない。
+                    var physicalHit = notifiedBlockHit != null
+                            ? notifiedBlockHit
+                            : ProjectileCollisionTools.findPhysicalBlockHit(this, movementStart, requestedMovement);
+                    if (physicalHit == null) {
+                        discard();
+                    } else if (notifiedBlockHit != null
+                            ? notifiedBlockHitCancelled
+                            : EventHooks.onProjectileImpact(this, physicalHit)) {
+                        ProjectileCollisionTools.continueAfterCancelledImpact(this, movementStart, requestedMovement);
+                    } else {
+                        setDeltaMovement(requestedMovement);
+                        if (notifiedBlockHit == null) {
+                            onHit(physicalHit);
+                        }
+                        if (!isRemoved() && tickCount <= BLOCK_COLLISION_GRACE_TICKS) {
+                            // 猶予中に接触面をすり抜けないよう、接触前の位置で次tickまで待機する。
+                            setPos(movementStart);
+                            horizontalCollision = false;
+                            verticalCollision = false;
+                            verticalCollisionBelow = false;
+                            minorHorizontalCollision = false;
+                            setOnGround(false);
+                        }
+                    }
+                }
+                if (isRemoved()) {
+                    return;
+                }
                 if (tickCount <= BLOCK_COLLISION_GRACE_TICKS) {
-                    setDeltaMovement(movement);
+                    setDeltaMovement(requestedMovement);
                 }
                 ProjectileUtil.rotateTowardsMovement(this, 1.0F);
             }

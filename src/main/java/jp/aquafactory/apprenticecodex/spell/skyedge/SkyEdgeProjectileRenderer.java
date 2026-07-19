@@ -2,10 +2,13 @@ package jp.aquafactory.apprenticecodex.spell.skyedge;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -16,6 +19,11 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public class SkyEdgeProjectileRenderer extends EntityRenderer<SkyEdgeProjectileEntity> {
+
+    private static final RenderType ADDITIVE_RENDER_TYPE = ApprenticeRenderTypes.entityAdditiveGlowNoCull(
+            "sky_edge_projectile_additive",
+            InventoryMenu.BLOCK_ATLAS
+    );
 
     private final ItemStack renderItem = new ItemStack(ItemRegistry.SKY_EDGE_SWORD.get());
 
@@ -37,14 +45,15 @@ public class SkyEdgeProjectileRenderer extends EntityRenderer<SkyEdgeProjectileE
         poseStack.mulPose(Axis.YP.rotationDegrees(-90.0f));
         poseStack.mulPose(Axis.ZP.rotationDegrees(-45.0f));
 
-        // ItemRendererで描画.
+        // ItemRendererがモデル用に要求するRenderTypeを差し替え、既存の押し出し形状を加算合成で描く.
+        MultiBufferSource additiveBuffer = ignored -> buffer.getBuffer(ADDITIVE_RENDER_TYPE);
         Minecraft.getInstance().getItemRenderer().renderStatic(
                 renderItem,
                 ItemDisplayContext.NONE,
-                packedLight,
+                LightTexture.FULL_BRIGHT,
                 OverlayTexture.NO_OVERLAY,
                 poseStack,
-                buffer,
+                additiveBuffer,
                 entity.level(),
                 entity.getId()
         );

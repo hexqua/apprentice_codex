@@ -21,7 +21,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -42,8 +41,8 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
     public ThermalProcess() {
         super(ThermalProcessThrowerEntity.class);
         baseSpellPower = 100;
-        spellPowerPerLevel = 50;
-        baseManaCost = 15;
+        spellPowerPerLevel = 150;
+        baseManaCost = 10;
         manaCostPerLevel = 5;
         castTime = 200;
     }
@@ -52,13 +51,13 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(spellLevel, caster), 1)),
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1)),
                 Component.translatable("ui.apprenticecodex.process_item_per_second", Utils.stringTruncation(getBurnItemPerSecond(spellLevel, caster), 1))
         );
     }
 
     static float getDamage(float spellPower) {
-        var rawDamage = 0.5f + spellPower / 100.0f;
+        var rawDamage = 0.5f + 1.5f * spellPower / 100.0f;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.THERMAL_PROCESS);
     }
 
@@ -66,12 +65,12 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
         return getDamage(getSpellPower(spellLevel, entity));
     }
 
-    private float getRange(int spellLevel, LivingEntity entity) {
-        return 4f + 4f * getSpellPower(spellLevel, entity) / 100.0f;
+    private float getRange() {
+        return 12f;
     }
 
     private float getBurnItemPerSecond(int spellLevel, LivingEntity entity) {
-        var baseProcessSpeed = 4 * getSpellPower(spellLevel, entity) / 100.0f;
+        var baseProcessSpeed = 2 * getSpellPower(spellLevel, entity) / 100.0f;
         if (!isCraftsmansDelightProcessSpeedBonusEnabled()) {
             return baseProcessSpeed;
         }
@@ -129,7 +128,7 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
         var summonWeapon = new ThermalProcessThrowerEntity(EntityRegistry.THERMAL_PROCESS_THROWER.get(), level, entity);
         summonWeapon.setSpellLevel(spellLevel);
         summonWeapon.setDamage(getDamage(spellLevel, entity));
-        summonWeapon.setRange(getRange(spellLevel, entity));
+        summonWeapon.setRange(getRange());
         summonWeapon.setBurnItemPerSecond(getBurnItemPerSecond(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
         if (isCraftsmansDelightCastingMobilityEnabled()) {

@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
+import jp.aquafactory.apprenticecodex.utility.ProjectileCollisionTools;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -26,6 +27,7 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
+import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.NotNull;
 
 public class SkyEdgeProjectileEntity extends Projectile implements AntiMagicSusceptible
@@ -82,11 +84,41 @@ public class SkyEdgeProjectileEntity extends Projectile implements AntiMagicSusc
 
             if (canShooting(0)) {
                 var hitresult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
+                var cancelledBlockHit = (BlockHitResult) null;
                 if (hitresult.getType() != HitResult.Type.MISS) {
-                    onHit(hitresult);
+                    if (EventHooks.onProjectileImpact(this, hitresult)) {
+                        if (hitresult instanceof BlockHitResult blockHit) {
+                            cancelledBlockHit = blockHit;
+                        }
+                    } else {
+                        onHit(hitresult);
+                    }
                 }
 
-                move(MoverType.SELF, getDeltaMovement());
+                if (isRemoved()) {
+                    return;
+                }
+
+                var movementStart = position();
+                var requestedMovement = getDeltaMovement();
+                move(MoverType.SELF, requestedMovement);
+                if (horizontalCollision || verticalCollision) {
+                    var physicalHit = cancelledBlockHit != null
+                            ? cancelledBlockHit
+                            : ProjectileCollisionTools.findPhysicalBlockHit(this, movementStart, requestedMovement);
+                    if (physicalHit == null) {
+                        onImpact(level, 0.1, false, requestedMovement);
+                        discard();
+                    } else if (cancelledBlockHit != null || EventHooks.onProjectileImpact(this, physicalHit)) {
+                        ProjectileCollisionTools.continueAfterCancelledImpact(this, movementStart, requestedMovement);
+                    } else {
+                        setDeltaMovement(requestedMovement);
+                        onHit(physicalHit);
+                    }
+                }
+                if (isRemoved()) {
+                    return;
+                }
                 ProjectileUtil.rotateTowardsMovement(this, 1);
             }
 
@@ -201,12 +233,15 @@ public class SkyEdgeProjectileEntity extends Projectile implements AntiMagicSusc
     }
 
     private void onImpact(Level level, double impactDistance, boolean isImpactOnEntity) {
+        onImpact(level, impactDistance, isImpactOnEntity, getDeltaMovement());
+    }
+
+    private void onImpact(Level level, double impactDistance, boolean isImpactOnEntity, Vec3 impactDirection) {
        AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
 
         if (level instanceof ServerLevel server){
             // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
-            var dir = getDeltaMovement();
-            var impactPos = position().add(dir.scale(impactDistance));
+            var impactPos = position().add(impactDirection.scale(impactDistance));
             server.sendParticles(
                     ParticleTypes.ENCHANTED_HIT,
                     impactPos.x, impactPos.y, impactPos.z,

@@ -738,7 +738,7 @@
   "spell.apprenticecodex.higanbana.guide": "呪力を持つ魔法の刀を召喚する。続いて使用することで連撃を放てる。威力は低いが与えたダメージの100％を回復する。",
   "spell.apprenticecodex.thermal_process.guide": "魔法の火炎放射器を召喚し視線の先を焼き切る。対象を熱し続けることで強力な熱効果を与える。燃やせるアイテムに照射すると処理することができる。周囲や無関係なものを燃やすことはない。",
   "spell.apprenticecodex.earth_forge.guide": "視線先に土ブロックを平面に生成する。スニークをしていると範囲を1ブロックのみに変化させる。",
-  "spell.apprenticecodex.moon_light.guide": "世界の理の外から刀を召喚して一閃する。一閃した刀の魔力は空間を鋭く深く裂く。発動が阻止されることはない。",
+  "spell.apprenticecodex.moon_light.guide": "世界の理の外から刀を召喚して一閃する。一閃した刀の魔力は空間を鋭く深く裂き、対象に付与された魔法効果をも裂き、魔法の詠唱すらも裂く。発動が阻止されることはない。",
   "spell.apprenticecodex.mana_charge.guide": "使用中、マナを急速に回復する。",
   "spell.apprenticecodex.mana_slash.guide": "刃の結晶杖固有の潜在魔法。魔力を凝縮した刃を放つ。威力は結晶杖の攻撃力に比例する。命中時にマナを回復するオーブを生成する。",
   "spell.apprenticecodex.force_field.guide": "敵の攻撃を方向問わず弾く不可視のフィールドを展開する。弾き飛ばした際に大きくマナを消費するが特定の魔法も弾くことができる。異界の長命種の魔法の模造品。",
