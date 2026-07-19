@@ -48,7 +48,7 @@ public class AutoMagnet extends AbstractSpell {
     }
 
     private double getRange(int spellLevel){
-        return 8 * (spellLevel - 1) * 4;
+        return 8 + (spellLevel - 1) * 4;
     }
 
     public double getCollectMana(){
