@@ -1532,6 +1532,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void attackcastRingDoesNotInterruptActiveCast(GameTestHelper helper) {
+        AttackcastRingGameTestScenarios.attackcastRingDoesNotInterruptActiveCast(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void attackcastRingCastsAllEquippedRingsInSlotOrder(GameTestHelper helper) {
         AttackcastRingGameTestScenarios.attackcastRingCastsAllEquippedRingsInSlotOrder(helper);
     }
@@ -1549,6 +1554,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void attackcastRingEpicFightAttackPhaseUsesEquippedRing(GameTestHelper helper) {
         AttackcastRingGameTestScenarios.attackcastRingEpicFightAttackPhaseUsesEquippedRing(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void attackcastRingEpicFightStaffrifleDoesNotFallback(GameTestHelper helper) {
+        AttackcastRingGameTestScenarios.attackcastRingEpicFightStaffrifleDoesNotFallback(helper);
     }
 
     @GameTest(template = TEMPLATE)

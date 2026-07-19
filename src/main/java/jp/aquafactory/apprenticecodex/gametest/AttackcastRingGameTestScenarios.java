@@ -93,6 +93,36 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
         helper.succeed();
     }
 
+    static void attackcastRingDoesNotInterruptActiveCast(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "attackcast_ring_active_cast");
+        var activeSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIREBALL_SPELL.get();
+        var ringSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get();
+        equipRing(player, 0, createRingStack(helper, ringSpell));
+        var magicData = requireMagicData(helper, player);
+        magicData.setMana(1000.0F);
+        magicData.setSyncedData(new io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData(player));
+        magicData.initiateCast(
+                activeSpell,
+                1,
+                60,
+                io.redspace.ironsspellbooks.api.spells.CastSource.SPELLBOOK,
+                "gametest"
+        );
+        var manaBefore = magicData.getMana();
+
+        helper.assertTrue(!AttackcastRingAttackTrigger.tryTriggerAttack(player, InteractionHand.MAIN_HAND, true),
+                "Attackcast Ring should skip while another spell is casting");
+        helper.assertTrue(magicData.isCasting(),
+                "Attackcast Ring should not cancel the active cast");
+        helper.assertTrue(activeSpell.getSpellId().equals(magicData.getCastingSpellId()),
+                "Attackcast Ring should preserve the active casting spell");
+        helper.assertTrue(!magicData.getPlayerCooldowns().isOnCooldown(ringSpell),
+                "Skipped Attackcast Ring should not add its cooldown");
+        helper.assertTrue(magicData.getMana() == manaBefore,
+                "Skipped Attackcast Ring should not consume mana");
+        helper.succeed();
+    }
+
     static void attackcastRingCastsAllEquippedRingsInSlotOrder(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "attackcast_ring_multiple");
         var firstSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get();
@@ -170,6 +200,34 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
         );
         helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
                 "Epic Fight Attackcast Ring should add the normal spell cooldown");
+        helper.succeed();
+    }
+
+    static void attackcastRingEpicFightStaffrifleDoesNotFallback(GameTestHelper helper) {
+        if (!net.minecraftforge.fml.ModList.get().isLoaded(
+                jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat.MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "attackcast_ring_epic_fight_staffrifle");
+        player.setItemInHand(
+                InteractionHand.MAIN_HAND,
+                new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get())
+        );
+        var ringSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get();
+        equipRing(player, 0, createRingStack(helper, ringSpell));
+        var magicData = requireMagicData(helper, player);
+        magicData.setMana(1000.0F);
+
+        helper.assertTrue(
+                !jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat
+                        .triggerSwingMagicFromAttackPhase(player, InteractionHand.MAIN_HAND, -1, 1),
+                "Epic Fight Staffrifle failure should not fall back to Attackcast Ring"
+        );
+        helper.assertTrue(!magicData.getPlayerCooldowns().isOnCooldown(ringSpell),
+                "Epic Fight Staffrifle should leave Attackcast Ring untouched after failure");
         helper.succeed();
     }
 

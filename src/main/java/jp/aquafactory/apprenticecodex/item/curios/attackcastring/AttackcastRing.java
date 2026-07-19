@@ -126,7 +126,8 @@ public class AttackcastRing extends Item implements ICurioItem, RestrictedSpellI
 
         var spell = spellData.getSpell();
         var magicData = MagicData.getPlayerMagicData(player);
-        if (magicData == null || magicData.getPlayerCooldowns().isOnCooldown(spell)) {
+        if (magicData == null || magicData.isCasting() || magicData.getPlayerCooldowns().isOnCooldown(spell)) {
+            // attemptInitiateCast は進行中の詠唱をキャンセルするため、攻撃イベントが届いても指輪からは割り込まない。
             // 攻撃のたびに同じ警告が出ないよう、クールダウンだけは Iron's Spells の通知前に除外する。
             return false;
         }
