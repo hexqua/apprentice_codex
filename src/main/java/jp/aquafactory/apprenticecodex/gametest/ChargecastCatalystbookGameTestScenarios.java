@@ -173,7 +173,25 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
             ChargecastCatalystbookClientCastIntent.finishIfMatches(player.getUUID(), instant.getSpellId());
             helper.assertFalse(ChargecastCatalystbookClientCastIntent.isActive(player.getUUID(), book, instant),
                     "The matching completion must clear the active chargecast after an item swap");
+
+            ChargecastCatalystbookClientCastIntent.mark(player.getUUID(), book, instant);
+            ChargecastCatalystbookClientCastIntent.mark(player.getUUID(), book, mageLight);
+            helper.assertFalse(ChargecastCatalystbookClientCastIntent.activateIfMatches(
+                            player.getUUID(), book, instant
+                    ),
+                    "A newer input must replace a stale pending cast");
+            helper.assertTrue(ChargecastCatalystbookClientCastIntent.activateIfMatches(
+                            player.getUUID(), book, mageLight
+                    ),
+                    "The replacement pending cast must still activate");
+            ChargecastCatalystbookClientCastIntent.finishIfMatches(player.getUUID(), mageLight.getSpellId());
+
+            ChargecastCatalystbookClientCastIntent.mark(player.getUUID(), book, instant);
             ChargecastCatalystbookClientCastIntent.clear();
+            helper.assertFalse(ChargecastCatalystbookClientCastIntent.activateIfMatches(
+                            player.getUUID(), book, instant
+                    ),
+                    "Explicit cleanup must discard a pending cast");
         });
     }
 
