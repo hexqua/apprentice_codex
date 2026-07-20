@@ -546,6 +546,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void chargecastWisdomWheelCastOnlyRequiresHeldBookForExternalSpell(GameTestHelper helper) {
+        ChargecastCatalystbookGameTestScenarios.wisdomWheelCastOnlyRequiresHeldBookForExternalSpell(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void manaShieldCharmUsesCharmSlotAndAppearsInCreativeTab(GameTestHelper helper) {
         ManaShieldCharmGameTestScenarios.manaShieldCharmUsesCharmSlotAndAppearsInCreativeTab(helper);
     }

@@ -24,6 +24,8 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraftforge.event.TickEvent;
 
 import java.util.Set;
 
@@ -284,5 +286,44 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
                     "Cancelling Chargecast Lethal Assault should remove its idle pre-cast rifle");
             helper.succeed();
         });
+    }
+
+    static void wisdomWheelCastOnlyRequiresHeldBookForExternalSpell(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "chargecast_wisdom_swap_test");
+        var book = new ItemStack(ItemRegistry.CHARGECAST_CATALYSTBOOK.get());
+        var internalSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        var externalSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIREBOLT_SPELL.get();
+        ChargecastCatalystbook.setCalibrationScroll(book, 0, createSpellScroll(internalSpell));
+        var item = (ChargecastCatalystbook) book.getItem();
+        helper.assertTrue(item.trySetCalibrationAdjustment(
+                        book, 0, new ItemStack(ItemRegistry.WISDOM_SHARD.get())
+                ), "Wisdom Shard should be accepted for the swap-cancellation test");
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        magicData.getSyncedData();
+        player.setItemInHand(InteractionHand.MAIN_HAND, book);
+        magicData.initiateCast(externalSpell, 1, 20, CastSource.SWORD,
+                io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND);
+        magicData.setPlayerCastingItem(book.copy());
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STICK));
+        ChargecastCatalystbookCastEvents.onPlayerTick(
+                new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player)
+        );
+        helper.assertFalse(magicData.isCasting(),
+                "Switching away should cancel a Wisdom cast borrowed from another wheel source");
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, book);
+        magicData.initiateCast(internalSpell, 1, 20, CastSource.SWORD,
+                io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND);
+        magicData.setPlayerCastingItem(book.copy());
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STICK));
+        ChargecastCatalystbookCastEvents.onPlayerTick(
+                new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player)
+        );
+        helper.assertTrue(magicData.isCasting(),
+                "The book's own projected wheel spell should remain governed by Iron's standard cancellation");
+        Utils.serverSideCancelCast(player);
+        helper.succeed();
     }
 }

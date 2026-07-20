@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.chargecastcatalystbook;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
@@ -10,8 +11,10 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -40,6 +43,35 @@ public final class ChargecastCatalystbookCastEvents {
             return;
         }
         Utils.serverSideCancelCast(player);
+    }
+
+    @SubscribeEvent
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END || event.player.level().isClientSide
+                || !(event.player instanceof ServerPlayer player)) {
+            return;
+        }
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData == null || !magicData.isCasting()
+                || !(magicData.getPlayerCastingItem().getItem() instanceof ChargecastCatalystbook)
+                || !ChargecastCatalystbook.hasWisdomShard(magicData.getPlayerCastingItem())) {
+            return;
+        }
+        var castingSpell = magicData.getCastingSpell().getSpell();
+        var internalSpell = ChargecastCatalystbook.getSelectedSpellData(magicData.getPlayerCastingItem()).getSpell();
+        if (castingSpell == null || castingSpell == internalSpell) {
+            return;
+        }
+
+        // Wisdom で内部選択とは別のホイール魔法を借りた場合だけ、Iron's の SpellContainer 判定では
+        // 発動体を追跡できない。1.20.1 の同期スロットから元の手を解決し、持ち替え時だけ補完して中断する。
+        var castingSlot = magicData.getSyncedData().getCastingEquipmentSlot();
+        ItemStack heldStack = SpellSelectionManager.OFFHAND.equals(castingSlot)
+                ? player.getOffhandItem()
+                : SpellSelectionManager.MAINHAND.equals(castingSlot) ? player.getMainHandItem() : ItemStack.EMPTY;
+        if (!ItemStack.isSameItemSameTags(heldStack, magicData.getPlayerCastingItem())) {
+            Utils.serverSideCancelCast(player);
+        }
     }
 
     public static void castWithPowerBonus(
