@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmash;
 import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashShellEntity;
+import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssaultRifleEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -220,6 +221,47 @@ final class FocusStaffbowGameTestScenarios {
                     "Focus Staffbow should clear simulated additional cast data when the charge is cancelled");
             helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
                     "Focus Staffbow should keep its catalyst arrow when the LONG cast is cancelled early");
+        });
+    }
+
+    static void focusStaffbowLethalAssaultWaitsForReleaseBeforeFiring(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "focus_staffbow_lethal_assault_wait_test");
+        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.LETHAL_ASSAULT.get();
+        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
+        MagicData.getPlayerMagicData(player).setMana(1000.0F);
+
+        helper.runAtTickTime(1, () -> {
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow Lethal Assault should start charging but got " + result.getResult());
+        });
+        helper.runAtTickTime(12, () -> {
+            var rifles = getOwnedSummonWeapons(helper, player, LethalAssaultRifleEntity.class);
+            helper.assertTrue(rifles.size() == 1,
+                    "Focus Staffbow should keep one Lethal Assault rifle visible while charging");
+            helper.assertFalse(rifles.get(0).hasStartedFiringForGameTest(),
+                    "Focus Staffbow Lethal Assault rifle should stay idle before release");
+        });
+        helper.runAtTickTime(13, () -> bowStack.getItem().releaseUsing(
+                bowStack,
+                helper.getLevel(),
+                player,
+                bowStack.getUseDuration() - 12
+        ));
+        helper.runAtTickTime(14, () -> {
+            var rifles = getOwnedSummonWeapons(helper, player, LethalAssaultRifleEntity.class);
+            helper.assertTrue(rifles.size() == 1 && rifles.get(0).hasStartedFiringForGameTest(),
+                    "Focus Staffbow Lethal Assault rifle should start firing after release completes the cast");
+            helper.succeed();
         });
     }
 

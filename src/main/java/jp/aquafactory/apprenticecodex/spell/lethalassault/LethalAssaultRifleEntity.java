@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 public class LethalAssaultRifleEntity extends SummonWeaponEntity implements AntiMagicSusceptible {
     public static final int MAX_RECOIL_TICK = 2;
 
+    private static final int FIRING_NOT_STARTED = -1;
     private static final int FIRST_FIRE_TICK = 5;
     private static final int SECOND_FIRE_TICK = 8;
     private static final int LAST_FIRE_TICK = 11;
@@ -44,6 +45,7 @@ public class LethalAssaultRifleEntity extends SummonWeaponEntity implements Anti
 
     private float damage;
     private int recoilTick;
+    private int firingTick = FIRING_NOT_STARTED;
     private boolean released;
 
     public LethalAssaultRifleEntity(EntityType<?> entityType, Level level) {
@@ -66,6 +68,7 @@ public class LethalAssaultRifleEntity extends SummonWeaponEntity implements Anti
         super.readAdditionalSaveData(tag);
         damage = tag.getFloat("Damage");
         recoilTick = tag.getInt("RecoilTick");
+        firingTick = tag.contains("FiringTick") ? tag.getInt("FiringTick") : FIRING_NOT_STARTED;
         released = tag.getBoolean("Released");
     }
 
@@ -74,6 +77,7 @@ public class LethalAssaultRifleEntity extends SummonWeaponEntity implements Anti
         super.addAdditionalSaveData(tag);
         tag.putFloat("Damage", damage);
         tag.putInt("RecoilTick", recoilTick);
+        tag.putInt("FiringTick", firingTick);
         tag.putBoolean("Released", released);
     }
 
@@ -116,11 +120,6 @@ public class LethalAssaultRifleEntity extends SummonWeaponEntity implements Anti
 
     @Override
     public void tickOnServer(ServerLevel level) {
-        if (tickCount >= DISCARD_TICK) {
-            discard();
-            return;
-        }
-
         if (recoilTick > 0) {
             --recoilTick;
             entityData.set(RECOIL_TICK, recoilTick);
@@ -136,9 +135,19 @@ public class LethalAssaultRifleEntity extends SummonWeaponEntity implements Anti
             faceTarget(resolveAimPosition(owner));
         }
 
-        if (shouldFire(tickCount)) {
+        if (firingTick == FIRING_NOT_STARTED) {
+            return;
+        }
+
+        ++firingTick;
+        if (firingTick >= DISCARD_TICK) {
+            discard();
+            return;
+        }
+
+        if (shouldFire(firingTick)) {
             fire(level, owner);
-            if (tickCount == LAST_FIRE_TICK) {
+            if (firingTick == LAST_FIRE_TICK) {
                 released = true;
             }
         }
@@ -164,8 +173,14 @@ public class LethalAssaultRifleEntity extends SummonWeaponEntity implements Anti
         discard();
     }
 
-    public void setDamage(float newDamage) {
+    public void startFiring(float newDamage) {
         damage = newDamage;
+        firingTick = 0;
+        released = false;
+    }
+
+    public boolean hasStartedFiringForGameTest() {
+        return firingTick != FIRING_NOT_STARTED;
     }
 
     public int getRecoilTick() {
