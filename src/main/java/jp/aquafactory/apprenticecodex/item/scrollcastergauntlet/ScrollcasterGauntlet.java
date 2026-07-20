@@ -84,7 +84,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
-        ItemTransformPreservingCastAnimationItem,
+        ItemTransformPreservingCastAnimationItem, ArcaneAnvilScrollImbueBlockItem,
         BetterCombatOffhandDualWieldingPolicyItem, SwingTriggeredMagicItem, PriorityOffhandUseDeferringItem, IJeiInfoItem,
         SneakSelectionUiItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
         TranscendencePolicy, AttributeEnchantmentPolicy, WisdomPolicy {
