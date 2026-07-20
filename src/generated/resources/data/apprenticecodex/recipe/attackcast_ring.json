@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "I": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    "R": {
+      "item": "irons_spellbooks:arcane_rune"
+    },
+    "S": {
+      "item": "apprenticecodex:mithril_freecast_staff"
+    }
+  },
+  "pattern": [
+    "SIR",
+    "IMI",
+    " I "
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:attackcast_ring"
+  }
+}

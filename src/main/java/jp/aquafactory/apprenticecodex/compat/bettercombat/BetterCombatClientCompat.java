@@ -74,9 +74,8 @@ public final class BetterCombatClientCompat {
             ClientMultipurposeStaffrifleInputEvent.trySendNonAdsSpecialCast(minecraft);
         }
         if (CrystalBladedStaff.isCrystalBladedStaff(player.getItemInHand(hand))) {
-            if (targets.isEmpty()) {
-                ClientSwingMagicAttackTrigger.trySendForBetterCombat(minecraft, hand);
-            }
+            // 命中時もサーバー側の遅延コンテキストへ渡し、杖魔法を抑止した後の指輪フォールバックを処理する。
+            ClientSwingMagicAttackTrigger.trySendForBetterCombat(minecraft, hand);
             return;
         }
 

@@ -1,8 +1,11 @@
 package jp.aquafactory.apprenticecodex.item.crystalbladedstaff;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
+import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRingAttackTrigger;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -19,6 +22,7 @@ import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.WeakHashMap;
@@ -43,6 +47,16 @@ public final class CrystalBladedStaffAttackContextManager {
             boolean bypassChargeCheck,
             int evaluationDelayTicks
     ) {
+        return requestMissTrigger(player, hand, bypassChargeCheck, evaluationDelayTicks, List.of());
+    }
+
+    public static boolean requestMissTrigger(
+            ServerPlayer player,
+            InteractionHand hand,
+            boolean bypassChargeCheck,
+            int evaluationDelayTicks,
+            List<BlockTargetData> ringTargets
+    ) {
         if (player == null || player.isSpectator()) {
             return false;
         }
@@ -61,7 +75,8 @@ public final class CrystalBladedStaffAttackContextManager {
                 hand,
                 stack,
                 bypassChargeCheck,
-                Math.max(1, evaluationDelayTicks)
+                Math.max(1, evaluationDelayTicks),
+                List.copyOf(ringTargets)
         ));
         return true;
     }
@@ -186,9 +201,9 @@ public final class CrystalBladedStaffAttackContextManager {
                 player = trigger.player();
             }
             if (player != null
-                    && player.serverLevel() == serverLevel
-                    && !hasRecentHit(serverLevel, triggerKey.playerUuid(), trigger.hand(), trigger.requestGameTime())) {
-                triggerMissSpell(player, trigger);
+                    && player.serverLevel() == serverLevel) {
+                var hit = hasRecentHit(serverLevel, triggerKey.playerUuid(), trigger.hand(), trigger.requestGameTime());
+                triggerPendingAttack(player, trigger, hit);
             }
             iterator.remove();
         }
@@ -198,7 +213,13 @@ public final class CrystalBladedStaffAttackContextManager {
         }
     }
 
-    private static void triggerMissSpell(ServerPlayer player, PendingMissTrigger trigger) {
+    private static void triggerPendingAttack(ServerPlayer player, PendingMissTrigger trigger, boolean hit) {
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData == null || magicData.isCasting()) {
+            // 遅延中に別の詠唱が始まった場合も、手持ち側の attemptInitiateCast でキャンセルしない。
+            return;
+        }
+
         var stack = player.getItemInHand(trigger.hand());
         // 遅延中に持ち替えた場合は不発にする。SpellDataを固定して別経路で詠唱すると契約が広がるため、
         // 1-2tickのエッジケースには、振った同一スタックが手に残っている場合だけ通常経路へ渡す。
@@ -210,10 +231,16 @@ public final class CrystalBladedStaffAttackContextManager {
             return;
         }
 
-        if (stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem
+        if (!hit
+                && stack.getItem() instanceof SwingTriggeredMagicItem swingTriggeredMagicItem
                 && swingTriggeredMagicItem.canTriggerSpellOnSwing(player, trigger.hand())) {
-            swingTriggeredMagicItem.tryTriggerSpellOnSwing(player, trigger.hand(), trigger.bypassChargeCheck());
+            if (swingTriggeredMagicItem.tryTriggerSpellOnSwing(player, trigger.hand(), trigger.bypassChargeCheck())) {
+                return;
+            }
         }
+
+        // 命中時は杖魔法を抑止し、空振り時は杖魔法が開始できなかった場合だけ指輪へフォールバックする。
+        AttackcastRingAttackTrigger.tryTriggerEquippedRings(player, trigger.ringTargets());
     }
 
     public static void recordRecentCrystalBladedStaffHit(ServerPlayer attacker, InteractionHand hand) {
@@ -305,7 +332,8 @@ public final class CrystalBladedStaffAttackContextManager {
             InteractionHand hand,
             ItemStack stack,
             boolean bypassChargeCheck,
-            int evaluationDelayTicks
+            int evaluationDelayTicks,
+            List<BlockTargetData> ringTargets
     ) {
         private long evaluationGameTime() {
             return requestGameTime + evaluationDelayTicks;

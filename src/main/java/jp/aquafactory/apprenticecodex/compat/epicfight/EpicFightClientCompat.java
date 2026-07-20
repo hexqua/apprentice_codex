@@ -2,14 +2,17 @@ package jp.aquafactory.apprenticecodex.compat.epicfight;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import jp.aquafactory.apprenticecodex.event.client.ClientSpellgunInputEvent;
+import jp.aquafactory.apprenticecodex.event.client.ClientSwingMagicAttackTrigger;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import yesman.epicfight.api.animation.types.AttackAnimation;
 import yesman.epicfight.api.client.input.InputManager;
 import yesman.epicfight.api.client.input.action.EpicFightInputAction;
 import yesman.epicfight.api.event.EpicFightEventHooks;
 import yesman.epicfight.api.event.IdentifierProvider;
+import yesman.epicfight.api.event.types.animation.AnimationBeginEvent;
 import yesman.epicfight.api.event.types.player.SkillCastEvent;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.gui.screen.config.ItemsPreferenceScreen;
@@ -24,10 +27,13 @@ public final class EpicFightClientCompat {
     private static final IdentifierProvider SPELLGUN_BASIC_ATTACK_CLIENT_EVENT_ID = IdentifierProvider.constant(
             "apprenticecodex:spellgun_basic_attack_client"
     );
+    private static final IdentifierProvider ATTACK_ANIMATION_CLIENT_EVENT_ID = IdentifierProvider.constant(
+            "apprenticecodex:attack_animation_client"
+    );
 
     // ディメンション移動では UUID が同じまま Patch が再生成されるため、登録済み Patch の同一性を追跡する。
     private static LocalPlayerPatch installedSmashcastScepterPlayerPatch;
-    private static LocalPlayerPatch installedSpellgunPlayerPatch;
+    private static LocalPlayerPatch installedAttackPlayerPatch;
 
     private EpicFightClientCompat() {
     }
@@ -47,12 +53,12 @@ public final class EpicFightClientCompat {
 
     public static void tick() {
         installSmashcastScepterEvents();
-        installSpellgunEvents();
+        installAttackEvents();
     }
 
     public static void clear() {
         installedSmashcastScepterPlayerPatch = null;
-        installedSpellgunPlayerPatch = null;
+        installedAttackPlayerPatch = null;
     }
 
     public static boolean matchesAttackInput(InputConstants.Type type, int value) {
@@ -88,15 +94,15 @@ public final class EpicFightClientCompat {
         installedSmashcastScepterPlayerPatch = playerpatch;
     }
 
-    private static void installSpellgunEvents() {
+    private static void installAttackEvents() {
         var player = Minecraft.getInstance().player;
         var playerpatch = player != null ? EpicFightCapabilities.getLocalPlayerPatch(player) : null;
         if (playerpatch == null || playerpatch.getOriginal() == null || !playerpatch.getOriginal().isAlive()) {
-            installedSpellgunPlayerPatch = null;
+            installedAttackPlayerPatch = null;
             return;
         }
 
-        if (playerpatch == installedSpellgunPlayerPatch) {
+        if (playerpatch == installedAttackPlayerPatch) {
             return;
         }
 
@@ -106,7 +112,12 @@ public final class EpicFightClientCompat {
                 SPELLGUN_BASIC_ATTACK_CLIENT_EVENT_ID,
                 -1
         );
-        installedSpellgunPlayerPatch = playerpatch;
+        playerpatch.getEventListener().registerEvent(
+                EpicFightEventHooks.Animation.BEGIN,
+                EpicFightClientCompat::onAttackAnimationBegin,
+                ATTACK_ANIMATION_CLIENT_EVENT_ID
+        );
+        installedAttackPlayerPatch = playerpatch;
     }
 
     private static void onSkillCast(SkillCastEvent event) {
@@ -128,6 +139,15 @@ public final class EpicFightClientCompat {
 
         // ComboAttacks を成功扱いのまま通し、サーバー側の COMBO_ATTACK で発射を合流させる。
         ClientSpellgunInputEvent.trySendEpicFightMainhandCast();
+    }
+
+    private static void onAttackAnimationBegin(AnimationBeginEvent event) {
+        if (event.getEntityPatch() instanceof LocalPlayerPatch playerPatch
+                && playerPatch.isEpicFightMode()
+                && event.getAnimation().get() instanceof AttackAnimation) {
+            // Epic Fight は vanilla の攻撃パケットを使わないため、実際の攻撃アニメーション開始時に対象だけを同期する。
+            ClientSwingMagicAttackTrigger.trySyncTargetsForEpicFight(Minecraft.getInstance());
+        }
     }
 
     private static boolean matchesKey(KeyMapping keyMapping, InputConstants.Type type, int value) {

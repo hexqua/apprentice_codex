@@ -104,7 +104,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         // 後付系Curiosアクセ は whitelist へ明示登録して JEI 上でも Arcane Anvil 対象として拾わせる。
         tag(IRONS_IMBUE_WHITELIST).add(
                 ItemRegistry.AUTOCAST_AMULET.get(),
-                ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get()
+                ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get(),
+                ItemRegistry.ATTACKCAST_RING.get()
         );
 
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
@@ -452,7 +453,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(CURIOS_RING).add(
                 ItemRegistry.SCARLET_THIRST.get(),
                 ItemRegistry.CRAFTSMANS_DELIGHT.get(),
-                ItemRegistry.SPELL_CAST_PARRYING_RING.get()
+                ItemRegistry.SPELL_CAST_PARRYING_RING.get(),
+                ItemRegistry.ATTACKCAST_RING.get()
         );
         tag(CURIOS_BELT).add(
                 ItemRegistry.PROTECTION_SPELL_SUPPORTER.get(),
