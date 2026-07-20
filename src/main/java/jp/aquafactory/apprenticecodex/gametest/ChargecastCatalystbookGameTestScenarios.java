@@ -116,7 +116,12 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
             helper.assertTrue(selectionState.selectedScrollIndex() == 0,
                     "Selection refresh should follow the ItemStack rather than a stale UI cursor");
 
-            ChargecastCatalystbookClientCastIntent.mark(book, instant);
+            ChargecastCatalystbookClientCastIntent.mark(player.getUUID(), book, instant);
+            var otherCasterId = java.util.UUID.randomUUID();
+            helper.assertFalse(ChargecastCatalystbookClientCastIntent.matches(otherCasterId, book, instant),
+                    "Another player's matching catalystbook must not consume the local cast intent");
+            helper.assertFalse(ChargecastCatalystbookClientCastIntent.matchesActive(otherCasterId, book, instant),
+                    "Another player's cast must not become the local active chargecast");
             helper.assertTrue(item.shouldOverrideCastStartAnimation(book, instant),
                     "Right-click chargecast should replace the cast-start animation");
             helper.assertTrue(item.shouldOverrideCastFinishAnimation(book, instant),
@@ -126,7 +131,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
                     "Chargecast completion should replay the instant spell's own animation");
 
             var mageLight = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get();
-            ChargecastCatalystbookClientCastIntent.mark(book, mageLight);
+            ChargecastCatalystbookClientCastIntent.mark(player.getUUID(), book, mageLight);
             helper.assertTrue(item.shouldOverrideCastStartAnimation(book, mageLight),
                     "Chargecast should override a finish-animated instant spell at cast start");
             helper.assertTrue(item.getCastFinishAnimation(book, mageLight, false)
@@ -136,7 +141,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
                     "A start-only instant spell sound should be deferred until chargecast completion");
 
             var manaSlash = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
-            ChargecastCatalystbookClientCastIntent.mark(book, manaSlash);
+            ChargecastCatalystbookClientCastIntent.mark(player.getUUID(), book, manaSlash);
             helper.assertTrue(item.shouldOverrideCastStartAnimation(book, manaSlash),
                     "Chargecast should override a pass-animated instant spell at cast start");
             var noCompletionAnimation = item.getCastFinishAnimation(book, manaSlash, false);
