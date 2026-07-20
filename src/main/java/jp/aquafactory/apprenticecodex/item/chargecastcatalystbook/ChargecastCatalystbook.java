@@ -248,7 +248,10 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         var slotId = usedHand == InteractionHand.OFF_HAND
                 ? SpellSelectionManager.OFFHAND
                 : SpellSelectionManager.MAINHAND;
-        var started = spell.attemptInitiateCast(stack, spellLevel, level, player, CastSource.SWORD, true, slotId);
+        var started = ChargecastCatalystbookStartSoundContext.callSuppressed(
+                player.getUUID(),
+                () -> spell.attemptInitiateCast(stack, spellLevel, level, player, CastSource.SWORD, true, slotId)
+        );
         if (started && player instanceof ServerPlayer serverPlayer) {
             var duration = resolveCastDurationTicks(serverPlayer, stack);
             magicData = MagicData.getPlayerMagicData(serverPlayer);
@@ -396,10 +399,10 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
 
     @Override
     public AnimationHolder getCastFinishAnimation(ItemStack stack, AbstractSpell spell, boolean cancelled) {
-        // INSTANT の本来の主モーションは cast-start にあるため、追加詠唱の完了時に改めて再生する。
+        // INSTANT の主モーションが Start / Finish のどちらに置かれていても、公開情報から完了動作を解決する。
         // cancelled=true は Iron's 側が戻り値に関係なくモーションを停止する。
         ChargecastCatalystbookClientCastIntent.clearActive();
-        return spell.getCastStartAnimation();
+        return ChargecastCatalystbookPresentationResolver.resolveCompletionAnimation(spell);
     }
 
     @Override
