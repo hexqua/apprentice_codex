@@ -21,7 +21,7 @@
     " I "
   ],
   "result": {
-    "item": "apprenticecodex:attackcast_ring"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:attackcast_ring"
+  }
 }

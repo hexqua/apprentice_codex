@@ -70,7 +70,7 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
                 "Attackcast Ring should add the normal sword-cast cooldown");
         helper.assertTrue(!magicData.isCasting(),
                 "Attackcast Ring instant casts should complete before processing another ring");
-        helper.assertTrue(ItemStack.isSameItemSameTags(magicData.getPlayerCastingItem(), ringStack),
+        helper.assertTrue(ItemStack.isSameItemSameComponents(magicData.getPlayerCastingItem(), ringStack),
                 "Attackcast Ring should remain the casting item");
         helper.succeed();
     }
@@ -150,7 +150,7 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
                 "The first equipped Attackcast Ring should cast");
         helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(secondSpell),
                 "The second equipped Attackcast Ring should cast");
-        helper.assertTrue(ItemStack.isSameItemSameTags(magicData.getPlayerCastingItem(), secondRing),
+        helper.assertTrue(ItemStack.isSameItemSameComponents(magicData.getPlayerCastingItem(), secondRing),
                 "Attackcast Rings should be processed in Curios slot order");
         helper.succeed();
     }
@@ -191,7 +191,7 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
     }
 
     static void attackcastRingEpicFightAttackPhaseUsesEquippedRing(GameTestHelper helper) {
-        if (!net.minecraftforge.fml.ModList.get().isLoaded(
+        if (!net.neoforged.fml.ModList.get().isLoaded(
                 jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat.MOD_ID)) {
             helper.succeed();
             return;
@@ -214,7 +214,7 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
     }
 
     static void attackcastRingEpicFightStaffrifleDoesNotFallback(GameTestHelper helper) {
-        if (!net.minecraftforge.fml.ModList.get().isLoaded(
+        if (!net.neoforged.fml.ModList.get().isLoaded(
                 jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat.MOD_ID)) {
             helper.succeed();
             return;
@@ -242,7 +242,7 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
     }
 
     static void attackcastRingEpicFightUsesSyncedBlockTarget(GameTestHelper helper) {
-        if (!net.minecraftforge.fml.ModList.get().isLoaded(
+        if (!net.neoforged.fml.ModList.get().isLoaded(
                 jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat.MOD_ID)) {
             helper.succeed();
             return;
@@ -254,7 +254,7 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
         var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.RIFT_HOLE.get();
         equipRing(player, 0, createRingStack(helper, spell));
         var magicData = requireMagicData(helper, player);
-        var maxMana = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get());
+        var maxMana = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA);
         helper.assertTrue(maxMana != null, "Epic Fight Attackcast Ring test should resolve max mana");
         maxMana.setBaseValue(1000.0D);
         magicData.setMana(1000.0F);
@@ -407,13 +407,13 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
         return stack;
     }
 
-    private static void equipRing(net.minecraftforge.common.util.FakePlayer player, int index, ItemStack stack) {
+    private static void equipRing(net.neoforged.neoforge.common.util.FakePlayer player, int index, ItemStack stack) {
         var curios = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
                 .orElseThrow(() -> new IllegalStateException("Attackcast Ring test could not resolve Curios inventory"));
         curios.setEquippedCurio(io.redspace.ironsspellbooks.compat.Curios.RING_SLOT, index, stack);
     }
 
-    private static MagicData requireMagicData(GameTestHelper helper, net.minecraftforge.common.util.FakePlayer player) {
+    private static MagicData requireMagicData(GameTestHelper helper, net.neoforged.neoforge.common.util.FakePlayer player) {
         var magicData = MagicData.getPlayerMagicData(player);
         helper.assertTrue(magicData != null, "Attackcast Ring test could not resolve player magic data");
         return magicData;

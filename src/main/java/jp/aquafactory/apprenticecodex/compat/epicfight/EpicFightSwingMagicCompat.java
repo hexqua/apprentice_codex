@@ -157,7 +157,7 @@ public final class EpicFightSwingMagicCompat {
         }
         var playerId = player.getUUID();
         var animation = event.getAnimation();
-        if (animation instanceof AttackAnimation) {
+        if (animation != null && animation.isPresent() && animation.get() instanceof AttackAnimation) {
             PENDING_RING_TARGETS.remove(playerId);
         }
         var activeScheduledAnimationId = ACTIVE_SCHEDULED_ANIMATION_IDS.get(playerId);

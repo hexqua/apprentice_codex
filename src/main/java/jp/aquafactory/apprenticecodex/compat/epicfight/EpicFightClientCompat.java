@@ -142,7 +142,8 @@ public final class EpicFightClientCompat {
     }
 
     private static void onAttackAnimationBegin(AnimationBeginEvent event) {
-        if (event.getEntityPatch().isEpicFightMode()
+        if (event.getEntityPatch() instanceof LocalPlayerPatch playerPatch
+                && playerPatch.isEpicFightMode()
                 && event.getAnimation().get() instanceof AttackAnimation) {
             // Epic Fight は vanilla の攻撃パケットを使わないため、実際の攻撃アニメーション開始時に対象だけを同期する。
             ClientSwingMagicAttackTrigger.trySyncTargetsForEpicFight(Minecraft.getInstance());
