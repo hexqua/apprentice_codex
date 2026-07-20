@@ -2,10 +2,10 @@ package jp.aquafactory.apprenticecodex.event.client;
 
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScrollcasterGauntletCompat;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmScrollcasterGauntletIndexPacket;
+import jp.aquafactory.apprenticecodex.utility.HandStackResolver;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -18,7 +18,6 @@ import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderGuiEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,7 +25,8 @@ import java.util.List;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ScrollcasterGauntletSelectionClientController {
-    private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
+    private static final HandStackResolver.OffhandResolution OFFHAND_RESOLUTION =
+            HandStackResolver.OffhandResolution.PHYSICAL;
     private static final String EMPTY_SELECTION_LABEL_KEY =
             "ui.apprenticecodex.scrollcaster_gauntlet.select_ui.empty";
     private static final ResourceLocation TEXTURE =
@@ -216,11 +216,7 @@ public final class ScrollcasterGauntletSelectionClientController {
         if (SneakSelectionUiHandResolver.shouldSuppressOffhandSelection(player)) {
             return null;
         }
-        if (ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)
-                && BetterCombatScrollcasterGauntletCompat.isRescueActive(player)) {
-            return InteractionHand.OFF_HAND;
-        }
-        if (player.getOffhandItem().getItem() instanceof ScrollcasterGauntlet) {
+        if (resolveHeldGauntletStack(player, InteractionHand.OFF_HAND).getItem() instanceof ScrollcasterGauntlet) {
             return InteractionHand.OFF_HAND;
         }
         return null;
@@ -234,10 +230,7 @@ public final class ScrollcasterGauntletSelectionClientController {
             net.minecraft.world.entity.player.Player player,
             InteractionHand hand
     ) {
-        if (ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)) {
-            return BetterCombatScrollcasterGauntletCompat.getResolvedHeldStack(player, hand);
-        }
-        return player.getItemInHand(hand);
+        return HandStackResolver.resolve(player, hand, OFFHAND_RESOLUTION);
     }
 
     private static int findInitialViewIndex(List<ScrollcasterGauntlet.ScrollSelectionView> views) {
