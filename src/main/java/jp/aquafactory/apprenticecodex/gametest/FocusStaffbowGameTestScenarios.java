@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDuration
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell;
 import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmash;
 import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashShellEntity;
 import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssaultRifleEntity;
@@ -945,6 +946,44 @@ final class FocusStaffbowGameTestScenarios {
                 helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
                         "Focus Staffbow should reject denylisted spells before consuming arrows");
             }
+        });
+    }
+
+    static void focusStaffbowRejectsPreCastSpellPowerDependentSpellsBeforeAmmo(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var mageLight = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get();
+            var linearBuild = jp.aquafactory.apprenticecodex.registry.SpellRegistry.LINEAR_BUILD.get();
+            helper.assertTrue(mageLight instanceof IChargecastStaffbowIncompatibleSpell
+                            && FocusStaffbow.rejectsSpell(mageLight),
+                    "Focus Staffbow should reject Mage Light through the pre-cast spell-power marker");
+            helper.assertTrue(linearBuild instanceof IChargecastStaffbowIncompatibleSpell
+                            && FocusStaffbow.rejectsSpell(linearBuild),
+                    "Focus Staffbow should reject Linear Build through the pre-cast spell-power marker");
+            assertTranslatableKey(
+                    helper,
+                    FocusStaffbow.createRejectedSpellMessage(mageLight.getDisplayName()),
+                    "ui.apprenticecodex.focus_staffbow.reject_spell",
+                    "Focus Staffbow should use its permanent rejection message"
+            );
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "focus_staffbow_precast_power_reject_test");
+            var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+            var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierStack = new ItemStack(amplifierItem);
+            amplifierItem.initializeSpellContainer(amplifierStack);
+            setSingleUnlockedSpell(helper, amplifierStack, mageLight, 1);
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+            setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
+            MagicData.getPlayerMagicData(player).setMana(100.0F);
+
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                    "Focus Staffbow should reject Mage Light but got " + result.getResult());
+            helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
+                    "Focus Staffbow should reject Mage Light before consuming arrows");
         });
     }
 

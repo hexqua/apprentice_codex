@@ -24,6 +24,7 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.ChargecastCatalystbookRenderer;
+import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
@@ -243,6 +244,21 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         }
 
         var spell = spellData.getSpell();
+        if (spell instanceof IChargecastStaffbowIncompatibleSpell) {
+            if (!level.isClientSide) {
+                player.displayClientMessage(createRejectedSpellMessage(spell.getDisplayName(player)), true);
+            }
+            return InteractionResultHolder.fail(stack);
+        }
+        var config = level.isClientSide
+                ? ChargecastCatalystbookClientConfigState.values()
+                : ApprenticeCodexServerConfig.chargecastCatalystbookConfig();
+        if (config.isSpellDenied(spell.getSpellResource())) {
+            if (!level.isClientSide) {
+                player.displayClientMessage(createSpellDenylistedMessage(spell.getDisplayName(player)), true);
+            }
+            return InteractionResultHolder.fail(stack);
+        }
         if (level.isClientSide) {
             ChargecastCatalystbookClientCastIntent.mark(player.getUUID(), stack, spell);
             // attemptInitiateCast はクライアントでは必ず false を返すため、ここで入力を消費してオフハンド使用へ流さない。
@@ -269,6 +285,16 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         return started
                 ? InteractionResultHolder.sidedSuccess(stack, level.isClientSide)
                 : InteractionResultHolder.fail(stack);
+    }
+
+    public static Component createRejectedSpellMessage(Component spellName) {
+        return Component.translatable("ui.apprenticecodex.chargecast.reject_spell", spellName)
+                .withStyle(ChatFormatting.RED);
+    }
+
+    public static Component createSpellDenylistedMessage(Component spellName) {
+        return Component.translatable("ui.apprenticecodex.chargecast.spell_denylisted", spellName)
+                .withStyle(ChatFormatting.RED);
     }
 
     @Override

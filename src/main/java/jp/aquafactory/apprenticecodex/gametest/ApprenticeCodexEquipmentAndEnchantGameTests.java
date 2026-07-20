@@ -28,6 +28,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
             "apprenticecodex.focus_staffbow_denylist_config";
     private static final String FOCUS_STAFFBOW_ALLOWLIST_CONFIG_BATCH =
             "apprenticecodex.focus_staffbow_allowlist_config";
+    private static final String CHARGECAST_DENYLIST_CONFIG_BATCH =
+            "apprenticecodex.chargecast_denylist_config";
     private static final String SPELL_CAST_PARRYING_RING_CONFIG_BATCH =
             "apprenticecodex.spell_cast_parrying_ring_config";
     private static final String SPELLGUN_CONFIG_BATCH = "apprenticecodex.spellgun_config";
@@ -528,6 +530,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void chargecastCatalystbookAppliesAdjustmentAndAttributePolicies(GameTestHelper helper) {
         ChargecastCatalystbookGameTestScenarios.appliesAdjustmentAndAttributePolicies(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargecastCatalystbookRejectsPreCastSpellPowerDependentSpells(GameTestHelper helper) {
+        ChargecastCatalystbookGameTestScenarios.rejectsPreCastSpellPowerDependentSpells(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CHARGECAST_DENYLIST_CONFIG_BATCH)
+    public static void chargecastCatalystbookSpellDenylistRejectsConfiguredSpell(GameTestHelper helper) {
+        ChargecastCatalystbookGameTestScenarios.spellDenylistRejectsConfiguredSpell(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1114,6 +1126,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_DENYLIST_CONFIG_BATCH)
     public static void focusStaffbowSpellDenylistBlocksBeforeAmmo(GameTestHelper helper) {
         FocusStaffbowGameTestScenarios.focusStaffbowSpellDenylistBlocksBeforeAmmo(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowRejectsPreCastSpellPowerDependentSpellsBeforeAmmo(GameTestHelper helper) {
+        FocusStaffbowGameTestScenarios.focusStaffbowRejectsPreCastSpellPowerDependentSpellsBeforeAmmo(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_ALLOWLIST_CONFIG_BATCH)

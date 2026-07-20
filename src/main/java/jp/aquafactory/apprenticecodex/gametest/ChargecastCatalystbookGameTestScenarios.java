@@ -6,6 +6,8 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
@@ -16,6 +18,7 @@ import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCata
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookSelectionState;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookStartSoundContext;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell;
 import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssaultRifleEntity;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.BlockPos;
@@ -28,6 +31,7 @@ import net.minecraft.world.item.Items;
 import net.minecraftforge.event.TickEvent;
 
 import java.util.Set;
+import java.util.List;
 
 final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private ChargecastCatalystbookGameTestScenarios() {
@@ -248,6 +252,70 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
                             modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE
                                     && Math.abs(modifier.getAmount() - 0.15D) < 0.000001D),
                     "A school rune should grant +15% spell power for its school");
+        });
+    }
+
+    static void rejectsPreCastSpellPowerDependentSpells(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var mageLight = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get();
+            var linearBuild = jp.aquafactory.apprenticecodex.registry.SpellRegistry.LINEAR_BUILD.get();
+            helper.assertTrue(mageLight instanceof IChargecastStaffbowIncompatibleSpell,
+                    "Mage Light should opt out of delayed spell-power casts");
+            helper.assertTrue(linearBuild instanceof IChargecastStaffbowIncompatibleSpell,
+                    "Linear Build should opt out of delayed spell-power casts");
+            assertTranslatableKey(
+                    helper,
+                    ChargecastCatalystbook.createRejectedSpellMessage(mageLight.getDisplayName()),
+                    "ui.apprenticecodex.chargecast.reject_spell",
+                    "Chargecast Catalystbook should use its permanent rejection message"
+            );
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "chargecast_precast_power_reject_test");
+            var book = new ItemStack(ItemRegistry.CHARGECAST_CATALYSTBOOK.get());
+            ChargecastCatalystbook.setCalibrationScroll(book, 0, createSpellScroll(mageLight));
+            player.setItemInHand(InteractionHand.MAIN_HAND, book);
+            MagicData.getPlayerMagicData(player).setMana(100.0F);
+
+            var result = book.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                    "Chargecast Catalystbook should reject Mage Light but got " + result.getResult());
+            helper.assertFalse(MagicData.getPlayerMagicData(player).isCasting(),
+                    "Rejected Mage Light should not begin a managed cast");
+        });
+    }
+
+    static void spellDenylistRejectsConfiguredSpell(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var values = ChargecastCatalystbookServerConfig.Values.DEFAULT;
+            try (var ignored = ApprenticeCodexServerConfig.useChargecastCatalystbookConfigOverrideForGameTest(
+                    new ChargecastCatalystbookServerConfig.Values(
+                            values.castTimeTicks(),
+                            values.spellPowerMultiplier(),
+                            values.silverRingCastTimeBonusFactor(),
+                            List.of(spell.getSpellResource())
+                    )
+            )) {
+                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                        "chargecast_denylist_test");
+                var book = new ItemStack(ItemRegistry.CHARGECAST_CATALYSTBOOK.get());
+                ChargecastCatalystbook.setCalibrationScroll(book, 0, createSpellScroll(spell));
+                player.setItemInHand(InteractionHand.MAIN_HAND, book);
+                MagicData.getPlayerMagicData(player).setMana(100.0F);
+
+                var result = book.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                        "Chargecast Catalystbook should reject denylisted spells but got " + result.getResult());
+                helper.assertFalse(MagicData.getPlayerMagicData(player).isCasting(),
+                        "A denylisted Chargecast spell should not begin casting");
+                assertTranslatableKey(
+                        helper,
+                        ChargecastCatalystbook.createSpellDenylistedMessage(spell.getDisplayName()),
+                        "ui.apprenticecodex.chargecast.spell_denylisted",
+                        "Chargecast Catalystbook should use its denylist message"
+                );
+            }
         });
     }
 
