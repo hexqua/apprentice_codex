@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_spellstained_arcane_ingot": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "apprenticecodex:spellstained_arcane_ingot"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "apprenticecodex:chargecast_catalystbook"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_spellstained_arcane_ingot",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "apprenticecodex:chargecast_catalystbook"
+    ]
+  },
+  "sends_telemetry_event": false
+}

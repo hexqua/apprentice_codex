@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item;
 
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
@@ -22,6 +23,7 @@ public final class OffhandUsePriorityHelper {
         return item instanceof AbstractSpellGunItem
                 || item instanceof BowItem
                 || item instanceof CrossbowItem
+                || item instanceof ChargecastCatalystbook
                 || isShieldLikeItem(stack);
     }
 
