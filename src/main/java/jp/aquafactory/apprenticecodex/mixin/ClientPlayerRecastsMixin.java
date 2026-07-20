@@ -1,10 +1,11 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.capabilities.magic.PlayerRecasts;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
-import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientCastState;
-import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookClientCastIntent;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientCastState;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -35,8 +36,10 @@ public abstract class ClientPlayerRecastsMixin {
             var chargecastCasting = player != null && ClientMagicData.isCasting()
                     && ClientMagicData.getCastDuration() > 0
                     && recastInstance.getSpellId().equals(ClientMagicData.getCastingSpellId())
-                    && (player.getMainHandItem().getItem() instanceof ChargecastCatalystbook
-                    || player.getOffhandItem().getItem() instanceof ChargecastCatalystbook);
+                    // 現在の手持ちは持ち替え直後に変わるため、cast-start で確定した active intent を基準にする。
+                    && ChargecastCatalystbookClientCastIntent.matchesActive(
+                            player.getUUID(), SpellRegistry.getSpell(recastInstance.getSpellId())
+                    );
             if (!FocusStaffbowClientCastState.shouldPreserveClientRecastTicks(player, recastInstance.getSpellId())
                     && !chargecastCasting) {
                 return;
