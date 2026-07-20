@@ -42,6 +42,10 @@ public abstract class AbstractSummonWeaponSpell<T extends SummonWeaponEntity> ex
     }
 
     public abstract T onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData);
+    // pre-cast で生成済みの武器を、本番の castSpell 実行時にだけ有効化する魔法向け。
+    protected void onInitialCastWithWeapon(Level level, int spellLevel, LivingEntity entity,
+                                           MagicData playerMagicData, @NotNull T weapon) {
+    }
     public abstract void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull T weapon);
     public abstract CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull T weapon);
 
@@ -76,6 +80,13 @@ public abstract class AbstractSummonWeaponSpell<T extends SummonWeaponEntity> ex
                 var summon = onCastNoWeapon(level, spellLevel, entity, playerMagicData);
                 castData.setEntity(summon);
                 playerMagicData.setAdditionalCastData(castData);
+            }
+        }
+
+        if (getCastType() != CastType.CONTINUOUS) {
+            var summon = getFirearmEntityFromMagicData(playerMagicData, level);
+            if (summon != null) {
+                onInitialCastWithWeapon(level, spellLevel, entity, playerMagicData, summon);
             }
         }
 

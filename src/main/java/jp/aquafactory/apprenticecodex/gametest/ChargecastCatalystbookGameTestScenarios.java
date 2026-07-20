@@ -1,20 +1,26 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookCastEvents;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookClientCastIntent;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookPresentationResolver;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookSelectionState;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookStartSoundContext;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssaultRifleEntity;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
@@ -205,6 +211,61 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
                             modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE
                                     && Math.abs(modifier.getAmount() - 0.15D) < 0.000001D),
                     "A school rune should grant +15% spell power for its school");
+        });
+    }
+
+    static void lethalAssaultWaitsForChargecastCompletionBeforeFiring(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "chargecast_lethal_assault_wait_test");
+        var book = new ItemStack(ItemRegistry.CHARGECAST_CATALYSTBOOK.get());
+        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.LETHAL_ASSAULT.get();
+        ChargecastCatalystbook.setCalibrationScroll(book, 0, createSpellScroll(spell));
+        player.setItemInHand(InteractionHand.MAIN_HAND, book);
+        MagicData.getPlayerMagicData(player).setMana(1000.0F);
+
+        helper.runAtTickTime(1, () -> {
+            var result = book.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Chargecast Lethal Assault should start charging but got " + result.getResult());
+        });
+        helper.runAtTickTime(12, () -> {
+            var rifles = BowGameTestSupport.getOwnedSummonWeapons(helper, player, LethalAssaultRifleEntity.class);
+            helper.assertTrue(rifles.size() == 1,
+                    "Chargecast Lethal Assault should keep one pre-cast rifle while charging");
+            helper.assertFalse(rifles.get(0).hasStartedFiringForGameTest(),
+                    "Chargecast Lethal Assault rifle should not enter its firing state before completion");
+        });
+        helper.runAtTickTime(13, () -> {
+            var magicData = MagicData.getPlayerMagicData(player);
+            ChargecastCatalystbookCastEvents.castWithPowerBonus(
+                    spell, helper.getLevel(), 1, player, CastSource.SWORD, true
+            );
+            spell.onServerCastComplete(helper.getLevel(), 1, player, magicData, false);
+
+            var rifles = BowGameTestSupport.getOwnedSummonWeapons(helper, player, LethalAssaultRifleEntity.class);
+            helper.assertTrue(rifles.size() == 1 && rifles.get(0).hasStartedFiringForGameTest(),
+                    "Chargecast Lethal Assault rifle should start firing when the charged cast completes");
+            helper.succeed();
+        });
+    }
+
+    static void lethalAssaultCancellationRemovesPreCastRifle(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "chargecast_lethal_assault_cancel_test");
+        var book = new ItemStack(ItemRegistry.CHARGECAST_CATALYSTBOOK.get());
+        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.LETHAL_ASSAULT.get();
+        ChargecastCatalystbook.setCalibrationScroll(book, 0, createSpellScroll(spell));
+        player.setItemInHand(InteractionHand.MAIN_HAND, book);
+        MagicData.getPlayerMagicData(player).setMana(1000.0F);
+
+        helper.runAtTickTime(1, () -> book.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND));
+        helper.runAtTickTime(3, () -> Utils.serverSideCancelCast(player));
+        helper.runAtTickTime(4, () -> {
+            helper.assertTrue(BowGameTestSupport.getOwnedSummonWeapons(
+                            helper, player, LethalAssaultRifleEntity.class
+                    ).isEmpty(),
+                    "Cancelling Chargecast Lethal Assault should remove its idle pre-cast rifle");
+            helper.succeed();
         });
     }
 }

@@ -536,6 +536,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void chargecastLethalAssaultWaitsForCompletionBeforeFiring(GameTestHelper helper) {
+        ChargecastCatalystbookGameTestScenarios.lethalAssaultWaitsForChargecastCompletionBeforeFiring(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargecastLethalAssaultCancellationRemovesPreCastRifle(GameTestHelper helper) {
+        ChargecastCatalystbookGameTestScenarios.lethalAssaultCancellationRemovesPreCastRifle(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void manaShieldCharmUsesCharmSlotAndAppearsInCreativeTab(GameTestHelper helper) {
         ManaShieldCharmGameTestScenarios.manaShieldCharmUsesCharmSlotAndAppearsInCreativeTab(helper);
     }
@@ -1229,6 +1239,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_CONTINUOUS_BATCH)
     public static void focusStaffbowCancelsPendingSummonWeaponBeforeRequiredCharge(GameTestHelper helper) {
         FocusStaffbowGameTestScenarios.focusStaffbowCancelsPendingSummonWeaponBeforeRequiredCharge(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_CONTINUOUS_BATCH)
+    public static void focusStaffbowLethalAssaultWaitsForReleaseBeforeFiring(GameTestHelper helper) {
+        FocusStaffbowGameTestScenarios.focusStaffbowLethalAssaultWaitsForReleaseBeforeFiring(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_CONTINUOUS_BATCH)
