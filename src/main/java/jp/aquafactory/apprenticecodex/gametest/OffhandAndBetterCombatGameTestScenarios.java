@@ -212,6 +212,7 @@ import jp.aquafactory.apprenticecodex.utility.RightClickSpellResolver;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
+import jp.aquafactory.apprenticecodex.utility.HandStackResolver;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -825,6 +826,42 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                             + expectedMaxManaBonus + " but changed from " + baseMaxMana + " to " + rescuedMaxMana);
 
             BetterCombatOffhandAttributeRescueCompat.clear(player);
+        });
+    }
+    static void betterCombatSelectionUiCanChooseLogicalOrPhysicalOffhand(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded("bettercombat")) {
+                return;
+            }
+
+            var spellbreakerId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "spellbreaker");
+            var spellbreaker = BuiltInRegistries.ITEM.getOptional(spellbreakerId).orElse(null);
+            helper.assertTrue(spellbreaker != null,
+                    "Missing irons_spellbooks:spellbreaker for selection UI offhand resolution test");
+
+            var player = createBetterCombatHiddenOffhandPlayer(
+                    helper,
+                    new ItemStack(spellbreaker),
+                    new ItemStack(ItemRegistry.CHARGECAST_CATALYSTBOOK.get()),
+                    "better_combat_selection_ui_offhand_resolution_test"
+            );
+            var logicalOffhand = HandStackResolver.resolve(
+                    player,
+                    InteractionHand.OFF_HAND,
+                    HandStackResolver.OffhandResolution.LOGICAL
+            );
+            var physicalOffhand = HandStackResolver.resolve(
+                    player,
+                    InteractionHand.OFF_HAND,
+                    HandStackResolver.OffhandResolution.PHYSICAL
+            );
+
+            helper.assertTrue(logicalOffhand.isEmpty(),
+                    "Logical selection UI resolution should respect Better Combat hidden offhand but got "
+                            + logicalOffhand);
+            helper.assertTrue(physicalOffhand.is(ItemRegistry.CHARGECAST_CATALYSTBOOK.get()),
+                    "Physical selection UI resolution should retain hidden offhand item but got "
+                            + physicalOffhand);
         });
     }
     static void betterCombatHiddenNonOffhandMagicItemDoesNotApplyTranscendence(GameTestHelper helper) {

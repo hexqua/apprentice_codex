@@ -2,11 +2,11 @@ package jp.aquafactory.apprenticecodex.event.client;
 
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookSelectionState;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmChargecastCatalystbookIndexPacket;
+import jp.aquafactory.apprenticecodex.utility.HandStackResolver;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -21,13 +21,13 @@ import net.minecraftforge.client.event.RenderGuiEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.Nullable;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ChargecastCatalystbookSelectionClientController {
-    private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
+    private static final HandStackResolver.OffhandResolution OFFHAND_RESOLUTION =
+            HandStackResolver.OffhandResolution.LOGICAL;
     private static final String EMPTY_SELECTION_LABEL_KEY =
             "ui.apprenticecodex.scrollcaster_gauntlet.select_ui.empty";
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
@@ -237,10 +237,8 @@ public final class ChargecastCatalystbookSelectionClientController {
     }
 
     private static ItemStack resolveHeldStack(net.minecraft.world.entity.player.Player player, InteractionHand hand) {
-        if (hand == InteractionHand.OFF_HAND && ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)) {
-            return BetterCombatOffhandAttributeRescueCompat.getPhysicalOffhandStack(player);
-        }
-        return player.getItemInHand(hand);
+        // 右クリックへ到達できない論理オフハンド無効中は、UI とインデックス変更も同時に止める。
+        return HandStackResolver.resolve(player, hand, OFFHAND_RESOLUTION);
     }
 
     private static void renderSelectionHud(
