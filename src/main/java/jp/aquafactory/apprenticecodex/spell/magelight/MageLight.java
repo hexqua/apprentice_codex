@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
@@ -32,7 +33,8 @@ import net.minecraft.world.level.Level;
 import java.util.List;
 import java.util.Optional;
 
-public class MageLight extends AbstractSpell implements jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell {
+public class MageLight extends AbstractSpell implements jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell,
+        IChargecastStaffbowIncompatibleSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "mage_light");
 
     private final DefaultConfig config = new DefaultConfig()

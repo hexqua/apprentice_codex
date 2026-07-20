@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.FocusStaffbowRenderer;
+import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
@@ -179,6 +180,15 @@ public final class FocusStaffbow extends CastingItem
     public static Component createSpellDenylistedMessage(Component spellName) {
         return Component.translatable("ui.apprenticecodex.focus_staffbow.spell_denylisted", spellName)
                 .withStyle(ChatFormatting.RED);
+    }
+
+    public static Component createRejectedSpellMessage(Component spellName) {
+        return Component.translatable("ui.apprenticecodex.focus_staffbow.reject_spell", spellName)
+                .withStyle(ChatFormatting.RED);
+    }
+
+    public static boolean rejectsSpell(AbstractSpell spell) {
+        return spell instanceof IChargecastStaffbowIncompatibleSpell;
     }
 
     public static Component createSpellNotAllowlistedMessage(Component spellName) {

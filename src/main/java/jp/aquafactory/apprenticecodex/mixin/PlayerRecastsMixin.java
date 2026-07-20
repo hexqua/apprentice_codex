@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.capabilities.magic.PlayerRecasts;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager;
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +30,7 @@ public abstract class PlayerRecastsMixin {
     private ServerPlayer serverPlayer;
 
     @Inject(method = "tick", at = @At("HEAD"))
-    private void apprenticecodex$preserveFocusStaffbowRecastTicks(int actualTicks, CallbackInfo ci) {
+    private void apprenticecodex$preserveChargedCastRecastTicks(int actualTicks, CallbackInfo ci) {
         if (serverPlayer == null || actualTicks <= 0 || recastLookup.isEmpty()) {
             return;
         }
@@ -41,11 +42,13 @@ public abstract class PlayerRecastsMixin {
             if (recastInstance.getRemainingRecasts() <= 0 || recastInstance.getTicksRemaining() <= 0) {
                 return;
             }
-            if (!FocusStaffbowCastManager.shouldPreserveRecastTicks(serverPlayer, recastInstance.getSpellId())) {
+            var castingSpell = SpellRegistry.getSpell(recastInstance.getSpellId());
+            if (!FocusStaffbowCastManager.shouldPreserveRecastTicks(serverPlayer, recastInstance.getSpellId())
+                    && !ChargecastCatalystbook.isManagedCast(serverPlayer, castingSpell)) {
                 return;
             }
 
-            // Iron's 標準 tick の減算直前に同量を戻し、FocusStaffbow 詠唱中の同一 Recast だけ残り時間を固定する。
+            // Iron's 標準 tick の減算直前に同量を戻し、独自の溜め詠唱中だけ同一 Recast の残り時間を固定する。
             var preservedTicks = Math.min(Integer.MAX_VALUE, (long) recastInstance.getTicksRemaining() + actualTicks);
             ((RecastInstanceAccessor) recastInstance).apprenticecodex$setRemainingTicks((int) preservedTicks);
         });

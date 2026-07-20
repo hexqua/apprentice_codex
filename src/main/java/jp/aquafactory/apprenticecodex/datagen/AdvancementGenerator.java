@@ -809,5 +809,18 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         false)
                 .addCriterion("crafted_atelier_station", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.ATELIER_STATION.getId()))
                 .save(saver, advancementId("craft_atelier_station"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.CHARGECAST_CATALYSTBOOK.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_chargecast_catalystbook.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_chargecast_catalystbook.description"),
+                        null,
+                        FrameType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_chargecast_catalystbook", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.CHARGECAST_CATALYSTBOOK.getId()))
+                .save(saver, advancementId("craft_chargecast_catalystbook"), existingFileHelper);
     }
 }

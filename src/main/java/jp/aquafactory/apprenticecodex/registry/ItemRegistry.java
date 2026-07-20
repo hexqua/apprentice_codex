@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.item.blockitem.*;
 import jp.aquafactory.apprenticecodex.item.boundweapon.BoundBowItem;
 import jp.aquafactory.apprenticecodex.item.boundweapon.BoundSwordItem;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff;
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRing;
@@ -364,6 +365,8 @@ public final class ItemRegistry {
             ITEMS.register("multipurpose_staffrifle", MultipurposeStaffrifle::new);
     public static final RegistryObject<Item> SCROLLCASTER_GAUNTLET =
             ITEMS.register("scrollcaster_gauntlet", ScrollcasterGauntlet::new);
+    public static final RegistryObject<Item> CHARGECAST_CATALYSTBOOK =
+            ITEMS.register("chargecast_catalystbook", ChargecastCatalystbook::new);
     public static final RegistryObject<Item> STORAGE_STABILIZER =
             ITEMS.register("storage_stabilizer", StorageStabilizer::new);
     public static final RegistryObject<Item> CIRCUIT_HEAT_STAFF =

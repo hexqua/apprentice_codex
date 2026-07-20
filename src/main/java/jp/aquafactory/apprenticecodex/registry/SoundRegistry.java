@@ -109,6 +109,7 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> VANILLA_CHEST_JUMP = reg("vanilla_chest_jump");
     public static final RegistryObject<SoundEvent> VANILLA_CARD_THROW = reg("vanilla_card_throw");
     public static final RegistryObject<SoundEvent> VANILLA_FEED_AMMO = reg("vanilla_feed_ammo");
+    public static final RegistryObject<SoundEvent> VANILLA_CAST_BOOK = reg("vanilla_cast_book");
 
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);

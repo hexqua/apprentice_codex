@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "apprenticecodex:spellstained_arcane_ingot"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "P": {
+      "item": "minecraft:paper"
+    }
+  },
+  "pattern": [
+    "GLA",
+    "DPP",
+    "GLA"
+  ],
+  "result": {
+    "item": "apprenticecodex:chargecast_catalystbook"
+  },
+  "show_notification": true
+}

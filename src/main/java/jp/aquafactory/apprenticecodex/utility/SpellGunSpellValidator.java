@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.Scroll;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
+import jp.aquafactory.apprenticecodex.item.ArcaneAnvilScrollImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import net.minecraft.world.item.ItemStack;
 
@@ -12,6 +13,9 @@ public final class SpellGunSpellValidator {
     }
 
     public static boolean isUnsupportedArcaneAnvilSpell(ItemStack baseItemStack, ItemStack modifierItemStack) {
+        if (baseItemStack.getItem() instanceof ArcaneAnvilScrollImbueBlockItem) {
+            return modifierItemStack.getItem() instanceof Scroll;
+        }
         if (baseItemStack.getItem() instanceof ArcaneAnvilImbueBlockItem) {
             return modifierItemStack.getItem() instanceof Scroll;
         }
