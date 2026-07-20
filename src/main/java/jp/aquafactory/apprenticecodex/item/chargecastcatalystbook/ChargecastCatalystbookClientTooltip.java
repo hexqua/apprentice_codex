@@ -20,8 +20,8 @@ public final class ChargecastCatalystbookClientTooltip {
             );
         }
         return new ChargecastCatalystbook.TooltipValues(
-                ChargecastCatalystbook.resolveCastDurationTicks(player, stack),
-                ChargecastCatalystbook.resolveFinalSpellPowerMultiplier(player, stack)
+                ChargecastCatalystbook.resolveCastDurationTicks(player, stack, config),
+                ChargecastCatalystbook.resolveFinalSpellPowerMultiplier(player, stack, config)
         );
     }
 }
