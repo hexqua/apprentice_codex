@@ -18,8 +18,10 @@ import jp.aquafactory.apprenticecodex.enchantment.*;
 import jp.aquafactory.apprenticecodex.item.*;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.ChargecastCatalystbookRenderer;
+import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
@@ -30,6 +32,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -243,6 +246,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
             magicData = MagicData.getPlayerMagicData(serverPlayer);
             magicData.initiateCast(spell, spellLevel, duration, CastSource.SWORD, slotId);
             magicData.setPlayerCastingItem(stack);
+            AudioTools.playSoundFromEntity(level, serverPlayer, SoundRegistry.VANILLA_CAST_BOOK.get(), SoundSource.PLAYERS);
             PacketDistributor.sendToPlayer(serverPlayer, new UpdateCastingStatePacket(
                     spell.getSpellId(), spellLevel, duration, CastSource.SWORD, slotId
             ));
