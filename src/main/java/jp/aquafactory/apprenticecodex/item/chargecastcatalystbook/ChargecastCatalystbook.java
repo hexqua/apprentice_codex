@@ -216,6 +216,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
             Player player,
             @NotNull InteractionHand usedHand
     ) {
+        // CastingItemのように振る舞うため、このアイテム自体はメインハンドオフハンドのケアは行わない.
         var stack = player.getItemInHand(usedHand);
         var magicData = MagicData.getPlayerMagicData(player);
         if (magicData != null && magicData.isCasting()) {
