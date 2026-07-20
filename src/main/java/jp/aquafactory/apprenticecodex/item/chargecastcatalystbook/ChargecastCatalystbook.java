@@ -245,6 +245,8 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         var spell = spellData.getSpell();
         if (level.isClientSide) {
             ChargecastCatalystbookClientCastIntent.mark(stack, spell);
+            // attemptInitiateCast はクライアントでは必ず false を返すため、ここで入力を消費してオフハンド使用へ流さない。
+            return InteractionResultHolder.sidedSuccess(stack, true);
         }
         var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
         var slotId = usedHand == InteractionHand.OFF_HAND
