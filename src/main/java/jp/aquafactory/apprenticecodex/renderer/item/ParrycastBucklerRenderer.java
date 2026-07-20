@@ -37,10 +37,16 @@ public class ParrycastBucklerRenderer extends GeoItemRenderer<ParrycastBuckler> 
     private static final ResourceLocation GLINT_TEXTURE = ResourceLocation.fromNamespaceAndPath(
             ApprenticeCodex.MODID, "textures/geo/parrycast_buckler_glint.png"
     );
+    private static final ResourceLocation COOLDOWN_GLINT_TEXTURE = ResourceLocation.fromNamespaceAndPath(
+            ApprenticeCodex.MODID, "textures/geo/parrycast_buckler_glint_cooldown.png"
+    );
     private static final RenderType DEFAULT_RENDER_TYPE = RenderType.entityCutoutNoCull(TEXTURE);
     private static final RenderType CORE_RENDER_TYPE = RenderType.entityTranslucent(TEXTURE);
     private static final RenderType GLINT_RENDER_TYPE = ApprenticeRenderTypes.entityAdditiveGlowNoCullColorOnly(
             "parrycast_buckler_shield_glint", GLINT_TEXTURE
+    );
+    private static final RenderType COOLDOWN_GLINT_RENDER_TYPE = ApprenticeRenderTypes.entityAdditiveGlowNoCullColorOnly(
+            "parrycast_buckler_shield_glint_cooldown", COOLDOWN_GLINT_TEXTURE
     );
 
     private SpecialPass specialPass = SpecialPass.NONE;
@@ -189,13 +195,17 @@ public class ParrycastBucklerRenderer extends GeoItemRenderer<ParrycastBuckler> 
                                        ParrycastBuckler animatable, float partialTick,
                                        float red, float green, float blue, float alpha) {
         float renderTime = resolveRenderTime(partialTick);
+        var currentStack = this.currentItemStack != null ? this.currentItemStack : ItemStack.EMPTY;
+        var glintRenderType = ImbuedSpellCoreClientEffectState.isCooldownActive(currentStack, partialTick)
+                ? COOLDOWN_GLINT_RENDER_TYPE
+                : GLINT_RENDER_TYPE;
         this.specialPass = SpecialPass.SHIELD_GLINT;
         this.glintUOffset = wrapUnit(renderTime * GLINT_SCROLL_U_PER_TICK);
         this.glintVOffset = wrapUnit(renderTime * GLINT_SCROLL_V_PER_TICK);
         try {
             this.reRender(
-                    model, poseStack, bufferSource, animatable, GLINT_RENDER_TYPE,
-                    bufferSource.getBuffer(GLINT_RENDER_TYPE), partialTick,
+                    model, poseStack, bufferSource, animatable, glintRenderType,
+                    bufferSource.getBuffer(glintRenderType), partialTick,
                     LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
                     red * GLINT_INTENSITY, green * GLINT_INTENSITY, blue * GLINT_INTENSITY, alpha
             );

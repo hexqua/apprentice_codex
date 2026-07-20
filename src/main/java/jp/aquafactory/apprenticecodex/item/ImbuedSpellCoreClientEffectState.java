@@ -36,6 +36,10 @@ public final class ImbuedSpellCoreClientEffectState {
         return new CoreRenderState(brightness, brightness, brightness, 0.95f);
     }
 
+    public static boolean isCooldownActive(ItemStack stack, float partialTick) {
+        return resolveCooldownRemaining(stack, partialTick) > 0.0f;
+    }
+
     private static float resolveTime(float partialTick) {
         var minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
