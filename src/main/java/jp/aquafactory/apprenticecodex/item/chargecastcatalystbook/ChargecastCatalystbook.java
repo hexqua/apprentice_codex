@@ -11,6 +11,7 @@ import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.item.Scroll;
+import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.network.casting.UpdateCastingStatePacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -64,7 +65,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public final class ChargecastCatalystbook extends Item implements GeoItem, IPresetSpellContainer,
+public final class ChargecastCatalystbook extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
         RestrictedSpellImbuableItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
         ArcaneAnvilScrollImbueBlockItem, CastAnimationOverrideItem, SneakSelectionUiItem,
         OffhandAttributeRelocatingItem, NonDamageableAnvilMergeItem,

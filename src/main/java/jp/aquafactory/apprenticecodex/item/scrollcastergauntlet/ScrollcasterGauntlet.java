@@ -105,7 +105,7 @@ import jp.aquafactory.apprenticecodex.item.offhand.OffhandMagicModifierHelper;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 
 public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
-        ItemTransformPreservingCastAnimationItem,
+        ItemTransformPreservingCastAnimationItem, ArcaneAnvilScrollImbueBlockItem,
         BetterCombatOffhandDualWieldingPolicyItem, SwingTriggeredMagicItem, PriorityOffhandUseDeferringItem, IJeiInfoItem,
         SneakSelectionUiItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
         TranscendencePolicy, AttributeEnchantmentPolicy, WisdomPolicy {
