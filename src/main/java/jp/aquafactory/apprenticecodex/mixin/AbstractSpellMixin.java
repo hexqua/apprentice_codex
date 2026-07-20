@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookStartSoundContext;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowStartSoundContext;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffCastHelper;
@@ -58,7 +59,7 @@ public abstract class AbstractSpellMixin {
                     target = "Lio/redspace/ironsspellbooks/api/spells/AbstractSpell;getCastStartSound()Ljava/util/Optional;"
             )
     )
-    private Optional<SoundEvent> apprentice_codex$redirectClientFocusStaffbowStartSound(
+    private Optional<SoundEvent> apprentice_codex$redirectClientStartSound(
             AbstractSpell spell,
             Level level,
             int spellLevel,
@@ -66,7 +67,9 @@ public abstract class AbstractSpellMixin {
             InteractionHand hand,
             @Nullable MagicData playerMagicData
     ) {
-        return FocusStaffbowStartSoundContext.isSuppressed(entity) ? Optional.empty() : spell.getCastStartSound();
+        return (FocusStaffbowStartSoundContext.isSuppressed(entity)
+                || ChargecastCatalystbookStartSoundContext.shouldSuppress(spell, entity))
+                ? Optional.empty() : spell.getCastStartSound();
     }
 
     @Redirect(
@@ -76,14 +79,16 @@ public abstract class AbstractSpellMixin {
                     target = "Lio/redspace/ironsspellbooks/api/spells/AbstractSpell;getCastStartSound()Ljava/util/Optional;"
             )
     )
-    private Optional<SoundEvent> apprentice_codex$redirectServerFocusStaffbowStartSound(
+    private Optional<SoundEvent> apprentice_codex$redirectServerStartSound(
             AbstractSpell spell,
             Level level,
             int spellLevel,
             LivingEntity entity,
             @Nullable MagicData playerMagicData
     ) {
-        return FocusStaffbowStartSoundContext.isSuppressed(entity) ? Optional.empty() : spell.getCastStartSound();
+        return (FocusStaffbowStartSoundContext.isSuppressed(entity)
+                || ChargecastCatalystbookStartSoundContext.shouldSuppress(spell, entity))
+                ? Optional.empty() : spell.getCastStartSound();
     }
 
     @Inject(method = "castSpell", at = @At("HEAD"))

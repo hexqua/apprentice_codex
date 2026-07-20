@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.level.Level;
@@ -52,6 +53,12 @@ public final class ChargecastCatalystbookCastEvents {
         if (!ChargecastCatalystbook.isManagedCast(player, spell)) {
             spell.castSpell(level, spellLevel, player, castSource, resetRecastCount);
             return;
+        }
+        if (ChargecastCatalystbookPresentationResolver.shouldDeferStartSound(spell)) {
+            // pre-cast では server/client とも抑制したため、成功時だけサーバーから全員へ効果音を送る。
+            spell.getCastStartSound().ifPresent(sound -> AudioTools.playSoundFromEntity(
+                    level, player, sound, player.getSoundSource(), 2.0F, 1.0F, 0.2F
+            ));
         }
         var attribute = player.getAttribute(AttributeRegistry.SPELL_POWER.get());
         if (attribute == null) {

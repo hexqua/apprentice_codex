@@ -12,6 +12,8 @@ import jp.aquafactory.apprenticecodex.event.client.ClientMultipurposeStaffrifleC
 import jp.aquafactory.apprenticecodex.event.client.ClientSwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScrollcasterGauntletCompat;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookClientCastIntent;
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookStartSoundContext;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
@@ -191,6 +193,28 @@ public abstract class ClientSpellCastHelperMixin {
 
     @Unique
     private static void apprentice_codex$runClientPreCast(
+            AbstractSpell spell,
+            int spellLevel,
+            net.minecraft.world.entity.player.Player player,
+            InteractionHand hand,
+            boolean suppressFocusStaffbowStartSound
+    ) {
+        if (ChargecastCatalystbookClientCastIntent.matchesActive(spell)) {
+            ChargecastCatalystbookStartSoundContext.runSuppressed(player.getUUID(), () ->
+                    apprentice_codex$runClientPreCastWithoutChargecastSound(
+                            spell, spellLevel, player, hand, suppressFocusStaffbowStartSound
+                    )
+            );
+            return;
+        }
+
+        apprentice_codex$runClientPreCastWithoutChargecastSound(
+                spell, spellLevel, player, hand, suppressFocusStaffbowStartSound
+        );
+    }
+
+    @Unique
+    private static void apprentice_codex$runClientPreCastWithoutChargecastSound(
             AbstractSpell spell,
             int spellLevel,
             net.minecraft.world.entity.player.Player player,

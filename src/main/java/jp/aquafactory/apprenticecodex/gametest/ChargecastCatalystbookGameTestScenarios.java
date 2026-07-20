@@ -8,7 +8,9 @@ import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookClientCastIntent;
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookPresentationResolver;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookSelectionState;
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookStartSoundContext;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.BlockPos;
@@ -116,6 +118,36 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
             helper.assertTrue(item.getCastFinishAnimation(book, instant, false)
                             .equals(instant.getCastStartAnimation()),
                     "Chargecast completion should replay the instant spell's own animation");
+
+            var mageLight = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get();
+            ChargecastCatalystbookClientCastIntent.mark(book, mageLight);
+            helper.assertTrue(item.shouldOverrideCastStartAnimation(book, mageLight),
+                    "Chargecast should override a finish-animated instant spell at cast start");
+            helper.assertTrue(item.getCastFinishAnimation(book, mageLight, false)
+                            .equals(mageLight.getCastFinishAnimation()),
+                    "Chargecast completion should prefer a concrete finish animation");
+            helper.assertTrue(ChargecastCatalystbookPresentationResolver.shouldDeferStartSound(mageLight),
+                    "A start-only instant spell sound should be deferred until chargecast completion");
+
+            var manaSlash = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
+            ChargecastCatalystbookClientCastIntent.mark(book, manaSlash);
+            helper.assertTrue(item.shouldOverrideCastStartAnimation(book, manaSlash),
+                    "Chargecast should override a pass-animated instant spell at cast start");
+            var noCompletionAnimation = item.getCastFinishAnimation(book, manaSlash, false);
+            helper.assertTrue(noCompletionAnimation.getForPlayer().isEmpty() && !noCompletionAnimation.isPass,
+                    "Chargecast completion should explicitly stop when the spell has no concrete animation");
+
+            var autoMagnet = jp.aquafactory.apprenticecodex.registry.SpellRegistry.AUTO_MAGNET.get();
+            helper.assertFalse(ChargecastCatalystbookPresentationResolver.shouldDeferStartSound(autoMagnet),
+                    "A spell with both start and finish sounds should keep its start sound timing");
+            var soundWasSuppressed = ChargecastCatalystbookStartSoundContext.callSuppressed(
+                    player.getUUID(),
+                    () -> ChargecastCatalystbookStartSoundContext.shouldSuppress(mageLight, player)
+            );
+            helper.assertTrue(soundWasSuppressed,
+                    "The deferred start sound should be suppressed inside the chargecast context");
+            helper.assertFalse(ChargecastCatalystbookStartSoundContext.shouldSuppress(mageLight, player),
+                    "The deferred start sound suppression should not leak after initiation");
             ChargecastCatalystbookClientCastIntent.clear();
         });
     }
