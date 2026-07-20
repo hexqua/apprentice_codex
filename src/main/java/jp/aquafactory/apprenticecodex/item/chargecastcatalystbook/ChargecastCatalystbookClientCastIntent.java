@@ -7,87 +7,78 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-/** 右クリック入力と直後の Iron's cast-start packet をクライアント内で結び付ける短命な状態。 */
+/** 右クリック入力と Iron's の cast-start / cast-finished packet を結び付けるローカル詠唱状態。 */
 public final class ChargecastCatalystbookClientCastIntent {
     private static final long INTENT_LIFETIME_MILLIS = 1_000L;
-    private static ItemStack stack = ItemStack.EMPTY;
-    private static String spellId = "";
-    private static @Nullable UUID casterId;
-    private static long expiresAtMillis;
-    private static ItemStack activeStack = ItemStack.EMPTY;
-    private static String activeSpellId = "";
-    private static @Nullable UUID activeCasterId;
+    private static @Nullable PendingCast pending;
+    private static @Nullable ActiveCast active;
 
     private ChargecastCatalystbookClientCastIntent() {
     }
 
     public static void mark(UUID casterId, ItemStack stack, AbstractSpell spell) {
-        ChargecastCatalystbookClientCastIntent.casterId = casterId;
-        ChargecastCatalystbookClientCastIntent.stack = stack.copy();
-        spellId = spell.getSpellId();
-        expiresAtMillis = Util.getMillis() + INTENT_LIFETIME_MILLIS;
+        pending = new PendingCast(
+                casterId,
+                stack.copy(),
+                spell.getSpellId(),
+                Util.getMillis() + INTENT_LIFETIME_MILLIS
+        );
     }
 
-    public static boolean matches(ItemStack candidate, @Nullable AbstractSpell spell) {
-        return matches(casterId, candidate, spell);
-    }
-
-    public static boolean matches(@Nullable UUID candidateCasterId, ItemStack candidate, @Nullable AbstractSpell spell) {
-        if (spell == null || Util.getMillis() > expiresAtMillis) {
-            clearPending();
+    /** cast-start packet を受け取った時だけ pending を active に遷移させる。 */
+    public static boolean activateIfMatches(UUID casterId, ItemStack stack, @Nullable AbstractSpell spell) {
+        var pendingCast = pending;
+        if (pendingCast == null || spell == null) {
             return false;
         }
-        var matches = casterId != null && casterId.equals(candidateCasterId)
-                && spellId.equals(spell.getSpellId()) && ItemStack.isSameItemSameTags(stack, candidate);
-        if (matches) {
-            activeStack = candidate.copy();
-            activeSpellId = spell.getSpellId();
-            activeCasterId = casterId;
+        if (Util.getMillis() > pendingCast.expiresAtMillis()) {
+            pending = null;
+            return false;
         }
-        return matches;
+        if (!pendingCast.matches(casterId, stack, spell.getSpellId())) {
+            return false;
+        }
+        active = new ActiveCast(casterId, stack.copy(), spell.getSpellId());
+        pending = null;
+        return true;
     }
 
-    public static boolean matchesActive(ItemStack candidate, @Nullable AbstractSpell spell) {
-        return matchesActive(activeCasterId, candidate, spell);
+    public static boolean isActive(UUID casterId, ItemStack stack, @Nullable AbstractSpell spell) {
+        return active != null && spell != null && active.matches(casterId, stack, spell.getSpellId());
     }
 
-    public static boolean matchesActive(@Nullable UUID candidateCasterId, ItemStack candidate, @Nullable AbstractSpell spell) {
-        return spell != null && activeSpellId.equals(spell.getSpellId())
-                && activeCasterId != null && activeCasterId.equals(candidateCasterId)
-                && ItemStack.isSameItemSameTags(activeStack, candidate);
+    public static boolean isActive(UUID casterId, @Nullable AbstractSpell spell) {
+        return active != null && spell != null && active.matches(casterId, spell.getSpellId());
     }
 
-    public static boolean matchesActive(@Nullable AbstractSpell spell) {
-        return matchesActive(activeCasterId, spell);
-    }
-
-    public static boolean matchesActive(@Nullable UUID candidateCasterId, @Nullable AbstractSpell spell) {
-        return spell != null && activeCasterId != null && activeCasterId.equals(candidateCasterId)
-                && activeSpellId.equals(spell.getSpellId()) && !activeStack.isEmpty();
-    }
-
-    public static void clearActive() {
-        activeStack = ItemStack.EMPTY;
-        activeSpellId = "";
-        activeCasterId = null;
-    }
-
-    public static void clearActiveIfMatches(@Nullable UUID candidateCasterId, String candidateSpellId) {
-        if (activeCasterId != null && activeCasterId.equals(candidateCasterId)
-                && activeSpellId.equals(candidateSpellId)) {
-            clearActive();
+    /** cast-finished packet の識別子が現在のローカル詠唱と一致した場合だけ終了する。 */
+    public static void finishIfMatches(UUID casterId, String spellId) {
+        if (active != null && active.matches(casterId, spellId)) {
+            active = null;
         }
     }
 
     public static void clear() {
-        clearPending();
-        clearActive();
+        pending = null;
+        active = null;
     }
 
-    private static void clearPending() {
-        stack = ItemStack.EMPTY;
-        spellId = "";
-        casterId = null;
-        expiresAtMillis = 0L;
+    private record PendingCast(UUID casterId, ItemStack stack, String spellId, long expiresAtMillis) {
+        private boolean matches(UUID candidateCasterId, ItemStack candidateStack, String candidateSpellId) {
+            return casterId.equals(candidateCasterId)
+                    && spellId.equals(candidateSpellId)
+                    && ItemStack.isSameItemSameTags(stack, candidateStack);
+        }
+    }
+
+    private record ActiveCast(UUID casterId, ItemStack stack, String spellId) {
+        private boolean matches(UUID candidateCasterId, ItemStack candidateStack, String candidateSpellId) {
+            return matches(candidateCasterId, candidateSpellId)
+                    && ItemStack.isSameItemSameTags(stack, candidateStack);
+        }
+
+        private boolean matches(UUID candidateCasterId, String candidateSpellId) {
+            return casterId.equals(candidateCasterId) && spellId.equals(candidateSpellId);
+        }
     }
 }
