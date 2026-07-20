@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.config;
 import jp.aquafactory.apprenticecodex.config.item.CraftsmansDelightServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.CircuitHeatStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ChromaticMagiaDressServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.BulwarkGreatshieldServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ElementalBowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FocusStaffbowServerConfig;
@@ -56,6 +57,7 @@ final class ItemsServerConfig {
     private final MulticastEchoStaffServerConfig multicastEchoStaffConfig;
     private final MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig;
     private final FocusStaffbowServerConfig focusStaffbowConfig;
+    private final ChargecastCatalystbookServerConfig chargecastCatalystbookConfig;
     private final ElementalBowServerConfig elementalBowConfig;
     private final ScrollcasterGauntletServerConfig scrollcasterGauntletConfig;
     private final SpellCastParryingRingServerConfig spellCastParryingRingConfig;
@@ -87,6 +89,7 @@ final class ItemsServerConfig {
             MulticastEchoStaffServerConfig multicastEchoStaffConfig,
             MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig,
             FocusStaffbowServerConfig focusStaffbowConfig,
+            ChargecastCatalystbookServerConfig chargecastCatalystbookConfig,
             ElementalBowServerConfig elementalBowConfig,
             ScrollcasterGauntletServerConfig scrollcasterGauntletConfig,
             SpellCastParryingRingServerConfig spellCastParryingRingConfig,
@@ -117,6 +120,7 @@ final class ItemsServerConfig {
         this.multicastEchoStaffConfig = multicastEchoStaffConfig;
         this.multipurposeStaffrifleConfig = multipurposeStaffrifleConfig;
         this.focusStaffbowConfig = focusStaffbowConfig;
+        this.chargecastCatalystbookConfig = chargecastCatalystbookConfig;
         this.elementalBowConfig = elementalBowConfig;
         this.scrollcasterGauntletConfig = scrollcasterGauntletConfig;
         this.spellCastParryingRingConfig = spellCastParryingRingConfig;
@@ -150,6 +154,7 @@ final class ItemsServerConfig {
         var multicastEchoStaffConfig = MulticastEchoStaffServerConfig.define(builder);
         var multipurposeStaffrifleConfig = MultipurposeStaffrifleServerConfig.define(builder);
         var focusStaffbowConfig = FocusStaffbowServerConfig.define(builder);
+        var chargecastCatalystbookConfig = ChargecastCatalystbookServerConfig.define(builder);
         var elementalBowConfig = ElementalBowServerConfig.define(builder);
         var scrollcasterGauntletConfig = ScrollcasterGauntletServerConfig.define(builder);
         var spellCastParryingRingConfig = SpellCastParryingRingServerConfig.define(builder);
@@ -182,6 +187,7 @@ final class ItemsServerConfig {
                 multicastEchoStaffConfig,
                 multipurposeStaffrifleConfig,
                 focusStaffbowConfig,
+                chargecastCatalystbookConfig,
                 elementalBowConfig,
                 scrollcasterGauntletConfig,
                 spellCastParryingRingConfig,
@@ -628,6 +634,14 @@ final class ItemsServerConfig {
 
     FocusStaffbowChargeSettings focusStaffbowChargeSettings() {
         return focusStaffbowConfig.chargeSettings();
+    }
+
+    ChargecastCatalystbookServerConfig.Values chargecastCatalystbookConfig() {
+        return chargecastCatalystbookConfig.values();
+    }
+
+    void setChargecastCatalystbookConfigForGameTest(ChargecastCatalystbookServerConfig.Values values) {
+        chargecastCatalystbookConfig.setForGameTest(values);
     }
 
     double elementalBowMagicReadyDrawTicksMultiplier() {

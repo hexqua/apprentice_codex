@@ -33,6 +33,8 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookP
 import jp.aquafactory.apprenticecodex.network.packet.SyncEdgeDancerStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncChargecastCatalystbookConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmChargecastCatalystbookIndexPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
@@ -66,7 +68,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "59";
+    private static final String PROTOCOL_VERSION = "60";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -145,6 +147,13 @@ public final class Networks {
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
+                SyncChargecastCatalystbookConfigPacket.class,
+                SyncChargecastCatalystbookConfigPacket::encode,
+                SyncChargecastCatalystbookConfigPacket::decode,
+                SyncChargecastCatalystbookConfigPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
                 ClientConfirmElementalBowModePacket.class,
                 ClientConfirmElementalBowModePacket::encode,
                 ClientConfirmElementalBowModePacket::decode,
@@ -156,6 +165,13 @@ public final class Networks {
                 ClientConfirmScrollcasterGauntletIndexPacket::encode,
                 ClientConfirmScrollcasterGauntletIndexPacket::decode,
                 ClientConfirmScrollcasterGauntletIndexPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                ClientConfirmChargecastCatalystbookIndexPacket.class,
+                ClientConfirmChargecastCatalystbookIndexPacket::encode,
+                ClientConfirmChargecastCatalystbookIndexPacket::decode,
+                ClientConfirmChargecastCatalystbookIndexPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

@@ -1,0 +1,178 @@
+package jp.aquafactory.apprenticecodex.gametest;
+
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
+import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookClientCastIntent;
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookSelectionState;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import net.minecraft.core.BlockPos;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.ItemStack;
+
+import java.util.Set;
+
+final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameTestScenarios {
+    private ChargecastCatalystbookGameTestScenarios() {
+    }
+
+    static void storesOnlyInstantSpellsAndExpandsToFourSlots(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var book = ItemRegistry.CHARGECAST_CATALYSTBOOK.get().getDefaultInstance();
+            var item = (ChargecastCatalystbook) book.getItem();
+            var instant = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var longSpell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANTIS_LEAP.get();
+
+            helper.assertTrue(ChargecastCatalystbook.getEnabledCalibrationScrollSlotCount(book) == 1,
+                    "Chargecast Catalystbook should start with one spell slot");
+            helper.assertFalse(item.isSneakSelectionUiEnabled(book),
+                    "One-slot Chargecast Catalystbook should leave sneak and hotbar scrolling untouched");
+            helper.assertTrue(item.evaluateCalibrationImbue(book, 0, new SpellData(instant, 1))
+                            == SpellCalibrationImbueState.ACCEPTED_USABLE,
+                    "Chargecast Catalystbook should accept instant spells");
+            helper.assertTrue(item.evaluateCalibrationImbue(book, 0, new SpellData(longSpell, 1))
+                            == SpellCalibrationImbueState.REJECTED,
+                    "Chargecast Catalystbook should reject non-instant spells regardless of recast");
+            helper.assertTrue(book.getItem() instanceof RestrictedSpellImbuableItem,
+                    "Chargecast Catalystbook should expose the shared imbue restriction interface");
+            helper.assertTrue(jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator
+                            .isUnsupportedArcaneAnvilSpell(book, createSpellScroll(instant)),
+                    "Arcane Anvil should not imbue Chargecast Catalystbook");
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "chargecast_catalystbook_calibration_test");
+            var menu = createSpellCalibrationBenchMenuWithTarget(player, book);
+            helper.assertFalse(menu.getImbueRestrictionTooltipLines().isEmpty(),
+                    "Chargecast Catalystbook should expose Calibration Bench restriction warnings");
+            helper.assertFalse(menu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).mayPlace(
+                            createSpellScroll(longSpell)
+                    ),
+                    "Chargecast Catalystbook should reject non-instant scrolls in the Calibration Bench");
+
+            for (var slot = 0; slot < ChargecastCatalystbook.CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+                helper.assertTrue(item.trySetCalibrationAdjustment(
+                                book, slot,
+                                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
+                        ),
+                        "Each Lesser Spell Slot Upgrade should be accepted");
+                if (slot == 0) {
+                    helper.assertTrue(item.isSneakSelectionUiEnabled(book),
+                            "The first slot upgrade should enable the sneak selection UI");
+                }
+            }
+            helper.assertTrue(ChargecastCatalystbook.getEnabledCalibrationScrollSlotCount(book) == 4,
+                    "Three slot upgrades should expand the book to four spell slots");
+
+            ChargecastCatalystbook.setCalibrationScroll(book, 3, createSpellScroll(instant));
+            ChargecastCatalystbook.setSelectedScrollIndex(book, 3);
+            helper.assertTrue(ChargecastCatalystbook.getSelectedScrollIndex(book) == 3,
+                    "The internal selected spell should be stored independently");
+            helper.assertTrue(ChargecastCatalystbook.getSelectedSpellData(book).getSpell() == instant,
+                    "Only the selected internal spell should be projected");
+
+            var firebolt = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIREBOLT_SPELL.get();
+            var icicle = io.redspace.ironsspellbooks.api.registry.SpellRegistry.ICICLE_SPELL.get();
+            ChargecastCatalystbook.setCalibrationScroll(book, 0, createSpellScroll(firebolt));
+            ChargecastCatalystbook.setCalibrationScroll(book, 2, createSpellScroll(icicle));
+            var selectionState = ChargecastCatalystbookSelectionState.open(
+                    net.minecraft.world.InteractionHand.MAIN_HAND,
+                    ChargecastCatalystbook.getSelectionViews(book)
+            );
+            helper.assertTrue(selectionState.selectedScrollIndex() == 3,
+                    "Selection state should start from the item selection");
+            selectionState = selectionState.move(1);
+            helper.assertTrue(selectionState.selectedScrollIndex() == 0,
+                    "Selection state should wrap forward");
+            selectionState = selectionState.move(1);
+            helper.assertTrue(selectionState.selectedScrollIndex() == 2,
+                    "Selection state should skip empty slots");
+            selectionState = selectionState.move(1);
+            helper.assertTrue(selectionState.selectedScrollIndex() == 3,
+                    "Repeated wheel input should continue from the updated cursor");
+            selectionState = selectionState.move(-1);
+            helper.assertTrue(selectionState.selectedScrollIndex() == 2,
+                    "Selection state should move backward from the current cursor");
+
+            ChargecastCatalystbook.setSelectedScrollIndex(book, 0);
+            selectionState = selectionState.refresh(
+                    ChargecastCatalystbook.getSelectionViews(book),
+                    ChargecastCatalystbook.getSelectedScrollIndex(book)
+            );
+            helper.assertTrue(selectionState.selectedScrollIndex() == 0,
+                    "Selection refresh should follow the ItemStack rather than a stale UI cursor");
+
+            ChargecastCatalystbookClientCastIntent.mark(book, instant);
+            helper.assertTrue(item.shouldOverrideCastStartAnimation(book, instant),
+                    "Right-click chargecast should replace the cast-start animation");
+            helper.assertTrue(item.shouldOverrideCastFinishAnimation(book, instant),
+                    "Right-click chargecast should replace the completion animation");
+            helper.assertTrue(item.getCastFinishAnimation(book, instant, false)
+                            .equals(instant.getCastStartAnimation()),
+                    "Chargecast completion should replay the instant spell's own animation");
+            ChargecastCatalystbookClientCastIntent.clear();
+        });
+    }
+
+    static void appliesAdjustmentAndAttributePolicies(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (ChargecastCatalystbook) ItemRegistry.CHARGECAST_CATALYSTBOOK.get();
+            var book = item.getDefaultInstance();
+            helper.assertTrue(book.is(io.redspace.ironsspellbooks.util.ModTags.CAN_BE_UPGRADED),
+                    "Chargecast Catalystbook should accept upgrade orbs");
+            helper.assertTrue(item.getEnchantmentValue(book) == 22,
+                    "Chargecast Catalystbook enchantability should be 22");
+            helper.assertTrue(item.directlyApplicableAttributeEnchantments().equals(Set.of(
+                            AttributeEnchantmentType.ALACRITY,
+                            AttributeEnchantmentType.REFLUX,
+                            AttributeEnchantmentType.RESERVOIR,
+                            AttributeEnchantmentType.TENSE
+                    )),
+                    "Chargecast Catalystbook should expose exactly four attribute enchantments");
+
+            var mainhand = item.getAttributeModifiers(EquipmentSlot.MAINHAND, book);
+            helper.assertTrue(mainhand.get(AttributeRegistry.SPELL_POWER.get()).stream().anyMatch(modifier ->
+                            modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE
+                                    && Math.abs(modifier.getAmount() - 0.10D) < 0.000001D),
+                    "The default book should grant +10% generic spell power in mainhand");
+
+            var amplified = item.getDefaultInstance();
+            helper.assertTrue(item.trySetCalibrationAdjustment(
+                            amplified, 0, new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get())),
+                    "Silver Spell Amplifier should be accepted once");
+            helper.assertFalse(item.trySetCalibrationAdjustment(
+                            amplified, 1, new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get())),
+                    "Silver Spell Amplifier should reject duplicates");
+            helper.assertTrue(item.getAttributeModifiers(EquipmentSlot.MAINHAND, amplified)
+                            .get(AttributeRegistry.SPELL_POWER.get()).isEmpty(),
+                    "Silver Spell Amplifier should remove the mainhand spell power modifier");
+            helper.assertTrue(item.getAttributeModifiers(EquipmentSlot.OFFHAND, amplified)
+                            .get(AttributeRegistry.SPELL_POWER.get()).stream().anyMatch(modifier ->
+                                    Math.abs(modifier.getAmount() - 0.10D) < 0.000001D),
+                    "Silver Spell Amplifier should move spell power to offhand");
+
+            var schoolTuned = item.getDefaultInstance();
+            helper.assertTrue(item.trySetCalibrationAdjustment(
+                            schoolTuned, 0,
+                            new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get())
+                    ),
+                    "One school rune should be accepted");
+            var schoolModifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, schoolTuned);
+            var firePower = MagicTools.resolveSchoolPowerAttribute(
+                    io.redspace.ironsspellbooks.api.registry.SchoolRegistry.FIRE.get()
+            );
+            helper.assertTrue(schoolModifiers.get(AttributeRegistry.SPELL_POWER.get()).isEmpty(),
+                    "A school rune should remove generic spell power");
+            helper.assertTrue(firePower != null && schoolModifiers.get(firePower).stream().anyMatch(modifier ->
+                            modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE
+                                    && Math.abs(modifier.getAmount() - 0.15D) < 0.000001D),
+                    "A school rune should grant +15% spell power for its school");
+        });
+    }
+}

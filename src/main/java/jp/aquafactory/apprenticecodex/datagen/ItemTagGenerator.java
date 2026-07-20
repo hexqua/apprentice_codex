@@ -101,7 +101,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SPELLCHARGED_GREATSWORD.get(),
                 ItemRegistry.SPELL_SIDE_EDGE.get(),
                 ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
-                ItemRegistry.SCROLLCASTER_GAUNTLET.get()
+                ItemRegistry.SCROLLCASTER_GAUNTLET.get(),
+                ItemRegistry.CHARGECAST_CATALYSTBOOK.get()
         );
 
         var malumSoulHunterWeaponTag = tag(MALUM_SOUL_HUNTER_WEAPON);

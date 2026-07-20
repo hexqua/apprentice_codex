@@ -12,6 +12,8 @@ public final class SneakSelectionUiHandResolver {
      * 表示中の持ち替えでは再評価せず、途中から別の選択 UI を開かない既存仕様を維持する。
      */
     public static boolean shouldSuppressOffhandSelection(Player player) {
-        return player.getMainHandItem().getItem() instanceof SneakSelectionUiItem;
+        var mainHandStack = player.getMainHandItem();
+        return mainHandStack.getItem() instanceof SneakSelectionUiItem item
+                && item.isSneakSelectionUiEnabled(mainHandStack);
     }
 }

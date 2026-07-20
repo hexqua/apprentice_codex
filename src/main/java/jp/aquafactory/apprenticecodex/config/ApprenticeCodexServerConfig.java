@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig
 import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.LinearBuildServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
@@ -700,6 +701,10 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.focusStaffbowChargeSettings();
     }
 
+    public static ChargecastCatalystbookServerConfig.Values chargecastCatalystbookConfig() {
+        return ITEMS_CONFIG.chargecastCatalystbookConfig();
+    }
+
     public static double elementalBowMagicReadyDrawTicksMultiplier() {
         return ITEMS_CONFIG.elementalBowMagicReadyDrawTicksMultiplier();
     }
@@ -1112,6 +1117,14 @@ public final class ApprenticeCodexServerConfig {
                 previousDeniedEnchantments,
                 previousCompatAdditionalAllowedEnchantments
         );
+    }
+
+    public static GameTestConfigOverride useChargecastCatalystbookConfigOverrideForGameTest(
+            ChargecastCatalystbookServerConfig.Values values
+    ) {
+        var previous = ITEMS_CONFIG.chargecastCatalystbookConfig();
+        ITEMS_CONFIG.setChargecastCatalystbookConfigForGameTest(values);
+        return () -> ITEMS_CONFIG.setChargecastCatalystbookConfigForGameTest(previous);
     }
 
     public static int spellCastParryingRingParryWindowTicks() {

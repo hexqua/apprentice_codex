@@ -521,6 +521,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void chargecastCatalystbookStoresOnlyInstantSpellsAndExpandsToFourSlots(GameTestHelper helper) {
+        ChargecastCatalystbookGameTestScenarios.storesOnlyInstantSpellsAndExpandsToFourSlots(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargecastCatalystbookAppliesAdjustmentAndAttributePolicies(GameTestHelper helper) {
+        ChargecastCatalystbookGameTestScenarios.appliesAdjustmentAndAttributePolicies(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void manaShieldCharmUsesCharmSlotAndAppearsInCreativeTab(GameTestHelper helper) {
         ManaShieldCharmGameTestScenarios.manaShieldCharmUsesCharmSlotAndAppearsInCreativeTab(helper);
     }

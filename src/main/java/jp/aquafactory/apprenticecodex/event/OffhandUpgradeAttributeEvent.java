@@ -4,7 +4,7 @@ import io.redspace.ironsspellbooks.api.item.UpgradeData;
 import io.redspace.ironsspellbooks.util.UpgradeUtils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
-import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.OffhandAttributeRelocatingItem;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -22,8 +22,9 @@ public final class OffhandUpgradeAttributeEvent {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onItemAttributeModifier(ItemAttributeModifierEvent event) {
         var stack = event.getItemStack();
-        var adjustedSpellgun = AbstractSpellGunItem.usesOffhandAttributeModifiers(stack);
-        if (!(stack.getItem() instanceof AbstractOffhandMagicItem) && !adjustedSpellgun) {
+        var relocatesAttributes = stack.getItem() instanceof OffhandAttributeRelocatingItem item
+                && item.usesOffhandAttributeModifiers(stack);
+        if (!(stack.getItem() instanceof AbstractOffhandMagicItem) && !relocatesAttributes) {
             return;
         }
 
@@ -35,7 +36,7 @@ public final class OffhandUpgradeAttributeEvent {
             return;
         }
 
-        if (adjustedSpellgun && event.getSlotType() == EquipmentSlot.MAINHAND) {
+        if (relocatesAttributes && event.getSlotType() == EquipmentSlot.MAINHAND) {
             removeMainhandUpgradeModifiers(event, upgradeData);
             return;
         }
