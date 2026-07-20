@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmulet;
@@ -164,6 +165,10 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         return isScrollcasterGauntlet(getGauntletStack());
     }
 
+    public boolean hasChargecastCatalystbook() {
+        return getGauntletStack().getItem() instanceof ChargecastCatalystbook;
+    }
+
     public boolean hasRevolvercastStaff() {
         return isRevolvercastStaff(getGauntletStack());
     }
@@ -214,6 +219,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     public int getEnabledScrollSlotCount() {
         if (hasGauntlet()) {
             return ScrollcasterGauntlet.getEnabledCalibrationScrollSlotCount(getGauntletStack(), lookupProvider);
+        }
+        if (hasChargecastCatalystbook()) {
+            return ChargecastCatalystbook.getEnabledCalibrationScrollSlotCount(getGauntletStack());
         }
         if (hasRevolvercastStaff()) {
             return RevolvercastStaff.getEnabledCalibrationScrollSlotCount(getGauntletStack());
@@ -306,7 +314,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         if (hasSatelliteFollowcastAmulet()) {
             return ((SatelliteFollowcastAmulet) getGauntletStack().getItem()).getImbueRestrictionTooltipLines(getGauntletStack());
         }
-        if (!hasOperationalImbueTarget()) {
+        if (!hasOperationalImbueTarget() && !hasStoredScrollTarget()) {
             return List.of();
         }
         return SpellCalibrationImbueHelper.getImbueRestrictionTooltipLines(getGauntletStack());
@@ -355,6 +363,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         if (hasGauntlet()) {
             return ScrollcasterGauntlet.getCalibrationScroll(getGauntletStack(), slot, lookupProvider);
         }
+        if (hasChargecastCatalystbook()) {
+            return ChargecastCatalystbook.getCalibrationScroll(getGauntletStack(), slot);
+        }
         if (hasRevolvercastStaff()) {
             return RevolvercastStaff.getCalibrationScroll(getGauntletStack(), slot);
         }
@@ -375,6 +386,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             ScrollcasterGauntlet.refreshCalibrationEnchantments(gauntletStack, lookupProvider);
             ScrollcasterGauntlet.refreshResolvedCalibrationSchool(gauntletStack, lookupProvider);
             ScrollcasterGauntlet.refreshSelectedSpellContainer(gauntletStack, lookupProvider);
+        } else if (hasChargecastCatalystbook()) {
+            ChargecastCatalystbook.refreshSelectedSpellContainer(gauntletStack);
         } else if (hasRevolvercastStaff()) {
             RevolvercastStaff.refreshResolvedCalibrationSchool(gauntletStack);
             RevolvercastStaff.refreshSelectedSpellContainer(gauntletStack);
@@ -406,6 +419,15 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
                 storedStack.setCount(1);
             }
             ScrollcasterGauntlet.setCalibrationScroll(getGauntletStack(), slot, storedStack, lookupProvider);
+            return;
+        }
+
+        if (hasChargecastCatalystbook()) {
+            var storedStack = stack.copy();
+            if (!storedStack.isEmpty()) {
+                storedStack.setCount(1);
+            }
+            ChargecastCatalystbook.setCalibrationScroll(getGauntletStack(), slot, storedStack);
             return;
         }
 
@@ -518,7 +540,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     private boolean hasStoredScrollTarget() {
-        return hasGauntlet() || hasRevolvercastStaff() || hasAutocastAmulet() || hasSatelliteFollowcastAmulet();
+        return hasGauntlet() || hasChargecastCatalystbook() || hasRevolvercastStaff()
+                || hasAutocastAmulet() || hasSatelliteFollowcastAmulet();
     }
 
     private boolean canPersistScrollChanges() {

@@ -39,6 +39,7 @@ import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRing;
 import jp.aquafactory.apprenticecodex.item.curios.circlets.AshenCirclet;
 import jp.aquafactory.apprenticecodex.item.curios.circlets.EnchantedCirclet;
@@ -377,6 +378,8 @@ public final class ItemRegistry {
             ITEMS.register("multipurpose_staffrifle", MultipurposeStaffrifle::new);
     public static final DeferredHolder<Item, Item> SCROLLCASTER_GAUNTLET =
             ITEMS.register("scrollcaster_gauntlet", ScrollcasterGauntlet::new);
+    public static final DeferredHolder<Item, Item> CHARGECAST_CATALYSTBOOK =
+            ITEMS.register("chargecast_catalystbook", ChargecastCatalystbook::new);
     public static final DeferredHolder<Item, Item> STORAGE_STABILIZER =
             ITEMS.register("storage_stabilizer", StorageStabilizer::new);
     public static final DeferredHolder<Item, Item> CIRCUIT_HEAT_STAFF =
