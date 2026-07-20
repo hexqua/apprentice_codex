@@ -68,9 +68,13 @@ public abstract class ClientSpellCastHelperMixin {
         // 配置 preview は開始時 target を固定したいので、clientbound の cast start に合わせて初期化する。
         ClientPlacementPreviewManager.beginPreview(spell, player, spellLevel);
         var castingStack = apprentice_codex$resolveCastingStack(player, castingSlot);
+        // ローカル状態は cast-start packet だけで active 化し、表示判定からは変更しない。
+        var localChargecastPresentation = player == minecraft.player
+                && ChargecastCatalystbookClientCastIntent.activateIfMatches(castingEntityId, castingStack, spell);
         var remoteChargecastPresentation = apprentice_codex$isRemoteHandChargecast(
                 player, minecraft.player, castingStack, spell, castingSlot
         );
+        var chargecastPresentation = localChargecastPresentation || remoteChargecastPresentation;
         var focusStaffbowRightClickPresentation =
                 FocusStaffbowClientPresentationState.activatePending(castingEntityId, spellId);
         ClientSwingcastStaffCastContext.tryActivate(castingEntityId, castingStack, spell);
@@ -88,7 +92,7 @@ public abstract class ClientSpellCastHelperMixin {
                 spell,
                 castingSlot,
                 focusStaffbowRightClickPresentation,
-                remoteChargecastPresentation
+                chargecastPresentation
         );
         if (!(animationStack.getItem() instanceof CastAnimationOverrideItem animationOverrideItem)) {
             if (apprentice_codex$shouldHandleFocusStaffbowShortcutStart(player, castingSlot, focusStaffbowRightClickPresentation)) {
@@ -100,7 +104,7 @@ public abstract class ClientSpellCastHelperMixin {
                         player,
                         apprentice_codex$resolveCastingHand(castingSlot),
                         false,
-                        remoteChargecastPresentation
+                        chargecastPresentation
                 );
                 ci.cancel();
             }
@@ -114,13 +118,13 @@ public abstract class ClientSpellCastHelperMixin {
                     player,
                     apprentice_codex$resolveClientPreCastHand(castingSlot, focusStaffbowRightClickPresentation),
                     focusStaffbowRightClickPresentation,
-                    remoteChargecastPresentation
+                    chargecastPresentation
             );
             ci.cancel();
             return;
         }
 
-        if (!remoteChargecastPresentation
+        if (!chargecastPresentation
                 && !animationOverrideItem.shouldOverrideCastStartAnimation(animationStack, spell)) {
             return;
         }
@@ -136,7 +140,7 @@ public abstract class ClientSpellCastHelperMixin {
                 player,
                 apprentice_codex$resolveClientPreCastHand(castingSlot, focusStaffbowRightClickPresentation),
                 focusStaffbowRightClickPresentation,
-                remoteChargecastPresentation
+                chargecastPresentation
         );
         ci.cancel();
     }
@@ -162,9 +166,12 @@ public abstract class ClientSpellCastHelperMixin {
 
         var castingSlot = ClientMagicData.getSyncedSpellData(player).getCastingEquipmentSlot();
         var castingStack = apprentice_codex$resolveCastingStack(player, castingSlot);
+        var localChargecastPresentation = player == minecraft.player
+                && ChargecastCatalystbookClientCastIntent.isActive(castingEntityId, castingStack, spell);
         var remoteChargecastPresentation = apprentice_codex$isRemoteHandChargecast(
                 player, minecraft.player, castingStack, spell, castingSlot
         );
+        var chargecastPresentation = localChargecastPresentation || remoteChargecastPresentation;
         var focusStaffbowRightClickPresentation =
                 FocusStaffbowClientPresentationState.hasActive(castingEntityId, spellId);
         castingStack = apprentice_codex$resolveSpellAnimationStack(
@@ -173,13 +180,13 @@ public abstract class ClientSpellCastHelperMixin {
                 spell,
                 castingSlot,
                 focusStaffbowRightClickPresentation,
-                remoteChargecastPresentation
+                chargecastPresentation
         );
         if (!(castingStack.getItem() instanceof CastAnimationOverrideItem animationOverrideItem)) {
             return spell.getCastFinishAnimation();
         }
 
-        if (remoteChargecastPresentation
+        if (chargecastPresentation
                 || animationOverrideItem.shouldOverrideCastFinishAnimation(castingStack, spell)) {
             return animationOverrideItem.getCastFinishAnimation(castingStack, spell, cancelled);
         }
@@ -206,8 +213,8 @@ public abstract class ClientSpellCastHelperMixin {
         ClientSwingcastStaffCastContext.clearFinished(castingEntityId, spellId);
         ClientMultipurposeStaffrifleCastContext.clearFinished(castingEntityId, spellId);
         FocusStaffbowClientPresentationState.clear(castingEntityId);
-        // 持ち替え後は現在の手持ちから触媒書を解決できないため、完了通知の識別子で active intent を落とす。
-        ChargecastCatalystbookClientCastIntent.clearActiveIfMatches(castingEntityId, spellId);
+        // 持ち替え後も cast-start で確定した識別子だけを使い、表示コードから状態を変更しない。
+        ChargecastCatalystbookClientCastIntent.finishIfMatches(castingEntityId, spellId);
     }
 
     @Unique
@@ -217,10 +224,9 @@ public abstract class ClientSpellCastHelperMixin {
             net.minecraft.world.entity.player.Player player,
             InteractionHand hand,
             boolean suppressFocusStaffbowStartSound,
-            boolean suppressRemoteChargecastStartSound
+            boolean suppressChargecastStartSound
     ) {
-        if (suppressRemoteChargecastStartSound
-                || ChargecastCatalystbookClientCastIntent.matchesActive(player.getUUID(), spell)) {
+        if (suppressChargecastStartSound) {
             ChargecastCatalystbookStartSoundContext.runSuppressed(player.getUUID(), () ->
                     apprentice_codex$runClientPreCastWithoutChargecastSound(
                             spell, spellLevel, player, hand, suppressFocusStaffbowStartSound
@@ -281,8 +287,8 @@ public abstract class ClientSpellCastHelperMixin {
                                                                              @Nullable AbstractSpell spell,
                                                                              String castingSlot,
                                                                              boolean focusStaffbowRightClickPresentation,
-                                                                             boolean remoteChargecastPresentation) {
-        if (remoteChargecastPresentation) {
+                                                                             boolean chargecastPresentation) {
+        if (chargecastPresentation) {
             return castingStack;
         }
         if (focusStaffbowRightClickPresentation) {
@@ -324,8 +330,8 @@ public abstract class ClientSpellCastHelperMixin {
                                                                          AbstractSpell spell,
                                                                          String castingSlot,
                                                                          boolean focusStaffbowRightClickPresentation,
-                                                                         boolean remoteChargecastPresentation) {
-        if (remoteChargecastPresentation) {
+                                                                         boolean chargecastPresentation) {
+        if (chargecastPresentation) {
             return castingStack;
         }
         if (focusStaffbowRightClickPresentation) {
@@ -407,10 +413,6 @@ public abstract class ClientSpellCastHelperMixin {
             return false;
         }
 
-        if (stack.getItem() instanceof ChargecastCatalystbook) {
-            return ChargecastCatalystbookClientCastIntent.matches(player.getUUID(), stack, spell);
-        }
-
         return apprentice_codex$shouldSuppressCastStartAnimation(player, stack, spell)
                 || animationOverrideItem.shouldOverrideCastStartAnimation(stack, spell);
     }
@@ -419,10 +421,6 @@ public abstract class ClientSpellCastHelperMixin {
     private static boolean apprentice_codex$hasCastAnimationOverride(Player player, ItemStack stack, @Nullable AbstractSpell spell) {
         if (!(stack.getItem() instanceof CastAnimationOverrideItem animationOverrideItem)) {
             return false;
-        }
-
-        if (stack.getItem() instanceof ChargecastCatalystbook) {
-            return ChargecastCatalystbookClientCastIntent.matchesActive(player.getUUID(), stack, spell);
         }
 
         return apprentice_codex$shouldSuppressCastStartAnimation(player, stack, spell)

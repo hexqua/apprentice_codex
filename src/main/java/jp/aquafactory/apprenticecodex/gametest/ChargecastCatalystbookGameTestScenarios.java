@@ -118,22 +118,30 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
 
             ChargecastCatalystbookClientCastIntent.mark(player.getUUID(), book, instant);
             var otherCasterId = java.util.UUID.randomUUID();
-            helper.assertFalse(ChargecastCatalystbookClientCastIntent.matches(otherCasterId, book, instant),
-                    "Another player's matching catalystbook must not consume the local cast intent");
-            helper.assertFalse(ChargecastCatalystbookClientCastIntent.matchesActive(otherCasterId, book, instant),
+            helper.assertFalse(ChargecastCatalystbookClientCastIntent.activateIfMatches(otherCasterId, book, instant),
+                    "Another player's cast-start must not consume the local pending cast");
+            helper.assertFalse(ChargecastCatalystbookClientCastIntent.isActive(otherCasterId, book, instant),
                     "Another player's cast must not become the local active chargecast");
-            helper.assertTrue(item.shouldOverrideCastStartAnimation(book, instant),
-                    "Right-click chargecast should replace the cast-start animation");
-            helper.assertTrue(item.shouldOverrideCastFinishAnimation(book, instant),
-                    "Right-click chargecast should replace the completion animation");
+            helper.assertTrue(ChargecastCatalystbookClientCastIntent.activateIfMatches(
+                            player.getUUID(), book, instant
+                    ),
+                    "The matching local cast-start must activate the pending cast");
+            helper.assertTrue(ChargecastCatalystbookClientCastIntent.isActive(player.getUUID(), book, instant),
+                    "The activated local cast must be available to HUD and recast presentation");
+            helper.assertFalse(item.shouldOverrideCastStartAnimation(book, instant),
+                    "The identity-free Item API must not decide whether a cast belongs to the local player");
+            helper.assertFalse(item.shouldOverrideCastFinishAnimation(book, instant),
+                    "The identity-free Item API must not decide whether a completion belongs to the local player");
             helper.assertTrue(item.getCastFinishAnimation(book, instant, false)
                             .equals(instant.getCastStartAnimation()),
                     "Chargecast completion should replay the instant spell's own animation");
+            helper.assertTrue(ChargecastCatalystbookClientCastIntent.isActive(player.getUUID(), book, instant),
+                    "Resolving a completion animation must not mutate the local active cast");
+            ChargecastCatalystbookClientCastIntent.finishIfMatches(otherCasterId, instant.getSpellId());
+            helper.assertTrue(ChargecastCatalystbookClientCastIntent.isActive(player.getUUID(), book, instant),
+                    "Another player's completion must not clear the local active chargecast");
 
             var mageLight = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get();
-            ChargecastCatalystbookClientCastIntent.mark(player.getUUID(), book, mageLight);
-            helper.assertTrue(item.shouldOverrideCastStartAnimation(book, mageLight),
-                    "Chargecast should override a finish-animated instant spell at cast start");
             helper.assertTrue(item.getCastFinishAnimation(book, mageLight, false)
                             .equals(mageLight.getCastFinishAnimation()),
                     "Chargecast completion should prefer a concrete finish animation");
@@ -141,9 +149,6 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
                     "A start-only instant spell sound should be deferred until chargecast completion");
 
             var manaSlash = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
-            ChargecastCatalystbookClientCastIntent.mark(player.getUUID(), book, manaSlash);
-            helper.assertTrue(item.shouldOverrideCastStartAnimation(book, manaSlash),
-                    "Chargecast should override a pass-animated instant spell at cast start");
             var noCompletionAnimation = item.getCastFinishAnimation(book, manaSlash, false);
             helper.assertTrue(noCompletionAnimation.getForPlayer().isEmpty() && !noCompletionAnimation.isPass,
                     "Chargecast completion should explicitly stop when the spell has no concrete animation");
@@ -160,17 +165,11 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
             helper.assertFalse(ChargecastCatalystbookStartSoundContext.shouldSuppress(mageLight, player),
                     "The deferred start sound suppression should not leak after initiation");
 
-            ChargecastCatalystbookClientCastIntent.mark(player.getUUID(), book, instant);
-            helper.assertTrue(item.shouldOverrideCastStartAnimation(book, instant),
-                    "A chargecast intent should become active before completion cleanup");
-            ChargecastCatalystbookClientCastIntent.clearActiveIfMatches(otherCasterId, instant.getSpellId());
-            helper.assertTrue(ChargecastCatalystbookClientCastIntent.matchesActive(player.getUUID(), book, instant),
-                    "Another player's completion must not clear the local active chargecast");
-            ChargecastCatalystbookClientCastIntent.clearActiveIfMatches(player.getUUID(), mageLight.getSpellId());
-            helper.assertTrue(ChargecastCatalystbookClientCastIntent.matchesActive(player.getUUID(), book, instant),
+            ChargecastCatalystbookClientCastIntent.finishIfMatches(player.getUUID(), mageLight.getSpellId());
+            helper.assertTrue(ChargecastCatalystbookClientCastIntent.isActive(player.getUUID(), book, instant),
                     "Another spell's completion must not clear the active chargecast");
-            ChargecastCatalystbookClientCastIntent.clearActiveIfMatches(player.getUUID(), instant.getSpellId());
-            helper.assertFalse(ChargecastCatalystbookClientCastIntent.matchesActive(player.getUUID(), book, instant),
+            ChargecastCatalystbookClientCastIntent.finishIfMatches(player.getUUID(), instant.getSpellId());
+            helper.assertFalse(ChargecastCatalystbookClientCastIntent.isActive(player.getUUID(), book, instant),
                     "The matching completion must clear the active chargecast after an item swap");
             ChargecastCatalystbookClientCastIntent.clear();
         });

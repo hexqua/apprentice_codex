@@ -29,7 +29,7 @@ public final class ChargecastCatalystbookCastBarHudRenderEvent {
             return;
         }
         var spell = SpellRegistry.getSpell(ClientMagicData.getCastingSpellId());
-        if (!ChargecastCatalystbookClientCastIntent.matchesActive(minecraft.player.getUUID(), spell)) {
+        if (!ChargecastCatalystbookClientCastIntent.isActive(minecraft.player.getUUID(), spell)) {
             return;
         }
 

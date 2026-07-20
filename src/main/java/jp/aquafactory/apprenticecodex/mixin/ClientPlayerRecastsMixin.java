@@ -37,7 +37,7 @@ public abstract class ClientPlayerRecastsMixin {
                     && ClientMagicData.getCastDuration() > 0
                     && recastInstance.getSpellId().equals(ClientMagicData.getCastingSpellId())
                     // 現在の手持ちは持ち替え直後に変わるため、cast-start で確定した active intent を基準にする。
-                    && ChargecastCatalystbookClientCastIntent.matchesActive(
+                    && ChargecastCatalystbookClientCastIntent.isActive(
                             player.getUUID(), SpellRegistry.getSpell(recastInstance.getSpellId())
                     );
             if (!FocusStaffbowClientCastState.shouldPreserveClientRecastTicks(player, recastInstance.getSpellId())

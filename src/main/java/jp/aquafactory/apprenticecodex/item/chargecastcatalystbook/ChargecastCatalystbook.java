@@ -386,8 +386,8 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
 
     @Override
     public boolean shouldOverrideCastStartAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
-        return spell != null && spell.getCastType() == CastType.INSTANT
-                && ChargecastCatalystbookClientCastIntent.matches(stack, spell);
+        // caster を受け取れない Item API ではローカル/リモートを安全に識別できないため、Mixin 側で判定する。
+        return false;
     }
 
     @Override
@@ -397,15 +397,14 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
 
     @Override
     public boolean shouldOverrideCastFinishAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
-        return spell != null && spell.getCastType() == CastType.INSTANT
-                && ChargecastCatalystbookClientCastIntent.matchesActive(stack, spell);
+        // 完了アニメーションの取得は表示だけを担当し、詠唱状態の終了は cast-finished packet に限定する。
+        return false;
     }
 
     @Override
     public AnimationHolder getCastFinishAnimation(ItemStack stack, AbstractSpell spell, boolean cancelled) {
         // INSTANT の主モーションが Start / Finish のどちらに置かれていても、公開情報から完了動作を解決する。
         // cancelled=true は Iron's 側が戻り値に関係なくモーションを停止する。
-        ChargecastCatalystbookClientCastIntent.clearActive();
         return ChargecastCatalystbookPresentationResolver.resolveCompletionAnimation(spell);
     }
 
