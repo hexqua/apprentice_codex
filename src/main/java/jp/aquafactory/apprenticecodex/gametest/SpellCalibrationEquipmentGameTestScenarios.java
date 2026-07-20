@@ -23,7 +23,6 @@ import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
-import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastEvent;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
@@ -130,36 +129,39 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertFalse(longAmuletMenu.shouldRenderMismatchCastConditionWarning(0),
                     "Autocast Amulet should clear the long spell warning after Silver Ring adjustment");
 
-            var manaForceBlade = (ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
-            var emptyBlade = new ItemStack(manaForceBlade);
-            manaForceBlade.initializeSpellContainer(emptyBlade);
-            var bladeMenu = new SpellCalibrationBenchMenu(0, player.getInventory());
-            helper.assertTrue(bladeMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(emptyBlade),
-                    "Mana Force Blade should be accepted by Spell Calibration Bench because it shows Can be Imbued");
+            var unsupportedArmor = createInitializedPresetStack(ItemRegistry.APPRENTICE_MAGE_TORSO.get());
+            var unsupportedArmorMenu = new SpellCalibrationBenchMenu(0, player.getInventory());
+            helper.assertTrue(unsupportedArmorMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT)
+                            .mayPlace(unsupportedArmor),
+                    "Apprentice Mage Torso should be accepted by Spell Calibration Bench because it shows Can be Imbued");
 
-            var imbuedBlade = new ItemStack(manaForceBlade);
-            manaForceBlade.initializeSpellContainer(imbuedBlade);
-            setSingleUnlockedSpell(helper, imbuedBlade,
+            var imbuedUnsupportedArmor = createInitializedPresetStack(ItemRegistry.APPRENTICE_MAGE_TORSO.get());
+            setSingleUnlockedSpell(helper, imbuedUnsupportedArmor,
                     io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1);
-            helper.assertTrue(bladeMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(imbuedBlade),
-                    "Imbued Mana Force Blade should be accepted by Spell Calibration Bench because it shows Can be Imbued");
-            var imbuedBladeMenu = createSpellCalibrationBenchMenuWithTarget(player, imbuedBlade);
-            helper.assertFalse(imbuedBladeMenu.hasOperationalImbueTarget(),
-                    "Mana Force Blade should still be unsupported by Calibration Bench operations");
-            helper.assertTrue(imbuedBladeMenu.hasTargetSpellAt(0),
-                    "Imbued Mana Force Blade spell should be visible for unsupported slot hints");
-            helper.assertTrue(imbuedBladeMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).getItem().isEmpty(),
+            helper.assertTrue(unsupportedArmorMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT)
+                            .mayPlace(imbuedUnsupportedArmor),
+                    "Imbued Apprentice Mage Torso should be accepted by Spell Calibration Bench because it shows Can be Imbued");
+            var imbuedUnsupportedArmorMenu = createSpellCalibrationBenchMenuWithTarget(player, imbuedUnsupportedArmor);
+            helper.assertFalse(imbuedUnsupportedArmorMenu.hasOperationalImbueTarget(),
+                    "Apprentice Mage Torso should remain unsupported by Calibration Bench operations");
+            helper.assertTrue(imbuedUnsupportedArmorMenu.hasTargetSpellAt(0),
+                    "Imbued Apprentice Mage Torso spell should be visible for unsupported slot hints");
+            helper.assertTrue(imbuedUnsupportedArmorMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START)
+                            .getItem().isEmpty(),
                     "Unsupported Calibration Bench targets should not expose a real removable scroll");
-            helper.assertTrue(imbuedBladeMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).remove(1).isEmpty(),
+            helper.assertTrue(imbuedUnsupportedArmorMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START)
+                            .remove(1).isEmpty(),
                     "Unsupported Calibration Bench targets should not allow scroll extraction");
 
             var emptyEnchantressRobe = new ItemStack(ItemRegistry.ENCHANTRESS_ROBE.get());
-            helper.assertTrue(bladeMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(emptyEnchantressRobe),
+            helper.assertTrue(unsupportedArmorMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT)
+                            .mayPlace(emptyEnchantressRobe),
                     "Enchantress Robe chestplate should be accepted by Spell Calibration Bench because it shows Can be Imbued");
-            helper.assertFalse(SpellCalibrationImbueHelper.isSupportedTarget(emptyEnchantressRobe),
-                    "Enchantress Robe chestplate should remain unsupported by Calibration Bench operations");
+            helper.assertTrue(SpellCalibrationImbueHelper.isSupportedTarget(emptyEnchantressRobe),
+                    "Enchantress Robe chestplate should support Calibration Bench operations when tag-allowed");
 
-            helper.assertFalse(bladeMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(new ItemStack(ItemRegistry.ENCHANTRESS_HAT.get())),
+            helper.assertFalse(unsupportedArmorMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT)
+                            .mayPlace(new ItemStack(ItemRegistry.ENCHANTRESS_HAT.get())),
                     "Enchantress Hat should not be accepted by Spell Calibration Bench");
 
             var fireRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get());
@@ -242,7 +244,8 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             ISpellContainer.remove(uninitializedPresetStaff);
             helper.assertFalse(ISpellContainer.isSpellContainer(uninitializedPresetStaff),
                     "Prepared Copper Swingcast Staff test stack should not have spell_container");
-            helper.assertTrue(bladeMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(uninitializedPresetStaff),
+            helper.assertTrue(unsupportedArmorMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT)
+                            .mayPlace(uninitializedPresetStaff),
                     "Uninitialized preset spell containers should be accepted by Spell Calibration Bench");
             createSpellCalibrationBenchMenuWithTarget(player, uninitializedPresetStaff);
             helper.assertTrue(ISpellContainer.isSpellContainer(uninitializedPresetStaff),
@@ -604,11 +607,10 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                             && SatelliteFollowcastAmulet.getSpellDataAt(satelliteAmulet, 1) != SpellData.EMPTY,
                     "Calibration Bench should not compact Satellite Followcast Amulet slots while removing a scroll");
 
-            var manaForceBlade = (ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
             var unsupportedMenu = new SpellCalibrationBenchMenu(0, player.getInventory());
-            var manaForceBladeStack = new ItemStack(manaForceBlade);
-            manaForceBlade.initializeSpellContainer(manaForceBladeStack);
-            helper.assertTrue(unsupportedMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).mayPlace(manaForceBladeStack),
+            var unsupportedArmorStack = createInitializedPresetStack(ItemRegistry.APPRENTICE_MAGE_TORSO.get());
+            helper.assertTrue(unsupportedMenu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT)
+                            .mayPlace(unsupportedArmorStack),
                     "Calibration Bench should accept Can be Imbued targets for unsupported-operation hints");
 
             var externalSpellContainerStack = new ItemStack(Items.DIAMOND_SWORD);
@@ -619,7 +621,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     "Generic external ISpellContainer items should remain unsupported by Calibration Bench operations");
 
             var magicMissileScroll = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
-            helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(manaForceBladeStack, 0, magicMissileScroll),
+            helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(unsupportedArmorStack, 0, magicMissileScroll),
                     "Calibration Bench server logic should reject non-extractable Can be Imbued targets");
             helper.assertFalse(SpellCalibrationImbueHelper.canPlaceScrollAt(externalSpellContainerStack, 0, magicMissileScroll),
                     "Calibration Bench server logic should reject generic external ISpellContainer items");
@@ -688,6 +690,15 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertTrue(spellAmplifierMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).remove(1)
                             .is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
                     "Calibration Bench should extract generic Spell Amplifier spells");
+
+            var manaForceBlade = createInitializedPresetStack(ItemRegistry.MANA_FORCE_BLADE.get());
+            var manaForceBladeMenu = createSpellCalibrationBenchMenuWithTarget(player, manaForceBlade);
+            manaForceBladeMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(createSpellScroll(heal));
+            assertStackHasSpell(helper, manaForceBlade, heal, 1,
+                    "Calibration Bench should imbue the tag-allowed Mana Force Blade");
+            helper.assertTrue(manaForceBladeMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).remove(1)
+                            .is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
+                    "Calibration Bench should extract Mana Force Blade spells");
 
             var circlet = new ItemStack(ItemRegistry.ENCHANTED_CIRCLET.get());
             var circletMenu = createSpellCalibrationBenchMenuWithTarget(player, circlet);
