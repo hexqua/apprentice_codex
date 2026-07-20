@@ -156,6 +156,10 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
         this.damage = damage;
     }
 
+    public float getDamageForGameTest() {
+        return damage;
+    }
+
     @Override
     public boolean isTrailActive() {
         return entityData.get(SHOW_TRAIL);

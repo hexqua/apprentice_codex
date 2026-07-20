@@ -215,6 +215,9 @@ import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmash;
 import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashShellEntity;
 import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssaultRifleEntity;
+import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
+import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
+import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -503,6 +506,80 @@ final class FocusStaffbowGameTestScenarios {
                     "Artisan Smash splash radius should use charged spell power. expected="
                             + expectedSplashRadius + ", actual=" + actualSplashRadius);
         });
+    }
+
+    static void focusStaffbowReevaluatesSummonWeaponAttackValuesOnChargedCast(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+
+            var mantisPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "focus_staffbow_mantis_leap_power_test");
+            var mantisSpell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANTIS_LEAP.get();
+            var mantisMagicData = MagicData.getPlayerMagicData(mantisPlayer);
+            mantisSpell.onServerPreCast(level, 1, mantisPlayer, mantisMagicData);
+            var mantisBlades = getOwnedSummonWeapons(helper, mantisPlayer, MantisLeapBladeEntity.class);
+            helper.assertTrue(mantisBlades.size() == 1,
+                    "Focus Staffbow Mantis Leap test should create one pre-cast blade");
+            var mantisBlade = mantisBlades.get(0);
+            var baseMantisDamage = mantisBlade.getDamageForGameTest();
+            castWithDoubledSpellPower(mantisPlayer,
+                    () -> mantisSpell.castSpell(level, 1, mantisPlayer, CastSource.SWORD, true));
+            helper.assertTrue(mantisBlade.getDamageForGameTest() > baseMantisDamage * 1.5F,
+                    "Mantis Leap should reevaluate damage with charged spell power at cast time");
+
+            var slashPlayer = createEquipmentTestPlayer(helper, new BlockPos(3, 2, 0),
+                    "focus_staffbow_slash_blade_power_test");
+            var slashSpell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE.get();
+            var slashMagicData = MagicData.getPlayerMagicData(slashPlayer);
+            slashSpell.onServerPreCast(level, 1, slashPlayer, slashMagicData);
+            var katanas = getOwnedSummonWeapons(helper, slashPlayer, SlashBladeKatanaEntity.class);
+            helper.assertTrue(katanas.size() == 1,
+                    "Focus Staffbow Slash Blade test should create one pre-cast katana");
+            var katana = katanas.get(0);
+            var baseSlashDamage = katana.getDamageForGameTest();
+            castWithDoubledSpellPower(slashPlayer,
+                    () -> slashSpell.castSpell(level, 1, slashPlayer, CastSource.SWORD, true));
+            helper.assertTrue(katana.getDamageForGameTest() > baseSlashDamage * 1.5F,
+                    "Slash Blade should reevaluate damage with charged spell power at cast time");
+
+            var precisionPlayer = createEquipmentTestPlayer(helper, new BlockPos(6, 2, 0),
+                    "focus_staffbow_precision_jack_power_test");
+            var precisionSpell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.PRECISION_JACK.get();
+            var precisionMagicData = MagicData.getPlayerMagicData(precisionPlayer);
+            precisionSpell.onServerPreCast(level, 1, precisionPlayer, precisionMagicData);
+            var knives = getOwnedSummonWeapons(helper, precisionPlayer, PrecisionJackKnifeEntity.class);
+            helper.assertTrue(knives.size() == 1,
+                    "Focus Staffbow Precision Jack test should create one pre-cast knife");
+            var knife = knives.get(0);
+            var baseLootingBonus = knife.getLootingBonus();
+            var baseDuplicateChance = knife.getDuplicateDropChancePercent();
+            castWithDoubledSpellPower(precisionPlayer,
+                    () -> precisionSpell.castSpell(level, 1, precisionPlayer, CastSource.SWORD, true));
+            helper.assertTrue(knife.getLootingBonus() > baseLootingBonus,
+                    "Precision Jack should reevaluate looting with charged spell power at cast time");
+            helper.assertTrue(knife.getDuplicateDropChancePercent() > baseDuplicateChance,
+                    "Precision Jack should reevaluate duplicate chance with charged spell power at cast time");
+        });
+    }
+
+    private static void castWithDoubledSpellPower(net.minecraft.world.entity.LivingEntity caster, Runnable cast) {
+        var spellPowerAttribute = caster.getAttribute(AttributeRegistry.SPELL_POWER.get());
+        if (spellPowerAttribute == null) {
+            throw new IllegalStateException("Spell power attribute is unavailable");
+        }
+        var modifier = new AttributeModifier(
+                FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID,
+                "apprenticecodex.focus_staffbow.summon_weapon_attack_value_test",
+                1.0D,
+                AttributeModifier.Operation.MULTIPLY_TOTAL
+        );
+        spellPowerAttribute.removeModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
+        spellPowerAttribute.addTransientModifier(modifier);
+        try {
+            cast.run();
+        } finally {
+            spellPowerAttribute.removeModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
+        }
     }
 
     static void focusStaffbowCancelsPendingSummonWeaponBeforeRequiredCharge(GameTestHelper helper) {

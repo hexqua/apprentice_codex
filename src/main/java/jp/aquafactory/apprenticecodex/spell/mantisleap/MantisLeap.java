@@ -152,6 +152,13 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
     }
 
     @Override
+    protected void onInitialCastWithWeapon(Level level, int spellLevel, LivingEntity entity,
+                                           MagicData playerMagicData, @NotNull MantisLeapBladeEntity weapon) {
+        // FocusStaffbow などの完了時補正を、跳躍後に行う斬撃へ保持する。
+        weapon.setDamage(getDamage(spellLevel, entity));
+    }
+
+    @Override
     public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull MantisLeapBladeEntity weapon) {
         weapon.setDamage(getDamage(spellLevel, entity));
     }

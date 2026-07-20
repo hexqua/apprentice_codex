@@ -112,11 +112,22 @@ public class PrecisionJack extends AbstractSummonWeaponSpell<PrecisionJackKnifeE
     @Override
     public PrecisionJackKnifeEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var summonWeapon = new PrecisionJackKnifeEntity(EntityRegistry.PRECISION_JACK_KNIFE.get(), level, entity);
-        summonWeapon.setDamage(getDamage());
-        summonWeapon.setLootingBonus(getLootingBonus(spellLevel, entity));
-        summonWeapon.setDuplicateDropChancePercent(getDuplicateDropChancePercent(spellLevel, entity));
+        updateAttackValues(summonWeapon, spellLevel, entity);
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
+    }
+
+    @Override
+    protected void onInitialCastWithWeapon(Level level, int spellLevel, LivingEntity entity,
+                                           MagicData playerMagicData, @NotNull PrecisionJackKnifeEntity weapon) {
+        // ダメージだけでなく、魔法威力依存のドロップ補正も攻撃開始時点で確定する。
+        updateAttackValues(weapon, spellLevel, entity);
+    }
+
+    private void updateAttackValues(PrecisionJackKnifeEntity weapon, int spellLevel, LivingEntity entity) {
+        weapon.setDamage(getDamage());
+        weapon.setLootingBonus(getLootingBonus(spellLevel, entity));
+        weapon.setDuplicateDropChancePercent(getDuplicateDropChancePercent(spellLevel, entity));
     }
 
     @Override
