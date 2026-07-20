@@ -1,0 +1,31 @@
+{
+  "descriptionId": "material.apprenticecodex.spellstained_arcane",
+  "ingredient": {
+    "item": "apprenticecodex:spellstained_arcane_ingot"
+  },
+  "paletteLocation": "apprenticecodex:palettes/spellstained_arcane",
+  "quality": 1.75,
+  "bonusParameters": {
+    "irons_jewelry:attribute": {
+      "attribute": "irons_spellbooks:mana_regen",
+      "amount": 0.05,
+      "operation": "add_multiplied_total"
+    },
+    "irons_jewelry:action": {
+      "targetSelf": true,
+      "action": {
+        "type": "irons_jewelry:apply_effect",
+        "amplifier": {
+          "base": 0.0,
+          "max": 2.0,
+          "scalar": 1.0
+        },
+        "duration": {
+          "base": 100.0,
+          "scalar": 0.0
+        },
+        "effect": "apprenticecodex:mana_regeneration"
+      }
+    }
+  }
+}

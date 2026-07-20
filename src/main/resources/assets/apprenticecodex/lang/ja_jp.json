@@ -4,6 +4,8 @@
   "curios.identifier.feet": "足",
   "curios.modifiers.feet": "足に装備した時:",
 
+  "material.apprenticecodex.spellstained_arcane": "魔術染め",
+
   "attribute.name.apprenticecodex.max_enchantment_table_level": "最大エンチャントテーブルレベル",
 
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
