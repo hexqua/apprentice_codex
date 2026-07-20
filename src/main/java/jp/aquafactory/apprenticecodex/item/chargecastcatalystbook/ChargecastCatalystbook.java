@@ -16,6 +16,7 @@ import io.redspace.ironsspellbooks.network.casting.UpdateCastingStatePacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.*;
 import jp.aquafactory.apprenticecodex.item.*;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
@@ -436,7 +437,19 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     }
 
     public static int resolveCastDurationTicks(Player player, ItemStack stack) {
-        var baseTicks = ApprenticeCodexServerConfig.chargecastCatalystbookConfig().castTimeTicks();
+        return resolveCastDurationTicks(
+                player,
+                stack,
+                ApprenticeCodexServerConfig.chargecastCatalystbookConfig()
+        );
+    }
+
+    public static int resolveCastDurationTicks(
+            Player player,
+            ItemStack stack,
+            ChargecastCatalystbookServerConfig.Values config
+    ) {
+        var baseTicks = config.castTimeTicks();
         if (hasSilverRing(stack)) {
             return baseTicks;
         }
@@ -445,7 +458,18 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     }
 
     public static double resolveFinalSpellPowerMultiplier(Player player, ItemStack stack) {
-        var config = ApprenticeCodexServerConfig.chargecastCatalystbookConfig();
+        return resolveFinalSpellPowerMultiplier(
+                player,
+                stack,
+                ApprenticeCodexServerConfig.chargecastCatalystbookConfig()
+        );
+    }
+
+    public static double resolveFinalSpellPowerMultiplier(
+            Player player,
+            ItemStack stack,
+            ChargecastCatalystbookServerConfig.Values config
+    ) {
         var multiplier = config.spellPowerMultiplier();
         if (!hasSilverRing(stack)) {
             return multiplier;
