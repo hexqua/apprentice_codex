@@ -265,7 +265,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
                     "Linear Build should opt out of delayed spell-power casts");
             assertTranslatableKey(
                     helper,
-                    ChargecastCatalystbook.createRejectedSpellMessage(mageLight.getDisplayName()),
+                    ChargecastCatalystbook.createRejectedSpellMessage(mageLight.getDisplayName(null)),
                     "ui.apprenticecodex.chargecast.reject_spell",
                     "Chargecast Catalystbook should use its permanent rejection message"
             );
@@ -311,7 +311,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
                         "A denylisted Chargecast spell should not begin casting");
                 assertTranslatableKey(
                         helper,
-                        ChargecastCatalystbook.createSpellDenylistedMessage(spell.getDisplayName()),
+                        ChargecastCatalystbook.createSpellDenylistedMessage(spell.getDisplayName(null)),
                         "ui.apprenticecodex.chargecast.spell_denylisted",
                         "Chargecast Catalystbook should use its denylist message"
                 );

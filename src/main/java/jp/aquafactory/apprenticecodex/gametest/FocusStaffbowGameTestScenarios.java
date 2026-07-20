@@ -961,7 +961,7 @@ final class FocusStaffbowGameTestScenarios {
                     "Focus Staffbow should reject Linear Build through the pre-cast spell-power marker");
             assertTranslatableKey(
                     helper,
-                    FocusStaffbow.createRejectedSpellMessage(mageLight.getDisplayName()),
+                    FocusStaffbow.createRejectedSpellMessage(mageLight.getDisplayName(null)),
                     "ui.apprenticecodex.focus_staffbow.reject_spell",
                     "Focus Staffbow should use its permanent rejection message"
             );
