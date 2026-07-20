@@ -27,12 +27,8 @@ public final class OffhandUpgradeAttributeEvent {
             return;
         }
 
-        if (relocatesAttributes && event.getSlotType() == EquipmentSlot.MAINHAND) {
+        if (relocatesAttributes) {
             removeMainhandUpgradeModifiers(event);
-            return;
-        }
-        if (relocatesAttributes && event.getSlotType() != EquipmentSlot.OFFHAND) {
-            return;
         }
 
         applyStoredUpgradeData(

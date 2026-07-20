@@ -564,15 +564,14 @@ final class FocusStaffbowGameTestScenarios {
     }
 
     private static void castWithDoubledSpellPower(net.minecraft.world.entity.LivingEntity caster, Runnable cast) {
-        var spellPowerAttribute = caster.getAttribute(AttributeRegistry.SPELL_POWER.get());
+        var spellPowerAttribute = caster.getAttribute(AttributeRegistry.SPELL_POWER);
         if (spellPowerAttribute == null) {
             throw new IllegalStateException("Spell power attribute is unavailable");
         }
         var modifier = new AttributeModifier(
                 FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID,
-                "apprenticecodex.focus_staffbow.summon_weapon_attack_value_test",
                 1.0D,
-                AttributeModifier.Operation.MULTIPLY_TOTAL
+                AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
         );
         spellPowerAttribute.removeModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
         spellPowerAttribute.addTransientModifier(modifier);
@@ -661,7 +660,7 @@ final class FocusStaffbowGameTestScenarios {
                 bowStack,
                 helper.getLevel(),
                 player,
-                bowStack.getUseDuration() - 12
+                bowStack.getUseDuration(player) - 12
         ));
         helper.runAtTickTime(14, () -> {
             var rifles = getOwnedSummonWeapons(helper, player, LethalAssaultRifleEntity.class);
@@ -1275,6 +1274,8 @@ final class FocusStaffbowGameTestScenarios {
         helper.succeedIf(() -> {
             var mageLight = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get();
             var linearBuild = jp.aquafactory.apprenticecodex.registry.SpellRegistry.LINEAR_BUILD.get();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "focus_staffbow_precast_power_reject_test");
             helper.assertTrue(mageLight instanceof IChargecastStaffbowIncompatibleSpell
                             && FocusStaffbow.rejectsSpell(mageLight),
                     "Focus Staffbow should reject Mage Light through the pre-cast spell-power marker");
@@ -1283,13 +1284,11 @@ final class FocusStaffbowGameTestScenarios {
                     "Focus Staffbow should reject Linear Build through the pre-cast spell-power marker");
             assertTranslatableKey(
                     helper,
-                    FocusStaffbow.createRejectedSpellMessage(mageLight.getDisplayName()),
+                    FocusStaffbow.createRejectedSpellMessage(mageLight.getDisplayName(player)),
                     "ui.apprenticecodex.focus_staffbow.reject_spell",
                     "Focus Staffbow should use its permanent rejection message"
             );
 
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
-                    "focus_staffbow_precast_power_reject_test");
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
             var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);

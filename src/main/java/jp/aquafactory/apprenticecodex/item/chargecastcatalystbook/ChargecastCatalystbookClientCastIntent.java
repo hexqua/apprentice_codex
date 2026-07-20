@@ -63,14 +63,14 @@ public final class ChargecastCatalystbookClientCastIntent {
         private boolean matches(UUID candidateCasterId, ItemStack candidateStack, String candidateSpellId) {
             return casterId.equals(candidateCasterId)
                     && spellId.equals(candidateSpellId)
-                    && ItemStack.isSameItemSameTags(stack, candidateStack);
+                    && ItemStack.isSameItemSameComponents(stack, candidateStack);
         }
     }
 
     private record ActiveCast(UUID casterId, ItemStack stack, String spellId) {
         private boolean matches(UUID candidateCasterId, ItemStack candidateStack, String candidateSpellId) {
             return matches(candidateCasterId, candidateSpellId)
-                    && ItemStack.isSameItemSameTags(stack, candidateStack);
+                    && ItemStack.isSameItemSameComponents(stack, candidateStack);
         }
 
         private boolean matches(UUID candidateCasterId, String candidateSpellId) {

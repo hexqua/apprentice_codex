@@ -1,23 +1,23 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.List;
 import java.util.Objects;
 
 public final class ChargecastCatalystbookServerConfig {
-    private final ForgeConfigSpec.IntValue castTimeTicks;
-    private final ForgeConfigSpec.DoubleValue spellPowerMultiplier;
-    private final ForgeConfigSpec.DoubleValue silverRingCastTimeBonusFactor;
-    private final ForgeConfigSpec.ConfigValue<List<? extends String>> spellDenylist;
+    private final ModConfigSpec.IntValue castTimeTicks;
+    private final ModConfigSpec.DoubleValue spellPowerMultiplier;
+    private final ModConfigSpec.DoubleValue silverRingCastTimeBonusFactor;
+    private final ModConfigSpec.ConfigValue<List<? extends String>> spellDenylist;
     private Values override;
 
     private ChargecastCatalystbookServerConfig(
-            ForgeConfigSpec.IntValue castTimeTicks,
-            ForgeConfigSpec.DoubleValue spellPowerMultiplier,
-            ForgeConfigSpec.DoubleValue silverRingCastTimeBonusFactor,
-            ForgeConfigSpec.ConfigValue<List<? extends String>> spellDenylist
+            ModConfigSpec.IntValue castTimeTicks,
+            ModConfigSpec.DoubleValue spellPowerMultiplier,
+            ModConfigSpec.DoubleValue silverRingCastTimeBonusFactor,
+            ModConfigSpec.ConfigValue<List<? extends String>> spellDenylist
     ) {
         this.castTimeTicks = castTimeTicks;
         this.spellPowerMultiplier = spellPowerMultiplier;
@@ -25,7 +25,7 @@ public final class ChargecastCatalystbookServerConfig {
         this.spellDenylist = spellDenylist;
     }
 
-    public static ChargecastCatalystbookServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static ChargecastCatalystbookServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("ChargecastCatalystbook");
         var castTimeTicks = builder
                 .comment("Base casting time added to instant spells. 20 ticks = 1 second.")

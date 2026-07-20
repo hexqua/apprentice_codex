@@ -6,20 +6,20 @@ import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookClientCastIntent;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ChargecastCatalystbookCastBarHudRenderEvent {
     private ChargecastCatalystbookCastBarHudRenderEvent() {
     }
 
     @SubscribeEvent
-    public static void onRenderGuiOverlay(RenderGuiOverlayEvent.Post event) {
-        if (event.getOverlay() != VanillaGuiOverlay.CROSSHAIR.type()) {
+    public static void onRenderGuiOverlay(RenderGuiLayerEvent.Post event) {
+        if (!VanillaGuiLayers.CROSSHAIR.equals(event.getName())) {
             return;
         }
 
@@ -36,8 +36,8 @@ public final class ChargecastCatalystbookCastBarHudRenderEvent {
         CastBarHudRenderer.render(
                 event.getGuiGraphics(),
                 minecraft.font,
-                event.getWindow().getGuiScaledWidth(),
-                event.getWindow().getGuiScaledHeight(),
+                minecraft.getWindow().getGuiScaledWidth(),
+                minecraft.getWindow().getGuiScaledHeight(),
                 ClientMagicData.getCastCompletionPercent(),
                 Utils.timeFromTicks(Math.max(0, ClientMagicData.getCastDurationRemaining()), 1)
         );

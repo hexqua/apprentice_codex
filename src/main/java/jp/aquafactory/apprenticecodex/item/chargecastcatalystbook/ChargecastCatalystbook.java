@@ -13,24 +13,25 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.item.Scroll;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.network.casting.UpdateCastingStatePacket;
-import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.*;
 import jp.aquafactory.apprenticecodex.item.*;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
-import jp.aquafactory.apprenticecodex.renderer.item.ChargecastCatalystbookRenderer;
 import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -39,7 +40,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -48,24 +50,26 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class ChargecastCatalystbook extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
@@ -86,8 +90,12 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     private static final String SCHOOL_POWER_SCHOOL_TAG = "SchoolPowerSchool";
     private static final double SPELL_POWER_BONUS = 0.10D;
     private static final double SCHOOL_SPELL_POWER_BONUS = 0.15D;
-    private static final UUID MAINHAND_SPELL_POWER_ID = UUID.fromString("eb62e77d-ed42-42c0-a17e-07efab3b3356");
-    private static final UUID OFFHAND_SPELL_POWER_ID = UUID.fromString("bc6465d2-f9fb-4ac7-93f5-f9ecb2d400ba");
+    private static final ResourceLocation MAINHAND_SPELL_POWER_ID = ResourceLocation.fromNamespaceAndPath(
+            "apprenticecodex", "chargecast_catalystbook_mainhand_spell_power"
+    );
+    private static final ResourceLocation OFFHAND_SPELL_POWER_ID = ResourceLocation.fromNamespaceAndPath(
+            "apprenticecodex", "chargecast_catalystbook_offhand_spell_power"
+    );
     private static final Set<AttributeEnchantmentType> SUPPORTED_ATTRIBUTE_ENCHANTMENTS = Set.of(
             AttributeEnchantmentType.ALACRITY,
             AttributeEnchantmentType.REFLUX,
@@ -117,6 +125,8 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
                             CalibrationAdjustmentHint.specificItem(ItemRegistry.SILVER_SPELL_AMPLIFIER)
                     )
             );
+    private static final HolderLookup.Provider FALLBACK_SERIALIZATION_LOOKUP =
+            RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
@@ -158,48 +168,56 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return AttributeEnchantmentType.from(enchantment)
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.supportsEnchantment(stack, enchantment)
+                || AttributeEnchantmentType.from(enchantment)
                 .map(SUPPORTED_ATTRIBUTE_ENCHANTMENTS::contains)
-                .orElseGet(() -> matches(enchantment, EnchantmentRegistry.TRANSCENDENCE)
-                        || matches(enchantment, EnchantmentRegistry.WISDOM)
-                        || matches(enchantment, EnchantmentRegistry.PLUNDER));
+                .orElse(false)
+                || enchantment.is(Enchantments.TRANSCENDENCE)
+                || enchantment.is(Enchantments.WISDOM)
+                || enchantment.is(Enchantments.PLUNDER);
+    }
+
+    @Override
+    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
     public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
-        var enchantments = EnchantmentHelper.getEnchantments(book);
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
         return !enchantments.isEmpty()
-                && enchantments.keySet().stream().allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
+                && enchantments.keySet().stream().allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        var targetSlot = usesOffhandAttributeModifiers(stack) ? EquipmentSlot.OFFHAND : EquipmentSlot.MAINHAND;
-        if (slot != targetSlot) {
-            return super.getAttributeModifiers(slot, stack);
-        }
-        var modifierId = slot == EquipmentSlot.OFFHAND ? OFFHAND_SPELL_POWER_ID : MAINHAND_SPELL_POWER_ID;
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        var offhand = usesOffhandAttributeModifiers(stack);
+        var modifierId = offhand ? OFFHAND_SPELL_POWER_ID : MAINHAND_SPELL_POWER_ID;
+        var slotGroup = offhand ? EquipmentSlotGroup.OFFHAND : EquipmentSlotGroup.MAINHAND;
+        var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
         var schoolAttribute = MagicTools.resolveSchoolPowerAttribute(getResolvedCalibrationSchool(stack));
         if (schoolAttribute != null) {
-            builder.put(schoolAttribute, new AttributeModifier(
+            builder.put(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(schoolAttribute), new AttributeModifier(
                     modifierId,
-                    "apprenticecodex.chargecast_catalystbook.school_spell_power",
                     SCHOOL_SPELL_POWER_BONUS,
-                    AttributeModifier.Operation.MULTIPLY_BASE
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             ));
         } else {
-            builder.put(AttributeRegistry.SPELL_POWER.get(), new AttributeModifier(
+            builder.put(AttributeRegistry.SPELL_POWER, new AttributeModifier(
                     modifierId,
-                    "apprenticecodex.chargecast_catalystbook.spell_power",
                     SPELL_POWER_BONUS,
-                    AttributeModifier.Operation.MULTIPLY_BASE
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             ));
         }
-        return AttributeEnchantmentResolver.resolveMergedModifiers(
+        var merged = AttributeEnchantmentResolver.resolveMergedModifiers(
                 builder.build(), stack, "apprenticecodex.chargecast_catalystbook"
         );
+        var result = ItemAttributeModifiers.builder();
+        for (var entry : merged.entries()) {
+            result.add(entry.getKey(), entry.getValue(), slotGroup);
+        }
+        return result.build();
     }
 
     @Override
@@ -307,9 +325,9 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+        super.appendHoverText(stack, context, lines, flag);
         var tooltipValues = resolveTooltipValues(stack);
         lines.add(Component.translatable(
                 "item.apprenticecodex.chargecast_catalystbook.desc",
@@ -391,15 +409,30 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
 
     @Override
     public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
-        return getCalibrationItem(targetStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
+        return getCalibrationAdjustment(targetStack, slot, serializationLookup());
+    }
+
+    @Override
+    public @NotNull ItemStack getCalibrationAdjustment(
+            @NotNull ItemStack targetStack, int slot, @NotNull HolderLookup.Provider lookupProvider
+    ) {
+        return getCalibrationItem(targetStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, lookupProvider);
     }
 
     @Override
     public boolean trySetCalibrationAdjustment(@NotNull ItemStack targetStack, int slot, @NotNull ItemStack adjustment) {
-        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
+        return trySetCalibrationAdjustment(targetStack, slot, adjustment, serializationLookup());
+    }
+
+    @Override
+    public boolean trySetCalibrationAdjustment(
+            @NotNull ItemStack targetStack, int slot, @NotNull ItemStack adjustment,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
+        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment, lookupProvider)) {
             return false;
         }
-        setCalibrationItem(targetStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, adjustment);
+        setCalibrationItem(targetStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, adjustment, lookupProvider);
         refreshResolvedCalibrationSchool(targetStack);
         refreshSelectedSpellContainer(targetStack);
         return true;
@@ -440,21 +473,6 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     }
 
     @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private ChargecastCatalystbookRenderer renderer;
-
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                if (renderer == null) {
-                    renderer = new ChargecastCatalystbookRenderer();
-                }
-                return renderer;
-            }
-        });
-    }
-
-    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
     }
 
@@ -480,7 +498,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         if (hasSilverRing(stack)) {
             return baseTicks;
         }
-        var castTimeReduction = player.getAttributeValue(AttributeRegistry.CAST_TIME_REDUCTION.get());
+        var castTimeReduction = player.getAttributeValue(AttributeRegistry.CAST_TIME_REDUCTION);
         return Math.max(1, Math.round((float) (baseTicks * (2.0D - Utils.softCapFormula(castTimeReduction)))));
     }
 
@@ -502,17 +520,13 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
             return multiplier;
         }
         var castTimeReduction = Math.max(1.0D,
-                Utils.softCapFormula(player.getAttributeValue(AttributeRegistry.CAST_TIME_REDUCTION.get())));
+                Utils.softCapFormula(player.getAttributeValue(AttributeRegistry.CAST_TIME_REDUCTION)));
         return multiplier * (1.0D + (castTimeReduction - 1.0D) * config.silverRingCastTimeBonusFactor());
     }
 
     private static TooltipValues resolveTooltipValues(ItemStack stack) {
-        var clientValues = DistExecutor.unsafeCallWhenOn(
-                Dist.CLIENT,
-                () -> () -> ChargecastCatalystbookClientTooltip.resolve(stack)
-        );
-        if (clientValues != null) {
-            return clientValues;
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            return ChargecastCatalystbookClientTooltip.resolve(stack);
         }
         var config = ChargecastCatalystbookClientConfigState.values();
         return new TooltipValues(config.castTimeTicks(), config.spellPowerMultiplier());
@@ -531,11 +545,11 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     }
 
     public static @NotNull ItemStack getCalibrationScroll(@NotNull ItemStack stack, int slot) {
-        return getCalibrationItem(stack, SCROLLS_TAG, slot, CALIBRATION_SCROLL_SLOT_COUNT);
+        return getCalibrationItem(stack, SCROLLS_TAG, slot, CALIBRATION_SCROLL_SLOT_COUNT, serializationLookup());
     }
 
     public static void setCalibrationScroll(@NotNull ItemStack stack, int slot, @NotNull ItemStack scroll) {
-        setCalibrationItem(stack, SCROLLS_TAG, slot, CALIBRATION_SCROLL_SLOT_COUNT, scroll);
+        setCalibrationItem(stack, SCROLLS_TAG, slot, CALIBRATION_SCROLL_SLOT_COUNT, scroll, serializationLookup());
         refreshSelectedSpellContainer(stack);
     }
 
@@ -545,7 +559,9 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         }
         var upgrades = 0;
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (isSpellSlotUpgrade(getCalibrationItem(stack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT))) {
+            if (isSpellSlotUpgrade(getCalibrationItem(
+                    stack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, serializationLookup()
+            ))) {
                 ++upgrades;
             }
         }
@@ -557,7 +573,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     }
 
     public static int getSelectedScrollIndex(@NotNull ItemStack stack) {
-        var calibration = stack.getTagElement(CALIBRATION_TAG);
+        var calibration = getCalibrationTag(stack);
         if (calibration == null || !calibration.contains(SELECTED_SCROLL_INDEX_TAG, Tag.TAG_INT)) {
             return -1;
         }
@@ -570,7 +586,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
             refreshSelectedSpellContainer(stack);
             return;
         }
-        stack.getOrCreateTagElement(CALIBRATION_TAG).putInt(SELECTED_SCROLL_INDEX_TAG, selected);
+        updateCalibrationTag(stack, calibration -> calibration.putInt(SELECTED_SCROLL_INDEX_TAG, selected));
         refreshSelectedSpellContainer(stack);
     }
 
@@ -612,7 +628,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     }
 
     public static @Nullable SchoolType getResolvedCalibrationSchool(ItemStack stack) {
-        var calibration = stack.getTagElement(CALIBRATION_TAG);
+        var calibration = getCalibrationTag(stack);
         if (calibration == null || !calibration.contains(SCHOOL_POWER_SCHOOL_TAG, Tag.TAG_STRING)) {
             return null;
         }
@@ -629,20 +645,19 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     }
 
     private static void refreshResolvedCalibrationSchool(ItemStack stack) {
-        var calibration = stack.getOrCreateTagElement(CALIBRATION_TAG);
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
             var school = ScrollcasterSchoolRuneResolver.resolveSchool(
-                    getCalibrationItem(stack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT)
+                    getCalibrationItem(
+                            stack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, serializationLookup()
+                    )
             );
             if (school.isPresent()) {
-                calibration.putString(SCHOOL_POWER_SCHOOL_TAG, school.get().getId().toString());
+                updateCalibrationTag(stack, calibration ->
+                        calibration.putString(SCHOOL_POWER_SCHOOL_TAG, school.get().getId().toString()));
                 return;
             }
         }
-        calibration.remove(SCHOOL_POWER_SCHOOL_TAG);
-        if (calibration.isEmpty()) {
-            stack.removeTagKey(CALIBRATION_TAG);
-        }
+        updateCalibrationTag(stack, calibration -> calibration.remove(SCHOOL_POWER_SCHOOL_TAG));
     }
 
     private static int normalizeSelectedScrollIndex(ItemStack stack) {
@@ -652,14 +667,12 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         }
         selected = findFirstValidScrollIndex(stack);
         if (selected < 0) {
-            var calibration = stack.getTagElement(CALIBRATION_TAG);
-            if (calibration != null) {
-                calibration.remove(SELECTED_SCROLL_INDEX_TAG);
-            }
+            updateCalibrationTag(stack, calibration -> calibration.remove(SELECTED_SCROLL_INDEX_TAG));
             ISpellContainer.remove(stack);
             return -1;
         }
-        stack.getOrCreateTagElement(CALIBRATION_TAG).putInt(SELECTED_SCROLL_INDEX_TAG, selected);
+        var normalized = selected;
+        updateCalibrationTag(stack, calibration -> calibration.putInt(SELECTED_SCROLL_INDEX_TAG, normalized));
         return selected;
     }
 
@@ -703,7 +716,9 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
 
     private static boolean hasAdjustment(ItemStack stack, java.util.function.Predicate<ItemStack> predicate) {
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (predicate.test(getCalibrationItem(stack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT))) {
+            if (predicate.test(getCalibrationItem(
+                    stack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, serializationLookup()
+            ))) {
                 return true;
             }
         }
@@ -719,16 +734,14 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
                 && stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get());
     }
 
-    private static boolean matches(Enchantment enchantment,
-                                   net.minecraftforge.registries.RegistryObject<Enchantment> entry) {
-        return entry.isPresent() && enchantment == entry.get();
-    }
-
-    private static @NotNull ItemStack getCalibrationItem(ItemStack owner, String listName, int slot, int slotCount) {
+    private static @NotNull ItemStack getCalibrationItem(
+            ItemStack owner, String listName, int slot, int slotCount,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
         if (!isValidCalibrationAccess(owner, slot, slotCount)) {
             return ItemStack.EMPTY;
         }
-        var calibration = owner.getTagElement(CALIBRATION_TAG);
+        var calibration = getCalibrationTag(owner);
         if (calibration == null || !calibration.contains(listName, Tag.TAG_LIST)) {
             return ItemStack.EMPTY;
         }
@@ -736,40 +749,73 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         for (var index = 0; index < list.size(); ++index) {
             var entry = list.getCompound(index);
             if (entry.getInt(SLOT_TAG) == slot && entry.contains(ITEM_TAG, Tag.TAG_COMPOUND)) {
-                return ItemStack.of(entry.getCompound(ITEM_TAG));
+                return ItemStack.parseOptional(lookupProvider, entry.getCompound(ITEM_TAG));
             }
         }
         return ItemStack.EMPTY;
     }
 
-    private static void setCalibrationItem(ItemStack owner, String listName, int slot, int slotCount, ItemStack item) {
+    private static void setCalibrationItem(
+            ItemStack owner, String listName, int slot, int slotCount, ItemStack item,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
         if (!isValidCalibrationAccess(owner, slot, slotCount)) {
             return;
         }
-        var calibration = owner.getOrCreateTagElement(CALIBRATION_TAG);
-        var list = calibration.contains(listName, Tag.TAG_LIST)
-                ? calibration.getList(listName, Tag.TAG_COMPOUND) : new ListTag();
-        for (var index = list.size() - 1; index >= 0; --index) {
-            if (list.getCompound(index).getInt(SLOT_TAG) == slot) {
-                list.remove(index);
+        updateCalibrationTag(owner, calibration -> {
+            var list = calibration.contains(listName, Tag.TAG_LIST)
+                    ? calibration.getList(listName, Tag.TAG_COMPOUND) : new ListTag();
+            for (var index = list.size() - 1; index >= 0; --index) {
+                if (list.getCompound(index).getInt(SLOT_TAG) == slot) {
+                    list.remove(index);
+                }
             }
+            if (!item.isEmpty()) {
+                var stored = item.copyWithCount(1);
+                var entry = new CompoundTag();
+                entry.putInt(SLOT_TAG, slot);
+                entry.put(ITEM_TAG, stored.saveOptional(lookupProvider));
+                list.add(entry);
+            }
+            if (list.isEmpty()) {
+                calibration.remove(listName);
+            } else {
+                calibration.put(listName, list);
+            }
+        });
+    }
+
+    private static @Nullable CompoundTag getCalibrationTag(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return null;
         }
-        if (!item.isEmpty()) {
-            var stored = item.copy();
-            stored.setCount(1);
-            var entry = new CompoundTag();
-            entry.putInt(SLOT_TAG, slot);
-            entry.put(ITEM_TAG, stored.save(new CompoundTag()));
-            list.add(entry);
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return null;
         }
-        if (list.isEmpty()) {
-            calibration.remove(listName);
-        } else {
-            calibration.put(listName, list);
+        var root = customData.copyTag();
+        return root.contains(CALIBRATION_TAG, Tag.TAG_COMPOUND) ? root.getCompound(CALIBRATION_TAG) : null;
+    }
+
+    private static void updateCalibrationTag(ItemStack stack, Consumer<CompoundTag> updater) {
+        if (stack == null || stack.isEmpty()) {
+            return;
         }
-        if (calibration.isEmpty()) {
-            owner.removeTagKey(CALIBRATION_TAG);
-        }
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, root -> {
+            var calibration = root.contains(CALIBRATION_TAG, Tag.TAG_COMPOUND)
+                    ? root.getCompound(CALIBRATION_TAG) : new CompoundTag();
+            updater.accept(calibration);
+            if (calibration.isEmpty()) {
+                root.remove(CALIBRATION_TAG);
+            } else {
+                root.put(CALIBRATION_TAG, calibration);
+            }
+        });
+    }
+
+    private static HolderLookup.Provider serializationLookup() {
+        var server = ServerLifecycleHooks.getCurrentServer();
+        return server == null ? FALLBACK_SERIALIZATION_LOOKUP : server.registryAccess();
     }
 
     private static boolean isValidCalibrationAccess(ItemStack stack, int slot, int slotCount) {

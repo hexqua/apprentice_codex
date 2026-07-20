@@ -19,7 +19,7 @@ import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 public final class ChargecastCatalystbookRenderer extends GeoItemRenderer<ChargecastCatalystbook> {
     private static final String LEFT_RUNE_BONE = "left_cover_rune";
@@ -58,9 +58,9 @@ public final class ChargecastCatalystbookRenderer extends GeoItemRenderer<Charge
     public void preRender(PoseStack poseStack, ChargecastCatalystbook animatable, BakedGeoModel model,
                           MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
                           float partialTick, int packedLight, int packedOverlay,
-                          float red, float green, float blue, float alpha) {
+                          int colour) {
         super.preRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha);
+                packedLight, packedOverlay, colour);
         if (!isReRender) {
             var stack = currentItemStack != null ? currentItemStack : ItemStack.EMPTY;
             renderState = ChargecastCatalystbookClientRenderState.resolve(stack, partialTick);
@@ -71,9 +71,9 @@ public final class ChargecastCatalystbookRenderer extends GeoItemRenderer<Charge
     public void postRender(PoseStack poseStack, ChargecastCatalystbook animatable, BakedGeoModel model,
                            MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
                            float partialTick, int packedLight, int packedOverlay,
-                           float red, float green, float blue, float alpha) {
+                           int colour) {
         super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha);
+                packedLight, packedOverlay, colour);
         if (isReRender || renderState == null) {
             return;
         }
@@ -107,17 +107,17 @@ public final class ChargecastCatalystbookRenderer extends GeoItemRenderer<Charge
     public void renderRecursively(PoseStack poseStack, ChargecastCatalystbook animatable, GeoBone bone,
                                   RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                   boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                  float red, float green, float blue, float alpha) {
+                                  int colour) {
         if (specialPass != SpecialPass.NONE) {
             if (isSpecialPassTarget(bone, specialPass)) {
                 super.renderRecursively(
                         poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                        packedLight, packedOverlay, red, green, blue, alpha
+                        packedLight, packedOverlay, colour
                 );
             } else {
                 renderChildBonesOnly(
                         poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                        packedLight, packedOverlay, red, green, blue, alpha
+                        packedLight, packedOverlay, colour
                 );
             }
             return;
@@ -127,14 +127,14 @@ public final class ChargecastCatalystbookRenderer extends GeoItemRenderer<Charge
             // 通常パスから特殊ボーンを外し、通常モデルにだけ ItemRenderer の Glint を残す。
             renderChildBonesOnly(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
@@ -161,10 +161,7 @@ public final class ChargecastCatalystbookRenderer extends GeoItemRenderer<Charge
                     partialTick,
                     packedLight,
                     OverlayTexture.NO_OVERLAY,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    toColour(red, green, blue, alpha)
             );
         } finally {
             specialPass = SpecialPass.NONE;
@@ -174,19 +171,30 @@ public final class ChargecastCatalystbookRenderer extends GeoItemRenderer<Charge
     private void renderChildBonesOnly(PoseStack poseStack, ChargecastCatalystbook animatable, GeoBone bone,
                                       RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                       boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                      float red, float green, float blue, float alpha) {
+                                      int colour) {
         poseStack.pushPose();
         if (bone.isTrackingMatrices()) {
             var poseState = new Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, itemRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, itemRenderTranslations));
         }
-        RenderUtils.prepMatrixForBone(poseStack, bone);
+        RenderUtil.prepMatrixForBone(poseStack, bone);
         renderChildBones(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
         poseStack.popPose();
+    }
+
+    private static int toColour(float red, float green, float blue, float alpha) {
+        return (Math.round(clamp01(alpha) * 255.0F) << 24)
+                | (Math.round(clamp01(red) * 255.0F) << 16)
+                | (Math.round(clamp01(green) * 255.0F) << 8)
+                | Math.round(clamp01(blue) * 255.0F);
+    }
+
+    private static float clamp01(float value) {
+        return Math.max(0.0F, Math.min(1.0F, value));
     }
 
     private static boolean isSpecialPassTarget(GeoBone bone, SpecialPass pass) {

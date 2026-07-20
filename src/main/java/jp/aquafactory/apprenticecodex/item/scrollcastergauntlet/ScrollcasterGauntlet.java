@@ -85,6 +85,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.ArcaneAnvilScrollImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.BetterCombatOffhandDualWieldingPolicyItem;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;

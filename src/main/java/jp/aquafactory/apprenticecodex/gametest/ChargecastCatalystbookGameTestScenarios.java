@@ -22,13 +22,14 @@ import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell
 import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssaultRifleEntity;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.event.TickEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.Set;
 import java.util.List;
@@ -215,10 +216,12 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
                     )),
                     "Chargecast Catalystbook should expose exactly four attribute enchantments");
 
-            var mainhand = item.getAttributeModifiers(EquipmentSlot.MAINHAND, book);
-            helper.assertTrue(mainhand.get(AttributeRegistry.SPELL_POWER.get()).stream().anyMatch(modifier ->
-                            modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE
-                                    && Math.abs(modifier.getAmount() - 0.10D) < 0.000001D),
+            var mainhand = item.getDefaultAttributeModifiers(book);
+            helper.assertTrue(mainhand.modifiers().stream().anyMatch(entry ->
+                            entry.slot().test(EquipmentSlot.MAINHAND)
+                                    && entry.attribute().equals(AttributeRegistry.SPELL_POWER)
+                                    && entry.modifier().operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                                    && Math.abs(entry.modifier().amount() - 0.10D) < 0.000001D),
                     "The default book should grant +10% generic spell power in mainhand");
 
             var amplified = item.getDefaultInstance();
@@ -228,12 +231,14 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
             helper.assertFalse(item.trySetCalibrationAdjustment(
                             amplified, 1, new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get())),
                     "Silver Spell Amplifier should reject duplicates");
-            helper.assertTrue(item.getAttributeModifiers(EquipmentSlot.MAINHAND, amplified)
-                            .get(AttributeRegistry.SPELL_POWER.get()).isEmpty(),
+            helper.assertTrue(item.getDefaultAttributeModifiers(amplified).modifiers().stream().noneMatch(entry ->
+                            entry.slot().test(EquipmentSlot.MAINHAND)
+                                    && entry.attribute().equals(AttributeRegistry.SPELL_POWER)),
                     "Silver Spell Amplifier should remove the mainhand spell power modifier");
-            helper.assertTrue(item.getAttributeModifiers(EquipmentSlot.OFFHAND, amplified)
-                            .get(AttributeRegistry.SPELL_POWER.get()).stream().anyMatch(modifier ->
-                                    Math.abs(modifier.getAmount() - 0.10D) < 0.000001D),
+            helper.assertTrue(item.getDefaultAttributeModifiers(amplified).modifiers().stream().anyMatch(entry ->
+                            entry.slot().test(EquipmentSlot.OFFHAND)
+                                    && entry.attribute().equals(AttributeRegistry.SPELL_POWER)
+                                    && Math.abs(entry.modifier().amount() - 0.10D) < 0.000001D),
                     "Silver Spell Amplifier should move spell power to offhand");
 
             var schoolTuned = item.getDefaultInstance();
@@ -242,15 +247,17 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
                             new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get())
                     ),
                     "One school rune should be accepted");
-            var schoolModifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, schoolTuned);
+            var schoolModifiers = item.getDefaultAttributeModifiers(schoolTuned);
             var firePower = MagicTools.resolveSchoolPowerAttribute(
                     io.redspace.ironsspellbooks.api.registry.SchoolRegistry.FIRE.get()
             );
-            helper.assertTrue(schoolModifiers.get(AttributeRegistry.SPELL_POWER.get()).isEmpty(),
+            helper.assertTrue(schoolModifiers.modifiers().stream().noneMatch(entry ->
+                            entry.attribute().equals(AttributeRegistry.SPELL_POWER)),
                     "A school rune should remove generic spell power");
-            helper.assertTrue(firePower != null && schoolModifiers.get(firePower).stream().anyMatch(modifier ->
-                            modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE
-                                    && Math.abs(modifier.getAmount() - 0.15D) < 0.000001D),
+            helper.assertTrue(firePower != null && schoolModifiers.modifiers().stream().anyMatch(entry ->
+                            entry.attribute().equals(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(firePower))
+                                    && entry.modifier().operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                                    && Math.abs(entry.modifier().amount() - 0.15D) < 0.000001D),
                     "A school rune should grant +15% spell power for its school");
         });
     }
@@ -259,19 +266,19 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
         helper.succeedIf(() -> {
             var mageLight = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get();
             var linearBuild = jp.aquafactory.apprenticecodex.registry.SpellRegistry.LINEAR_BUILD.get();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "chargecast_precast_power_reject_test");
             helper.assertTrue(mageLight instanceof IChargecastStaffbowIncompatibleSpell,
                     "Mage Light should opt out of delayed spell-power casts");
             helper.assertTrue(linearBuild instanceof IChargecastStaffbowIncompatibleSpell,
                     "Linear Build should opt out of delayed spell-power casts");
             assertTranslatableKey(
                     helper,
-                    ChargecastCatalystbook.createRejectedSpellMessage(mageLight.getDisplayName()),
+                    ChargecastCatalystbook.createRejectedSpellMessage(mageLight.getDisplayName(player)),
                     "ui.apprenticecodex.chargecast.reject_spell",
                     "Chargecast Catalystbook should use its permanent rejection message"
             );
 
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
-                    "chargecast_precast_power_reject_test");
             var book = new ItemStack(ItemRegistry.CHARGECAST_CATALYSTBOOK.get());
             ChargecastCatalystbook.setCalibrationScroll(book, 0, createSpellScroll(mageLight));
             player.setItemInHand(InteractionHand.MAIN_HAND, book);
@@ -311,7 +318,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
                         "A denylisted Chargecast spell should not begin casting");
                 assertTranslatableKey(
                         helper,
-                        ChargecastCatalystbook.createSpellDenylistedMessage(spell.getDisplayName()),
+                        ChargecastCatalystbook.createSpellDenylistedMessage(spell.getDisplayName(player)),
                         "ui.apprenticecodex.chargecast.spell_denylisted",
                         "Chargecast Catalystbook should use its denylist message"
                 );
@@ -394,7 +401,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
         magicData.setPlayerCastingItem(book.copy());
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STICK));
         ChargecastCatalystbookCastEvents.onPlayerTick(
-                new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player)
+                new PlayerTickEvent.Post(player)
         );
         helper.assertFalse(magicData.isCasting(),
                 "Switching away should cancel a Wisdom cast borrowed from another wheel source");
@@ -405,7 +412,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
         magicData.setPlayerCastingItem(book.copy());
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STICK));
         ChargecastCatalystbookCastEvents.onPlayerTick(
-                new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player)
+                new PlayerTickEvent.Post(player)
         );
         helper.assertTrue(magicData.isCasting(),
                 "The book's own projected wheel spell should remain governed by Iron's standard cancellation");

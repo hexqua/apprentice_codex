@@ -513,7 +513,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('D', Items.DIAMOND)
                 .define('G', Items.GOLD_INGOT)
                 .unlockedBy(getHasName(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get()), has(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.REFLECTCAST_SHIELD.get())
                 .pattern("AGA")

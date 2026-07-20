@@ -9,28 +9,29 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
-import java.util.UUID;
-
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ChargecastCatalystbookCastEvents {
-    private static final UUID CAST_POWER_MODIFIER_ID =
-            UUID.fromString("c84b5248-7ec6-43f5-b460-52155309f74b");
+    private static final ResourceLocation CAST_POWER_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(
+            ApprenticeCodex.MODID,
+            "chargecast_catalystbook_cast_power"
+    );
 
     private ChargecastCatalystbookCastEvents() {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onLivingAttack(LivingAttackEvent event) {
+    public static void onLivingAttack(LivingIncomingDamageEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)
                 || !ChargecastCatalystbook.isManagedCast(player, null)) {
             return;
@@ -46,9 +47,8 @@ public final class ChargecastCatalystbookCastEvents {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || event.player.level().isClientSide
-                || !(event.player instanceof ServerPlayer player)) {
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
         var magicData = MagicData.getPlayerMagicData(player);
@@ -69,7 +69,7 @@ public final class ChargecastCatalystbookCastEvents {
         ItemStack heldStack = SpellSelectionManager.OFFHAND.equals(castingSlot)
                 ? player.getOffhandItem()
                 : SpellSelectionManager.MAINHAND.equals(castingSlot) ? player.getMainHandItem() : ItemStack.EMPTY;
-        if (!ItemStack.isSameItemSameTags(heldStack, magicData.getPlayerCastingItem())) {
+        if (!ItemStack.isSameItemSameComponents(heldStack, magicData.getPlayerCastingItem())) {
             Utils.serverSideCancelCast(player);
         }
     }
@@ -92,7 +92,7 @@ public final class ChargecastCatalystbookCastEvents {
                     level, player, sound, player.getSoundSource(), 2.0F, 1.0F, 0.2F
             ));
         }
-        var attribute = player.getAttribute(AttributeRegistry.SPELL_POWER.get());
+        var attribute = player.getAttribute(AttributeRegistry.SPELL_POWER);
         if (attribute == null) {
             spell.castSpell(level, spellLevel, player, castSource, resetRecastCount);
             return;
@@ -103,9 +103,8 @@ public final class ChargecastCatalystbookCastEvents {
         attribute.removeModifier(CAST_POWER_MODIFIER_ID);
         var modifier = new AttributeModifier(
                 CAST_POWER_MODIFIER_ID,
-                "apprenticecodex.chargecast_catalystbook.cast_power",
                 multiplier - 1.0D,
-                AttributeModifier.Operation.MULTIPLY_TOTAL
+                AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
         );
         attribute.addTransientModifier(modifier);
         try {

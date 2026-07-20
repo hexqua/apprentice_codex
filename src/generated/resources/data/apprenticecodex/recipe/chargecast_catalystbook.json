@@ -24,7 +24,7 @@
     "GLA"
   ],
   "result": {
-    "item": "apprenticecodex:chargecast_catalystbook"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:chargecast_catalystbook"
+  }
 }

@@ -852,7 +852,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_chargecast_catalystbook.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_chargecast_catalystbook.description"),
                         null,
-                        FrameType.GOAL,
+                        AdvancementType.GOAL,
                         true,
                         true,
                         false)

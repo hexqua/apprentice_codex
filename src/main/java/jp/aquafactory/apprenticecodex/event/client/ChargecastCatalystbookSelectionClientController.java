@@ -15,16 +15,17 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.client.event.RenderGuiEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import org.jetbrains.annotations.Nullable;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ChargecastCatalystbookSelectionClientController {
     private static final HandStackResolver.OffhandResolution OFFHAND_RESOLUTION =
             HandStackResolver.OffhandResolution.LOGICAL;
@@ -59,11 +60,7 @@ public final class ChargecastCatalystbookSelectionClientController {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
+    public static void onClientTick(ClientTickEvent.Post event) {
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         var sneakKeyDown = minecraft.screen == null && minecraft.options.keyShift.isDown();
@@ -100,11 +97,11 @@ public final class ChargecastCatalystbookSelectionClientController {
         }
 
         event.setCanceled(true);
-        if (event.getScrollDelta() == 0.0D || activeState.selectableViewCount() <= 1) {
+        if (event.getScrollDeltaY() == 0.0D || activeState.selectableViewCount() <= 1) {
             return;
         }
 
-        moveSelection(event.getScrollDelta() > 0.0D ? -1 : 1);
+        moveSelection(event.getScrollDeltaY() > 0.0D ? -1 : 1);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
@@ -124,8 +121,11 @@ public final class ChargecastCatalystbookSelectionClientController {
     }
 
     @SubscribeEvent
-    public static void onRenderGui(RenderGuiEvent.Post event) {
+    public static void onRenderGui(RenderGuiLayerEvent.Post event) {
         if (activeState == null) {
+            return;
+        }
+        if (!VanillaGuiLayers.CROSSHAIR.equals(event.getName())) {
             return;
         }
         var minecraft = Minecraft.getInstance();
@@ -136,8 +136,8 @@ public final class ChargecastCatalystbookSelectionClientController {
         renderSelectionHud(
                 event.getGuiGraphics(),
                 minecraft.font,
-                event.getWindow().getGuiScaledWidth(),
-                event.getWindow().getGuiScaledHeight(),
+                minecraft.getWindow().getGuiScaledWidth(),
+                minecraft.getWindow().getGuiScaledHeight(),
                 minecraft.player,
                 activeState
         );
