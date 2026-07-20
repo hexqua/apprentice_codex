@@ -159,6 +159,19 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
                     "The deferred start sound should be suppressed inside the chargecast context");
             helper.assertFalse(ChargecastCatalystbookStartSoundContext.shouldSuppress(mageLight, player),
                     "The deferred start sound suppression should not leak after initiation");
+
+            ChargecastCatalystbookClientCastIntent.mark(player.getUUID(), book, instant);
+            helper.assertTrue(item.shouldOverrideCastStartAnimation(book, instant),
+                    "A chargecast intent should become active before completion cleanup");
+            ChargecastCatalystbookClientCastIntent.clearActiveIfMatches(otherCasterId, instant.getSpellId());
+            helper.assertTrue(ChargecastCatalystbookClientCastIntent.matchesActive(player.getUUID(), book, instant),
+                    "Another player's completion must not clear the local active chargecast");
+            ChargecastCatalystbookClientCastIntent.clearActiveIfMatches(player.getUUID(), mageLight.getSpellId());
+            helper.assertTrue(ChargecastCatalystbookClientCastIntent.matchesActive(player.getUUID(), book, instant),
+                    "Another spell's completion must not clear the active chargecast");
+            ChargecastCatalystbookClientCastIntent.clearActiveIfMatches(player.getUUID(), instant.getSpellId());
+            helper.assertFalse(ChargecastCatalystbookClientCastIntent.matchesActive(player.getUUID(), book, instant),
+                    "The matching completion must clear the active chargecast after an item swap");
             ChargecastCatalystbookClientCastIntent.clear();
         });
     }

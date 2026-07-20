@@ -72,6 +72,13 @@ public final class ChargecastCatalystbookClientCastIntent {
         activeCasterId = null;
     }
 
+    public static void clearActiveIfMatches(@Nullable UUID candidateCasterId, String candidateSpellId) {
+        if (activeCasterId != null && activeCasterId.equals(candidateCasterId)
+                && activeSpellId.equals(candidateSpellId)) {
+            clearActive();
+        }
+    }
+
     public static void clear() {
         clearPending();
         clearActive();

@@ -190,6 +190,8 @@ public abstract class ClientSpellCastHelperMixin {
         ClientSwingcastStaffCastContext.clearFinished(castingEntityId, spellId);
         ClientMultipurposeStaffrifleCastContext.clearFinished(castingEntityId, spellId);
         FocusStaffbowClientPresentationState.clear(castingEntityId);
+        // 持ち替え後は現在の手持ちから触媒書を解決できないため、完了通知の識別子で active intent を落とす。
+        ChargecastCatalystbookClientCastIntent.clearActiveIfMatches(castingEntityId, spellId);
     }
 
     @Unique
