@@ -212,8 +212,13 @@ import jp.aquafactory.apprenticecodex.utility.RightClickSpellResolver;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
+import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell;
 import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmash;
 import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashShellEntity;
+import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssaultRifleEntity;
+import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
+import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
+import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -504,6 +509,79 @@ final class FocusStaffbowGameTestScenarios {
         });
     }
 
+    static void focusStaffbowReevaluatesSummonWeaponAttackValuesOnChargedCast(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+
+            var mantisPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "focus_staffbow_mantis_leap_power_test");
+            var mantisSpell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANTIS_LEAP.get();
+            var mantisMagicData = MagicData.getPlayerMagicData(mantisPlayer);
+            mantisSpell.onServerPreCast(level, 1, mantisPlayer, mantisMagicData);
+            var mantisBlades = getOwnedSummonWeapons(helper, mantisPlayer, MantisLeapBladeEntity.class);
+            helper.assertTrue(mantisBlades.size() == 1,
+                    "Focus Staffbow Mantis Leap test should create one pre-cast blade");
+            var mantisBlade = mantisBlades.get(0);
+            var baseMantisDamage = mantisBlade.getDamageForGameTest();
+            castWithDoubledSpellPower(mantisPlayer,
+                    () -> mantisSpell.castSpell(level, 1, mantisPlayer, CastSource.SWORD, true));
+            helper.assertTrue(mantisBlade.getDamageForGameTest() > baseMantisDamage * 1.5F,
+                    "Mantis Leap should reevaluate damage with charged spell power at cast time");
+
+            var slashPlayer = createEquipmentTestPlayer(helper, new BlockPos(3, 2, 0),
+                    "focus_staffbow_slash_blade_power_test");
+            var slashSpell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE.get();
+            var slashMagicData = MagicData.getPlayerMagicData(slashPlayer);
+            slashSpell.onServerPreCast(level, 1, slashPlayer, slashMagicData);
+            var katanas = getOwnedSummonWeapons(helper, slashPlayer, SlashBladeKatanaEntity.class);
+            helper.assertTrue(katanas.size() == 1,
+                    "Focus Staffbow Slash Blade test should create one pre-cast katana");
+            var katana = katanas.get(0);
+            var baseSlashDamage = katana.getDamageForGameTest();
+            castWithDoubledSpellPower(slashPlayer,
+                    () -> slashSpell.castSpell(level, 1, slashPlayer, CastSource.SWORD, true));
+            helper.assertTrue(katana.getDamageForGameTest() > baseSlashDamage * 1.5F,
+                    "Slash Blade should reevaluate damage with charged spell power at cast time");
+
+            var precisionPlayer = createEquipmentTestPlayer(helper, new BlockPos(6, 2, 0),
+                    "focus_staffbow_precision_jack_power_test");
+            var precisionSpell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.PRECISION_JACK.get();
+            var precisionMagicData = MagicData.getPlayerMagicData(precisionPlayer);
+            precisionSpell.onServerPreCast(level, 1, precisionPlayer, precisionMagicData);
+            var knives = getOwnedSummonWeapons(helper, precisionPlayer, PrecisionJackKnifeEntity.class);
+            helper.assertTrue(knives.size() == 1,
+                    "Focus Staffbow Precision Jack test should create one pre-cast knife");
+            var knife = knives.get(0);
+            var baseLootingBonus = knife.getLootingBonus();
+            var baseDuplicateChance = knife.getDuplicateDropChancePercent();
+            castWithDoubledSpellPower(precisionPlayer,
+                    () -> precisionSpell.castSpell(level, 1, precisionPlayer, CastSource.SWORD, true));
+            helper.assertTrue(knife.getLootingBonus() > baseLootingBonus,
+                    "Precision Jack should reevaluate looting with charged spell power at cast time");
+            helper.assertTrue(knife.getDuplicateDropChancePercent() > baseDuplicateChance,
+                    "Precision Jack should reevaluate duplicate chance with charged spell power at cast time");
+        });
+    }
+
+    private static void castWithDoubledSpellPower(net.minecraft.world.entity.LivingEntity caster, Runnable cast) {
+        var spellPowerAttribute = caster.getAttribute(AttributeRegistry.SPELL_POWER);
+        if (spellPowerAttribute == null) {
+            throw new IllegalStateException("Spell power attribute is unavailable");
+        }
+        var modifier = new AttributeModifier(
+                FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID,
+                1.0D,
+                AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
+        );
+        spellPowerAttribute.removeModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
+        spellPowerAttribute.addTransientModifier(modifier);
+        try {
+            cast.run();
+        } finally {
+            spellPowerAttribute.removeModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
+        }
+    }
+
     static void focusStaffbowCancelsPendingSummonWeaponBeforeRequiredCharge(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_pending_cancel_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
@@ -549,6 +627,46 @@ final class FocusStaffbowGameTestScenarios {
                     "Focus Staffbow should clear simulated additional cast data when the charge is cancelled");
             helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
                     "Focus Staffbow should keep its catalyst arrow when the LONG cast is cancelled early");
+        });
+    }
+    static void focusStaffbowLethalAssaultWaitsForReleaseBeforeFiring(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "focus_staffbow_lethal_assault_wait_test");
+        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.LETHAL_ASSAULT.get();
+        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
+        MagicData.getPlayerMagicData(player).setMana(1000.0F);
+
+        helper.runAtTickTime(1, () -> {
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow Lethal Assault should start charging but got " + result.getResult());
+        });
+        helper.runAtTickTime(12, () -> {
+            var rifles = getOwnedSummonWeapons(helper, player, LethalAssaultRifleEntity.class);
+            helper.assertTrue(rifles.size() == 1,
+                    "Focus Staffbow should keep one Lethal Assault rifle visible while charging");
+            helper.assertFalse(rifles.get(0).hasStartedFiringForGameTest(),
+                    "Focus Staffbow Lethal Assault rifle should stay idle before release");
+        });
+        helper.runAtTickTime(13, () -> bowStack.getItem().releaseUsing(
+                bowStack,
+                helper.getLevel(),
+                player,
+                bowStack.getUseDuration(player) - 12
+        ));
+        helper.runAtTickTime(14, () -> {
+            var rifles = getOwnedSummonWeapons(helper, player, LethalAssaultRifleEntity.class);
+            helper.assertTrue(rifles.size() == 1 && rifles.get(0).hasStartedFiringForGameTest(),
+                    "Focus Staffbow Lethal Assault rifle should start firing after release completes the cast");
+            helper.succeed();
         });
     }
     static void focusStaffbowContinuousCastStaysActivePastSpellDuration(GameTestHelper helper) {
@@ -1149,6 +1267,44 @@ final class FocusStaffbowGameTestScenarios {
                 helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
                         "Focus Staffbow should reject denylisted spells before consuming arrows");
             }
+        });
+    }
+
+    static void focusStaffbowRejectsPreCastSpellPowerDependentSpellsBeforeAmmo(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var mageLight = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get();
+            var linearBuild = jp.aquafactory.apprenticecodex.registry.SpellRegistry.LINEAR_BUILD.get();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "focus_staffbow_precast_power_reject_test");
+            helper.assertTrue(mageLight instanceof IChargecastStaffbowIncompatibleSpell
+                            && FocusStaffbow.rejectsSpell(mageLight),
+                    "Focus Staffbow should reject Mage Light through the pre-cast spell-power marker");
+            helper.assertTrue(linearBuild instanceof IChargecastStaffbowIncompatibleSpell
+                            && FocusStaffbow.rejectsSpell(linearBuild),
+                    "Focus Staffbow should reject Linear Build through the pre-cast spell-power marker");
+            assertTranslatableKey(
+                    helper,
+                    FocusStaffbow.createRejectedSpellMessage(mageLight.getDisplayName(player)),
+                    "ui.apprenticecodex.focus_staffbow.reject_spell",
+                    "Focus Staffbow should use its permanent rejection message"
+            );
+
+            var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+            var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierStack = new ItemStack(amplifierItem);
+            amplifierItem.initializeSpellContainer(amplifierStack);
+            setSingleUnlockedSpell(helper, amplifierStack, mageLight, 1);
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+            setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
+            MagicData.getPlayerMagicData(player).setMana(100.0F);
+
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                    "Focus Staffbow should reject Mage Light but got " + result.getResult());
+            helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
+                    "Focus Staffbow should reject Mage Light before consuming arrows");
         });
     }
 

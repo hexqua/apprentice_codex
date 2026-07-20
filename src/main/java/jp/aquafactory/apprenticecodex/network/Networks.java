@@ -33,6 +33,8 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookP
 import jp.aquafactory.apprenticecodex.network.packet.SyncEdgeDancerStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncChargecastCatalystbookConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmChargecastCatalystbookIndexPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
@@ -63,7 +65,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "59";
+    private static final String PROTOCOL_VERSION = "60";
 
     private Networks() {
     }
@@ -89,6 +91,11 @@ public final class Networks {
                 SyncFocusStaffbowConfigPacket.STREAM_CODEC,
                 SyncFocusStaffbowConfigPacket::handle
         );
+        registrar.playToClient(
+                SyncChargecastCatalystbookConfigPacket.TYPE,
+                SyncChargecastCatalystbookConfigPacket.STREAM_CODEC,
+                SyncChargecastCatalystbookConfigPacket::handle
+        );
         registrar.playToServer(
                 ClientConfirmElementalBowModePacket.TYPE,
                 ClientConfirmElementalBowModePacket.STREAM_CODEC,
@@ -98,6 +105,11 @@ public final class Networks {
                 ClientConfirmScrollcasterGauntletIndexPacket.TYPE,
                 ClientConfirmScrollcasterGauntletIndexPacket.STREAM_CODEC,
                 ClientConfirmScrollcasterGauntletIndexPacket::handle
+        );
+        registrar.playToServer(
+                ClientConfirmChargecastCatalystbookIndexPacket.TYPE,
+                ClientConfirmChargecastCatalystbookIndexPacket.STREAM_CODEC,
+                ClientConfirmChargecastCatalystbookIndexPacket::handle
         );
         registrar.playToServer(
                 ClientConfirmStorageStabilizerSpellPacket.TYPE,

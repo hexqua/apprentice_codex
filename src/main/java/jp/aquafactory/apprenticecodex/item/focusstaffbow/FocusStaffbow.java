@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManage
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientConfigState;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientLoanState;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientRenderState;
+import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
@@ -183,6 +184,15 @@ public final class FocusStaffbow extends CastingItem
     public static Component createSpellDenylistedMessage(Component spellName) {
         return Component.translatable("ui.apprenticecodex.focus_staffbow.spell_denylisted", spellName)
                 .withStyle(ChatFormatting.RED);
+    }
+
+    public static Component createRejectedSpellMessage(Component spellName) {
+        return Component.translatable("ui.apprenticecodex.focus_staffbow.reject_spell", spellName)
+                .withStyle(ChatFormatting.RED);
+    }
+
+    public static boolean rejectsSpell(AbstractSpell spell) {
+        return spell instanceof IChargecastStaffbowIncompatibleSpell;
     }
 
     public static Component createSpellNotAllowlistedMessage(Component spellName) {

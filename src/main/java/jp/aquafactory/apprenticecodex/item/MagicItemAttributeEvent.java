@@ -34,7 +34,7 @@ public final class MagicItemAttributeEvent {
             // 1.21.1 では ATTRIBUTE_MODIFIERS component が stack-sensitive override を上書きし得るため、
             // item 側で定義した正規の計算結果をイベント経由で差し戻す。
             replaceModifiers(event, spellGunItem.getDefaultAttributeModifiers(stack));
-            if (AbstractSpellGunItem.usesOffhandAttributeModifiers(stack)) {
+            if (spellGunItem.usesOffhandAttributeModifiers(stack)) {
                 OffhandUpgradeAttributeEvent.applyStoredUpgradeData(
                         event,
                         EquipmentSlot.MAINHAND.getName(),

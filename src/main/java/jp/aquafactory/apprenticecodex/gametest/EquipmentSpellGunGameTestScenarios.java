@@ -618,7 +618,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                 helper.assertTrue(target.getCalibrationAdjustment(spellgun, 0, builtInOnlyLookup)
                                 .is(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
                         spellgun.getDescriptionId() + " should retain the adjustment ID without dynamic registries");
-                helper.assertTrue(AbstractSpellGunItem.usesOffhandAttributeModifiers(spellgun),
+                helper.assertTrue(((AbstractSpellGunItem) spellgun.getItem()).usesOffhandAttributeModifiers(spellgun),
                         spellgun.getDescriptionId() + " should resolve offhand modifiers from the stored adjustment ID");
 
                 var restored = roundTripItemStack(helper, spellgun);

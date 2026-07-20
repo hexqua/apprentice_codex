@@ -1,7 +1,10 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.capabilities.magic.PlayerRecasts;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.player.ClientMagicData;
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookClientCastIntent;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientCastState;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Final;
@@ -20,7 +23,7 @@ public abstract class ClientPlayerRecastsMixin {
     private Map<String, RecastInstance> recastLookup;
 
     @Inject(method = "tickRecasts", at = @At("HEAD"))
-    private void apprenticecodex$preserveFocusStaffbowRecastTicks(CallbackInfo ci) {
+    private void apprenticecodex$preserveChargedCastRecastTicks(CallbackInfo ci) {
         if (recastLookup.isEmpty()) {
             return;
         }
@@ -30,11 +33,19 @@ public abstract class ClientPlayerRecastsMixin {
             if (recastInstance.getRemainingRecasts() <= 0 || recastInstance.getTicksRemaining() <= 0) {
                 return;
             }
-            if (!FocusStaffbowClientCastState.shouldPreserveClientRecastTicks(player, recastInstance.getSpellId())) {
+            var chargecastCasting = player != null && ClientMagicData.isCasting()
+                    && ClientMagicData.getCastDuration() > 0
+                    && recastInstance.getSpellId().equals(ClientMagicData.getCastingSpellId())
+                    // 現在の手持ちは持ち替え直後に変わるため、cast-start で確定した active intent を基準にする。
+                    && ChargecastCatalystbookClientCastIntent.isActive(
+                            player.getUUID(), SpellRegistry.getSpell(recastInstance.getSpellId())
+                    );
+            if (!FocusStaffbowClientCastState.shouldPreserveClientRecastTicks(player, recastInstance.getSpellId())
+                    && !chargecastCasting) {
                 return;
             }
 
-            // クライアント表示用 Recast は毎tick減るため、FocusStaffbow 詠唱中の同一表示だけ1tick戻して固定する。
+            // クライアント表示用 Recast は毎tick減るため、独自の溜め詠唱中だけ同一表示を1tick戻して固定する。
             var preservedTicks = Math.min(Integer.MAX_VALUE, recastInstance.getTicksRemaining() + 1L);
             ((RecastInstanceAccessor) recastInstance).apprenticecodex$setRemainingTicks((int) preservedTicks);
         });

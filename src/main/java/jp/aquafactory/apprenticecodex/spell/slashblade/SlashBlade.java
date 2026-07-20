@@ -109,6 +109,13 @@ public class SlashBlade extends AbstractSummonWeaponSpell<SlashBladeKatanaEntity
     }
 
     @Override
+    protected void onInitialCastWithWeapon(Level level, int spellLevel, LivingEntity entity,
+                                           MagicData playerMagicData, @NotNull SlashBladeKatanaEntity weapon) {
+        // FocusStaffbow などの完了時補正を、直後に行う抜刀攻撃へ反映する。
+        weapon.setDamage(getDamage(spellLevel, entity));
+    }
+
+    @Override
     public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull SlashBladeKatanaEntity weapon) {
         if (!weapon.isStandby()){
             weapon.setStandby(getCastTimeSpeedScale(spellLevel, playerMagicData));

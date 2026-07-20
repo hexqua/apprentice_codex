@@ -97,6 +97,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.SMASHCAST_SCEPTER.get());
         output.accept(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
         output.accept(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        output.accept(ItemRegistry.CHARGECAST_CATALYSTBOOK.get().getDefaultInstance());
         output.accept(ItemRegistry.STORAGE_STABILIZER.get());
         output.accept(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         output.accept(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());

@@ -100,9 +100,15 @@ public class LethalAssault extends AbstractSummonWeaponSpell<LethalAssaultRifleE
     @Override
     public LethalAssaultRifleEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var summonWeapon = new LethalAssaultRifleEntity(EntityRegistry.LETHAL_ASSAULT_RIFLE.get(), level, entity);
-        summonWeapon.setDamage(getDamage(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
+    }
+
+    @Override
+    protected void onInitialCastWithWeapon(Level level, int spellLevel, LivingEntity entity,
+                                           MagicData playerMagicData, @NotNull LethalAssaultRifleEntity weapon) {
+        // pre-cast では銃の表示だけを行い、触媒書や FocusStaffbow の完了時補正を確定してから発射する。
+        weapon.startFiring(getDamage(spellLevel, entity));
     }
 
     @Override
@@ -114,6 +120,6 @@ public class LethalAssault extends AbstractSummonWeaponSpell<LethalAssaultRifleE
     public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity,
                                                       MagicData playerMagicData, boolean cancelled,
                                                       @NotNull LethalAssaultRifleEntity weapon) {
-        return CompleteCastTypes.KEEP_WEAPON;
+        return cancelled ? CompleteCastTypes.RELEASE_WEAPON : CompleteCastTypes.KEEP_WEAPON;
     }
 }

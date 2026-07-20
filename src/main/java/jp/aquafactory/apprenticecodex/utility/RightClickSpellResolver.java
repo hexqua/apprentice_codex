@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.PriorityOffhandUseDeferringItem;
 import jp.aquafactory.apprenticecodex.item.RightClickSpellItemHelper;
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import net.minecraft.resources.ResourceLocation;
@@ -72,6 +73,9 @@ public final class RightClickSpellResolver {
                     "scrollcaster_gauntlet_selected"
             );
         }
+        if (mainHandStack.getItem() instanceof ChargecastCatalystbook) {
+            return resolveChargecastCatalystbookSpell(player, mainHandStack, InteractionHand.MAIN_HAND);
+        }
         if (mainHandStack.getItem() instanceof StorageStabilizer) {
             return createResolvedSpell(
                     StorageStabilizer.getSelectedSpellData(mainHandStack),
@@ -106,6 +110,9 @@ public final class RightClickSpellResolver {
                     "scrollcaster_gauntlet_selected"
             );
         }
+        if (offHandStack.getItem() instanceof ChargecastCatalystbook) {
+            return resolveChargecastCatalystbookSpell(player, offHandStack, InteractionHand.OFF_HAND);
+        }
         if (offHandStack.getItem() instanceof StorageStabilizer) {
             return createResolvedSpell(
                     StorageStabilizer.getSelectedSpellData(offHandStack),
@@ -136,6 +143,17 @@ public final class RightClickSpellResolver {
         }
 
         return createResolvedSpell(selectionOption.spellData, player, hand, resolutionPath);
+    }
+
+    private static Optional<ResolvedRightClickSpell> resolveChargecastCatalystbookSpell(
+            Player player,
+            ItemStack stack,
+            InteractionHand hand
+    ) {
+        var spellData = ChargecastCatalystbook.hasWisdomShard(stack)
+                ? new SpellSelectionManager(player).getSelectedSpellData()
+                : ChargecastCatalystbook.getSelectedSpellData(stack);
+        return createResolvedSpell(spellData, player, hand, "chargecast_catalystbook_selected");
     }
 
     private static Optional<ResolvedRightClickSpell> resolveContainerSpell(ItemStack stack, Player player, InteractionHand hand,

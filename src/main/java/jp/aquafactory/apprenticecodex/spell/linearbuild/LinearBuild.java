@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncLinearBuildNotification
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
+import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.ChatFormatting;
@@ -62,7 +63,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 
-public class LinearBuild extends AbstractSpell implements IClientBlockTargetingSpell {
+public class LinearBuild extends AbstractSpell implements IClientBlockTargetingSpell, IChargecastStaffbowIncompatibleSpell {
     private static final String NOT_BLOCK_MESSAGE = "ui.apprenticecodex.linear_build.not_block";
     private static final String TOO_FAR_MESSAGE = "ui.apprenticecodex.too_far";
     private static final String RETRIEVED_MESSAGE = "ui.apprenticecodex.linear_build.retrieved_from_container";

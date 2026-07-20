@@ -85,6 +85,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.ArcaneAnvilScrollImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.BetterCombatOffhandDualWieldingPolicyItem;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
@@ -105,7 +106,7 @@ import jp.aquafactory.apprenticecodex.item.offhand.OffhandMagicModifierHelper;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 
 public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
-        ItemTransformPreservingCastAnimationItem,
+        ItemTransformPreservingCastAnimationItem, ArcaneAnvilScrollImbueBlockItem,
         BetterCombatOffhandDualWieldingPolicyItem, SwingTriggeredMagicItem, PriorityOffhandUseDeferringItem, IJeiInfoItem,
         SneakSelectionUiItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
         TranscendencePolicy, AttributeEnchantmentPolicy, WisdomPolicy {

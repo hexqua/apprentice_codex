@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item;
 
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
@@ -18,10 +19,12 @@ public final class OffhandUsePriorityHelper {
 
         // 使用可能状態ではなく装備種別で優先する。
         // 弾切れ・盾無効化・クールダウンでメインハンド詠唱へ戻すと、戦闘中に右クリックの意味が突然変わるため。
+        // Catalystbookを含むのはオフハンドで本を持ってメインハンドで対応武器を握った際に右クリックで本の機能を有効にさせたいため。
         var item = stack.getItem();
         return item instanceof AbstractSpellGunItem
                 || item instanceof BowItem
                 || item instanceof CrossbowItem
+                || item instanceof ChargecastCatalystbook
                 || isShieldLikeItem(stack);
     }
 

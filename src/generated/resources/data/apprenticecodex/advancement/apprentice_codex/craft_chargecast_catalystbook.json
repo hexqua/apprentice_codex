@@ -1,0 +1,30 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_chargecast_catalystbook": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:chargecast_catalystbook"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_chargecast_catalystbook.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:chargecast_catalystbook"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_chargecast_catalystbook.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_chargecast_catalystbook"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

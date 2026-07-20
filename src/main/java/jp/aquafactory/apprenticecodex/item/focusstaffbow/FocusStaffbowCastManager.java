@@ -271,6 +271,10 @@ public final class FocusStaffbowCastManager {
         var magicData = MagicData.getPlayerMagicData(player);
         var spellId = spell.getSpellResource();
 
+        if (FocusStaffbow.rejectsSpell(spell)) {
+            showRejectedSpellMessage(player, spell);
+            return false;
+        }
         if (ApprenticeCodexServerConfig.isFocusStaffbowSpellDenied(spellId)) {
             showSpellDenylistedMessage(player, spell);
             return false;
@@ -840,6 +844,12 @@ public final class FocusStaffbowCastManager {
     private static void showSpellDenylistedMessage(ServerPlayer player, AbstractSpell spell) {
         player.connection.send(new ClientboundSetActionBarTextPacket(
                 FocusStaffbow.createSpellDenylistedMessage(spell.getDisplayName(player))
+        ));
+    }
+
+    private static void showRejectedSpellMessage(ServerPlayer player, AbstractSpell spell) {
+        player.connection.send(new ClientboundSetActionBarTextPacket(
+                FocusStaffbow.createRejectedSpellMessage(spell.getDisplayName(player))
         ));
     }
 

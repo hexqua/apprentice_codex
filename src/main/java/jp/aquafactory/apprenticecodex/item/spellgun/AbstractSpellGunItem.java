@@ -78,13 +78,14 @@ import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
+import jp.aquafactory.apprenticecodex.item.OffhandAttributeRelocatingItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 
 public abstract class AbstractSpellGunItem extends Item implements IPresetSpellContainer, RestrictedSpellImbuableItem,
         ManaBypassSpellItem, CastAnimationOverrideItem, IJeiInfoItem, NonDamageableAnvilMergeItem,
         SpellCalibrationAdjustmentTarget, TranscendencePolicy, AttributeEnchantmentPolicy, WisdomPolicy,
-        PlunderTarget {
+        PlunderTarget, OffhandAttributeRelocatingItem {
     private static final String JEI_INFO_GROUP_ID = "spellgun_items";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.spellgun_items.desc_";
     private static final String MALUM_NAMESPACE = "malum";
@@ -402,7 +403,8 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return CALIBRATION_ADJUSTMENT_PROFILE;
     }
 
-    public static boolean usesOffhandAttributeModifiers(@NotNull ItemStack stack) {
+    @Override
+    public boolean usesOffhandAttributeModifiers(@NotNull ItemStack stack) {
         return !stack.isEmpty()
                 && stack.getItem() instanceof AbstractSpellGunItem spellGun
                 && ItemRegistry.SILVER_SPELL_AMPLIFIER.getId().equals(

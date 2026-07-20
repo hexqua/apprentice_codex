@@ -28,6 +28,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
             "apprenticecodex.focus_staffbow_denylist_config";
     private static final String FOCUS_STAFFBOW_ALLOWLIST_CONFIG_BATCH =
             "apprenticecodex.focus_staffbow_allowlist_config";
+    private static final String CHARGECAST_DENYLIST_CONFIG_BATCH =
+            "apprenticecodex.chargecast_denylist_config";
     private static final String SPELL_CAST_PARRYING_RING_CONFIG_BATCH =
             "apprenticecodex.spell_cast_parrying_ring_config";
     private static final String SPELLGUN_CONFIG_BATCH = "apprenticecodex.spellgun_config";
@@ -526,6 +528,41 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void chargecastCatalystbookStoresOnlyInstantSpellsAndExpandsToFourSlots(GameTestHelper helper) {
+        ChargecastCatalystbookGameTestScenarios.storesOnlyInstantSpellsAndExpandsToFourSlots(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargecastCatalystbookAppliesAdjustmentAndAttributePolicies(GameTestHelper helper) {
+        ChargecastCatalystbookGameTestScenarios.appliesAdjustmentAndAttributePolicies(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargecastCatalystbookRejectsPreCastSpellPowerDependentSpells(GameTestHelper helper) {
+        ChargecastCatalystbookGameTestScenarios.rejectsPreCastSpellPowerDependentSpells(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CHARGECAST_DENYLIST_CONFIG_BATCH)
+    public static void chargecastCatalystbookSpellDenylistRejectsConfiguredSpell(GameTestHelper helper) {
+        ChargecastCatalystbookGameTestScenarios.spellDenylistRejectsConfiguredSpell(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargecastLethalAssaultWaitsForCompletionBeforeFiring(GameTestHelper helper) {
+        ChargecastCatalystbookGameTestScenarios.lethalAssaultWaitsForChargecastCompletionBeforeFiring(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargecastLethalAssaultCancellationRemovesPreCastRifle(GameTestHelper helper) {
+        ChargecastCatalystbookGameTestScenarios.lethalAssaultCancellationRemovesPreCastRifle(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargecastWisdomWheelCastOnlyRequiresHeldBookForExternalSpell(GameTestHelper helper) {
+        ChargecastCatalystbookGameTestScenarios.wisdomWheelCastOnlyRequiresHeldBookForExternalSpell(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void manaShieldCharmUsesCharmSlotAndAppearsInCreativeTab(GameTestHelper helper) {
         ManaShieldCharmGameTestScenarios.manaShieldCharmUsesCharmSlotAndAppearsInCreativeTab(helper);
     }
@@ -956,6 +993,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void betterCombatSelectionUiCanChooseLogicalOrPhysicalOffhand(GameTestHelper helper) {
+        OffhandAndBetterCombatGameTestScenarios.betterCombatSelectionUiCanChooseLogicalOrPhysicalOffhand(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void betterCombatHiddenNonOffhandMagicItemDoesNotApplyTranscendence(GameTestHelper helper) {
         OffhandAndBetterCombatGameTestScenarios
                 .betterCombatHiddenNonOffhandMagicItemDoesNotApplyTranscendence(helper);
@@ -1212,8 +1254,18 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_CONTINUOUS_BATCH)
+    public static void focusStaffbowReevaluatesSummonWeaponAttackValuesOnChargedCast(GameTestHelper helper) {
+        FocusStaffbowGameTestScenarios.focusStaffbowReevaluatesSummonWeaponAttackValuesOnChargedCast(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_CONTINUOUS_BATCH)
     public static void focusStaffbowCancelsPendingSummonWeaponBeforeRequiredCharge(GameTestHelper helper) {
         FocusStaffbowGameTestScenarios.focusStaffbowCancelsPendingSummonWeaponBeforeRequiredCharge(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_CONTINUOUS_BATCH)
+    public static void focusStaffbowLethalAssaultWaitsForReleaseBeforeFiring(GameTestHelper helper) {
+        FocusStaffbowGameTestScenarios.focusStaffbowLethalAssaultWaitsForReleaseBeforeFiring(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_CONTINUOUS_BATCH)
@@ -1274,6 +1326,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_DENYLIST_CONFIG_BATCH)
     public static void focusStaffbowSpellDenylistBlocksBeforeAmmo(GameTestHelper helper) {
         FocusStaffbowGameTestScenarios.focusStaffbowSpellDenylistBlocksBeforeAmmo(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowRejectsPreCastSpellPowerDependentSpellsBeforeAmmo(GameTestHelper helper) {
+        FocusStaffbowGameTestScenarios.focusStaffbowRejectsPreCastSpellPowerDependentSpellsBeforeAmmo(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_ALLOWLIST_CONFIG_BATCH)
