@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.event.client.ClientMultipurposeStaffrifleC
 import jp.aquafactory.apprenticecodex.event.client.ClientSwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScrollcasterGauntletCompat;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookClientCastIntent;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookStartSoundContext;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
@@ -199,7 +200,7 @@ public abstract class ClientSpellCastHelperMixin {
             InteractionHand hand,
             boolean suppressFocusStaffbowStartSound
     ) {
-        if (ChargecastCatalystbookClientCastIntent.matchesActive(spell)) {
+        if (ChargecastCatalystbookClientCastIntent.matchesActive(player.getUUID(), spell)) {
             ChargecastCatalystbookStartSoundContext.runSuppressed(player.getUUID(), () ->
                     apprentice_codex$runClientPreCastWithoutChargecastSound(
                             spell, spellLevel, player, hand, suppressFocusStaffbowStartSound
@@ -366,6 +367,10 @@ public abstract class ClientSpellCastHelperMixin {
             return false;
         }
 
+        if (stack.getItem() instanceof ChargecastCatalystbook) {
+            return ChargecastCatalystbookClientCastIntent.matches(player.getUUID(), stack, spell);
+        }
+
         return apprentice_codex$shouldSuppressCastStartAnimation(player, stack, spell)
                 || animationOverrideItem.shouldOverrideCastStartAnimation(stack, spell);
     }
@@ -374,6 +379,10 @@ public abstract class ClientSpellCastHelperMixin {
     private static boolean apprentice_codex$hasCastAnimationOverride(Player player, ItemStack stack, @Nullable AbstractSpell spell) {
         if (!(stack.getItem() instanceof CastAnimationOverrideItem animationOverrideItem)) {
             return false;
+        }
+
+        if (stack.getItem() instanceof ChargecastCatalystbook) {
+            return ChargecastCatalystbookClientCastIntent.matchesActive(player.getUUID(), stack, spell);
         }
 
         return apprentice_codex$shouldSuppressCastStartAnimation(player, stack, spell)
