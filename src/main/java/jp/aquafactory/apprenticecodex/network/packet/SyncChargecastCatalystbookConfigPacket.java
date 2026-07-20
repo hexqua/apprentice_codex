@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.network.packet;
 import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerConfig;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookClientConfigState;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.DistExecutor;
@@ -15,11 +16,23 @@ public record SyncChargecastCatalystbookConfigPacket(ChargecastCatalystbookServe
         buffer.writeVarInt(packet.values.castTimeTicks());
         buffer.writeDouble(packet.values.spellPowerMultiplier());
         buffer.writeDouble(packet.values.silverRingCastTimeBonusFactor());
+        buffer.writeVarInt(packet.values.spellDenylist().size());
+        for (var spellId : packet.values.spellDenylist()) {
+            buffer.writeResourceLocation(spellId);
+        }
     }
 
     public static SyncChargecastCatalystbookConfigPacket decode(FriendlyByteBuf buffer) {
+        var castTimeTicks = buffer.readVarInt();
+        var spellPowerMultiplier = buffer.readDouble();
+        var silverRingCastTimeBonusFactor = buffer.readDouble();
+        var spellDenylistSize = buffer.readVarInt();
+        var spellDenylist = new java.util.ArrayList<ResourceLocation>(spellDenylistSize);
+        for (var index = 0; index < spellDenylistSize; ++index) {
+            spellDenylist.add(buffer.readResourceLocation());
+        }
         return new SyncChargecastCatalystbookConfigPacket(new ChargecastCatalystbookServerConfig.Values(
-                buffer.readVarInt(), buffer.readDouble(), buffer.readDouble()
+                castTimeTicks, spellPowerMultiplier, silverRingCastTimeBonusFactor, spellDenylist
         ));
     }
 

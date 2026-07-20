@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncChargecastCatalystbookConfigPacket;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
@@ -36,6 +37,10 @@ public final class ChargecastCatalystbookConfigSyncEvents {
     @SubscribeEvent
     public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
+            // Iron's 側がディメンション移動時に管理詠唱を終了しない場合に備え、保存済みの対象座標を別レベルへ持ち越さない。
+            if (ChargecastCatalystbook.isManagedCast(player, null)) {
+                Utils.serverSideCancelCast(player);
+            }
             syncToPlayer(player);
         }
     }
