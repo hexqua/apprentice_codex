@@ -281,7 +281,7 @@
   "item.apprenticecodex.swingcast.common.desc": "This staff casts its imbued spell with each full swing.",
   "item.apprenticecodex.freecast.common.desc": "This item casts the selected spell with each full swing.",
   "item.apprenticecodex.right_click_magic_weapon.desc": "With a target item in your offhand, [%s] uses the offhand.",
-  "item.apprenticecodex.right_click_magic_weapon.item_type": "Targets: shields, bows, crossbows, spellguns",
+  "item.apprenticecodex.right_click_magic_weapon.item_type": "Targets: shields, bows, crossbows, spellguns, catalystbooks",
   "item.apprenticecodex.flask_system.kind": "Kind: %s",
   "item.apprenticecodex.flask_system.amount": "Amount: %1$d/%2$d",
   "item.apprenticecodex.flask_system.filled_name": "%1$s (%2$s)",
@@ -314,6 +314,9 @@
   "item.apprenticecodex.revolvercast_staff.desc.normal_mode": "If swing-casting fails, it stays on the current spell.",
   "item.apprenticecodex.revolvercast_staff.desc.skip_mode": "If swing-casting fails, it advances to the next spell.",
   "item.apprenticecodex.revolvercast_staff.school_rune": "This staff is tuned to the \"%s\" school.",
+  "item.apprenticecodex.chargecast_catalystbook.desc": "Casting from this book with [%1$s] increases spell power by %3$s at the cost of a %2$s cast time.",
+  "item.apprenticecodex.chargecast_catalystbook.spell_power": "%d%%",
+  "item.apprenticecodex.chargecast_catalystbook.school_rune": "This book is tuned to the \"%s\" school.",
   "item.apprenticecodex.bound_weapon.contain_item.item": "\"%s\" is sealed inside.",
   "item.apprenticecodex.bound_weapon.contain_item.hint": "Let go of the weapon to restore the item inside.",
   "item.apprenticecodex.spell_invoke_card.desc": "Throw it to cast the imbued spell where it lands.",
@@ -456,6 +459,13 @@
   "jei.apprenticecodex.spell_throwable_cards.desc_1": "Imbue a spell and throw the card to cast it remotely with behavior specific to each card type.",
   "jei.apprenticecodex.spell_throwable_cards.desc_2": "Cards are consumable, but they can be crafted without consuming the scroll used for imbuing.",
   "jei.apprenticecodex.spell_throwable_cards.desc_3": "Accepted spells are restricted by configuration and can be checked in item details and JEI.",
+  "jei.apprenticecodex.chargecast_catalystbook.desc_1": "Deliberately casting spells that normally require no cast time allows them to activate with increased spell power.",
+  "jei.apprenticecodex.chargecast_catalystbook.desc_2": "A scroll and adjustment items must be set at a dedicated Spell Calibration Bench beforehand.",
+  "jei.apprenticecodex.chargecast_catalystbook.desc_3": "The available adjustment items and their effects are listed below.",
+  "jei.apprenticecodex.chargecast_catalystbook.desc_4": "- Slot upgrade items: Increase the book's scroll slots by 1 and allow switching between them while sneaking.",
+  "jei.apprenticecodex.chargecast_catalystbook.desc_5": "- School Rune: Changes the spell power bonus from general spell power to that rune's school.",
+  "jei.apprenticecodex.chargecast_catalystbook.desc_6": "- Silver Ring: Cast time reduction no longer applies and cast time becomes fixed, but spell power increases further based on the reduction that would normally apply.",
+  "jei.apprenticecodex.chargecast_catalystbook.desc_7": "- Shard of Wisdom: Casts the spell selected in the spell wheel instead of the spell selected in the book.",
   "jei.apprenticecodex.spell_throwable_cards.craft_hint": "Scroll is not consumed",
 
   "jei.apprenticecodex.archivists_grimoire.upgrade_hint": "Adds 9 slots",
@@ -927,6 +937,7 @@
   "ui.apprenticecodex.jumpcast.cannot_long_cast": "%s cannot be jump-cast!",
   "ui.apprenticecodex.reflectcast.cannot_cast": "%s cannot be reflect-cast!",
   "ui.apprenticecodex.parrycast.cannot_cast": "%s cannot be parry-cast!",
+  "ui.apprenticecodex.chargecast.cannot_cast": "%s cannot be charge-cast!",
   "ui.apprenticecodex.focus_staffbow.deny_offhand": "Cannot be used with offhand",
   "ui.apprenticecodex.focus_staffbow.loan_mana": "Staff is draining mana, cannot cast...(Remaining %d mana)",
   "ui.apprenticecodex.focus_staffbow.insufficient_arrow": "No arrow available as a casting catalyst!",
@@ -1172,6 +1183,8 @@
   "advancements.apprenticecodex.apprentice_codex.craft_ashen_circlet.description": "Craft an Ashen Circlet",
   "advancements.apprenticecodex.apprentice_codex.craft_storage_stabilizer.title": "Mage-Style Backpack",
   "advancements.apprenticecodex.apprentice_codex.craft_storage_stabilizer.description": "Craft a Storage Stabilizer",
+  "advancements.apprenticecodex.apprentice_codex.craft_chargecast_catalystbook.title": "Did I do something again?",
+  "advancements.apprenticecodex.apprentice_codex.craft_chargecast_catalystbook.description": "Craft a Catalystbook of Chargecast",
 
   "subtitle.apprenticecodex.sound.rifle": "Rifle fires",
   "subtitle.apprenticecodex.sound.suppress_rifle": "Suppressed rifle fires",
@@ -1258,5 +1271,6 @@
   "subtitle.apprenticecodex.sound.vanilla_jar_close": "Jar closes",
   "subtitle.apprenticecodex.sound.vanilla_chest_jump": "Chest jumps",
   "subtitle.apprenticecodex.sound.vanilla_card_throw": "Card thrown",
-  "subtitle.apprenticecodex.sound.vanilla_feed_ammo": "Ammo loads"
+  "subtitle.apprenticecodex.sound.vanilla_feed_ammo": "Ammo loads",
+  "subtitle.apprenticecodex.sound.vanilla_cast_book": "Book used"
 }

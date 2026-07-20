@@ -14,6 +14,7 @@ import io.redspace.ironsspellbooks.item.Scroll;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.network.casting.UpdateCastingStatePacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.*;
 import jp.aquafactory.apprenticecodex.item.*;
@@ -69,7 +70,8 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         RestrictedSpellImbuableItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
         ArcaneAnvilScrollImbueBlockItem, CastAnimationOverrideItem, SneakSelectionUiItem,
         OffhandAttributeRelocatingItem, NonDamageableAnvilMergeItem,
-        TranscendencePolicy, AttributeEnchantmentPolicy, WisdomPolicy, PlunderTarget {
+        TranscendencePolicy, AttributeEnchantmentPolicy, WisdomPolicy, PlunderTarget, IJeiInfoItem {
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.chargecast_catalystbook.desc_";
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     public static final int CALIBRATION_SCROLL_SLOT_COUNT = 4;
     public static final int BASE_CALIBRATION_SCROLL_SLOT_COUNT = 1;
@@ -126,6 +128,11 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         var stack = super.getDefaultInstance();
         initializeSpellContainer(stack);
         return stack;
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override
@@ -280,6 +287,14 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
                         Math.round((tooltipValues.spellPowerMultiplier() - 1.0D) * 100.0D)
                 )
         ).withStyle(ChatFormatting.GRAY));
+        var resolvedSchool = getResolvedCalibrationSchool(stack);
+        if (resolvedSchool != null) {
+            lines.add(Component.translatable(
+                    "item.apprenticecodex.chargecast_catalystbook.school_rune",
+                    resolvedSchool.getDisplayName()
+            ).withStyle(ChatFormatting.GRAY));
+        }
+
         ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
         if (ImbueTooltipHelper.appendHintIfDetailsHidden(lines)) {
             return;
