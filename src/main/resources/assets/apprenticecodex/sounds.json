@@ -703,5 +703,14 @@
         "volume": 0.6
       }
     ]
+  },
+  "vanilla_cast_book": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ENCHANTMENT_TABLE_USE",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_cast_book",
+    "sounds": [
+      "minecraft:block/enchantment_table/enchant1",
+      "minecraft:block/enchantment_table/enchant2",
+      "minecraft:block/enchantment_table/enchant3"
+    ]
   }
 }
