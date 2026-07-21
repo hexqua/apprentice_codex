@@ -6,8 +6,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientAnchorBlinkPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmScrollcasterGauntletIndexPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmStorageStabilizerSpellPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmSneakSelectionPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientEpicFightAttackcastRingTargetsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
@@ -34,7 +33,6 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncEdgeDancerStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncChargecastCatalystbookConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmChargecastCatalystbookIndexPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
@@ -68,7 +66,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "60";
+    private static final String PROTOCOL_VERSION = "61";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -161,24 +159,10 @@ public final class Networks {
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
-                ClientConfirmScrollcasterGauntletIndexPacket.class,
-                ClientConfirmScrollcasterGauntletIndexPacket::encode,
-                ClientConfirmScrollcasterGauntletIndexPacket::decode,
-                ClientConfirmScrollcasterGauntletIndexPacket::handle
-        );
-        CHANNEL.registerMessage(
-                nextPacketId++,
-                ClientConfirmChargecastCatalystbookIndexPacket.class,
-                ClientConfirmChargecastCatalystbookIndexPacket::encode,
-                ClientConfirmChargecastCatalystbookIndexPacket::decode,
-                ClientConfirmChargecastCatalystbookIndexPacket::handle
-        );
-        CHANNEL.registerMessage(
-                nextPacketId++,
-                ClientConfirmStorageStabilizerSpellPacket.class,
-                ClientConfirmStorageStabilizerSpellPacket::encode,
-                ClientConfirmStorageStabilizerSpellPacket::decode,
-                ClientConfirmStorageStabilizerSpellPacket::handle
+                ClientConfirmSneakSelectionPacket.class,
+                ClientConfirmSneakSelectionPacket::encode,
+                ClientConfirmSneakSelectionPacket::decode,
+                ClientConfirmSneakSelectionPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

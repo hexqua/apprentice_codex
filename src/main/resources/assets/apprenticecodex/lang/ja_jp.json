@@ -973,6 +973,7 @@
   "ui.apprenticecodex.zenith_staff.insufficient_mana": "%1$sの消費マナが%2$sに増加していて今のマナでは足りない！",
   "ui.apprenticecodex.spell_throwable_cards.not_imbued": "この札には魔法が注入されていない！",
 
+  "ui.apprenticecodex.spell_selector.empty": "選択候補無し",
   "ui.apprenticecodex.spell_calibration_bench.hint_default_spell": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spell_calibration_bench.cant_remove_not_allow": "このアイテムからはスクロールは取り出せない",
   "ui.apprenticecodex.spell_calibration_bench.cant_imbue_unsupported_equipment": "このアイテムへの注入は秘術の金床を使う必要がある",
@@ -980,7 +981,6 @@
   "ui.apprenticecodex.spell_calibration_bench.warning_mismatch_cast_condition": "対象のアイテムの詠唱可能条件を満たしていない",
   "ui.apprenticecodex.spellcaster_workbench.warning_max_slot_reached": "このアイテムは既に最大まで拡張されている",
   "ui.apprenticecodex.spellcaster_workbench.cant_imbue_to_card": "この魔法は札に注入できない",
-  "ui.apprenticecodex.scrollcaster_gauntlet.select_ui.empty": "選択候補無し",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
   "effect.apprenticecodex.casting_mobility": "詠唱移動補助",

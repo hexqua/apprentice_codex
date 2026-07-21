@@ -2,20 +2,19 @@ package jp.aquafactory.apprenticecodex.item.magicitem;
 
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
-import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.UniqueItem;
-import jp.aquafactory.apprenticecodex.item.SneakSelectionUiItem;
+import jp.aquafactory.apprenticecodex.item.ImmediateSneakSelectionUiItem;
+import jp.aquafactory.apprenticecodex.item.SneakSelectionView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
@@ -30,7 +29,7 @@ import net.minecraft.world.level.Level;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class StorageStabilizer extends Item implements IPresetSpellContainer, UniqueItem, SneakSelectionUiItem {
+public final class StorageStabilizer extends Item implements IPresetSpellContainer, UniqueItem, ImmediateSneakSelectionUiItem {
     private static final String SELECTED_SPELL_INDEX_TAG = "SelectedStorageSpellIndex";
     private static final int DEFAULT_SPELL_INDEX = 0;
 
@@ -155,23 +154,39 @@ public final class StorageStabilizer extends Item implements IPresetSpellContain
         refreshSelectedSpellContainer(stack);
     }
 
-    public static @NotNull List<SpellSelectionView> getSelectionViews(@NotNull ItemStack stack) {
+    @Override
+    public List<SneakSelectionView> getSneakSelectionViews(ItemStack stack) {
+        return getSelectionViews(stack);
+    }
+
+    @Override
+    public int getSneakSelectionIndex(ItemStack stack) {
+        return getSelectedSpellIndex(stack);
+    }
+
+    @Override
+    public boolean isSneakSelectionIndexSelectable(ItemStack stack, int selectionIndex) {
+        return isSelectableSpellIndex(selectionIndex);
+    }
+
+    @Override
+    public void setSneakSelectionIndex(ItemStack stack, int selectionIndex) {
+        setSelectedSpellIndex(stack, selectionIndex);
+    }
+
+    public static @NotNull List<SneakSelectionView> getSelectionViews(@NotNull ItemStack stack) {
         if (!isValidStorageStabilizer(stack)) {
             return List.of();
         }
 
-        var selectedIndex = normalizeSelectedSpellIndex(stack);
-        var views = new ArrayList<SpellSelectionView>();
+        normalizeSelectedSpellIndex(stack);
+        var views = new ArrayList<SneakSelectionView>();
         for (var index = 0; index < getSpellCount(); ++index) {
             var spellData = getSpellDataAt(index);
-            views.add(new SpellSelectionView(
+            views.add(SneakSelectionView.forSpell(
                     index,
                     spellData,
-                    createSelectionDisplayName(spellData),
-                    spellData == SpellData.EMPTY || spellData.getSpell() == null
-                            ? null
-                            : spellData.getSpell().getSpellIconResource(),
-                    index == selectedIndex
+                    isSelectableSpellIndex(index)
             ));
         }
         return List.copyOf(views);
@@ -245,36 +260,8 @@ public final class StorageStabilizer extends Item implements IPresetSpellContain
                 && currentSpell.isLocked();
     }
 
-    private static @NotNull Component createSelectionDisplayName(@NotNull SpellData spellData) {
-        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
-            return Component.empty();
-        }
-
-        var spell = spellData.getSpell();
-        return spell.getDisplayName(null)
-                .copy()
-                .append(" ")
-                .append(Integer.toString(spellData.getLevel()))
-                .withStyle(spell.getSchoolType().getDisplayName().getStyle());
-    }
-
     private static boolean isValidStorageStabilizer(@NotNull ItemStack stack) {
         return !stack.isEmpty() && stack.getItem() instanceof StorageStabilizer;
     }
 
-    public record SpellSelectionView(
-            int spellIndex,
-            SpellData spellData,
-            Component displayName,
-            @Nullable ResourceLocation spellIcon,
-            boolean currentSelection
-    ) {
-        public boolean hasSpell() {
-            return spellData != SpellData.EMPTY && spellData.getSpell() != null;
-        }
-
-        public AbstractSpell spell() {
-            return spellData.getSpell();
-        }
-    }
 }

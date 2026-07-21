@@ -30,6 +30,7 @@ import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.ScrollcasterGauntletRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import jp.aquafactory.apprenticecodex.utility.HandStackResolver;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
@@ -86,7 +87,7 @@ import java.util.function.Consumer;
 public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
         ItemTransformPreservingCastAnimationItem, ArcaneAnvilScrollImbueBlockItem,
         BetterCombatOffhandDualWieldingPolicyItem, SwingTriggeredMagicItem, PriorityOffhandUseDeferringItem, IJeiInfoItem,
-        SneakSelectionUiItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
+        ImmediateSneakSelectionUiItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
         TranscendencePolicy, AttributeEnchantmentPolicy, WisdomPolicy {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.scrollcaster_gauntlet.desc_";
 
@@ -759,40 +760,49 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         return getScrollSpellData(getCalibrationScroll(gauntletStack, selectedIndex));
     }
 
-    public static @NotNull List<ScrollSelectionView> getSelectionViews(@NotNull ItemStack gauntletStack) {
+    @Override
+    public List<SneakSelectionView> getSneakSelectionViews(ItemStack stack) {
+        return getSelectionViews(stack);
+    }
+
+    @Override
+    public int getSneakSelectionIndex(ItemStack stack) {
+        return getSelectedScrollIndex(stack);
+    }
+
+    @Override
+    public boolean isSneakSelectionIndexSelectable(ItemStack stack, int selectionIndex) {
+        return isSelectableScrollIndex(stack, selectionIndex);
+    }
+
+    @Override
+    public void setSneakSelectionIndex(ItemStack stack, int selectionIndex) {
+        setSelectedScrollIndex(stack, selectionIndex);
+    }
+
+    @Override
+    public HandStackResolver.OffhandResolution getSneakSelectionOffhandResolution() {
+        // Better Combatが論理オフハンドを空にする場合でも、Gauntletの選択UIだけは実スロットを参照する。
+        return HandStackResolver.OffhandResolution.PHYSICAL;
+    }
+
+    public static @NotNull List<SneakSelectionView> getSelectionViews(@NotNull ItemStack gauntletStack) {
         if (!isValidCalibrationAccess(gauntletStack, 0, 1)) {
             return List.of();
         }
 
-        var selectedIndex = normalizeSelectedScrollIndex(gauntletStack);
+        normalizeSelectedScrollIndex(gauntletStack);
         var enabledSlotCount = getEnabledCalibrationScrollSlotCount(gauntletStack);
-        var views = new ArrayList<ScrollSelectionView>();
+        var views = new ArrayList<SneakSelectionView>();
         for (var slot = 0; slot < enabledSlotCount; ++slot) {
             var spellData = getScrollSpellData(getCalibrationScroll(gauntletStack, slot));
-            views.add(new ScrollSelectionView(
+            views.add(SneakSelectionView.forSpell(
                     slot,
                     spellData,
-                    createSelectionDisplayName(spellData),
-                    spellData == SpellData.EMPTY || spellData.getSpell() == null
-                            ? null
-                            : spellData.getSpell().getSpellIconResource(),
-                    slot == selectedIndex
+                    isSelectableScrollIndex(gauntletStack, slot)
             ));
         }
         return List.copyOf(views);
-    }
-
-    private static @NotNull Component createSelectionDisplayName(@NotNull SpellData spellData) {
-        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
-            return Component.empty();
-        }
-
-        var spell = spellData.getSpell();
-        return spell.getDisplayName(null)
-                .copy()
-                .append(" ")
-                .append(Integer.toString(spellData.getLevel()))
-                .withStyle(spell.getSchoolType().getDisplayName().getStyle());
     }
 
     public static void refreshSelectedSpellContainer(@NotNull ItemStack gauntletStack) {
@@ -1028,22 +1038,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                 && gauntletStack.getItem() instanceof ScrollcasterGauntlet
                 && slot >= 0
                 && slot < slotCount;
-    }
-
-    public record ScrollSelectionView(
-            int scrollIndex,
-            SpellData spellData,
-            Component displayName,
-            @Nullable ResourceLocation spellIcon,
-            boolean currentSelection
-    ) {
-        public boolean hasSpell() {
-            return spellData != SpellData.EMPTY && spellData.getSpell() != null;
-        }
-
-        public AbstractSpell spell() {
-            return spellData.getSpell();
-        }
     }
 
     private record CalibrationEnchantmentCandidate(
