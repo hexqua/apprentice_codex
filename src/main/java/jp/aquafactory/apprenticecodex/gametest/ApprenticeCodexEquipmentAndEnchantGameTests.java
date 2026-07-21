@@ -13,6 +13,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     private static final String MINING_SPELL_ISOLATED_BATCH = "apprenticecodex.mining_spell_isolated";
     private static final String CRAFTSMANS_DELIGHT_GRACED_RAIN_DENYLIST_CONFIG_BATCH =
             "apprenticecodex.craftsmans_delight_graced_rain_denylist_config";
+    private static final String EQUIPMENT_SPELL_TIMING_MULTIPLIER_CONFIG_BATCH =
+            "apprenticecodex.equipment_spell_timing_multiplier_config";
     private static final String FOCUS_STAFFBOW_CONTINUOUS_BATCH = "apprenticecodex.focus_staffbow_continuous";
     private static final String FOCUS_STAFFBOW_ARROW_CONFIG_BATCH =
             "apprenticecodex.focus_staffbow_arrow_config";
@@ -1779,8 +1781,14 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void magiAgentSuitBootsCooldownKeepsCraftsmansDelightBestValue(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.magiAgentSuitBootsCooldownKeepsCraftsmansDelightBestValue(helper);
+    public static void equipmentCooldownReductionsDoNotStack(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.equipmentCooldownReductionsDoNotStack(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = EQUIPMENT_SPELL_TIMING_MULTIPLIER_CONFIG_BATCH)
+    public static void equipmentSpellTimingMultipliersFollowServerConfigAndKeepOneTickMinimum(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios
+                .equipmentSpellTimingMultipliersFollowServerConfigAndKeepOneTickMinimum(helper);
     }
 
     @GameTest(template = TEMPLATE)

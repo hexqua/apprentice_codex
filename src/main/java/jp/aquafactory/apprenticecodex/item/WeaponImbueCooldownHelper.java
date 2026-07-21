@@ -71,4 +71,12 @@ public final class WeaponImbueCooldownHelper {
         }
         return selectedCooldown;
     }
+
+    public static int applyLimitedCooldownMultiplier(int baseCooldown, double multiplier) {
+        if (baseCooldown <= 0) {
+            return baseCooldown;
+        }
+
+        return Math.max(1, (int) (baseCooldown * multiplier));
+    }
 }

@@ -110,6 +110,7 @@ import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGaun
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntletCastEvent;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitCooldownEvent;
+import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
@@ -541,9 +542,9 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             CraftsmansDelightManaCostDiscountEvent.onSpellCast(touchDigManaEvent);
             helper.assertTrue(touchDigManaEvent.getManaCost() == 8,
                     "CraftsmansDelight should halve Touch Dig mana to 8 but got " + touchDigManaEvent.getManaCost());
-            var expectedTouchDigBaseCooldown = Math.max(1, touchDigSpell.getSpellCooldown() / 3);
+            var expectedTouchDigBaseCooldown = Math.max(1, (int) (touchDigSpell.getSpellCooldown() * 0.5D));
             helper.assertTrue(CraftsmansDelight.applyCooldownDiscount(touchDigSpell.getSpellCooldown(), player) == expectedTouchDigBaseCooldown,
-                    "CraftsmansDelight should reduce Touch Dig base cooldown to one third before player modifiers");
+                    "CraftsmansDelight should apply the default 0.5 cooldown multiplier before player modifiers");
 
             var touchDigCooldownEvent = new SpellCooldownAddedEvent.Pre(
                     10,
@@ -567,9 +568,9 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             CraftsmansDelightManaCostDiscountEvent.onSpellCast(spectralHammerManaEvent);
             helper.assertTrue(spectralHammerManaEvent.getManaCost() == 8,
                     "CraftsmansDelight should halve Spectral Hammer mana to 8 but got " + spectralHammerManaEvent.getManaCost());
-            var expectedSpectralHammerBaseCooldown = Math.max(1, spectralHammerSpell.getSpellCooldown() / 3);
+            var expectedSpectralHammerBaseCooldown = Math.max(1, (int) (spectralHammerSpell.getSpellCooldown() * 0.5D));
             helper.assertTrue(CraftsmansDelight.applyCooldownDiscount(spectralHammerSpell.getSpellCooldown(), player) == expectedSpectralHammerBaseCooldown,
-                    "CraftsmansDelight should reduce Spectral Hammer base cooldown to one third before player modifiers");
+                    "CraftsmansDelight should apply the default 0.5 cooldown multiplier before player modifiers");
 
             var spectralHammerCooldownEvent = new SpellCooldownAddedEvent.Pre(
                     40,
@@ -679,7 +680,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
         });
     }
 
-    static void magiAgentSuitBootsCooldownKeepsCraftsmansDelightBestValue(GameTestHelper helper) {
+    static void equipmentCooldownReductionsDoNotStack(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
                     "magi_agent_boots_craftsmans_cooldown_test");
@@ -700,12 +701,80 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
                     player,
                     CastSource.SPELLBOOK
             );
-            var bootsOnlyCooldown = Math.max(1, spell.getSpellCooldown() / 2);
-            helper.assertTrue(expectedCooldown < bootsOnlyCooldown,
-                    "CraftsmansDelight should remain the stronger Thermal Process cooldown reduction");
+            var singleReductionCooldown = Math.max(1, (int) (spell.getSpellCooldown() * 0.5D));
+            helper.assertTrue(expectedCooldown == singleReductionCooldown,
+                    "Equal equipment cooldown multipliers should apply once instead of stacking");
             helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
                     "Magi Agent Suit Boots and CraftsmansDelight should keep the strongest cooldown but got "
                             + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+        });
+    }
+
+    static void equipmentSpellTimingMultipliersFollowServerConfigAndKeepOneTickMinimum(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "equipment_spell_timing_multiplier_config_test");
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            player.setItemSlot(EquipmentSlot.FEET, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()));
+            var craftsmansSpell = SpellRegistry.HARVEST_MOON.get();
+            var magiAgentSpell = SpellRegistry.COMMENCE_FIRE.get();
+
+            var effectiveCastTime = 101;
+
+            try (var ignored = ApprenticeCodexServerConfig.useEquipmentSpellTimingMultipliersOverrideForGameTest(
+                    0.25D,
+                    0.75D,
+                    0.25D
+            )) {
+                helper.assertTrue(
+                        CraftsmansDelight.applyCooldownDiscount(craftsmansSpell.getSpellCooldown(), player)
+                                == Math.max(1, (int) (craftsmansSpell.getSpellCooldown() * 0.25D)),
+                        "CraftsmansDelight should follow its server cooldown multiplier"
+                );
+                helper.assertTrue(
+                        MagiAgentSuitEffects.applyBootsCooldownDiscount(
+                                magiAgentSpell.getSpellCooldown(),
+                                magiAgentSpell,
+                                player
+                        ) == Math.max(1, (int) (magiAgentSpell.getSpellCooldown() * 0.75D)),
+                        "Magi Agent Suit Boots should follow their server cooldown multiplier"
+                );
+                helper.assertTrue(
+                        MagiAgentSuitEffects.applyBootsCastTimeReduction(
+                                magiAgentSpell,
+                                effectiveCastTime,
+                                player
+                        ) == Math.max(1, (int) Math.round(effectiveCastTime * 0.25D)),
+                        "Magi Agent Suit Boots should follow their server cast time multiplier"
+                );
+            }
+
+            try (var ignored = ApprenticeCodexServerConfig.useEquipmentSpellTimingMultipliersOverrideForGameTest(
+                    0.0D,
+                    0.0D,
+                    0.0D
+            )) {
+                helper.assertTrue(
+                        CraftsmansDelight.applyCooldownDiscount(craftsmansSpell.getSpellCooldown(), player) == 1,
+                        "CraftsmansDelight should keep a 1 tick minimum at multiplier 0.0"
+                );
+                helper.assertTrue(
+                        MagiAgentSuitEffects.applyBootsCooldownDiscount(
+                                magiAgentSpell.getSpellCooldown(),
+                                magiAgentSpell,
+                                player
+                        ) == 1,
+                        "Magi Agent Suit Boots should keep a 1 tick minimum at multiplier 0.0"
+                );
+                helper.assertTrue(
+                        MagiAgentSuitEffects.applyBootsCastTimeReduction(
+                                magiAgentSpell,
+                                effectiveCastTime,
+                                player
+                        ) == 1,
+                        "Magi Agent Suit Boots should keep a 1 tick cast time minimum at multiplier 0.0"
+                );
+            }
         });
     }
 

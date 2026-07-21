@@ -5,6 +5,8 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.EquipmentSpellTimingConfigState;
+import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.IMagiAgentSuitAffectedSpell;
 import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper;
@@ -88,7 +90,14 @@ public final class MagiAgentSuitEffects {
         if (baseCooldown <= 0 || !isTargetSpell(spell) || !isWearingSuitPiece(player, ArmorItem.Type.BOOTS)) {
             return baseCooldown;
         }
-        return Math.max(1, baseCooldown / 2);
+        // 実行中の SERVER config リロード後も予測結果を一致させるため、クライアントでは同期値を使う。
+        var cooldownMultiplier = player.level().isClientSide
+                ? EquipmentSpellTimingConfigState.magiAgentSuitBootsCooldownMultiplier()
+                : ApprenticeCodexServerConfig.magiAgentSuitBootsCooldownMultiplier();
+        return WeaponImbueCooldownHelper.applyLimitedCooldownMultiplier(
+                baseCooldown,
+                cooldownMultiplier
+        );
     }
 
     public static int applyBootsCastTimeReduction(AbstractSpell spell, int effectiveCastTime, @Nullable LivingEntity entity) {
@@ -96,7 +105,12 @@ public final class MagiAgentSuitEffects {
                 || !isTargetSpell(spell) || !isWearingSuitPiece(entity, ArmorItem.Type.BOOTS)) {
             return effectiveCastTime;
         }
-        return Math.max(1, Math.round(effectiveCastTime * 0.5F));
+        var castTimeMultiplier = entity.level().isClientSide
+                ? EquipmentSpellTimingConfigState.magiAgentSuitBootsCastTimeMultiplier()
+                : ApprenticeCodexServerConfig.magiAgentSuitBootsCastTimeMultiplier();
+        return Math.max(1, (int) Math.round(
+                effectiveCastTime * castTimeMultiplier
+        ));
     }
 
     public static int applyBootsCommenceFireRecastCastTime(AbstractSpell spell, int effectiveCastTime, LivingEntity entity) {
