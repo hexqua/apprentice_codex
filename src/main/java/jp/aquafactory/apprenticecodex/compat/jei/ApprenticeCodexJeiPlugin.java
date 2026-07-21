@@ -222,6 +222,7 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                 < ApprenticeCodexServerConfig.archivistsGrimoireEffectiveMaxRows()) {
             recipes.add(createArchivistsGrimoireUpgradeJeiRecipe());
         }
+        recipes.add(createSpellExtractionJeiRecipe());
         recipes.addAll(createSpellThrowableCardJeiRecipes());
         return recipes;
     }
@@ -236,6 +237,29 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                 ),
                 List.of(new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get())),
                 -10
+        );
+    }
+
+    private static SpellcasterWorkbenchRecipe createSpellExtractionJeiRecipe() {
+        var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        var imbuedSword = new ItemStack(Items.IRON_SWORD);
+        var swordSpells = ISpellContainer.create(1, true, false).mutableCopy();
+        swordSpells.addSpellAtIndex(magicMissile, 1, 0, true);
+        ISpellContainer.set(imbuedSword, swordSpells.toImmutable());
+
+        var extractedScroll = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+        ISpellContainer.createScrollContainer(magicMissile, 1, extractedScroll);
+
+        // 実処理は2入力と空スロットを要求するため、JEI専用レシピの3枠目も空Ingredientとして表示する。
+        return new SpellcasterWorkbenchRecipe(
+                SpellcasterWorkbenchRecipeCategory.SPELL_EXTRACTION_RECIPE_ID,
+                List.of(
+                        new SpellcasterWorkbenchRecipe.SizedIngredient(Ingredient.of(imbuedSword), 1),
+                        new SpellcasterWorkbenchRecipe.SizedIngredient(Ingredient.of(ItemRegistry.SPELL_EXTRACT_SHARD.get()), 1),
+                        new SpellcasterWorkbenchRecipe.SizedIngredient(Ingredient.EMPTY, 1)
+                ),
+                List.of(extractedScroll),
+                -20
         );
     }
 

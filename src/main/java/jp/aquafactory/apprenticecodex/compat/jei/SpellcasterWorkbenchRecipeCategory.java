@@ -14,6 +14,8 @@ import org.jetbrains.annotations.NotNull;
 public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprenticeCodexRecipeCategory<SpellcasterWorkbenchRecipe> {
     public static final ResourceLocation ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_RECIPE_ID =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "archivists_grimoire_row_upgrade");
+    public static final ResourceLocation SPELL_EXTRACTION_RECIPE_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_extraction");
     public static final ResourceLocation SPELL_INVOKE_CARD_RECIPE_ID =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_invoke_card");
     public static final ResourceLocation SPELL_INVOKE_CARD_REWRITE_RECIPE_ID =
