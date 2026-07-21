@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncEquipmentSpellTimingConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletNotificationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletProfileSpellIdsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncApprenticeDeskConfigPacket;
@@ -63,7 +64,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "61";
+    private static final String PROTOCOL_VERSION = "62";
 
     private Networks() {
     }
@@ -193,6 +194,11 @@ public final class Networks {
                 SyncZenithStaffConfigPacket.TYPE,
                 SyncZenithStaffConfigPacket.STREAM_CODEC,
                 SyncZenithStaffConfigPacket::handle
+        );
+        registrar.playToClient(
+                SyncEquipmentSpellTimingConfigPacket.TYPE,
+                SyncEquipmentSpellTimingConfigPacket.STREAM_CODEC,
+                SyncEquipmentSpellTimingConfigPacket::handle
         );
         registrar.playToClient(
                 SyncScarletThirstHealthPacket.TYPE,

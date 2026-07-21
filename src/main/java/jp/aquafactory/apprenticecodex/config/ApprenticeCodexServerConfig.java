@@ -315,6 +315,10 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.craftsmansDelightFortuneLevel();
     }
 
+    public static double craftsmansDelightCooldownMultiplier() {
+        return ITEMS_CONFIG.craftsmansDelightCooldownMultiplier();
+    }
+
     public static boolean isCraftsmansDelightGracedRainGrowthDenied(ResourceLocation entityTypeId) {
         return ITEMS_CONFIG.isCraftsmansDelightGracedRainGrowthDenied(entityTypeId);
     }
@@ -349,6 +353,14 @@ public final class ApprenticeCodexServerConfig {
 
     public static double magiAgentSuitSchoolSpellPowerBonus() {
         return ITEMS_CONFIG.magiAgentSuitSchoolSpellPowerBonus();
+    }
+
+    public static double magiAgentSuitBootsCooldownMultiplier() {
+        return ITEMS_CONFIG.magiAgentSuitBootsCooldownMultiplier();
+    }
+
+    public static double magiAgentSuitBootsCastTimeMultiplier() {
+        return ITEMS_CONFIG.magiAgentSuitBootsCastTimeMultiplier();
     }
 
     public static double magiAgentSuitAmmoNoConsumeChance() {
@@ -860,6 +872,26 @@ public final class ApprenticeCodexServerConfig {
         return () -> ITEMS_CONFIG.setCraftsmansDelightGracedRainDenylistsForGameTest(
                 previousGrowthDenylist,
                 previousBreedingCooldownDenylist
+        );
+    }
+
+    public static GameTestConfigOverride useEquipmentSpellTimingMultipliersOverrideForGameTest(
+            double craftsmansDelightCooldownMultiplier,
+            double magiAgentSuitBootsCooldownMultiplier,
+            double magiAgentSuitBootsCastTimeMultiplier
+    ) {
+        var previousCraftsmansDelightCooldownMultiplier = ITEMS_CONFIG.craftsmansDelightCooldownMultiplier();
+        var previousMagiAgentSuitBootsCooldownMultiplier = ITEMS_CONFIG.magiAgentSuitBootsCooldownMultiplier();
+        var previousMagiAgentSuitBootsCastTimeMultiplier = ITEMS_CONFIG.magiAgentSuitBootsCastTimeMultiplier();
+        ITEMS_CONFIG.setEquipmentSpellTimingMultipliersForGameTest(
+                craftsmansDelightCooldownMultiplier,
+                magiAgentSuitBootsCooldownMultiplier,
+                magiAgentSuitBootsCastTimeMultiplier
+        );
+        return () -> ITEMS_CONFIG.setEquipmentSpellTimingMultipliersForGameTest(
+                previousCraftsmansDelightCooldownMultiplier,
+                previousMagiAgentSuitBootsCooldownMultiplier,
+                previousMagiAgentSuitBootsCastTimeMultiplier
         );
     }
 

@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.event.ApprenticeDeskConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.CircuitHeatStaffConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.EquipmentSpellTimingConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.IsekaiTravelGuidebookConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ManaForceBladeConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ManaShieldCharmConfigSyncEvents;
@@ -82,6 +83,7 @@ public class ApprenticeCodex
         ModEntityAttributeEvent.register(modEventBus);
         ApprenticeDeskConfigSyncEvents.register(modEventBus);
         CircuitHeatStaffConfigSyncEvents.register(modEventBus);
+        EquipmentSpellTimingConfigSyncEvents.register(modEventBus);
         ChargecastCatalystbookConfigSyncEvents.register(modEventBus);
         FocusStaffbowConfigSyncEvents.register(modEventBus);
         IsekaiTravelGuidebookConfigSyncEvents.register(modEventBus);
