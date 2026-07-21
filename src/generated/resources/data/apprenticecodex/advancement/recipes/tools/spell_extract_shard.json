@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_shriving_stone": {
+      "conditions": {
+        "items": [
+          {
+            "items": "irons_spellbooks:shriving_stone"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "apprenticecodex:spell_extract_shard"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_shriving_stone"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "apprenticecodex:spell_extract_shard"
+    ]
+  }
+}

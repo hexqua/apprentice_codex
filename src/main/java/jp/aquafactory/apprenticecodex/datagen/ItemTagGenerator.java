@@ -516,6 +516,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get()
         );
+        tag(TagRegistry.Items.SPELL_DISMANTLEABLE).add(
+                net.minecraft.world.item.Items.IRON_SWORD,
+                net.minecraft.world.item.Items.DIAMOND_SWORD,
+                net.minecraft.world.item.Items.NETHERITE_SWORD
+        );
         tag(TagRegistry.Items.ASSIST_WINGS_ONLY_JUMP_ITEMS).add(
                 net.minecraft.world.item.Items.MACE,
                 ItemRegistry.SMASHCAST_SCEPTER.get()

@@ -115,6 +115,23 @@ public final class SpellCalibrationImbueHelper {
         return createScroll(spellData);
     }
 
+    public static boolean canExtractAnyScroll(@NotNull ItemStack targetStack) {
+        if (!isSupportedTarget(targetStack)) {
+            return false;
+        }
+
+        var spellContainer = ISpellContainer.get(targetStack);
+        if (spellContainer == null) {
+            return false;
+        }
+        for (var slot = 0; slot < spellContainer.getMaxSpellCount(); ++slot) {
+            if (!createScrollForSlot(targetStack, slot).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static @NotNull ItemStack createLockedPreviewScrollForSlot(@NotNull ItemStack targetStack, int slot) {
         var spellData = getSpellDataAt(targetStack, slot);
         if (spellData == SpellData.EMPTY || canRemoveSpell(targetStack, slot, spellData)) {
@@ -390,7 +407,7 @@ public final class SpellCalibrationImbueHelper {
         return spellData == null ? SpellData.EMPTY : spellData;
     }
 
-    private static @NotNull ItemStack createScroll(@NotNull SpellData spellData) {
+    public static @NotNull ItemStack createScroll(@NotNull SpellData spellData) {
         if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
             return ItemStack.EMPTY;
         }

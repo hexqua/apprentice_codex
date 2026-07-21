@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.ProcessingRecipeDenylist;
+import jp.aquafactory.apprenticecodex.utility.SpellExtractionHelper;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -142,9 +143,18 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         return getActiveDynamicCraft() == null && hasInvalidDynamicCardImbue();
     }
 
+    public @Nullable SpellExtractionHelper.BlockReason getSpellExtractionBlockReason() {
+        if (!getActiveResult().isEmpty()) {
+            return null;
+        }
+        var attempt = getSpellExtractionAttempt();
+        return attempt == null ? null : attempt.evaluation().blockReason();
+    }
+
     public boolean isResultBlocked() {
         return isBlockedByArchivistsGrimoireMaxSlotReached()
-                || isBlockedBySpellThrowableCardCantImbue();
+                || isBlockedBySpellThrowableCardCantImbue()
+                || getSpellExtractionBlockReason() != null;
     }
 
     @Override
@@ -658,6 +668,18 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             return;
         }
 
+        var spellExtraction = getActiveSpellExtraction();
+        if (spellExtraction != null) {
+            craftedStack.onCraftedBy(player.level(), player, craftedStack.getCount());
+            if (!consumeSpellExtractionInputs(spellExtraction, craftedStack)) {
+                return;
+            }
+
+            playCraftSound();
+            setupResultSlot();
+            return;
+        }
+
         var dynamicCraft = getActiveDynamicCraft();
         if (dynamicCraft != null) {
             craftedStack.onCraftedBy(player.level(), player, craftedStack.getCount());
@@ -709,6 +731,21 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
         shrinkInput(matchedSlots[0], craft.variant().baseCount());
         shrinkInput(matchedSlots[1], craft.variant().catalystCount());
+        container.setChanged();
+        return true;
+    }
+
+    private boolean consumeSpellExtractionInputs(SpellExtractionCraft craft, ItemStack craftedStack) {
+        var current = getActiveSpellExtraction();
+        if (current == null
+                || current.targetSlotIndex() != craft.targetSlotIndex()
+                || current.shardSlotIndex() != craft.shardSlotIndex()
+                || !ItemStack.isSameItemSameComponents(current.resultTemplate(), craftedStack)) {
+            return false;
+        }
+
+        shrinkInput(current.targetSlotIndex(), 1);
+        shrinkInput(current.shardSlotIndex(), 1);
         container.setChanged();
         return true;
     }
@@ -839,6 +876,13 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             return activeRecipe.getPrimaryResultTemplate();
         }
 
+        var spellExtractionAttempt = getSpellExtractionAttempt();
+        if (spellExtractionAttempt != null) {
+            return spellExtractionAttempt.evaluation().isSuccess()
+                    ? spellExtractionAttempt.evaluation().resultStack().copy()
+                    : ItemStack.EMPTY;
+        }
+
         var dynamicCraft = getActiveDynamicCraft();
         if (dynamicCraft != null) {
             return dynamicCraft.resultTemplate().copy();
@@ -851,6 +895,51 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
         var flaskToggle = getActiveFlaskParticleToggle();
         return flaskToggle == null ? ItemStack.EMPTY : flaskToggle.resultTemplate().copy();
+    }
+
+    private @Nullable SpellExtractionCraft getActiveSpellExtraction() {
+        var attempt = getSpellExtractionAttempt();
+        if (attempt == null || !attempt.evaluation().isSuccess()) {
+            return null;
+        }
+        return new SpellExtractionCraft(
+                attempt.targetSlotIndex(),
+                attempt.shardSlotIndex(),
+                attempt.evaluation().resultStack().copy()
+        );
+    }
+
+    private @Nullable SpellExtractionAttempt getSpellExtractionAttempt() {
+        var targetSlotIndex = -1;
+        var shardSlotIndex = -1;
+        var occupiedSlotCount = 0;
+        for (var slotIndex = 0; slotIndex < INPUT_SLOT_COUNT; ++slotIndex) {
+            var stack = container.getItem(slotIndex);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            ++occupiedSlotCount;
+            if (stack.is(ItemRegistry.SPELL_EXTRACT_SHARD.get())) {
+                if (shardSlotIndex >= 0) {
+                    return null;
+                }
+                shardSlotIndex = slotIndex;
+            } else {
+                if (targetSlotIndex >= 0) {
+                    return null;
+                }
+                targetSlotIndex = slotIndex;
+            }
+        }
+        if (occupiedSlotCount != 2 || targetSlotIndex < 0 || shardSlotIndex < 0) {
+            return null;
+        }
+
+        return new SpellExtractionAttempt(
+                targetSlotIndex,
+                shardSlotIndex,
+                SpellExtractionHelper.evaluate(container.getItem(targetSlotIndex))
+        );
     }
 
     private @Nullable RecipeSelection getSelectedSelection() {
@@ -1285,6 +1374,20 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             DynamicRecipeVariant variant,
             int[] matchedSlots,
             ItemStack resultTemplate
+    ) {
+    }
+
+    private record SpellExtractionCraft(
+            int targetSlotIndex,
+            int shardSlotIndex,
+            ItemStack resultTemplate
+    ) {
+    }
+
+    private record SpellExtractionAttempt(
+            int targetSlotIndex,
+            int shardSlotIndex,
+            SpellExtractionHelper.Evaluation evaluation
     ) {
     }
 
