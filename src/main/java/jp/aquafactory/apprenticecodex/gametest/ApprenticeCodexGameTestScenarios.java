@@ -2629,7 +2629,7 @@ public class ApprenticeCodexGameTestScenarios {
             var selectionViews = ScrollcasterGauntlet.getSelectionViews(gauntlet);
             helper.assertTrue(selectionViews.size() == ScrollcasterGauntlet.BASE_CALIBRATION_SCROLL_SLOT_COUNT,
                     "Scrollcaster Gauntlet selection UI should expose every enabled slot");
-            helper.assertTrue(!selectionViews.get(0).hasSpell() && selectionViews.get(3).hasSpell(),
+            helper.assertTrue(!selectionViews.get(0).selectable() && selectionViews.get(3).selectable(),
                     "Scrollcaster Gauntlet selection UI should keep empty slots visible");
             helper.assertTrue(selectionViews.get(3).displayName().getString().endsWith(" 1"),
                     "Scrollcaster Gauntlet selection label should append the spell level number");
@@ -2686,8 +2686,9 @@ public class ApprenticeCodexGameTestScenarios {
             var storageStabilizerViews = StorageStabilizer.getSelectionViews(storageStabilizer);
             helper.assertTrue(storageStabilizerViews.size() == 3,
                     "Storage Stabilizer selection UI should expose all three storage spells");
-            assertSpellData(helper, storageStabilizerViews.get(2).spellData(), SpellRegistry.COMPANION_TRUNK.get(), 1,
-                    "Storage Stabilizer should expose Companion Trunk level 1 as its third selection");
+            helper.assertTrue(storageStabilizerViews.get(2).selectionIndex() == 2
+                            && storageStabilizerViews.get(2).selectable(),
+                    "Storage Stabilizer should expose its third spell as a selectable common UI entry");
             StorageStabilizer.setSelectedSpellIndex(storageStabilizer, 2);
             var companionTrunkContainer = ISpellContainer.get(storageStabilizer);
             helper.assertTrue(companionTrunkContainer != null,
@@ -2868,8 +2869,15 @@ public class ApprenticeCodexGameTestScenarios {
             var baseViews = ScrollcasterGauntlet.getSelectionViews(gauntlet);
             helper.assertTrue(baseViews.size() == ScrollcasterGauntlet.BASE_CALIBRATION_SCROLL_SLOT_COUNT,
                     "Empty Scrollcaster Gauntlet selection UI should expose every base slot");
-            helper.assertTrue(baseViews.stream().allMatch(view -> !view.hasSpell() && !view.currentSelection()),
-                    "Empty Scrollcaster Gauntlet selection UI should expose only unselected empty slots");
+            helper.assertTrue(baseViews.stream().noneMatch(jp.aquafactory.apprenticecodex.item.SneakSelectionView::selectable),
+                    "Empty Scrollcaster Gauntlet selection UI should expose only empty slots");
+            var emptyState = jp.aquafactory.apprenticecodex.item.SneakSelectionState.open(
+                    InteractionHand.MAIN_HAND,
+                    baseViews,
+                    ScrollcasterGauntlet.getSelectedScrollIndex(gauntlet)
+            );
+            helper.assertTrue(emptyState.selectableViewCount() == 0 && emptyState.move(1) == emptyState,
+                    "Empty Scrollcaster Gauntlet selection UI should stay open without a movable selection");
 
             var expandedGauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
             var lesserUpgrade = new ItemStack(
@@ -2888,8 +2896,8 @@ public class ApprenticeCodexGameTestScenarios {
                     "Empty Scrollcaster Gauntlet selection UI should track its enabled slot count");
             helper.assertTrue(expandedViews.size() > baseViews.size(),
                     "Slot upgrade should add empty slots to the Scrollcaster Gauntlet selection UI");
-            helper.assertTrue(expandedViews.stream().allMatch(view -> !view.hasSpell() && !view.currentSelection()),
-                    "Expanded empty Scrollcaster Gauntlet selection UI should keep every slot unselected");
+            helper.assertTrue(expandedViews.stream().noneMatch(jp.aquafactory.apprenticecodex.item.SneakSelectionView::selectable),
+                    "Expanded empty Scrollcaster Gauntlet selection UI should keep every slot empty");
         });
     }
 
