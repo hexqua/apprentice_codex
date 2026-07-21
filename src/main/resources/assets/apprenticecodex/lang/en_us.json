@@ -181,6 +181,8 @@
   "item.apprenticecodex.common.spellgun.desc_2": "When held in the offhand, cast a spell with [%1$s].",
   "item.apprenticecodex.common.spellgun.epicfight.offhand_warning": "While held in the offhand, Guard skills cannot be used.",
   "item.apprenticecodex.wisdom_shard.desc": "Can be installed as an adjustment item for some equipment.",
+  "item.apprenticecodex.spell_extract_shard.desc_1": "Used to extract a spell imbued in an item.",
+  "item.apprenticecodex.spell_extract_shard.desc_2": "The imbued item is destroyed during extraction.",
   "item.apprenticecodex.apprentice_desk.disabled_tooltip": "Only functional as a job site block for an Errand Mage.",
   "item.apprenticecodex.spell_dispenser.creative_tooltip": "Creative version",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "Currently pointing at the lodestone.",
@@ -327,6 +329,9 @@
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "Using it as fuel in a furnace, blast furnace, or smoker increases processing speed.",
   "jei.apprenticecodex.arcane_cinder.desc_2": "It has no effect in other machines.",
+  "jei.apprenticecodex.spell_extract_shard.desc_1": "Combine it with an imbued item at a Spellcaster Workbench to extract the spell as a scroll.",
+  "jei.apprenticecodex.spell_extract_shard.desc_2": "Only certain items can be used, and the imbued item is lost during extraction.",
+  "jei.apprenticecodex.spell_extract_shard.desc_3": "Pre-imbued items are limited to those obtainable from dungeons and similar loot.",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "Place it and supply redstone to slowly convert it into Arcane Essence over time.",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "Breaking it drops any finished Arcane Essence and any unused redstone.",
   "jei.apprenticecodex.spellcaster_workbench.desc_1": "A workbench for crafting spellgun rounds.",
@@ -975,6 +980,11 @@
   "ui.apprenticecodex.spell_calibration_bench.warning_mismatch_cast_condition": "This spell does not meet the target item's cast condition",
   "ui.apprenticecodex.spellcaster_workbench.warning_max_slot_reached": "This item has already been upgraded to its maximum",
   "ui.apprenticecodex.spellcaster_workbench.cant_imbue_to_card": "This spell cannot be imbued into cards",
+
+  "ui.apprenticecodex.spellcaster_workbench.cant_extract_unique_item": "This item's bond with its spell is too strong.",
+  "ui.apprenticecodex.spellcaster_workbench.cant_extract_not_target": "A spell cannot be extracted from this item.",
+  "ui.apprenticecodex.spellcaster_workbench.cant_extract_locked": "This item's bond with its spell is too strong.",
+  "ui.apprenticecodex.spellcaster_workbench.cant_extract_extractable": "This item's spell can be safely removed at a Spell Calibration Bench.",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
   "effect.apprenticecodex.casting_mobility": "Casting Mobility",
