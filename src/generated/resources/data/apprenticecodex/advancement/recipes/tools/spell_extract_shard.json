@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "irons_spellbooks:shriving_stone"
-            ]
+            "items": "irons_spellbooks:shriving_stone"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_shriving_stone",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_shriving_stone"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:spell_extract_shard"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }
