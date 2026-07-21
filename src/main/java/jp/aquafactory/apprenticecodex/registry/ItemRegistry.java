@@ -26,6 +26,7 @@ import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.blockitem.SpellCalibrationBenchItem;
 import jp.aquafactory.apprenticecodex.item.blockitem.SpellDispenserItem;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
+import jp.aquafactory.apprenticecodex.item.SpellExtractShard;
 import jp.aquafactory.apprenticecodex.item.blockitem.SpellcasterWorkbenchItem;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import jp.aquafactory.apprenticecodex.item.UniteLunaStaff;
@@ -153,6 +154,7 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> ARTISAN_SMASH_LAUNCHER = simple("artisan_smash_launcher");
     public static final DeferredHolder<Item, Item> ARCANE_CINDER = ITEMS.register("arcane_cinder", ArcaneCinderItem::new);
     public static final DeferredHolder<Item, Item> WISDOM_SHARD = ITEMS.register("wisdom_shard", WisdomShardItem::new);
+    public static final DeferredHolder<Item, Item> SPELL_EXTRACT_SHARD = ITEMS.register("spell_extract_shard", SpellExtractShard::new);
     public static final DeferredHolder<Item, Item> COMFORT_BERRIES =
             ITEMS.register("comfort_berries", () -> new ItemNameBlockItem(
                     BlockRegistry.COMFORT_BERRY_BUSH.get(),

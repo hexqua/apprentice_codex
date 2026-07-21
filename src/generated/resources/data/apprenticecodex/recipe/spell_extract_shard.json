@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "minecraft:flint"
+    },
+    {
+      "item": "irons_spellbooks:shriving_stone"
+    },
+    {
+      "item": "apprenticecodex:arcane_cinder"
+    },
+    {
+      "item": "minecraft:gunpowder"
+    }
+  ],
+  "result": {
+    "item": "apprenticecodex:spell_extract_shard"
+  }
+}
