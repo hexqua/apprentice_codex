@@ -990,6 +990,7 @@
   "ui.apprenticecodex.spellcaster_workbench.cant_extract_unique_item": "このアイテムは魔法との結びつきが強力すぎる",
   "ui.apprenticecodex.spellcaster_workbench.cant_extract_not_target": "このアイテムからは魔法を抽出できない",
   "ui.apprenticecodex.spellcaster_workbench.cant_extract_locked": "このアイテムは魔法との結びつきが強力すぎる",
+  "ui.apprenticecodex.spellcaster_workbench.cant_extract_extractable": "このアイテムからは術式調整台で安全に取り外せる",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
   "effect.apprenticecodex.casting_mobility": "詠唱移動補助",
