@@ -15,7 +15,7 @@ import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCata
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookCastEvents;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookClientCastIntent;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookPresentationResolver;
-import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookSelectionState;
+import jp.aquafactory.apprenticecodex.item.SneakSelectionState;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookStartSoundContext;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell;
@@ -96,23 +96,32 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
             var icicle = io.redspace.ironsspellbooks.api.registry.SpellRegistry.ICICLE_SPELL.get();
             ChargecastCatalystbook.setCalibrationScroll(book, 0, createSpellScroll(firebolt));
             ChargecastCatalystbook.setCalibrationScroll(book, 2, createSpellScroll(icicle));
-            var selectionState = ChargecastCatalystbookSelectionState.open(
+            var selectionViews = ChargecastCatalystbook.getSelectionViews(book);
+            helper.assertTrue(selectionViews.get(0).displayName().getString().endsWith(" 1"),
+                    "Chargecast Catalystbook selection label should append the spell level number");
+            helper.assertTrue(java.util.Objects.equals(
+                            selectionViews.get(0).displayName().getStyle().getColor(),
+                            firebolt.getSchoolType().getDisplayName().getStyle().getColor()
+                    ),
+                    "Chargecast Catalystbook selection label should use the spell school color");
+            var selectionState = SneakSelectionState.open(
                     net.minecraft.world.InteractionHand.MAIN_HAND,
-                    ChargecastCatalystbook.getSelectionViews(book)
+                    selectionViews,
+                    ChargecastCatalystbook.getSelectedScrollIndex(book)
             );
-            helper.assertTrue(selectionState.selectedScrollIndex() == 3,
+            helper.assertTrue(selectionState.selectedItemIndex() == 3,
                     "Selection state should start from the item selection");
             selectionState = selectionState.move(1);
-            helper.assertTrue(selectionState.selectedScrollIndex() == 0,
+            helper.assertTrue(selectionState.selectedItemIndex() == 0,
                     "Selection state should wrap forward");
             selectionState = selectionState.move(1);
-            helper.assertTrue(selectionState.selectedScrollIndex() == 2,
+            helper.assertTrue(selectionState.selectedItemIndex() == 2,
                     "Selection state should skip empty slots");
             selectionState = selectionState.move(1);
-            helper.assertTrue(selectionState.selectedScrollIndex() == 3,
+            helper.assertTrue(selectionState.selectedItemIndex() == 3,
                     "Repeated wheel input should continue from the updated cursor");
             selectionState = selectionState.move(-1);
-            helper.assertTrue(selectionState.selectedScrollIndex() == 2,
+            helper.assertTrue(selectionState.selectedItemIndex() == 2,
                     "Selection state should move backward from the current cursor");
 
             ChargecastCatalystbook.setSelectedScrollIndex(book, 0);
@@ -120,7 +129,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
                     ChargecastCatalystbook.getSelectionViews(book),
                     ChargecastCatalystbook.getSelectedScrollIndex(book)
             );
-            helper.assertTrue(selectionState.selectedScrollIndex() == 0,
+            helper.assertTrue(selectionState.selectedItemIndex() == 0,
                     "Selection refresh should follow the ItemStack rather than a stale UI cursor");
 
             ChargecastCatalystbookClientCastIntent.mark(player.getUUID(), book, instant);

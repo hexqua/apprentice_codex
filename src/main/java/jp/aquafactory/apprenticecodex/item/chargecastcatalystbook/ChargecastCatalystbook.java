@@ -23,6 +23,7 @@ import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.HandStackResolver;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
@@ -74,7 +75,7 @@ import java.util.function.Consumer;
 
 public final class ChargecastCatalystbook extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
         RestrictedSpellImbuableItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
-        ArcaneAnvilScrollImbueBlockItem, CastAnimationOverrideItem, SneakSelectionUiItem,
+        ArcaneAnvilScrollImbueBlockItem, CastAnimationOverrideItem, ImmediateSneakSelectionUiItem,
         OffhandAttributeRelocatingItem, NonDamageableAnvilMergeItem,
         TranscendencePolicy, AttributeEnchantmentPolicy, WisdomPolicy, PlunderTarget, IJeiInfoItem {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.chargecast_catalystbook.desc_";
@@ -228,6 +229,31 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     @Override
     public boolean isSneakSelectionUiEnabled(ItemStack stack) {
         return getEnabledCalibrationScrollSlotCount(stack) > BASE_CALIBRATION_SCROLL_SLOT_COUNT;
+    }
+
+    @Override
+    public List<SneakSelectionView> getSneakSelectionViews(ItemStack stack) {
+        return getSelectionViews(stack);
+    }
+
+    @Override
+    public int getSneakSelectionIndex(ItemStack stack) {
+        return getSelectedScrollIndex(stack);
+    }
+
+    @Override
+    public boolean isSneakSelectionIndexSelectable(ItemStack stack, int selectionIndex) {
+        return isSelectableScrollIndex(stack, selectionIndex);
+    }
+
+    @Override
+    public void setSneakSelectionIndex(ItemStack stack, int selectionIndex) {
+        setSelectedScrollIndex(stack, selectionIndex);
+    }
+
+    @Override
+    public HandStackResolver.OffhandResolution getSneakSelectionOffhandResolution() {
+        return HandStackResolver.OffhandResolution.LOGICAL;
     }
 
     @Override
@@ -600,14 +626,16 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         return selected < 0 ? SpellData.EMPTY : getScrollSpellData(getCalibrationScroll(stack, selected));
     }
 
-    public static @NotNull List<ScrollSelectionView> getSelectionViews(@NotNull ItemStack stack) {
-        var selected = normalizeSelectedScrollIndex(stack);
-        var views = new ArrayList<ScrollSelectionView>();
+    public static @NotNull List<SneakSelectionView> getSelectionViews(@NotNull ItemStack stack) {
+        normalizeSelectedScrollIndex(stack);
+        var views = new ArrayList<SneakSelectionView>();
         for (var slot = 0; slot < getEnabledCalibrationScrollSlotCount(stack); ++slot) {
             var spellData = getScrollSpellData(getCalibrationScroll(stack, slot));
-            var icon = spellData == SpellData.EMPTY || spellData.getSpell() == null
-                    ? null : spellData.getSpell().getSpellIconResource();
-            views.add(new ScrollSelectionView(slot, spellData, icon, slot == selected));
+            views.add(SneakSelectionView.forSpell(
+                    slot,
+                    spellData,
+                    isSelectableScrollIndex(stack, slot)
+            ));
         }
         return List.copyOf(views);
     }
@@ -821,10 +849,6 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     private static boolean isValidCalibrationAccess(ItemStack stack, int slot, int slotCount) {
         return !stack.isEmpty() && stack.getItem() instanceof ChargecastCatalystbook
                 && slot >= 0 && slot < slotCount;
-    }
-
-    public record ScrollSelectionView(int scrollIndex, SpellData spellData,
-                                      @Nullable net.minecraft.resources.ResourceLocation icon, boolean selected) {
     }
 
     public record TooltipValues(int castTimeTicks, double spellPowerMultiplier) {
