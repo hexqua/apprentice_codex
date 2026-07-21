@@ -2,10 +2,12 @@ package jp.aquafactory.apprenticecodex.event.client;
 
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
-import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookSelectionState;
+import jp.aquafactory.apprenticecodex.item.ImmediateSneakSelectionUiItem;
+import jp.aquafactory.apprenticecodex.item.SneakSelectionState;
+import jp.aquafactory.apprenticecodex.item.SneakSelectionUiItem;
+import jp.aquafactory.apprenticecodex.item.SneakSelectionView;
 import jp.aquafactory.apprenticecodex.network.Networks;
-import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmChargecastCatalystbookIndexPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmSneakSelectionPacket;
 import jp.aquafactory.apprenticecodex.utility.HandStackResolver;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -14,6 +16,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
@@ -26,14 +29,11 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import org.jetbrains.annotations.Nullable;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
-public final class ChargecastCatalystbookSelectionClientController {
-    private static final HandStackResolver.OffhandResolution OFFHAND_RESOLUTION =
-            HandStackResolver.OffhandResolution.LOGICAL;
-    private static final String EMPTY_SELECTION_LABEL_KEY =
-            "ui.apprenticecodex.scrollcaster_gauntlet.select_ui.empty";
+public final class SneakSelectionClientController {
+    private static final String EMPTY_SELECTION_LABEL_KEY = "ui.apprenticecodex.spell_selector.empty";
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
             ApprenticeCodex.MODID,
-            "textures/gui/chargecast_catalystbook.png"
+            "textures/gui/spell_selector.png"
     );
     private static final int TEXTURE_SIZE = 64;
     private static final int SLOT_WIDTH = 21;
@@ -53,10 +53,12 @@ public final class ChargecastCatalystbookSelectionClientController {
     private static final int SELECTED_FRAME_SIZE = 24;
 
     @Nullable
-    private static ChargecastCatalystbookSelectionState activeState;
+    private static SneakSelectionState activeState;
+    @Nullable
+    private static ImmediateSneakSelectionUiItem activeItem;
     private static boolean wasSneakKeyDown;
 
-    private ChargecastCatalystbookSelectionClientController() {
+    private SneakSelectionClientController() {
     }
 
     @SubscribeEvent
@@ -71,20 +73,20 @@ public final class ChargecastCatalystbookSelectionClientController {
         }
 
         if (activeState != null) {
-            var stack = resolveHeldStack(player, activeState.hand());
-            if (minecraft.screen != null || ClientMagicData.isCasting()
-                    || !isSelectableBook(stack) || !sneakKeyDown) {
+            var selection = resolveSelection(player, activeState.hand());
+            if (minecraft.screen != null || ClientMagicData.isCasting() || !sneakKeyDown
+                    || selection == null || selection.item() != activeItem) {
                 clearState();
             } else {
-                refreshActiveState(player);
+                refreshActiveState(player, selection);
             }
         }
 
         if (activeState == null && !wasSneakKeyDown && sneakKeyDown
                 && minecraft.screen == null && !ClientMagicData.isCasting()) {
-            var hand = resolveSelectionHand(player);
-            if (hand != null) {
-                openSelection(player, hand);
+            var selection = resolveOpeningSelection(player);
+            if (selection != null) {
+                openSelection(player, selection);
             }
         }
         wasSneakKeyDown = sneakKeyDown;
@@ -100,7 +102,6 @@ public final class ChargecastCatalystbookSelectionClientController {
         if (event.getScrollDeltaY() == 0.0D || activeState.selectableViewCount() <= 1) {
             return;
         }
-
         moveSelection(event.getScrollDeltaY() > 0.0D ? -1 : 1);
     }
 
@@ -112,7 +113,7 @@ public final class ChargecastCatalystbookSelectionClientController {
         }
 
         if (event.isUseItem()) {
-            // 選択はホイール操作時に同期済みなので、スニーク中の使用入力はそのまま詠唱へ渡す。
+            // 選択はホイール操作時に同期済みなので、使用入力は選択中の魔法へそのまま渡す。
             clearState();
             return;
         }
@@ -138,36 +139,36 @@ public final class ChargecastCatalystbookSelectionClientController {
                 minecraft.font,
                 minecraft.getWindow().getGuiScaledWidth(),
                 minecraft.getWindow().getGuiScaledHeight(),
-                minecraft.player,
                 activeState
         );
     }
 
-    private static void openSelection(net.minecraft.world.entity.player.Player player, InteractionHand hand) {
-        var stack = resolveHeldStack(player, hand);
-        if (!isSelectableBook(stack)) {
+    private static void openSelection(Player player, ResolvedSelection selection) {
+        var views = selection.item().getSneakSelectionViews(selection.stack());
+        if (views.isEmpty()) {
             return;
         }
-        var views = ChargecastCatalystbook.getSelectionViews(stack);
-        if (!views.isEmpty()) {
-            activeState = ChargecastCatalystbookSelectionState.open(hand, views);
-        }
+        activeItem = selection.item();
+        activeState = SneakSelectionState.open(
+                selection.hand(),
+                views,
+                selection.item().getSneakSelectionIndex(selection.stack())
+        );
     }
 
-    private static void refreshActiveState(net.minecraft.world.entity.player.Player player) {
+    private static void refreshActiveState(Player player, ResolvedSelection selection) {
         if (activeState == null) {
             return;
         }
-        var stack = resolveHeldStack(player, activeState.hand());
-        var refreshedViews = ChargecastCatalystbook.getSelectionViews(stack);
-        if (refreshedViews.isEmpty()) {
+        var views = selection.item().getSneakSelectionViews(selection.stack());
+        if (views.isEmpty()) {
             clearState();
             return;
         }
         // ItemStackを確定状態として参照し、UIだけが古いカーソルへ戻ることを防ぐ。
         activeState = activeState.refresh(
-                refreshedViews,
-                ChargecastCatalystbook.getSelectedScrollIndex(stack)
+                views,
+                selection.item().getSneakSelectionIndex(selection.stack())
         );
     }
 
@@ -181,8 +182,8 @@ public final class ChargecastCatalystbookSelectionClientController {
         }
     }
 
-    private static void applySelection(ChargecastCatalystbookSelectionState nextState) {
-        if (activeState == null) {
+    private static void applySelection(SneakSelectionState nextState) {
+        if (activeState == null || activeItem == null) {
             return;
         }
         var player = Minecraft.getInstance().player;
@@ -190,55 +191,55 @@ public final class ChargecastCatalystbookSelectionClientController {
             clearState();
             return;
         }
-        var stack = resolveHeldStack(player, activeState.hand());
-        if (!isSelectableBook(stack)
-                || !ChargecastCatalystbook.isSelectableScrollIndex(stack, nextState.selectedScrollIndex())) {
+        var selection = resolveSelection(player, activeState.hand());
+        if (selection == null || selection.item() != activeItem
+                || !activeItem.isSneakSelectionIndexSelectable(selection.stack(), nextState.selectedItemIndex())) {
             return;
         }
 
-        // UIカーソルを先に進め、ItemStackと通信へ同じ論理インデックスを渡す。
-        // この順序を崩すと、即時反映後の再構築で変更前カーソルへ戻る。
+        // UI、ItemStack、通信へ同じ論理インデックスを渡し、右クリック直前でも選択を確定済みにする。
         activeState = nextState;
-        var selectedScrollIndex = nextState.selectedScrollIndex();
-        if (ChargecastCatalystbook.getSelectedScrollIndex(stack) == selectedScrollIndex) {
-            refreshActiveState(player);
-            return;
+        var selectedIndex = nextState.selectedItemIndex();
+        if (activeItem.getSneakSelectionIndex(selection.stack()) != selectedIndex) {
+            activeItem.setSneakSelectionIndex(selection.stack(), selectedIndex);
+            if (activeItem.getSneakSelectionIndex(selection.stack()) == selectedIndex) {
+                Networks.sendToServer(new ClientConfirmSneakSelectionPacket(nextState.hand(), selectedIndex));
+            }
         }
-
-        // 1回の選択変更につき小さなC2Sパケット1件だけを送り、右クリック直前でも選択を確定済みにする。
-        ChargecastCatalystbook.setSelectedScrollIndex(stack, selectedScrollIndex);
-        if (ChargecastCatalystbook.getSelectedScrollIndex(stack) != selectedScrollIndex) {
-            refreshActiveState(player);
-            return;
-        }
-        Networks.sendToServer(new ClientConfirmChargecastCatalystbookIndexPacket(
-                nextState.hand(),
-                selectedScrollIndex
-        ));
-        refreshActiveState(player);
+        refreshActiveState(player, selection);
     }
 
     @Nullable
-    private static InteractionHand resolveSelectionHand(net.minecraft.world.entity.player.Player player) {
-        if (isSelectableBook(player.getMainHandItem())) {
-            return InteractionHand.MAIN_HAND;
+    private static ResolvedSelection resolveOpeningSelection(Player player) {
+        var mainHand = resolveSelection(player, InteractionHand.MAIN_HAND);
+        if (mainHand != null) {
+            return mainHand;
         }
-        if (SneakSelectionUiHandResolver.shouldSuppressOffhandSelection(player)) {
+
+        // UI対象のメインハンドが無効な場合だけ、物理オフハンド側へフォールバックする。
+        var mainStack = player.getMainHandItem();
+        if (mainStack.getItem() instanceof SneakSelectionUiItem mainItem
+                && mainItem.isSneakSelectionUiEnabled(mainStack)) {
             return null;
         }
-        return isSelectableBook(resolveHeldStack(player, InteractionHand.OFF_HAND))
-                ? InteractionHand.OFF_HAND
-                : null;
+        return resolveSelection(player, InteractionHand.OFF_HAND);
     }
 
-    private static boolean isSelectableBook(ItemStack stack) {
-        return stack.getItem() instanceof ChargecastCatalystbook book
-                && book.isSneakSelectionUiEnabled(stack);
-    }
-
-    private static ItemStack resolveHeldStack(net.minecraft.world.entity.player.Player player, InteractionHand hand) {
-        // 右クリックへ到達できない論理オフハンド無効中は、UI とインデックス変更も同時に止める。
-        return HandStackResolver.resolve(player, hand, OFFHAND_RESOLUTION);
+    @Nullable
+    private static ResolvedSelection resolveSelection(Player player, InteractionHand hand) {
+        var physicalStack = HandStackResolver.resolve(
+                player,
+                hand,
+                HandStackResolver.OffhandResolution.PHYSICAL
+        );
+        if (!(physicalStack.getItem() instanceof ImmediateSneakSelectionUiItem item)) {
+            return null;
+        }
+        var resolvedStack = item.resolveSneakSelectionStack(player, hand);
+        if (resolvedStack.getItem() != item || !item.isSneakSelectionUiEnabled(resolvedStack)) {
+            return null;
+        }
+        return new ResolvedSelection(hand, item, resolvedStack);
     }
 
     private static void renderSelectionHud(
@@ -246,14 +247,14 @@ public final class ChargecastCatalystbookSelectionClientController {
             Font font,
             int screenWidth,
             int screenHeight,
-            net.minecraft.world.entity.player.Player player,
-            ChargecastCatalystbookSelectionState state
+            SneakSelectionState state
     ) {
         var views = state.views();
         var rowWidth = SLOT_WIDTH + Math.max(0, views.size() - 1) * SLOT_STEP;
         var startX = screenWidth / 2 - rowWidth / 2;
-        var label = ChargecastCatalystbookSelectionState.hasSpell(state.selectedView())
-                ? state.selectedView().spellData().getSpell().getDisplayName(player)
+        var hasSelectableView = state.selectableViewCount() > 0;
+        var label = hasSelectableView
+                ? state.selectedView().displayName()
                 : Component.translatable(EMPTY_SELECTION_LABEL_KEY).withStyle(ChatFormatting.RED);
         var labelX = screenWidth / 2 - font.width(label) / 2;
         var labelY = screenHeight / 2 + LABEL_OFFSET_FROM_CROSSHAIR;
@@ -265,10 +266,8 @@ public final class ChargecastCatalystbookSelectionClientController {
         for (var column = 0; column < views.size(); ++column) {
             renderSlot(gui, startX, rowY, column, views.size(), views.get(column));
         }
-        if (ChargecastCatalystbookSelectionState.hasSpell(state.selectedView())) {
-            var selectedContent = resolveContentPosition(
-                    startX, rowY, state.selectedViewIndex(), views.size()
-            );
+        if (hasSelectableView) {
+            var selectedContent = resolveContentPosition(startX, rowY, state.selectedViewIndex(), views.size());
             gui.blit(TEXTURE, selectedContent.x() - 4, selectedContent.y() - 4,
                     SELECTED_FRAME_U, SELECTED_FRAME_V, SELECTED_FRAME_SIZE, SELECTED_FRAME_SIZE,
                     TEXTURE_SIZE, TEXTURE_SIZE);
@@ -276,8 +275,14 @@ public final class ChargecastCatalystbookSelectionClientController {
         gui.pose().popPose();
     }
 
-    private static void renderSlot(GuiGraphics gui, int rowX, int rowY, int column, int slotCount,
-                                   ChargecastCatalystbook.ScrollSelectionView view) {
+    private static void renderSlot(
+            GuiGraphics gui,
+            int rowX,
+            int rowY,
+            int column,
+            int slotCount,
+            SneakSelectionView view
+    ) {
         var slotX = rowX + column * SLOT_STEP;
         var frameU = column == 0 ? LEFT_FRAME_U
                 : column == slotCount - 1 ? RIGHT_FRAME_U : MIDDLE_FRAME_U;
@@ -300,6 +305,10 @@ public final class ChargecastCatalystbookSelectionClientController {
 
     private static void clearState() {
         activeState = null;
+        activeItem = null;
+    }
+
+    private record ResolvedSelection(InteractionHand hand, ImmediateSneakSelectionUiItem item, ItemStack stack) {
     }
 
     private record ContentPosition(int x, int y) {

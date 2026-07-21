@@ -958,6 +958,9 @@
   "ui.apprenticecodex.multicast_echo_staff.cancel_by_item_change": "你手中没有能承接魔力回响的法杖！",
   "ui.apprenticecodex.spell_dispenser.creative_version.deny_open": "只有创造模式玩家或管理员才能打开这个法术发射器。",
   "ui.apprenticecodex.zenith_staff.insufficient_mana": "%1$s的法力值消耗已增加到%2$s，当前法力值不足！",
+  "ui.apprenticecodex.spell_throwable_cards.not_imbued": "这张符卡尚未注入法术！",
+
+  "ui.apprenticecodex.spell_selector.empty": "无可选法术",
   "ui.apprenticecodex.spell_calibration_bench.hint_default_spell": "默认注入的法术无法提取",
   "ui.apprenticecodex.spell_calibration_bench.cant_remove_not_allow": "无法从该物品中提取卷轴",
   "ui.apprenticecodex.spell_calibration_bench.cant_imbue_unsupported_equipment": "需要使用奥术铁砧为该物品注入法术",
@@ -965,8 +968,6 @@
   "ui.apprenticecodex.spell_calibration_bench.warning_mismatch_cast_condition": "该法术不符合目标物品的施法条件",
   "ui.apprenticecodex.spellcaster_workbench.warning_max_slot_reached": "该物品已扩展至最大",
   "ui.apprenticecodex.spellcaster_workbench.cant_imbue_to_card": "该法术无法注入符卡",
-  "ui.apprenticecodex.scrollcaster_gauntlet.select_ui.empty": "无可选法术",
-  "ui.apprenticecodex.spell_throwable_cards.not_imbued": "这张符卡尚未注入法术！",
 
   "effect.apprenticecodex.arcane_charge": "奥术充能",
   "effect.apprenticecodex.casting_mobility": "施法机动",

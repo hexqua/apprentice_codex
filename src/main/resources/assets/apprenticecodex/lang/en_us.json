@@ -964,7 +964,9 @@
   "ui.apprenticecodex.multicast_echo_staff.cancel_by_item_change": "The staff to receive the echoing mana isn't in your hands!",
   "ui.apprenticecodex.spell_dispenser.creative_version.deny_open": "Only creative players or operators can open this Spell Dispenser.",
   "ui.apprenticecodex.zenith_staff.insufficient_mana": "The mana cost of %1$s has increased to %2$s, and you don't have enough mana!",
+  "ui.apprenticecodex.spell_throwable_cards.not_imbued": "This card has no imbued spell!",
 
+  "ui.apprenticecodex.spell_selector.empty": "No selectable spells",
   "ui.apprenticecodex.spell_calibration_bench.hint_default_spell": "Default imbued spells cannot be extracted",
   "ui.apprenticecodex.spell_calibration_bench.cant_remove_not_allow": "Scrolls cannot be extracted from this item",
   "ui.apprenticecodex.spell_calibration_bench.cant_imbue_unsupported_equipment": "Use an Arcane Anvil to imbue this item",
@@ -972,8 +974,6 @@
   "ui.apprenticecodex.spell_calibration_bench.warning_mismatch_cast_condition": "This spell does not meet the target item's cast condition",
   "ui.apprenticecodex.spellcaster_workbench.warning_max_slot_reached": "This item has already been upgraded to its maximum",
   "ui.apprenticecodex.spellcaster_workbench.cant_imbue_to_card": "This spell cannot be imbued into cards",
-  "ui.apprenticecodex.scrollcaster_gauntlet.select_ui.empty": "No selectable spells",
-  "ui.apprenticecodex.spell_throwable_cards.not_imbued": "This card has no imbued spell!",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
   "effect.apprenticecodex.casting_mobility": "Casting Mobility",
