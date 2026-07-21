@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.EquipmentSpellTimingConfigState;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
@@ -46,7 +47,6 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
     private static final float BREAK_SPEED_BONUS_MULTIPLIER = 2.0f;
     private static final float PROCESS_SPEED_BONUS_MULTIPLIER = 1.5f;
     private static final float MANA_COST_DISCOUNT_MULTIPLIER = 0.5f;
-    private static final int COOLDOWN_DIVISOR = 3;
     private static final int TOUCH_DIG_RANGE_BLOCKS = 8;
     private static final int TOUCH_DIG_RANGE_WITH_BONUS_BLOCKS = 16;
     private static final int CASTING_MOBILITY_EFFECT_REFRESH_TICKS = 5;
@@ -226,7 +226,14 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
             return baseCooldown;
         }
 
-        return Math.max(1, baseCooldown / COOLDOWN_DIVISOR);
+        // 実行中の SERVER config リロード後も予測結果を一致させるため、クライアントでは同期値を使う。
+        var cooldownMultiplier = entity.level().isClientSide
+                ? EquipmentSpellTimingConfigState.craftsmansDelightCooldownMultiplier()
+                : ApprenticeCodexServerConfig.craftsmansDelightCooldownMultiplier();
+        return WeaponImbueCooldownHelper.applyLimitedCooldownMultiplier(
+                baseCooldown,
+                cooldownMultiplier
+        );
     }
 
     public static int getTouchDigRangeBlocks(@Nullable LivingEntity entity) {
