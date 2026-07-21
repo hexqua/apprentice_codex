@@ -85,6 +85,21 @@ public final class ApprenticeCodexCoreGameTests {
         ApprenticeCodexGameTestScenarios.customRecipeDataIsLoaded(helper);
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void spellcasterWorkbenchExtractsEligibleSingleSlotSpells(GameTestHelper helper) {
+        SpellExtractionGameTestScenarios.spellcasterWorkbenchExtractsEligibleSingleSlotSpells(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcasterWorkbenchReportsExtractionBlockReasons(GameTestHelper helper) {
+        SpellExtractionGameTestScenarios.spellcasterWorkbenchReportsExtractionBlockReasons(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcasterWorkbenchDoesNotConsumeExtractionInputsWhenOutputCannotMove(GameTestHelper helper) {
+        SpellExtractionGameTestScenarios.spellcasterWorkbenchDoesNotConsumeExtractionInputsWhenOutputCannotMove(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = PROCESSING_RECIPE_DENYLIST_CONFIG_BATCH)
     public static void processingRecipeDenylistsRejectConfiguredRecipeIds(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.processingRecipeDenylistsRejectConfiguredRecipeIds(helper);

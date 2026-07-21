@@ -135,6 +135,14 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.DIVINE_SOULSHARD.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.DIVINE_SOULSHARD.get()))
                 .save(recipeWriter);
 
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, ItemRegistry.SPELL_EXTRACT_SHARD.get())
+                .requires(Items.FLINT)
+                .requires(io.redspace.ironsspellbooks.registries.ItemRegistry.SHRIVING_STONE.get())
+                .requires(ItemRegistry.ARCANE_CINDER.get())
+                .requires(Items.GUNPOWDER)
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.SHRIVING_STONE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.SHRIVING_STONE.get()))
+                .save(recipeWriter);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.STORAGE_STABILIZER.get())
                 .pattern(" MA")
                 .pattern(" C ")

@@ -23,6 +23,7 @@
 
   "item.apprenticecodex.arcane_cinder": "神秘の燃え殻",
   "item.apprenticecodex.wisdom_shard": "叡智の破片",
+  "item.apprenticecodex.spell_extract_shard": "術式抽出の破片",
   "item.apprenticecodex.comfort_berries": "安楽の果実",
   "item.apprenticecodex.comfort_sandwich": "安楽ベリーサンド",
   "item.apprenticecodex.spellstained_arcane_ingot": "魔術染めの秘術のインゴット",
@@ -184,6 +185,8 @@
   "item.apprenticecodex.common.spellgun.desc_2": "オフハンドに持っている時、[%1$s]で魔法を詠唱する。",
   "item.apprenticecodex.common.spellgun.epicfight.offhand_warning": "オフハンドに持っている間、ガードスキルが使用できなくなる。",
   "item.apprenticecodex.wisdom_shard.desc": "一部アイテムの調整用アイテムとして装着できる。",
+  "item.apprenticecodex.spell_extract_shard.desc_1": "注入されている魔法を取り出すのに使用する。",
+  "item.apprenticecodex.spell_extract_shard.desc_2": "取り出す際に注入元のアイテムを破壊する。",
   "item.apprenticecodex.apprentice_desk.disabled_tooltip": "使い走り魔術師の職業ブロックとしてのみ機能する。",
   "item.apprenticecodex.spell_dispenser.creative_tooltip": "クリエイティブバージョン",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "この杖は現在ロードストーンを指し示している。",
@@ -325,6 +328,9 @@
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "かまど・溶鉱炉・燻製器の燃料として使用することで加工速度が上昇する。",
   "jei.apprenticecodex.arcane_cinder.desc_2": "それ以外の機材では効果を発揮しない。",
+  "jei.apprenticecodex.spell_extract_shard.desc_1": "詠唱者の作業台で魔法が注入されているアイテムと組み合わせることでスクロールを取り出すことができる。",
+  "jei.apprenticecodex.spell_extract_shard.desc_2": "ただし対象にできるアイテムに制限があり、取り出せたとしても注入されていたアイテムは失われる。",
+  "jei.apprenticecodex.spell_extract_shard.desc_3": "最初から魔法が注入されているアイテムはダンジョンなどから入手できるようなものに限られる。",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "設置してレッドストーンを入れて放置しておくと秘術のエッセンスに変換する。",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "壊すと完成済みの秘術のエッセンスと未使用のレッドストーンがそのまま落ちる。",
   "jei.apprenticecodex.spellcaster_workbench.desc_1": "詠唱銃の銃弾や投擲札を作るための作業台。",
@@ -981,6 +987,10 @@
   "ui.apprenticecodex.spell_calibration_bench.warning_mismatch_cast_condition": "対象のアイテムの詠唱可能条件を満たしていない",
   "ui.apprenticecodex.spellcaster_workbench.warning_max_slot_reached": "このアイテムは既に最大まで拡張されている",
   "ui.apprenticecodex.spellcaster_workbench.cant_imbue_to_card": "この魔法は札に注入できない",
+  "ui.apprenticecodex.spellcaster_workbench.cant_extract_unique_item": "このアイテムは魔法との結びつきが強力すぎる",
+  "ui.apprenticecodex.spellcaster_workbench.cant_extract_not_target": "このアイテムからは魔法を抽出できない",
+  "ui.apprenticecodex.spellcaster_workbench.cant_extract_locked": "このアイテムは魔法との結びつきが強力すぎる",
+  "ui.apprenticecodex.spellcaster_workbench.cant_extract_extractable": "このアイテムからは術式調整台で安全に取り外せる",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
   "effect.apprenticecodex.casting_mobility": "詠唱移動補助",

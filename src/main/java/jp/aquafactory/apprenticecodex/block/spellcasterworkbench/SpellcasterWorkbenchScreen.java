@@ -94,6 +94,16 @@ public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<Sp
                 gui.renderTooltip(font, WARNING_MAX_SLOT_REACHED_TOOLTIP, mouseX, mouseY);
             } else if (menu.isBlockedBySpellThrowableCardCantImbue()) {
                 gui.renderTooltip(font, CANT_IMBUE_TO_CARD_TOOLTIP, mouseX, mouseY);
+            } else {
+                var extractionBlockReason = menu.getSpellExtractionBlockReason();
+                if (extractionBlockReason != null) {
+                    gui.renderTooltip(
+                            font,
+                            Component.translatable(extractionBlockReason.translationKey()),
+                            mouseX,
+                            mouseY
+                    );
+                }
             }
         }
     }
