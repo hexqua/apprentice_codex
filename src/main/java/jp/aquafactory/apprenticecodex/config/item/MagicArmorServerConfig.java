@@ -10,11 +10,15 @@ public final class MagicArmorServerConfig {
     private final ForgeConfigSpec.DoubleValue elementMaidenRobeSchoolSpellPowerBonus;
     private final ForgeConfigSpec.DoubleValue magiAgentSuitSpellPowerBonus;
     private final ForgeConfigSpec.DoubleValue magiAgentSuitSchoolSpellPowerBonus;
+    private final ForgeConfigSpec.DoubleValue magiAgentSuitBootsCooldownMultiplier;
+    private final ForgeConfigSpec.DoubleValue magiAgentSuitBootsCastTimeMultiplier;
     private final ForgeConfigSpec.DoubleValue magiAgentSuitAmmoNoConsumeChance;
     private final ForgeConfigSpec.BooleanValue magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed;
     private final ForgeConfigSpec.DoubleValue stealthRuneArmorSpellPowerBonusPerPiece;
 
     private Double elementMaidenRobeSchoolSpellPowerBonusOverride;
+    private Double magiAgentSuitBootsCooldownMultiplierOverride;
+    private Double magiAgentSuitBootsCastTimeMultiplierOverride;
     private Double magiAgentSuitAmmoNoConsumeChanceOverride;
     private Boolean magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumedOverride;
 
@@ -26,6 +30,8 @@ public final class MagicArmorServerConfig {
             ForgeConfigSpec.DoubleValue elementMaidenRobeSchoolSpellPowerBonus,
             ForgeConfigSpec.DoubleValue magiAgentSuitSpellPowerBonus,
             ForgeConfigSpec.DoubleValue magiAgentSuitSchoolSpellPowerBonus,
+            ForgeConfigSpec.DoubleValue magiAgentSuitBootsCooldownMultiplier,
+            ForgeConfigSpec.DoubleValue magiAgentSuitBootsCastTimeMultiplier,
             ForgeConfigSpec.DoubleValue magiAgentSuitAmmoNoConsumeChance,
             ForgeConfigSpec.BooleanValue magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed,
             ForgeConfigSpec.DoubleValue stealthRuneArmorSpellPowerBonusPerPiece
@@ -37,6 +43,8 @@ public final class MagicArmorServerConfig {
         this.elementMaidenRobeSchoolSpellPowerBonus = elementMaidenRobeSchoolSpellPowerBonus;
         this.magiAgentSuitSpellPowerBonus = magiAgentSuitSpellPowerBonus;
         this.magiAgentSuitSchoolSpellPowerBonus = magiAgentSuitSchoolSpellPowerBonus;
+        this.magiAgentSuitBootsCooldownMultiplier = magiAgentSuitBootsCooldownMultiplier;
+        this.magiAgentSuitBootsCastTimeMultiplier = magiAgentSuitBootsCastTimeMultiplier;
         this.magiAgentSuitAmmoNoConsumeChance = magiAgentSuitAmmoNoConsumeChance;
         this.magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed =
                 magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed;
@@ -79,6 +87,8 @@ public final class MagicArmorServerConfig {
                 "MagiAgentSuit",
                 0.10D
         );
+        var magiAgentSuitBootsCooldownMultiplier = defineMagiAgentSuitBootsCooldownMultiplier(builder);
+        var magiAgentSuitBootsCastTimeMultiplier = defineMagiAgentSuitBootsCastTimeMultiplier(builder);
         var magiAgentSuitAmmoNoConsumeChance = defineMagiAgentSuitAmmoNoConsumeChance(builder);
         var magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed =
                 defineMagiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed(builder);
@@ -96,6 +106,8 @@ public final class MagicArmorServerConfig {
                 elementMaidenRobeSchoolSpellPowerBonus,
                 magiAgentSuitSpellPowerBonus,
                 magiAgentSuitSchoolSpellPowerBonus,
+                magiAgentSuitBootsCooldownMultiplier,
+                magiAgentSuitBootsCastTimeMultiplier,
                 magiAgentSuitAmmoNoConsumeChance,
                 magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed,
                 stealthRuneArmorSpellPowerBonusPerPiece
@@ -132,6 +144,18 @@ public final class MagicArmorServerConfig {
         return magiAgentSuitSchoolSpellPowerBonus.get();
     }
 
+    public double magiAgentSuitBootsCooldownMultiplier() {
+        return magiAgentSuitBootsCooldownMultiplierOverride == null
+                ? magiAgentSuitBootsCooldownMultiplier.get()
+                : magiAgentSuitBootsCooldownMultiplierOverride;
+    }
+
+    public double magiAgentSuitBootsCastTimeMultiplier() {
+        return magiAgentSuitBootsCastTimeMultiplierOverride == null
+                ? magiAgentSuitBootsCastTimeMultiplier.get()
+                : magiAgentSuitBootsCastTimeMultiplierOverride;
+    }
+
     public double magiAgentSuitAmmoNoConsumeChance() {
         return magiAgentSuitAmmoNoConsumeChanceOverride == null
                 ? magiAgentSuitAmmoNoConsumeChance.get()
@@ -159,6 +183,14 @@ public final class MagicArmorServerConfig {
         magiAgentSuitAmmoNoConsumeChanceOverride = ammoNoConsumeChance;
         magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumedOverride =
                 skipStaffrifleManaCostWhenAmmoNotConsumed;
+    }
+
+    public void setMagiAgentSuitBootsCooldownMultiplierForGameTest(double value) {
+        magiAgentSuitBootsCooldownMultiplierOverride = value;
+    }
+
+    public void setMagiAgentSuitBootsCastTimeMultiplierForGameTest(double value) {
+        magiAgentSuitBootsCastTimeMultiplierOverride = value;
     }
 
     private static ForgeConfigSpec.DoubleValue defineSpellPowerBonusPerPiece(
@@ -238,6 +270,34 @@ public final class MagicArmorServerConfig {
                 0.0D,
                 1.0D
         );
+        builder.pop();
+        return value;
+    }
+
+    private static ForgeConfigSpec.DoubleValue defineMagiAgentSuitBootsCooldownMultiplier(ForgeConfigSpec.Builder builder) {
+        builder.push("MagiAgentSuit");
+        var value = builder
+                .comment("Multiplier applied by Magi Agent Suit Boots to target spell cooldowns. 0.5 = 50%. A value of 0.0 still leaves a minimum cooldown of 1 tick.")
+                .defineInRange(
+                        "bootsCooldownMultiplier",
+                        0.5D,
+                        0.0D,
+                        1.0D
+                );
+        builder.pop();
+        return value;
+    }
+
+    private static ForgeConfigSpec.DoubleValue defineMagiAgentSuitBootsCastTimeMultiplier(ForgeConfigSpec.Builder builder) {
+        builder.push("MagiAgentSuit");
+        var value = builder
+                .comment("Multiplier applied by Magi Agent Suit Boots to target LONG spell cast times. 0.5 = 50%. A value of 0.0 still leaves a minimum cast time of 1 tick.")
+                .defineInRange(
+                        "bootsCastTimeMultiplier",
+                        0.5D,
+                        0.0D,
+                        1.0D
+                );
         builder.pop();
         return value;
     }

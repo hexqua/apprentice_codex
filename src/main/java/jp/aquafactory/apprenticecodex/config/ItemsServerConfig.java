@@ -248,6 +248,10 @@ final class ItemsServerConfig {
         return craftsmansDelightConfig.fortuneLevel();
     }
 
+    double craftsmansDelightCooldownMultiplier() {
+        return craftsmansDelightConfig.cooldownMultiplier();
+    }
+
     boolean isCraftsmansDelightGracedRainGrowthDenied(ResourceLocation entityTypeId) {
         return craftsmansDelightConfig.isGracedRainGrowthDenied(entityTypeId);
     }
@@ -290,6 +294,14 @@ final class ItemsServerConfig {
 
     double magiAgentSuitSchoolSpellPowerBonus() {
         return magicArmorConfig.magiAgentSuitSchoolSpellPowerBonus();
+    }
+
+    double magiAgentSuitBootsCooldownMultiplier() {
+        return magicArmorConfig.magiAgentSuitBootsCooldownMultiplier();
+    }
+
+    double magiAgentSuitBootsCastTimeMultiplier() {
+        return magicArmorConfig.magiAgentSuitBootsCastTimeMultiplier();
     }
 
     double magiAgentSuitAmmoNoConsumeChance() {
@@ -752,6 +764,16 @@ final class ItemsServerConfig {
                 gracedRainGrowthDenylist,
                 gracedRainBreedingCooldownDenylist
         );
+    }
+
+    void setEquipmentSpellTimingMultipliersForGameTest(
+            double craftsmansDelightCooldownMultiplier,
+            double magiAgentSuitBootsCooldownMultiplier,
+            double magiAgentSuitBootsCastTimeMultiplier
+    ) {
+        craftsmansDelightConfig.setCooldownMultiplierForGameTest(craftsmansDelightCooldownMultiplier);
+        magicArmorConfig.setMagiAgentSuitBootsCooldownMultiplierForGameTest(magiAgentSuitBootsCooldownMultiplier);
+        magicArmorConfig.setMagiAgentSuitBootsCastTimeMultiplierForGameTest(magiAgentSuitBootsCastTimeMultiplier);
     }
 
     void setMultipurposeStaffrifleSpellDenylistForGameTest(List<String> spellDenylist) {
