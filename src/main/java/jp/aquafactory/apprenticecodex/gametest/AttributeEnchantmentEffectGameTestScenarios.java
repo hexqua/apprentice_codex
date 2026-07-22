@@ -368,12 +368,12 @@ final class AttributeEnchantmentEffectGameTestScenarios extends ApprenticeCodexG
                 STAFFRIFLE_ENCHANTMENTS);
         addCase(cases, coveredItems, ItemRegistry.SCROLLCASTER_GAUNTLET.get(), ModifierTarget.mainhand(),
                 ALL_ATTRIBUTE_ENCHANTMENTS);
-        addCase(cases, coveredItems, ItemRegistry.CHARGECAST_CATALYSTBOOK.get(), ModifierTarget.mainhand(), Set.of(
-                AttributeEnchantmentType.ALACRITY,
-                AttributeEnchantmentType.REFLUX,
-                AttributeEnchantmentType.RESERVOIR,
-                AttributeEnchantmentType.TENSE
-        ));
+        addCase(cases, coveredItems, ItemRegistry.CHARGECAST_CATALYSTBOOK.get(), ModifierTarget.mainhand(),
+                BASIC_MAGIC_ENCHANTMENTS);
+        addCase(cases, coveredItems, ItemRegistry.SPELL_SIDE_EDGE.get(), ModifierTarget.mainhand(),
+                BASIC_MAGIC_ENCHANTMENTS);
+        addCase(cases, coveredItems, ItemRegistry.SPELL_SIDE_EDGE_MIRROR.get(), ModifierTarget.mainhand(),
+                BASIC_MAGIC_ENCHANTMENTS);
         addCase(cases, coveredItems, ItemRegistry.BULWARK_GREATSHIELD.get(), ModifierTarget.offhand(), Set.of(
                 AttributeEnchantmentType.REFLUX,
                 AttributeEnchantmentType.RESERVOIR
