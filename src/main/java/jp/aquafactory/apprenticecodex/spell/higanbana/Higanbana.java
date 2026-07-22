@@ -21,7 +21,6 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -50,7 +49,7 @@ public class Higanbana extends AbstractSummonWeaponSpell<HiganbanaKatanaEntity> 
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.apprenticecodex.slash_count", getSlashCount(spellLevel, caster))
+                Component.translatable("ui.apprenticecodex.slash_count", getSlashCount())
         );
     }
 
@@ -59,9 +58,9 @@ public class Higanbana extends AbstractSummonWeaponSpell<HiganbanaKatanaEntity> 
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.HIGANBANA);
     }
 
-    public int getSlashCount(int spellLevel, @Nullable LivingEntity entity) {
-        // Recast 時代の初回発動を含む総斬撃回数を維持する。
-        return Math.min(8, Math.max(1, Math.round(getSpellPower(spellLevel, entity) / 200.0f))) + 1;
+    public int getSlashCount() {
+        // 斬撃回数とダメージで二重にかかると調整が難しいため、斬撃は固定.
+        return 4;
     }
 
     @Override
@@ -102,7 +101,7 @@ public class Higanbana extends AbstractSummonWeaponSpell<HiganbanaKatanaEntity> 
     public HiganbanaKatanaEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var summonWeapon = new HiganbanaKatanaEntity(EntityRegistry.HIGANBANA_KATANA.get(), level, entity);
         summonWeapon.setDamage(getDamage(spellLevel, entity));
-        summonWeapon.setRemainingSlashCount(getSlashCount(spellLevel, entity));
+        summonWeapon.setRemainingSlashCount(getSlashCount());
         summonWeapon.setFirstSlashStandby(FIRST_SLASH_DELAY_TICK);
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
