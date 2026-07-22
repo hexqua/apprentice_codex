@@ -9,7 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 
 public class CopperSwingcastStaff extends AbstractSwingcastStaffItem {
-    private static final double IMBUED_SPELL_POWER_BONUS = 0.10D;
+    private static final double IMBUED_SPELL_POWER_BONUS = 0.15D;
 
     private static final SwingcastStaffTier TIER = createTier(
             Rarity.COMMON,

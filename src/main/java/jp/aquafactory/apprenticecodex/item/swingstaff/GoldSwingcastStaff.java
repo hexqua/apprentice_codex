@@ -24,13 +24,4 @@ public class GoldSwingcastStaff extends AbstractSwingcastStaffItem {
     public GoldSwingcastStaff() {
         super("gold_swingcast_staff", TIER);
     }
-
-    @Override
-    protected boolean addStackDependentModifiers(
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
-            ItemStack stack,
-            String modifierSeedPrefix
-    ) {
-        return addImbuedSchoolSpellPowerModifier(builder, stack, modifierSeedPrefix, IMBUED_SPELL_POWER_BONUS);
-    }
 }
