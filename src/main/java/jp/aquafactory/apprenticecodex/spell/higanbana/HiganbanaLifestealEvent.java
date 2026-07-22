@@ -31,7 +31,7 @@ public final class HiganbanaLifestealEvent {
             return;
         }
 
-        attacker.heal(dealtDamage);
+        attacker.heal(dealtDamage * 0.5f);
     }
 }
 

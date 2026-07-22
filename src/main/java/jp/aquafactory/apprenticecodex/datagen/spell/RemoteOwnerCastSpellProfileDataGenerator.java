@@ -185,7 +185,7 @@ public final class RemoteOwnerCastSpellProfileDataGenerator extends JsonCodecPro
         putProfile(profiles, SpellRegistry.SPIDER_ASPECT_SPELL, playerSelfProfile(false));
 
         putProfile(profiles, jp.aquafactory.apprenticecodex.registry.SpellRegistry.ARCHER_MULTIPLE, remoteGeometryProfile(true));
-        putProfile(profiles, jp.aquafactory.apprenticecodex.registry.SpellRegistry.HIGANBANA, remoteGeometryProfile(true));
+        putProfile(profiles, jp.aquafactory.apprenticecodex.registry.SpellRegistry.HIGANBANA, remoteGeometryProfile(false));
         putProfile(profiles, jp.aquafactory.apprenticecodex.registry.SpellRegistry.AUTO_MAGNET, playerSelfProfile(false));
         putProfile(profiles, jp.aquafactory.apprenticecodex.registry.SpellRegistry.COMPANION_TRUNK, playerSelfProfile(false));
         putProfile(profiles, jp.aquafactory.apprenticecodex.registry.SpellRegistry.SENSE_EVIL, playerSelfProfile(false));

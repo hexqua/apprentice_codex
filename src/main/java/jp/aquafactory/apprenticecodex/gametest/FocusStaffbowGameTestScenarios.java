@@ -215,6 +215,7 @@ import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell;
 import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmash;
 import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashShellEntity;
+import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssaultRifleEntity;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
@@ -669,6 +670,67 @@ final class FocusStaffbowGameTestScenarios {
             helper.succeed();
         });
     }
+    static void focusStaffbowHiganbanaWaitsForReleaseBeforeSlashing(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "focus_staffbow_higanbana_wait_test");
+        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.HIGANBANA.get();
+        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
+        MagicData.getPlayerMagicData(player).setMana(1000.0F);
+        var baseDamage = (1.0F + spell.getSpellPower(1, player) / 100.0F)
+                * ApprenticeCodexServerConfig.damageMultiplier(
+                jp.aquafactory.apprenticecodex.config.DamageMultiplierKey.HIGANBANA);
+        var summonedPosition = new Vec3[1];
+        var summonedYaw = new float[1];
+
+        helper.runAtTickTime(1, () -> {
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow Higanbana should start charging but got " + result.getResult());
+        });
+        helper.runAtTickTime(2, () -> {
+            var katanas = getOwnedSummonWeapons(helper, player, HiganbanaKatanaEntity.class);
+            helper.assertTrue(katanas.size() == 1,
+                    "Focus Staffbow Higanbana should create one pre-cast katana");
+            summonedPosition[0] = katanas.get(0).position();
+            summonedYaw[0] = katanas.get(0).getYRot();
+            player.setPos(player.getX() + 4.0D, player.getY(), player.getZ() + 4.0D);
+            player.setYRot(player.getYRot() + 90.0F);
+        });
+        helper.runAtTickTime(30, () -> {
+            var katanas = getOwnedSummonWeapons(helper, player, HiganbanaKatanaEntity.class);
+            helper.assertTrue(katanas.size() == 1,
+                    "Focus Staffbow should keep one Higanbana katana visible while charging");
+            var katana = katanas.get(0);
+            helper.assertTrue(katana.getRemainingSlashCount() == 0,
+                    "Focus Staffbow Higanbana should stay idle before release");
+            helper.assertTrue(katana.position().distanceTo(summonedPosition[0]) < 1.0E-6D
+                            && Math.abs(katana.getYRot() - summonedYaw[0]) < 1.0E-4F,
+                    "Focus Staffbow Higanbana should stay at its summoned position while charging");
+        });
+        helper.runAtTickTime(45, () -> bowStack.getItem().releaseUsing(
+                bowStack,
+                helper.getLevel(),
+                player,
+                bowStack.getUseDuration(player) - 44
+        ));
+        helper.runAtTickTime(46, () -> {
+            var katanas = getOwnedSummonWeapons(helper, player, HiganbanaKatanaEntity.class);
+            helper.assertTrue(katanas.size() == 1 && katanas.get(0).getRemainingSlashCount() == 4,
+                    "Focus Staffbow Higanbana should start its four-slash sequence after release");
+            helper.assertTrue(katanas.get(0).getDamageForGameTest() > baseDamage,
+                    "Focus Staffbow Higanbana should use charged spell power for damage");
+            helper.succeed();
+        });
+    }
+
     static void focusStaffbowContinuousCastStaysActivePastSpellDuration(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_hold_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());

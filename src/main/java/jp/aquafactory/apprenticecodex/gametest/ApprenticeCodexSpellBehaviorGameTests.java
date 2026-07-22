@@ -52,8 +52,24 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String BEAM_OCCLUSION_ISOLATED_BATCH = "apprenticecodex.beam_occlusion_isolated";
     private static final String SUMMON_WEAPON_ANIMATION_BATCH = "apprenticecodex.summon_weapon_animation";
     private static final String COMBAT_TARGET_POLICY_BATCH = "apprenticecodex.combat_target_policy";
+    private static final String HIGANBANA_ISOLATED_BATCH = "apprenticecodex.higanbana_isolated";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
+    }
+
+    @GameTest(template = TEMPLATE, batch = HIGANBANA_ISOLATED_BATCH)
+    public static void higanbanaHasNoRecastAndKeepsSlashCounts(GameTestHelper helper) {
+        HiganbanaGameTestScenarios.higanbanaHasNoRecastAndKeepsSlashCounts(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HIGANBANA_ISOLATED_BATCH)
+    public static void higanbanaAutomaticallySlashesWithoutFollowingOwner(GameTestHelper helper) {
+        HiganbanaGameTestScenarios.higanbanaAutomaticallySlashesWithoutFollowingOwner(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HIGANBANA_ISOLATED_BATCH)
+    public static void higanbanaDamageHasNoKnockbackAndHealsHalf(GameTestHelper helper) {
+        HiganbanaGameTestScenarios.higanbanaDamageHasNoKnockbackAndHealsHalf(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = COMBAT_TARGET_POLICY_BATCH)
