@@ -26,11 +26,8 @@ final class HiganbanaGameTestScenarios {
         helper.assertTrue(spell.getRecastCount(1, null) == 0,
                 "Higanbana should no longer expose recasts");
 
-        var expectedSlashCounts = new int[]{2, 2, 3, 3, 4};
-        for (var spellLevel = 1; spellLevel <= expectedSlashCounts.length; ++spellLevel) {
-            helper.assertTrue(spell.getSlashCount(spellLevel, null) == expectedSlashCounts[spellLevel - 1],
-                    "Higanbana slash count changed at level " + spellLevel);
-        }
+        helper.assertTrue(spell.getSlashCount() == 4,
+                "Higanbana should keep its fixed four-slash sequence");
 
         helper.succeed();
     }
