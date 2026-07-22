@@ -13,6 +13,7 @@ public class IronSwingcastStaff extends AbstractSwingcastStaffItem {
             5.0D,
             instantOnlyCastTypes(),
             SwingcastCooldownMode.IMBUED_ONLY,
+            RecastTypes.RequireZeroRecast,
             bonus((Holder<Attribute>) AttributeRegistry.SPELL_POWER, 0.1, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
     );
 

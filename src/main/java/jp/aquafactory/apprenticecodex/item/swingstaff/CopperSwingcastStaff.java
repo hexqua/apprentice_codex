@@ -18,6 +18,7 @@ public class CopperSwingcastStaff extends AbstractSwingcastStaffItem {
             3.0D,
             instantOnlyCastTypes(),
             SwingcastCooldownMode.IMBUED_ONLY,
+            RecastTypes.RequireZeroRecast,
             bonus((Holder<Attribute>) AttributeRegistry.SPELL_POWER, 0.05, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
     );
 

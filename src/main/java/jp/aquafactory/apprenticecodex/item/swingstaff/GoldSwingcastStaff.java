@@ -18,6 +18,7 @@ public class GoldSwingcastStaff extends AbstractSwingcastStaffItem {
             2.0D,
             instantOnlyCastTypes(),
             SwingcastCooldownMode.IMBUED_ONLY,
+            RecastTypes.NoRecastRestriction,
             bonus((Holder<Attribute>) AttributeRegistry.SPELL_POWER, 0.05, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
     );
 
