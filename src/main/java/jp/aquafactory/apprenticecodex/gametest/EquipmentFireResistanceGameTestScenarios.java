@@ -80,7 +80,11 @@ final class EquipmentFireResistanceGameTestScenarios extends ApprenticeCodexGame
                 ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON,
                 ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE,
                 ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS,
-                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS
+                ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS,
+                ItemRegistry.SPELL_SIDE_EDGE,
+                ItemRegistry.SPELLCHARGED_GREATSWORD,
+                ItemRegistry.BULWARK_GREATSHIELD,
+                ItemRegistry.PARRYCAST_BUCKLER
         );
     }
 
