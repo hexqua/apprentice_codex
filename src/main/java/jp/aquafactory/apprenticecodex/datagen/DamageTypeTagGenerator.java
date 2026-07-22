@@ -107,7 +107,6 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 ARCANE_BLAST,
                 COMPOUND_PHIAL,
                 GRACED_RAIN,
-                HIGANBANA,
                 MOON_LIGHT,
                 UNITE_LUNA,
                 HEALING_BLOOM

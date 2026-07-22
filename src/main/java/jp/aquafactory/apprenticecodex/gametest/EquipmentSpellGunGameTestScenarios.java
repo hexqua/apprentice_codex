@@ -73,7 +73,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             var copper = (AbstractSpellGunItem) ItemRegistry.COPPER_SPELLCASTER_GUN.get();
             var gold = (AbstractSpellGunItem) ItemRegistry.GOLD_SPELLCASTER_GUN.get();
             var diamond = (AbstractSpellGunItem) ItemRegistry.DIAMOND_SPELLCASTER_GUN.get();
-            var instantRecastSpell = SpellRegistry.HIGANBANA.get();
+            var instantRecastSpell = SpellRegistry.QUICK_ARMS.get();
             var longRecastSpell = SpellRegistry.ARCHER_MULTIPLE.get();
             var supportedLongSpell = SpellRegistry.MANTIS_LEAP.get();
             var continuousSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
@@ -721,8 +721,10 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                         "Search Beacon should remain above Iron Spellcaster Gun's default cooldown limit");
                 helper.assertTrue(iron.canImbueSpell(cooldownLimitedSpell, 1),
                         "Iron Spellcaster Gun maxInstantImbueCooldownTicks=0 should disable only the cooldown limit");
-                helper.assertFalse(iron.canImbueSpell(SpellRegistry.HIGANBANA.get(), 1),
+                helper.assertFalse(iron.canImbueSpell(SpellRegistry.QUICK_ARMS.get(), 1),
                         "Iron Spellcaster Gun should still reject recast spells when only the cooldown limit is disabled");
+                helper.assertTrue(iron.canImbueSpell(SpellRegistry.HIGANBANA.get(), 1),
+                        "Iron Spellcaster Gun should treat Higanbana as a non-recast spell");
                 helper.assertFalse(copper.canImbueSpell(cooldownLimitedSpell, 1),
                         "Copper Spellcaster Gun should enforce an overridden imbue cooldown limit");
                 helper.assertTrue(gold.canImbueSpell(cooldownLimitedSpell, 1),

@@ -203,7 +203,7 @@ final class SpellDispenserGameTestScenarios {
 
     static void spellDispenserValidatorRejectsRecastScroll(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var scrollStack = createSpellScroll(SpellRegistry.HIGANBANA.get());
+            var scrollStack = createSpellScroll(SpellRegistry.QUICK_ARMS.get());
 
             var validation = SpellDispenserSpellValidator.validate(scrollStack);
             helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted a recast spell scroll");

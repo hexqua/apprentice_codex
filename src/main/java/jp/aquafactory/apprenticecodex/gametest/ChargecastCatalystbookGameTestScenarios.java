@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.item.SneakSelectionState;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookStartSoundContext;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell;
+import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssaultRifleEntity;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.BlockPos;
@@ -28,6 +29,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
 
 import java.util.Set;
@@ -363,6 +365,61 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
         });
     }
 
+    static void higanbanaWaitsForChargecastCompletionBeforeSlashing(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "chargecast_higanbana_wait_test");
+        var book = new ItemStack(ItemRegistry.CHARGECAST_CATALYSTBOOK.get());
+        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.HIGANBANA.get();
+        ChargecastCatalystbook.setCalibrationScroll(book, 0, createSpellScroll(spell));
+        player.setItemInHand(InteractionHand.MAIN_HAND, book);
+        MagicData.getPlayerMagicData(player).setMana(1000.0F);
+        var baseDamage = (1.0F + spell.getSpellPower(1, player) / 100.0F)
+                * ApprenticeCodexServerConfig.damageMultiplier(
+                jp.aquafactory.apprenticecodex.config.DamageMultiplierKey.HIGANBANA);
+        var summonedPosition = new Vec3[1];
+        var summonedYaw = new float[1];
+
+        helper.runAtTickTime(1, () -> {
+            var result = book.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Chargecast Higanbana should start charging but got " + result.getResult());
+        });
+        helper.runAtTickTime(2, () -> {
+            var katanas = BowGameTestSupport.getOwnedSummonWeapons(helper, player, HiganbanaKatanaEntity.class);
+            helper.assertTrue(katanas.size() == 1,
+                    "Chargecast Higanbana should create one pre-cast katana");
+            summonedPosition[0] = katanas.get(0).position();
+            summonedYaw[0] = katanas.get(0).getYRot();
+            player.setPos(player.getX() + 4.0D, player.getY(), player.getZ() + 4.0D);
+            player.setYRot(player.getYRot() + 90.0F);
+        });
+        helper.runAtTickTime(12, () -> {
+            var katanas = BowGameTestSupport.getOwnedSummonWeapons(helper, player, HiganbanaKatanaEntity.class);
+            helper.assertTrue(katanas.size() == 1,
+                    "Chargecast Higanbana should keep one pre-cast katana while charging");
+            var katana = katanas.get(0);
+            helper.assertTrue(katana.getRemainingSlashCount() == 0,
+                    "Chargecast Higanbana should not start its slash sequence before completion");
+            helper.assertTrue(katana.position().distanceTo(summonedPosition[0]) < 1.0E-6D
+                            && Math.abs(katana.getYRot() - summonedYaw[0]) < 1.0E-4F,
+                    "Chargecast Higanbana should stay at its summoned position while charging");
+        });
+        helper.runAtTickTime(13, () -> {
+            var magicData = MagicData.getPlayerMagicData(player);
+            ChargecastCatalystbookCastEvents.castWithPowerBonus(
+                    spell, helper.getLevel(), 1, player, CastSource.SWORD, true
+            );
+            spell.onServerCastComplete(helper.getLevel(), 1, player, magicData, false);
+
+            var katanas = BowGameTestSupport.getOwnedSummonWeapons(helper, player, HiganbanaKatanaEntity.class);
+            helper.assertTrue(katanas.size() == 1 && katanas.get(0).getRemainingSlashCount() == 4,
+                    "Chargecast Higanbana should start its four-slash sequence when charging completes");
+            helper.assertTrue(katanas.get(0).getDamageForGameTest() > baseDamage,
+                    "Chargecast Higanbana should use the charged spell power for damage");
+            helper.succeed();
+        });
+    }
+
     static void lethalAssaultCancellationRemovesPreCastRifle(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
                 "chargecast_lethal_assault_cancel_test");
@@ -379,6 +436,26 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
                             helper, player, LethalAssaultRifleEntity.class
                     ).isEmpty(),
                     "Cancelling Chargecast Lethal Assault should remove its idle pre-cast rifle");
+            helper.succeed();
+        });
+    }
+
+    static void higanbanaCancellationRemovesPreCastKatana(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                "chargecast_higanbana_cancel_test");
+        var book = new ItemStack(ItemRegistry.CHARGECAST_CATALYSTBOOK.get());
+        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.HIGANBANA.get();
+        ChargecastCatalystbook.setCalibrationScroll(book, 0, createSpellScroll(spell));
+        player.setItemInHand(InteractionHand.MAIN_HAND, book);
+        MagicData.getPlayerMagicData(player).setMana(1000.0F);
+
+        helper.runAtTickTime(1, () -> book.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND));
+        helper.runAtTickTime(3, () -> Utils.serverSideCancelCast(player));
+        helper.runAtTickTime(4, () -> {
+            helper.assertTrue(BowGameTestSupport.getOwnedSummonWeapons(
+                            helper, player, HiganbanaKatanaEntity.class
+                    ).isEmpty(),
+                    "Cancelling Chargecast Higanbana should remove its idle pre-cast katana");
             helper.succeed();
         });
     }
