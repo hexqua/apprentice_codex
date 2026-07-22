@@ -849,7 +849,6 @@
     },
     {
       "profile": {
-        "allow_initial_recast": true,
         "allowed_cast_origins": [
           "charged_twin_blade_staff_impact"
         ],
