@@ -11,8 +11,8 @@ public class NetheriteSwingcastStaff extends AbstractSwingcastStaffItem {
             7.0D,
             instantOnlyCastTypes(),
             SwingcastCooldownMode.IMBUED_ONLY,
-            bonus(AttributeRegistry.SPELL_POWER, 0.1, AttributeModifier.Operation.MULTIPLY_BASE)
-    );
+            RecastTypes.NoRecastRestriction,
+            bonus(AttributeRegistry.SPELL_POWER, 0.1, AttributeModifier.Operation.MULTIPLY_BASE));
 
     public NetheriteSwingcastStaff() {
         super("netherite_swingcast_staff", TIER);

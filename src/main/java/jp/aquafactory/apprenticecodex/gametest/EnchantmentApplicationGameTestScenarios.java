@@ -671,7 +671,9 @@ final class EnchantmentApplicationGameTestScenarios {
 
     private static Set<ResourceLocation> expectedSpellSideEdgeEnchantments(ItemStack stack) {
         var expected = swordEnchantments(true);
-        expected.addAll(registryIdSet(EnchantmentRegistry.WISDOM, EnchantmentRegistry.TRANSCENDENCE));
+        expected.addAll(registryIdSet(EnchantmentRegistry.WISDOM, EnchantmentRegistry.TRANSCENDENCE,
+                EnchantmentRegistry.ALACRITY, EnchantmentRegistry.REFLUX,
+                EnchantmentRegistry.RESERVOIR, EnchantmentRegistry.TENSE));
         addExpectedMalumSpiritPlunderIfPresent(stack, expected);
         return expected;
     }

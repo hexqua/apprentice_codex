@@ -95,7 +95,7 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public BulwarkGreatshield() {
-        super(new Item.Properties().stacksTo(1).durability(DURABILITY).rarity(Rarity.RARE));
+        super(new Item.Properties().stacksTo(1).durability(DURABILITY).rarity(Rarity.RARE).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
     }
 

@@ -109,7 +109,7 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public ParrycastBuckler() {
-        super(new Item.Properties().stacksTo(1).durability(DURABILITY).rarity(Rarity.RARE));
+        super(new Item.Properties().stacksTo(1).durability(DURABILITY).rarity(Rarity.RARE).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
     }
 

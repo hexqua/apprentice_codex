@@ -7,8 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
-import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.*;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -43,7 +42,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public abstract class AbstractSpellSideEdgeItem extends SwordItem
-        implements GeoItem, IPresetSpellContainer, UniqueItem, TranscendencePolicy, WisdomPolicy {
+        implements GeoItem, IPresetSpellContainer, UniqueItem, TranscendencePolicy, WisdomPolicy, AttributeEnchantmentPolicy {
     public static final float DISPLAY_ATTACK_DAMAGE = 4.0F;
     public static final int DURABILITY = 1561;
     public static final int ENCHANTMENT_VALUE = 22;
@@ -63,6 +62,13 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem
     private static final Set<ResourceLocation> EXTRA_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom"),
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "transcendence")
+    );
+
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR,
+            AttributeEnchantmentType.TENSE
     );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -110,7 +116,11 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem
             return super.getAttributeModifiers(slot, stack);
         }
 
-        return mainhandModifiers;
+        return AttributeEnchantmentResolver.resolveMergedModifiers(
+                mainhandModifiers,
+                stack,
+                "apprenticecodex." + stack.getDescriptionId()
+        );
     }
 
     @Override
@@ -124,6 +134,11 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem
     }
 
     @Override
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
+    }
+
+    @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
         var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
         if (enchantmentId == null) {
@@ -134,8 +149,11 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem
             return true;
         }
 
-        return EXTRA_ENCHANTMENTS.contains(enchantmentId)
-                || enchantment.canApplyAtEnchantingTable(SWORD_ENCHANTMENT_PROBE_STACK);
+        var attributeEnchantment = AttributeEnchantmentType.from(enchantment);
+        return attributeEnchantment.map(this::supportsDirectAttributeEnchantment).orElse(
+                EXTRA_ENCHANTMENTS.contains(enchantmentId)
+                        || enchantment.canApplyAtEnchantingTable(SWORD_ENCHANTMENT_PROBE_STACK)
+        );
     }
 
     @Override

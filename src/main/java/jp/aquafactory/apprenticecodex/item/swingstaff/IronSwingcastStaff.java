@@ -11,8 +11,8 @@ public class IronSwingcastStaff extends AbstractSwingcastStaffItem {
             5.0D,
             instantOnlyCastTypes(),
             SwingcastCooldownMode.IMBUED_ONLY,
-            bonus(AttributeRegistry.SPELL_POWER, 0.1, AttributeModifier.Operation.MULTIPLY_BASE)
-    );
+            RecastTypes.RequireZeroRecast,
+            bonus(AttributeRegistry.SPELL_POWER, 0.1, AttributeModifier.Operation.MULTIPLY_BASE));
 
     public IronSwingcastStaff() {
         super("iron_swingcast_staff", TIER);

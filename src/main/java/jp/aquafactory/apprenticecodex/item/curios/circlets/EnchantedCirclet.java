@@ -42,8 +42,7 @@ public class EnchantedCirclet extends AbstractCircletItem
 
     @Override
     public int getEnchantmentValue(ItemStack stack) {
-        // todo:バランス調整でもうちょっとエンチャント適性を上げる.
-        return 1;
+        return 15;
     }
 
     @Override
