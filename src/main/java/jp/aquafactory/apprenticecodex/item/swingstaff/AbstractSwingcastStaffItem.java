@@ -30,6 +30,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
@@ -54,6 +55,12 @@ import java.util.stream.Stream;
 
 public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem
         implements GeoItem, IJeiInfoItem, AttributeEnchantmentPolicy {
+
+    protected enum RecastTypes{
+        RequireZeroRecast,
+        NoRecastRestriction,
+    }
+
     private static final String JEI_INFO_GROUP_ID = "swingcast_staves";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.swingcast_staves.desc_";
 
@@ -354,11 +361,12 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem
     }
 
     protected static SwingcastStaffTier createTier(
-            net.minecraft.world.item.Rarity rarity,
+            Rarity rarity,
             int enchantmentValue,
             double displayedAttackDamage,
             Set<SpellGunCastType> supportedCastTypes,
             SwingcastCooldownMode swingcastCooldownMode,
+            RecastTypes recastType,
             AttributeBonus... handBonuses
     ) {
         // Swingcast Staff でも Offhand 系と同じ `bonus(...)` 記法を使えるよう、
@@ -373,7 +381,8 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem
                 1.6D,
                 tierHandBonuses,
                 supportedCastTypes,
-                swingcastCooldownMode
+                swingcastCooldownMode,
+                recastType
         );
     }
 
@@ -384,6 +393,7 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem
             double displayedAttackSpeed,
             Set<SpellGunCastType> supportedCastTypes,
             SwingcastCooldownMode swingcastCooldownMode,
+            RecastTypes recastType,
             AttributeBonus... handBonuses
     ) {
         var tierHandBonuses = Stream.of(handBonuses)
@@ -396,19 +406,20 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem
                 displayedAttackSpeed,
                 tierHandBonuses,
                 supportedCastTypes,
-                swingcastCooldownMode
+                swingcastCooldownMode,
+                recastType
         );
     }
 
     private static SwingcastStaffTier createTierFromBonusSpecs(
-            net.minecraft.world.item.Rarity rarity,
+            Rarity rarity,
             int enchantmentValue,
             double displayedAttackDamage,
             double displayedAttackSpeed,
             List<SwingcastStaffTier.BonusSpec> handBonuses,
             Set<SpellGunCastType> supportedCastTypes,
-            SwingcastCooldownMode swingcastCooldownMode
-    ) {
+            SwingcastCooldownMode swingcastCooldownMode,
+            RecastTypes recastType) {
         return SwingcastStaffTier.fromDisplayedWeaponStats(
                 rarity,
                 enchantmentValue,
@@ -417,7 +428,7 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem
                 handBonuses,
                 supportedCastTypes,
                 null,
-                false,
+                recastType == RecastTypes.RequireZeroRecast,
                 swingcastCooldownMode,
                 null,
                 true
