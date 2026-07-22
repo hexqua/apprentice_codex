@@ -6,9 +6,13 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
+import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
@@ -48,7 +52,8 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public abstract class AbstractSpellSideEdgeItem extends SwordItem
-        implements GeoItem, IPresetSpellContainer, UniqueItem, TranscendencePolicy, WisdomPolicy {
+        implements GeoItem, IPresetSpellContainer, UniqueItem, TranscendencePolicy, WisdomPolicy,
+        AttributeEnchantmentPolicy {
     public static final float DISPLAY_ATTACK_DAMAGE = 4.0F;
     public static final int DURABILITY = 1561;
     public static final int ENCHANTMENT_VALUE = 22;
@@ -62,6 +67,12 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom"),
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "transcendence")
     );
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR,
+            AttributeEnchantmentType.TENSE
+    );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final ItemAttributeModifiers mainhandModifiers = buildMainhandModifiers();
@@ -71,8 +82,7 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem
                 .stacksTo(1)
                 .durability(DURABILITY)
                 .rarity(Rarity.RARE)
-                .fireResistant()
-                .attributes(SwordItem.createAttributes(Tiers.DIAMOND, 0, (float) ATTACK_SPEED_MODIFIER_AMOUNT)));
+                .fireResistant());
         GeoItem.registerSyncedAnimatable(this);
     }
 
@@ -108,7 +118,26 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem
 
     @Override
     public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
-        return mainhandModifiers;
+        if (stack.isEmpty()) {
+            return mainhandModifiers;
+        }
+
+        var builder = ItemAttributeModifiers.builder();
+        for (var entry : mainhandModifiers.modifiers()) {
+            builder.add(entry.attribute(), entry.modifier(), entry.slot());
+        }
+        if (!AttributeEnchantmentResolver.addModifiers(
+                builder,
+                stack,
+                EquipmentSlotGroup.MAINHAND,
+                "apprenticecodex." + stack.getDescriptionId() + ".mainhand_enchant"
+        )) {
+            return mainhandModifiers;
+        }
+        return MagicAttributeModifierHelper.mergeLinearMagicModifiers(
+                builder.build(),
+                "apprenticecodex." + stack.getDescriptionId() + ".mainhand_merged"
+        );
     }
 
     @Override
@@ -122,8 +151,19 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem
     }
 
     @Override
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
+    }
+
+    @Override
     public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
         if (super.supportsEnchantment(stack, enchantment)) {
+            return true;
+        }
+
+        if (AttributeEnchantmentType.from(enchantment)
+                .map(this::supportsDirectAttributeEnchantment)
+                .orElse(false)) {
             return true;
         }
 

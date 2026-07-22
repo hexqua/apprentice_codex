@@ -13,6 +13,7 @@ public class NetheriteSwingcastStaff extends AbstractSwingcastStaffItem {
             7.0D,
             instantOnlyCastTypes(),
             SwingcastCooldownMode.IMBUED_ONLY,
+            RecastTypes.NoRecastRestriction,
             bonus((Holder<Attribute>) AttributeRegistry.SPELL_POWER, 0.1, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
     );
 
