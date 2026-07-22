@@ -231,6 +231,10 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
         this.damage = damage;
     }
 
+    public float getDamageForGameTest() {
+        return damage;
+    }
+
     public void scheduleRelease(int delayTick) {
         if (delayTick <= 0) {
             discard();
