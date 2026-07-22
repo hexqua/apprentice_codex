@@ -59,7 +59,7 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
     private float damage;
     private int slashEffectTick;
     private int slashStandbyTick;
-    private boolean standbyFirstSlash;
+    private int remainingSlashCount;
     private int slashPhaseIndex;
     private int releaseDelayTick = -1;
 
@@ -122,20 +122,15 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
 
         if (slashStandbyTick > 0) {
             --slashStandbyTick;
-            if (slashStandbyTick == 0 && standbyFirstSlash) {
-                standbyFirstSlash = false;
-                slash(level);
-            }
         }
 
-        followTargetPosition(getStandbyPosition());
-        setYRot(owner.getYRot());
-        setXRot(0);
-        setRot(getYRot(), getXRot());
+        if (canSlash()) {
+            slash(level);
+        }
     }
 
     public boolean canSlash() {
-        return slashStandbyTick <= 0;
+        return remainingSlashCount > 0 && slashStandbyTick <= 0 && releaseDelayTick < 0;
     }
 
     public void slash(Level level) {
@@ -144,7 +139,12 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
         }
 
         performSlash(level);
+        --remainingSlashCount;
         slashStandbyTick = SLASH_STANDBY_TICK;
+        if (remainingSlashCount <= 0) {
+            // 最終斬撃直後に消すと演出が途切れるため、既存と同じだけ待ってから消す。
+            scheduleRelease(SLASH_EFFECT_TICK);
+        }
     }
 
     private void performSlash(Level level) {
@@ -164,7 +164,7 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
             AudioTools.playSoundFromEntity(level, this, SoundRegistry.KATANA_SLASH.get(), SoundSource.PLAYERS);
             AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
             for (var hit : hitResult) {
-                var applied = CombatTools.applyDamage(hit, damage, source, SpellRegistry.HIGANBANA.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+                var applied = CombatTools.applyDamage(hit, damage, source, SpellRegistry.HIGANBANA.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
                 if (applied) {
                     playDrainFeedback(level, owner);
                 }
@@ -174,13 +174,19 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
 
     public void setFirstSlashStandby(int ticks) {
         if (ticks <= 0) {
-            standbyFirstSlash = false;
             slash(level());
             return;
         }
 
-        standbyFirstSlash = true;
         slashStandbyTick = ticks;
+    }
+
+    public void setRemainingSlashCount(int remainingSlashCount) {
+        this.remainingSlashCount = Math.max(0, remainingSlashCount);
+    }
+
+    public int getRemainingSlashCount() {
+        return remainingSlashCount;
     }
 
     private static void playDrainFeedback(Level level, LivingEntity owner) {
@@ -251,7 +257,7 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
         super.readAdditionalSaveData(pCompound);
         damage = pCompound.getFloat("Damage");
         slashStandbyTick = pCompound.getInt("SlashStandbyTick");
-        standbyFirstSlash = pCompound.getBoolean("StandbyFirstSlash");
+        remainingSlashCount = pCompound.getInt("RemainingSlashCount");
         slashPhaseIndex = pCompound.getInt("SlashPhase");
     }
 
@@ -260,7 +266,7 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
         super.addAdditionalSaveData(pCompound);
         pCompound.putFloat("Damage", damage);
         pCompound.putInt("SlashStandbyTick", slashStandbyTick);
-        pCompound.putBoolean("StandbyFirstSlash", standbyFirstSlash);
+        pCompound.putInt("RemainingSlashCount", remainingSlashCount);
         pCompound.putInt("SlashPhase", slashPhaseIndex);
     }
 
