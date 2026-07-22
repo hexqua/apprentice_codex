@@ -100,11 +100,17 @@ public class Higanbana extends AbstractSummonWeaponSpell<HiganbanaKatanaEntity> 
     @Override
     public HiganbanaKatanaEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var summonWeapon = new HiganbanaKatanaEntity(EntityRegistry.HIGANBANA_KATANA.get(), level, entity);
-        summonWeapon.setDamage(getDamage(spellLevel, entity));
-        summonWeapon.setRemainingSlashCount(getSlashCount());
-        summonWeapon.setFirstSlashStandby(FIRST_SLASH_DELAY_TICK);
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
+    }
+
+    @Override
+    protected void onInitialCastWithWeapon(Level level, int spellLevel, LivingEntity entity,
+                                           MagicData playerMagicData, @NotNull HiganbanaKatanaEntity weapon) {
+        // pre-cast 中は設置表示だけに留め、触媒書や FocusStaffbow の完了時補正を確定してから斬撃を始める。
+        weapon.setDamage(getDamage(spellLevel, entity));
+        weapon.setRemainingSlashCount(getSlashCount());
+        weapon.setFirstSlashStandby(FIRST_SLASH_DELAY_TICK);
     }
 
     @Override

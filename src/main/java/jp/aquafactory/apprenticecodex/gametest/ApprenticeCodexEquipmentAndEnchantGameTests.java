@@ -555,8 +555,18 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void chargecastHiganbanaWaitsForCompletionBeforeSlashing(GameTestHelper helper) {
+        ChargecastCatalystbookGameTestScenarios.higanbanaWaitsForChargecastCompletionBeforeSlashing(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void chargecastLethalAssaultCancellationRemovesPreCastRifle(GameTestHelper helper) {
         ChargecastCatalystbookGameTestScenarios.lethalAssaultCancellationRemovesPreCastRifle(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargecastHiganbanaCancellationRemovesPreCastKatana(GameTestHelper helper) {
+        ChargecastCatalystbookGameTestScenarios.higanbanaCancellationRemovesPreCastKatana(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1268,6 +1278,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_CONTINUOUS_BATCH)
     public static void focusStaffbowLethalAssaultWaitsForReleaseBeforeFiring(GameTestHelper helper) {
         FocusStaffbowGameTestScenarios.focusStaffbowLethalAssaultWaitsForReleaseBeforeFiring(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_CONTINUOUS_BATCH)
+    public static void focusStaffbowHiganbanaWaitsForReleaseBeforeSlashing(GameTestHelper helper) {
+        FocusStaffbowGameTestScenarios.focusStaffbowHiganbanaWaitsForReleaseBeforeSlashing(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FOCUS_STAFFBOW_CONTINUOUS_BATCH)
