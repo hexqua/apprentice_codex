@@ -68,6 +68,10 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.MANA_FORCE_BLADE.get()),
                     Set.of(AttributeEnchantmentType.SURGE, AttributeEnchantmentType.ATTUNEMENT),
                     "Mana Force Blade");
+            assertDefinitionSurface(helper, new ItemStack(ItemRegistry.SPELL_SIDE_EDGE.get()),
+                    GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS, "Spell Side Edge");
+            assertDefinitionSurface(helper, new ItemStack(ItemRegistry.SPELL_SIDE_EDGE_MIRROR.get()),
+                    GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS, "Spell Side Edge Mirror");
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get()),
                     Set.of(AttributeEnchantmentType.ALACRITY, AttributeEnchantmentType.TENSE),
                     "Parrycast Buckler");
@@ -103,6 +107,10 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
                     AttributeEnchantmentType.SURGE,
                     AttributeEnchantmentType.ATTUNEMENT
             ));
+            assertDirectAttributePolicy(helper, ItemRegistry.SPELL_SIDE_EDGE.get(),
+                    GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS);
+            assertDirectAttributePolicy(helper, ItemRegistry.SPELL_SIDE_EDGE_MIRROR.get(),
+                    GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS);
 
             helper.assertTrue(WisdomPolicy.supportsDirectApplication(ItemRegistry.FOCUS_STAFFBOW.get()),
                     "Focus Staffbow should keep its Wisdom surface");

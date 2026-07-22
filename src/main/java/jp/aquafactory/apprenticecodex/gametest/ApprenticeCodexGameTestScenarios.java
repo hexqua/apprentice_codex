@@ -12146,7 +12146,11 @@ public class ApprenticeCodexGameTestScenarios {
         );
         expectedEnchantments.addAll(registryIdSet(
                 Enchantments.WISDOM,
-                Enchantments.TRANSCENDENCE
+                Enchantments.TRANSCENDENCE,
+                Enchantments.ALACRITY,
+                Enchantments.REFLUX,
+                Enchantments.RESERVOIR,
+                Enchantments.TENSE
         ));
         addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedEnchantments);
         addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
