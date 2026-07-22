@@ -273,7 +273,8 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
     @Override
     public Vec3 getStandbyPosition() {
         if (getOwner() instanceof LivingEntity owner) {
-            return RotationTools.calculateBehindPosition(owner, 0, 0, -0.75);
+            // 彼岸花は水平方向の攻撃しかできないため、backOffset調整だけでよい.
+            return RotationTools.calculateBehindPosition(owner, -0.9, 0, -0.75);
         }
 
         return Vec3.ZERO;
