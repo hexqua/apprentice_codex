@@ -104,6 +104,28 @@ final class FujinGameTestScenarios {
         helper.succeed();
     }
 
+    static void fujinSlashDamagesTargetBeforeWall(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var owner = createPlayer(helper, "fujin_slash_target_before_wall");
+        var start = helper.absoluteVec(new Vec3(2.5D, 3.0D, 2.5D));
+        var target = createZombie(level, start.add(0.75D, 0.0D, 0.0D));
+        var wallBlock = BlockPos.containing(start.add(2.0D, 0.0D, 0.0D));
+        var healthBeforeHit = target.getHealth();
+
+        level.setBlockAndUpdate(wallBlock, Blocks.STONE.defaultBlockState());
+        var projectile = createProjectile(level, owner, start, 4.0F, 16.0F);
+        projectile.tick();
+
+        helper.assertTrue(projectile.isRemoved(), "Fujin slash should stop at terrain");
+        helper.assertTrue(target.getHealth() < healthBeforeHit,
+                "Fujin slash should damage targets before the blocking terrain");
+
+        level.setBlockAndUpdate(wallBlock, Blocks.AIR.defaultBlockState());
+        target.discard();
+        owner.discard();
+        helper.succeed();
+    }
+
     static void fujinSlashExpiresBeyondRangeAndSupportsAntiMagic(GameTestHelper helper) {
         var level = helper.getLevel();
         var owner = createPlayer(helper, "fujin_slash_expiry");
