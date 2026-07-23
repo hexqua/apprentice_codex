@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
@@ -246,8 +247,8 @@ public class OtherworldLens extends AbstractSpell implements IClientBlockTargeti
         }
 
         @Override
-        public CompoundTag serializeNBT() {
-            var tag = super.serializeNBT();
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+            var tag = super.serializeNBT(provider);
             if (sessionId != null) {
                 tag.putUUID("SessionId", sessionId);
             }
@@ -255,8 +256,8 @@ public class OtherworldLens extends AbstractSpell implements IClientBlockTargeti
         }
 
         @Override
-        public void deserializeNBT(CompoundTag tag) {
-            super.deserializeNBT(tag);
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag tag) {
+            super.deserializeNBT(provider, tag);
             sessionId = tag.hasUUID("SessionId") ? tag.getUUID("SessionId") : null;
         }
     }

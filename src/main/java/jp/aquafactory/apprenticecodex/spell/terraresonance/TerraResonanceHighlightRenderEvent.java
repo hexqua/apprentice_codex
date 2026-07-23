@@ -95,7 +95,8 @@ public final class TerraResonanceHighlightRenderEvent {
         var iterator = ACTIVE_CASTS.iterator();
         while (iterator.hasNext()) {
             var cast = iterator.next();
-            var age = (float) (gameTime - cast.startGameTime()) + event.getPartialTick();
+            var age = (float) (gameTime - cast.startGameTime())
+                    + event.getPartialTick().getGameTimeDeltaPartialTick(true);
             if (age >= TOTAL_TICKS) {
                 iterator.remove();
                 continue;
@@ -245,13 +246,15 @@ public final class TerraResonanceHighlightRenderEvent {
     private static void vertex(VertexConsumer buffer, Matrix4f poseMatrix, Matrix3f normalMatrix,
                                Vec3 position, float u, float v, Vec3 normal,
                                float red, float green, float blue, float alpha) {
-        buffer.vertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
-                .color(red * alpha, green * alpha, blue * alpha, alpha)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(LightTexture.FULL_BRIGHT)
-                .normal(normalMatrix, (float) normal.x, (float) normal.y, (float) normal.z)
-                .endVertex();
+        var transformedNormal = normalMatrix.transform(
+                new Vector3f((float) normal.x, (float) normal.y, (float) normal.z)
+        );
+        buffer.addVertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
+                .setColor(red * alpha, green * alpha, blue * alpha, alpha)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(LightTexture.FULL_BRIGHT)
+                .setNormal(transformedNormal.x(), transformedNormal.y(), transformedNormal.z());
     }
 
     private static float getFadeAlpha(float age) {

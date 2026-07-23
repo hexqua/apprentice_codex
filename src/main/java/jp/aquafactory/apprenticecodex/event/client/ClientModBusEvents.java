@@ -95,6 +95,8 @@ import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseerStaffRend
 import jp.aquafactory.apprenticecodex.spell.servantgaze.ServantGazeProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.servantgaze.ServantGazeStaffRenderer;
 import jp.aquafactory.apprenticecodex.spell.frostrune.FrostRuneTrapBlockEntityRenderer;
+import jp.aquafactory.apprenticecodex.spell.fujin.FujinKatanaRenderer;
+import jp.aquafactory.apprenticecodex.spell.fujin.FujinSlashProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudRenderer;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelRenderer;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomRenderer;
@@ -750,6 +752,8 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.SEARCH_BEACON.get(), SearchBeaconRenderer::new);
         event.registerEntityRenderer(EntityRegistry.SPELL_DISPENSER_ANCHOR.get(), SpellDispenserAnchorRenderer::new);
         event.registerEntityRenderer(EntityRegistry.REMOTE_OWNER_CAST_ANCHOR.get(), RemoteOwnerCastAnchorRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.FUJIN_KATANA.get(), FujinKatanaRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.FUJIN_SLASH_PROJECTILE.get(), FujinSlashProjectileRenderer::new);
     }
 }
 

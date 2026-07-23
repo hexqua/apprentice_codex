@@ -30,6 +30,7 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FEATHER_RUSH;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FIELD_OVERSEER;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FLY_SWATTER;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FROST_RUNE;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FUJIN;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.GRACED_RAIN;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.GRIND_RUNNER;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HAUNTED_BONUS;

@@ -19,6 +19,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -88,7 +89,8 @@ public final class TerraResonancePulseRenderEvent {
         var iterator = ACTIVE_PULSES.iterator();
         while (iterator.hasNext()) {
             var pulse = iterator.next();
-            var age = (float) (gameTime - pulse.startGameTime()) + event.getPartialTick();
+            var age = (float) (gameTime - pulse.startGameTime())
+                    + event.getPartialTick().getGameTimeDeltaPartialTick(true);
             if (age >= LIFETIME_TICKS) {
                 iterator.remove();
                 continue;
@@ -134,13 +136,15 @@ public final class TerraResonancePulseRenderEvent {
 
     private static void vertex(VertexConsumer buffer, Matrix4f poseMatrix, Matrix3f normalMatrix,
                                Vec3 position, float u, float v, Vec3 normal, float alpha) {
-        buffer.vertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
-                .color(COLOR_RED * alpha, COLOR_GREEN * alpha, COLOR_BLUE * alpha, alpha)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(LightTexture.FULL_BRIGHT)
-                .normal(normalMatrix, (float) normal.x, (float) normal.y, (float) normal.z)
-                .endVertex();
+        var transformedNormal = normalMatrix.transform(
+                new Vector3f((float) normal.x, (float) normal.y, (float) normal.z)
+        );
+        buffer.addVertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
+                .setColor(COLOR_RED * alpha, COLOR_GREEN * alpha, COLOR_BLUE * alpha, alpha)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(LightTexture.FULL_BRIGHT)
+                .setNormal(transformedNormal.x(), transformedNormal.y(), transformedNormal.z());
     }
 
     private record ActivePulse(Vec3 center, Direction selectedFace, long startGameTime, float maxRadius) {
