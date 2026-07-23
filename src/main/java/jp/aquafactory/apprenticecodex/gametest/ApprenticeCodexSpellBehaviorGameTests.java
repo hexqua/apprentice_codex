@@ -141,6 +141,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = FUJIN_ISOLATED_BATCH)
+    public static void fujinSlashRespectsParallelWallOcclusion(GameTestHelper helper) {
+        FujinGameTestScenarios.fujinSlashRespectsParallelWallOcclusion(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FUJIN_ISOLATED_BATCH)
     public static void fujinSlashExpiresBeyondRangeAndSupportsAntiMagic(GameTestHelper helper) {
         FujinGameTestScenarios.fujinSlashExpiresBeyondRangeAndSupportsAntiMagic(helper);
     }

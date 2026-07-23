@@ -49,6 +49,7 @@ public class FujinSlashProjectileEntity extends Projectile
     static final float DISCARD_DISTANCE_RATIO = 1.25F;
     private static final float BLOCK_COLLISION_SIZE = 0.25F;
     private static final double BLOCK_COLLISION_STEP = BLOCK_COLLISION_SIZE * 0.5D;
+    private static final double OCCLUSION_RAY_EPSILON = 1.0E-4D;
     private static final EntityDataAccessor<Float> MAX_TRAVEL_DISTANCE =
             SynchedEntityData.defineId(FujinSlashProjectileEntity.class, EntityDataSerializers.FLOAT);
 
@@ -127,14 +128,57 @@ public class FujinSlashProjectileEntity extends Projectile
 
     private void damageEntities(Vec3 movement) {
         var sweptBounds = getBoundingBox().expandTowards(movement);
+        var checkedTargetUuids = new HashSet<UUID>();
         for (var rawTarget : level().getEntities(this, sweptBounds, this::canHitEntity)) {
             var target = CombatTools.resolutePartEntity(rawTarget);
+            var targetUuid = target.getUUID();
             if (!CombatTools.isValidCombatTarget(target, getOwner())
-                    || !victimUuids.add(target.getUUID())) {
+                    || victimUuids.contains(targetUuid)
+                    || !checkedTargetUuids.add(targetUuid)
+                    || !hasClearPathToTarget(target, movement)) {
                 continue;
             }
-            damageEntity(target);
+            if (victimUuids.add(targetUuid)) {
+                damageEntity(target);
+            }
         }
+    }
+
+    private boolean hasClearPathToTarget(Entity target, Vec3 movement) {
+        var movementLengthSqr = movement.lengthSqr();
+        if (movementLengthSqr <= 1.0E-8D) {
+            return false;
+        }
+
+        var movementStart = position();
+        var targetBox = target.getBoundingBox();
+        var movementProgress = Mth.clamp(
+                targetBox.getCenter().subtract(movementStart).dot(movement) / movementLengthSqr,
+                0.0D,
+                1.0D
+        );
+        var sourcePoint = movementStart.add(movement.scale(movementProgress));
+        var targetPoint = new Vec3(
+                Mth.clamp(sourcePoint.x, targetBox.minX, targetBox.maxX),
+                Mth.clamp(sourcePoint.y, targetBox.minY, targetBox.maxY),
+                Mth.clamp(sourcePoint.z, targetBox.minZ, targetBox.maxZ)
+        );
+        var toTarget = targetPoint.subtract(sourcePoint);
+        var targetDistance = toTarget.length();
+        if (targetDistance <= OCCLUSION_RAY_EPSILON) {
+            return true;
+        }
+
+        // 幅広い斬撃自体は壁際を通過させ、中心移動区間から対象までを遮る地形だけを命中時に除外する。
+        var rayStart = sourcePoint.subtract(toTarget.scale(OCCLUSION_RAY_EPSILON / targetDistance));
+        var blockHit = level().clip(new ClipContext(
+                rayStart,
+                targetPoint,
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
+                this
+        ));
+        return blockHit.getType() == HitResult.Type.MISS;
     }
 
     private void damageEntity(Entity entity) {

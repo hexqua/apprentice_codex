@@ -109,8 +109,10 @@ final class FujinGameTestScenarios {
         var owner = createPlayer(helper, "fujin_slash_target_before_wall");
         var start = helper.absoluteVec(new Vec3(2.5D, 3.0D, 2.5D));
         var target = createZombie(level, start.add(0.75D, 0.0D, 0.0D));
+        var targetBehindWall = createZombie(level, start.add(3.0D, 0.0D, 0.0D));
         var wallBlock = BlockPos.containing(start.add(2.0D, 0.0D, 0.0D));
         var healthBeforeHit = target.getHealth();
+        var healthBehindWall = targetBehindWall.getHealth();
 
         level.setBlockAndUpdate(wallBlock, Blocks.STONE.defaultBlockState());
         var projectile = createProjectile(level, owner, start, 4.0F, 16.0F);
@@ -119,9 +121,43 @@ final class FujinGameTestScenarios {
         helper.assertTrue(projectile.isRemoved(), "Fujin slash should stop at terrain");
         helper.assertTrue(target.getHealth() < healthBeforeHit,
                 "Fujin slash should damage targets before the blocking terrain");
+        helper.assertTrue(Math.abs(targetBehindWall.getHealth() - healthBehindWall) < VALUE_EPSILON,
+                "Fujin slash should not damage targets behind the blocking terrain");
 
         level.setBlockAndUpdate(wallBlock, Blocks.AIR.defaultBlockState());
         target.discard();
+        targetBehindWall.discard();
+        owner.discard();
+        helper.succeed();
+    }
+
+    static void fujinSlashRespectsParallelWallOcclusion(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var owner = createPlayer(helper, "fujin_slash_parallel_wall");
+        var start = helper.absoluteVec(new Vec3(2.5D, 3.0D, 2.5D));
+        var targetBehindWall = createZombie(level, start.add(0.75D, 0.0D, 2.0D));
+        var clearSideTarget = createZombie(level, start.add(0.75D, 0.0D, -2.0D));
+        var wallBlock = BlockPos.containing(start.add(0.75D, 0.0D, 1.0D));
+        var healthBehindWall = targetBehindWall.getHealth();
+        var clearSideHealth = clearSideTarget.getHealth();
+
+        level.setBlockAndUpdate(wallBlock, Blocks.STONE.defaultBlockState());
+        level.setBlockAndUpdate(wallBlock.below(), Blocks.STONE.defaultBlockState());
+        var projectile = createProjectile(level, owner, start, 4.0F, 16.0F);
+        projectile.tick();
+
+        helper.assertFalse(projectile.isRemoved(),
+                "Fujin slash center path should continue beside parallel terrain");
+        helper.assertTrue(Math.abs(targetBehindWall.getHealth() - healthBehindWall) < VALUE_EPSILON,
+                "Fujin slash should not damage targets across parallel terrain");
+        helper.assertTrue(clearSideTarget.getHealth() < clearSideHealth,
+                "Fujin slash should keep its wide hit area when terrain does not occlude the target");
+
+        level.setBlockAndUpdate(wallBlock, Blocks.AIR.defaultBlockState());
+        level.setBlockAndUpdate(wallBlock.below(), Blocks.AIR.defaultBlockState());
+        projectile.discard();
+        targetBehindWall.discard();
+        clearSideTarget.discard();
         owner.discard();
         helper.succeed();
     }
