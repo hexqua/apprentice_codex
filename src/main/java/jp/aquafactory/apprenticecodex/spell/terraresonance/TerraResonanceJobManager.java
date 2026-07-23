@@ -18,7 +18,9 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -28,9 +30,13 @@ import java.util.WeakHashMap;
 public final class TerraResonanceJobManager {
     private static final int SECOND_PULSE_DELAY_TICKS = 5;
     private static final int RESULT_DELAY_TICKS = 60;
+    // 最大127立方の単独探索を約52 tickで終えつつ、同時発動時もレベル全体のtick負荷を一定に保つ。
+    private static final int SEARCH_BLOCK_BUDGET_PER_TICK = 40_000;
+    private static final int SEARCH_JOB_SLICE = 4_000;
     private static final float PULSE_RADIUS = 1.5F;
     private static final double PULSE_TRACKING_RANGE = 64.0D;
     private static final Map<ServerLevel, List<ScheduledAction>> ACTIONS = new WeakHashMap<>();
+    private static final Map<ServerLevel, Deque<SearchAction>> SEARCHES = new WeakHashMap<>();
 
     private TerraResonanceJobManager() {
     }
@@ -45,12 +51,17 @@ public final class TerraResonanceJobManager {
         schedule(level, new PulseAction(level.getGameTime() + SECOND_PULSE_DELAY_TICKS, target.center(), target.face()));
     }
 
-    public static void submitResult(ServerLevel level, ServerPlayer player, TerraResonanceSearch.SearchResult result) {
-        schedule(level, new ResultAction(
+    public static void startSearch(
+            ServerLevel level,
+            ServerPlayer player,
+            BlockPos anchor,
+            Direction selectedFace,
+            int range
+    ) {
+        SEARCHES.computeIfAbsent(level, ignored -> new ArrayDeque<>()).addLast(new SearchAction(
                 level.getGameTime() + RESULT_DELAY_TICKS,
                 player.getUUID(),
-                result.found(),
-                result.highlightTargets()
+                TerraResonanceSearch.start(level, anchor, selectedFace, range)
         ));
     }
 
@@ -60,23 +71,61 @@ public final class TerraResonanceJobManager {
             return;
         }
 
-        var actions = ACTIONS.get(serverLevel);
+        processSearches(serverLevel);
+        processScheduledActions(serverLevel);
+    }
+
+    private static void processSearches(ServerLevel level) {
+        var searches = SEARCHES.get(level);
+        if (searches == null || searches.isEmpty()) {
+            return;
+        }
+
+        var remainingBudget = SEARCH_BLOCK_BUDGET_PER_TICK;
+        while (remainingBudget > 0 && !searches.isEmpty()) {
+            var search = searches.removeFirst();
+            var player = level.getServer().getPlayerList().getPlayer(search.playerId());
+            if (!isSafeRecipient(level, player)) {
+                continue;
+            }
+
+            var inspected = search.job().advance(level, Math.min(SEARCH_JOB_SLICE, remainingBudget));
+            remainingBudget -= inspected;
+            if (search.job().isComplete()) {
+                var result = search.job().result();
+                schedule(level, new ResultAction(
+                        Math.max(search.earliestResultTime(), level.getGameTime()),
+                        search.playerId(),
+                        result.found(),
+                        result.highlightTargets()
+                ));
+            } else {
+                searches.addLast(search);
+            }
+        }
+        if (searches.isEmpty()) {
+            SEARCHES.remove(level);
+        }
+    }
+
+    private static void processScheduledActions(ServerLevel level) {
+        var actions = ACTIONS.get(level);
         if (actions == null || actions.isEmpty()) {
             return;
         }
 
-        var now = serverLevel.getGameTime();
+        var now = level.getGameTime();
         var iterator = actions.iterator();
         while (iterator.hasNext()) {
             var action = iterator.next();
             if (action.executeAt() > now) {
                 continue;
             }
-            action.execute(serverLevel);
+            action.execute(level);
             iterator.remove();
         }
         if (actions.isEmpty()) {
-            ACTIONS.remove(serverLevel);
+            ACTIONS.remove(level);
         }
     }
 
@@ -115,6 +164,13 @@ public final class TerraResonanceJobManager {
         );
     }
 
+    private static boolean isSafeRecipient(ServerLevel level, ServerPlayer player) {
+        return player != null
+                && player.serverLevel() == level
+                && player.isAlive()
+                && !player.isRemoved();
+    }
+
     private interface ScheduledAction {
         long executeAt();
 
@@ -126,6 +182,13 @@ public final class TerraResonanceJobManager {
         public void execute(ServerLevel level) {
             emitPulse(level, center, selectedFace);
         }
+    }
+
+    private record SearchAction(
+            long earliestResultTime,
+            UUID playerId,
+            TerraResonanceSearch.SearchJob job
+    ) {
     }
 
     private record ResultAction(
@@ -161,13 +224,6 @@ public final class TerraResonanceJobManager {
                         true
                 );
             }
-        }
-
-        private static boolean isSafeRecipient(ServerLevel level, ServerPlayer player) {
-            return player != null
-                    && player.serverLevel() == level
-                    && player.isAlive()
-                    && !player.isRemoved();
         }
     }
 

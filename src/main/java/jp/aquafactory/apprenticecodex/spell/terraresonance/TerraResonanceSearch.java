@@ -5,7 +5,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.chunk.LevelChunkSection;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -21,71 +20,8 @@ public final class TerraResonanceSearch {
     private TerraResonanceSearch() {
     }
 
-    public static SearchResult collect(ServerLevel level, BlockPos anchor, Direction selectedFace, int range) {
-        var bounds = SearchBounds.create(level, anchor, selectedFace, range);
-        if (bounds == null) {
-            return SearchResult.EMPTY;
-        }
-
-        var nearest = new PriorityQueue<>(MAX_HIGHLIGHT_TARGETS, FARTHEST_FIRST);
-        var found = false;
-        var mutablePos = new BlockPos.MutableBlockPos();
-
-        for (var chunkX = SectionPos.blockToSectionCoord(bounds.minX());
-             chunkX <= SectionPos.blockToSectionCoord(bounds.maxX()); chunkX++) {
-            for (var chunkZ = SectionPos.blockToSectionCoord(bounds.minZ());
-                 chunkZ <= SectionPos.blockToSectionCoord(bounds.maxZ()); chunkZ++) {
-                var chunk = level.getChunkSource().getChunkNow(chunkX, chunkZ);
-                if (chunk == null) {
-                    continue;
-                }
-
-                var chunkMinX = Math.max(bounds.minX(), chunk.getPos().getMinBlockX());
-                var chunkMaxX = Math.min(bounds.maxX(), chunk.getPos().getMaxBlockX());
-                var chunkMinZ = Math.max(bounds.minZ(), chunk.getPos().getMinBlockZ());
-                var chunkMaxZ = Math.min(bounds.maxZ(), chunk.getPos().getMaxBlockZ());
-                var sections = chunk.getSections();
-                for (var sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
-                    LevelChunkSection section = sections[sectionIndex];
-                    if (section == null || section.hasOnlyAir()) {
-                        continue;
-                    }
-
-                    var sectionY = level.getMinSection() + sectionIndex;
-                    var sectionMinY = Math.max(bounds.minY(), SectionPos.sectionToBlockCoord(sectionY));
-                    var sectionMaxY = Math.min(bounds.maxY(), SectionPos.sectionToBlockCoord(sectionY) + 15);
-                    if (sectionMinY > sectionMaxY) {
-                        continue;
-                    }
-
-                    for (var y = sectionMinY; y <= sectionMaxY; y++) {
-                        for (var x = chunkMinX; x <= chunkMaxX; x++) {
-                            for (var z = chunkMinZ; z <= chunkMaxZ; z++) {
-                                mutablePos.set(x, y, z);
-                                if (!chunk.getBlockState(mutablePos).is(TagRegistry.Blocks.TERRA_RESONANCE_TARGETS)) {
-                                    continue;
-                                }
-
-                                found = true;
-                                offerNearest(nearest, new Candidate(
-                                        mutablePos.immutable(),
-                                        distanceSqr(mutablePos, anchor),
-                                        mutablePos.asLong()
-                                ));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!found) {
-            return SearchResult.EMPTY;
-        }
-
-        var sorted = new ArrayList<>(nearest);
-        sorted.sort(NEAREST_FIRST);
-        return new SearchResult(true, sorted.stream().map(Candidate::position).toList());
+    public static SearchJob start(ServerLevel level, BlockPos anchor, Direction selectedFace, int range) {
+        return new SearchJob(level, anchor, selectedFace, range);
     }
 
     private static void offerNearest(PriorityQueue<Candidate> nearest, Candidate candidate) {
@@ -113,6 +49,173 @@ public final class TerraResonanceSearch {
 
         public SearchResult {
             highlightTargets = List.copyOf(highlightTargets);
+        }
+    }
+
+    public static final class SearchJob {
+        private final BlockPos anchor;
+        private final SearchBounds bounds;
+        private final PriorityQueue<Candidate> nearest =
+                new PriorityQueue<>(MAX_HIGHLIGHT_TARGETS, FARTHEST_FIRST);
+        private final BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
+        private final int maxChunkX;
+        private final int minChunkZ;
+        private final int maxChunkZ;
+        private int chunkX;
+        private int chunkZ;
+        private int nextSectionIndex;
+        private int scanMinX;
+        private int scanMaxX;
+        private int scanMinZ;
+        private int scanMaxZ;
+        private int scanMaxY;
+        private int scanX;
+        private int scanY;
+        private int scanZ;
+        private boolean sectionReady;
+        private boolean complete;
+        private SearchResult result;
+
+        private SearchJob(ServerLevel level, BlockPos anchor, Direction selectedFace, int range) {
+            this.anchor = anchor.immutable();
+            bounds = SearchBounds.create(level, anchor, selectedFace, range);
+            if (bounds == null) {
+                chunkX = 0;
+                maxChunkX = -1;
+                minChunkZ = 0;
+                maxChunkZ = -1;
+                complete = true;
+                result = SearchResult.EMPTY;
+                return;
+            }
+
+            chunkX = SectionPos.blockToSectionCoord(bounds.minX());
+            maxChunkX = SectionPos.blockToSectionCoord(bounds.maxX());
+            minChunkZ = SectionPos.blockToSectionCoord(bounds.minZ());
+            maxChunkZ = SectionPos.blockToSectionCoord(bounds.maxZ());
+            chunkZ = minChunkZ;
+        }
+
+        public int advance(ServerLevel level, int blockBudget) {
+            if (complete || blockBudget <= 0) {
+                return 0;
+            }
+
+            var inspected = 0;
+            while (inspected < blockBudget) {
+                if (!sectionReady && !prepareNextSection(level)) {
+                    finish();
+                    break;
+                }
+
+                var chunk = level.getChunkSource().getChunkNow(chunkX, chunkZ);
+                if (chunk == null) {
+                    sectionReady = false;
+                    continue;
+                }
+
+                while (sectionReady && inspected < blockBudget) {
+                    mutablePos.set(scanX, scanY, scanZ);
+                    if (chunk.getBlockState(mutablePos).is(TagRegistry.Blocks.TERRA_RESONANCE_TARGETS)) {
+                        offerNearest(nearest, new Candidate(
+                                mutablePos.immutable(),
+                                distanceSqr(mutablePos, anchor),
+                                mutablePos.asLong()
+                        ));
+                    }
+                    inspected++;
+                    advanceBlockCursor();
+                }
+            }
+            return inspected;
+        }
+
+        public boolean isComplete() {
+            return complete;
+        }
+
+        public SearchResult result() {
+            if (!complete) {
+                throw new IllegalStateException("Terra Resonance search has not completed");
+            }
+            return result;
+        }
+
+        private boolean prepareNextSection(ServerLevel level) {
+            while (chunkX <= maxChunkX) {
+                var chunk = level.getChunkSource().getChunkNow(chunkX, chunkZ);
+                if (chunk == null) {
+                    advanceChunkCursor();
+                    continue;
+                }
+
+                var sections = chunk.getSections();
+                while (nextSectionIndex < sections.length) {
+                    var sectionIndex = nextSectionIndex++;
+                    var section = sections[sectionIndex];
+                    if (section == null || section.hasOnlyAir()) {
+                        continue;
+                    }
+
+                    var sectionY = level.getMinSection() + sectionIndex;
+                    var sectionMinY = Math.max(bounds.minY(), SectionPos.sectionToBlockCoord(sectionY));
+                    var sectionMaxY = Math.min(bounds.maxY(), SectionPos.sectionToBlockCoord(sectionY) + 15);
+                    if (sectionMinY > sectionMaxY) {
+                        continue;
+                    }
+
+                    scanMinX = Math.max(bounds.minX(), chunk.getPos().getMinBlockX());
+                    scanMaxX = Math.min(bounds.maxX(), chunk.getPos().getMaxBlockX());
+                    scanMinZ = Math.max(bounds.minZ(), chunk.getPos().getMinBlockZ());
+                    scanMaxZ = Math.min(bounds.maxZ(), chunk.getPos().getMaxBlockZ());
+                    scanX = scanMinX;
+                    scanY = sectionMinY;
+                    scanZ = scanMinZ;
+                    scanMaxY = sectionMaxY;
+                    sectionReady = true;
+                    return true;
+                }
+                advanceChunkCursor();
+            }
+            return false;
+        }
+
+        private void advanceBlockCursor() {
+            scanZ++;
+            if (scanZ <= scanMaxZ) {
+                return;
+            }
+            scanZ = scanMinZ;
+            scanX++;
+            if (scanX <= scanMaxX) {
+                return;
+            }
+            scanX = scanMinX;
+            scanY++;
+            if (scanY > scanMaxY) {
+                sectionReady = false;
+            }
+        }
+
+        private void advanceChunkCursor() {
+            nextSectionIndex = 0;
+            chunkZ++;
+            if (chunkZ > maxChunkZ) {
+                chunkZ = minChunkZ;
+                chunkX++;
+            }
+        }
+
+        private void finish() {
+            complete = true;
+            if (nearest.isEmpty()) {
+                result = SearchResult.EMPTY;
+                return;
+            }
+
+            var sorted = new ArrayList<>(nearest);
+            sorted.sort(NEAREST_FIRST);
+            result = new SearchResult(true, sorted.stream().map(Candidate::position).toList());
         }
     }
 

@@ -158,19 +158,19 @@ public class TerraResonance extends AbstractSpell implements IClientBlockHitTarg
         if (level instanceof ServerLevel serverLevel && entity instanceof ServerPlayer serverPlayer
                 && playerMagicData.getAdditionalCastData() instanceof BlockTargetData targetData
                 && targetData.getHitBlockPos() != null && targetData.getHitFace() != null) {
-            var result = TerraResonanceSearch.collect(
-                    serverLevel,
-                    targetData.getHitBlockPos(),
-                    targetData.getHitFace(),
-                    getRange(spellLevel, entity)
-            );
             serverPlayer.displayClientMessage(
                     Component.translatable("ui.apprenticecodex.terra_resonance.prepare")
                             .withStyle(ChatFormatting.GREEN),
                     true
             );
             TerraResonanceJobManager.startPulsePair(serverLevel, targetData);
-            TerraResonanceJobManager.submitResult(serverLevel, serverPlayer, result);
+            TerraResonanceJobManager.startSearch(
+                    serverLevel,
+                    serverPlayer,
+                    targetData.getHitBlockPos(),
+                    targetData.getHitFace(),
+                    getRange(spellLevel, entity)
+            );
         }
 
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);

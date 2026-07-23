@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.spell.terraresonance.TerraResonanceSearch;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Blocks;
 
 final class TerraResonanceGameTestScenarios {
@@ -41,7 +42,7 @@ final class TerraResonanceGameTestScenarios {
             level.setBlock(inwardTarget, Blocks.SMALL_AMETHYST_BUD.defaultBlockState(), 3);
             level.setBlock(outwardTarget, Blocks.SMALL_AMETHYST_BUD.defaultBlockState(), 3);
 
-            var result = TerraResonanceSearch.collect(level, anchor, selectedFace, range);
+            var result = collectIncrementally(level, anchor, selectedFace, range);
             helper.assertTrue(result.found(), "Terra Resonance should find a target in the inward search volume");
             helper.assertTrue(
                     result.highlightTargets().contains(inwardTarget),
@@ -60,8 +61,21 @@ final class TerraResonanceGameTestScenarios {
             );
         }
 
-        var emptyResult = TerraResonanceSearch.collect(level, anchor, Direction.UP, range);
+        var emptyResult = collectIncrementally(level, anchor, Direction.UP, range);
         helper.assertFalse(emptyResult.found(), "Terra Resonance should report not found when no tagged block remains");
         helper.succeed();
+    }
+
+    private static TerraResonanceSearch.SearchResult collectIncrementally(
+            ServerLevel level,
+            BlockPos anchor,
+            Direction selectedFace,
+            int range
+    ) {
+        var job = TerraResonanceSearch.start(level, anchor, selectedFace, range);
+        while (!job.isComplete()) {
+            job.advance(level, 7);
+        }
+        return job.result();
     }
 }
