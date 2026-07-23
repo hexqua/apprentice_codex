@@ -90,6 +90,17 @@ public final class BlockTagGenerator extends BlockTagsProvider {
                 .addOptional(ResourceLocation.fromNamespaceAndPath("primalmagick", "synthetic_emerald_cluster"))
                 .addOptional(ResourceLocation.fromNamespaceAndPath("primalmagick", "synthetic_quartz_cluster"));
 
+        // TerraResonance は成長元との隣接を要求せず、成長途中のアメジストも同じ気配として探知する。
+        // 他MODの成長途中はいうほど重要度が高くなさそうなのでオミット。
+        tag(TagRegistry.Blocks.TERRA_RESONANCE_TARGETS)
+                .add(
+                        Blocks.SMALL_AMETHYST_BUD,
+                        Blocks.MEDIUM_AMETHYST_BUD,
+                        Blocks.LARGE_AMETHYST_BUD
+                )
+                .addTag(TagRegistry.Blocks.HEAVENLY_FIST_CRYSTAL_HARVEST_SOURCES)
+                .addTag(TagRegistry.Blocks.HEAVENLY_FIST_CRYSTAL_HARVEST_TARGETS);
+
         // TinyLumberjack の強制原木判定.
         tag(TagRegistry.Blocks.TINY_LUMBERJACK_FORCED_LOGS);
 

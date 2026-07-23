@@ -45,6 +45,8 @@ public final class TagRegistry {
                 createBlockTag("heavenly_fist_crystal_harvest_sources");
         public static final TagKey<Block> HEAVENLY_FIST_CRYSTAL_HARVEST_TARGETS =
                 createBlockTag("heavenly_fist_crystal_harvest_targets");
+        public static final TagKey<Block> TERRA_RESONANCE_TARGETS =
+                createBlockTag("terra_resonance_targets");
         public static final TagKey<Block> TINY_LUMBERJACK_FORCED_LOGS =
                 createBlockTag("tiny_lumberjack_forced_logs");
         public static final TagKey<Block> TINY_LUMBERJACK_FORCED_LEAVES =

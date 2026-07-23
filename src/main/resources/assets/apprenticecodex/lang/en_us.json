@@ -858,6 +858,7 @@
   "ui.apprenticecodex.anchor_blink.anchor_distance": "Anchoring range: %s blocks",
   "ui.apprenticecodex.auto_turret.restock_mana_cost": "Mana required to restock arrows: %d",
   "ui.apprenticecodex.staff_turret_spell.shot_mana_cost": "Mana cost per attack: %d",
+  "ui.apprenticecodex.terra_resonance.search_size": "Detection Range: %1$dx%2$dx%3$d",
 
   "ui.apprenticecodex.spellgun.missing_ammo": "Out of ammo!(Ammo:%1$s)",
   "ui.apprenticecodex.spellgun.not_imbued": "%1$s has no imbued spell!",
@@ -947,6 +948,9 @@
   "ui.apprenticecodex.otherworld_lens.canceled_break": "The lens was broken, disrupting your concentration!",
   "ui.apprenticecodex.otherworld_lens.canceled_away": "You moved too far from the lens to maintain concentration, causing it to collapse!",
   "ui.apprenticecodex.otherworld_lens.canceled_other": "The lens was destroyed by an outside intervention!",
+  "ui.apprenticecodex.terra_resonance.prepare": "Waiting for the earth to answer...",
+  "ui.apprenticecodex.terra_resonance.not_found": "No magical resonance returned...",
+  "ui.apprenticecodex.terra_resonance.found": "The resonant coordinates have been located!",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "Switched firing mode to %s",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "Overheating has increased mana cost to %s!",
