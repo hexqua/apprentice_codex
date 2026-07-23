@@ -809,6 +809,7 @@
   "spell.apprenticecodex.totem_of_permafrost.guide": "Summons and places a totem strongly imbued with ice magic, attacking the area around it with cold for a short time. The chill attempts to restrict targets' movement. While wearing the Greater Conjurer's Talisman, manually dismissing the totem does not trigger cooldown.",
   "spell.apprenticecodex.field_overseer.guide": "Summons an autonomous staff to watch over the area, striking nearby enemies with lightning magic. The staff prioritizes enemies with higher health. The caster's maximum mana at the time of summoning becomes the staff's mana capacity, and it consumes its stored mana when attacking. Move close enough to replenish the staff's mana automatically.",
   "spell.apprenticecodex.servant_gaze.guide": "Summons a staff that follows you and fires projectiles of pure magic at nearby enemies. The staff prioritizes enemies with higher health. It has no time limit, but consumes the caster's mana when attacking.",
+  "spell.apprenticecodex.otherworld_lens.guide": "Conjures an unstable crystal lens from another world. Looking through it reveals the world as though viewed from behind its surface. The lens persists only while the caster maintains concentration, and even minor obstructions prevent it from forming.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "Sneak Damage Multiplier: %d%%",
@@ -942,6 +943,10 @@
   "ui.apprenticecodex.auto_turret.restock_complete": "Restocked the crossbow's arrows!",
   "ui.apprenticecodex.auto_turret.insufficient_mana": "Not enough mana to restock!",
   "ui.apprenticecodex.personal_shelf.for_export_mode": "Set to export items from your personal storage...",
+  "ui.apprenticecodex.otherworld_lens.invalid_target": "%s is too unstable to support the lens...",
+  "ui.apprenticecodex.otherworld_lens.canceled_break": "The lens was broken, disrupting your concentration!",
+  "ui.apprenticecodex.otherworld_lens.canceled_away": "You moved too far from the lens to maintain concentration, causing it to collapse!",
+  "ui.apprenticecodex.otherworld_lens.canceled_other": "The lens was destroyed by an outside intervention!",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "Switched firing mode to %s",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "Overheating has increased mana cost to %s!",
