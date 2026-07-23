@@ -33,7 +33,7 @@ final class OtherworldLensTargetSafety {
         if (!placePos.equals(target.getPlacePos()) || target.getPlaceFacing() != hitFace.getOpposite()) {
             return Optional.empty();
         }
-        if (!level.getBlockState(placePos).isAir()) {
+        if (level.isOutsideBuildHeight(placePos) || !level.getBlockState(placePos).isAir()) {
             return Optional.empty();
         }
 
