@@ -104,19 +104,15 @@ public class FujinSlashProjectileEntity extends Projectile
         var damageMovement = getDamageMovement(movement);
         if (!level().isClientSide && damageMovement.lengthSqr() > 1.0E-8D) {
             var blockHit = findBlockCollision(damageMovement);
-            if (blockHit != null && !EventHooks.onProjectileImpact(this, blockHit)) {
+            var shouldDiscardOnBlockHit = blockHit != null
+                    && !EventHooks.onProjectileImpact(this, blockHit);
+            var entityDamageMovement = shouldDiscardOnBlockHit
+                    ? blockHit.getLocation().subtract(position())
+                    : damageMovement;
+            damageEntities(entityDamageMovement);
+            if (shouldDiscardOnBlockHit) {
                 discard();
                 return;
-            }
-
-            var sweptBounds = getBoundingBox().expandTowards(damageMovement);
-            for (var rawTarget : level().getEntities(this, sweptBounds, this::canHitEntity)) {
-                var target = CombatTools.resolutePartEntity(rawTarget);
-                if (!CombatTools.isValidCombatTarget(target, getOwner())
-                        || !victimUuids.add(target.getUUID())) {
-                    continue;
-                }
-                damageEntity(target);
             }
         }
 
@@ -127,6 +123,18 @@ public class FujinSlashProjectileEntity extends Projectile
 
         if (!level().isClientSide && traveledDistance >= getDiscardDistance()) {
             discard();
+        }
+    }
+
+    private void damageEntities(Vec3 movement) {
+        var sweptBounds = getBoundingBox().expandTowards(movement);
+        for (var rawTarget : level().getEntities(this, sweptBounds, this::canHitEntity)) {
+            var target = CombatTools.resolutePartEntity(rawTarget);
+            if (!CombatTools.isValidCombatTarget(target, getOwner())
+                    || !victimUuids.add(target.getUUID())) {
+                continue;
+            }
+            damageEntity(target);
         }
     }
 
