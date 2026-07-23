@@ -81,13 +81,12 @@ public class OtherworldLens extends AbstractSpell implements IClientBlockTargeti
 
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        // todo:それっぽい音を作る.
         return Optional.of(SoundRegistry.ABYSSAL_TELEPORT.get());
     }
 
     @Override
     public Optional<SoundEvent> getCastFinishSound() {
-        return Optional.of(jp.aquafactory.apprenticecodex.registry.SoundRegistry.VANILLA_SUMMON_MAGICAL_ENTITY.get());
+        return Optional.empty();
     }
 
     @Override
