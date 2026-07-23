@@ -6,6 +6,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -57,7 +58,7 @@ public final class TerraResonanceHighlightRenderEvent {
             return;
         }
 
-        ACTIVE_CASTS.addLast(new ActiveCast(List.copyOf(targets), minecraft.level.getGameTime()));
+        ACTIVE_CASTS.addLast(new ActiveCast(List.copyOf(targets), minecraft.level, minecraft.level.getGameTime()));
         while (ACTIVE_CASTS.size() > MAX_ACTIVE_CASTS) {
             ACTIVE_CASTS.removeFirst();
         }
@@ -95,6 +96,10 @@ public final class TerraResonanceHighlightRenderEvent {
         var iterator = ACTIVE_CASTS.iterator();
         while (iterator.hasNext()) {
             var cast = iterator.next();
+            if (cast.level() != level) {
+                iterator.remove();
+                continue;
+            }
             var age = (float) (gameTime - cast.startGameTime()) + event.getPartialTick();
             if (age >= TOTAL_TICKS) {
                 iterator.remove();
@@ -262,6 +267,6 @@ public final class TerraResonanceHighlightRenderEvent {
         return 1.0F - progress * progress;
     }
 
-    private record ActiveCast(List<BlockPos> targets, long startGameTime) {
+    private record ActiveCast(List<BlockPos> targets, ClientLevel level, long startGameTime) {
     }
 }
