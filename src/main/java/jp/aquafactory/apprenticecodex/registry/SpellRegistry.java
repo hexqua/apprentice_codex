@@ -30,6 +30,7 @@ import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseer;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatter;
 import jp.aquafactory.apprenticecodex.spell.forcefield.ForceField;
 import jp.aquafactory.apprenticecodex.spell.frostrune.FrostRune;
+import jp.aquafactory.apprenticecodex.spell.fujin.Fujin;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRain;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunner;
 import jp.aquafactory.apprenticecodex.spell.harvestmoon.HarvestMoon;
@@ -52,6 +53,7 @@ import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidance;
 import jp.aquafactory.apprenticecodex.spell.mistform.MistForm;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLight;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShield;
+import jp.aquafactory.apprenticecodex.spell.otherworldlens.OtherworldLens;
 import jp.aquafactory.apprenticecodex.spell.paletteshift.PaletteShift;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxCharge;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJack;
@@ -68,6 +70,7 @@ import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHole;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdge;
 import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWing;
 import jp.aquafactory.apprenticecodex.spell.tamerspocket.TamersPocket;
+import jp.aquafactory.apprenticecodex.spell.terraresonance.TerraResonance;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcess;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjack;
 import jp.aquafactory.apprenticecodex.spell.tirovolley.TiroVolley;
@@ -132,6 +135,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> EDGE_DANCER = reg("edge_dancer", EdgeDancer::new);
     public static final RegistryObject<AbstractSpell> LINEAR_BUILD = reg("linear_build", LinearBuild::new);
     public static final RegistryObject<AbstractSpell> SERVANT_GAZE = reg("servant_gaze", ServantGaze::new);
+    public static final RegistryObject<AbstractSpell> FUJIN = reg("fujin", Fujin::new);
 
     // 炎.
     public static final RegistryObject<AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);
@@ -178,6 +182,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> HARVEST_MOON = reg("harvest_moon", HarvestMoon::new);
     public static final RegistryObject<AbstractSpell> EXTRACT = reg("extract", Extract::new);
     public static final RegistryObject<AbstractSpell> HEAVENLY_FIST = reg("heavenly_fist", HeavenlyFist::new);
+    public static final RegistryObject<AbstractSpell> TERRA_RESONANCE = reg("terra_resonance", TerraResonance::new);
 
     // エルドリッチ.
     public static final RegistryObject<AbstractSpell> PALETTE_SHIFT = reg("palette_shift", PaletteShift::new);
@@ -185,4 +190,5 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> DEEP_SENSOR = reg("deep_sensor", DeepSensor::new);
     public static final RegistryObject<AbstractSpell> SPECTRAL_WING = reg("spectral_wing", SpectralWing::new);
     public static final RegistryObject<AbstractSpell> ECHO_CAST = reg("echo_cast", EchoCast::new);
+    public static final RegistryObject<AbstractSpell> OTHERWORLD_LENS = reg("otherworld_lens", OtherworldLens::new);
 }
