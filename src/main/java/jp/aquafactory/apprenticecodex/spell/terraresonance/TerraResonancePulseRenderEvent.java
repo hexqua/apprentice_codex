@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -51,6 +52,7 @@ public final class TerraResonancePulseRenderEvent {
         ACTIVE_PULSES.addLast(new ActivePulse(
                 center,
                 selectedFace,
+                minecraft.level,
                 minecraft.level.getGameTime(),
                 Math.max(MIN_RADIUS, maxRadius)
         ));
@@ -89,6 +91,10 @@ public final class TerraResonancePulseRenderEvent {
         var iterator = ACTIVE_PULSES.iterator();
         while (iterator.hasNext()) {
             var pulse = iterator.next();
+            if (pulse.level() != level) {
+                iterator.remove();
+                continue;
+            }
             var age = (float) (gameTime - pulse.startGameTime())
                     + event.getPartialTick().getGameTimeDeltaPartialTick(true);
             if (age >= LIFETIME_TICKS) {
@@ -147,6 +153,12 @@ public final class TerraResonancePulseRenderEvent {
                 .setNormal(transformedNormal.x(), transformedNormal.y(), transformedNormal.z());
     }
 
-    private record ActivePulse(Vec3 center, Direction selectedFace, long startGameTime, float maxRadius) {
+    private record ActivePulse(
+            Vec3 center,
+            Direction selectedFace,
+            ClientLevel level,
+            long startGameTime,
+            float maxRadius
+    ) {
     }
 }
