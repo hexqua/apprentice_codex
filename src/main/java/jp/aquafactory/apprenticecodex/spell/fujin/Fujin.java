@@ -3,24 +3,29 @@ package jp.aquafactory.apprenticecodex.spell.fujin;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
-import io.redspace.ironsspellbooks.api.spells.*;
+import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
 
-public class Fujin extends AbstractSpell {
+public class Fujin extends AbstractSummonWeaponSpell<FujinKatanaEntity> {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "fujin");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -31,6 +36,7 @@ public class Fujin extends AbstractSpell {
             .build();
 
     public Fujin() {
+        super(FujinKatanaEntity.class);
         baseSpellPower = 100;
         spellPowerPerLevel = 75;
         baseManaCost = 5;
@@ -46,12 +52,12 @@ public class Fujin extends AbstractSpell {
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        var rawDamage = 1 + getSpellPower(spellLevel, entity) / 100.0f;
+        var rawDamage = 1 + getSpellPower(spellLevel, entity) / 200.0f;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.FUJIN);
     }
 
-    static float getRange(){
-        return 16;
+    static float getRange() {
+        return 10;
     }
 
     @Override
@@ -90,7 +96,24 @@ public class Fujin extends AbstractSpell {
     }
 
     @Override
-    public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    public FujinKatanaEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        var katana = new FujinKatanaEntity(EntityRegistry.FUJIN_KATANA.get(), level, entity);
+        katana.setDamage(getDamage(spellLevel, entity));
+        katana.setProjectileRange(getRange());
+        level.addFreshEntity(katana);
+        return katana;
+    }
+
+    @Override
+    public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity,
+                                     MagicData playerMagicData, @NotNull FujinKatanaEntity weapon) {
+        // 発射周期は刀側で管理し、詠唱速度補正によって10tick間隔が変わらないようにする。
+    }
+
+    @Override
+    public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity,
+                                                       MagicData playerMagicData, boolean cancelled,
+                                                       @NotNull FujinKatanaEntity weapon) {
+        return CompleteCastTypes.RELEASE_WEAPON;
     }
 }

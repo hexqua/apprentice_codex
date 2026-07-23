@@ -36,6 +36,16 @@
 					]
 				},
 				{
+					"name": "scabbard_bottom",
+					"parent": "scabbard",
+					"pivot": [0, 7, 0]
+				},
+				{
+					"name": "scabbard_top",
+					"parent": "scabbard",
+					"pivot": [0, 24, 0]
+				},
+				{
 					"name": "katana_body",
 					"parent": "root",
 					"pivot": [0, 3, 0]
@@ -90,6 +100,16 @@
 							}
 						}
 					]
+				},
+				{
+					"name": "trail_root",
+					"parent": "blade",
+					"pivot": [0, 6.5, 0]
+				},
+				{
+					"name": "trail_tip",
+					"parent": "blade",
+					"pivot": [0, 22.25, 0]
 				}
 			]
 		}

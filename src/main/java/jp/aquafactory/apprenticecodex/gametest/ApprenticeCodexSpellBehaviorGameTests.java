@@ -58,6 +58,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String SUMMON_WEAPON_ANIMATION_BATCH = "apprenticecodex.summon_weapon_animation";
     private static final String COMBAT_TARGET_POLICY_BATCH = "apprenticecodex.combat_target_policy";
     private static final String HIGANBANA_ISOLATED_BATCH = "apprenticecodex.higanbana_isolated";
+    private static final String FUJIN_ISOLATED_BATCH = "apprenticecodex.fujin_isolated";
     private static final String OTHERWORLD_LENS_ISOLATED_BATCH = "apprenticecodex.otherworld_lens_isolated";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
@@ -117,6 +118,26 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = HIGANBANA_ISOLATED_BATCH)
     public static void higanbanaDamageHasNoKnockbackAndHealsHalf(GameTestHelper helper) {
         HiganbanaGameTestScenarios.higanbanaDamageHasNoKnockbackAndHealsHalf(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FUJIN_ISOLATED_BATCH)
+    public static void fujinKatanaFollowsOwnerAndReleases(GameTestHelper helper) {
+        FujinGameTestScenarios.fujinKatanaFollowsOwnerAndReleases(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FUJIN_ISOLATED_BATCH)
+    public static void fujinSlashPiercesAndDamagesEachTargetOnceWithoutKnockback(GameTestHelper helper) {
+        FujinGameTestScenarios.fujinSlashPiercesAndDamagesEachTargetOnceWithoutKnockback(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FUJIN_ISOLATED_BATCH)
+    public static void fujinSlashUsesSmallBlockCollision(GameTestHelper helper) {
+        FujinGameTestScenarios.fujinSlashUsesSmallBlockCollision(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FUJIN_ISOLATED_BATCH)
+    public static void fujinSlashExpiresBeyondRangeAndSupportsAntiMagic(GameTestHelper helper) {
+        FujinGameTestScenarios.fujinSlashExpiresBeyondRangeAndSupportsAntiMagic(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = COMBAT_TARGET_POLICY_BATCH)

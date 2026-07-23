@@ -810,6 +810,8 @@
   "spell.apprenticecodex.field_overseer.guide": "Summons an autonomous staff to watch over the area, striking nearby enemies with lightning magic. The staff prioritizes enemies with higher health. The caster's maximum mana at the time of summoning becomes the staff's mana capacity, and it consumes its stored mana when attacking. Move close enough to replenish the staff's mana automatically.",
   "spell.apprenticecodex.servant_gaze.guide": "Summons a staff that follows you and fires projectiles of pure magic at nearby enemies. The staff prioritizes enemies with higher health. It has no time limit, but consumes the caster's mana when attacking.",
   "spell.apprenticecodex.otherworld_lens.guide": "Conjures an unstable crystal lens from another world. Looking through it reveals the world as though viewed from behind its surface. The lens persists only while the caster maintains concentration, and even minor obstructions prevent it from forming.",
+  "spell.apprenticecodex.terra_resonance.guide": "Channels resonant magic into the earth to detect responsive objects through walls. Only gemstones such as amethyst can be detected; gems formed into blocks or buried underground respond less readily to magic and are harder to locate.",
+  "spell.apprenticecodex.fujin.guide": "Summons a magical katana wreathed in wind magic and unleashes a flurry of slashes. The wind takes the form of blades that cut through groups of enemies without knocking them back.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "Sneak Damage Multiplier: %d%%",
@@ -1100,6 +1102,7 @@
   "death.attack.apprenticecodex.totem_of_permafrost": "%1$s was etched into history",
   "death.attack.apprenticecodex.field_overseer": "%1$s was judged",
   "death.attack.apprenticecodex.servant_gaze": "%1$s failed to prevail",
+  "death.attack.apprenticecodex.fujin": "%1$s was julienned by %2$s",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "Apprentice's Codex",
   "advancements.apprenticecodex.apprentice_codex.root.description": "Decide to walk the path of an apprentice mage.",
