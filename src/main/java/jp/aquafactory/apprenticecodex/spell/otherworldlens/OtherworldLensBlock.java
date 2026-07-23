@@ -54,7 +54,7 @@ public final class OtherworldLensBlock extends Block {
             return;
         }
 
-        level.removeBlock(pos, false);
+        level.destroyBlock(pos, false);
         OtherworldLensSessionManager.logOrphanCleanup(level, pos);
     }
 }
