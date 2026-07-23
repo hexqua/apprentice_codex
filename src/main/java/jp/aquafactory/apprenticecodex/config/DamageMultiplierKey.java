@@ -43,7 +43,8 @@ public enum DamageMultiplierKey {
     ANCHOR_BLINK("anchorBlink"),
     TOTEM_OF_PERMAFROST("totemOfPermafrost"),
     FIELD_OVERSEER("fieldOverseer"),
-    SERVANT_GAZE("servantGaze")
+    SERVANT_GAZE("servantGaze"),
+    FUJIN("fujin"),
     ;
 
     private final String configKey;

@@ -53,6 +53,8 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncSatelliteFollowcastAmul
 import jp.aquafactory.apprenticecodex.network.packet.SyncSmashcastScepterReadyStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncTamersPocketCountPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncZenithStaffConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.TerraResonanceHighlightsPacket;
+import jp.aquafactory.apprenticecodex.network.packet.TerraResonancePulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.TotemOfPermafrostPulsePacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -67,7 +69,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "62";
+    private static final String PROTOCOL_VERSION = "63";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -464,6 +466,22 @@ public final class Networks {
                 SyncReflectcastShieldEffectPacket::encode,
                 SyncReflectcastShieldEffectPacket::decode,
                 SyncReflectcastShieldEffectPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                TerraResonancePulsePacket.class,
+                TerraResonancePulsePacket::encode,
+                TerraResonancePulsePacket::decode,
+                TerraResonancePulsePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                TerraResonanceHighlightsPacket.class,
+                TerraResonanceHighlightsPacket::encode,
+                TerraResonanceHighlightsPacket::decode,
+                TerraResonanceHighlightsPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
     }

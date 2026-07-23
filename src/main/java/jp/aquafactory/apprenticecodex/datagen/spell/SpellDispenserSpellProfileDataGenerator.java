@@ -303,6 +303,10 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                         SpellDispenserSpellProfile.OWNER_OPTIONAL_UP
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
+                                        getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.FUJIN),
+                                        SpellDispenserSpellProfile.OWNER_OPTIONAL_UP
+                                ),
+                                new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.PRECISION_JACK),
                                         SpellDispenserSpellProfile.DEFAULT
                                 ),
