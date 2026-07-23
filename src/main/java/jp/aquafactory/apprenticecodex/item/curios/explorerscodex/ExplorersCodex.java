@@ -11,7 +11,7 @@ public class ExplorersCodex extends UniqueSpellBook {
     public ExplorersCodex() {
         super(SpellDataRegistryHolder.of(
                 new SpellDataRegistryHolder(SpellRegistry.ASSIST_WINGS, 1),
-                new SpellDataRegistryHolder(SpellRegistry.MAGE_LIGHT, 1),
+                new SpellDataRegistryHolder(SpellRegistry.TERRA_RESONANCE, 1),
                 new SpellDataRegistryHolder(SpellRegistry.SENSE_EVIL, 1),
                 new SpellDataRegistryHolder(SpellRegistry.REMOTE_EYE, 1)
         ));
