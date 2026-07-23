@@ -31,6 +31,16 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void terraResonanceTargetTagIncludesSourcesClustersAndImmatureAmethyst(GameTestHelper helper) {
+        TerraResonanceGameTestScenarios.targetTagIncludesSourcesClustersAndImmatureAmethyst(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void terraResonanceSearchExtendsInwardFromEverySelectedFaceAndKeepsSnapshot(GameTestHelper helper) {
+        TerraResonanceGameTestScenarios.searchExtendsInwardFromEverySelectedFaceAndKeepsSnapshot(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void comfortBerriesCanBePottedAsDecoration(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.comfortBerriesCanBePottedAsDecoration(helper);
     }

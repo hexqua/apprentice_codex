@@ -862,6 +862,7 @@
   "ui.apprenticecodex.mana_mending.repair_per_second": "アイテムの修繕速度: %s/秒",
   "ui.apprenticecodex.auto_turret.restock_mana_cost": "矢の再補充に必要なマナ: %d",
   "ui.apprenticecodex.staff_turret_spell.shot_mana_cost": "攻撃時の消費マナ: %d",
+  "ui.apprenticecodex.terra_resonance.search_size": "探知範囲: %1$dx%2$dx%3$d",
 
   "ui.apprenticecodex.spellgun.missing_ammo": "弾切れだ！(弾:%1$s)",
   "ui.apprenticecodex.spellgun.not_imbued": "%1$sには魔法が注入されていない！",

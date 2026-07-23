@@ -53,6 +53,8 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncSatelliteFollowcastAmul
 import jp.aquafactory.apprenticecodex.network.packet.SyncSmashcastScepterReadyStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncTamersPocketCountPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncZenithStaffConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.TerraResonanceHighlightsPacket;
+import jp.aquafactory.apprenticecodex.network.packet.TerraResonancePulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.TotemOfPermafrostPulsePacket;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerLevel;
@@ -64,7 +66,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "62";
+    private static final String PROTOCOL_VERSION = "63";
 
     private Networks() {
     }
@@ -344,6 +346,16 @@ public final class Networks {
                 SyncReflectcastShieldEffectPacket.TYPE,
                 SyncReflectcastShieldEffectPacket.STREAM_CODEC,
                 SyncReflectcastShieldEffectPacket::handle
+        );
+        registrar.playToClient(
+                TerraResonancePulsePacket.TYPE,
+                TerraResonancePulsePacket.STREAM_CODEC,
+                TerraResonancePulsePacket::handle
+        );
+        registrar.playToClient(
+                TerraResonanceHighlightsPacket.TYPE,
+                TerraResonanceHighlightsPacket.STREAM_CODEC,
+                TerraResonanceHighlightsPacket::handle
         );
     }
 
