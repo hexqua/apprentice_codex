@@ -22,6 +22,7 @@
   "block.apprenticecodex.creative_spell_dispenser": "Creative Spell Dispenser",
   "block.apprenticecodex.frost_rune_trap" : "Frost Rune",
   "block.apprenticecodex.spell_calibration_bench" : "Spell Calibration Bench",
+  "block.apprenticecodex.otherworld_lens_lens" : "Otherworld Lens",
 
   "item.apprenticecodex.arcane_cinder": "Arcane Cinder",
   "item.apprenticecodex.wisdom_shard": "Shard of Wisdom",
@@ -572,6 +573,8 @@
   "entity.apprenticecodex.totem_of_permafrost_totem": "Totem of Permafrost",
   "entity.apprenticecodex.field_overseer_staff": "Field Overseer Staff",
   "entity.apprenticecodex.servant_gaze_staff": "Servant Gaze Staff",
+  "entity.apprenticecodex.fujin_katana": "Edge of Fujin",
+  "entity.apprenticecodex.fujin_katana_projectile": "Wind Blade",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "Errand Mage",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "Errand Mage",
@@ -727,6 +730,9 @@
   "spell.apprenticecodex.totem_of_permafrost": "Totem of Permafrost",
   "spell.apprenticecodex.field_overseer": "Field Overseer",
   "spell.apprenticecodex.servant_gaze": "Servant Gaze",
+  "spell.apprenticecodex.otherworld_lens": "Otherworld Lens",
+  "spell.apprenticecodex.terra_resonance": "Terra Resonance",
+  "spell.apprenticecodex.fujin": "Fujin",
 
   "spell.apprenticecodex.sky_edge.guide": "Summons a weapon that fires toward your line of sight. It has a wind-up and deals no knockback, but it can ignore the target's invulnerability frames.",
   "spell.apprenticecodex.archer_multiple.guide": "Summons a magical bow that follows you and keeps firing until it runs out of shots, prioritizing your chosen target or nearby enemies.",

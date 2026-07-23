@@ -22,6 +22,7 @@
   "block.apprenticecodex.creative_spell_dispenser" : "クリエイティブスペルディスペンサー",
   "block.apprenticecodex.frost_rune_trap" : "氷のルーン",
   "block.apprenticecodex.spell_calibration_bench" : "術式調整台",
+  "block.apprenticecodex.otherworld_lens_lens" : "異界の水晶",
 
   "item.apprenticecodex.arcane_cinder": "神秘の燃え殻",
   "item.apprenticecodex.wisdom_shard": "叡智の破片",
@@ -573,6 +574,8 @@
   "entity.apprenticecodex.totem_of_permafrost_totem": "永久凍土のトーテム",
   "entity.apprenticecodex.field_overseer_staff": "監視者の杖",
   "entity.apprenticecodex.servant_gaze_staff": "従者の杖",
+  "entity.apprenticecodex.fujin_katana": "風神の刃",
+  "entity.apprenticecodex.fujin_katana_projectile": "風の刃",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "使い走り魔術師",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "使い走り魔術師",
@@ -732,6 +735,9 @@
   "spell.apprenticecodex.totem_of_permafrost": "永久凍土のトーテム",
   "spell.apprenticecodex.field_overseer": "フィールドオーバーシアー",
   "spell.apprenticecodex.servant_gaze": "サーヴァントゲイズ",
+  "spell.apprenticecodex.otherworld_lens": "異界のレンズ",
+  "spell.apprenticecodex.terra_resonance": "テラレゾナンス",
+  "spell.apprenticecodex.fujin": "風神",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -806,6 +812,9 @@
   "spell.apprenticecodex.totem_of_permafrost.guide": "氷の魔力が強力に込められたトーテムを召喚して設置し、短時間ではあるがトーテムの周囲を冷気で攻撃する。冷気は対象の動きを制限しようとする。大魔術師のお守りを装備していると手動でトーテムを消してもクールダウンが発生しない。",
   "spell.apprenticecodex.field_overseer.guide": "近くの敵に雷の魔力を叩きつける自律型の杖を召喚して周囲を監視させる。杖は体力の高い敵を優先的に対象に取る。召喚時の術者の最大マナがそのまま杖が保持できるマナの上限となり、攻撃時に杖に蓄えているマナを消費する。杖へのマナ供給はある程度近づけば自動で行われる。",
   "spell.apprenticecodex.servant_gaze.guide": "近くの敵に純粋な魔力の弾を射出する追従型の杖を召喚する。杖は体力の高い敵を優先的に対象に取る。杖の維持に時間制限は存在しないが、代わりに攻撃時に術者のマナを消費する。",
+  "spell.apprenticecodex.otherworld_lens.guide": "異界から水晶体を具現化する。水晶体から覗き込む光景は世界を裏側から見ているかのように映す。水晶体は非常に不安定なため集中している間しか具現化できず、些細なものに生成を阻害をされる。",
+  "spell.apprenticecodex.terra_resonance.guide": "大地に共鳴する魔力を流し込み、反応する物体の存在を壁越しに探知する。探知できるものはアメジストのような宝石に限られ、ブロック状だったり埋もれているものは魔力が反応しづらく探知にかかりづらい。",
+  "spell.apprenticecodex.fujin.guide": "風の魔力を纏った魔法の刀を召喚して乱舞を繰り出す。風の魔力は刃となって敵の集団を切り刻むがノックバックはしない。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -940,6 +949,13 @@
   "ui.apprenticecodex.auto_turret.restock_complete": "クロスボウの矢を補充した！",
   "ui.apprenticecodex.auto_turret.insufficient_mana": "補充するためのマナが足りない！",
   "ui.apprenticecodex.personal_shelf.for_export_mode": "自分の所有している空間から搬出する状態に設定...",
+  "ui.apprenticecodex.otherworld_lens.invalid_target": "%sはレンズを設置するには不安定すぎる...",
+  "ui.apprenticecodex.otherworld_lens.canceled_break": "レンズが破壊されたため集中が維持できない！",
+  "ui.apprenticecodex.otherworld_lens.canceled_away": "レンズから離れすぎたため集中が維持できず、レンズが自壊する！",
+  "ui.apprenticecodex.otherworld_lens.canceled_other": "何らかの介入によってレンズが破壊された！",
+  "ui.apprenticecodex.terra_resonance.prepare": "大地からの応答を待っている...",
+  "ui.apprenticecodex.terra_resonance.not_found": "魔力の反射が返ってこなかった...",
+  "ui.apprenticecodex.terra_resonance.found": "共鳴した魔力の座標を特定した！",
 
   "ui.apprenticecodex.swingcast.cannot_swing_cast": "%sは打撃詠唱できない！",
   "ui.apprenticecodex.jumpcast.cannot_long_cast": "%sは跳躍詠唱できない！",
@@ -1088,6 +1104,7 @@
   "death.attack.apprenticecodex.totem_of_permafrost": "%1$sの体は歴史に刻まれた",
   "death.attack.apprenticecodex.field_overseer": "%1$sは裁かれた",
   "death.attack.apprenticecodex.servant_gaze": "%1$sは勝ち上がれなかった",
+  "death.attack.apprenticecodex.fujin": "%1$sは%2$sに千切りにされた",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",
