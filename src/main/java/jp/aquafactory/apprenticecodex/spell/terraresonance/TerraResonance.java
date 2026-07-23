@@ -33,7 +33,7 @@ public class TerraResonance extends AbstractSpell implements IClientBlockHitTarg
     private final DefaultConfig config = new DefaultConfig()
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.NATURE_RESOURCE)
-            .setMaxLevel(1)
+            .setMaxLevel(3)
             .setCooldownSeconds(10)
             .build();
 
@@ -41,7 +41,7 @@ public class TerraResonance extends AbstractSpell implements IClientBlockHitTarg
         baseSpellPower = 12;
         spellPowerPerLevel = 8;
         baseManaCost = 80;
-        manaCostPerLevel = 20;
+        manaCostPerLevel = 10;
         castTime = 30;
     }
 
