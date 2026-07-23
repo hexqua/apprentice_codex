@@ -1,8 +1,13 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
+import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.shapes.CollisionContext;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -53,8 +58,50 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String SUMMON_WEAPON_ANIMATION_BATCH = "apprenticecodex.summon_weapon_animation";
     private static final String COMBAT_TARGET_POLICY_BATCH = "apprenticecodex.combat_target_policy";
     private static final String HIGANBANA_ISOLATED_BATCH = "apprenticecodex.higanbana_isolated";
+    private static final String OTHERWORLD_LENS_ISOLATED_BATCH = "apprenticecodex.otherworld_lens_isolated";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
+    }
+
+    @GameTest(template = TEMPLATE, batch = OTHERWORLD_LENS_ISOLATED_BATCH)
+    public static void otherworldLensKeepsOcclusionWithoutEntityCollision(GameTestHelper helper) {
+        var pos = new BlockPos(0, 2, 0);
+        var state = BlockRegistry.OTHERWORLD_LENS_LENS.get().defaultBlockState();
+        helper.assertTrue(state.canOcclude(), "OtherworldLens lens must remain an occluding block");
+        helper.assertTrue(
+                Block.isShapeFullBlock(state.getOcclusionShape(helper.getLevel(), helper.absolutePos(pos))),
+                "OtherworldLens lens must keep a full-cube occlusion shape"
+        );
+        helper.assertTrue(
+                state.getCollisionShape(helper.getLevel(), helper.absolutePos(pos), CollisionContext.empty()).isEmpty(),
+                "OtherworldLens lens must not collide with entities"
+        );
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, batch = OTHERWORLD_LENS_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void otherworldLensOrphanSelfCleans(GameTestHelper helper) {
+        var relativePos = new BlockPos(0, 2, 0);
+        var absolutePos = helper.absolutePos(relativePos);
+        helper.getLevel().setBlockAndUpdate(absolutePos, BlockRegistry.OTHERWORLD_LENS_LENS.get().defaultBlockState());
+        helper.runAfterDelay(25, () -> {
+            helper.assertTrue(helper.getLevel().getBlockState(absolutePos).isAir(),
+                    "OtherworldLens orphan lens should remove itself");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE, batch = OTHERWORLD_LENS_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void otherworldLensOrphanTickKeepsReplacement(GameTestHelper helper) {
+        var relativePos = new BlockPos(0, 2, 0);
+        var absolutePos = helper.absolutePos(relativePos);
+        helper.getLevel().setBlockAndUpdate(absolutePos, BlockRegistry.OTHERWORLD_LENS_LENS.get().defaultBlockState());
+        helper.getLevel().setBlockAndUpdate(absolutePos, Blocks.STONE.defaultBlockState());
+        helper.runAfterDelay(25, () -> {
+            helper.assertTrue(helper.getLevel().getBlockState(absolutePos).is(Blocks.STONE),
+                    "OtherworldLens cleanup must not remove a replacement block");
+            helper.succeed();
+        });
     }
 
     @GameTest(template = TEMPLATE, batch = HIGANBANA_ISOLATED_BATCH)

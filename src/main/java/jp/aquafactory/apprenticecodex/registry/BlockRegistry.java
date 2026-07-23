@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWork
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlock;
 import jp.aquafactory.apprenticecodex.spell.frostrune.FrostRuneTrapBlock;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlock;
+import jp.aquafactory.apprenticecodex.spell.otherworldlens.OtherworldLensBlock;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlock;
 import net.minecraft.core.registries.Registries;
 import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHoleBlock;
@@ -43,6 +44,9 @@ public final class BlockRegistry {
 
     public static final DeferredHolder<Block, Block> RIFT_HOLE =
             BLOCKS.register("rift_hole", () -> new RiftHoleBlock());
+
+    public static final DeferredHolder<Block, Block> OTHERWORLD_LENS_LENS =
+            BLOCKS.register("otherworld_lens_lens", OtherworldLensBlock::new);
 
     public static final DeferredHolder<Block, Block> APPRENTICE_DESK =
             BLOCKS.register("apprentice_desk", ApprenticeDesk::new);
