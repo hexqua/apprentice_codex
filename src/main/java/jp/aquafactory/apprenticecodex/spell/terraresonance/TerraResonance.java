@@ -20,6 +20,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -116,9 +117,12 @@ public class TerraResonance extends AbstractSpell implements IClientBlockHitTarg
             return false;
         }
 
+        var targetingRange = getClientBlockTargetingRange(spellLevel, entity);
         var target = BlockTargetingHelper.getValidatedPendingHitTarget(
-                level, entity, getSpellResource(), getClientBlockTargetingRange(spellLevel, entity)
-        );
+                level, entity, getSpellResource(), targetingRange
+        )
+                // クライアントの細かな照準位置は尊重しつつ、探索中心だけを射程外へ差し替える送信は拒否する。
+                .filter(targetData -> isHitBlockWithinRange(entity, targetData, targetingRange));
         if (target.isEmpty()) {
             serverPlayer.displayClientMessage(
                     Component.translatable("ui.irons_spellbooks.cast_error_target", getDisplayName(serverPlayer))
@@ -130,6 +134,12 @@ public class TerraResonance extends AbstractSpell implements IClientBlockHitTarg
 
         playerMagicData.setAdditionalCastData(target.get());
         return true;
+    }
+
+    private static boolean isHitBlockWithinRange(LivingEntity entity, BlockTargetData targetData, double range) {
+        var hitBlockPos = targetData.getHitBlockPos();
+        return hitBlockPos != null
+                && new AABB(hitBlockPos).distanceToSqr(entity.getEyePosition(1.0F)) <= range * range;
     }
 
     @Override
