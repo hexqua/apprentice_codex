@@ -104,7 +104,7 @@ final class OtherworldLensSessionManager {
 
         var level = server.getLevel(session.dimension());
         if (level != null && level.getBlockState(session.lensPos()).is(BlockRegistry.OTHERWORLD_LENS_LENS.get())) {
-            level.removeBlock(session.lensPos(), false);
+            level.destroyBlock(session.lensPos(), false);
         }
 
         var endGameTime = level != null ? level.getGameTime() : session.startGameTime();
