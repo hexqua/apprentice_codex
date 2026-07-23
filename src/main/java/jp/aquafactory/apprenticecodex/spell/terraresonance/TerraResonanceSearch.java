@@ -12,7 +12,8 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 public final class TerraResonanceSearch {
-    public static final int MAX_HIGHLIGHT_TARGETS = 4096;
+    // 密集地でも通信量とクライアント描画負荷が過大にならないよう、近い対象だけを返す。
+    public static final int MAX_HIGHLIGHT_TARGETS = 1024;
     private static final Comparator<Candidate> NEAREST_FIRST =
             Comparator.comparingLong(Candidate::distanceSqr).thenComparingLong(Candidate::packedPos);
     private static final Comparator<Candidate> FARTHEST_FIRST = NEAREST_FIRST.reversed();

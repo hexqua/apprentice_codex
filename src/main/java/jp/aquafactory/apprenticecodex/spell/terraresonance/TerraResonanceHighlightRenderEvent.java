@@ -41,6 +41,8 @@ public final class TerraResonanceHighlightRenderEvent {
     private static final int FADE_TICKS = 20;
     private static final int TOTAL_TICKS = HOLD_TICKS + FADE_TICKS;
     private static final int MAX_ACTIVE_CASTS = 4;
+    // 多数表示時は全対象から二重コアと補助菱形を省き、発見位置の視認性とFPSを両立する。
+    private static final int DETAILED_RENDER_TARGET_LIMIT = 512;
     private static final int AUXILIARY_RHOMBUS_COUNT = 2;
     private static final float AUXILIARY_CYCLE_TICKS = 18.0F;
     private static final float WHITE_FADE_TICKS = 5.0F;
@@ -123,12 +125,13 @@ public final class TerraResonanceHighlightRenderEvent {
                                       float age, Quaternionf cameraRotation) {
         var fade = getFadeAlpha(age);
         var pulse = 0.9F + 0.1F * Mth.sin(age * 0.35F);
+        var initialColorProgress = clampUnit(age / WHITE_FADE_TICKS);
+        var coreRed = Mth.lerp(initialColorProgress, 1.0F, COLOR_RED);
+        var coreGreen = Mth.lerp(initialColorProgress, 1.0F, COLOR_GREEN);
+        var coreBlue = Mth.lerp(initialColorProgress, 1.0F, COLOR_BLUE);
+        var simplified = targets.size() > DETAILED_RENDER_TARGET_LIMIT;
         for (var target : targets) {
             var center = target.getCenter();
-            var initialColorProgress = clampUnit(age / WHITE_FADE_TICKS);
-            var coreRed = Mth.lerp(initialColorProgress, 1.0F, COLOR_RED);
-            var coreGreen = Mth.lerp(initialColorProgress, 1.0F, COLOR_GREEN);
-            var coreBlue = Mth.lerp(initialColorProgress, 1.0F, COLOR_BLUE);
 
             drawBillboard(
                     poseStack,
@@ -142,6 +145,9 @@ public final class TerraResonanceHighlightRenderEvent {
                     cameraRotation,
                     0.0F
             );
+            if (simplified) {
+                continue;
+            }
             drawBillboard(
                     poseStack,
                     buffer,
