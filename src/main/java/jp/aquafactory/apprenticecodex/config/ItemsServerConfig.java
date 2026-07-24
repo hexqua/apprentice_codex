@@ -758,6 +758,18 @@ final class ItemsServerConfig {
         return luminousDeviceConfig.maxStoredMana();
     }
 
+    int luminousDeviceCleanRadius() {
+        return luminousDeviceConfig.cleanRadius();
+    }
+
+    int luminousDeviceMageLightManaRecovery() {
+        return luminousDeviceConfig.mageLightManaRecovery();
+    }
+
+    int luminousDeviceWizardlampManaRecovery() {
+        return luminousDeviceConfig.wizardlampManaRecovery();
+    }
+
     List<String> multipurposeStaffrifleSpellDenylist() {
         return multipurposeStaffrifleConfig.spellDenylist();
     }
@@ -1043,5 +1055,17 @@ final class ItemsServerConfig {
 
     void setLuminousDeviceConfigForGameTest(int maxStoredItems, int maxStoredMana) {
         luminousDeviceConfig.setForGameTest(maxStoredItems, maxStoredMana);
+    }
+
+    void setLuminousDeviceCleanConfigForGameTest(
+            int cleanRadius,
+            int mageLightManaRecovery,
+            int wizardlampManaRecovery
+    ) {
+        luminousDeviceConfig.setCleanForGameTest(
+                cleanRadius,
+                mageLightManaRecovery,
+                wizardlampManaRecovery
+        );
     }
 }

@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmLuminousDeviceSelectionPacket;
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -20,6 +21,11 @@ import java.util.List;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class LuminousDeviceSelectionClientController {
+    private static final ResourceLocation CLEAN_MODE_ICON = ResourceLocation.fromNamespaceAndPath(
+            ApprenticeCodex.MODID,
+            "textures/gui/luminous_device_clean.png"
+    );
+
     @Nullable
     private static ActiveSelectionState activeState;
     private static boolean wasSneakKeyDown;
@@ -113,12 +119,7 @@ public final class LuminousDeviceSelectionClientController {
         }
 
         var hudViews = activeState.views().stream()
-                .map(view -> DeferredSelectionHudRenderer.View.forItem(
-                        view.displayName(),
-                        view.iconStack(),
-                        view.badgeText(),
-                        view.badgeColor()
-                ))
+                .map(LuminousDeviceSelectionClientController::toHudView)
                 .toList();
         DeferredSelectionHudRenderer.render(
                 event.getGuiGraphics(),
@@ -138,6 +139,26 @@ public final class LuminousDeviceSelectionClientController {
         activeState = new ActiveSelectionState(hand, views, findInitialSelectionIndex(views));
     }
 
+    private static DeferredSelectionHudRenderer.View toHudView(LuminousDevice.SelectionView view) {
+        if (view.mode() == LuminousDevice.Mode.CLEAN) {
+            return new DeferredSelectionHudRenderer.View(
+                    view.displayName(),
+                    ItemStack.EMPTY,
+                    CLEAN_MODE_ICON,
+                    view.badgeText(),
+                    view.badgeColor(),
+                    false,
+                    0.0F
+            );
+        }
+        return DeferredSelectionHudRenderer.View.forItem(
+                view.displayName(),
+                view.iconStack(),
+                view.badgeText(),
+                view.badgeColor()
+        );
+    }
+
     private static void refreshActiveState(net.minecraft.world.entity.player.Player player) {
         if (activeState == null) {
             return;
@@ -149,8 +170,7 @@ public final class LuminousDeviceSelectionClientController {
             return;
         }
 
-        var selectedStack = activeState.selectedView().iconStack();
-        var selectedIndex = indexOfSelection(refreshedViews, selectedStack);
+        var selectedIndex = indexOfSelection(refreshedViews, activeState.selectedView());
         if (selectedIndex < 0) {
             selectedIndex = findInitialSelectionIndex(refreshedViews);
         }
@@ -164,9 +184,16 @@ public final class LuminousDeviceSelectionClientController {
 
         var hand = activeState.hand();
         var deviceStack = player.getItemInHand(hand);
-        var selectedStack = activeState.selectedView().iconStack();
-        if (LuminousDevice.setSelectedStack(deviceStack, selectedStack)) {
-            Networks.sendToServer(new ClientConfirmLuminousDeviceSelectionPacket(hand, selectedStack));
+        var selectedView = activeState.selectedView();
+        var selectionApplied = selectedView.mode() == LuminousDevice.Mode.CLEAN
+                ? LuminousDevice.setCleanMode(deviceStack)
+                : LuminousDevice.setSelectedStack(deviceStack, selectedView.iconStack());
+        if (selectionApplied) {
+            Networks.sendToServer(new ClientConfirmLuminousDeviceSelectionPacket(
+                    hand,
+                    selectedView.mode(),
+                    selectedView.iconStack()
+            ));
         }
         clearState();
     }
@@ -209,9 +236,15 @@ public final class LuminousDeviceSelectionClientController {
         return 0;
     }
 
-    private static int indexOfSelection(List<LuminousDevice.SelectionView> views, ItemStack selectedStack) {
+    private static int indexOfSelection(
+            List<LuminousDevice.SelectionView> views,
+            LuminousDevice.SelectionView selectedView
+    ) {
         for (int i = 0; i < views.size(); ++i) {
-            if (ItemStack.isSameItemSameTags(views.get(i).iconStack(), selectedStack)) {
+            var view = views.get(i);
+            if (view.mode() == selectedView.mode()
+                    && (view.mode() == LuminousDevice.Mode.CLEAN
+                    || ItemStack.isSameItemSameTags(view.iconStack(), selectedView.iconStack()))) {
                 return i;
             }
         }

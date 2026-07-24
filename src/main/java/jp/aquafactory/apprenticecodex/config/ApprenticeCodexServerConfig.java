@@ -245,6 +245,18 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.luminousDeviceMaxStoredMana();
     }
 
+    public static int luminousDeviceCleanRadius() {
+        return ITEMS_CONFIG.luminousDeviceCleanRadius();
+    }
+
+    public static int luminousDeviceMageLightManaRecovery() {
+        return ITEMS_CONFIG.luminousDeviceMageLightManaRecovery();
+    }
+
+    public static int luminousDeviceWizardlampManaRecovery() {
+        return ITEMS_CONFIG.luminousDeviceWizardlampManaRecovery();
+    }
+
     public static GameTestConfigOverride useLuminousDeviceConfigOverrideForGameTest(
             int maxStoredItems,
             int maxStoredMana
@@ -255,6 +267,26 @@ public final class ApprenticeCodexServerConfig {
         return () -> ITEMS_CONFIG.setLuminousDeviceConfigForGameTest(
                 previousMaxStoredItems,
                 previousMaxStoredMana
+        );
+    }
+
+    public static GameTestConfigOverride useLuminousDeviceCleanConfigOverrideForGameTest(
+            int cleanRadius,
+            int mageLightManaRecovery,
+            int wizardlampManaRecovery
+    ) {
+        var previousCleanRadius = ITEMS_CONFIG.luminousDeviceCleanRadius();
+        var previousMageLightManaRecovery = ITEMS_CONFIG.luminousDeviceMageLightManaRecovery();
+        var previousWizardlampManaRecovery = ITEMS_CONFIG.luminousDeviceWizardlampManaRecovery();
+        ITEMS_CONFIG.setLuminousDeviceCleanConfigForGameTest(
+                cleanRadius,
+                mageLightManaRecovery,
+                wizardlampManaRecovery
+        );
+        return () -> ITEMS_CONFIG.setLuminousDeviceCleanConfigForGameTest(
+                previousCleanRadius,
+                previousMageLightManaRecovery,
+                previousWizardlampManaRecovery
         );
     }
 

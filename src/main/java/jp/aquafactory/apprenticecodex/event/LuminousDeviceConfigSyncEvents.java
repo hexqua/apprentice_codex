@@ -60,7 +60,8 @@ public final class LuminousDeviceConfigSyncEvents {
     private static SyncLuminousDeviceConfigPacket createPacket() {
         return new SyncLuminousDeviceConfigPacket(
                 ApprenticeCodexServerConfig.luminousDeviceMaxStoredItems(),
-                ApprenticeCodexServerConfig.luminousDeviceMaxStoredMana()
+                ApprenticeCodexServerConfig.luminousDeviceMaxStoredMana(),
+                ApprenticeCodexServerConfig.luminousDeviceCleanRadius()
         );
     }
 

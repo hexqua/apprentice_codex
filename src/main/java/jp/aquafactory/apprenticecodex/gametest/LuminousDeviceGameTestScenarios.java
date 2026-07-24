@@ -1,12 +1,15 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import io.netty.buffer.Unpooled;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceConfigState;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevicePickupEvent;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceTooltip;
+import jp.aquafactory.apprenticecodex.network.packet.SyncLuminousDeviceConfigPacket;
+import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
@@ -14,6 +17,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleContainer;
@@ -194,7 +198,7 @@ final class LuminousDeviceGameTestScenarios {
                 var lines = new java.util.ArrayList<net.minecraft.network.chat.Component>();
                 deviceStack.getItem().appendHoverText(deviceStack, helper.getLevel(), lines, TooltipFlag.NORMAL);
 
-                helper.assertTrue(lines.size() == 4, "Luminous Device should append four tooltip lines");
+                helper.assertTrue(lines.size() == 5, "Selected Luminous Device should append a mode tooltip line");
                 helper.assertTrue("(3/12)".equals(lines.get(0).getString()),
                         "Tooltip should display literal item count and synced capacity");
                 helper.assertTrue(lines.get(3).getString().contains("67")
@@ -210,6 +214,10 @@ final class LuminousDeviceGameTestScenarios {
                                 && currentMana.getStyle().getColor().getValue() == ChatFormatting.AQUA.getColor()
                                 && maxMana.getStyle().getColor().getValue() == ChatFormatting.AQUA.getColor(),
                         "Both mana values should always use cyan formatting");
+                helper.assertTrue(lines.get(4).getContents()
+                                instanceof net.minecraft.network.chat.contents.TranslatableContents modeContents
+                                && "item.apprenticecodex.luminous_device.mode".equals(modeContents.getKey()),
+                        "The selected placement mode should be displayed on the final tooltip line");
             } finally {
                 LuminousDeviceConfigState.reset();
             }
@@ -352,8 +360,9 @@ final class LuminousDeviceGameTestScenarios {
                         "Use consumption should preserve the empty selected item");
 
                 var views = LuminousDevice.getSelectionViews(deviceStack);
-                helper.assertTrue(views.size() == 1
+                helper.assertTrue(views.size() == 2
                                 && views.get(0).currentSelection()
+                                && views.get(0).mode() == LuminousDevice.Mode.PLACE
                                 && "0".equals(views.get(0).badgeText()),
                         "Selection UI data should retain the selected zero-count item");
                 helper.assertTrue(deviceStack.getItem().useOn(
@@ -431,6 +440,156 @@ final class LuminousDeviceGameTestScenarios {
                     "Fallback extraction should continue until storage is empty");
             helper.assertTrue(LuminousDevice.getSelectedStack(deviceStack).isEmpty(),
                     "Manually emptying storage should clear a zero-count ghost selection");
+        });
+    }
+
+    static void luminousDeviceModesUpdateSelectionNameAndTooltip(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var configBuffer = new FriendlyByteBuf(Unpooled.buffer());
+            SyncLuminousDeviceConfigPacket.encode(
+                    new SyncLuminousDeviceConfigPacket(12, 345, 2),
+                    configBuffer
+            );
+            var decodedConfig = SyncLuminousDeviceConfigPacket.decode(configBuffer);
+            helper.assertTrue(decodedConfig.maxStoredItems() == 12
+                            && decodedConfig.maxStoredMana() == 345
+                            && decodedConfig.cleanRadius() == 2,
+                    "Luminous Device config sync should preserve the cleanup radius");
+
+            var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+            var emptyViews = LuminousDevice.getSelectionViews(deviceStack);
+            helper.assertTrue(emptyViews.size() == 1
+                            && emptyViews.get(0).mode() == LuminousDevice.Mode.CLEAN,
+                    "An empty Luminous Device should still expose the clean selection");
+
+            var emptyLines = new java.util.ArrayList<net.minecraft.network.chat.Component>();
+            deviceStack.getItem().appendHoverText(deviceStack, helper.getLevel(), emptyLines, TooltipFlag.NORMAL);
+            helper.assertTrue(emptyLines.size() == 4,
+                    "Empty placement mode should omit the mode tooltip line");
+
+            LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.TORCH, 2));
+            helper.assertTrue(LuminousDevice.getMode(deviceStack) == LuminousDevice.Mode.PLACE
+                            && LuminousDevice.getSelectedStack(deviceStack).is(Items.TORCH),
+                    "Existing and newly populated devices should default to placement mode");
+
+            LuminousDeviceConfigState.set(1024, 2000, 2);
+            try {
+                helper.assertTrue(LuminousDevice.setCleanMode(deviceStack),
+                        "A valid Luminous Device should accept clean mode");
+                helper.assertTrue(LuminousDevice.getMode(deviceStack) == LuminousDevice.Mode.CLEAN
+                                && LuminousDevice.getSelectedStack(deviceStack).isEmpty(),
+                        "Clean mode should make the retained item selection inactive");
+
+                var cleanViews = LuminousDevice.getSelectionViews(deviceStack);
+                helper.assertTrue(cleanViews.size() == 2
+                                && cleanViews.stream().noneMatch(view ->
+                                view.mode() == LuminousDevice.Mode.PLACE && view.currentSelection())
+                                && cleanViews.get(1).mode() == LuminousDevice.Mode.CLEAN
+                                && cleanViews.get(1).currentSelection(),
+                        "Only the clean entry should be current while cleaning");
+
+                var cleanName = deviceStack.getItem().getName(deviceStack);
+                var cleanNameContents = (net.minecraft.network.chat.contents.TranslatableContents)
+                        cleanName.getContents();
+                helper.assertTrue("item.apprenticecodex.luminous_device.with_select"
+                                .equals(cleanNameContents.getKey())
+                                && cleanNameContents.getArgs().length == 2
+                                && cleanNameContents.getArgs()[1] instanceof net.minecraft.network.chat.Component modeName
+                                && modeName.getContents()
+                                instanceof net.minecraft.network.chat.contents.TranslatableContents modeNameContents
+                                && "item.apprenticecodex.luminous_device.mode.clean"
+                                .equals(modeNameContents.getKey()),
+                        "Clean mode should use the clean label in the item display name");
+
+                var cleanLines = new java.util.ArrayList<net.minecraft.network.chat.Component>();
+                deviceStack.getItem().appendHoverText(
+                        deviceStack,
+                        helper.getLevel(),
+                        cleanLines,
+                        TooltipFlag.NORMAL
+                );
+                helper.assertTrue(cleanLines.size() == 5,
+                        "Clean mode should append its mode tooltip line");
+                var modeContents = (net.minecraft.network.chat.contents.TranslatableContents)
+                        cleanLines.get(4).getContents();
+                var cleanSize = (net.minecraft.network.chat.Component) modeContents.getArgs()[1];
+                var cleanSizeContents = (net.minecraft.network.chat.contents.TranslatableContents)
+                        cleanSize.getContents();
+                helper.assertTrue(cleanSizeContents.getArgs().length == 3
+                                && Integer.valueOf(5).equals(cleanSizeContents.getArgs()[0])
+                                && Integer.valueOf(5).equals(cleanSizeContents.getArgs()[1])
+                                && Integer.valueOf(5).equals(cleanSizeContents.getArgs()[2]),
+                        "Clean tooltip size should be calculated as 1 + radius * 2");
+
+                helper.assertTrue(LuminousDevice.setSelectedStack(deviceStack, new ItemStack(Items.TORCH)),
+                        "Selecting a stored item should leave clean mode");
+                helper.assertTrue(LuminousDevice.getMode(deviceStack) == LuminousDevice.Mode.PLACE
+                                && LuminousDevice.getSelectedStack(deviceStack).is(Items.TORCH),
+                        "Item selection should reactivate placement mode and the retained item");
+            } finally {
+                LuminousDeviceConfigState.reset();
+            }
+        });
+    }
+
+    static void luminousDeviceCleanModeRemovesLightsAndRecoversConfiguredMana(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useLuminousDeviceCleanConfigOverrideForGameTest(
+                    1,
+                    7,
+                    11
+            )) {
+                var player = new FakePlayer(
+                        helper.getLevel(),
+                        new GameProfile(UUID.randomUUID(), "luminous_device_clean_test")
+                );
+                var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+                LuminousDevice.setCleanMode(deviceStack);
+                LuminousDevice.setStoredMana(deviceStack, 100);
+                player.setItemInHand(InteractionHand.MAIN_HAND, deviceStack);
+
+                var center = new BlockPos(2, 1, 2);
+                helper.setBlock(center, BlockRegistry.MAGE_LIGHT_TORCH.get());
+                helper.setBlock(center.offset(1, 1, 1), BlockRegistry.WIZARDLAMP_LANTERN.get());
+                helper.setBlock(center.offset(2, 0, 0), BlockRegistry.MAGE_LIGHT_TORCH.get());
+
+                var result = useDeviceOn(helper, player, center);
+                helper.assertTrue(result.consumesAction(),
+                        "Clean mode should consume a targeted block interaction");
+                helper.assertBlockNotPresent(BlockRegistry.MAGE_LIGHT_TORCH.get(), center);
+                helper.assertBlockNotPresent(BlockRegistry.WIZARDLAMP_LANTERN.get(), center.offset(1, 1, 1));
+                helper.assertBlockPresent(BlockRegistry.MAGE_LIGHT_TORCH.get(), center.offset(2, 0, 0));
+                helper.assertTrue(LuminousDevice.getStoredMana(deviceStack) == 118,
+                        "Clean mode should recover the configured mana for both removed light types");
+                helper.assertTrue(player.getCooldowns().isOnCooldown(ItemRegistry.LUMINOUS_DEVICE.get()),
+                        "Successful cleaning should apply a one-second item cooldown");
+
+                player.getCooldowns().removeCooldown(ItemRegistry.LUMINOUS_DEVICE.get());
+                LuminousDevice.setStoredMana(deviceStack, 1998);
+                var cappedCenter = new BlockPos(6, 1, 2);
+                helper.setBlock(cappedCenter, BlockRegistry.MAGE_LIGHT_TORCH.get());
+                useDeviceOn(helper, player, cappedCenter);
+                helper.assertTrue(LuminousDevice.getStoredMana(deviceStack) == 2000,
+                        "Recovered mana should be discarded beyond the configured capacity");
+
+                player.getCooldowns().removeCooldown(ItemRegistry.LUMINOUS_DEVICE.get());
+                var missingCenter = new BlockPos(8, 1, 4);
+                helper.setBlock(missingCenter, Blocks.STONE);
+                var missingResult = useDeviceOn(helper, player, missingCenter);
+                helper.assertTrue(missingResult.consumesAction()
+                                && player.getCooldowns().isOnCooldown(ItemRegistry.LUMINOUS_DEVICE.get()),
+                        "A targeted clean attempt with no lights should still consume the action and apply cooldown");
+
+                player.getCooldowns().removeCooldown(ItemRegistry.LUMINOUS_DEVICE.get());
+                var airResult = deviceStack.getItem().use(
+                        helper.getLevel(),
+                        player,
+                        InteractionHand.MAIN_HAND
+                );
+                helper.assertTrue(airResult.getResult() == InteractionResult.PASS
+                                && !player.getCooldowns().isOnCooldown(ItemRegistry.LUMINOUS_DEVICE.get()),
+                        "Clean mode should do nothing when no block is targeted");
+            }
         });
     }
 
@@ -532,6 +691,24 @@ final class LuminousDeviceGameTestScenarios {
                 SlotAccess.forContainer(inputContainer, 0)
         );
         return new RefillInteractionResult(handled, inputContainer.getItem(0).copy());
+    }
+
+    private static InteractionResult useDeviceOn(
+            GameTestHelper helper,
+            FakePlayer player,
+            BlockPos relativePos
+    ) {
+        var absolutePos = helper.absolutePos(relativePos);
+        return player.getMainHandItem().getItem().useOn(new UseOnContext(
+                player,
+                InteractionHand.MAIN_HAND,
+                new BlockHitResult(
+                        Vec3.atCenterOf(absolutePos),
+                        Direction.UP,
+                        absolutePos,
+                        false
+                )
+        ));
     }
 
     private static ItemStack createInstantManaPotion(
