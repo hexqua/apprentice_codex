@@ -2,17 +2,25 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
 import io.netty.buffer.Unpooled;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceConfigState;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevicePickupEvent;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceTooltip;
+import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmLuminousDeviceSelectionPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncLuminousDeviceConfigPacket;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
+import jp.aquafactory.apprenticecodex.utility.RightClickSpellResolver;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -360,9 +368,12 @@ final class LuminousDeviceGameTestScenarios {
                         "Use consumption should preserve the empty selected item");
 
                 var views = LuminousDevice.getSelectionViews(deviceStack);
-                helper.assertTrue(views.size() == 2
+                helper.assertTrue(views.size() == 4
                                 && views.get(0).currentSelection()
                                 && views.get(0).mode() == LuminousDevice.Mode.PLACE
+                                && views.get(1).mode() == LuminousDevice.Mode.CLEAN
+                                && views.get(2).spellId().equals(SpellRegistry.MAGE_LIGHT.get().getSpellResource())
+                                && views.get(3).spellId().equals(SpellRegistry.WIZARDLAMP.get().getSpellResource())
                                 && "0".equals(views.get(0).badgeText()),
                         "Selection UI data should retain the selected zero-count item");
                 helper.assertTrue(deviceStack.getItem().useOn(
@@ -458,9 +469,11 @@ final class LuminousDeviceGameTestScenarios {
 
             var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
             var emptyViews = LuminousDevice.getSelectionViews(deviceStack);
-            helper.assertTrue(emptyViews.size() == 1
-                            && emptyViews.get(0).mode() == LuminousDevice.Mode.CLEAN,
-                    "An empty Luminous Device should still expose the clean selection");
+            helper.assertTrue(emptyViews.size() == 3
+                            && emptyViews.get(0).mode() == LuminousDevice.Mode.CLEAN
+                            && emptyViews.get(1).spellId().equals(SpellRegistry.MAGE_LIGHT.get().getSpellResource())
+                            && emptyViews.get(2).spellId().equals(SpellRegistry.WIZARDLAMP.get().getSpellResource()),
+                    "An empty Luminous Device should expose clean mode followed by its fixed spells");
 
             var emptyLines = new java.util.ArrayList<net.minecraft.network.chat.Component>();
             deviceStack.getItem().appendHoverText(deviceStack, helper.getLevel(), emptyLines, TooltipFlag.NORMAL);
@@ -481,11 +494,13 @@ final class LuminousDeviceGameTestScenarios {
                         "Clean mode should make the retained item selection inactive");
 
                 var cleanViews = LuminousDevice.getSelectionViews(deviceStack);
-                helper.assertTrue(cleanViews.size() == 2
+                helper.assertTrue(cleanViews.size() == 4
                                 && cleanViews.stream().noneMatch(view ->
                                 view.mode() == LuminousDevice.Mode.PLACE && view.currentSelection())
                                 && cleanViews.get(1).mode() == LuminousDevice.Mode.CLEAN
-                                && cleanViews.get(1).currentSelection(),
+                                && cleanViews.get(1).currentSelection()
+                                && cleanViews.get(2).mode() == LuminousDevice.Mode.SPELL
+                                && cleanViews.get(3).mode() == LuminousDevice.Mode.SPELL,
                         "Only the clean entry should be current while cleaning");
 
                 var cleanName = deviceStack.getItem().getName(deviceStack);
@@ -526,9 +541,174 @@ final class LuminousDeviceGameTestScenarios {
                 helper.assertTrue(LuminousDevice.getMode(deviceStack) == LuminousDevice.Mode.PLACE
                                 && LuminousDevice.getSelectedStack(deviceStack).is(Items.TORCH),
                         "Item selection should reactivate placement mode and the retained item");
+
+                var mageLight = SpellRegistry.MAGE_LIGHT.get();
+                helper.assertTrue(LuminousDevice.setSelectedSpell(deviceStack, mageLight.getSpellResource()),
+                        "Luminous Device should accept Mage Light as a fixed spell");
+                helper.assertTrue(LuminousDevice.getMode(deviceStack) == LuminousDevice.Mode.SPELL
+                                && LuminousDevice.getSelectedStack(deviceStack).isEmpty()
+                                && LuminousDevice.getSelectedSpellData(deviceStack).getSpell() == mageLight,
+                        "Spell mode should retain but deactivate the selected item");
+
+                var spellName = deviceStack.getItem().getName(deviceStack);
+                var spellNameContents = (net.minecraft.network.chat.contents.TranslatableContents)
+                        spellName.getContents();
+                var itemNameSpell = (net.minecraft.network.chat.Component) spellNameContents.getArgs()[1];
+                helper.assertTrue(itemNameSpell.getString().equals(mageLight.getDisplayName(null).getString())
+                                && itemNameSpell.getStyle().getColor() == null,
+                        "Spell mode item name should omit school color and level");
+
+                var spellLines = new java.util.ArrayList<net.minecraft.network.chat.Component>();
+                deviceStack.getItem().appendHoverText(
+                        deviceStack,
+                        helper.getLevel(),
+                        spellLines,
+                        TooltipFlag.NORMAL
+                );
+                var spellModeContents = (net.minecraft.network.chat.contents.TranslatableContents)
+                        spellLines.get(4).getContents();
+                var spellModeName = (net.minecraft.network.chat.Component) spellModeContents.getArgs()[0];
+                var tooltipSpell = (net.minecraft.network.chat.Component) spellModeContents.getArgs()[1];
+                helper.assertTrue(spellModeName.getContents()
+                                instanceof net.minecraft.network.chat.contents.TranslatableContents spellModeNameContents
+                                && "item.apprenticecodex.luminous_device.mode.spell"
+                                .equals(spellModeNameContents.getKey()),
+                        "Spell tooltip should use the shared spell mode translation");
+                helper.assertTrue(tooltipSpell.getString().endsWith(" 1")
+                                && tooltipSpell.getStyle().getColor() != null
+                                && tooltipSpell.getStyle().getColor().equals(
+                                mageLight.getSchoolType().getDisplayName().getStyle().getColor()
+                        ),
+                        "Spell tooltip should show level one in the school color");
+
+                var packetBuffer = new FriendlyByteBuf(Unpooled.buffer());
+                ClientConfirmLuminousDeviceSelectionPacket.encode(
+                        new ClientConfirmLuminousDeviceSelectionPacket(
+                                InteractionHand.MAIN_HAND,
+                                LuminousDevice.Mode.SPELL,
+                                ItemStack.EMPTY,
+                                mageLight.getSpellResource()
+                        ),
+                        packetBuffer
+                );
+                var decodedSelection = ClientConfirmLuminousDeviceSelectionPacket.decode(packetBuffer);
+                helper.assertTrue(decodedSelection.mode() == LuminousDevice.Mode.SPELL
+                                && mageLight.getSpellResource().equals(decodedSelection.selectedSpellId()),
+                        "Luminous Device selection packet should preserve the selected spell id");
             } finally {
                 LuminousDeviceConfigState.reset();
             }
+        });
+    }
+
+    static void luminousDeviceSpellModeUsesStoredManaWithoutSpellContainer(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = new FakePlayer(
+                    helper.getLevel(),
+                    new GameProfile(UUID.randomUUID(), "luminous_device_spell_test")
+            );
+            player.setPos(
+                    helper.absolutePos(new BlockPos(1, 1, 1)).getX() + 0.5D,
+                    helper.absolutePos(new BlockPos(1, 1, 1)).getY(),
+                    helper.absolutePos(new BlockPos(1, 1, 1)).getZ() + 0.5D
+            );
+            var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, deviceStack);
+            var magicData = MagicData.getPlayerMagicData(player);
+            magicData.setMana(0.0F);
+
+            helper.assertTrue(deviceStack.getItem() instanceof io.redspace.ironsspellbooks.item.UniqueItem,
+                    "Luminous Device should block external spell imbuement as a UniqueItem");
+            helper.assertFalse(ISpellContainer.isSpellContainer(deviceStack),
+                    "Luminous Device should not expose its fixed spells through a SpellContainer");
+
+            var mageLight = SpellRegistry.MAGE_LIGHT.get();
+            LuminousDevice.setSelectedSpell(deviceStack, mageLight.getSpellResource());
+            LuminousDevice.setStoredMana(deviceStack, 100);
+            var resolvedSpell = RightClickSpellResolver.resolve(player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(resolvedSpell.isPresent()
+                            && resolvedSpell.get().spellData().getSpell() == mageLight
+                            && "luminous_device_selected".equals(resolvedSpell.get().resolutionPath()),
+                    "Right-click targeting should resolve the selected fixed spell without a spell wheel entry");
+
+            var mageLightPos = helper.absolutePos(new BlockPos(3, 1, 1));
+            helper.setBlock(new BlockPos(3, 0, 1), Blocks.STONE);
+            helper.setBlock(new BlockPos(3, 1, 1), Blocks.AIR);
+            setPendingTarget(player, mageLight, mageLightPos);
+            magicData.setMana(mageLight.getManaCost(1));
+            helper.assertTrue(mageLight.canBeCastedBy(
+                            1,
+                            CastSource.SWORD,
+                            magicData,
+                            player
+                    ).isSuccess(),
+                    "Mage Light should pass the standard pre-cast eligibility checks");
+            magicData.setMana(0.0F);
+            helper.assertTrue(BlockTargetingHelper.peekValidatedPendingTarget(
+                            helper.getLevel(),
+                            player,
+                            mageLight.getSpellResource(),
+                            8.0D
+                    ).isPresent(),
+                    "Mage Light should receive a valid pending block target");
+            var mageLightResult = deviceStack.getItem().use(
+                    helper.getLevel(),
+                    player,
+                    InteractionHand.MAIN_HAND
+            );
+            helper.assertTrue(mageLightResult.getResult().consumesAction(),
+                    "Mage Light should initiate from Luminous Device");
+            helper.assertTrue(LuminousDevice.getStoredMana(deviceStack) == 80,
+                    "Mage Light should consume its configured mana cost from Luminous Device");
+            mageLight.castSpell(helper.getLevel(), 1, player, CastSource.SWORD, true);
+            mageLight.onServerCastComplete(helper.getLevel(), 1, player, magicData, false);
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0E-4F,
+                    "Mage Light should leave player mana unchanged after its temporary validation loan");
+
+            var wizardlamp = SpellRegistry.WIZARDLAMP.get();
+            LuminousDevice.setSelectedSpell(deviceStack, wizardlamp.getSpellResource());
+            var wizardlampPos = helper.absolutePos(new BlockPos(4, 2, 1));
+            helper.setBlock(new BlockPos(4, 2, 1), Blocks.AIR);
+            var wizardlampTarget = setPendingTarget(player, wizardlamp, wizardlampPos);
+            helper.assertTrue(jp.aquafactory.apprenticecodex.spell.wizardlamp.Wizardlamp.resolveClientPlacePos(
+                            helper.getLevel(),
+                            player,
+                            wizardlampTarget,
+                            6.0D
+                    ).isPresent(),
+                    "Wizardlamp should accept its pending block target");
+            var wizardlampResult = deviceStack.getItem().use(
+                    helper.getLevel(),
+                    player,
+                    InteractionHand.MAIN_HAND
+            );
+            helper.assertTrue(wizardlampResult.getResult().consumesAction(),
+                    "Wizardlamp should initiate from Luminous Device");
+            helper.assertTrue(LuminousDevice.getStoredMana(deviceStack) == 30,
+                    "Wizardlamp should consume its configured mana cost from Luminous Device");
+            wizardlamp.castSpell(helper.getLevel(), 1, player, CastSource.SWORD, true);
+            wizardlamp.onServerCastComplete(helper.getLevel(), 1, player, magicData, false);
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0E-4F,
+                    "Wizardlamp should also leave player mana unchanged");
+
+            magicData.getPlayerCooldowns().removeCooldown(mageLight.getSpellId());
+            LuminousDevice.setSelectedSpell(deviceStack, mageLight.getSpellResource());
+            LuminousDevice.setStoredMana(deviceStack, 19);
+            magicData.setMana(500.0F);
+            var playerManaBeforeInsufficientCast = magicData.getMana();
+            setPendingTarget(player, mageLight, helper.absolutePos(new BlockPos(5, 1, 1)));
+            var insufficientResult = deviceStack.getItem().use(
+                    helper.getLevel(),
+                    player,
+                    InteractionHand.MAIN_HAND
+            );
+            helper.assertTrue(insufficientResult.getResult() == InteractionResult.FAIL,
+                    "Luminous Device should reject a spell when its own mana is insufficient");
+            helper.assertTrue(LuminousDevice.getStoredMana(deviceStack) == 19
+                            && Math.abs(magicData.getMana() - playerManaBeforeInsufficientCast) < 1.0E-4F,
+                    "Insufficient device mana should not fall back to or consume player mana");
+            helper.assertFalse(ISpellContainer.isSpellContainer(deviceStack),
+                    "Selecting and casting fixed spells should never create a SpellContainer");
         });
     }
 
@@ -691,6 +871,23 @@ final class LuminousDeviceGameTestScenarios {
                 SlotAccess.forContainer(inputContainer, 0)
         );
         return new RefillInteractionResult(handled, inputContainer.getItem(0).copy());
+    }
+
+    private static BlockTargetData setPendingTarget(
+            FakePlayer player,
+            io.redspace.ironsspellbooks.api.spells.AbstractSpell spell,
+            BlockPos placePos
+    ) {
+        var targetData = new BlockTargetData();
+        targetData.setTarget(
+                placePos.below(),
+                Direction.UP,
+                Vec3.atCenterOf(placePos.below()),
+                placePos,
+                Direction.DOWN
+        );
+        BlockTargetingHelper.setPendingServerTarget(player, spell.getSpellResource(), targetData);
+        return targetData;
     }
 
     private static InteractionResult useDeviceOn(

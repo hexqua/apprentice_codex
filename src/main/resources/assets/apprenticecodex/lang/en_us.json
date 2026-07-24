@@ -123,6 +123,7 @@
   "item.apprenticecodex.luminous_device.mode": "Current Mode: %1$s(%2$s)",
   "item.apprenticecodex.luminous_device.mode.place": "Place",
   "item.apprenticecodex.luminous_device.mode.clean": "Clean",
+  "item.apprenticecodex.luminous_device.mode.spell": "Spell",
   "item.apprenticecodex.luminous_device.mode.clean_size": "%1$sx%2$sx%3$s",
   "item.apprenticecodex.scrollcaster_gauntlet": "Scrollcaster Gauntlet",
   "item.apprenticecodex.chargecast_catalystbook": "Catalystbook of Chargecast",

@@ -1,12 +1,22 @@
 package jp.aquafactory.apprenticecodex.item.luminousdevice;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.config.ServerConfigs;
+import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
+import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.SneakSelectionUiItem;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
@@ -19,6 +29,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -42,10 +55,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class LuminousDevice extends Item implements SneakSelectionUiItem {
+public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBypassSpellItem, UniqueItem {
     private static final String STORAGE_TAG = "LuminousDevice";
     private static final String CONTENTS_TAG = "Contents";
     private static final String SELECTED_STACK_TAG = "SelectedStack";
+    private static final String SELECTED_SPELL_TAG = "SelectedSpell";
     private static final String MODE_TAG = "Mode";
     private static final String MANA_TAG = "Mana";
     private static final String STACK_TAG = "Stack";
@@ -54,6 +68,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
     private static final int EMPTY_SELECTION_COUNT_COLOR = 0xFF5555;
     private static final int MANA_BAR_COLOR = 0x4F88E8;
     private static final int CLEAN_COOLDOWN_TICKS = 20;
+    private static final int SPELL_LEVEL = 1;
 
     public LuminousDevice() {
         super(new Properties().stacksTo(1).fireResistant());
@@ -66,6 +81,15 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
                     "item.apprenticecodex.luminous_device.with_select",
                     super.getName(stack),
                     Component.translatable("item.apprenticecodex.luminous_device.mode.clean")
+            );
+        }
+
+        var selectedSpell = getSelectedSpellData(stack);
+        if (selectedSpell != SpellData.EMPTY) {
+            return Component.translatable(
+                    "item.apprenticecodex.luminous_device.with_select",
+                    super.getName(stack),
+                    selectedSpell.getSpell().getDisplayName(null).withStyle(Style.EMPTY)
             );
         }
 
@@ -246,6 +270,9 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
         if (getMode(deviceStack) == Mode.CLEAN) {
             return InteractionResultHolder.pass(deviceStack);
         }
+        if (getMode(deviceStack) == Mode.SPELL) {
+            return tryCastSelectedSpell(level, player, usedHand, deviceStack);
+        }
         var selectedStack = getSelectedStack(deviceStack);
         if (selectedStack.isEmpty()) {
             return InteractionResultHolder.pass(deviceStack);
@@ -269,6 +296,76 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
             consumeSelectedForUse(player, deviceStack);
         }
         return new InteractionResultHolder<>(delegatedResult.getResult(), deviceStack);
+    }
+
+    private static InteractionResultHolder<ItemStack> tryCastSelectedSpell(
+            Level level,
+            Player player,
+            InteractionHand usedHand,
+            ItemStack deviceStack
+    ) {
+        var spellData = getSelectedSpellData(deviceStack);
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            return InteractionResultHolder.pass(deviceStack);
+        }
+        if (level.isClientSide) {
+            return InteractionResultHolder.sidedSuccess(deviceStack, true);
+        }
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return InteractionResultHolder.fail(deviceStack);
+        }
+
+        var spell = spellData.getSpell();
+        var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
+        var magicData = MagicData.getPlayerMagicData(serverPlayer);
+        if (magicData == null || magicData.isCasting()) {
+            return InteractionResultHolder.fail(deviceStack);
+        }
+
+        var consumesMana = !(player.isCreative() && !ServerConfigs.CREATIVE_MANA_COST.get());
+        var manaCost = consumesMana ? spell.getManaCost(spellLevel) : 0;
+        if (getStoredMana(deviceStack) < manaCost) {
+            player.displayClientMessage(
+                    Component.translatable(
+                            "ui.irons_spellbooks.cast_error_mana",
+                            spell.getDisplayName(player)
+                    ).withStyle(ChatFormatting.RED),
+                    true
+            );
+            return InteractionResultHolder.fail(deviceStack);
+        }
+
+        // Iron's の発動前判定だけを通すため不足分を一時補填し、実消費はデバイス側へ付け替える。
+        var borrowedMana = Math.max(0.0F, manaCost - magicData.getMana());
+        if (borrowedMana > 0.0F) {
+            magicData.addMana(borrowedMana);
+        }
+        var slotId = usedHand == InteractionHand.OFF_HAND
+                ? SpellSelectionManager.OFFHAND
+                : SpellSelectionManager.MAINHAND;
+        var casted = spell.attemptInitiateCast(
+                deviceStack,
+                spellLevel,
+                level,
+                player,
+                CastSource.SWORD,
+                true,
+                slotId
+        );
+        if (!casted) {
+            if (borrowedMana > 0.0F) {
+                magicData.setMana(Math.max(0.0F, magicData.getMana() - borrowedMana));
+            }
+            return InteractionResultHolder.fail(deviceStack);
+        }
+
+        if (borrowedMana > 0.0F) {
+            ItemManaBypassCastEvent.reserveBorrowedMana(serverPlayer, borrowedMana);
+        }
+        if (manaCost > 0) {
+            setStoredMana(deviceStack, getStoredMana(deviceStack) - manaCost);
+        }
+        return InteractionResultHolder.success(deviceStack);
     }
 
     @Override
@@ -524,6 +621,16 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
             return;
         }
 
+        var selectedSpell = getSelectedSpellData(stack);
+        if (selectedSpell != SpellData.EMPTY) {
+            lines.add(Component.translatable(
+                    descriptionIdFor(stack) + ".mode",
+                    Component.translatable(descriptionIdFor(stack) + ".mode.spell"),
+                    createSpellDisplayName(selectedSpell)
+            ).withStyle(ChatFormatting.GRAY));
+            return;
+        }
+
         var selectedStack = getSelectedStack(stack);
         if (!selectedStack.isEmpty()) {
             lines.add(Component.translatable(
@@ -586,6 +693,30 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
         return true;
     }
 
+    public static SpellData getSelectedSpellData(ItemStack deviceStack) {
+        if (!(deviceStack.getItem() instanceof LuminousDevice) || getMode(deviceStack) != Mode.SPELL) {
+            return SpellData.EMPTY;
+        }
+
+        var storageTag = deviceStack.getTagElement(STORAGE_TAG);
+        if (storageTag == null || !storageTag.contains(SELECTED_SPELL_TAG, Tag.TAG_STRING)) {
+            return SpellData.EMPTY;
+        }
+        var spellId = ResourceLocation.tryParse(storageTag.getString(SELECTED_SPELL_TAG));
+        var spell = getAllowedSpell(spellId);
+        return spell == null ? SpellData.EMPTY : new SpellData(spell, SPELL_LEVEL);
+    }
+
+    public static boolean setSelectedSpell(ItemStack deviceStack, @Nullable ResourceLocation spellId) {
+        if (!(deviceStack.getItem() instanceof LuminousDevice) || getAllowedSpell(spellId) == null) {
+            return false;
+        }
+
+        deviceStack.getOrCreateTagElement(STORAGE_TAG).putString(SELECTED_SPELL_TAG, spellId.toString());
+        setModeInternal(deviceStack, Mode.SPELL);
+        return true;
+    }
+
     public static List<SelectionView> getSelectionViews(ItemStack deviceStack) {
         if (!(deviceStack.getItem() instanceof LuminousDevice)) {
             return List.of();
@@ -606,23 +737,77 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
         views.add(new SelectionView(
                 Mode.CLEAN,
                 deviceStack.copyWithCount(1),
+                null,
+                null,
                 Component.translatable("ui.apprenticecodex.luminous_device.clean.desc"),
                 "",
                 SELECTION_COUNT_COLOR,
                 mode == Mode.CLEAN
         ));
+        addSpellSelectionView(views, SpellRegistry.MAGE_LIGHT.get(), mode, getSelectedSpellData(deviceStack));
+        addSpellSelectionView(views, SpellRegistry.WIZARDLAMP.get(), mode, getSelectedSpellData(deviceStack));
         return List.copyOf(views);
+    }
+
+    private static void addSpellSelectionView(
+            List<SelectionView> views,
+            AbstractSpell spell,
+            Mode mode,
+            SpellData selectedSpell
+    ) {
+        views.add(new SelectionView(
+                Mode.SPELL,
+                ItemStack.EMPTY,
+                spell.getSpellIconResource(),
+                spell.getSpellResource(),
+                createSpellDisplayName(new SpellData(spell, SPELL_LEVEL)),
+                "",
+                SELECTION_COUNT_COLOR,
+                mode == Mode.SPELL
+                        && selectedSpell != SpellData.EMPTY
+                        && selectedSpell.getSpell() == spell
+        ));
     }
 
     private static SelectionView createSelectionView(ItemStack stack, int count, boolean currentSelection) {
         return new SelectionView(
                 Mode.PLACE,
                 stack.copyWithCount(1),
+                null,
+                null,
                 stack.getHoverName(),
                 CompactCountFormatter.format(count).toLowerCase(java.util.Locale.ROOT),
                 count > 0 ? SELECTION_COUNT_COLOR : EMPTY_SELECTION_COUNT_COLOR,
                 currentSelection
         );
+    }
+
+    private static Component createSpellDisplayName(SpellData spellData) {
+        var spell = spellData.getSpell();
+        return spell.getDisplayName(null)
+                .copy()
+                .append(" ")
+                .append(Integer.toString(spellData.getLevel()))
+                .withStyle(spell.getSchoolType().getDisplayName().getStyle());
+    }
+
+    @Nullable
+    private static AbstractSpell getAllowedSpell(@Nullable ResourceLocation spellId) {
+        if (spellId == null) {
+            return null;
+        }
+        if (spellId.equals(SpellRegistry.MAGE_LIGHT.get().getSpellResource())) {
+            return SpellRegistry.MAGE_LIGHT.get();
+        }
+        if (spellId.equals(SpellRegistry.WIZARDLAMP.get().getSpellResource())) {
+            return SpellRegistry.WIZARDLAMP.get();
+        }
+        return null;
+    }
+
+    @Override
+    public boolean supportsManaBypass(@Nullable AbstractSpell spell) {
+        return spell == SpellRegistry.MAGE_LIGHT.get() || spell == SpellRegistry.WIZARDLAMP.get();
     }
 
     private static int addToDeviceWithoutAutoSelection(
@@ -899,7 +1084,8 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
 
     public enum Mode {
         PLACE("place"),
-        CLEAN("clean");
+        CLEAN("clean"),
+        SPELL("spell");
 
         private final String serializedName;
 
@@ -920,6 +1106,8 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
     public record SelectionView(
             Mode mode,
             ItemStack iconStack,
+            @Nullable ResourceLocation iconTexture,
+            @Nullable ResourceLocation spellId,
             Component displayName,
             String badgeText,
             int badgeColor,

@@ -2415,4 +2415,9 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     public static void luminousDeviceCleanModeRemovesLightsAndRecoversConfiguredMana(GameTestHelper helper) {
         LuminousDeviceGameTestScenarios.luminousDeviceCleanModeRemovesLightsAndRecoversConfiguredMana(helper);
     }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceSpellModeUsesStoredManaWithoutSpellContainer(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceSpellModeUsesStoredManaWithoutSpellContainer(helper);
+    }
 }

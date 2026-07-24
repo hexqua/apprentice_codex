@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.PriorityOffhandUseDeferringItem;
 import jp.aquafactory.apprenticecodex.item.RightClickSpellItemHelper;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import net.minecraft.resources.ResourceLocation;
@@ -84,6 +85,14 @@ public final class RightClickSpellResolver {
                     "storage_stabilizer_selected"
             );
         }
+        if (mainHandStack.getItem() instanceof LuminousDevice) {
+            return createResolvedSpell(
+                    LuminousDevice.getSelectedSpellData(mainHandStack),
+                    player,
+                    InteractionHand.MAIN_HAND,
+                    "luminous_device_selected"
+            );
+        }
         // 独自右クリック武器は CastingItem 継承ではないが、右クリック時は選択 spell を使う。
         if (mainHandStack.getItem() instanceof AbstractRightClickMagicWeaponItem) {
             return resolveSelectionSpell(player, InteractionHand.MAIN_HAND, "right_click_magic_weapon_selection");
@@ -119,6 +128,14 @@ public final class RightClickSpellResolver {
                     player,
                     InteractionHand.OFF_HAND,
                     "storage_stabilizer_selected"
+            );
+        }
+        if (offHandStack.getItem() instanceof LuminousDevice) {
+            return createResolvedSpell(
+                    LuminousDevice.getSelectedSpellData(offHandStack),
+                    player,
+                    InteractionHand.OFF_HAND,
+                    "luminous_device_selected"
             );
         }
         if (offHandStack.getItem() instanceof CastingItem || RightClickSpellItemHelper.isRightClickSpellItem(offHandStack)) {

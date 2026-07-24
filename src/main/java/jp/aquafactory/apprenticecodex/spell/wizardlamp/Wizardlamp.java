@@ -47,7 +47,7 @@ public class Wizardlamp extends AbstractSpell implements IClientBlockTargetingSp
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.HOLY_RESOURCE)
             .setMaxLevel(1)
-            .setCooldownSeconds(4)
+            .setCooldownSeconds(0.5)
             .build();
 
     public Wizardlamp() {

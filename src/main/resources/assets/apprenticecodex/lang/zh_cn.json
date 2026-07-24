@@ -123,6 +123,7 @@
   "item.apprenticecodex.luminous_device.mode": "当前模式：%1$s（%2$s）",
   "item.apprenticecodex.luminous_device.mode.place": "放置",
   "item.apprenticecodex.luminous_device.mode.clean": "清理",
+  "item.apprenticecodex.luminous_device.mode.spell": "法术",
   "item.apprenticecodex.luminous_device.mode.clean_size": "%1$sx%2$sx%3$s",
   "item.apprenticecodex.scrollcaster_gauntlet": "卷轴施法臂铠",
   "item.apprenticecodex.chargecast_catalystbook": "强化施法催化书",
