@@ -5,6 +5,8 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceConfigState;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncLuminousDeviceConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncMageLightConfigPacket;
+import jp.aquafactory.apprenticecodex.spell.magelight.MageLightConfigState;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
@@ -43,6 +45,7 @@ public final class LuminousDeviceConfigSyncEvents {
 
     private static void syncToPlayer(ServerPlayer player) {
         Networks.sendToPlayer(player, createPacket());
+        Networks.sendToPlayer(player, createMageLightPacket());
     }
 
     private static void syncToAllPlayers() {
@@ -54,6 +57,7 @@ public final class LuminousDeviceConfigSyncEvents {
         var packet = createPacket();
         for (var player : server.getPlayerList().getPlayers()) {
             Networks.sendToPlayer(player, packet);
+            Networks.sendToPlayer(player, createMageLightPacket());
         }
     }
 
@@ -61,8 +65,13 @@ public final class LuminousDeviceConfigSyncEvents {
         return new SyncLuminousDeviceConfigPacket(
                 ApprenticeCodexServerConfig.luminousDeviceMaxStoredItems(),
                 ApprenticeCodexServerConfig.luminousDeviceMaxStoredMana(),
-                ApprenticeCodexServerConfig.luminousDeviceCleanRadius()
+                ApprenticeCodexServerConfig.luminousDeviceCleanRadius(),
+                ApprenticeCodexServerConfig.luminousDeviceMageLightExtendedRange()
         );
+    }
+
+    private static SyncMageLightConfigPacket createMageLightPacket() {
+        return new SyncMageLightConfigPacket(ApprenticeCodexServerConfig.mageLightMaxRange());
     }
 
     @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -99,6 +108,7 @@ public final class LuminousDeviceConfigSyncEvents {
         @SubscribeEvent
         public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut event) {
             LuminousDeviceConfigState.reset();
+            MageLightConfigState.reset();
         }
     }
 }

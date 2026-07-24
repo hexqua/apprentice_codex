@@ -2475,4 +2475,9 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     public static void luminousDeviceSpellModeUsesStoredManaWithoutSpellContainer(GameTestHelper helper) {
         LuminousDeviceGameTestScenarios.luminousDeviceSpellModeUsesStoredManaWithoutSpellContainer(helper);
     }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceMageLightProfileScalesManaAndDisablesRedundantExtension(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceMageLightProfileScalesManaAndDisablesRedundantExtension(helper);
+    }
 }

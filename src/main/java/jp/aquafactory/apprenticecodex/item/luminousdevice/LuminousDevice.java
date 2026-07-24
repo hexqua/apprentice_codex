@@ -18,6 +18,8 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
+import jp.aquafactory.apprenticecodex.spell.magelight.MageLightCastContext;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import jp.aquafactory.apprenticecodex.utility.CompactCountFormatter;
@@ -323,8 +325,30 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         }
 
         var consumesMana = !(player.isCreative() && !ServerConfigs.CREATIVE_MANA_COST.get());
-        var manaCost = consumesMana ? spell.getManaCost(spellLevel) : 0;
-        if (getStoredMana(deviceStack) < manaCost) {
+        var validationManaCost = consumesMana ? spell.getManaCost(spellLevel) : 0;
+        var deviceManaCost = validationManaCost;
+        MageLight.CastTarget mageLightTarget = null;
+        if (spell == SpellRegistry.MAGE_LIGHT.get()) {
+            var mageLight = (MageLight) SpellRegistry.MAGE_LIGHT.get();
+            var profile = mageLight.createCastProfile(
+                    spellLevel,
+                    player,
+                    ApprenticeCodexServerConfig.luminousDeviceMageLightExtendedRange()
+            );
+            var resolvedTarget = mageLight.resolveCastTarget(level, player, profile.effectiveRange());
+            if (resolvedTarget.isEmpty()) {
+                player.displayClientMessage(
+                        Component.translatable("ui.apprenticecodex.cant_place", spell.getDisplayName(player))
+                                .withStyle(ChatFormatting.RED),
+                        true
+                );
+                return InteractionResultHolder.fail(deviceStack);
+            }
+            mageLightTarget = resolvedTarget.get();
+            deviceManaCost = consumesMana ? profile.manaCostAt(mageLightTarget.distance()) : 0;
+        }
+
+        if (getStoredMana(deviceStack) < deviceManaCost) {
             player.displayClientMessage(
                     Component.translatable(
                             "ui.irons_spellbooks.cast_error_mana",
@@ -336,22 +360,35 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         }
 
         // Iron's の発動前判定だけを通すため不足分を一時補填し、実消費はデバイス側へ付け替える。
-        var borrowedMana = Math.max(0.0F, manaCost - magicData.getMana());
+        var borrowedMana = Math.max(0.0F, validationManaCost - magicData.getMana());
         if (borrowedMana > 0.0F) {
             magicData.addMana(borrowedMana);
         }
         var slotId = usedHand == InteractionHand.OFF_HAND
                 ? SpellSelectionManager.OFFHAND
                 : SpellSelectionManager.MAINHAND;
-        var casted = spell.attemptInitiateCast(
-                deviceStack,
-                spellLevel,
-                level,
-                player,
-                CastSource.SWORD,
-                true,
-                slotId
-        );
+        var resolvedMageLightTarget = mageLightTarget;
+        var casted = resolvedMageLightTarget == null
+                ? spell.attemptInitiateCast(
+                        deviceStack,
+                        spellLevel,
+                        level,
+                        player,
+                        CastSource.SWORD,
+                        true,
+                        slotId
+                )
+                : MageLightCastContext.withTarget(player, resolvedMageLightTarget, () ->
+                        spell.attemptInitiateCast(
+                                deviceStack,
+                                spellLevel,
+                                level,
+                                player,
+                                CastSource.SWORD,
+                                true,
+                                slotId
+                        )
+                );
         if (!casted) {
             if (borrowedMana > 0.0F) {
                 magicData.setMana(Math.max(0.0F, magicData.getMana() - borrowedMana));
@@ -362,8 +399,8 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         if (borrowedMana > 0.0F) {
             ItemManaBypassCastEvent.reserveBorrowedMana(serverPlayer, borrowedMana);
         }
-        if (manaCost > 0) {
-            setStoredMana(deviceStack, getStoredMana(deviceStack) - manaCost);
+        if (deviceManaCost > 0) {
+            setStoredMana(deviceStack, getStoredMana(deviceStack) - deviceManaCost);
         }
         return InteractionResultHolder.success(deviceStack);
     }
