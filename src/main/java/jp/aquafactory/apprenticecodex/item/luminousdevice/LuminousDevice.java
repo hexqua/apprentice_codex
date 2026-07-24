@@ -1,9 +1,15 @@
 package jp.aquafactory.apprenticecodex.item.luminousdevice;
 
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig;
+import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.SneakSelectionUiItem;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import jp.aquafactory.apprenticecodex.utility.CompactCountFormatter;
+import jp.aquafactory.apprenticecodex.utility.ManaPotionRecoveryHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -20,25 +26,31 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class LuminousDevice extends Item implements SneakSelectionUiItem {
-    public static final int MAX_STORED_ITEMS = 1024;
+    public static final int DEFAULT_MAX_STORED_ITEMS = LuminousDeviceServerConfig.DEFAULT_MAX_STORED_ITEMS;
+    public static final int DEFAULT_MAX_STORED_MANA = LuminousDeviceServerConfig.DEFAULT_MAX_STORED_MANA;
 
     private static final String STORAGE_TAG = "LuminousDevice";
     private static final String CONTENTS_TAG = "Contents";
     private static final String SELECTED_STACK_TAG = "SelectedStack";
+    private static final String MANA_TAG = "Mana";
     private static final String STACK_TAG = "Stack";
     private static final String COUNT_TAG = "Count";
     private static final int SELECTION_COUNT_COLOR = 0xFFFFFF;
     private static final int EMPTY_SELECTION_COUNT_COLOR = 0xFF5555;
+    private static final int MANA_BAR_COLOR = 0x4F88E8;
 
     public LuminousDevice() {
         super(new Properties().stacksTo(1).fireResistant());
@@ -68,8 +80,54 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
         return Optional.of(new LuminousDeviceTooltip(
                 displayStacks,
                 findRemovalCandidateIndex(contents, getSelectedStack(stack)),
-                getStoredItemCount(stack) >= MAX_STORED_ITEMS
+                getStoredItemCount(stack) >= LuminousDeviceConfigState.maxStoredItems()
         ));
+    }
+
+    @Override
+    public void appendHoverText(
+            @NotNull ItemStack stack,
+            @Nullable Level level,
+            @NotNull List<Component> lines,
+            @NotNull TooltipFlag flag
+    ) {
+        super.appendHoverText(stack, level, lines, flag);
+        var maxStoredItems = LuminousDeviceConfigState.maxStoredItems();
+        var maxStoredMana = LuminousDeviceConfigState.maxStoredMana();
+        lines.add(Component.literal(
+                "(" + getStoredItemCount(stack) + "/" + maxStoredItems + ")"
+        ).withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable(getDescriptionId() + ".desc_1").withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable(getDescriptionId() + ".desc_2").withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable(
+                getDescriptionId() + ".mana_label",
+                Component.literal(Integer.toString(getStoredMana(stack))).withStyle(ChatFormatting.AQUA),
+                Component.literal(Integer.toString(maxStoredMana)).withStyle(ChatFormatting.AQUA)
+        ).withStyle(ChatFormatting.GRAY));
+    }
+
+    @Override
+    public boolean isBarVisible(@NotNull ItemStack stack) {
+        return getStoredMana(stack) > 0;
+    }
+
+    @Override
+    public int getBarWidth(@NotNull ItemStack stack) {
+        var storedMana = getStoredMana(stack);
+        if (storedMana <= 0) {
+            return 0;
+        }
+
+        var maxStoredMana = LuminousDeviceConfigState.maxStoredMana();
+        if (maxStoredMana <= 0) {
+            return 13;
+        }
+        return Math.min(13, Math.max(1, Math.round(13.0F * storedMana / maxStoredMana)));
+    }
+
+    @Override
+    public int getBarColor(@NotNull ItemStack stack) {
+        return MANA_BAR_COLOR;
     }
 
     @Override
@@ -89,7 +147,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
                 return false;
             }
 
-            var inserted = addToDevice(deviceStack, extracted);
+            var inserted = addToDevice(deviceStack, extracted, maxStoredItems(player));
             var leftoverCount = extracted.getCount() - inserted;
             if (leftoverCount > 0) {
                 slot.safeInsert(extracted.copyWithCount(leftoverCount));
@@ -113,7 +171,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
             return false;
         }
         if (!leftover.isEmpty()) {
-            addToDeviceWithoutAutoSelection(deviceStack, leftover);
+            addToDeviceWithoutAutoSelection(deviceStack, leftover, maxStoredItems(player));
             if (!previousSelection.isEmpty() && getStoredCount(deviceStack, previousSelection) > 0) {
                 setSelectedStackInternal(deviceStack, previousSelection);
             }
@@ -134,6 +192,11 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
             return false;
         }
 
+        if (tryRefillMana(deviceStack, otherStack, slotAccess, player)) {
+            slot.setChanged();
+            return true;
+        }
+
         if (otherStack.isEmpty()) {
             var previousTag = deviceStack.getTag() == null ? null : deviceStack.getTag().copy();
             var removedStack = removeStackForInventory(deviceStack);
@@ -150,7 +213,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
             return true;
         }
 
-        var inserted = addToDevice(deviceStack, otherStack);
+        var inserted = addToDevice(deviceStack, otherStack, maxStoredItems(player));
         if (inserted <= 0) {
             return false;
         }
@@ -240,7 +303,15 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
     }
 
     public static int addToDevice(ItemStack deviceStack, ItemStack stack) {
-        var inserted = addToDeviceWithoutAutoSelection(deviceStack, stack);
+        return addToDevice(
+                deviceStack,
+                stack,
+                ApprenticeCodexServerConfig.luminousDeviceMaxStoredItems()
+        );
+    }
+
+    private static int addToDevice(ItemStack deviceStack, ItemStack stack, int maxStoredItems) {
+        var inserted = addToDeviceWithoutAutoSelection(deviceStack, stack, maxStoredItems);
         if (inserted > 0 && getSelectedStack(deviceStack).isEmpty()) {
             var contents = readContents(deviceStack);
             if (!contents.isEmpty()) {
@@ -302,6 +373,33 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
             total += entry.count;
         }
         return total;
+    }
+
+    public static int getStoredMana(ItemStack deviceStack) {
+        if (!(deviceStack.getItem() instanceof LuminousDevice)) {
+            return 0;
+        }
+
+        var storageTag = deviceStack.getTagElement(STORAGE_TAG);
+        return storageTag == null ? 0 : Math.max(0, storageTag.getInt(MANA_TAG));
+    }
+
+    public static void setStoredMana(ItemStack deviceStack, int mana) {
+        if (!(deviceStack.getItem() instanceof LuminousDevice)) {
+            return;
+        }
+
+        var normalizedMana = Math.max(0, mana);
+        if (normalizedMana > 0) {
+            deviceStack.getOrCreateTagElement(STORAGE_TAG).putInt(MANA_TAG, normalizedMana);
+            return;
+        }
+
+        var storageTag = deviceStack.getTagElement(STORAGE_TAG);
+        if (storageTag != null) {
+            storageTag.remove(MANA_TAG);
+            removeEmptyStorageTag(deviceStack);
+        }
     }
 
     public static int getStoredCount(ItemStack deviceStack, ItemStack targetStack) {
@@ -383,12 +481,16 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
         );
     }
 
-    private static int addToDeviceWithoutAutoSelection(ItemStack deviceStack, ItemStack stack) {
+    private static int addToDeviceWithoutAutoSelection(
+            ItemStack deviceStack,
+            ItemStack stack,
+            int maxStoredItems
+    ) {
         if (!(deviceStack.getItem() instanceof LuminousDevice) || !accepts(stack)) {
             return 0;
         }
 
-        var remainingSpace = MAX_STORED_ITEMS - getStoredItemCount(deviceStack);
+        var remainingSpace = maxStoredItems - getStoredItemCount(deviceStack);
         var inserted = Math.min(remainingSpace, stack.getCount());
         if (inserted <= 0) {
             return 0;
@@ -416,7 +518,11 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
                 continue;
             }
 
-            pickedUpStack.shrink(addToDeviceWithoutAutoSelection(deviceStack, pickedUpStack));
+            pickedUpStack.shrink(addToDeviceWithoutAutoSelection(
+                    deviceStack,
+                    pickedUpStack,
+                    ApprenticeCodexServerConfig.luminousDeviceMaxStoredItems()
+            ));
             if (pickedUpStack.isEmpty()) {
                 return;
             }
@@ -450,6 +556,70 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
             return true;
         }
         return false;
+    }
+
+    private static boolean tryRefillMana(
+            ItemStack deviceStack,
+            ItemStack inputStack,
+            SlotAccess slotAccess,
+            Player player
+    ) {
+        if (!(deviceStack.getItem() instanceof LuminousDevice) || inputStack.isEmpty()) {
+            return false;
+        }
+
+        var maxStoredMana = maxStoredMana(player);
+        var storedMana = getStoredMana(deviceStack);
+        if (maxStoredMana <= 0 || storedMana >= maxStoredMana) {
+            return false;
+        }
+
+        ItemStack potionStack;
+        ItemStack remainingStack;
+        var amplifierBonus = 0;
+        if (inputStack.is(ItemRegistry.SPELLCASTERS_FLASK.get())
+                && SpellcastersFlask.canExtractOneDose(inputStack)) {
+            potionStack = SpellcastersFlask.getStoredItem(inputStack);
+            remainingStack = SpellcastersFlask.copyAfterExtractingOneDose(inputStack);
+            amplifierBonus = EnchantmentRegistry.GLOW_ENERGY.isPresent()
+                    ? inputStack.getEnchantmentLevel(EnchantmentRegistry.GLOW_ENERGY.get())
+                    : 0;
+        } else if (ManaPotionRecoveryHelper.isSupportedManaPotion(inputStack)) {
+            potionStack = inputStack;
+            remainingStack = new ItemStack(Items.GLASS_BOTTLE);
+        } else {
+            return false;
+        }
+
+        var recoveredMana = ManaPotionRecoveryHelper.getRecovery(
+                potionStack,
+                maxStoredMana,
+                amplifierBonus
+        );
+        if (recoveredMana <= 0 || remainingStack.isEmpty()) {
+            return false;
+        }
+
+        if (!slotAccess.set(remainingStack)) {
+            return false;
+        }
+        setStoredMana(deviceStack, (int) Math.min(
+                maxStoredMana,
+                (long) storedMana + recoveredMana
+        ));
+        return true;
+    }
+
+    private static int maxStoredItems(Player player) {
+        return player.level().isClientSide
+                ? LuminousDeviceConfigState.maxStoredItems()
+                : ApprenticeCodexServerConfig.luminousDeviceMaxStoredItems();
+    }
+
+    private static int maxStoredMana(Player player) {
+        return player.level().isClientSide
+                ? LuminousDeviceConfigState.maxStoredMana()
+                : ApprenticeCodexServerConfig.luminousDeviceMaxStoredMana();
     }
 
     private static void displayOutOfItem(Player player, ItemStack selectedStack) {

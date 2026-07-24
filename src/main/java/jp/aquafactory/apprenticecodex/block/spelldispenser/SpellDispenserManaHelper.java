@@ -1,22 +1,18 @@
 package jp.aquafactory.apprenticecodex.block.spelldispenser;
 
 import io.redspace.ironsspellbooks.api.spells.SpellData;
-import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.utility.ManaPotionRecoveryHelper;
 import jp.aquafactory.apprenticecodex.utility.SpellManaAccessHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
 import org.jetbrains.annotations.NotNull;
 
 public final class SpellDispenserManaHelper {
     public static final int MAX_MANA = SpellManaAccessHelper.MAX_MANA;
     public static final int REFILL_INTERVAL_TICKS = 40;
-    private static final int INSTANT_MANA_BASE_RECOVERY = 25;
-    private static final float INSTANT_MANA_MAX_MANA_RATIO = 0.05F;
-
     private SpellDispenserManaHelper() {
     }
 
@@ -144,13 +140,7 @@ public final class SpellDispenserManaHelper {
     }
 
     public static boolean isSupportedManaPotion(@NotNull ItemStack stack) {
-        if (!stack.is(Items.POTION) || !MobEffectRegistry.INSTANT_MANA.isPresent()) {
-            return false;
-        }
-
-        var effects = PotionUtils.getMobEffects(stack);
-        return !effects.isEmpty()
-                && effects.stream().allMatch(effect -> effect.getEffect() == MobEffectRegistry.INSTANT_MANA.get());
+        return ManaPotionRecoveryHelper.isSupportedManaPotion(stack);
     }
 
     private static boolean isEmptyFlask(@NotNull ItemStack stack) {
@@ -162,27 +152,7 @@ public final class SpellDispenserManaHelper {
     }
 
     private static int resolveManaRecoveryFromPotionStack(@NotNull ItemStack potionStack, int amplifierBonus) {
-        if (potionStack.isEmpty() || !MobEffectRegistry.INSTANT_MANA.isPresent()) {
-            return 0;
-        }
-
-        for (var effect : PotionUtils.getMobEffects(potionStack)) {
-            if (effect.getEffect() == MobEffectRegistry.INSTANT_MANA.get()) {
-                return resolveManaRecoveryFromAmplifier(effect.getAmplifier() + amplifierBonus);
-            }
-        }
-
-        return 0;
-    }
-
-    private static int resolveManaRecoveryFromAmplifier(int amplifier) {
-        if (amplifier < 0) {
-            return 0;
-        }
-
-        var level = amplifier + 1;
-        // Iron's Spells の即時マナ回復式を Spell Dispenser の固定最大マナ 1000 前提で再現する。
-        return Math.round(level * INSTANT_MANA_BASE_RECOVERY + MAX_MANA * (level * INSTANT_MANA_MAX_MANA_RATIO));
+        return ManaPotionRecoveryHelper.getRecovery(potionStack, MAX_MANA, amplifierBonus);
     }
 
     private static int getGlowEnergyLevel(@NotNull ItemStack flaskStack) {

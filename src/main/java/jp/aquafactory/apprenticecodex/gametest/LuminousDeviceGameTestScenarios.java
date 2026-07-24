@@ -1,11 +1,16 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceConfigState;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevicePickupEvent;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceTooltip;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -15,8 +20,12 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -43,19 +52,207 @@ final class LuminousDeviceGameTestScenarios {
             helper.assertFalse(new ItemStack(Items.DIRT).is(TagRegistry.Items.LUMINOUS_DEVICE_STORABLE),
                     "Dirt should not be tagged for Luminous Device storage");
 
+            try (var ignored = ApprenticeCodexServerConfig.useLuminousDeviceConfigOverrideForGameTest(1024, 2000)) {
+                var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+                helper.assertTrue(LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.TORCH, 64)) == 64,
+                        "Luminous Device should accept the first tagged stack");
+                helper.assertTrue(LuminousDevice.getSelectedStack(deviceStack).is(Items.TORCH),
+                        "The first inserted item should become selected");
+                helper.assertTrue(LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.LANTERN, 1000)) == 960,
+                        "Luminous Device should only accept items up to its shared capacity");
+                helper.assertTrue(LuminousDevice.getStoredItemCount(deviceStack) == 1024,
+                        "Luminous Device should cap total storage at its configured capacity");
+                helper.assertTrue(LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.GLOWSTONE, 1)) == 0,
+                        "A full Luminous Device should reject additional items");
+                helper.assertTrue(LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.DIRT, 1)) == 0,
+                        "Luminous Device should reject items outside its storage tag");
+            }
+        });
+    }
+
+    static void luminousDeviceUsesConfiguredItemCapacityWithoutTruncatingContents(GameTestHelper helper) {
+        helper.succeedIf(() -> {
             var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
-            helper.assertTrue(LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.TORCH, 64)) == 64,
-                    "Luminous Device should accept the first tagged stack");
-            helper.assertTrue(LuminousDevice.getSelectedStack(deviceStack).is(Items.TORCH),
-                    "The first inserted item should become selected");
-            helper.assertTrue(LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.LANTERN, 1000)) == 960,
-                    "Luminous Device should only accept items up to its shared capacity");
-            helper.assertTrue(LuminousDevice.getStoredItemCount(deviceStack) == LuminousDevice.MAX_STORED_ITEMS,
-                    "Luminous Device should cap total storage at 1024");
-            helper.assertTrue(LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.GLOWSTONE, 1)) == 0,
-                    "A full Luminous Device should reject additional items");
-            helper.assertTrue(LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.DIRT, 1)) == 0,
-                    "Luminous Device should reject items outside its storage tag");
+            try (var ignored = ApprenticeCodexServerConfig.useLuminousDeviceConfigOverrideForGameTest(10, 2000)) {
+                helper.assertTrue(LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.TORCH, 8)) == 8,
+                        "Luminous Device should accept items below its configured capacity");
+                helper.assertTrue(LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.LANTERN, 5)) == 2,
+                        "Luminous Device should partially insert up to its configured capacity");
+
+                try (var lowered = ApprenticeCodexServerConfig.useLuminousDeviceConfigOverrideForGameTest(5, 2000)) {
+                    helper.assertTrue(LuminousDevice.getStoredItemCount(deviceStack) == 10,
+                            "Lowering capacity should not truncate existing contents");
+                    helper.assertTrue(LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.GLOWSTONE)) == 0,
+                            "Contents above the lowered capacity should reject new items");
+                }
+            }
+        });
+    }
+
+    static void luminousDeviceRefillsManaFromSupportedPotionContainers(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useLuminousDeviceConfigOverrideForGameTest(1024, 2000)) {
+                var player = new FakePlayer(
+                        helper.getLevel(),
+                        new GameProfile(UUID.randomUUID(), "luminous_device_mana_refill_test")
+                );
+                var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+                var manaPotion = createInstantManaPotion(
+                        io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(),
+                        Items.POTION
+                );
+
+                var potionResult = rightClickDevice(deviceStack, manaPotion, player);
+                helper.assertTrue(potionResult.handled(), "Luminous Device should accept a regular mana potion");
+                helper.assertTrue(potionResult.remainingStack().is(Items.GLASS_BOTTLE),
+                        "Consumed regular mana potion should leave a glass bottle");
+                helper.assertTrue(LuminousDevice.getStoredMana(deviceStack) == 125,
+                        "Mana I should recover 25 + 5% of the configured 2000 maximum");
+
+                LuminousDevice.setStoredMana(deviceStack, 0);
+                var flask = AbstractPotionFlaskItem.copyWithAddedDoses(
+                        new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get()),
+                        manaPotion,
+                        2
+                );
+                if (EnchantmentRegistry.GLOW_ENERGY.isPresent()) {
+                    flask.enchant(EnchantmentRegistry.GLOW_ENERGY.get(), 2);
+                }
+                var flaskResult = rightClickDevice(deviceStack, flask, player);
+                helper.assertTrue(flaskResult.handled(),
+                        "Luminous Device should accept a Spellcaster's Flask containing mana potion");
+                helper.assertTrue(AbstractPotionFlaskItem.getStoredDoseCount(flaskResult.remainingStack()) == 1,
+                        "Spellcaster's Flask should consume exactly one dose");
+                var expectedFlaskRecovery = EnchantmentRegistry.GLOW_ENERGY.isPresent() ? 375 : 125;
+                helper.assertTrue(LuminousDevice.getStoredMana(deviceStack) == expectedFlaskRecovery,
+                        "Spellcaster's Flask recovery should include Glow Energy amplifier levels");
+
+                LuminousDevice.setStoredMana(deviceStack, 1999);
+                var overflowResult = rightClickDevice(deviceStack, manaPotion, player);
+                helper.assertTrue(overflowResult.handled(),
+                        "A Luminous Device with one mana of space should still consume one dose");
+                helper.assertTrue(LuminousDevice.getStoredMana(deviceStack) == 2000,
+                        "Recovery beyond capacity should overflow instead of exceeding the maximum");
+
+                var fullResult = rightClickDevice(deviceStack, manaPotion, player);
+                helper.assertFalse(fullResult.handled(), "A full Luminous Device should reject mana potion");
+                helper.assertTrue(fullResult.remainingStack().is(Items.POTION),
+                        "Rejected mana potion should not be consumed");
+            }
+        });
+    }
+
+    static void luminousDeviceRejectsUnsupportedPotionContainers(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useLuminousDeviceConfigOverrideForGameTest(1024, 2000)) {
+                var player = new FakePlayer(
+                        helper.getLevel(),
+                        new GameProfile(UUID.randomUUID(), "luminous_device_mana_rejection_test")
+                );
+                var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+                var manaPotion = createInstantManaPotion(
+                        io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(),
+                        Items.POTION
+                );
+                var alchemistsFlask = AbstractPotionFlaskItem.copyWithAddedDose(
+                        new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get()),
+                        manaPotion
+                );
+                var rejectedStacks = List.of(
+                        createInstantManaPotion(
+                                io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(),
+                                Items.SPLASH_POTION
+                        ),
+                        createInstantManaPotion(
+                                io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(),
+                                Items.LINGERING_POTION
+                        ),
+                        PotionUtils.setPotion(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.HEALING),
+                        alchemistsFlask
+                );
+
+                for (var rejectedStack : rejectedStacks) {
+                    var result = rightClickDevice(deviceStack, rejectedStack, player);
+                    helper.assertFalse(result.handled(),
+                            "Luminous Device accepted an unsupported potion container: " + rejectedStack);
+                    helper.assertTrue(LuminousDevice.getStoredMana(deviceStack) == 0,
+                            "Rejected potion container should not add mana");
+                }
+            }
+        });
+    }
+
+    static void luminousDeviceTooltipUsesSyncedCapacityAndCyanManaValues(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+            LuminousDeviceConfigState.set(12, 345);
+            try {
+                try (var ignored = ApprenticeCodexServerConfig.useLuminousDeviceConfigOverrideForGameTest(12, 345)) {
+                    LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.TORCH, 3));
+                }
+                LuminousDevice.setStoredMana(deviceStack, 67);
+                var lines = new java.util.ArrayList<net.minecraft.network.chat.Component>();
+                deviceStack.getItem().appendHoverText(deviceStack, helper.getLevel(), lines, TooltipFlag.NORMAL);
+
+                helper.assertTrue(lines.size() == 4, "Luminous Device should append four tooltip lines");
+                helper.assertTrue("(3/12)".equals(lines.get(0).getString()),
+                        "Tooltip should display literal item count and synced capacity");
+                helper.assertTrue(lines.get(3).getString().contains("67")
+                                && lines.get(3).getString().contains("345"),
+                        "Tooltip should display stored and maximum mana without decimals");
+                var manaContents = (net.minecraft.network.chat.contents.TranslatableContents) lines.get(3).getContents();
+                var args = manaContents.getArgs();
+                helper.assertTrue(args.length == 2
+                                && args[0] instanceof net.minecraft.network.chat.Component currentMana
+                                && args[1] instanceof net.minecraft.network.chat.Component maxMana
+                                && currentMana.getStyle().getColor() != null
+                                && maxMana.getStyle().getColor() != null
+                                && currentMana.getStyle().getColor().getValue() == ChatFormatting.AQUA.getColor()
+                                && maxMana.getStyle().getColor().getValue() == ChatFormatting.AQUA.getColor(),
+                        "Both mana values should always use cyan formatting");
+            } finally {
+                LuminousDeviceConfigState.reset();
+            }
+        });
+    }
+
+    static void luminousDeviceManaBarUsesSyncedCapacityWithoutItemDamage(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+            LuminousDeviceConfigState.set(1024, 2000);
+            try {
+                helper.assertFalse(deviceStack.getItem().isBarVisible(deviceStack),
+                        "Luminous Device should hide its mana bar when empty");
+
+                LuminousDevice.setStoredMana(deviceStack, 1);
+                helper.assertTrue(deviceStack.getItem().isBarVisible(deviceStack),
+                        "Luminous Device should show its mana bar when mana is stored");
+                helper.assertTrue(deviceStack.getItem().getBarWidth(deviceStack) == 1,
+                        "Any positive mana should render at least one bar pixel");
+                helper.assertTrue(deviceStack.getItem().getBarColor(deviceStack) == 0x4F88E8,
+                        "Luminous Device mana bar should use the fixed flask blue");
+
+                LuminousDevice.setStoredMana(deviceStack, 1000);
+                helper.assertTrue(deviceStack.getItem().getBarWidth(deviceStack) == 7,
+                        "Half of the configured mana capacity should round to seven bar pixels");
+
+                LuminousDevice.setStoredMana(deviceStack, 2000);
+                helper.assertTrue(deviceStack.getItem().getBarWidth(deviceStack) == 13,
+                        "Full mana should render the complete bar");
+
+                LuminousDevice.setStoredMana(deviceStack, 2500);
+                helper.assertTrue(deviceStack.getItem().getBarWidth(deviceStack) == 13,
+                        "Mana above a lowered capacity should clamp to the complete bar");
+                LuminousDeviceConfigState.set(1024, 0);
+                helper.assertTrue(deviceStack.getItem().getBarWidth(deviceStack) == 13,
+                        "Stored mana should remain visible when configured capacity is zero");
+                helper.assertFalse(deviceStack.isDamageableItem(),
+                        "Luminous Device mana bar should not make the item damageable");
+                helper.assertTrue(deviceStack.getDamageValue() == 0,
+                        "Luminous Device mana bar should not use the item damage value");
+            } finally {
+                LuminousDeviceConfigState.reset();
+            }
         });
     }
 
@@ -316,6 +513,35 @@ final class LuminousDeviceGameTestScenarios {
             helper.assertFalse(lanternEntity.isRemoved(),
                     "Unknown tagged items should remain in their ItemEntity until vanilla pickup runs");
         });
+    }
+
+    private static RefillInteractionResult rightClickDevice(
+            ItemStack deviceStack,
+            ItemStack inputStack,
+            FakePlayer player
+    ) {
+        var deviceContainer = new SimpleContainer(deviceStack);
+        var inputContainer = new SimpleContainer(inputStack.copy());
+        var slot = new Slot(deviceContainer, 0, 0, 0);
+        var handled = deviceStack.getItem().overrideOtherStackedOnMe(
+                deviceStack,
+                inputContainer.getItem(0),
+                slot,
+                ClickAction.SECONDARY,
+                player,
+                SlotAccess.forContainer(inputContainer, 0)
+        );
+        return new RefillInteractionResult(handled, inputContainer.getItem(0).copy());
+    }
+
+    private static ItemStack createInstantManaPotion(
+            net.minecraft.world.item.alchemy.Potion potion,
+            Item potionItem
+    ) {
+        return PotionUtils.setPotion(new ItemStack(potionItem), potion);
+    }
+
+    private record RefillInteractionResult(boolean handled, ItemStack remainingStack) {
     }
 
     private record PlacementCase(net.minecraft.world.item.Item item, Block block, BlockPos targetPos) {
