@@ -49,7 +49,7 @@ public class MageLight extends AbstractSpell implements jp.aquafactory.apprentic
         baseSpellPower = 100;
         spellPowerPerLevel = 25;
         baseManaCost = 20;
-        manaCostPerLevel = 4;
+        manaCostPerLevel = 0;
         castTime = 0;
     }
 

@@ -2460,4 +2460,14 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     public static void luminousDeviceAutoStoresOnlyKnownPickedUpItemsAcrossInventoryDevices(GameTestHelper helper) {
         LuminousDeviceGameTestScenarios.luminousDeviceAutoStoresOnlyKnownPickedUpItemsAcrossInventoryDevices(helper);
     }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceModesUpdateSelectionNameAndTooltip(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceModesUpdateSelectionNameAndTooltip(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceCleanModeRemovesLightsAndRecoversConfiguredMana(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceCleanModeRemovesLightsAndRecoversConfiguredMana(helper);
+    }
 }

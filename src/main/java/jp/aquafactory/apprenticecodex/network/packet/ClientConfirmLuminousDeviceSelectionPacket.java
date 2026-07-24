@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 
 public record ClientConfirmLuminousDeviceSelectionPacket(
         InteractionHand hand,
+        LuminousDevice.Mode mode,
         ItemStack selectedStack
 ) {
     public ClientConfirmLuminousDeviceSelectionPacket {
@@ -18,12 +19,14 @@ public record ClientConfirmLuminousDeviceSelectionPacket(
 
     public static void encode(ClientConfirmLuminousDeviceSelectionPacket packet, FriendlyByteBuf buffer) {
         buffer.writeEnum(packet.hand());
+        buffer.writeEnum(packet.mode());
         buffer.writeItem(packet.selectedStack());
     }
 
     public static ClientConfirmLuminousDeviceSelectionPacket decode(FriendlyByteBuf buffer) {
         return new ClientConfirmLuminousDeviceSelectionPacket(
                 buffer.readEnum(InteractionHand.class),
+                buffer.readEnum(LuminousDevice.Mode.class),
                 buffer.readItem()
         );
     }
@@ -41,7 +44,11 @@ public record ClientConfirmLuminousDeviceSelectionPacket(
 
             var deviceStack = sender.getItemInHand(packet.hand());
             if (deviceStack.getItem() instanceof LuminousDevice) {
-                LuminousDevice.setSelectedStack(deviceStack, packet.selectedStack());
+                if (packet.mode() == LuminousDevice.Mode.CLEAN) {
+                    LuminousDevice.setCleanMode(deviceStack);
+                } else {
+                    LuminousDevice.setSelectedStack(deviceStack, packet.selectedStack());
+                }
             }
         });
         context.setPacketHandled(true);

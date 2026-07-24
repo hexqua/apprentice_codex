@@ -9,14 +9,19 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public record SyncLuminousDeviceConfigPacket(int maxStoredItems, int maxStoredMana) {
+public record SyncLuminousDeviceConfigPacket(int maxStoredItems, int maxStoredMana, int cleanRadius) {
     public static void encode(SyncLuminousDeviceConfigPacket packet, FriendlyByteBuf buffer) {
         buffer.writeVarInt(packet.maxStoredItems);
         buffer.writeVarInt(packet.maxStoredMana);
+        buffer.writeVarInt(packet.cleanRadius);
     }
 
     public static SyncLuminousDeviceConfigPacket decode(FriendlyByteBuf buffer) {
-        return new SyncLuminousDeviceConfigPacket(buffer.readVarInt(), buffer.readVarInt());
+        return new SyncLuminousDeviceConfigPacket(
+                buffer.readVarInt(),
+                buffer.readVarInt(),
+                buffer.readVarInt()
+        );
     }
 
     public static void handle(
@@ -36,7 +41,11 @@ public record SyncLuminousDeviceConfigPacket(int maxStoredItems, int maxStoredMa
         }
 
         private static void handle(SyncLuminousDeviceConfigPacket packet) {
-            LuminousDeviceConfigState.set(packet.maxStoredItems, packet.maxStoredMana);
+            LuminousDeviceConfigState.set(
+                    packet.maxStoredItems,
+                    packet.maxStoredMana,
+                    packet.cleanRadius
+            );
         }
     }
 }
