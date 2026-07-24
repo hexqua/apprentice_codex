@@ -78,6 +78,7 @@ import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerRendere
 import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssaultRifleRenderer;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntityRenderer;
+import jp.aquafactory.apprenticecodex.spell.wizardlamp.WizardlampLanternBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileRenderer;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeRenderer;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileRenderer;
@@ -296,6 +297,7 @@ public final class ClientModBusEvents {
         event.registerBlockEntityRenderer(BlockEntityRegistry.ESSENCE_SMOKER.get(), EssenceSmokerBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.FROST_RUNE_TRAP.get(), FrostRuneTrapBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.MAGE_LIGHT_TORCH.get(), MageLightTorchBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(BlockEntityRegistry.WIZARDLAMP_LANTERN.get(), WizardlampLanternBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.PERSONAL_SHELF_CHEST.get(), PersonalShelfChestBlockRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.RIFT_HOLE.get(), RiftHoleBlockEntityRenderer::new);
 

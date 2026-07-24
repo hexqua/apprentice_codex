@@ -21,6 +21,7 @@
   "block.apprenticecodex.frost_rune_trap": "冰霜符文",
   "block.apprenticecodex.spell_calibration_bench": "法术校准台",
   "block.apprenticecodex.otherworld_lens_lens": "异界水晶",
+  "block.apprenticecodex.wizardlamp_lantern": "魔法师灯笼",
 
   "item.apprenticecodex.arcane_cinder": "奥术余烬",
   "item.apprenticecodex.wisdom_shard": "智慧碎片",
@@ -739,6 +740,7 @@
   "spell.apprenticecodex.otherworld_lens": "异界透镜",
   "spell.apprenticecodex.terra_resonance": "大地共鸣",
   "spell.apprenticecodex.fujin": "风神",
+  "spell.apprenticecodex.wizardlamp": "巫师灯",
 
   "spell.apprenticecodex.sky_edge.guide": "召唤一把武器朝你的视线方向发射。该法术有蓄力时间，且不造成击退，但可以无视目标的无敌帧。",
   "spell.apprenticecodex.archer_multiple.guide": "召唤一把跟随你的魔法弓，持续射击直至弹药耗尽，优先攻击你锁定的目标或附近的敌人。",
@@ -816,6 +818,7 @@
   "spell.apprenticecodex.otherworld_lens.guide": "从异界具现出一枚水晶透镜。透过透镜看到的景象，仿佛从世界的背面观察一般。透镜极不稳定，只能在保持专注时维持具现，哪怕细小的障碍也会阻止其生成。",
   "spell.apprenticecodex.terra_resonance.guide": "向大地注入共鸣魔力，隔墙探测会产生反应的物体。可探测的对象仅限于紫水晶之类的宝石；若呈方块状或被掩埋，魔力便不易产生反应，因此较难探测。",
   "spell.apprenticecodex.fujin.guide": "召唤一把缠绕风之魔力的魔法刀，发动一阵乱舞斩击。风之魔力化作利刃，切碎成群的敌人，但不会造成击退。",
+  "spell.apprenticecodex.wizardlamp.guide": "召唤并放置一盏照亮周围区域的魔法灯笼。它只能召唤在触手可及之处，但无需支撑即可召唤，维持存在也不需要支撑。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "爆头伤害倍率：%d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "潜行伤害倍率：%d%%",

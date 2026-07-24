@@ -197,6 +197,8 @@ import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.totemofpermafrost.TotemOfPermafrost;
 import jp.aquafactory.apprenticecodex.spell.totemofpermafrost.TotemOfPermafrostTotemEntity;
 import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonEntity;
+import jp.aquafactory.apprenticecodex.spell.wizardlamp.Wizardlamp;
+import jp.aquafactory.apprenticecodex.spell.wizardlamp.WizardlampLanternBlock;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
@@ -2550,6 +2552,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void serverBlocksAndEntitiesCanBeInstantiated(GameTestHelper helper) {
         helper.succeedIf(() -> {
             placeAndAssertBlockEntity(helper, new BlockPos(0, 1, 0), BlockRegistry.MAGE_LIGHT_TORCH.get(), BlockEntityRegistry.MAGE_LIGHT_TORCH.get());
+            placeAndAssertBlockEntity(helper, new BlockPos(0, 2, 0), BlockRegistry.WIZARDLAMP_LANTERN.get(), BlockEntityRegistry.WIZARDLAMP_LANTERN.get());
             placeAndAssertBlockEntity(helper, new BlockPos(1, 1, 0), BlockRegistry.PERSONAL_SHELF_CHEST.get(), BlockEntityRegistry.PERSONAL_SHELF_CHEST.get());
             placeAndAssertBlockEntity(helper, new BlockPos(2, 1, 0), BlockRegistry.RIFT_HOLE.get(), BlockEntityRegistry.RIFT_HOLE.get());
             placeAndAssertBlockEntity(helper, new BlockPos(3, 1, 0), BlockRegistry.ARCANUM_IN_A_JAR.get(), BlockEntityRegistry.ARCANUM_IN_A_JAR.get());
@@ -8077,6 +8080,98 @@ public class ApprenticeCodexGameTestScenarios {
                     "Linear Build should not use the main hand block when the offhand holds a block");
             helper.assertTrue(player.getOffhandItem().is(Items.OAK_PLANKS) && player.getOffhandItem().getCount() == 1,
                     "Linear Build should consume the selected offhand block template");
+        });
+    }
+
+    static void wizardlampUsesClientCellAndClampsItWithoutLineOfSight(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(1, 2, 1), "wizardlamp_target_test");
+            var spell = (Wizardlamp) SpellRegistry.WIZARDLAMP.get();
+            var eyePosition = player.getEyePosition(1.0F);
+
+            var inRangePos = BlockPos.containing(eyePosition.add(2.0, 0.0, 0.0));
+            var inRangeTarget = new BlockTargetData();
+            inRangeTarget.setTarget(inRangePos, Direction.UP, Vec3.atCenterOf(inRangePos), inRangePos, Direction.DOWN);
+            helper.assertTrue(
+                    Wizardlamp.resolveClientPlacePos(level, player, inRangeTarget, 6.0).orElseThrow().equals(inRangePos),
+                    "Wizardlamp should keep an in-range client placement cell"
+            );
+
+            var farPos = BlockPos.containing(eyePosition.add(12.0, 0.0, 0.0));
+            var farTarget = new BlockTargetData();
+            farTarget.setTarget(farPos, Direction.UP, Vec3.atCenterOf(farPos), farPos, Direction.DOWN);
+            var offset = Vec3.atCenterOf(farPos).subtract(eyePosition);
+            var expectedPos = BlockPos.containing(eyePosition.add(offset.normalize().scale(6.0)));
+            var wallPos = BlockPos.containing(eyePosition.add(offset.normalize().scale(2.0)));
+            level.setBlockAndUpdate(wallPos, Blocks.STONE.defaultBlockState());
+
+            BlockTargetingHelper.setPendingServerTarget(player, spell.getSpellResource(), farTarget);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Wizardlamp test could not resolve player magic data");
+            helper.assertTrue(
+                    spell.checkPreCastConditions(level, 1, player, magicData),
+                    "Wizardlamp should accept a replaceable clamped cell without requiring line of sight"
+            );
+            spell.onCast(level, 1, player, CastSource.SPELLBOOK, magicData);
+
+            helper.assertTrue(
+                    level.getBlockState(expectedPos).is(BlockRegistry.WIZARDLAMP_LANTERN.get()),
+                    "Wizardlamp should place its lantern at the maximum-range cell along the client vector"
+            );
+            helper.assertTrue(
+                    level.getBlockState(expectedPos.below()).isAir(),
+                    "Wizardlamp lantern should remain placed without a supporting block"
+            );
+            helper.assertTrue(
+                    !level.getBlockState(farPos).is(BlockRegistry.WIZARDLAMP_LANTERN.get()),
+                    "Wizardlamp should not trust an out-of-range placement cell directly"
+            );
+        });
+    }
+
+    static void wizardlampLanternHasLanternCollisionAndNoDrops(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var absolutePos = helper.absolutePos(new BlockPos(2, 3, 2));
+            var state = BlockRegistry.WIZARDLAMP_LANTERN.get().defaultBlockState();
+            level.setBlockAndUpdate(absolutePos, state);
+
+            helper.assertTrue(state.canSurvive(level, absolutePos),
+                    "Wizardlamp lantern should survive without support");
+            helper.assertTrue(!state.getCollisionShape(level, absolutePos).isEmpty(),
+                    "Wizardlamp lantern should have a collision shape");
+            var outlineShape = state.getShape(level, absolutePos);
+            var collisionShape = state.getCollisionShape(level, absolutePos);
+            helper.assertTrue(
+                    Math.abs(outlineShape.min(Direction.Axis.Y) - WizardlampLanternBlock.FLOATING_OFFSET) < 0.0001D,
+                    "Wizardlamp lantern outline should be raised with its rendered model"
+            );
+            helper.assertTrue(
+                    Math.abs(collisionShape.min(Direction.Axis.Y) - WizardlampLanternBlock.FLOATING_OFFSET) < 0.0001D,
+                    "Wizardlamp lantern collision should be raised with its rendered model"
+            );
+            helper.assertTrue(state.getLightEmission() == 15,
+                    "Wizardlamp lantern should emit maximum block light");
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(1, 2, 1), "wizardlamp_break_test");
+            var bareHandProgress = state.getDestroyProgress(player, level, absolutePos);
+            helper.assertTrue(Math.abs(state.getDestroySpeed(level, absolutePos) - 0.3F) < 0.0001F,
+                    "Wizardlamp lantern hardness should produce a 30-tick bare-hand break time");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.IRON_PICKAXE));
+            var pickaxeProgress = state.getDestroyProgress(player, level, absolutePos);
+            helper.assertTrue(pickaxeProgress > bareHandProgress,
+                    "Wizardlamp lantern should break faster with a pickaxe");
+
+            var drops = Block.getDrops(
+                    state,
+                    level,
+                    absolutePos,
+                    level.getBlockEntity(absolutePos),
+                    player,
+                    player.getMainHandItem()
+            );
+            helper.assertTrue(drops.isEmpty(), "Wizardlamp lantern should not drop items");
         });
     }
 

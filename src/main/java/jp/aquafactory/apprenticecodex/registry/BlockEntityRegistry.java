@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockE
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHoleBlockEntity;
+import jp.aquafactory.apprenticecodex.spell.wizardlamp.WizardlampLanternBlockEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -43,6 +44,10 @@ public final class BlockEntityRegistry {
 
     public static final RegistryObject<BlockEntityType<MageLightTorchBlockEntity>> MAGE_LIGHT_TORCH = reg(
             "mage_light_torch", MageLightTorchBlockEntity::new, BlockRegistry.MAGE_LIGHT_TORCH
+    );
+
+    public static final RegistryObject<BlockEntityType<WizardlampLanternBlockEntity>> WIZARDLAMP_LANTERN = reg(
+            "wizardlamp_lantern", WizardlampLanternBlockEntity::new, BlockRegistry.WIZARDLAMP_LANTERN
     );
 
     public static final RegistryObject<BlockEntityType<FrostRuneTrapBlockEntity>> FROST_RUNE_TRAP = reg(
