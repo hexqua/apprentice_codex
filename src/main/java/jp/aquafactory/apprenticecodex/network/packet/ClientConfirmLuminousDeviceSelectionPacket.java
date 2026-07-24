@@ -2,16 +2,19 @@ package jp.aquafactory.apprenticecodex.network.packet;
 
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
 public record ClientConfirmLuminousDeviceSelectionPacket(
         InteractionHand hand,
         LuminousDevice.Mode mode,
-        ItemStack selectedStack
+        ItemStack selectedStack,
+        @Nullable ResourceLocation selectedSpellId
 ) {
     public ClientConfirmLuminousDeviceSelectionPacket {
         selectedStack = selectedStack.copyWithCount(1);
@@ -21,13 +24,18 @@ public record ClientConfirmLuminousDeviceSelectionPacket(
         buffer.writeEnum(packet.hand());
         buffer.writeEnum(packet.mode());
         buffer.writeItem(packet.selectedStack());
+        buffer.writeBoolean(packet.selectedSpellId() != null);
+        if (packet.selectedSpellId() != null) {
+            buffer.writeResourceLocation(packet.selectedSpellId());
+        }
     }
 
     public static ClientConfirmLuminousDeviceSelectionPacket decode(FriendlyByteBuf buffer) {
         return new ClientConfirmLuminousDeviceSelectionPacket(
                 buffer.readEnum(InteractionHand.class),
                 buffer.readEnum(LuminousDevice.Mode.class),
-                buffer.readItem()
+                buffer.readItem(),
+                buffer.readBoolean() ? buffer.readResourceLocation() : null
         );
     }
 
@@ -44,10 +52,10 @@ public record ClientConfirmLuminousDeviceSelectionPacket(
 
             var deviceStack = sender.getItemInHand(packet.hand());
             if (deviceStack.getItem() instanceof LuminousDevice) {
-                if (packet.mode() == LuminousDevice.Mode.CLEAN) {
-                    LuminousDevice.setCleanMode(deviceStack);
-                } else {
-                    LuminousDevice.setSelectedStack(deviceStack, packet.selectedStack());
+                switch (packet.mode()) {
+                    case CLEAN -> LuminousDevice.setCleanMode(deviceStack);
+                    case SPELL -> LuminousDevice.setSelectedSpell(deviceStack, packet.selectedSpellId());
+                    case PLACE -> LuminousDevice.setSelectedStack(deviceStack, packet.selectedStack());
                 }
             }
         });

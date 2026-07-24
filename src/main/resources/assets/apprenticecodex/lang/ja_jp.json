@@ -204,6 +204,7 @@
   "item.apprenticecodex.luminous_device.mode": "現在のモード: %1$s(%2$s)",
   "item.apprenticecodex.luminous_device.mode.place": "設置",
   "item.apprenticecodex.luminous_device.mode.clean": "掃除",
+  "item.apprenticecodex.luminous_device.mode.spell": "魔法",
   "item.apprenticecodex.luminous_device.mode.clean_size": "%1$sx%2$sx%3$s",
   "item.apprenticecodex.elemental_bow.mode": "現在の射撃モード: %s",
   "item.apprenticecodex.elemental_bow.desc": "スニークをすることでモード切り替えが可能",

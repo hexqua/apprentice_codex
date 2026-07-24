@@ -151,6 +151,17 @@ public final class LuminousDeviceSelectionClientController {
                     0.0F
             );
         }
+        if (view.mode() == LuminousDevice.Mode.SPELL && view.iconTexture() != null) {
+            return new DeferredSelectionHudRenderer.View(
+                    view.displayName(),
+                    ItemStack.EMPTY,
+                    view.iconTexture(),
+                    view.badgeText(),
+                    view.badgeColor(),
+                    false,
+                    0.0F
+            );
+        }
         return DeferredSelectionHudRenderer.View.forItem(
                 view.displayName(),
                 view.iconStack(),
@@ -185,14 +196,17 @@ public final class LuminousDeviceSelectionClientController {
         var hand = activeState.hand();
         var deviceStack = player.getItemInHand(hand);
         var selectedView = activeState.selectedView();
-        var selectionApplied = selectedView.mode() == LuminousDevice.Mode.CLEAN
-                ? LuminousDevice.setCleanMode(deviceStack)
-                : LuminousDevice.setSelectedStack(deviceStack, selectedView.iconStack());
+        var selectionApplied = switch (selectedView.mode()) {
+            case CLEAN -> LuminousDevice.setCleanMode(deviceStack);
+            case SPELL -> LuminousDevice.setSelectedSpell(deviceStack, selectedView.spellId());
+            case PLACE -> LuminousDevice.setSelectedStack(deviceStack, selectedView.iconStack());
+        };
         if (selectionApplied) {
             Networks.sendToServer(new ClientConfirmLuminousDeviceSelectionPacket(
                     hand,
                     selectedView.mode(),
-                    selectedView.iconStack()
+                    selectedView.iconStack(),
+                    selectedView.spellId()
             ));
         }
         clearState();
@@ -243,8 +257,11 @@ public final class LuminousDeviceSelectionClientController {
         for (int i = 0; i < views.size(); ++i) {
             var view = views.get(i);
             if (view.mode() == selectedView.mode()
-                    && (view.mode() == LuminousDevice.Mode.CLEAN
-                    || ItemStack.isSameItemSameTags(view.iconStack(), selectedView.iconStack()))) {
+                    && switch (view.mode()) {
+                        case CLEAN -> true;
+                        case SPELL -> java.util.Objects.equals(view.spellId(), selectedView.spellId());
+                        case PLACE -> ItemStack.isSameItemSameTags(view.iconStack(), selectedView.iconStack());
+                    }) {
                 return i;
             }
         }
