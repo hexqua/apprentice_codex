@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.luminousdevice;
 
 import jp.aquafactory.apprenticecodex.item.SneakSelectionUiItem;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import jp.aquafactory.apprenticecodex.utility.CompactCountFormatter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.NonNullList;
@@ -174,7 +175,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
             return InteractionResultHolder.fail(deviceStack);
         }
 
-        var interactionStack = selectedStack.copyWithCount(1);
+        var interactionStack = BlockTools.copyForTemporaryUse(selectedStack);
         InteractionResultHolder<ItemStack> delegatedResult;
         try {
             player.setItemInHand(usedHand, interactionStack);
@@ -209,7 +210,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
             return InteractionResult.FAIL;
         }
 
-        var interactionStack = selectedStack.copyWithCount(1);
+        var interactionStack = BlockTools.copyForTemporaryUse(selectedStack);
         InteractionResult delegatedResult;
         try {
             // UseOnContext は生成時の手持ちを保持するため、差し替え後に作り直して元アイテムの設置処理へ渡す。

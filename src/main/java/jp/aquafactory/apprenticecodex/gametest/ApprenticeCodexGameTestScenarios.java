@@ -7969,6 +7969,16 @@ public class ApprenticeCodexGameTestScenarios {
         player.getInventory().setItem(9, inventoryDirt.copy());
 
         helper.runAtTickTime(1, () -> {
+            var effectiveVirtualDirt = BlockTools.copyForTemporaryUse(virtualDirt);
+            helper.assertTrue(
+                    effectiveVirtualDirt.is(Items.DIRT) && effectiveVirtualDirt.getCount() == 2,
+                    "Temporary stack normalization should leave one item after a single placement"
+            );
+            helper.assertTrue(
+                    virtualDirt.is(Items.DIRT) && virtualDirt.getCount() == 1,
+                    "Temporary stack normalization should not mutate its source"
+            );
+
             var result = BlockTools.useItemOnBlockByPlayerMainHand(
                     helper.getLevel(),
                     player,
