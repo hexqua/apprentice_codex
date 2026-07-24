@@ -257,6 +257,26 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.luminousDeviceWizardlampManaRecovery();
     }
 
+    public static double luminousDeviceMageLightExtendedRange() {
+        return ITEMS_CONFIG.luminousDeviceMageLightExtendedRange();
+    }
+
+    public static GameTestConfigOverride useLuminousDeviceMageLightExtendedRangeOverrideForGameTest(double range) {
+        var previousRange = ITEMS_CONFIG.luminousDeviceMageLightExtendedRange();
+        ITEMS_CONFIG.setLuminousDeviceMageLightExtendedRangeForGameTest(range);
+        return () -> ITEMS_CONFIG.setLuminousDeviceMageLightExtendedRangeForGameTest(previousRange);
+    }
+
+    public static double mageLightMaxRange() {
+        return SPELLS_CONFIG.mageLightMaxRange();
+    }
+
+    public static GameTestConfigOverride useMageLightMaxRangeOverrideForGameTest(double maxRange) {
+        var previousMaxRange = SPELLS_CONFIG.mageLightMaxRange();
+        SPELLS_CONFIG.setMageLightMaxRangeForGameTest(maxRange);
+        return () -> SPELLS_CONFIG.setMageLightMaxRangeForGameTest(previousMaxRange);
+    }
+
     public static GameTestConfigOverride useLuminousDeviceConfigOverrideForGameTest(
             int maxStoredItems,
             int maxStoredMana

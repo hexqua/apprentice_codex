@@ -7,12 +7,12 @@ import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
-import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -29,6 +29,10 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.HitResult;
+import net.minecraftforge.common.ForgeMod;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -55,17 +59,29 @@ public class MageLight extends AbstractSpell implements jp.aquafactory.apprentic
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(spellLevel, caster), 1))
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getNormalRange(spellLevel, caster), 1))
         );
     }
 
-    private double getRange(int spellLevel, LivingEntity entity){
-        return 8 * getSpellPower(spellLevel, entity) / 100.0;
+    public double getNormalRange(int spellLevel, @Nullable LivingEntity entity) {
+        var configuredMaxRange = entity != null && entity.level().isClientSide
+                ? MageLightConfigState.maxRange()
+                : ApprenticeCodexServerConfig.mageLightMaxRange();
+        return Math.max(0.0D, Math.min(8 * getSpellPower(spellLevel, entity) / 100.0, configuredMaxRange));
+    }
+
+    public MageLightCastProfile createCastProfile(int spellLevel, LivingEntity entity, double requestedExtendedRange) {
+        var normalRange = getNormalRange(spellLevel, entity);
+        return new MageLightCastProfile(
+                normalRange,
+                Math.max(normalRange, requestedExtendedRange),
+                getManaCost(spellLevel)
+        );
     }
 
     @Override
     public double getClientBlockTargetingRange(int spellLevel, LivingEntity entity) {
-        return getRange(spellLevel, entity);
+        return getNormalRange(spellLevel, entity);
     }
 
     @Override
@@ -110,8 +126,11 @@ public class MageLight extends AbstractSpell implements jp.aquafactory.apprentic
 
     @Override
     public final boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        var placePos = findPlacePos(level, spellLevel, entity);
-        if (placePos.isEmpty()) {
+        var contextTarget = MageLightCastContext.targetFor(entity);
+        var target = contextTarget == null
+                ? resolveCastTarget(level, entity, getNormalRange(spellLevel, entity))
+                : Optional.of(contextTarget);
+        if (target.isEmpty()) {
             if (entity instanceof ServerPlayer serverPlayer) {
                 serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.cant_place", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
             }
@@ -119,7 +138,7 @@ public class MageLight extends AbstractSpell implements jp.aquafactory.apprentic
         }
 
         var castData = new MageLightCastData();
-        castData.position = placePos.get();
+        castData.position = target.get().placePos;
         playerMagicData.setAdditionalCastData(castData);
         return true;
     }
@@ -131,7 +150,9 @@ public class MageLight extends AbstractSpell implements jp.aquafactory.apprentic
             placePos = castData.position;
         }
         if (placePos == null) {
-            placePos = findPlacePos(level, spellLevel, entity).orElse(null);
+            placePos = resolveCastTarget(level, entity, getNormalRange(spellLevel, entity))
+                    .map(CastTarget::placePos)
+                    .orElse(null);
         }
 
         if (placePos != null) {
@@ -148,23 +169,67 @@ public class MageLight extends AbstractSpell implements jp.aquafactory.apprentic
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 
-    private Optional<BlockPos> findPlacePos(Level level, int spellLevel, LivingEntity entity) {
-        var range = getRange(spellLevel, entity);
-        var result = BlockTargetingHelper.findClientPlacePos(level, entity, getSpellResource(), range);
-        if (result.isEmpty()) {
-            result = BlockTools.findPlacePos(level, entity, range);
+    public Optional<CastTarget> resolveCastTarget(Level level, LivingEntity entity, double range) {
+        var pendingTarget = BlockTargetingHelper.getPendingTargetForCustomValidation(
+                level,
+                entity,
+                getSpellResource()
+        );
+        if (pendingTarget.isPresent()) {
+            // アウトラインの面選択を尊重するため再レイキャストせず、通常ブロックリーチ付近の入力だけを受理する。
+            var clientTargetRange = Math.min(
+                    range,
+                    entity.getAttributeValue(ForgeMod.BLOCK_REACH.get()) + 1.0D
+            );
+            var validated = BlockTargetingHelper.validateTarget(
+                    level,
+                    entity,
+                    clientTargetRange,
+                    pendingTarget.get()
+            );
+            if (validated.isPresent()) {
+                var target = validated.get();
+                return validatePlacement(
+                        level,
+                        target.getPlacePos(),
+                        entity.getEyePosition(1.0F).distanceTo(target.getHitLocation())
+                );
+            }
         }
-        if (result.isEmpty()) {
+
+        var start = entity.getEyePosition(1.0F);
+        var end = start.add(entity.getViewVector(1.0F).scale(range));
+        var hit = level.clip(new ClipContext(
+                start,
+                end,
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
+                entity
+        ));
+        if (hit.getType() == HitResult.Type.MISS) {
             return Optional.empty();
         }
 
-        var placePos = result.get().pos();
+        var hitPos = hit.getBlockPos();
+        var placePos = level.getBlockState(hitPos).canBeReplaced()
+                ? hitPos
+                : hitPos.relative(hit.getDirection());
+        if (!level.getBlockState(placePos).canBeReplaced()) {
+            return Optional.empty();
+        }
+        return validatePlacement(level, placePos, start.distanceTo(hit.getLocation()));
+    }
+
+    private Optional<CastTarget> validatePlacement(Level level, BlockPos placePos, double distance) {
         var torchState = BlockRegistry.MAGE_LIGHT_TORCH.get().defaultBlockState();
         if (!torchState.canSurvive(level, placePos)) {
             return Optional.empty();
         }
 
-        return Optional.of(placePos);
+        return Optional.of(new CastTarget(placePos, distance));
+    }
+
+    public record CastTarget(BlockPos placePos, double distance) {
     }
 
     public static class MageLightCastData implements ICastDataSerializable {

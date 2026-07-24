@@ -770,6 +770,10 @@ final class ItemsServerConfig {
         return luminousDeviceConfig.wizardlampManaRecovery();
     }
 
+    double luminousDeviceMageLightExtendedRange() {
+        return luminousDeviceConfig.mageLightExtendedRange();
+    }
+
     List<String> multipurposeStaffrifleSpellDenylist() {
         return multipurposeStaffrifleConfig.spellDenylist();
     }
@@ -1055,6 +1059,10 @@ final class ItemsServerConfig {
 
     void setLuminousDeviceConfigForGameTest(int maxStoredItems, int maxStoredMana) {
         luminousDeviceConfig.setForGameTest(maxStoredItems, maxStoredMana);
+    }
+
+    void setLuminousDeviceMageLightExtendedRangeForGameTest(double range) {
+        luminousDeviceConfig.setMageLightExtendedRangeForGameTest(range);
     }
 
     void setLuminousDeviceCleanConfigForGameTest(

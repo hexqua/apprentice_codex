@@ -9,18 +9,34 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public record SyncLuminousDeviceConfigPacket(int maxStoredItems, int maxStoredMana, int cleanRadius) {
+public record SyncLuminousDeviceConfigPacket(
+        int maxStoredItems,
+        int maxStoredMana,
+        int cleanRadius,
+        double mageLightExtendedRange
+) {
+    public SyncLuminousDeviceConfigPacket(int maxStoredItems, int maxStoredMana, int cleanRadius) {
+        this(
+                maxStoredItems,
+                maxStoredMana,
+                cleanRadius,
+                jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig.DEFAULT_MAGE_LIGHT_EXTENDED_RANGE
+        );
+    }
+
     public static void encode(SyncLuminousDeviceConfigPacket packet, FriendlyByteBuf buffer) {
         buffer.writeVarInt(packet.maxStoredItems);
         buffer.writeVarInt(packet.maxStoredMana);
         buffer.writeVarInt(packet.cleanRadius);
+        buffer.writeDouble(packet.mageLightExtendedRange);
     }
 
     public static SyncLuminousDeviceConfigPacket decode(FriendlyByteBuf buffer) {
         return new SyncLuminousDeviceConfigPacket(
                 buffer.readVarInt(),
                 buffer.readVarInt(),
-                buffer.readVarInt()
+                buffer.readVarInt(),
+                buffer.readDouble()
         );
     }
 
@@ -44,7 +60,8 @@ public record SyncLuminousDeviceConfigPacket(int maxStoredItems, int maxStoredMa
             LuminousDeviceConfigState.set(
                     packet.maxStoredItems,
                     packet.maxStoredMana,
-                    packet.cleanRadius
+                    packet.cleanRadius,
+                    packet.mageLightExtendedRange
             );
         }
     }

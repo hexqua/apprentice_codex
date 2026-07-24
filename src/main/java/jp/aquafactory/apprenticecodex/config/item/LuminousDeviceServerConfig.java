@@ -9,30 +9,36 @@ public final class LuminousDeviceServerConfig {
     public static final int MAX_CLEAN_RADIUS = 16;
     public static final int DEFAULT_MAGE_LIGHT_MANA_RECOVERY = 20;
     public static final int DEFAULT_WIZARDLAMP_MANA_RECOVERY = 50;
+    public static final double DEFAULT_MAGE_LIGHT_EXTENDED_RANGE = 32.0D;
+    public static final double MAX_MAGE_LIGHT_EXTENDED_RANGE = 64.0D;
 
     private final ForgeConfigSpec.IntValue maxStoredItems;
     private final ForgeConfigSpec.IntValue maxStoredMana;
     private final ForgeConfigSpec.IntValue cleanRadius;
     private final ForgeConfigSpec.IntValue mageLightManaRecovery;
     private final ForgeConfigSpec.IntValue wizardlampManaRecovery;
+    private final ForgeConfigSpec.DoubleValue mageLightExtendedRange;
     private Integer maxStoredItemsOverride;
     private Integer maxStoredManaOverride;
     private Integer cleanRadiusOverride;
     private Integer mageLightManaRecoveryOverride;
     private Integer wizardlampManaRecoveryOverride;
+    private Double mageLightExtendedRangeOverride;
 
     private LuminousDeviceServerConfig(
             ForgeConfigSpec.IntValue maxStoredItems,
             ForgeConfigSpec.IntValue maxStoredMana,
             ForgeConfigSpec.IntValue cleanRadius,
             ForgeConfigSpec.IntValue mageLightManaRecovery,
-            ForgeConfigSpec.IntValue wizardlampManaRecovery
+            ForgeConfigSpec.IntValue wizardlampManaRecovery,
+            ForgeConfigSpec.DoubleValue mageLightExtendedRange
     ) {
         this.maxStoredItems = maxStoredItems;
         this.maxStoredMana = maxStoredMana;
         this.cleanRadius = cleanRadius;
         this.mageLightManaRecovery = mageLightManaRecovery;
         this.wizardlampManaRecovery = wizardlampManaRecovery;
+        this.mageLightExtendedRange = mageLightExtendedRange;
     }
 
     public static LuminousDeviceServerConfig define(ForgeConfigSpec.Builder builder) {
@@ -62,13 +68,22 @@ public final class LuminousDeviceServerConfig {
                         0,
                         Integer.MAX_VALUE
                 );
+        var mageLightExtendedRange = builder
+                .comment("Extended Mage Light placement range used by a Luminous Device. Values at or below the spell range disable the extension.")
+                .defineInRange(
+                        "mageLightExtendedRange",
+                        DEFAULT_MAGE_LIGHT_EXTENDED_RANGE,
+                        0.0D,
+                        MAX_MAGE_LIGHT_EXTENDED_RANGE
+                );
         builder.pop();
         return new LuminousDeviceServerConfig(
                 maxStoredItems,
                 maxStoredMana,
                 cleanRadius,
                 mageLightManaRecovery,
-                wizardlampManaRecovery
+                wizardlampManaRecovery,
+                mageLightExtendedRange
         );
     }
 
@@ -96,6 +111,12 @@ public final class LuminousDeviceServerConfig {
                 : wizardlampManaRecoveryOverride;
     }
 
+    public double mageLightExtendedRange() {
+        return mageLightExtendedRangeOverride == null
+                ? mageLightExtendedRange.get()
+                : mageLightExtendedRangeOverride;
+    }
+
     public void setForGameTest(int maxStoredItems, int maxStoredMana) {
         maxStoredItemsOverride = maxStoredItems;
         maxStoredManaOverride = maxStoredMana;
@@ -105,5 +126,9 @@ public final class LuminousDeviceServerConfig {
         cleanRadiusOverride = cleanRadius;
         this.mageLightManaRecoveryOverride = mageLightManaRecovery;
         this.wizardlampManaRecoveryOverride = wizardlampManaRecovery;
+    }
+
+    public void setMageLightExtendedRangeForGameTest(double range) {
+        mageLightExtendedRangeOverride = range;
     }
 }

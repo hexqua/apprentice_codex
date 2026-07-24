@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.config.spell.BoundBowServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.DemicreatorWingsServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.ForceFieldServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.LinearBuildServerConfig;
+import jp.aquafactory.apprenticecodex.config.spell.MageLightServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.MistFormServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.RemoteEyeServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.RiftHoleServerConfig;
@@ -20,6 +21,7 @@ public final class SpellsServerConfig {
     private final DemicreatorWingsServerConfig demicreatorWingsConfig;
     private final ForceFieldServerConfig forceFieldConfig;
     private final LinearBuildServerConfig linearBuildConfig;
+    private final MageLightServerConfig mageLightConfig;
     private final MistFormServerConfig mistFormConfig;
     private final RemoteEyeServerConfig remoteEyeConfig;
     private final RiftHoleServerConfig riftHoleConfig;
@@ -30,6 +32,7 @@ public final class SpellsServerConfig {
             DemicreatorWingsServerConfig demicreatorWingsConfig,
             ForceFieldServerConfig forceFieldConfig,
             LinearBuildServerConfig linearBuildConfig,
+            MageLightServerConfig mageLightConfig,
             MistFormServerConfig mistFormConfig,
             RemoteEyeServerConfig remoteEyeConfig,
             RiftHoleServerConfig riftHoleConfig
@@ -39,6 +42,7 @@ public final class SpellsServerConfig {
         this.demicreatorWingsConfig = demicreatorWingsConfig;
         this.forceFieldConfig = forceFieldConfig;
         this.linearBuildConfig = linearBuildConfig;
+        this.mageLightConfig = mageLightConfig;
         this.mistFormConfig = mistFormConfig;
         this.remoteEyeConfig = remoteEyeConfig;
         this.riftHoleConfig = riftHoleConfig;
@@ -51,6 +55,7 @@ public final class SpellsServerConfig {
         var demicreatorWingsConfig = DemicreatorWingsServerConfig.define(builder);
         var forceFieldConfig = ForceFieldServerConfig.define(builder);
         var linearBuildConfig = LinearBuildServerConfig.define(builder);
+        var mageLightConfig = MageLightServerConfig.define(builder);
         var mistFormConfig = MistFormServerConfig.define(builder);
         var remoteEyeConfig = RemoteEyeServerConfig.define(builder);
         var riftHoleConfig = RiftHoleServerConfig.define(builder);
@@ -62,6 +67,7 @@ public final class SpellsServerConfig {
                 demicreatorWingsConfig,
                 forceFieldConfig,
                 linearBuildConfig,
+                mageLightConfig,
                 mistFormConfig,
                 remoteEyeConfig,
                 riftHoleConfig
@@ -118,6 +124,14 @@ public final class SpellsServerConfig {
 
     void setLinearBuildConfigForGameTest(LinearBuildServerConfig.Values values) {
         linearBuildConfig.setForGameTest(values);
+    }
+
+    double mageLightMaxRange() {
+        return mageLightConfig.maxRange();
+    }
+
+    void setMageLightMaxRangeForGameTest(double maxRange) {
+        mageLightConfig.setForGameTest(maxRange);
     }
 
     boolean isMistFormPassableBlockDenied(BlockState state) {

@@ -13,11 +13,13 @@ import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevicePickupEv
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceTooltip;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmLuminousDeviceSelectionPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncLuminousDeviceConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncMageLightConfigPacket;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import jp.aquafactory.apprenticecodex.spell.magelight.MageLightCastProfile;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.RightClickSpellResolver;
@@ -458,14 +460,21 @@ final class LuminousDeviceGameTestScenarios {
         helper.succeedIf(() -> {
             var configBuffer = new FriendlyByteBuf(Unpooled.buffer());
             SyncLuminousDeviceConfigPacket.encode(
-                    new SyncLuminousDeviceConfigPacket(12, 345, 2),
+                    new SyncLuminousDeviceConfigPacket(12, 345, 2, 47.5D),
                     configBuffer
             );
             var decodedConfig = SyncLuminousDeviceConfigPacket.decode(configBuffer);
             helper.assertTrue(decodedConfig.maxStoredItems() == 12
                             && decodedConfig.maxStoredMana() == 345
-                            && decodedConfig.cleanRadius() == 2,
-                    "Luminous Device config sync should preserve the cleanup radius");
+                            && decodedConfig.cleanRadius() == 2
+                            && Math.abs(decodedConfig.mageLightExtendedRange() - 47.5D) < 1.0E-9D,
+                    "Luminous Device config sync should preserve the cleanup radius and Mage Light range");
+
+            var mageLightConfigBuffer = new FriendlyByteBuf(Unpooled.buffer());
+            SyncMageLightConfigPacket.encode(new SyncMageLightConfigPacket(48.0D), mageLightConfigBuffer);
+            var decodedMageLightConfig = SyncMageLightConfigPacket.decode(mageLightConfigBuffer);
+            helper.assertTrue(Math.abs(decodedMageLightConfig.maxRange() - 48.0D) < 1.0E-9D,
+                    "Mage Light config sync should preserve the configured maximum range");
 
             var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
             var emptyViews = LuminousDevice.getSelectionViews(deviceStack);
@@ -709,6 +718,27 @@ final class LuminousDeviceGameTestScenarios {
                     "Insufficient device mana should not fall back to or consume player mana");
             helper.assertFalse(ISpellContainer.isSpellContainer(deviceStack),
                     "Selecting and casting fixed spells should never create a SpellContainer");
+        });
+    }
+
+    static void luminousDeviceMageLightProfileScalesManaAndDisablesRedundantExtension(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var extended = new MageLightCastProfile(8.0D, 32.0D, 20);
+            helper.assertTrue(extended.extendsRange(),
+                    "A larger Luminous Device range should enable Mage Light extension");
+            helper.assertTrue(extended.manaCostAt(8.0D) == 20
+                            && extended.manaCostAt(24.0D) == 60
+                            && extended.manaCostAt(32.0D) == 80,
+                    "Extended Mage Light mana should scale with distance");
+            helper.assertTrue(extended.manaCostAt(8.01D) == 21,
+                    "Fractional extended Mage Light mana should round up");
+
+            var redundant = new MageLightCastProfile(32.0D, 16.0D, 20);
+            helper.assertFalse(redundant.extendsRange(),
+                    "A Luminous Device range below the normal range should disable extension");
+            helper.assertTrue(Math.abs(redundant.effectiveRange() - 32.0D) < 1.0E-9D
+                            && redundant.maximumManaCost() == 20,
+                    "Disabled extension should retain normal Mage Light range and mana");
         });
     }
 
