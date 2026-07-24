@@ -2353,4 +2353,24 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     public static void circuitHeatStaffKeepsStoredLongItemOverheatDuration(GameTestHelper helper) {
         CircuitHeatStaffGameTestScenarios.circuitHeatStaffKeepsStoredLongItemOverheatDuration(helper);
     }
+
+    @GameTest(template = TEMPLATE)
+    public static void luminousDeviceStoresOnlyTaggedItemsAndCapsTotal(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceStoresOnlyTaggedItemsAndCapsTotal(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void luminousDeviceRemovalPrefersSelectionAndUpdatesSelection(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceRemovalPrefersSelectionAndUpdatesSelection(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void luminousDeviceUsePlacesSelectedBlocksAndKeepsEmptySelection(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceUsePlacesSelectedBlocksAndKeepsEmptySelection(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void luminousDeviceEmptyTooltipAndManualEmptyClearGhostSelection(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceEmptyTooltipAndManualEmptyClearGhostSelection(helper);
+    }
 }

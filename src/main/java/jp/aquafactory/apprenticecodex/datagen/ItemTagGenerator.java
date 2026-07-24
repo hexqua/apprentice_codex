@@ -18,6 +18,7 @@ import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.RegistryObject;
@@ -241,6 +242,12 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get(),
                 ItemRegistry.SPELL_DOMINATOR_ROUND.get(),
                 ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get()
+        );
+        // todo:他MOD含め一通り光源アイテムを網羅する(実装から追跡はしない)
+        tag(TagRegistry.Items.LUMINOUS_DEVICE_STORABLE).add(
+                Items.TORCH,
+                Items.LANTERN,
+                Items.GLOWSTONE
         );
         tag(TagRegistry.Items.SPELLCASTER_EMPTY_CASINGS).add(
                 ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get(),

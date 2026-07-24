@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientAnchorBlinkPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmLuminousDeviceSelectionPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmSneakSelectionPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientEpicFightAttackcastRingTargetsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
@@ -69,7 +70,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "63";
+    private static final String PROTOCOL_VERSION = "64";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -159,6 +160,13 @@ public final class Networks {
                 ClientConfirmElementalBowModePacket::encode,
                 ClientConfirmElementalBowModePacket::decode,
                 ClientConfirmElementalBowModePacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                ClientConfirmLuminousDeviceSelectionPacket.class,
+                ClientConfirmLuminousDeviceSelectionPacket::encode,
+                ClientConfirmLuminousDeviceSelectionPacket::decode,
+                ClientConfirmLuminousDeviceSelectionPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

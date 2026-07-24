@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.particle.ImpactTremorBlockParticle;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireInscriptionScreen;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoireScreen;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceTooltip;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticle;
 import jp.aquafactory.apprenticecodex.particle.ReticleDotParticle;
 import jp.aquafactory.apprenticecodex.particle.SmashcastDustPillarParticle;
@@ -267,6 +268,7 @@ public final class ClientModBusEvents {
 
     private static void registerTooltipComponentFactories(RegisterClientTooltipComponentFactoriesEvent event) {
         event.register(SpellcasterAmmoPouchTooltip.class, SpellcasterAmmoPouchClientTooltipComponent::new);
+        event.register(LuminousDeviceTooltip.class, SpellcasterAmmoPouchClientTooltipComponent::new);
     }
 
     private static void registerItemColors(RegisterColorHandlersEvent.Item event) {
