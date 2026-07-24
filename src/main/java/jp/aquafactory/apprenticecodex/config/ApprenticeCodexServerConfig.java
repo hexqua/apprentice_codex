@@ -236,6 +236,27 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.remoteOwnerCastDenylist();
     }
 
+    public static int luminousDeviceMaxStoredItems() {
+        return ITEMS_CONFIG.luminousDeviceMaxStoredItems();
+    }
+
+    public static int luminousDeviceMaxStoredMana() {
+        return ITEMS_CONFIG.luminousDeviceMaxStoredMana();
+    }
+
+    public static GameTestConfigOverride useLuminousDeviceConfigOverrideForGameTest(
+            int maxStoredItems,
+            int maxStoredMana
+    ) {
+        var previousMaxStoredItems = ITEMS_CONFIG.luminousDeviceMaxStoredItems();
+        var previousMaxStoredMana = ITEMS_CONFIG.luminousDeviceMaxStoredMana();
+        ITEMS_CONFIG.setLuminousDeviceConfigForGameTest(maxStoredItems, maxStoredMana);
+        return () -> ITEMS_CONFIG.setLuminousDeviceConfigForGameTest(
+                previousMaxStoredItems,
+                previousMaxStoredMana
+        );
+    }
+
     public static GameTestConfigOverride useSatelliteFollowcastAmuletSpellDenylistOverrideForGameTest(
             List<String> spellDenylist
     ) {

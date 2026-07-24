@@ -39,6 +39,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncLinearBuildNotificationPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncLuminousDeviceConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaShieldCharmConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterActivePacket;
@@ -67,7 +68,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "64";
+    private static final String PROTOCOL_VERSION = "65";
 
     private Networks() {
     }
@@ -207,6 +208,11 @@ public final class Networks {
                 SyncEquipmentSpellTimingConfigPacket.TYPE,
                 SyncEquipmentSpellTimingConfigPacket.STREAM_CODEC,
                 SyncEquipmentSpellTimingConfigPacket::handle
+        );
+        registrar.playToClient(
+                SyncLuminousDeviceConfigPacket.TYPE,
+                SyncLuminousDeviceConfigPacket.STREAM_CODEC,
+                SyncLuminousDeviceConfigPacket::handle
         );
         registrar.playToClient(
                 SyncScarletThirstHealthPacket.TYPE,
