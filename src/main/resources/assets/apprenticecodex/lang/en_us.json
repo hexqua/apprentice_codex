@@ -814,7 +814,7 @@
   "spell.apprenticecodex.otherworld_lens.guide": "Conjures an unstable crystal lens from another world. Looking through it reveals the world as though viewed from behind its surface. The lens persists only while the caster maintains concentration, and even minor obstructions prevent it from forming.",
   "spell.apprenticecodex.terra_resonance.guide": "Channels resonant magic into the earth to detect responsive objects through walls. Only gemstones such as amethyst can be detected; gems formed into blocks or buried underground respond less readily to magic and are harder to locate.",
   "spell.apprenticecodex.fujin.guide": "Summons a magical katana wreathed in wind magic and unleashes a flurry of slashes. The wind takes the form of blades that cut through groups of enemies without knocking them back.",
-  "spell.apprenticecodex.wizardlamp.guide": "(todo:翻訳)周囲を照らす魔法のランタンを召喚して設置する。手が届く距離にしか出せないが支えが無くても召喚ができ、維持にも支えを必要としない。",
+  "spell.apprenticecodex.wizardlamp.guide": "Summons and places a magical lantern that lights up the surrounding area. It can only be summoned within reach, but it can be summoned without support and requires no support to remain in place.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "Sneak Damage Multiplier: %d%%",

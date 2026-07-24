@@ -121,6 +121,35 @@ public final class BlockTargetingHelper {
         return validated;
     }
 
+    /**
+     * スペル固有の距離補正を行うため、共通の距離・設置面検証を通さずに保留中の入力を取得する。
+     * 呼び出し側は改造クライアントを前提に、受信した座標を必ず検証してから利用すること。
+     */
+    public static Optional<BlockTargetData> getPendingTargetForCustomValidation(Level level, LivingEntity entity,
+                                                                                ResourceLocation expectedSpellId) {
+        if (!(entity instanceof ServerPlayer serverPlayer)) {
+            return Optional.empty();
+        }
+
+        var pendingTarget = PENDING_SERVER_TARGETS.get(serverPlayer.getUUID());
+        if (pendingTarget == null) {
+            return Optional.empty();
+        }
+        if (level.getGameTime() > pendingTarget.expireGameTime()) {
+            PENDING_SERVER_TARGETS.remove(serverPlayer.getUUID());
+            return Optional.empty();
+        }
+        if (!pendingTarget.spellId().equals(expectedSpellId)) {
+            PENDING_SERVER_TARGETS.remove(serverPlayer.getUUID());
+            return Optional.empty();
+        }
+
+        PENDING_SERVER_TARGETS.remove(serverPlayer.getUUID());
+        return pendingTarget.targetData().hasTarget()
+                ? Optional.of(pendingTarget.targetData().copy())
+                : Optional.empty();
+    }
+
     public static Optional<BlockTargetData> validateTarget(Level level, LivingEntity entity, double range, @Nullable BlockTargetData targetData) {
         if (targetData == null || !targetData.hasTarget()) {
             return Optional.empty();
