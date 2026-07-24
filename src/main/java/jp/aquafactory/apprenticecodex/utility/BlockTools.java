@@ -91,7 +91,7 @@ public final class BlockTools {
         }
 
         var originalItem = player.getMainHandItem();
-        var effectiveInteractionStack = normalizeInteractionStackForTemporaryUse(interactionStack);
+        var effectiveInteractionStack = copyForTemporaryUse(interactionStack);
         // まずは通常の useItemOn 経路へ流し、mod 独自の右クリック収穫を優先する。
         var hitResult = new BlockHitResult(Vec3.atCenterOf(pos), hitFace, pos, false);
         try {
@@ -103,13 +103,14 @@ public final class BlockTools {
         }
     }
 
-    private static ItemStack normalizeInteractionStackForTemporaryUse(ItemStack interactionStack) {
+    public static ItemStack copyForTemporaryUse(ItemStack interactionStack) {
         if (interactionStack.isEmpty()) {
             return interactionStack;
         }
 
         var normalizedStack = interactionStack.copy();
-        // 仮想スタックが空になると AutoStock 系 mod が本物の手持ちスロットを補充対象と誤認しうる。
+        // 仮想スタックが空になると外部の restock 系 MOD が本物の手持ちスロットを補充対象と誤認しうる。
+        // 2 個なら通常の 1 回使用後にも 1 個残り、アイテム側へ見せる個数の差も最小限に抑えられる。
         if (normalizedStack.getCount() <= 1 && normalizedStack.getMaxStackSize() > 1) {
             normalizedStack.setCount(2);
         }
