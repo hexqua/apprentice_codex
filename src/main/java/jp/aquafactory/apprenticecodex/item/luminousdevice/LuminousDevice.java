@@ -250,6 +250,26 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
         return inserted;
     }
 
+    public static boolean canStorePickedUpStack(ItemStack deviceStack, ItemStack stack) {
+        if (!(deviceStack.getItem() instanceof LuminousDevice) || !accepts(stack)) {
+            return false;
+        }
+
+        return getStoredCount(deviceStack, stack) > 0
+                || sameStoredItem(getSelectedStack(deviceStack), stack);
+    }
+
+    public static int storePickedUpStackInInventoryDevices(Player player, ItemStack stack) {
+        if (stack.isEmpty() || !accepts(stack)) {
+            return 0;
+        }
+
+        var beforeCount = stack.getCount();
+        storePickedUpStackInDevices(player.getInventory().items, stack);
+        storePickedUpStackInDevices(player.getInventory().offhand, stack);
+        return beforeCount - stack.getCount();
+    }
+
     public static ItemStack removeStackForInventory(ItemStack deviceStack) {
         var contents = readContents(deviceStack);
         var selectedStack = getSelectedStack(deviceStack);
@@ -286,6 +306,25 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
 
     public static int getStoredCount(ItemStack deviceStack, ItemStack targetStack) {
         return countStoredItem(readContents(deviceStack), targetStack);
+    }
+
+    public static boolean consumeOneStored(ItemStack deviceStack, ItemStack targetStack) {
+        var contents = readContents(deviceStack);
+        for (int i = 0; i < contents.size(); ++i) {
+            var entry = contents.get(i);
+            if (!sameStoredItem(entry.displayStack, targetStack) || entry.count <= 0) {
+                continue;
+            }
+
+            entry.count -= 1;
+            if (entry.count <= 0) {
+                contents.remove(i);
+            }
+            writeContents(deviceStack, contents);
+            // LinearBuild から消費した場合も、補充対象とテンプレートを維持するため選択状態は残す。
+            return true;
+        }
+        return false;
     }
 
     public static ItemStack getSelectedStack(ItemStack deviceStack) {
@@ -369,6 +408,19 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
         contents.add(new StoredEntry(stack.copyWithCount(1), inserted));
         writeContents(deviceStack, contents);
         return inserted;
+    }
+
+    private static void storePickedUpStackInDevices(List<ItemStack> inventoryStacks, ItemStack pickedUpStack) {
+        for (var deviceStack : inventoryStacks) {
+            if (!canStorePickedUpStack(deviceStack, pickedUpStack)) {
+                continue;
+            }
+
+            pickedUpStack.shrink(addToDeviceWithoutAutoSelection(deviceStack, pickedUpStack));
+            if (pickedUpStack.isEmpty()) {
+                return;
+            }
+        }
     }
 
     private static boolean consumeSelectedForUse(Player player, ItemStack deviceStack) {
