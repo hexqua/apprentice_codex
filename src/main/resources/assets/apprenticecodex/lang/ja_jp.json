@@ -21,6 +21,7 @@
   "block.apprenticecodex.frost_rune_trap" : "氷のルーン",
   "block.apprenticecodex.spell_calibration_bench" : "術式調整台",
   "block.apprenticecodex.otherworld_lens_lens" : "異界の水晶",
+  "block.apprenticecodex.wizardlamp_lantern": "魔術師のランタン",
 
   "item.apprenticecodex.arcane_cinder": "神秘の燃え殻",
   "item.apprenticecodex.wisdom_shard": "叡智の破片",
@@ -742,6 +743,7 @@
   "spell.apprenticecodex.otherworld_lens": "異界のレンズ",
   "spell.apprenticecodex.terra_resonance": "テラレゾナンス",
   "spell.apprenticecodex.fujin": "風神",
+  "spell.apprenticecodex.wizardlamp": "ウィザードランプ",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -819,6 +821,7 @@
   "spell.apprenticecodex.otherworld_lens.guide": "異界から水晶体を具現化する。水晶体から覗き込む光景は世界を裏側から見ているかのように映す。水晶体は非常に不安定なため集中している間しか具現化できず、些細なものに生成を阻害をされる。",
   "spell.apprenticecodex.terra_resonance.guide": "大地に共鳴する魔力を流し込み、反応する物体の存在を壁越しに探知する。探知できるものはアメジストのような宝石に限られ、ブロック状だったり埋もれているものは魔力が反応しづらく探知にかかりづらい。",
   "spell.apprenticecodex.fujin.guide": "風の魔力を纏った魔法の刀を召喚して乱舞を繰り出す。風の魔力は刃となって敵の集団を切り刻むがノックバックはしない。",
+  "spell.apprenticecodex.wizardlamp.guide": "周囲を照らす魔法のランタンを召喚して設置する。手が届く距離にしか出せないが支えが無くても召喚ができ、維持にも支えを必要としない。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
