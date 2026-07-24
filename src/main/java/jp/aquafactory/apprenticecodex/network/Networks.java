@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientAnchorBlinkPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmLuminousDeviceSelectionPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmSneakSelectionPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientEpicFightAttackcastRingTargetsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
@@ -66,7 +67,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "63";
+    private static final String PROTOCOL_VERSION = "64";
 
     private Networks() {
     }
@@ -101,6 +102,11 @@ public final class Networks {
                 ClientConfirmElementalBowModePacket.TYPE,
                 ClientConfirmElementalBowModePacket.STREAM_CODEC,
                 ClientConfirmElementalBowModePacket::handle
+        );
+        registrar.playToServer(
+                ClientConfirmLuminousDeviceSelectionPacket.TYPE,
+                ClientConfirmLuminousDeviceSelectionPacket.STREAM_CODEC,
+                ClientConfirmLuminousDeviceSelectionPacket::handle
         );
         registrar.playToServer(
                 ClientConfirmSneakSelectionPacket.TYPE,
