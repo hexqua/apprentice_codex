@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevicePickupEvent;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceTooltip;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
@@ -11,6 +12,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -21,6 +23,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 
 import java.util.List;
 import java.util.UUID;
@@ -231,6 +234,87 @@ final class LuminousDeviceGameTestScenarios {
                     "Fallback extraction should continue until storage is empty");
             helper.assertTrue(LuminousDevice.getSelectedStack(deviceStack).isEmpty(),
                     "Manually emptying storage should clear a zero-count ghost selection");
+        });
+    }
+
+    static void luminousDeviceAutoStoresOnlyKnownPickedUpItemsAcrossInventoryDevices(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = new FakePlayer(
+                    helper.getLevel(),
+                    new GameProfile(UUID.randomUUID(), "luminous_device_pickup_test")
+            );
+            var firstDevice = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+            var secondDevice = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+            LuminousDevice.addToDevice(firstDevice, new ItemStack(Items.TORCH, 1020));
+            LuminousDevice.addToDevice(secondDevice, new ItemStack(Items.TORCH, 1));
+            helper.assertTrue(LuminousDevice.consumeOneStored(secondDevice, new ItemStack(Items.TORCH)),
+                    "Test setup should leave a zero-count selected torch in the second device");
+            player.getInventory().setItem(10, firstDevice);
+            player.setItemInHand(InteractionHand.OFF_HAND, secondDevice);
+
+            var torchEntity = new ItemEntity(
+                    helper.getLevel(),
+                    player.getX(),
+                    player.getY(),
+                    player.getZ(),
+                    new ItemStack(Items.TORCH, 10)
+            );
+            LuminousDevicePickupEvent.onEntityItemPickup(new EntityItemPickupEvent(player, torchEntity));
+
+            helper.assertTrue(LuminousDevice.getStoredCount(firstDevice, new ItemStack(Items.TORCH)) == 1024,
+                    "Pickup storage should fill the first matching device before continuing");
+            helper.assertTrue(LuminousDevice.getStoredCount(secondDevice, new ItemStack(Items.TORCH)) == 6,
+                    "Pickup storage should refill a matching zero-count selection in the next device");
+            helper.assertTrue(torchEntity.isRemoved(),
+                    "Pickup handling should finish the ItemEntity when every item was stored");
+
+            var partialPlayer = new FakePlayer(
+                    helper.getLevel(),
+                    new GameProfile(UUID.randomUUID(), "luminous_device_partial_pickup_test")
+            );
+            var partialDevice = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+            LuminousDevice.addToDevice(partialDevice, new ItemStack(Items.TORCH, 1022));
+            partialPlayer.getInventory().setItem(10, partialDevice);
+            var partialTorchEntity = new ItemEntity(
+                    helper.getLevel(),
+                    partialPlayer.getX(),
+                    partialPlayer.getY(),
+                    partialPlayer.getZ(),
+                    new ItemStack(Items.TORCH, 5)
+            );
+            LuminousDevicePickupEvent.onEntityItemPickup(
+                    new EntityItemPickupEvent(partialPlayer, partialTorchEntity)
+            );
+
+            helper.assertTrue(LuminousDevice.getStoredCount(partialDevice, new ItemStack(Items.TORCH)) == 1024,
+                    "Pickup storage should fill the remaining device capacity");
+            helper.assertTrue(partialPlayer.getInventory().countItem(Items.TORCH) == 3,
+                    "Items beyond device capacity should continue into the normal inventory");
+            helper.assertTrue(partialTorchEntity.isRemoved(),
+                    "Pickup handling should finish the ItemEntity when the normal inventory accepts the remainder");
+
+            var untouchedPlayer = new FakePlayer(
+                    helper.getLevel(),
+                    new GameProfile(UUID.randomUUID(), "luminous_device_unknown_pickup_test")
+            );
+            var emptyDevice = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+            untouchedPlayer.getInventory().setItem(10, emptyDevice);
+            var lanternEntity = new ItemEntity(
+                    helper.getLevel(),
+                    untouchedPlayer.getX(),
+                    untouchedPlayer.getY(),
+                    untouchedPlayer.getZ(),
+                    new ItemStack(Items.LANTERN, 3)
+            );
+            var lanternPickupEvent = new EntityItemPickupEvent(untouchedPlayer, lanternEntity);
+            LuminousDevicePickupEvent.onEntityItemPickup(lanternPickupEvent);
+
+            helper.assertTrue(LuminousDevice.getStoredItemCount(emptyDevice) == 0,
+                    "A tagged item that was never stored or selected should not be auto-stored");
+            helper.assertFalse(lanternPickupEvent.isCanceled(),
+                    "Unknown tagged items should remain available to vanilla pickup handling");
+            helper.assertFalse(lanternEntity.isRemoved(),
+                    "Unknown tagged items should remain in their ItemEntity until vanilla pickup runs");
         });
     }
 

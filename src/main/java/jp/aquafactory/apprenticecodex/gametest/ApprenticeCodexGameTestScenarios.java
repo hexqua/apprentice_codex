@@ -111,6 +111,10 @@ import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
+import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
+import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
+import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfile;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfileManager;
@@ -8717,6 +8721,75 @@ public class ApprenticeCodexGameTestScenarios {
                     "Linear Build should not use the main hand block when the offhand holds a block");
             helper.assertTrue(player.getOffhandItem().is(Items.OAK_PLANKS) && player.getOffhandItem().getCount() == 1,
                     "Linear Build should consume the selected offhand block template");
+        });
+    }
+
+    static void linearBuildUsesOffhandLuminousDeviceBeforeShulkerSource(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var targetPos = new BlockPos(5, 3, 2);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2),
+                    "linear_build_luminous_device_source_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIRT, 4));
+            var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+            LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.GLOWSTONE, 2));
+            player.setItemInHand(InteractionHand.OFF_HAND, deviceStack);
+            player.getInventory().setItem(10, createShulkerWithItem(new ItemStack(Items.GLOWSTONE, 2)));
+            helper.setBlock(targetPos, Blocks.STONE);
+
+            castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+            helper.assertBlockPresent(Blocks.GLOWSTONE, new BlockPos(4, 3, 2));
+            helper.assertBlockPresent(Blocks.GLOWSTONE, new BlockPos(3, 3, 2));
+            helper.assertTrue(LuminousDevice.getStoredCount(deviceStack, new ItemStack(Items.GLOWSTONE)) == 0,
+                    "Linear Build should consume matching Luminous Device contents before Shulker contents");
+            helper.assertTrue(LuminousDevice.getSelectedStack(deviceStack).is(Items.GLOWSTONE),
+                    "Linear Build consumption should preserve the zero-count selected template");
+            var shulkerStack = getNestedContainerItem(player.getInventory().getItem(10), 0);
+            helper.assertTrue(shulkerStack.is(Items.GLOWSTONE) && shulkerStack.getCount() == 2,
+                    "Linear Build should leave lower-priority Shulker contents untouched");
+            helper.assertTrue(player.getMainHandItem().is(Items.DIRT) && player.getMainHandItem().getCount() == 4,
+                    "An offhand Luminous Device selection should take priority over the main-hand block");
+        });
+    }
+
+    static void linearBuildResolvesZeroCountLuminousDeviceSelectionAndEmptyFallback(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var zeroTargetPos = new BlockPos(5, 3, 2);
+            var zeroSelectionPlayer = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2),
+                    "linear_build_zero_luminous_selection_test");
+            zeroSelectionPlayer.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIRT, 4));
+            var zeroSelectionDevice = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+            LuminousDevice.addToDevice(zeroSelectionDevice, new ItemStack(Items.GLOWSTONE));
+            LuminousDevice.consumeOneStored(zeroSelectionDevice, new ItemStack(Items.GLOWSTONE));
+            zeroSelectionPlayer.setItemInHand(InteractionHand.OFF_HAND, zeroSelectionDevice);
+            zeroSelectionPlayer.getInventory().setItem(10, new ItemStack(Items.GLOWSTONE, 2));
+            helper.setBlock(zeroTargetPos, Blocks.STONE);
+
+            castLinearBuild(helper, zeroSelectionPlayer, zeroTargetPos, Direction.WEST);
+
+            helper.assertBlockPresent(Blocks.GLOWSTONE, new BlockPos(4, 3, 2));
+            helper.assertBlockPresent(Blocks.GLOWSTONE, new BlockPos(3, 3, 2));
+            helper.assertTrue(zeroSelectionPlayer.getMainHandItem().is(Items.DIRT),
+                    "A zero-count selected item should still be resolved instead of falling back to main hand");
+            helper.assertTrue(zeroSelectionPlayer.getInventory().getItem(10).isEmpty(),
+                    "A zero-count selection should use matching blocks from another source");
+
+            var fallbackTargetPos = new BlockPos(5, 3, 5);
+            var fallbackPlayer = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 5),
+                    "linear_build_empty_luminous_fallback_test");
+            fallbackPlayer.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.GLOWSTONE, 2));
+            fallbackPlayer.setItemInHand(
+                    InteractionHand.OFF_HAND,
+                    new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get())
+            );
+            helper.setBlock(fallbackTargetPos, Blocks.STONE);
+
+            castLinearBuild(helper, fallbackPlayer, fallbackTargetPos, Direction.WEST);
+
+            helper.assertBlockPresent(Blocks.GLOWSTONE, new BlockPos(4, 3, 5));
+            helper.assertBlockPresent(Blocks.GLOWSTONE, new BlockPos(3, 3, 5));
+            helper.assertTrue(fallbackPlayer.getMainHandItem().isEmpty(),
+                    "An empty offhand Luminous Device should fall back to the main-hand block");
         });
     }
 
