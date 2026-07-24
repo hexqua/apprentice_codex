@@ -104,8 +104,10 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
             return false;
         }
 
+        // safeInsert は渡したスタック自体を減らすため、挿入前の個数を退避して差分を求める。
+        var removedCount = removedStack.getCount();
         var leftover = slot.safeInsert(removedStack);
-        var insertedCount = removedStack.getCount() - leftover.getCount();
+        var insertedCount = removedCount - leftover.getCount();
         if (insertedCount <= 0) {
             deviceStack.setTag(previousTag);
             return false;
@@ -185,9 +187,8 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
         }
 
         if (!level.isClientSide
-                && !player.getAbilities().instabuild
                 && delegatedResult.getResult().consumesAction()) {
-            consumeSelectedForUse(deviceStack);
+            consumeSelectedForUse(player, deviceStack);
         }
         return new InteractionResultHolder<>(delegatedResult.getResult(), deviceStack);
     }
@@ -228,9 +229,8 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
         }
 
         if (!context.getLevel().isClientSide
-                && !player.getAbilities().instabuild
                 && delegatedResult.consumesAction()) {
-            consumeSelectedForUse(deviceStack);
+            consumeSelectedForUse(player, deviceStack);
         }
         return delegatedResult;
     }
@@ -371,7 +371,12 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem {
         return inserted;
     }
 
-    private static boolean consumeSelectedForUse(ItemStack deviceStack) {
+    private static boolean consumeSelectedForUse(Player player, ItemStack deviceStack) {
+        // クリエイティブの非消費は設置・使用成功後のこの経路だけに限定する。
+        if (player.getAbilities().instabuild) {
+            return false;
+        }
+
         var selectedStack = getSelectedStack(deviceStack);
         if (selectedStack.isEmpty()) {
             return false;
