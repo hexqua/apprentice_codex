@@ -22,6 +22,8 @@ import java.util.UUID;
 final class FujinGameTestScenarios {
     private static final double POSITION_EPSILON = 1.0E-5D;
     private static final float VALUE_EPSILON = 1.0E-4F;
+    // basic_floor の境界 barrier に高速な斬撃が触れないよう、投射物テストはテンプレートより上へ隔離する。
+    private static final double PROJECTILE_TEST_HEIGHT = 20.0D;
 
     private FujinGameTestScenarios() {
     }
@@ -48,7 +50,7 @@ final class FujinGameTestScenarios {
     static void fujinSlashPiercesAndDamagesEachTargetOnceWithoutKnockback(GameTestHelper helper) {
         var level = helper.getLevel();
         var owner = createPlayer(helper, "fujin_slash_damage");
-        var start = helper.absoluteVec(new Vec3(2.5D, 3.0D, 2.5D));
+        var start = projectileTestStart(helper);
         var firstTarget = createZombie(level, start.add(0.75D, 0.0D, 0.0D));
         var secondTarget = createZombie(level, start.add(1.75D, 0.0D, 0.0D));
         var firstMovement = new Vec3(0.125D, 0.0D, -0.25D);
@@ -81,7 +83,7 @@ final class FujinGameTestScenarios {
     static void fujinSlashUsesSmallBlockCollision(GameTestHelper helper) {
         var level = helper.getLevel();
         var owner = createPlayer(helper, "fujin_slash_block_collision");
-        var start = helper.absoluteVec(new Vec3(2.5D, 3.0D, 2.5D));
+        var start = projectileTestStart(helper);
         var sideBlock = BlockPos.containing(start.add(0.0D, 0.0D, 1.0D));
         var centerBlock = BlockPos.containing(start);
 
@@ -107,7 +109,7 @@ final class FujinGameTestScenarios {
     static void fujinSlashDamagesTargetBeforeWall(GameTestHelper helper) {
         var level = helper.getLevel();
         var owner = createPlayer(helper, "fujin_slash_target_before_wall");
-        var start = helper.absoluteVec(new Vec3(2.5D, 3.0D, 2.5D));
+        var start = projectileTestStart(helper);
         var target = createZombie(level, start.add(0.75D, 0.0D, 0.0D));
         var targetBehindWall = createZombie(level, start.add(3.0D, 0.0D, 0.0D));
         var wallBlock = BlockPos.containing(start.add(2.0D, 0.0D, 0.0D));
@@ -134,7 +136,7 @@ final class FujinGameTestScenarios {
     static void fujinSlashRespectsParallelWallOcclusion(GameTestHelper helper) {
         var level = helper.getLevel();
         var owner = createPlayer(helper, "fujin_slash_parallel_wall");
-        var start = helper.absoluteVec(new Vec3(2.5D, 3.0D, 2.5D));
+        var start = projectileTestStart(helper);
         var targetBehindWall = createZombie(level, start.add(0.75D, 0.0D, 2.0D));
         var clearSideTarget = createZombie(level, start.add(0.75D, 0.0D, -2.0D));
         var wallBlock = BlockPos.containing(start.add(0.75D, 0.0D, 1.0D));
@@ -165,7 +167,7 @@ final class FujinGameTestScenarios {
     static void fujinSlashExpiresBeyondRangeAndSupportsAntiMagic(GameTestHelper helper) {
         var level = helper.getLevel();
         var owner = createPlayer(helper, "fujin_slash_expiry");
-        var start = helper.absoluteVec(new Vec3(2.5D, 3.0D, 2.5D));
+        var start = projectileTestStart(helper);
         var projectile = createProjectile(level, owner, start, 1.0F, 16.0F);
         var stepDistance = projectile.getDeltaMovement().length();
         projectile.setMaxTravelDistance((float) (stepDistance * 2.0D));
@@ -200,6 +202,10 @@ final class FujinGameTestScenarios {
         projectile.shoot(new Vec3(1.0D, 0.0D, 0.0D));
         level.addFreshEntity(projectile);
         return projectile;
+    }
+
+    private static Vec3 projectileTestStart(GameTestHelper helper) {
+        return helper.absoluteVec(new Vec3(2.5D, PROJECTILE_TEST_HEIGHT, 2.5D));
     }
 
     private static FakePlayer createPlayer(GameTestHelper helper, String name) {
