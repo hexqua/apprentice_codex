@@ -25,6 +25,8 @@ import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushProjectileEnt
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.fujin.FujinKatanaEntity;
+import jp.aquafactory.apprenticecodex.spell.fujin.FujinSlashProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseerStaffEntity;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudEntity;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelEntity;
@@ -325,6 +327,12 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<ServantGazeProjectileEntity>> SERVANT_GAZE_PROJECTILE =
             regProjectile("servant_gaze_projectile", ServantGazeProjectileEntity::new, 128, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<FujinKatanaEntity>> FUJIN_KATANA =
+            regWeapon("fujin_katana", FujinKatanaEntity::new, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<FujinSlashProjectileEntity>> FUJIN_SLASH_PROJECTILE =
+            regProjectile("fujin_slash_projectile", FujinSlashProjectileEntity::new, 64, 1);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

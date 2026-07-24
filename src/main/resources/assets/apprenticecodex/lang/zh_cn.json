@@ -22,6 +22,8 @@
   "block.apprenticecodex.creative_spell_dispenser": "创造版法术发射器",
   "block.apprenticecodex.frost_rune_trap": "冰霜符文",
   "block.apprenticecodex.spell_calibration_bench": "法术校准台",
+  "block.apprenticecodex.otherworld_lens_lens": "异界水晶",
+
   "item.apprenticecodex.arcane_cinder": "奥术余烬",
   "item.apprenticecodex.wisdom_shard": "智慧碎片",
   "item.apprenticecodex.spell_extract_shard": "法术提取碎片",
@@ -569,6 +571,8 @@
   "entity.apprenticecodex.totem_of_permafrost_totem": "永久冻土图腾",
   "entity.apprenticecodex.field_overseer_staff": "监视者法杖",
   "entity.apprenticecodex.servant_gaze_staff": "侍从法杖",
+  "entity.apprenticecodex.fujin_katana": "风神之刃",
+  "entity.apprenticecodex.fujin_slash_projectile": "风之刃",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "跑腿法师",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "跑腿法师",
@@ -722,6 +726,9 @@
   "spell.apprenticecodex.totem_of_permafrost": "永久冻土图腾",
   "spell.apprenticecodex.field_overseer": "领域监视者",
   "spell.apprenticecodex.servant_gaze": "侍从凝视",
+  "spell.apprenticecodex.otherworld_lens": "异界透镜",
+  "spell.apprenticecodex.terra_resonance": "大地共鸣",
+  "spell.apprenticecodex.fujin": "风神",
 
   "spell.apprenticecodex.sky_edge.guide": "召唤一把武器朝你的视线方向发射。该法术有蓄力时间，且不造成击退，但可以无视目标的无敌帧。",
   "spell.apprenticecodex.archer_multiple.guide": "召唤一把跟随你的魔法弓，持续射击直至弹药耗尽，优先攻击你锁定的目标或附近的敌人。",
@@ -796,6 +803,9 @@
   "spell.apprenticecodex.totem_of_permafrost.guide": "召唤并放置一个强烈注入冰之魔力的图腾，短时间内以寒气攻击图腾周围。寒气会试图限制目标行动。装备高级召唤师护符时，手动解除图腾不会触发冷却。",
   "spell.apprenticecodex.field_overseer.guide": "召唤一根自主法杖监视周围，以雷霆魔力轰击附近的敌人。法杖会优先选择生命值较高的敌人。召唤时，施法者的最大魔力值将直接成为法杖的魔力上限，攻击时会消耗法杖储存的魔力。靠近到一定距离后会自动为法杖补充魔力。",
   "spell.apprenticecodex.servant_gaze.guide": "召唤一根跟随你的法杖，向附近的敌人发射纯粹魔力弹。法杖会优先选择生命值较高的敌人。法杖没有维持时间限制，但攻击时会消耗施法者的魔力。",
+  "spell.apprenticecodex.otherworld_lens.guide": "从异界具现出一枚水晶透镜。透过透镜看到的景象，仿佛从世界的背面观察一般。透镜极不稳定，只能在保持专注时维持具现，哪怕细小的障碍也会阻止其生成。",
+  "spell.apprenticecodex.terra_resonance.guide": "向大地注入共鸣魔力，隔墙探测会产生反应的物体。可探测的对象仅限于紫水晶之类的宝石；若呈方块状或被掩埋，魔力便不易产生反应，因此较难探测。",
+  "spell.apprenticecodex.fujin.guide": "召唤一把缠绕风之魔力的魔法刀，发动一阵乱舞斩击。风之魔力化作利刃，切碎成群的敌人，但不会造成击退。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "爆头伤害倍率：%d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "潜行伤害倍率：%d%%",
@@ -843,6 +853,7 @@
   "ui.apprenticecodex.inscribe_ice.notched_frozen_damage": "魔力爆裂伤害：%s",
   "ui.apprenticecodex.anchor_blink.anchor_distance": "锚定成立距离：%s 格",
   "ui.apprenticecodex.auto_turret.restock_mana_cost": "重新补充箭矢所需法力值：%d",
+  "ui.apprenticecodex.terra_resonance.search_size": "探测范围：%1$dx%2$dx%3$d",
   "ui.apprenticecodex.too_far": "太远了！",
   "ui.apprenticecodex.edge_dancer.requires_edge": "主手需要持有法术侧刃！",
   "ui.apprenticecodex.anchor_blink.requires_mirror": "副手需要持有法术侧逆刃！",
@@ -865,6 +876,10 @@
   "ui.apprenticecodex.auto_turret.restock_complete": "已补充弩的箭矢！",
   "ui.apprenticecodex.auto_turret.insufficient_mana": "法力值不足，无法补充！",
   "ui.apprenticecodex.personal_shelf.for_export_mode": "已设置为从个人空间中导出...",
+  "ui.apprenticecodex.otherworld_lens.invalid_target": "%s过于不稳定，无法放置透镜...",
+  "ui.apprenticecodex.otherworld_lens.canceled_break": "透镜被破坏，无法维持专注！",
+  "ui.apprenticecodex.otherworld_lens.canceled_away": "离透镜太远，无法维持专注，透镜随之崩解！",
+  "ui.apprenticecodex.otherworld_lens.canceled_other": "透镜因某种外力介入而被破坏！",
 
   "ui.apprenticecodex.spellgun.missing_ammo": "弹药耗尽！(弹药：%1$s)",
   "ui.apprenticecodex.spellgun.not_imbued": "%1$s尚未注入法术！",
@@ -929,6 +944,10 @@
   "ui.apprenticecodex.echo_cast.cannot_echo_more": "无法再让魔力回响了！",
   "ui.apprenticecodex.mana_slash.missing_catalyst": "未找到生成刃的催化剂！",
   "ui.apprenticecodex.divine_possession.required_all_pieces": "神降临需要集齐全套元素少女长袍！",
+  "ui.apprenticecodex.terra_resonance.prepare": "正在等待大地的回应……",
+  "ui.apprenticecodex.terra_resonance.not_found": "没有收到魔力的回响……",
+  "ui.apprenticecodex.terra_resonance.found": "已确定魔力共鸣的坐标！",
+
   "ui.apprenticecodex.elemental_bow.mode_switched": "已切换发射模式为 %s",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "过热导致法力值消耗提升至 %s！",
   "ui.apprenticecodex.elemental_bow.overheat_insufficient_mana": "过热导致法力值消耗提升至 %s，你的法力值不足！",
@@ -1075,6 +1094,7 @@
   "death.attack.apprenticecodex.totem_of_permafrost": "%1$s 的身体被铭刻进了历史。",
   "death.attack.apprenticecodex.field_overseer": "%1$s 接受了审判。",
   "death.attack.apprenticecodex.servant_gaze": "%1$s 未能脱颖而出。",
+  "death.attack.apprenticecodex.fujin": "%1$s 被 %2$s 切成了细丝。",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "学徒法典",
   "advancements.apprenticecodex.apprentice_codex.root.description": "踏上学徒法师的修行之路。",

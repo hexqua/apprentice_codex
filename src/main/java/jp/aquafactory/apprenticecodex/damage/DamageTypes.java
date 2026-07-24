@@ -55,6 +55,7 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> TOTEM_OF_PERMAFROST = register("totem_of_permafrost");
     public static final ResourceKey<DamageType> FIELD_OVERSEER = register("field_overseer");
     public static final ResourceKey<DamageType> SERVANT_GAZE = register("servant_gaze");
+    public static final ResourceKey<DamageType> FUJIN = register("fujin");
 
     public static final ResourceKey<DamageType> HAUNTED_BONUS = register("haunted_bonus");
     public static final ResourceKey<DamageType> MANA_FORCE_BLADE = register("mana_force_blade");
@@ -117,6 +118,7 @@ public final class DamageTypes {
         context.register(TOTEM_OF_PERMAFROST, createTemplate(TOTEM_OF_PERMAFROST));
         context.register(FIELD_OVERSEER, createTemplate(FIELD_OVERSEER));
         context.register(SERVANT_GAZE, createTemplate(SERVANT_GAZE));
+        context.register(FUJIN, createTemplate(FUJIN));
 
         context.register(HAUNTED_BONUS, createTemplate(HAUNTED_BONUS));
         context.register(MANA_FORCE_BLADE, createTemplate(MANA_FORCE_BLADE));
