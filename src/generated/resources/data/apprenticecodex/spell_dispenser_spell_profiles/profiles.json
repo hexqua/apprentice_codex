@@ -457,13 +457,6 @@
       "spell": "apprenticecodex:slash_blade"
     },
     {
-      "profile": {
-        "owner_required": false,
-        "up_offset": 0.5
-      },
-      "spell": "apprenticecodex:fujin"
-    },
-    {
       "spell": "apprenticecodex:precision_jack"
     },
     {
@@ -621,6 +614,13 @@
         "owner_required": false
       },
       "spell": "apprenticecodex:artisan_smash"
+    },
+    {
+      "profile": {
+        "owner_required": false,
+        "up_offset": 0.5
+      },
+      "spell": "apprenticecodex:fujin"
     }
   ]
 }
