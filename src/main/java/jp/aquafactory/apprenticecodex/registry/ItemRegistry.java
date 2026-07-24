@@ -35,6 +35,7 @@ import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.Spellcast
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
 import jp.aquafactory.apprenticecodex.item.magicitem.GrimoireManifest;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
@@ -370,6 +371,8 @@ public final class ItemRegistry {
             ITEMS.register("chargecast_catalystbook", ChargecastCatalystbook::new);
     public static final RegistryObject<Item> STORAGE_STABILIZER =
             ITEMS.register("storage_stabilizer", StorageStabilizer::new);
+    public static final RegistryObject<Item> LUMINOUS_DEVICE =
+            ITEMS.register("luminous_device", LuminousDevice::new);
     public static final RegistryObject<Item> CIRCUIT_HEAT_STAFF =
             ITEMS.register("circuit_heat_staff", CircuitHeatStaff::new);
     public static final RegistryObject<Item> CHARGED_TWIN_BLADE_STAFF =
