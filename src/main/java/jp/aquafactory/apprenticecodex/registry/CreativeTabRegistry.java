@@ -49,6 +49,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.ARCANUM_IN_A_JAR.get());
         output.accept(ItemRegistry.ESSENCE_SMOKER.get());
         output.accept(ItemRegistry.ATELIER_STATION.get());
+        output.accept(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get());
         output.accept(ItemRegistry.ARCANE_CINDER.get());
         output.accept(ItemRegistry.WISDOM_SHARD.get());
         output.accept(ItemRegistry.SPELL_EXTRACT_SHARD.get());
@@ -100,6 +101,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
         output.accept(ItemRegistry.CHARGECAST_CATALYSTBOOK.get().getDefaultInstance());
         output.accept(ItemRegistry.STORAGE_STABILIZER.get());
+        output.accept(ItemRegistry.LUMINOUS_DEVICE.get());
         output.accept(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         output.accept(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
         output.accept(ItemRegistry.MANA_FORCE_BLADE.get());
@@ -158,7 +160,6 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.EXPLORERS_CODEX.get());
         output.accept(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get());
         output.accept(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get());
-        output.accept(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get());
         addSpellScrollsToTab(output);
     }
 

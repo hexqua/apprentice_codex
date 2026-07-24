@@ -154,6 +154,18 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(Items.ENDER_CHEST), has(Items.ENDER_CHEST))
                 .save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.LUMINOUS_DEVICE.get())
+                .pattern(" EA")
+                .pattern(" BE")
+                .pattern("IC ")
+                .define('A', ItemRegistry.ARCANE_CINDER.get())
+                .define('I', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .define('E', io.redspace.ironsspellbooks.registries.ItemRegistry.CINDER_ESSENCE.get())
+                .define('C', Tags.Items.CHESTS)
+                .define('B', Items.BLAZE_ROD)
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.CINDER_ESSENCE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.CINDER_ESSENCE.get()))
+                .save(recipeWriter);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SCARLET_THIRST.get())
                 .pattern("VI ")
                 .pattern("IMI")

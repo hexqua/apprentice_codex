@@ -116,6 +116,8 @@
   "item.apprenticecodex.elemental_bow": "Elemental Bow",
   "item.apprenticecodex.storage_stabilizer": "Storage Stabilizer",
   "item.apprenticecodex.storage_stabilizer.with_spell": "%1$s(%2$s)",
+  "item.apprenticecodex.luminous_device": "Luminous Device",
+  "item.apprenticecodex.luminous_device.with_select": "%1$s(%2$s)",
   "item.apprenticecodex.scrollcaster_gauntlet": "Scrollcaster Gauntlet",
   "item.apprenticecodex.chargecast_catalystbook": "Catalystbook of Chargecast",
   "item.apprenticecodex.apprentice_mage_scarf": "Apprentice Mage's Scarf",
@@ -989,6 +991,7 @@
   "ui.apprenticecodex.spell_dispenser.creative_version.deny_open": "Only creative players or operators can open this Spell Dispenser.",
   "ui.apprenticecodex.zenith_staff.insufficient_mana": "The mana cost of %1$s has increased to %2$s, and you don't have enough mana!",
   "ui.apprenticecodex.spell_throwable_cards.not_imbued": "This card has no imbued spell!",
+  "ui.apprenticecodex.luminous_device.out_of_item": "%1$s is missing!",
 
   "ui.apprenticecodex.spell_selector.empty": "No selectable spells",
   "ui.apprenticecodex.spell_calibration_bench.hint_default_spell": "Default imbued spells cannot be extracted",

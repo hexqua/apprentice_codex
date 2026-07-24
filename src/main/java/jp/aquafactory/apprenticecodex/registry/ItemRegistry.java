@@ -62,6 +62,15 @@ import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellS
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
+import jp.aquafactory.apprenticecodex.item.magicitem.GrimoireManifest;
+import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
+import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.offhand.CopperSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.DiamondSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.ExplorersCane;
@@ -384,6 +393,8 @@ public final class ItemRegistry {
             ITEMS.register("chargecast_catalystbook", ChargecastCatalystbook::new);
     public static final DeferredHolder<Item, Item> STORAGE_STABILIZER =
             ITEMS.register("storage_stabilizer", StorageStabilizer::new);
+    public static final DeferredHolder<Item, Item> LUMINOUS_DEVICE =
+            ITEMS.register("luminous_device", LuminousDevice::new);
     public static final DeferredHolder<Item, Item> CIRCUIT_HEAT_STAFF =
             ITEMS.register("circuit_heat_staff", CircuitHeatStaff::new);
     public static final DeferredHolder<Item, Item> CHARGED_TWIN_BLADE_STAFF =
