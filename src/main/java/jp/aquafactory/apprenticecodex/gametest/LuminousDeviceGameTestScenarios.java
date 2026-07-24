@@ -10,6 +10,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.inventory.ClickAction;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
@@ -83,6 +86,28 @@ final class LuminousDeviceGameTestScenarios {
                     "Manual extraction should be able to empty the device");
             helper.assertTrue(LuminousDevice.getSelectedStack(deviceStack).isEmpty(),
                     "Manually emptying the device should clear its selection");
+
+            var carriedDevice = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+            LuminousDevice.addToDevice(carriedDevice, new ItemStack(Items.TORCH, 10));
+            var destinationSlot = new Slot(new SimpleContainer(1), 0, 0, 0);
+            var player = new FakePlayer(
+                    helper.getLevel(),
+                    new GameProfile(UUID.randomUUID(), "luminous_device_carried_removal_test")
+            );
+            helper.assertTrue(
+                    carriedDevice.getItem().overrideStackedOnOther(
+                            carriedDevice,
+                            destinationSlot,
+                            ClickAction.SECONDARY,
+                            player
+                    ),
+                    "Right-clicking an empty slot with a carried device should extract its contents"
+            );
+            helper.assertTrue(destinationSlot.getItem().is(Items.TORCH)
+                            && destinationSlot.getItem().getCount() == 10,
+                    "The extracted contents should be inserted into the empty slot");
+            helper.assertTrue(LuminousDevice.getStoredItemCount(carriedDevice) == 0,
+                    "Extracting into an empty slot should consume the stored contents");
         });
     }
 
