@@ -19,13 +19,15 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowCastState;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
-import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.ammo.BowAmmoConsumptionNotification;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
 import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import jp.aquafactory.apprenticecodex.utility.SpellCooldownHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -415,16 +417,18 @@ public final class FocusStaffbowCastManager {
             clearPendingMagicDataSimulation(magicData);
             return false;
         }
-        if (!BowCastAmmoResolver.consumeFocusStaffbowAmmo(
+        var ammoConsumption = BowCastAmmoResolver.consumeFocusStaffbowAmmoWithResult(
                 player,
                 ammoRoute,
                 ApprenticeCodexServerConfig.focusStaffbowArrowCatalystItemIds()
-        )) {
+        );
+        if (!ammoConsumption.successful()) {
             showInsufficientArrowMessage(player);
             magicData.resetAdditionalCastData();
             clearPendingMagicDataSimulation(magicData);
             return false;
         }
+        sendConsumedArrowNotification(player, ammoConsumption);
 
         if (player.isUsingItem()) {
             player.stopUsingItem();
@@ -531,11 +535,12 @@ public final class FocusStaffbowCastManager {
             cancelPendingPresentation(player, focusStaffbowStack, spell.getSpellId());
             return false;
         }
-        if (!BowCastAmmoResolver.consumeFocusStaffbowAmmo(
+        var ammoConsumption = BowCastAmmoResolver.consumeFocusStaffbowAmmoWithResult(
                 player,
                 ammoRoute,
                 ApprenticeCodexServerConfig.focusStaffbowArrowCatalystItemIds()
-        )) {
+        );
+        if (!ammoConsumption.successful()) {
             cleanupPendingSpellArtifacts(player, magicData.getAdditionalCastData());
             magicData.resetAdditionalCastData();
             clearPendingMagicDataSimulation(magicData);
@@ -543,6 +548,7 @@ public final class FocusStaffbowCastManager {
             showInsufficientArrowMessage(player);
             return false;
         }
+        sendConsumedArrowNotification(player, ammoConsumption);
 
         var modifier = new AttributeModifier(
                 OVERCHARGE_SPELL_POWER_MODIFIER_ID,
@@ -821,6 +827,21 @@ public final class FocusStaffbowCastManager {
         player.connection.send(new ClientboundSetActionBarTextPacket(
                 FocusStaffbow.createInsufficientArrowMessage()
         ));
+    }
+
+    private static void sendConsumedArrowNotification(
+            ServerPlayer player,
+            BowCastAmmoResolver.FocusStaffbowAmmoConsumption consumption
+    ) {
+        if (!consumption.consumedArrow()) {
+            return;
+        }
+
+        BowAmmoConsumptionNotification.send(
+                player,
+                ItemRegistry.FOCUS_STAFFBOW.getId(),
+                consumption.consumedStack()
+        );
     }
 
     private static void showContinuousDisabledMessage(ServerPlayer player) {

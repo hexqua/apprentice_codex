@@ -27,6 +27,16 @@ public final class BowCastAmmoResolver {
         ARROW_CATALYST
     }
 
+    public record FocusStaffbowAmmoConsumption(boolean successful, ItemStack consumedStack) {
+        public FocusStaffbowAmmoConsumption {
+            consumedStack = consumedStack.isEmpty() ? ItemStack.EMPTY : consumedStack.copyWithCount(1);
+        }
+
+        public boolean consumedArrow() {
+            return !consumedStack.isEmpty();
+        }
+    }
+
     public static boolean canStartFocusStaffbowUse(Player player, ItemStack weaponStack) {
         return canStartFocusStaffbowUse(player, weaponStack, true, DEFAULT_FOCUS_STAFFBOW_ARROW_CATALYST_ITEMS);
     }
@@ -82,11 +92,37 @@ public final class BowCastAmmoResolver {
             FocusStaffbowAmmoRoute route,
             List<ResourceLocation> arrowCatalystItemIds
     ) {
-        return switch (route) {
-            case BYPASS -> true;
-            case ARROW_CATALYST -> consume(resolveFocusStaffbowArrowCatalystAmmo(player, arrowCatalystItemIds));
-            case NONE -> false;
-        };
+        return consumeFocusStaffbowAmmoWithResult(player, route, arrowCatalystItemIds).successful();
+    }
+
+    public static FocusStaffbowAmmoConsumption consumeFocusStaffbowAmmoWithResult(
+            Player player,
+            FocusStaffbowAmmoRoute route
+    ) {
+        return consumeFocusStaffbowAmmoWithResult(player, route, DEFAULT_FOCUS_STAFFBOW_ARROW_CATALYST_ITEMS);
+    }
+
+    public static FocusStaffbowAmmoConsumption consumeFocusStaffbowAmmoWithResult(
+            Player player,
+            FocusStaffbowAmmoRoute route,
+            List<ResourceLocation> arrowCatalystItemIds
+    ) {
+        if (route == FocusStaffbowAmmoRoute.BYPASS) {
+            return new FocusStaffbowAmmoConsumption(true, ItemStack.EMPTY);
+        }
+        if (route == FocusStaffbowAmmoRoute.NONE) {
+            return new FocusStaffbowAmmoConsumption(false, ItemStack.EMPTY);
+        }
+
+        var ammoSource = resolveFocusStaffbowArrowCatalystAmmo(player, arrowCatalystItemIds);
+        if (ammoSource == null || ammoSource.stack().isEmpty()) {
+            return new FocusStaffbowAmmoConsumption(false, ItemStack.EMPTY);
+        }
+
+        var consumedStack = ammoSource.stack().copyWithCount(1);
+        return ammoSource.consume()
+                ? new FocusStaffbowAmmoConsumption(true, consumedStack)
+                : new FocusStaffbowAmmoConsumption(false, ItemStack.EMPTY);
     }
 
     @Nullable
@@ -94,11 +130,27 @@ public final class BowCastAmmoResolver {
             Player player,
             List<ResourceLocation> arrowCatalystItemIds
     ) {
+        return resolveArrowCatalystAmmo(player, arrowCatalystItemIds);
+    }
+
+    @Nullable
+    public static SpellcasterQuiverBowAmmoResolver.AmmoSource resolveElementalMagicArrowCatalystAmmo(
+            Player player,
+            List<ResourceLocation> arrowCatalystItemIds
+    ) {
+        return resolveArrowCatalystAmmo(player, arrowCatalystItemIds);
+    }
+
+    @Nullable
+    private static SpellcasterQuiverBowAmmoResolver.AmmoSource resolveArrowCatalystAmmo(
+            Player player,
+            List<ResourceLocation> arrowCatalystItemIds
+    ) {
         if (arrowCatalystItemIds.isEmpty()) {
             return null;
         }
 
-        Predicate<ItemStack> catalystPredicate = stack -> isFocusStaffbowArrowCatalyst(stack, arrowCatalystItemIds);
+        Predicate<ItemStack> catalystPredicate = stack -> isArrowCatalyst(stack, arrowCatalystItemIds);
 
         var quiverAmmo = SpellcasterQuiver.findAccessibleArrow(player, catalystPredicate);
         if (quiverAmmo != null) {
@@ -121,15 +173,11 @@ public final class BowCastAmmoResolver {
         return resolveFocusStaffbowArrowCatalystAmmo(player, DEFAULT_FOCUS_STAFFBOW_ARROW_CATALYST_ITEMS);
     }
 
-    private static boolean consume(@Nullable SpellcasterQuiverBowAmmoResolver.AmmoSource ammoSource) {
-        return ammoSource != null && ammoSource.consume();
-    }
-
     private static boolean hasSynthesis(ItemStack stack) {
         return getEnchantmentLevel(stack, jp.aquafactory.apprenticecodex.enchantment.Enchantments.SYNTHESIS.location()) > 0;
     }
 
-    private static boolean isFocusStaffbowArrowCatalyst(ItemStack stack, List<ResourceLocation> arrowCatalystItemIds) {
+    private static boolean isArrowCatalyst(ItemStack stack, List<ResourceLocation> arrowCatalystItemIds) {
         var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
         return itemId != null && arrowCatalystItemIds.contains(itemId);
     }
