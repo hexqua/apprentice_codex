@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_mithril_ingot": {
+    "has_mithril_scrap": {
       "conditions": {
         "items": [
           {
             "items": [
-              "irons_spellbooks:mithril_ingot"
+              "irons_spellbooks:mithril_scrap"
             ]
           }
         ]
@@ -22,7 +22,7 @@
   },
   "requirements": [
     [
-      "has_mithril_ingot",
+      "has_mithril_scrap",
       "has_the_recipe"
     ]
   ],
