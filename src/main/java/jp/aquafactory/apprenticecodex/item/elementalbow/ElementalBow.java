@@ -10,18 +10,21 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.SneakSelectionUiItem;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
+import jp.aquafactory.apprenticecodex.item.ammo.BowAmmoConsumptionNotification;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverBowAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.ResolvedDefinition;
 import jp.aquafactory.apprenticecodex.renderer.item.ElementalBowRenderer;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -440,7 +443,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         fireVanillaArrow(level, player, stack, ammoStack, power, infiniteAmmo);
         if (!player.getAbilities().instabuild && hasAmmo && !infiniteAmmo) {
-            ammoSource.consume();
+            consumeAmmoAndNotify(player, ammoSource);
         }
         triggerReleaseAnimation(player, stack);
     }
@@ -498,13 +501,13 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         fireVanillaArrow(level, player, stack, ammoStack, power, infiniteAmmo);
         if (!player.getAbilities().instabuild && hasAmmo && !infiniteAmmo) {
-            ammoSource.consume();
+            consumeAmmoAndNotify(player, ammoSource);
         }
         triggerReleaseAnimation(player, stack);
     }
 
     private void releaseElementalShot(ItemStack stack, Level level, Player player, int timeLeft, ResolvedDefinition mode) {
-        var ammoSource = resolveVanillaAmmoSource(player, stack);
+        var ammoSource = resolveMagicArrowCatalystAmmoSource(player);
         var hasSynthesisEnchantment = hasSynthesis(stack);
         var canFireWithoutAmmo = player.getAbilities().instabuild || hasSynthesisEnchantment;
         var drawDuration = getUseDuration(stack) - timeLeft;
@@ -562,7 +565,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         if (!player.getAbilities().instabuild) {
             stack.hurtAndBreak(1, player, bowUser -> bowUser.broadcastBreakEvent(player.getUsedItemHand()));
             if (ammoSource != null && !hasSynthesisEnchantment) {
-                ammoSource.consume();
+                consumeAmmoAndNotify(player, ammoSource);
             }
         }
 
@@ -652,6 +655,19 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
                 1.0F / (player.getRandom().nextFloat() * 0.4F + 1.2F) + power * 0.5F
         );
         player.awardStat(Stats.ITEM_USED.get(this));
+    }
+
+    private void consumeAmmoAndNotify(Player player, AmmoSource ammoSource) {
+        var consumedStack = ammoSource.stack().copyWithCount(1);
+        if (!ammoSource.consume() || !(player instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+
+        BowAmmoConsumptionNotification.send(
+                serverPlayer,
+                ItemRegistry.ELEMENTAL_BOW.getId(),
+                consumedStack
+        );
     }
 
     @Nullable
@@ -813,7 +829,8 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     @Nullable
     private AmmoSource resolveAmmoSource(Player player, ItemStack bowStack, ModeSelection selection) {
         return switch (selection.kind()) {
-            case NORMAL, MAGIC -> resolveVanillaAmmoSource(player, bowStack);
+            case NORMAL -> resolveVanillaAmmoSource(player, bowStack);
+            case MAGIC -> resolveMagicArrowCatalystAmmoSource(player);
             case ARROW -> resolveNormalArrowAmmoSource(player);
             case SPECIAL -> resolveSpecialAmmoSource(player, selection.id());
             case MOD -> resolveModAmmoSource(player, selection.id());
@@ -834,6 +851,16 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     @Nullable
     private AmmoSource resolveNormalArrowAmmoSource(Player player) {
         return adaptAmmoSource(BowCastAmmoResolver.resolveElementalNormalArrowAmmo(player));
+    }
+
+    @Nullable
+    private AmmoSource resolveMagicArrowCatalystAmmoSource(Player player) {
+        return adaptAmmoSource(BowCastAmmoResolver.resolveElementalMagicArrowCatalystAmmo(
+                player,
+                player.level().isClientSide
+                        ? ElementalBowClientConfigState.magicArrowCatalystItemIds()
+                        : ApprenticeCodexServerConfig.elementalBowMagicArrowCatalystItemIds()
+        ));
     }
 
     @Nullable

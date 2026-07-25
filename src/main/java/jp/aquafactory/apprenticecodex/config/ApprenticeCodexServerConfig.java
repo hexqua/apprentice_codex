@@ -798,6 +798,10 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.elementalBowMagicReadyDrawTicksMultiplier();
     }
 
+    public static List<ResourceLocation> elementalBowMagicArrowCatalystItemIds() {
+        return ITEMS_CONFIG.elementalBowMagicArrowCatalystItemIds();
+    }
+
     public static float elementalBowOverheatAdditionalManaLinearMultiplier() {
         return ITEMS_CONFIG.elementalBowOverheatAdditionalManaLinearMultiplier();
     }
@@ -926,6 +930,14 @@ public final class ApprenticeCodexServerConfig {
                 previousOverheatDurationCapTicks,
                 previousPowerArrowSpellLevelBonusPerLevel
         );
+    }
+
+    public static GameTestConfigOverride useElementalBowMagicArrowCatalystItemsOverrideForGameTest(
+            List<String> magicArrowCatalystItems
+    ) {
+        var previousMagicArrowCatalystItems = ITEMS_CONFIG.elementalBowMagicArrowCatalystItems();
+        ITEMS_CONFIG.setElementalBowMagicArrowCatalystItemsForGameTest(magicArrowCatalystItems);
+        return () -> ITEMS_CONFIG.setElementalBowMagicArrowCatalystItemsForGameTest(previousMagicArrowCatalystItems);
     }
 
     public static GameTestConfigOverride useMultipurposeStaffrifleSpellDenylistOverrideForGameTest(

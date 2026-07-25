@@ -1,6 +1,11 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
+import java.util.List;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.ammo.BowAmmoConsumptionNotification;
+import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverPickupEvent;
@@ -15,6 +20,8 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potions;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import static jp.aquafactory.apprenticecodex.gametest.BowGameTestSupport.*;
 
@@ -82,6 +89,51 @@ final class SpellcasterQuiverGameTestScenarios {
                     "Elemental Bow should consume the equipped Spellcaster Quiver arrow first");
             helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
                     "Elemental Bow should leave loose inventory arrows untouched while the quiver has arrows");
+        });
+    }
+
+    static void elementalBowMagicModeUsesConfiguredSpellcasterQuiverCatalyst(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useElementalBowMagicArrowCatalystItemsOverrideForGameTest(
+                    List.of("minecraft:arrow")
+            )) {
+                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_quiver_catalyst_test");
+                var bowStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+                setElementalBowShotSelection(bowStack, "magic", SchoolRegistry.FIRE_RESOURCE);
+                player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+
+                var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+                SpellcasterQuiver.store(quiverStack, new ItemStack(Items.ARROW, 3));
+                SpellcasterQuiver.store(quiverStack, new ItemStack(Items.SPECTRAL_ARROW, 1));
+                equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
+
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Elemental Bow quiver catalyst test could not resolve player mana data");
+                magicData.setMana(250.0F);
+
+                var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+                helper.assertTrue(result.getResult().consumesAction(),
+                        "Elemental Bow magic mode should accept the configured quiver catalyst: " + result.getResult());
+                bowStack.getItem().releaseUsing(
+                        bowStack,
+                        helper.getLevel(),
+                        player,
+                        bowStack.getUseDuration() - jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow.READY_DRAW_TICKS
+                );
+                player.stopUsingItem();
+
+                var normalView = findElementalBowSelectionView(player, bowStack, "arrow", null);
+                helper.assertTrue(normalView != null && "2".equals(normalView.badgeText()),
+                        "Elemental Bow magic mode should consume one configured normal arrow from Spellcaster Quiver");
+                var spectralView = findElementalBowSelectionView(
+                        player,
+                        bowStack,
+                        "special",
+                        ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow")
+                );
+                helper.assertTrue(spectralView != null && "1".equals(spectralView.badgeText()),
+                        "Elemental Bow magic mode should leave the unconfigured spectral arrow in Spellcaster Quiver");
+            }
         });
     }
 
@@ -312,6 +364,76 @@ final class SpellcasterQuiverGameTestScenarios {
                     "Focus Staffbow should consume the equipped Spellcaster Quiver arrow before loose inventory arrows");
             helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
                     "Focus Staffbow should leave loose inventory arrows untouched while the quiver still has arrows");
+        });
+    }
+
+    static void bowAmmoNotificationCountsExactArrowsAcrossInventoryAndQuiver(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "bow_ammo_notification_count_test");
+            var healingArrow = PotionUtils.setPotion(new ItemStack(Items.TIPPED_ARROW, 4), Potions.HEALING);
+            var poisonArrow = PotionUtils.setPotion(new ItemStack(Items.TIPPED_ARROW, 3), Potions.POISON);
+            player.getInventory().setItem(1, healingArrow.copy());
+            player.setItemInHand(InteractionHand.OFF_HAND, poisonArrow.copy());
+
+            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+            SpellcasterQuiver.store(
+                    quiverStack,
+                    PotionUtils.setPotion(new ItemStack(Items.TIPPED_ARROW, 2), Potions.HEALING)
+            );
+            SpellcasterQuiver.store(
+                    quiverStack,
+                    PotionUtils.setPotion(new ItemStack(Items.TIPPED_ARROW, 5), Potions.POISON)
+            );
+            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
+
+            var packet = BowAmmoConsumptionNotification.createPacket(
+                    player,
+                    ItemRegistry.ELEMENTAL_BOW.getId(),
+                    healingArrow
+            );
+            helper.assertTrue(packet.sourceId().equals(ItemRegistry.ELEMENTAL_BOW.getId().toString()),
+                    "Bow ammo notification should preserve the source weapon id");
+            helper.assertTrue(ItemStack.isSameItemSameTags(packet.iconStack(), healingArrow)
+                            && packet.iconStack().getCount() == 1,
+                    "Bow ammo notification should preserve the consumed tipped arrow as a single icon");
+            helper.assertTrue(packet.remainingCount() == 6L,
+                    "Bow ammo notification should total matching inventory and quiver arrows while excluding different potion NBT");
+        });
+    }
+
+    static void focusStaffbowAmmoConsumptionResultDistinguishesConsumptionFromBypass(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_ammo_result_test");
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
+
+            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.ARROW, 2));
+            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
+
+            var consumed = BowCastAmmoResolver.consumeFocusStaffbowAmmoWithResult(
+                    player,
+                    BowCastAmmoResolver.FocusStaffbowAmmoRoute.ARROW_CATALYST
+            );
+            helper.assertTrue(consumed.successful() && consumed.consumedArrow()
+                            && consumed.consumedStack().is(Items.ARROW)
+                            && consumed.consumedStack().getCount() == 1,
+                    "Focus Staffbow ammo result should preserve the arrow that was actually consumed");
+            helper.assertTrue(BowAmmoConsumptionNotification.countRemaining(player, consumed.consumedStack()) == 4L,
+                    "Focus Staffbow notification count should include the remaining quiver and inventory arrows");
+
+            var bypassed = BowCastAmmoResolver.consumeFocusStaffbowAmmoWithResult(
+                    player,
+                    BowCastAmmoResolver.FocusStaffbowAmmoRoute.BYPASS
+            );
+            helper.assertTrue(bypassed.successful() && !bypassed.consumedArrow(),
+                    "Focus Staffbow creative, Synthesis, and disabled-requirement bypasses should not report arrow consumption");
+
+            var rejected = BowCastAmmoResolver.consumeFocusStaffbowAmmoWithResult(
+                    player,
+                    BowCastAmmoResolver.FocusStaffbowAmmoRoute.NONE
+            );
+            helper.assertTrue(!rejected.successful() && !rejected.consumedArrow(),
+                    "Focus Staffbow missing-ammo results should fail without reporting arrow consumption");
         });
     }
 }

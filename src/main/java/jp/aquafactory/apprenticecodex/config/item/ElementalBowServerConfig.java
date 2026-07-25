@@ -1,8 +1,13 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
 
+import java.util.List;
+import java.util.Objects;
+
 public final class ElementalBowServerConfig {
+    private final ForgeConfigSpec.ConfigValue<List<? extends String>> magicArrowCatalystItems;
     private final ForgeConfigSpec.DoubleValue magicReadyDrawTicksMultiplier;
     private final ForgeConfigSpec.DoubleValue overheatAdditionalManaLinearMultiplier;
     private final ForgeConfigSpec.DoubleValue overheatAdditionalManaQuadraticMultiplier;
@@ -11,6 +16,7 @@ public final class ElementalBowServerConfig {
     private final ForgeConfigSpec.IntValue overheatDurationCapTicks;
     private final ForgeConfigSpec.DoubleValue powerArrowSpellLevelBonusPerLevel;
 
+    private List<String> magicArrowCatalystItemsOverride;
     private Double magicReadyDrawTicksMultiplierOverride;
     private Double overheatAdditionalManaLinearMultiplierOverride;
     private Double overheatAdditionalManaQuadraticMultiplierOverride;
@@ -20,6 +26,7 @@ public final class ElementalBowServerConfig {
     private Double powerArrowSpellLevelBonusPerLevelOverride;
 
     private ElementalBowServerConfig(
+            ForgeConfigSpec.ConfigValue<List<? extends String>> magicArrowCatalystItems,
             ForgeConfigSpec.DoubleValue magicReadyDrawTicksMultiplier,
             ForgeConfigSpec.DoubleValue overheatAdditionalManaLinearMultiplier,
             ForgeConfigSpec.DoubleValue overheatAdditionalManaQuadraticMultiplier,
@@ -28,6 +35,7 @@ public final class ElementalBowServerConfig {
             ForgeConfigSpec.IntValue overheatDurationCapTicks,
             ForgeConfigSpec.DoubleValue powerArrowSpellLevelBonusPerLevel
     ) {
+        this.magicArrowCatalystItems = magicArrowCatalystItems;
         this.magicReadyDrawTicksMultiplier = magicReadyDrawTicksMultiplier;
         this.overheatAdditionalManaLinearMultiplier = overheatAdditionalManaLinearMultiplier;
         this.overheatAdditionalManaQuadraticMultiplier = overheatAdditionalManaQuadraticMultiplier;
@@ -39,6 +47,9 @@ public final class ElementalBowServerConfig {
 
     public static ElementalBowServerConfig define(ForgeConfigSpec.Builder builder) {
         builder.push("ElementalBow");
+        var magicArrowCatalystItems = builder
+                .comment("Item IDs accepted as Elemental Bow magic mode arrow catalysts. Empty list makes non-Synthesis survival casts unusable.")
+                .defineListAllowEmpty("magicArrowCatalystItems", List.of("minecraft:arrow"), ElementalBowServerConfig::isItemId);
         var magicReadyDrawTicksMultiplier = builder
                 .comment("Multiplier applied to Elemental Bow magic mode required draw ticks from its mode profile.")
                 .defineInRange("magicReadyDrawTicksMultiplier", 1.0D, 0.0D, 100.0D);
@@ -63,6 +74,7 @@ public final class ElementalBowServerConfig {
         builder.pop();
 
         return new ElementalBowServerConfig(
+                magicArrowCatalystItems,
                 magicReadyDrawTicksMultiplier,
                 overheatAdditionalManaLinearMultiplier,
                 overheatAdditionalManaQuadraticMultiplier,
@@ -71,6 +83,19 @@ public final class ElementalBowServerConfig {
                 overheatDurationCapTicks,
                 powerArrowSpellLevelBonusPerLevel
         );
+    }
+
+    public List<String> magicArrowCatalystItems() {
+        return Objects.requireNonNullElseGet(magicArrowCatalystItemsOverride, () -> magicArrowCatalystItems.get().stream()
+                .map(String::valueOf)
+                .toList());
+    }
+
+    public List<ResourceLocation> magicArrowCatalystItemIds() {
+        return magicArrowCatalystItems().stream()
+                .map(ResourceLocation::tryParse)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     public double magicReadyDrawTicksMultiplier() {
@@ -127,5 +152,13 @@ public final class ElementalBowServerConfig {
         this.overheatDurationMinTicksOverride = overheatDurationMinTicks;
         this.overheatDurationCapTicksOverride = overheatDurationCapTicks;
         this.powerArrowSpellLevelBonusPerLevelOverride = powerArrowSpellLevelBonusPerLevel;
+    }
+
+    public void setMagicArrowCatalystItemsForGameTest(List<String> magicArrowCatalystItems) {
+        this.magicArrowCatalystItemsOverride = List.copyOf(magicArrowCatalystItems);
+    }
+
+    private static boolean isItemId(Object value) {
+        return value instanceof String text && text.contains(":") && ResourceLocation.tryParse(text) != null;
     }
 }
