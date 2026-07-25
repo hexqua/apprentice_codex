@@ -2,24 +2,24 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
     "B": {
       "tag": "minecraft:buttons"
     },
     "D": {
       "item": "minecraft:diamond"
     },
-    "L": {
-      "item": "irons_spellbooks:cooldown_upgrade_orb"
-    },
     "M": {
-      "item": "irons_spellbooks:mithril_ingot"
+      "item": "irons_spellbooks:mithril_scrap"
     },
     "R": {
       "item": "minecraft:redstone"
     }
   },
   "pattern": [
-    "DML",
+    "DAM",
     " DR",
     " BD"
   ],
