@@ -985,6 +985,16 @@ final class LuminousDeviceGameTestScenarios {
                         "A targeted clean attempt with no lights should still consume the action and apply cooldown");
 
                 player.getCooldowns().removeCooldown(ItemRegistry.LUMINOUS_DEVICE.get());
+                player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.ADVENTURE);
+                var protectedCenter = new BlockPos(8, 1, 6);
+                helper.setBlock(protectedCenter, BlockRegistry.MAGE_LIGHT_TORCH.get());
+                var manaBeforeProtectedClean = LuminousDevice.getStoredMana(deviceStack);
+                useDeviceOn(helper, player, protectedCenter);
+                helper.assertBlockPresent(BlockRegistry.MAGE_LIGHT_TORCH.get(), protectedCenter);
+                helper.assertTrue(LuminousDevice.getStoredMana(deviceStack) == manaBeforeProtectedClean,
+                        "Clean mode should respect player block-breaking permissions");
+
+                player.getCooldowns().removeCooldown(ItemRegistry.LUMINOUS_DEVICE.get());
                 var airResult = deviceStack.getItem().use(
                         helper.getLevel(),
                         player,

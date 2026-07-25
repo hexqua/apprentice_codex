@@ -523,6 +523,9 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return InteractionResult.PASS;
+        }
 
         var radius = ApprenticeCodexServerConfig.luminousDeviceCleanRadius();
         var center = context.getClickedPos();
@@ -542,7 +545,8 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
                 continue;
             }
 
-            if (level.destroyBlock(pos, false)) {
+            // 保護MODの破壊イベントやプレイヤー権限判定を通し、許可された光源だけを掃除する。
+            if (BlockTools.tryBreakBlockByPlayerHands(level, serverPlayer, pos, ItemStack.EMPTY)) {
                 removedCount++;
                 recoveredMana += blockRecovery;
             }
