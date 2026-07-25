@@ -1,5 +1,5 @@
 {
-  "parent": "apprenticecodex:apprentice_codex/root",
+  "parent": "apprenticecodex:apprentice_codex/craft_explorers_codex",
   "criteria": {
     "crafted_explorers_cane": {
       "conditions": {
