@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_iron_spellcaster_gun": {
+    "has_magic_cloth": {
       "conditions": {
         "items": [
           {
-            "items": "apprenticecodex:iron_spellcaster_gun"
+            "items": "irons_spellbooks:magic_cloth"
           }
         ]
       },
@@ -21,7 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_iron_spellcaster_gun"
+      "has_magic_cloth"
     ]
   ],
   "rewards": {
