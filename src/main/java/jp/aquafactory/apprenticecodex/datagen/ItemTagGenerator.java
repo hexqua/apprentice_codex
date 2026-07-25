@@ -498,7 +498,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SPELL_DOMINATOR_ROUND.get(),
                 ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get()
         );
-        // todo:他MOD含め一通り光源アイテムを網羅する(実装から追跡はしない)
+        // 外部 MOD が未導入でもタグ読込を失敗させず、導入時だけ光源を収納対象へ加える。
         tag(TagRegistry.Items.LUMINOUS_DEVICE_STORABLE).add(
                 Items.TORCH,
                 Items.SOUL_TORCH,
@@ -518,7 +518,27 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 io.redspace.ironsspellbooks.registries.ItemRegistry.FIREFLY_JAR_ITEM.get(),
                 io.redspace.ironsspellbooks.registries.ItemRegistry.BRAZIER_ITEM.get(),
                 io.redspace.ironsspellbooks.registries.ItemRegistry.SOUL_BRAZIER_ITEM.get()
-        ).addTag(ItemTags.CANDLES);
+        ).addTag(ItemTags.CANDLES)
+                .addOptionalTag(ResourceLocation.fromNamespaceAndPath("quark", "crystal_lamp"))
+                .addOptionalTag(ResourceLocation.fromNamespaceAndPath("supplementaries", "candle_holders"))
+                .addOptionalTag(ResourceLocation.fromNamespaceAndPath("supplementaries", "sconces"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("create", "experience_block"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("create", "rose_quartz_lamp"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("quark", "blaze_lantern"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("quark", "duskbound_lantern"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("quark", "stone_lamp"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("quark", "stone_brick_lamp"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("quark", "paper_lantern"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("quark", "paper_lantern_sakura"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("supplementaries", "sconce_lever"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("supplementaries", "stone_lamp"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("supplementaries", "blackstone_lamp"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("supplementaries", "deepslate_lamp"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("supplementaries", "end_stone_lamp"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("supplementaries", "fire_pit"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("suppsquared", "copper_lantern"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("suppsquared", "crimson_lantern"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("suppsquared", "brass_lantern"));
         tag(TagRegistry.Items.LUMINOUS_DEVICE_CLEAN_UPGRADE_CATALYSTS).add(
                 io.redspace.ironsspellbooks.registries.ItemRegistry.SHRIVING_STONE.get()
         );
