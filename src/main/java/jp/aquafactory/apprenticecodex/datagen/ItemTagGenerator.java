@@ -18,6 +18,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -500,9 +501,24 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         // todo:他MOD含め一通り光源アイテムを網羅する(実装から追跡はしない)
         tag(TagRegistry.Items.LUMINOUS_DEVICE_STORABLE).add(
                 Items.TORCH,
+                Items.SOUL_TORCH,
+                Items.REDSTONE_TORCH,
                 Items.LANTERN,
-                Items.GLOWSTONE
-        );
+                Items.SOUL_LANTERN,
+                Items.END_ROD,
+                Items.SEA_LANTERN,
+                Items.REDSTONE_LAMP,
+                Items.GLOWSTONE,
+                Items.SHROOMLIGHT,
+                Items.OCHRE_FROGLIGHT,
+                Items.PEARLESCENT_FROGLIGHT,
+                Items.VERDANT_FROGLIGHT,
+                Items.CAMPFIRE,
+                Items.SOUL_CAMPFIRE,
+                io.redspace.ironsspellbooks.registries.ItemRegistry.FIREFLY_JAR_ITEM.get(),
+                io.redspace.ironsspellbooks.registries.ItemRegistry.BRAZIER_ITEM.get(),
+                io.redspace.ironsspellbooks.registries.ItemRegistry.SOUL_BRAZIER_ITEM.get()
+        ).addTag(ItemTags.CANDLES);
         tag(TagRegistry.Items.LUMINOUS_DEVICE_CLEAN_UPGRADE_CATALYSTS).add(
                 io.redspace.ironsspellbooks.registries.ItemRegistry.SHRIVING_STONE.get()
         );

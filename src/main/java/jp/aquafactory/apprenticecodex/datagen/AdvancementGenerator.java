@@ -117,7 +117,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 )
                 .save(saver, advancementId("root"), existingFileHelper);
 
-        Advancement.Builder.advancement()
+        var explorer = Advancement.Builder.advancement()
                 .parent(root)
                 .display(ItemRegistry.EXPLORERS_CODEX.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.title"),
@@ -131,7 +131,20 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .save(saver, advancementId("craft_explorers_codex"), existingFileHelper);
 
         Advancement.Builder.advancement()
-                .parent(root)
+                .parent(explorer)
+                .display(ItemRegistry.LUMINOUS_DEVICE.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_luminous_device.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_luminous_device.description"),
+                        null,
+                        AdvancementType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_craft_luminous_device", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.LUMINOUS_DEVICE.getId()))
+                .save(saver, advancementId("craft_craft_luminous_device"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(explorer)
                 .display(ItemRegistry.EXPLORERS_CANE.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_explorers_cane.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_explorers_cane.description"),

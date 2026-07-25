@@ -185,15 +185,17 @@ final class LuminousDeviceGameTestScenarios {
                     "Lantern should be tagged for Luminous Device storage");
             helper.assertTrue(new ItemStack(Items.GLOWSTONE).is(TagRegistry.Items.LUMINOUS_DEVICE_STORABLE),
                     "Glowstone should be tagged for Luminous Device storage");
+            helper.assertTrue(new ItemStack(Items.RED_CANDLE).is(TagRegistry.Items.LUMINOUS_DEVICE_STORABLE),
+                    "Items from nested item tags should be tagged for Luminous Device storage");
             helper.assertFalse(new ItemStack(Items.DIRT).is(TagRegistry.Items.LUMINOUS_DEVICE_STORABLE),
                     "Dirt should not be tagged for Luminous Device storage");
 
             try (var ignored = ApprenticeCodexServerConfig.useLuminousDeviceConfigOverrideForGameTest(1024, 2000)) {
                 var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
-                helper.assertTrue(LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.TORCH, 64)) == 64,
-                        "Luminous Device should accept the first tagged stack");
-                helper.assertTrue(LuminousDevice.getSelectedStack(deviceStack).is(Items.TORCH),
-                        "The first inserted item should become selected");
+                helper.assertTrue(LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.RED_CANDLE, 64)) == 64,
+                        "Luminous Device should accept items supplied through a nested item tag");
+                helper.assertTrue(LuminousDevice.getSelectedStack(deviceStack).is(Items.RED_CANDLE),
+                        "The first item supplied through a nested tag should become selected");
                 helper.assertTrue(LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.LANTERN, 1000)) == 960,
                         "Luminous Device should only accept items up to its shared capacity");
                 helper.assertTrue(LuminousDevice.getStoredItemCount(deviceStack) == 1024,

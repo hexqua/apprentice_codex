@@ -1240,6 +1240,8 @@
   "advancements.apprenticecodex.apprentice_codex.craft_storage_stabilizer.description": "Craft a Storage Stabilizer",
   "advancements.apprenticecodex.apprentice_codex.craft_chargecast_catalystbook.title": "Did I do something again?",
   "advancements.apprenticecodex.apprentice_codex.craft_chargecast_catalystbook.description": "Craft a Catalystbook of Chargecast",
+  "advancements.apprenticecodex.apprentice_codex.craft_luminous_device.title": "It's LUMOS, not LUMINOUS!",
+  "advancements.apprenticecodex.apprentice_codex.craft_luminous_device.description": "Craft a Luminous Device",
 
   "subtitle.apprenticecodex.sound.rifle": "Rifle fires",
   "subtitle.apprenticecodex.sound.suppress_rifle": "Suppressed rifle fires",

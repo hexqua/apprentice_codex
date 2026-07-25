@@ -5,22 +5,19 @@
     "A": {
       "item": "apprenticecodex:arcane_cinder"
     },
-    "B": {
-      "item": "minecraft:blaze_rod"
-    },
     "C": {
       "tag": "forge:chests"
     },
-    "E": {
-      "item": "irons_spellbooks:cinder_essence"
-    },
     "I": {
       "item": "irons_spellbooks:arcane_ingot"
+    },
+    "W": {
+      "tag": "minecraft:planks"
     }
   },
   "pattern": [
-    " EA",
-    " BE",
+    "  A",
+    " W ",
     "IC "
   ],
   "result": {
