@@ -9,8 +9,9 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.compat.create.CreateToolboxLinearBuildBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
 import jp.aquafactory.apprenticecodex.network.Networks;
-import jp.aquafactory.apprenticecodex.network.packet.SyncLinearBuildNotificationPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
@@ -183,17 +184,29 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
     }
 
     private BlockTemplateResult resolveHeldBlockTemplate(Player player) {
-        var offhand = player.getOffhandItem();
-        if (offhand.getItem() instanceof BlockItem) {
-            return validateBlockTemplate(offhand);
+        var offhandResult = resolveHandBlockTemplate(player.getOffhandItem());
+        if (offhandResult.isPresent()) {
+            return offhandResult.get();
         }
 
-        var mainHand = player.getMainHandItem();
-        if (mainHand.getItem() instanceof BlockItem) {
-            return validateBlockTemplate(mainHand);
+        var mainHandResult = resolveHandBlockTemplate(player.getMainHandItem());
+        return mainHandResult.orElseGet(BlockTemplateResult::notBlock);
+    }
+
+    private Optional<BlockTemplateResult> resolveHandBlockTemplate(ItemStack heldStack) {
+        if (heldStack.getItem() instanceof BlockItem) {
+            return Optional.of(validateBlockTemplate(heldStack));
+        }
+        if (!(heldStack.getItem() instanceof LuminousDevice)) {
+            return Optional.empty();
         }
 
-        return BlockTemplateResult.notBlock();
+        var selectedStack = LuminousDevice.getSelectedStack(heldStack);
+        if (selectedStack.isEmpty()) {
+            // 未選択や将来の魔法選択では、この手をテンプレート候補とせず反対側へフォールバックする。
+            return Optional.empty();
+        }
+        return Optional.of(validateBlockTemplate(selectedStack));
     }
 
     private BlockTemplateResult validateBlockTemplate(ItemStack stack) {
@@ -454,6 +467,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         addOwnedChestedHorseSources(player, sources);
         addCuriosItemHandlerSources(player, sources);
         addInventoryItemHandlerSources(player, sources);
+        addLuminousDeviceSources(player, sources);
         addShulkerSources(player, sources);
         addBundleSources(player, sources);
         addInventorySlotSources(player, sources, 9, PLAYER_INVENTORY_ITEM_SLOTS);
@@ -538,6 +552,14 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         return stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof ShulkerBoxBlock;
     }
 
+    private void addLuminousDeviceSources(ServerPlayer player, List<LinearBuildItemSource> sources) {
+        forEachInventoryStack(player.getInventory(), (slot, stack) -> {
+            if (stack.getItem() instanceof LuminousDevice) {
+                sources.add(new LuminousDeviceSource(stack, player.getInventory()));
+            }
+        });
+    }
+
     private void addShulkerSources(ServerPlayer player, List<LinearBuildItemSource> sources) {
         if (!ApprenticeCodexServerConfig.linearBuildConfig().enableShulkerBoxSources()) {
             return;
@@ -614,7 +636,12 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
     private void sendRemainingBlockNotification(ServerPlayer player, ItemStack blockTemplate, long remainingBlocks) {
         var iconStack = blockTemplate.copy();
         iconStack.setCount(1);
-        Networks.sendToPlayer(player, new SyncLinearBuildNotificationPacket(getSpellResource().toString(), iconStack, remainingBlocks));
+        Networks.sendToPlayer(player, new SyncRemainingCountNotificationPacket(
+                getSpellResource().toString(),
+                iconStack,
+                remainingBlocks,
+                SyncRemainingCountNotificationPacket.DisplayType.ITEM_REMAINING
+        ));
     }
 
     private void sendBlockTemplateError(LivingEntity entity, BlockTemplateResult result) {
@@ -869,6 +896,45 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         @Override
         public long countMatchingItems(ItemStack template) {
             return 0L;
+        }
+    }
+
+    private static final class LuminousDeviceSource implements LinearBuildItemSource {
+        private final ItemStack deviceStack;
+        private final Inventory inventory;
+
+        private LuminousDeviceSource(ItemStack deviceStack, Inventory inventory) {
+            this.deviceStack = deviceStack;
+            this.inventory = inventory;
+        }
+
+        @Override
+        public Component label() {
+            return deviceStack.getHoverName();
+        }
+
+        @Override
+        public boolean shouldNotifyRetrieved() {
+            return true;
+        }
+
+        @Override
+        public boolean hasMatchingItem(ItemStack template) {
+            return LuminousDevice.getStoredCount(deviceStack, template) > 0;
+        }
+
+        @Override
+        public boolean consumeOne(ItemStack template) {
+            var consumed = LuminousDevice.consumeOneStored(deviceStack, template);
+            if (consumed) {
+                inventory.setChanged();
+            }
+            return consumed;
+        }
+
+        @Override
+        public long countMatchingItems(ItemStack template) {
+            return LuminousDevice.getStoredCount(deviceStack, template);
         }
     }
 

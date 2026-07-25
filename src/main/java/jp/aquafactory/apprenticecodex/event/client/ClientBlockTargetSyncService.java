@@ -36,7 +36,7 @@ public final class ClientBlockTargetSyncService {
             return false;
         }
 
-        return trySend(spellData, player, resolveSpellLevel(spellData, player), quickCastSlot, true);
+        return trySend(spellData, player, resolveSpellLevel(spellData, player), quickCastSlot, true, null);
     }
 
     public static boolean trySendForRightClick(RightClickSpellResolver.ResolvedRightClickSpell resolvedSpell) {
@@ -45,7 +45,14 @@ public final class ClientBlockTargetSyncService {
             return false;
         }
 
-        return trySend(resolvedSpell.spellData(), player, resolvedSpell.spellLevel(), -1, false);
+        return trySend(
+                resolvedSpell.spellData(),
+                player,
+                resolvedSpell.spellLevel(),
+                -1,
+                false,
+                resolvedSpell.targetingRangeOverride()
+        );
     }
 
     public static BlockTargetData captureForEmbeddedCast(SpellData spellData) {
@@ -64,7 +71,7 @@ public final class ClientBlockTargetSyncService {
             return new BlockTargetData();
         }
 
-        var targetData = captureTargetData(spell, player, resolveSpellLevel(spellData, player), targetingSpell);
+        var targetData = captureTargetData(spell, player, resolveSpellLevel(spellData, player), targetingSpell, null);
         ClientPlacementPreviewManager.rememberPendingTarget(spellResource, targetData);
         return targetData;
     }
@@ -75,7 +82,14 @@ public final class ClientBlockTargetSyncService {
                 .toList();
     }
 
-    private static boolean trySend(SpellData spellData, Player player, int spellLevel, int quickCastSlot, boolean initiateCast) {
+    private static boolean trySend(
+            SpellData spellData,
+            Player player,
+            int spellLevel,
+            int quickCastSlot,
+            boolean initiateCast,
+            @Nullable Double targetingRangeOverride
+    ) {
         if (spellData == null || spellData == SpellData.EMPTY) {
             return false;
         }
@@ -90,7 +104,7 @@ public final class ClientBlockTargetSyncService {
             return false;
         }
 
-        var targetData = captureTargetData(spell, player, spellLevel, targetingSpell);
+        var targetData = captureTargetData(spell, player, spellLevel, targetingSpell, targetingRangeOverride);
         // 詠唱開始パケットは Iron's の入力 drain を置き換えるため、同 tick でも捨てない。
         if (!initiateCast && shouldSuppressDuplicate(player.level().getGameTime(), spellResource, player.getMainHandItem(),
                 player.getOffhandItem(), targetData, quickCastSlot, initiateCast)) {
@@ -110,7 +124,8 @@ public final class ClientBlockTargetSyncService {
     }
 
     private static BlockTargetData captureTargetData(Object spell, Player player, int spellLevel,
-                                                     IClientBlockTargetingSpell targetingSpell) {
+                                                     IClientBlockTargetingSpell targetingSpell,
+                                                     @Nullable Double targetingRangeOverride) {
         if (spell instanceof IClientBlockTargetCaptureSpell customCaptureSpell) {
             return customCaptureSpell.captureClientBlockTarget(player, spellLevel);
         }
@@ -125,7 +140,9 @@ public final class ClientBlockTargetSyncService {
 
         return ClientBlockTargetingHelper.captureOutlinedTarget(
                 player,
-                targetingSpell.getClientBlockTargetingRange(spellLevel, player)
+                targetingRangeOverride == null
+                        ? targetingSpell.getClientBlockTargetingRange(spellLevel, player)
+                        : targetingRangeOverride
         );
     }
 

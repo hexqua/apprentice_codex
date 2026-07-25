@@ -1,5 +1,9 @@
 package jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench;
 
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceUpgrade;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
@@ -25,6 +29,9 @@ public final class SpellcasterWorkbenchRecipe implements Recipe<Container> {
     private final List<SizedIngredient> ingredients;
     private final List<ItemStack> results;
     private final int priority;
+    private final @Nullable LuminousDeviceUpgrade luminousDeviceUpgrade;
+    private final @Nullable ResourceLocation requiredSpell;
+    private final int minimumSpellLevel;
 
     public SpellcasterWorkbenchRecipe(
             ResourceLocation id,
@@ -32,20 +39,44 @@ public final class SpellcasterWorkbenchRecipe implements Recipe<Container> {
             List<ItemStack> results,
             int priority
     ) {
+        this(id, ingredients, results, priority, null, null, 1);
+    }
+
+    public SpellcasterWorkbenchRecipe(
+            ResourceLocation id,
+            List<SizedIngredient> ingredients,
+            List<ItemStack> results,
+            int priority,
+            @Nullable LuminousDeviceUpgrade luminousDeviceUpgrade,
+            @Nullable ResourceLocation requiredSpell,
+            int minimumSpellLevel
+    ) {
         this.id = id;
         this.ingredients = sanitizeIngredients(ingredients);
         this.results = sanitizeResults(results);
         this.priority = priority;
+        this.luminousDeviceUpgrade = luminousDeviceUpgrade;
+        this.requiredSpell = requiredSpell;
+        this.minimumSpellLevel = Math.max(1, minimumSpellLevel);
     }
 
     @Override
     public boolean matches(@NotNull Container container, @NotNull Level level) {
-        return findMatchingSlots(container) != null;
+        var matchedSlots = findMatchingSlots(container);
+        return matchedSlots != null && canApplyOperation(container, matchedSlots);
     }
 
     @Override
     public @NotNull ItemStack assemble(@NotNull Container container, @NotNull RegistryAccess registryAccess) {
-        return getPrimaryResultTemplate();
+        var matchedSlots = findMatchingSlots(container);
+        if (matchedSlots == null || !canApplyOperation(container, matchedSlots)) {
+            return ItemStack.EMPTY;
+        }
+        if (luminousDeviceUpgrade == null) {
+            return getPrimaryResultTemplate();
+        }
+        var deviceStack = findLuminousDevice(container, matchedSlots);
+        return LuminousDevice.createUpgradeResult(deviceStack, luminousDeviceUpgrade);
     }
 
     @Override
@@ -96,13 +127,17 @@ public final class SpellcasterWorkbenchRecipe implements Recipe<Container> {
         if (results.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        return results.get(0).copy();
+        var result = results.get(0).copy();
+        if (luminousDeviceUpgrade != null) {
+            LuminousDevice.addUpgrade(result, luminousDeviceUpgrade);
+        }
+        return result;
     }
 
     public @NotNull List<ItemStack> getResultTemplates() {
         var copies = new ArrayList<ItemStack>(results.size());
-        for (var result : results) {
-            copies.add(result.copy());
+        for (var index = 0; index < results.size(); ++index) {
+            copies.add(index == 0 ? getPrimaryResultTemplate() : results.get(index).copy());
         }
         return copies;
     }
@@ -111,7 +146,38 @@ public final class SpellcasterWorkbenchRecipe implements Recipe<Container> {
         return priority;
     }
 
-    public @Nullable int[] findMatchingSlots(@NotNull Container container) {
+    public @Nullable LuminousDeviceUpgrade getLuminousDeviceUpgrade() {
+        return luminousDeviceUpgrade;
+    }
+
+    public @Nullable ResourceLocation getRequiredSpell() {
+        return requiredSpell;
+    }
+
+    public int getMinimumSpellLevel() {
+        return minimumSpellLevel;
+    }
+
+    public boolean matchesIngredientItem(int ingredientIndex, ItemStack stack) {
+        if (ingredientIndex < 0
+                || ingredientIndex >= ingredients.size()
+                || !ingredients.get(ingredientIndex).ingredient().test(stack)) {
+            return false;
+        }
+        if (luminousDeviceUpgrade == null) {
+            return true;
+        }
+        if (stack.getItem() instanceof LuminousDevice) {
+            return !LuminousDevice.hasUpgrade(stack, luminousDeviceUpgrade);
+        }
+        if (requiredSpell != null
+                && stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get())) {
+            return isRequiredSpellScroll(stack);
+        }
+        return true;
+    }
+
+    public int[] findMatchingSlots(@NotNull Container container) {
         if (container.getContainerSize() < INPUT_SLOT_COUNT || ingredients.size() != INPUT_SLOT_COUNT) {
             return null;
         }
@@ -147,6 +213,55 @@ public final class SpellcasterWorkbenchRecipe implements Recipe<Container> {
         }
 
         return false;
+    }
+
+    private boolean canApplyOperation(Container container, int[] matchedSlots) {
+        if (luminousDeviceUpgrade == null) {
+            return true;
+        }
+        var deviceStack = findLuminousDevice(container, matchedSlots);
+        if (deviceStack.isEmpty() || LuminousDevice.hasUpgrade(deviceStack, luminousDeviceUpgrade)) {
+            return false;
+        }
+        if (requiredSpell == null) {
+            return true;
+        }
+        for (var slot : matchedSlots) {
+            var stack = container.getItem(slot);
+            if (!stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get())
+                    || !ISpellContainer.isSpellContainer(stack)) {
+                continue;
+            }
+            if (isRequiredSpellScroll(stack)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isRequiredSpellScroll(ItemStack stack) {
+        if (requiredSpell == null
+                || !stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get())
+                || !ISpellContainer.isSpellContainer(stack)) {
+            return false;
+        }
+        var spellContainer = ISpellContainer.get(stack);
+        var spellData = spellContainer == null ? SpellData.EMPTY : spellContainer.getSpellAtIndex(0);
+        return spellData != null
+                && spellData != SpellData.EMPTY
+                && spellData.getSpell() != null
+                && requiredSpell.equals(spellData.getSpell().getSpellResource())
+                && spellData.getLevel() >= minimumSpellLevel;
+    }
+
+    private static ItemStack findLuminousDevice(Container container, int[] matchedSlots) {
+        for (var slot : matchedSlots) {
+            var stack = container.getItem(slot);
+            if (stack.getItem() instanceof LuminousDevice) {
+                return stack;
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     private static List<SizedIngredient> sanitizeIngredients(List<SizedIngredient> ingredients) {

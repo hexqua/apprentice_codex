@@ -1,0 +1,88 @@
+package jp.aquafactory.apprenticecodex.network.packet;
+
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceConfigState;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.function.Supplier;
+
+public record SyncLuminousDeviceConfigPacket(
+        int maxStoredItems,
+        int maxStoredMana,
+        int upgradedMaxStoredMana,
+        int cleanRadius,
+        double mageLightExtendedRange
+) {
+    public SyncLuminousDeviceConfigPacket(int maxStoredItems, int maxStoredMana, int cleanRadius) {
+        this(
+                maxStoredItems,
+                maxStoredMana,
+                jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig.DEFAULT_UPGRADED_MAX_STORED_MANA,
+                cleanRadius,
+                jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig.DEFAULT_MAGE_LIGHT_EXTENDED_RANGE
+        );
+    }
+
+    public SyncLuminousDeviceConfigPacket(
+            int maxStoredItems,
+            int maxStoredMana,
+            int cleanRadius,
+            double mageLightExtendedRange
+    ) {
+        this(
+                maxStoredItems,
+                maxStoredMana,
+                jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig.DEFAULT_UPGRADED_MAX_STORED_MANA,
+                cleanRadius,
+                mageLightExtendedRange
+        );
+    }
+
+    public static void encode(SyncLuminousDeviceConfigPacket packet, FriendlyByteBuf buffer) {
+        buffer.writeVarInt(packet.maxStoredItems);
+        buffer.writeVarInt(packet.maxStoredMana);
+        buffer.writeVarInt(packet.upgradedMaxStoredMana);
+        buffer.writeVarInt(packet.cleanRadius);
+        buffer.writeDouble(packet.mageLightExtendedRange);
+    }
+
+    public static SyncLuminousDeviceConfigPacket decode(FriendlyByteBuf buffer) {
+        return new SyncLuminousDeviceConfigPacket(
+                buffer.readVarInt(),
+                buffer.readVarInt(),
+                buffer.readVarInt(),
+                buffer.readVarInt(),
+                buffer.readDouble()
+        );
+    }
+
+    public static void handle(
+            SyncLuminousDeviceConfigPacket packet,
+            Supplier<NetworkEvent.Context> contextSupplier
+    ) {
+        var context = contextSupplier.get();
+        context.enqueueWork(() ->
+                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientHandler.handle(packet))
+        );
+        context.setPacketHandled(true);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private static final class ClientHandler {
+        private ClientHandler() {
+        }
+
+        private static void handle(SyncLuminousDeviceConfigPacket packet) {
+            LuminousDeviceConfigState.set(
+                    packet.maxStoredItems,
+                    packet.maxStoredMana,
+                    packet.upgradedMaxStoredMana,
+                    packet.cleanRadius,
+                    packet.mageLightExtendedRange
+            );
+        }
+    }
+}

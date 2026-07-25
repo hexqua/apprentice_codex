@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientAnchorBlinkPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmLuminousDeviceSelectionPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmSneakSelectionPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientEpicFightAttackcastRingTargetsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
@@ -37,7 +38,9 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncChargecastCatalystbookC
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncLinearBuildNotificationPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncLuminousDeviceConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncMageLightConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaShieldCharmConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterActivePacket;
@@ -69,7 +72,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "63";
+    private static final String PROTOCOL_VERSION = "68";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -159,6 +162,13 @@ public final class Networks {
                 ClientConfirmElementalBowModePacket::encode,
                 ClientConfirmElementalBowModePacket::decode,
                 ClientConfirmElementalBowModePacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                ClientConfirmLuminousDeviceSelectionPacket.class,
+                ClientConfirmLuminousDeviceSelectionPacket::encode,
+                ClientConfirmLuminousDeviceSelectionPacket::decode,
+                ClientConfirmLuminousDeviceSelectionPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
@@ -304,6 +314,22 @@ public final class Networks {
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
+                SyncLuminousDeviceConfigPacket.class,
+                SyncLuminousDeviceConfigPacket::encode,
+                SyncLuminousDeviceConfigPacket::decode,
+                SyncLuminousDeviceConfigPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncMageLightConfigPacket.class,
+                SyncMageLightConfigPacket::encode,
+                SyncMageLightConfigPacket::decode,
+                SyncMageLightConfigPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
                 SyncScarletThirstHealthPacket.class,
                 SyncScarletThirstHealthPacket::encode,
                 SyncScarletThirstHealthPacket::decode,
@@ -406,10 +432,10 @@ public final class Networks {
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
-                SyncLinearBuildNotificationPacket.class,
-                SyncLinearBuildNotificationPacket::encode,
-                SyncLinearBuildNotificationPacket::decode,
-                SyncLinearBuildNotificationPacket::handle
+                SyncRemainingCountNotificationPacket.class,
+                SyncRemainingCountNotificationPacket::encode,
+                SyncRemainingCountNotificationPacket::decode,
+                SyncRemainingCountNotificationPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

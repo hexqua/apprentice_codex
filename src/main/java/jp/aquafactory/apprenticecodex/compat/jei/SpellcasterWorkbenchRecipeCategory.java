@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.compat.jei;
 
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -59,7 +60,7 @@ public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprentice
         for (var index = 0; index < Math.min(INPUT_POSITIONS.length, ingredients.size()); ++index) {
             var sizedIngredient = ingredients.get(index);
             var slot = builder.addInputSlot(INPUT_POSITIONS[index][0], INPUT_POSITIONS[index][1]).setStandardSlotBackground();
-            var ingredientStacks = copyIngredientStacks(sizedIngredient.ingredient(), sizedIngredient.count());
+            var ingredientStacks = createDisplayedIngredientStacks(recipe, sizedIngredient);
             if (ingredientStacks.isEmpty()) {
                 slot.addIngredients(sizedIngredient.ingredient());
             } else {
@@ -90,7 +91,32 @@ public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprentice
             drawLabel(guiGraphics, ARCHIVISTS_GRIMOIRE_UPGRADE_HINT, 74, 36);
         } else if (isSpellThrowableCardRecipe(recipe.getId())) {
             drawLabel(guiGraphics, SPELL_THROWABLE_CARD_CRAFT_HINT, 74, 36);
+        } else if (recipe.getLuminousDeviceUpgrade() != null) {
+            drawLabel(
+                    guiGraphics,
+                    Component.translatable(
+                            "jei.apprenticecodex.luminous_device.upgrade_hint",
+                            Component.translatable(recipe.getLuminousDeviceUpgrade().translationKey())
+                    ),
+                    74,
+                    36
+            );
         }
+    }
+
+    private static java.util.List<ItemStack> createDisplayedIngredientStacks(
+            SpellcasterWorkbenchRecipe recipe,
+            SpellcasterWorkbenchRecipe.SizedIngredient sizedIngredient
+    ) {
+        if (recipe.getRequiredSpell() != null) {
+            var scroll = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+            if (sizedIngredient.ingredient().test(scroll)) {
+                var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(recipe.getRequiredSpell());
+                ISpellContainer.createScrollContainer(spell, recipe.getMinimumSpellLevel(), scroll);
+                return java.util.List.of(scroll.copyWithCount(sizedIngredient.count()));
+            }
+        }
+        return copyIngredientStacks(sizedIngredient.ingredient(), sizedIngredient.count());
     }
 
     private static boolean isSpellThrowableCardRecipe(ResourceLocation recipeId) {

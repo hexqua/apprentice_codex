@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "apprenticecodex:arcane_cinder"
+    },
+    "C": {
+      "tag": "forge:chests"
+    },
+    "I": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "W": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "pattern": [
+    "  A",
+    " W ",
+    "IC "
+  ],
+  "result": {
+    "item": "apprenticecodex:luminous_device"
+  },
+  "show_notification": true
+}

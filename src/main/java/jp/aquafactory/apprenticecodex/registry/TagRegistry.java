@@ -65,6 +65,16 @@ public final class TagRegistry {
 
         public static final TagKey<Item> SPELLCASTER_AMMO_POUCH_STORABLE =
                 createItemTag("spellcaster_ammo_pouch_storable");
+        public static final TagKey<Item> LUMINOUS_DEVICE_STORABLE =
+                createItemTag("luminous_device_storable");
+        public static final TagKey<Item> LUMINOUS_DEVICE_CLEAN_UPGRADE_CATALYSTS =
+                createItemTag("luminous_device_clean_upgrade_catalysts");
+        public static final TagKey<Item> LUMINOUS_DEVICE_CLEAN_UPGRADE_MATERIALS =
+                createItemTag("luminous_device_clean_upgrade_materials");
+        public static final TagKey<Item> LUMINOUS_DEVICE_MAGE_LIGHT_UPGRADE_MATERIALS =
+                createItemTag("luminous_device_mage_light_upgrade_materials");
+        public static final TagKey<Item> LUMINOUS_DEVICE_WIZARDLAMP_UPGRADE_MATERIALS =
+                createItemTag("luminous_device_wizardlamp_upgrade_materials");
         public static final TagKey<Item> SPELLCASTER_QUIVER_STORABLE =
                 createItemTag("spellcaster_quiver_storable");
         public static final TagKey<Item> SPELLCASTER_EMPTY_CASINGS =

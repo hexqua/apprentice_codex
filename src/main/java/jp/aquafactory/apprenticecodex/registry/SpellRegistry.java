@@ -77,6 +77,7 @@ import jp.aquafactory.apprenticecodex.spell.tirovolley.TiroVolley;
 import jp.aquafactory.apprenticecodex.spell.totemofpermafrost.TotemOfPermafrost;
 import jp.aquafactory.apprenticecodex.spell.treasuredivination.TreasureDivination;
 import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLuna;
+import jp.aquafactory.apprenticecodex.spell.wizardlamp.Wizardlamp;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatter;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -153,6 +154,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> MYSTIC_SHIELD = reg("mystic_shield", MysticShield::new);
     public static final RegistryObject<AbstractSpell> DIVINE_POSSESSION = reg("divine_possession", DivinePossession::new);
     public static final RegistryObject<AbstractSpell> MANA_MENDING = reg("mana_mending", ManaMending::new);
+    public static final RegistryObject<AbstractSpell> WIZARDLAMP = reg("wizardlamp", Wizardlamp::new);
 
     // 氷.
     public static final RegistryObject<AbstractSpell> FROST_RUNE = reg("frost_rune", FrostRune::new);

@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlock;
 import jp.aquafactory.apprenticecodex.spell.otherworldlens.OtherworldLensBlock;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlock;
 import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHoleBlock;
+import jp.aquafactory.apprenticecodex.spell.wizardlamp.WizardlampLanternBlock;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -32,6 +33,9 @@ public final class BlockRegistry {
 
     public static final RegistryObject<Block> MAGE_LIGHT_TORCH =
             BLOCKS.register("mage_light_torch", MageLightTorchBlock::new);
+
+    public static final RegistryObject<Block> WIZARDLAMP_LANTERN =
+            BLOCKS.register("wizardlamp_lantern", WizardlampLanternBlock::new);
 
     public static final RegistryObject<Block> FROST_RUNE_TRAP =
             BLOCKS.register("frost_rune_trap", FrostRuneTrapBlock::new);

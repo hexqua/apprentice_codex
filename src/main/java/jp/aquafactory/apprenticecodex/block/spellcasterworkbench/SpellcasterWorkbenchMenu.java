@@ -495,13 +495,14 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
         var sources = collectInventorySources();
         var transfers = new ArrayList<PlannedTransfer>();
-        if (!planIngredientTransfers(ingredients, targetSlots, 0, sources, transfers)) {
+        if (!planIngredientTransfers(recipe, ingredients, targetSlots, 0, sources, transfers)) {
             return null;
         }
         return List.copyOf(transfers);
     }
 
     private boolean planIngredientTransfers(
+            SpellcasterWorkbenchRecipe recipe,
             List<SpellcasterWorkbenchRecipe.SizedIngredient> ingredients,
             int[] targetSlots,
             int ingredientIndex,
@@ -515,17 +516,19 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         var ingredient = ingredients.get(ingredientIndex);
         var targetSlotIndex = targetSlots[ingredientIndex];
         var targetStack = container.getItem(targetSlotIndex);
-        if (!targetStack.isEmpty() && !ingredient.test(targetStack)) {
+        if (!targetStack.isEmpty()
+                && (!ingredient.test(targetStack) || !recipe.matchesIngredientItem(ingredientIndex, targetStack))) {
             return false;
         }
 
-        var prototypeCandidates = collectPrototypeCandidates(ingredient, targetStack, sources);
+        var prototypeCandidates = collectPrototypeCandidates(recipe, ingredientIndex, ingredient, targetStack, sources);
         for (var prototypeCandidate : prototypeCandidates) {
             var compatibleSources = new ArrayList<InventorySourceState>();
             var availableCount = 0;
             for (var source : sources) {
                 if (source.remainingCount() <= 0
                         || !ingredient.ingredient().test(source.stack())
+                        || !recipe.matchesIngredientItem(ingredientIndex, source.stack())
                         || !canStacksMerge(prototypeCandidate.stack(), source.stack())) {
                     continue;
                 }
@@ -560,7 +563,14 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             }
 
             if (remainingNeed <= 0
-                    && planIngredientTransfers(ingredients, targetSlots, ingredientIndex + 1, sources, transfers)) {
+                    && planIngredientTransfers(
+                    recipe,
+                    ingredients,
+                    targetSlots,
+                    ingredientIndex + 1,
+                    sources,
+                    transfers
+            )) {
                 return true;
             }
 
@@ -571,13 +581,17 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     }
 
     private @NotNull List<InventorySourceState> collectPrototypeCandidates(
+            SpellcasterWorkbenchRecipe recipe,
+            int ingredientIndex,
             SpellcasterWorkbenchRecipe.SizedIngredient ingredient,
             ItemStack targetStack,
             List<InventorySourceState> sources
     ) {
         var candidates = new ArrayList<InventorySourceState>();
         for (var source : sources) {
-            if (source.remainingCount() <= 0 || !ingredient.ingredient().test(source.stack())) {
+            if (source.remainingCount() <= 0
+                    || !ingredient.ingredient().test(source.stack())
+                    || !recipe.matchesIngredientItem(ingredientIndex, source.stack())) {
                 continue;
             }
             if (!targetStack.isEmpty() && !canStacksMerge(targetStack, source.stack())) {
@@ -831,13 +845,19 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
     private @Nullable SpellcasterWorkbenchRecipe getActiveRecipe() {
         var selection = getSelectedSelection();
-        if (selection == null) {
-            return null;
+        var level = playerInventory.player.level();
+        if (selection != null) {
+            for (var recipe : selection.recipes()) {
+                if (recipe.matches(container, level)) {
+                    return recipe;
+                }
+            }
         }
 
-        var level = playerInventory.player.level();
-        for (var recipe : selection.recipes()) {
-            if (recipe.matches(container, level)) {
+        // JEI転送や手置きではレシピアイコンが選択されないため、入力から静的レシピを解決する。
+        for (var recipe : level.getRecipeManager()
+                .getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get())) {
+            if (ProcessingRecipeDenylist.isAllowed(recipe) && recipe.matches(container, level)) {
                 return recipe;
             }
         }
@@ -870,7 +890,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     private @NotNull ItemStack getActiveResult() {
         var activeRecipe = getActiveRecipe();
         if (activeRecipe != null) {
-            return activeRecipe.getPrimaryResultTemplate();
+            return activeRecipe.assemble(container, playerInventory.player.level().registryAccess());
         }
 
         var spellExtractionAttempt = getSpellExtractionAttempt();
@@ -963,6 +983,8 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     private static @NotNull List<RecipeSelection> buildSelectableRecipeGroups(RecipeManager recipeManager) {
         var sortedRecipes = new ArrayList<>(recipeManager.getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get()).stream()
                 .filter(ProcessingRecipeDenylist::isAllowed)
+                // Luminous Device は一品ずつ状態を引き継ぐ加工なので、大量生産用ボタンには表示しない。
+                .filter(recipe -> recipe.getLuminousDeviceUpgrade() == null)
                 .toList());
         sortedRecipes.sort(Comparator
                 .comparingInt(SpellcasterWorkbenchRecipe::getPriority)

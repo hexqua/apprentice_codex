@@ -9,9 +9,11 @@ import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEnti
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticlePaletteCache;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchScreen;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserScreen;
+import jp.aquafactory.apprenticecodex.compat.arsnouveau.ArsNouveauLuminousDeviceCompat;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightClientCompat;
 import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBuiltinTemplateSupport;
+import jp.aquafactory.apprenticecodex.compat.sodiumdynamiclights.SodiumDynamicLightsLuminousDeviceCompat;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
@@ -21,6 +23,7 @@ import jp.aquafactory.apprenticecodex.particle.ImpactTremorBlockParticle;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireInscriptionScreen;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoireScreen;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceTooltip;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticle;
 import jp.aquafactory.apprenticecodex.particle.ReticleDotParticle;
 import jp.aquafactory.apprenticecodex.particle.SmashcastDustPillarParticle;
@@ -77,6 +80,7 @@ import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerRendere
 import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssaultRifleRenderer;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntityRenderer;
+import jp.aquafactory.apprenticecodex.spell.wizardlamp.WizardlampLanternBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileRenderer;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeRenderer;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileRenderer;
@@ -208,6 +212,16 @@ public final class ClientModBusEvents {
         ));
         event.enqueueWork(ClientModBusEvents::registerBoundBowItemProperties);
         event.enqueueWork(() -> {
+            if (ModList.get().isLoaded(ArsNouveauLuminousDeviceCompat.MOD_ID)) {
+                ArsNouveauLuminousDeviceCompat.register();
+            }
+        });
+        event.enqueueWork(() -> {
+            if (ModList.get().isLoaded(SodiumDynamicLightsLuminousDeviceCompat.MOD_ID)) {
+                SodiumDynamicLightsLuminousDeviceCompat.register();
+            }
+        });
+        event.enqueueWork(() -> {
             if (ModList.get().isLoaded(BetterCombatClientCompat.MOD_ID)) {
                 BetterCombatClientCompat.register();
             }
@@ -267,6 +281,7 @@ public final class ClientModBusEvents {
 
     private static void registerTooltipComponentFactories(RegisterClientTooltipComponentFactoriesEvent event) {
         event.register(SpellcasterAmmoPouchTooltip.class, SpellcasterAmmoPouchClientTooltipComponent::new);
+        event.register(LuminousDeviceTooltip.class, SpellcasterAmmoPouchClientTooltipComponent::new);
     }
 
     private static void registerItemColors(RegisterColorHandlersEvent.Item event) {
@@ -294,6 +309,7 @@ public final class ClientModBusEvents {
         event.registerBlockEntityRenderer(BlockEntityRegistry.ESSENCE_SMOKER.get(), EssenceSmokerBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.FROST_RUNE_TRAP.get(), FrostRuneTrapBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.MAGE_LIGHT_TORCH.get(), MageLightTorchBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(BlockEntityRegistry.WIZARDLAMP_LANTERN.get(), WizardlampLanternBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.PERSONAL_SHELF_CHEST.get(), PersonalShelfChestBlockRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.RIFT_HOLE.get(), RiftHoleBlockEntityRenderer::new);
 

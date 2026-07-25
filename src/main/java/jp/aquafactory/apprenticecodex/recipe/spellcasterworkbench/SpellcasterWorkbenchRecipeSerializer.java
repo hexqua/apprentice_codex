@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceUpgrade;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -19,13 +20,23 @@ public final class SpellcasterWorkbenchRecipeSerializer implements RecipeSeriali
     private static final String INGREDIENTS = "ingredients";
     private static final String RESULTS = "results";
     private static final String PRIORITY = "priority";
+    private static final String OPERATION = "operation";
 
     @Override
     public @NotNull SpellcasterWorkbenchRecipe fromJson(@NotNull ResourceLocation recipeId, @NotNull JsonObject json) {
         var ingredients = readIngredientsFromJson(GsonHelper.getAsJsonArray(json, INGREDIENTS));
         var results = readResultsFromJson(json);
         var priority = GsonHelper.getAsInt(json, PRIORITY, 0);
-        return new SpellcasterWorkbenchRecipe(recipeId, ingredients, results, priority);
+        var operation = readOperation(json);
+        return new SpellcasterWorkbenchRecipe(
+                recipeId,
+                ingredients,
+                results,
+                priority,
+                operation.upgrade(),
+                operation.requiredSpell(),
+                operation.minimumSpellLevel()
+        );
     }
 
     @Override
@@ -42,7 +53,19 @@ public final class SpellcasterWorkbenchRecipeSerializer implements RecipeSeriali
         for (var index = 0; index < resultCount; ++index) {
             results.add(buffer.readItem());
         }
-        return new SpellcasterWorkbenchRecipe(recipeId, ingredients, results, priority);
+        var hasOperation = buffer.readBoolean();
+        var upgrade = hasOperation ? LuminousDeviceUpgrade.byId(buffer.readResourceLocation()) : null;
+        var requiredSpell = buffer.readBoolean() ? buffer.readResourceLocation() : null;
+        var minimumSpellLevel = buffer.readVarInt();
+        return new SpellcasterWorkbenchRecipe(
+                recipeId,
+                ingredients,
+                results,
+                priority,
+                upgrade,
+                requiredSpell,
+                minimumSpellLevel
+        );
     }
 
     @Override
@@ -61,6 +84,16 @@ public final class SpellcasterWorkbenchRecipeSerializer implements RecipeSeriali
         for (var result : results) {
             buffer.writeItem(result);
         }
+        var upgrade = recipe.getLuminousDeviceUpgrade();
+        buffer.writeBoolean(upgrade != null);
+        if (upgrade != null) {
+            buffer.writeResourceLocation(upgrade.id());
+        }
+        buffer.writeBoolean(recipe.getRequiredSpell() != null);
+        if (recipe.getRequiredSpell() != null) {
+            buffer.writeResourceLocation(recipe.getRequiredSpell());
+        }
+        buffer.writeVarInt(recipe.getMinimumSpellLevel());
     }
 
     private static ArrayList<SpellcasterWorkbenchRecipe.SizedIngredient> readIngredientsFromJson(JsonArray ingredientsArray) {
@@ -112,5 +145,39 @@ public final class SpellcasterWorkbenchRecipeSerializer implements RecipeSeriali
             return results;
         }
         throw new JsonParseException("SpellcasterWorkbench recipe must have at least one output in result/results.");
+    }
+
+    private static Operation readOperation(JsonObject json) {
+        if (!json.has(OPERATION)) {
+            return new Operation(null, null, 1);
+        }
+        var operation = GsonHelper.getAsJsonObject(json, OPERATION);
+        var type = GsonHelper.getAsString(operation, "type");
+        if (!"add_luminous_device_upgrade".equals(type)) {
+            throw new JsonParseException("Unknown SpellcasterWorkbench operation: " + type);
+        }
+        var featureId = ResourceLocation.tryParse(GsonHelper.getAsString(operation, "feature"));
+        var upgrade = LuminousDeviceUpgrade.byId(featureId);
+        if (upgrade == null) {
+            throw new JsonParseException("Unknown Luminous Device upgrade: " + featureId);
+        }
+        var requiredSpell = operation.has("required_spell")
+                ? ResourceLocation.tryParse(GsonHelper.getAsString(operation, "required_spell"))
+                : null;
+        if (operation.has("required_spell") && requiredSpell == null) {
+            throw new JsonParseException("Invalid required_spell in SpellcasterWorkbench operation.");
+        }
+        return new Operation(
+                upgrade,
+                requiredSpell,
+                GsonHelper.getAsInt(operation, "minimum_spell_level", 1)
+        );
+    }
+
+    private record Operation(
+            @Nullable LuminousDeviceUpgrade upgrade,
+            @Nullable ResourceLocation requiredSpell,
+            int minimumSpellLevel
+    ) {
     }
 }

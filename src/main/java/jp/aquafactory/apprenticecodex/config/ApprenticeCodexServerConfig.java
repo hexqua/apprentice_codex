@@ -237,6 +237,83 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.remoteOwnerCastDenylist();
     }
 
+    public static int luminousDeviceMaxStoredItems() {
+        return ITEMS_CONFIG.luminousDeviceMaxStoredItems();
+    }
+
+    public static int luminousDeviceMaxStoredMana() {
+        return ITEMS_CONFIG.luminousDeviceMaxStoredMana();
+    }
+
+    public static int luminousDeviceUpgradedMaxStoredMana() {
+        return ITEMS_CONFIG.luminousDeviceUpgradedMaxStoredMana();
+    }
+
+    public static int luminousDeviceCleanRadius() {
+        return ITEMS_CONFIG.luminousDeviceCleanRadius();
+    }
+
+    public static int luminousDeviceMageLightManaRecovery() {
+        return ITEMS_CONFIG.luminousDeviceMageLightManaRecovery();
+    }
+
+    public static int luminousDeviceWizardlampManaRecovery() {
+        return ITEMS_CONFIG.luminousDeviceWizardlampManaRecovery();
+    }
+
+    public static double luminousDeviceMageLightExtendedRange() {
+        return ITEMS_CONFIG.luminousDeviceMageLightExtendedRange();
+    }
+
+    public static GameTestConfigOverride useLuminousDeviceMageLightExtendedRangeOverrideForGameTest(double range) {
+        var previousRange = ITEMS_CONFIG.luminousDeviceMageLightExtendedRange();
+        ITEMS_CONFIG.setLuminousDeviceMageLightExtendedRangeForGameTest(range);
+        return () -> ITEMS_CONFIG.setLuminousDeviceMageLightExtendedRangeForGameTest(previousRange);
+    }
+
+    public static double mageLightMaxRange() {
+        return SPELLS_CONFIG.mageLightMaxRange();
+    }
+
+    public static GameTestConfigOverride useMageLightMaxRangeOverrideForGameTest(double maxRange) {
+        var previousMaxRange = SPELLS_CONFIG.mageLightMaxRange();
+        SPELLS_CONFIG.setMageLightMaxRangeForGameTest(maxRange);
+        return () -> SPELLS_CONFIG.setMageLightMaxRangeForGameTest(previousMaxRange);
+    }
+
+    public static GameTestConfigOverride useLuminousDeviceConfigOverrideForGameTest(
+            int maxStoredItems,
+            int maxStoredMana
+    ) {
+        var previousMaxStoredItems = ITEMS_CONFIG.luminousDeviceMaxStoredItems();
+        var previousMaxStoredMana = ITEMS_CONFIG.luminousDeviceMaxStoredMana();
+        ITEMS_CONFIG.setLuminousDeviceConfigForGameTest(maxStoredItems, maxStoredMana);
+        return () -> ITEMS_CONFIG.setLuminousDeviceConfigForGameTest(
+                previousMaxStoredItems,
+                previousMaxStoredMana
+        );
+    }
+
+    public static GameTestConfigOverride useLuminousDeviceCleanConfigOverrideForGameTest(
+            int cleanRadius,
+            int mageLightManaRecovery,
+            int wizardlampManaRecovery
+    ) {
+        var previousCleanRadius = ITEMS_CONFIG.luminousDeviceCleanRadius();
+        var previousMageLightManaRecovery = ITEMS_CONFIG.luminousDeviceMageLightManaRecovery();
+        var previousWizardlampManaRecovery = ITEMS_CONFIG.luminousDeviceWizardlampManaRecovery();
+        ITEMS_CONFIG.setLuminousDeviceCleanConfigForGameTest(
+                cleanRadius,
+                mageLightManaRecovery,
+                wizardlampManaRecovery
+        );
+        return () -> ITEMS_CONFIG.setLuminousDeviceCleanConfigForGameTest(
+                previousCleanRadius,
+                previousMageLightManaRecovery,
+                previousWizardlampManaRecovery
+        );
+    }
+
     public static GameTestConfigOverride useSatelliteFollowcastAmuletSpellDenylistOverrideForGameTest(
             List<String> spellDenylist
     ) {
