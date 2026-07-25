@@ -84,7 +84,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get())
                 .define('S', ItemTags.WOODEN_SLABS)
                 .define('F', ItemTags.WOODEN_FENCES)
-                .unlockedBy(getHasName(ItemRegistry.IRON_SPELLCASTER_GUN.get()), has(ItemRegistry.IRON_SPELLCASTER_GUN.get()))
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()))
                 .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ItemRegistry.ATELIER_STATION.get())
