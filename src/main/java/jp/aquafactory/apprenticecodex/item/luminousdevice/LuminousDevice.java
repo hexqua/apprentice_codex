@@ -41,6 +41,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -291,6 +292,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
 
         if (tryRefillMana(deviceStack, otherStack, slotAccess, player)) {
             slot.setChanged();
+            player.playSound(SoundEvents.BOTTLE_EMPTY, 1.0F, 1.0F);
             return true;
         }
 
