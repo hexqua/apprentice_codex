@@ -1148,6 +1148,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void elementalBowMagicArrowCatalystItemsAllowsConfiguredSpecialArrow(GameTestHelper helper) {
+        ElementalBowGameTestScenarios.elementalBowMagicArrowCatalystItemsAllowsConfiguredSpecialArrow(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowSynthesisDoesNotConsumeMagicModeArrows(GameTestHelper helper) {
         ElementalBowGameTestScenarios.elementalBowSynthesisDoesNotConsumeMagicModeArrows(helper);
     }
@@ -1165,6 +1170,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
     public static void elementalBowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
         SpellcasterQuiverGameTestScenarios.elementalBowConsumesSpellcasterQuiverArrowsBeforeInventory(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
+    public static void elementalBowMagicModeUsesConfiguredSpellcasterQuiverCatalyst(GameTestHelper helper) {
+        SpellcasterQuiverGameTestScenarios.elementalBowMagicModeUsesConfiguredSpellcasterQuiverCatalyst(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)

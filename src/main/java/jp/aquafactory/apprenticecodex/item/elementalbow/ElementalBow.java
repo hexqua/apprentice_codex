@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
@@ -510,7 +511,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     }
 
     private void releaseElementalShot(ItemStack stack, Level level, Player player, int timeLeft, ResolvedDefinition mode) {
-        var ammoSource = resolveVanillaAmmoSource(player, stack);
+        var ammoSource = resolveMagicArrowCatalystAmmoSource(player);
         var hasSynthesisEnchantment = hasSynthesis(stack);
         var canFireWithoutAmmo = player.getAbilities().instabuild || hasSynthesisEnchantment;
         var drawDuration = stack.getUseDuration(player) - timeLeft;
@@ -821,7 +822,8 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     @Nullable
     private AmmoSource resolveAmmoSource(Player player, ItemStack bowStack, ModeSelection selection) {
         return switch (selection.kind()) {
-            case NORMAL, MAGIC -> resolveVanillaAmmoSource(player, bowStack);
+            case NORMAL -> resolveVanillaAmmoSource(player, bowStack);
+            case MAGIC -> resolveMagicArrowCatalystAmmoSource(player);
             case ARROW -> resolveNormalArrowAmmoSource(player);
             case SPECIAL -> resolveSpecialAmmoSource(player, selection.id());
             case MOD -> resolveModAmmoSource(player, selection.id());
@@ -842,6 +844,14 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     @Nullable
     private AmmoSource resolveNormalArrowAmmoSource(Player player) {
         return adaptAmmoSource(BowCastAmmoResolver.resolveElementalNormalArrowAmmo(player));
+    }
+
+    @Nullable
+    private AmmoSource resolveMagicArrowCatalystAmmoSource(Player player) {
+        return adaptAmmoSource(BowCastAmmoResolver.resolveElementalMagicArrowCatalystAmmo(
+                player,
+                ApprenticeCodexServerConfig.elementalBowMagicArrowCatalystItemIds()
+        ));
     }
 
     @Nullable

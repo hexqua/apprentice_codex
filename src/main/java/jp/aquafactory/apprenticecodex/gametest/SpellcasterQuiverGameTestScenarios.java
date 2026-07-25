@@ -419,6 +419,53 @@ final class SpellcasterQuiverGameTestScenarios {
                     "Elemental Bow should leave loose inventory arrows untouched while the quiver has arrows");
         });
     }
+
+    static void elementalBowMagicModeUsesConfiguredSpellcasterQuiverCatalyst(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useElementalBowMagicArrowCatalystItemsOverrideForGameTest(
+                    List.of("minecraft:arrow")
+            )) {
+                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_quiver_catalyst_test");
+                var bowStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+                setElementalBowShotSelection(bowStack, "magic", SchoolRegistry.FIRE_RESOURCE);
+                player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+
+                var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+                SpellcasterQuiver.store(quiverStack, new ItemStack(Items.ARROW, 3));
+                SpellcasterQuiver.store(quiverStack, new ItemStack(Items.SPECTRAL_ARROW, 1));
+                equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
+
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Elemental Bow quiver catalyst test could not resolve player mana data");
+                magicData.setMana(250.0F);
+
+                var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+                helper.assertTrue(result.getResult().consumesAction(),
+                        "Elemental Bow magic mode should accept the configured quiver catalyst: " + result.getResult());
+                bowStack.getItem().releaseUsing(
+                        bowStack,
+                        helper.getLevel(),
+                        player,
+                        bowStack.getUseDuration(player)
+                                - jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow.READY_DRAW_TICKS
+                );
+                player.stopUsingItem();
+
+                var normalView = findElementalBowSelectionView(player, bowStack, "arrow", null);
+                helper.assertTrue(normalView != null && "2".equals(normalView.badgeText()),
+                        "Elemental Bow magic mode should consume one configured normal arrow from Spellcaster Quiver");
+                var spectralView = findElementalBowSelectionView(
+                        player,
+                        bowStack,
+                        "special",
+                        ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow")
+                );
+                helper.assertTrue(spectralView != null && "1".equals(spectralView.badgeText()),
+                        "Elemental Bow magic mode should leave the unconfigured spectral arrow in Spellcaster Quiver");
+            }
+        });
+    }
+
     static void elementalBowSelectionViewsIncludeSpellcasterQuiverArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_quiver_selection_test");
