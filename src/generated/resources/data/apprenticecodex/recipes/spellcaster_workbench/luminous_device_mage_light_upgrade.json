@@ -1,0 +1,36 @@
+{
+  "type": "apprenticecodex:spellcaster_workbench",
+  "ingredients": [
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "apprenticecodex:luminous_device"
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "irons_spellbooks:scroll"
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "tag": "apprenticecodex:luminous_device_mage_light_upgrade_materials"
+      }
+    }
+  ],
+  "operation": {
+    "type": "add_luminous_device_upgrade",
+    "feature": "apprenticecodex:enhanced_mage_light",
+    "minimum_spell_level": 1,
+    "required_spell": "apprenticecodex:mage_light"
+  },
+  "priority": 10,
+  "results": [
+    {
+      "count": 1,
+      "item": "apprenticecodex:luminous_device"
+    }
+  ]
+}

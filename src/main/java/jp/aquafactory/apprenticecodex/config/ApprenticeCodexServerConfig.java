@@ -245,6 +245,10 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.luminousDeviceMaxStoredMana();
     }
 
+    public static int luminousDeviceUpgradedMaxStoredMana() {
+        return ITEMS_CONFIG.luminousDeviceUpgradedMaxStoredMana();
+    }
+
     public static int luminousDeviceCleanRadius() {
         return ITEMS_CONFIG.luminousDeviceCleanRadius();
     }

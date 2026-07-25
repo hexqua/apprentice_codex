@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 public record SyncLuminousDeviceConfigPacket(
         int maxStoredItems,
         int maxStoredMana,
+        int upgradedMaxStoredMana,
         int cleanRadius,
         double mageLightExtendedRange
 ) {
@@ -19,20 +20,38 @@ public record SyncLuminousDeviceConfigPacket(
         this(
                 maxStoredItems,
                 maxStoredMana,
+                jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig.DEFAULT_UPGRADED_MAX_STORED_MANA,
                 cleanRadius,
                 jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig.DEFAULT_MAGE_LIGHT_EXTENDED_RANGE
+        );
+    }
+
+    public SyncLuminousDeviceConfigPacket(
+            int maxStoredItems,
+            int maxStoredMana,
+            int cleanRadius,
+            double mageLightExtendedRange
+    ) {
+        this(
+                maxStoredItems,
+                maxStoredMana,
+                jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig.DEFAULT_UPGRADED_MAX_STORED_MANA,
+                cleanRadius,
+                mageLightExtendedRange
         );
     }
 
     public static void encode(SyncLuminousDeviceConfigPacket packet, FriendlyByteBuf buffer) {
         buffer.writeVarInt(packet.maxStoredItems);
         buffer.writeVarInt(packet.maxStoredMana);
+        buffer.writeVarInt(packet.upgradedMaxStoredMana);
         buffer.writeVarInt(packet.cleanRadius);
         buffer.writeDouble(packet.mageLightExtendedRange);
     }
 
     public static SyncLuminousDeviceConfigPacket decode(FriendlyByteBuf buffer) {
         return new SyncLuminousDeviceConfigPacket(
+                buffer.readVarInt(),
                 buffer.readVarInt(),
                 buffer.readVarInt(),
                 buffer.readVarInt(),
@@ -60,6 +79,7 @@ public record SyncLuminousDeviceConfigPacket(
             LuminousDeviceConfigState.set(
                     packet.maxStoredItems,
                     packet.maxStoredMana,
+                    packet.upgradedMaxStoredMana,
                     packet.cleanRadius,
                     packet.mageLightExtendedRange
             );

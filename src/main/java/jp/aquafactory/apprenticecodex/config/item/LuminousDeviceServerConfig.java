@@ -5,6 +5,7 @@ import net.minecraftforge.common.ForgeConfigSpec;
 public final class LuminousDeviceServerConfig {
     public static final int DEFAULT_MAX_STORED_ITEMS = 1024;
     public static final int DEFAULT_MAX_STORED_MANA = 2000;
+    public static final int DEFAULT_UPGRADED_MAX_STORED_MANA = 5000;
     public static final int DEFAULT_CLEAN_RADIUS = 4;
     public static final int MAX_CLEAN_RADIUS = 16;
     public static final int DEFAULT_MAGE_LIGHT_MANA_RECOVERY = 20;
@@ -14,12 +15,14 @@ public final class LuminousDeviceServerConfig {
 
     private final ForgeConfigSpec.IntValue maxStoredItems;
     private final ForgeConfigSpec.IntValue maxStoredMana;
+    private final ForgeConfigSpec.IntValue upgradedMaxStoredMana;
     private final ForgeConfigSpec.IntValue cleanRadius;
     private final ForgeConfigSpec.IntValue mageLightManaRecovery;
     private final ForgeConfigSpec.IntValue wizardlampManaRecovery;
     private final ForgeConfigSpec.DoubleValue mageLightExtendedRange;
     private Integer maxStoredItemsOverride;
     private Integer maxStoredManaOverride;
+    private Integer upgradedMaxStoredManaOverride;
     private Integer cleanRadiusOverride;
     private Integer mageLightManaRecoveryOverride;
     private Integer wizardlampManaRecoveryOverride;
@@ -28,6 +31,7 @@ public final class LuminousDeviceServerConfig {
     private LuminousDeviceServerConfig(
             ForgeConfigSpec.IntValue maxStoredItems,
             ForgeConfigSpec.IntValue maxStoredMana,
+            ForgeConfigSpec.IntValue upgradedMaxStoredMana,
             ForgeConfigSpec.IntValue cleanRadius,
             ForgeConfigSpec.IntValue mageLightManaRecovery,
             ForgeConfigSpec.IntValue wizardlampManaRecovery,
@@ -35,6 +39,7 @@ public final class LuminousDeviceServerConfig {
     ) {
         this.maxStoredItems = maxStoredItems;
         this.maxStoredMana = maxStoredMana;
+        this.upgradedMaxStoredMana = upgradedMaxStoredMana;
         this.cleanRadius = cleanRadius;
         this.mageLightManaRecovery = mageLightManaRecovery;
         this.wizardlampManaRecovery = wizardlampManaRecovery;
@@ -49,6 +54,14 @@ public final class LuminousDeviceServerConfig {
         var maxStoredMana = builder
                 .comment("Maximum mana stored by a Luminous Device.")
                 .defineInRange("maxStoredMana", DEFAULT_MAX_STORED_MANA, 0, Integer.MAX_VALUE);
+        var upgradedMaxStoredMana = builder
+                .comment("Maximum mana stored after unlocking the Luminous Device mana and Wizardlamp upgrade.")
+                .defineInRange(
+                        "upgradedMaxStoredMana",
+                        DEFAULT_UPGRADED_MAX_STORED_MANA,
+                        0,
+                        Integer.MAX_VALUE
+                );
         var cleanRadius = builder
                 .comment("Cleanup radius of a Luminous Device. The cube side length is 1 + radius * 2.")
                 .defineInRange("cleanRadius", DEFAULT_CLEAN_RADIUS, 0, MAX_CLEAN_RADIUS);
@@ -80,6 +93,7 @@ public final class LuminousDeviceServerConfig {
         return new LuminousDeviceServerConfig(
                 maxStoredItems,
                 maxStoredMana,
+                upgradedMaxStoredMana,
                 cleanRadius,
                 mageLightManaRecovery,
                 wizardlampManaRecovery,
@@ -93,6 +107,12 @@ public final class LuminousDeviceServerConfig {
 
     public int maxStoredMana() {
         return maxStoredManaOverride == null ? maxStoredMana.get() : maxStoredManaOverride;
+    }
+
+    public int upgradedMaxStoredMana() {
+        return upgradedMaxStoredManaOverride == null
+                ? upgradedMaxStoredMana.get()
+                : upgradedMaxStoredManaOverride;
     }
 
     public int cleanRadius() {
@@ -120,6 +140,10 @@ public final class LuminousDeviceServerConfig {
     public void setForGameTest(int maxStoredItems, int maxStoredMana) {
         maxStoredItemsOverride = maxStoredItems;
         maxStoredManaOverride = maxStoredMana;
+    }
+
+    public void setUpgradedMaxStoredManaForGameTest(int upgradedMaxStoredMana) {
+        upgradedMaxStoredManaOverride = upgradedMaxStoredMana;
     }
 
     public void setCleanForGameTest(int cleanRadius, int mageLightManaRecovery, int wizardlampManaRecovery) {

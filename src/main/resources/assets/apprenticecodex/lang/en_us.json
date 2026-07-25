@@ -120,6 +120,10 @@
   "item.apprenticecodex.luminous_device.desc_1": "Sneak to switch the selected item or spell.",
   "item.apprenticecodex.luminous_device.desc_2": "Use a mana potion on this item to store mana.",
   "item.apprenticecodex.luminous_device.mana_label": "Stored Mana: %1$s/%2$s",
+  "item.apprenticecodex.luminous_device.upgrade": "Upgrades: %1$s / %2$s / %3$s",
+  "item.apprenticecodex.luminous_device.upgrade.clean": "Clean",
+  "item.apprenticecodex.luminous_device.upgrade.enhanced_mage_light": "Remote",
+  "item.apprenticecodex.luminous_device.upgrade.mana_wizardlamp": "Lamp",
   "item.apprenticecodex.luminous_device.mode": "Current Mode: %1$s(%2$s)",
   "item.apprenticecodex.luminous_device.mode.place": "Place",
   "item.apprenticecodex.luminous_device.mode.clean": "Clean",
@@ -490,6 +494,7 @@
   "jei.apprenticecodex.spell_throwable_cards.craft_hint": "Scroll is not consumed",
 
   "jei.apprenticecodex.archivists_grimoire.upgrade_hint": "Adds 9 slots",
+  "jei.apprenticecodex.luminous_device.upgrade_hint": "Unlocks %s",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",

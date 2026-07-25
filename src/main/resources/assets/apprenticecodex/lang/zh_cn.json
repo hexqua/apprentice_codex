@@ -120,6 +120,10 @@
   "item.apprenticecodex.luminous_device.desc_1": "潜行时可切换所选物品或法术。",
   "item.apprenticecodex.luminous_device.desc_2": "对该物品使用法力药水可储存法力。",
   "item.apprenticecodex.luminous_device.mana_label": "储存法力：%1$s/%2$s",
+  "item.apprenticecodex.luminous_device.upgrade": "升级：%1$s / %2$s / %3$s",
+  "item.apprenticecodex.luminous_device.upgrade.clean": "清理",
+  "item.apprenticecodex.luminous_device.upgrade.enhanced_mage_light": "远程",
+  "item.apprenticecodex.luminous_device.upgrade.mana_wizardlamp": "魔灯",
   "item.apprenticecodex.luminous_device.mode": "当前模式：%1$s（%2$s）",
   "item.apprenticecodex.luminous_device.mode.place": "放置",
   "item.apprenticecodex.luminous_device.mode.clean": "清理",
@@ -491,6 +495,7 @@
   "jei.apprenticecodex.spell_throwable_cards.craft_hint": "不消耗卷轴",
 
   "jei.apprenticecodex.archivists_grimoire.upgrade_hint": "槽位数增加9",
+  "jei.apprenticecodex.luminous_device.upgrade_hint": "解锁%s",
 
   "enchantment.apprenticecodex.reflux": "回流",
   "enchantment.apprenticecodex.reservoir": "蓄能",

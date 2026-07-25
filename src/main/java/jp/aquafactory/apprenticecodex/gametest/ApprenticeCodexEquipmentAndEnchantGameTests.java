@@ -2412,6 +2412,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceWorkbenchUpgradesAreIndependentAndPreserveState(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceWorkbenchUpgradesAreIndependentAndPreserveState(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceWorkbenchMenuCraftsEveryUpgrade(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceWorkbenchMenuCraftsEveryUpgrade(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
     public static void luminousDeviceCleanModeRemovesLightsAndRecoversConfiguredMana(GameTestHelper helper) {
         LuminousDeviceGameTestScenarios.luminousDeviceCleanModeRemovesLightsAndRecoversConfiguredMana(helper);
     }
