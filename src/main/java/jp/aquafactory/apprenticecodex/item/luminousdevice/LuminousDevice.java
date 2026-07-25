@@ -184,7 +184,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         var maxStoredMana = clientMaxStoredMana(stack);
         lines.add(Component.literal(
                 "(" + getStoredItemCount(stack) + "/" + maxStoredItems + ")"
-        ).withStyle(ChatFormatting.GRAY));
+        ).withStyle(ChatFormatting.DARK_GRAY));
         lines.add(Component.translatable(getDescriptionId() + ".desc_1").withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable(getDescriptionId() + ".desc_2").withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable(
@@ -775,7 +775,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
             var size = LuminousDeviceConfigState.cleanSize();
             lines.add(Component.translatable(
                     descriptionIdFor(stack) + ".mode",
-                    Component.translatable(descriptionIdFor(stack) + ".mode.clean"),
+                    Component.translatable(descriptionIdFor(stack) + ".mode.clean").withStyle(ChatFormatting.RED),
                     Component.translatable(
                             descriptionIdFor(stack) + ".mode.clean_size",
                             size,
@@ -790,7 +790,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         if (selectedSpell != SpellData.EMPTY) {
             lines.add(Component.translatable(
                     descriptionIdFor(stack) + ".mode",
-                    Component.translatable(descriptionIdFor(stack) + ".mode.spell"),
+                    Component.translatable(descriptionIdFor(stack) + ".mode.spell").withStyle(ChatFormatting.AQUA),
                     createSpellDisplayName(selectedSpell)
             ).withStyle(ChatFormatting.GRAY));
             return;
@@ -800,7 +800,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         if (!selectedStack.isEmpty()) {
             lines.add(Component.translatable(
                     descriptionIdFor(stack) + ".mode",
-                    Component.translatable(descriptionIdFor(stack) + ".mode.place"),
+                    Component.translatable(descriptionIdFor(stack) + ".mode.place").withStyle(ChatFormatting.GREEN),
                     selectedStack.getHoverName()
             ).withStyle(ChatFormatting.GRAY));
         }
@@ -1165,7 +1165,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
 
     private static Component createUpgradeTooltipEntry(ItemStack stack, LuminousDeviceUpgrade upgrade) {
         return Component.translatable(upgrade.translationKey()).withStyle(
-                hasUpgrade(stack, upgrade) ? ChatFormatting.GREEN : ChatFormatting.GRAY
+                hasUpgrade(stack, upgrade) ? ChatFormatting.GREEN : ChatFormatting.DARK_GRAY
         );
     }
 
