@@ -655,8 +655,8 @@ final class LuminousDeviceGameTestScenarios {
             helper.assertTrue(java.util.Arrays.stream(lockedUpgradeContents.getArgs()).allMatch(argument ->
                             argument instanceof net.minecraft.network.chat.Component component
                                     && component.getStyle().getColor() != null
-                                    && component.getStyle().getColor().getValue() == ChatFormatting.GRAY.getColor()),
-                    "Locked upgrades should all be gray");
+                                    && component.getStyle().getColor().getValue() == ChatFormatting.DARK_GRAY.getColor()),
+                    "Locked upgrades should all be dark gray");
 
             for (var upgrade : LuminousDeviceUpgrade.values()) {
                 helper.assertTrue(LuminousDevice.addUpgrade(deviceStack, upgrade),
