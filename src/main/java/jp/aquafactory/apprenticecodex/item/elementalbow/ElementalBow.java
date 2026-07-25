@@ -16,12 +16,14 @@ import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.SneakSelectionUiItem;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
+import jp.aquafactory.apprenticecodex.item.ammo.BowAmmoConsumptionNotification;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverBowAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.ResolvedDefinition;
 import jp.aquafactory.apprenticecodex.renderer.item.ElementalBowRenderer;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -440,7 +442,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         fireVanillaArrow(level, player, stack, ammoStack, power, infiniteAmmo);
         if (!player.getAbilities().instabuild && hasAmmo && !infiniteAmmo) {
-            ammoSource.consume();
+            consumeAmmoAndNotify(player, ammoSource);
         }
         triggerReleaseAnimation(player, stack);
     }
@@ -498,7 +500,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         fireVanillaArrow(level, player, stack, ammoStack, power, infiniteAmmo);
         if (!player.getAbilities().instabuild && hasAmmo && !infiniteAmmo) {
-            ammoSource.consume();
+            consumeAmmoAndNotify(player, ammoSource);
         }
         triggerReleaseAnimation(player, stack);
     }
@@ -562,7 +564,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         if (!player.getAbilities().instabuild) {
             stack.hurtAndBreak(1, player, bowUser -> bowUser.broadcastBreakEvent(player.getUsedItemHand()));
             if (ammoSource != null && !hasSynthesisEnchantment) {
-                ammoSource.consume();
+                consumeAmmoAndNotify(player, ammoSource);
             }
         }
 
@@ -652,6 +654,19 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
                 1.0F / (player.getRandom().nextFloat() * 0.4F + 1.2F) + power * 0.5F
         );
         player.awardStat(Stats.ITEM_USED.get(this));
+    }
+
+    private void consumeAmmoAndNotify(Player player, AmmoSource ammoSource) {
+        var consumedStack = ammoSource.stack().copyWithCount(1);
+        if (!ammoSource.consume() || !(player instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+
+        BowAmmoConsumptionNotification.send(
+                serverPlayer,
+                ItemRegistry.ELEMENTAL_BOW.getId(),
+                consumedStack
+        );
     }
 
     @Nullable
