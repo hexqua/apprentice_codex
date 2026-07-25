@@ -13,8 +13,10 @@ import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
+import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.particles.ParticleTypes;
@@ -155,8 +157,13 @@ public class MageLight extends AbstractSpell implements jp.aquafactory.apprentic
                     .orElse(null);
         }
 
-        if (placePos != null) {
-            level.setBlockAndUpdate(placePos, BlockRegistry.MAGE_LIGHT_TORCH.get().defaultBlockState());
+        if (placePos != null && BlockTools.tryPlaceBlockByEntity(
+                level,
+                entity,
+                placePos,
+                BlockRegistry.MAGE_LIGHT_TORCH.get().defaultBlockState(),
+                Direction.UP
+        )) {
             AudioTools.playSoundFromPosition(level, placePos.getCenter(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS);
 
             if (level instanceof ServerLevel server) {

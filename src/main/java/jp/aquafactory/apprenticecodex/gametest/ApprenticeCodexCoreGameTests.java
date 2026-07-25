@@ -126,6 +126,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void blockPlacementSpellsRespectForgePlaceEvent(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.blockPlacementSpellsRespectForgePlaceEvent(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void wizardlampLanternHasLanternCollisionAndNoDrops(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.wizardlampLanternHasLanternCollisionAndNoDrops(helper);
     }

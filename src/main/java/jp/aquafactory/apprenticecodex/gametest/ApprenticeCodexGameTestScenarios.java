@@ -174,6 +174,7 @@ import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceBurst;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerEntity;
 import jp.aquafactory.apprenticecodex.spell.linearbuild.LinearBuild;
+import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileEntity;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidanceEvents;
@@ -8127,6 +8128,95 @@ public class ApprenticeCodexGameTestScenarios {
                     !level.getBlockState(farPos).is(BlockRegistry.WIZARDLAMP_LANTERN.get()),
                     "Wizardlamp should not trust an out-of-range placement cell directly"
             );
+        });
+    }
+
+    static void blockPlacementSpellsRespectForgePlaceEvent(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var wizardlampPlayer = createEquipmentTestPlayer(
+                    helper, new BlockPos(1, 2, 1), "wizardlamp_place_event_test");
+            var mageLightPlayer = createEquipmentTestPlayer(
+                    helper, new BlockPos(1, 2, 3), "mage_light_place_event_test");
+            var linearBuildPlayer = createEquipmentTestPlayer(
+                    helper, new BlockPos(2, 3, 2), "linear_build_place_event_test");
+            var wizardlampPos = helper.absolutePos(new BlockPos(2, 3, 1));
+            var mageLightPos = helper.absolutePos(new BlockPos(2, 3, 3));
+            var linearBuildPos = new BlockPos(3, 3, 2);
+            var wizardlampEvents = new AtomicInteger();
+            var mageLightEvents = new AtomicInteger();
+            var linearBuildEvents = new AtomicInteger();
+
+            java.util.function.Consumer<BlockEvent.EntityPlaceEvent> cancelListener = event -> {
+                if (event.getEntity() == wizardlampPlayer
+                        && event.getPlacedBlock().is(BlockRegistry.WIZARDLAMP_LANTERN.get())) {
+                    wizardlampEvents.incrementAndGet();
+                    event.setCanceled(true);
+                } else if (event.getEntity() == mageLightPlayer
+                        && event.getPlacedBlock().is(BlockRegistry.MAGE_LIGHT_TORCH.get())) {
+                    mageLightEvents.incrementAndGet();
+                    event.setCanceled(true);
+                } else if (event.getEntity() == linearBuildPlayer
+                        && event.getPlacedBlock().is(Blocks.OAK_PLANKS)) {
+                    linearBuildEvents.incrementAndGet();
+                    event.setCanceled(true);
+                }
+            };
+
+            MinecraftForge.EVENT_BUS.addListener(cancelListener);
+            try {
+                var wizardlamp = (Wizardlamp) SpellRegistry.WIZARDLAMP.get();
+                var wizardlampTarget = new BlockTargetData();
+                wizardlampTarget.setTarget(
+                        wizardlampPos,
+                        Direction.UP,
+                        Vec3.atCenterOf(wizardlampPos),
+                        wizardlampPos,
+                        Direction.DOWN
+                );
+                BlockTargetingHelper.setPendingServerTarget(
+                        wizardlampPlayer, wizardlamp.getSpellResource(), wizardlampTarget);
+                var wizardlampMagicData = MagicData.getPlayerMagicData(wizardlampPlayer);
+                helper.assertTrue(wizardlamp.checkPreCastConditions(
+                                level, 1, wizardlampPlayer, wizardlampMagicData),
+                        "Wizardlamp pre-cast check should accept the prepared target");
+                wizardlamp.onCast(level, 1, wizardlampPlayer, CastSource.SPELLBOOK, wizardlampMagicData);
+
+                var mageLight = (MageLight) SpellRegistry.MAGE_LIGHT.get();
+                var mageLightTarget = new BlockTargetData();
+                mageLightTarget.setTarget(
+                        mageLightPos,
+                        Direction.UP,
+                        Vec3.atCenterOf(mageLightPos),
+                        mageLightPos,
+                        Direction.DOWN
+                );
+                BlockTargetingHelper.setPendingServerTarget(
+                        mageLightPlayer, mageLight.getSpellResource(), mageLightTarget);
+                var mageLightMagicData = MagicData.getPlayerMagicData(mageLightPlayer);
+                helper.assertTrue(mageLight.checkPreCastConditions(
+                                level, 1, mageLightPlayer, mageLightMagicData),
+                        "Mage Light pre-cast check should accept the prepared target");
+                mageLight.onCast(level, 1, mageLightPlayer, CastSource.SPELLBOOK, mageLightMagicData);
+
+                linearBuildPlayer.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 2));
+                helper.setBlock(new BlockPos(4, 3, 2), Blocks.STONE);
+                castLinearBuild(helper, linearBuildPlayer, new BlockPos(4, 3, 2), Direction.WEST);
+            } finally {
+                MinecraftForge.EVENT_BUS.unregister(cancelListener);
+            }
+
+            helper.assertTrue(wizardlampEvents.get() == 1,
+                    "Wizardlamp should fire one Forge EntityPlaceEvent");
+            helper.assertTrue(mageLightEvents.get() == 1,
+                    "Mage Light should fire one Forge EntityPlaceEvent");
+            helper.assertTrue(linearBuildEvents.get() == 1,
+                    "Linear Build should keep using the Forge block placement event path");
+            helper.assertBlockNotPresent(BlockRegistry.WIZARDLAMP_LANTERN.get(), new BlockPos(2, 3, 1));
+            helper.assertBlockNotPresent(BlockRegistry.MAGE_LIGHT_TORCH.get(), new BlockPos(2, 3, 3));
+            helper.assertBlockNotPresent(Blocks.OAK_PLANKS, linearBuildPos);
+            helper.assertTrue(linearBuildPlayer.getMainHandItem().getCount() == 2,
+                    "Canceled Linear Build placement should not consume its source block");
         });
     }
 

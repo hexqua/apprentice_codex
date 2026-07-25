@@ -35,9 +35,14 @@ public final class ClientBlockTargetingHelper {
         return targetData;
     }
 
-    public static BlockTargetData captureOutlinedTargetIgnoringRange(Player player) {
+    public static BlockTargetData captureRaycastTarget(Player player, double range) {
         var targetData = new BlockTargetData();
-        var hitResult = Minecraft.getInstance().hitResult;
+        if (range <= 0.0D) {
+            return targetData;
+        }
+
+        // 通常の照準結果はブロックリーチで打ち切られるため、スペル固有射程で改めてレイを取得する。
+        var hitResult = player.pick(range, 1.0F, false);
         if (!(hitResult instanceof BlockHitResult blockHit)) {
             return targetData;
         }

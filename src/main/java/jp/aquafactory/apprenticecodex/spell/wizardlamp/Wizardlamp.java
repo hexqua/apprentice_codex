@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import jp.aquafactory.apprenticecodex.utility.ClientBlockTargetingHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -76,7 +77,7 @@ public class Wizardlamp extends AbstractSpell implements IClientBlockTargetingSp
 
     @Override
     public BlockTargetData captureClientBlockTarget(Player player, int spellLevel) {
-        return ClientBlockTargetingHelper.captureOutlinedTargetIgnoringRange(player);
+        return ClientBlockTargetingHelper.captureRaycastTarget(player, getRange());
     }
 
     @Override
@@ -138,9 +139,12 @@ public class Wizardlamp extends AbstractSpell implements IClientBlockTargetingSp
             placePos = findPlacePos(level, spellLevel, entity).orElse(null);
         }
 
-        if (placePos != null && level.setBlockAndUpdate(
+        if (placePos != null && BlockTools.tryPlaceBlockByEntity(
+                level,
+                entity,
                 placePos,
-                BlockRegistry.WIZARDLAMP_LANTERN.get().defaultBlockState()
+                BlockRegistry.WIZARDLAMP_LANTERN.get().defaultBlockState(),
+                Direction.UP
         )) {
             AudioTools.playSoundFromPosition(level, placePos.getCenter(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS);
             if (level instanceof ServerLevel serverLevel) {
