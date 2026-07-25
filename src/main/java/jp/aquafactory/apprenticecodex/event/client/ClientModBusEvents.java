@@ -9,9 +9,11 @@ import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEnti
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticlePaletteCache;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchScreen;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserScreen;
+import jp.aquafactory.apprenticecodex.compat.arsnouveau.ArsNouveauLuminousDeviceCompat;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightClientCompat;
 import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBuiltinTemplateSupport;
+import jp.aquafactory.apprenticecodex.compat.sodiumdynamiclights.SodiumDynamicLightsLuminousDeviceCompat;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
@@ -209,6 +211,16 @@ public final class ClientModBusEvents {
                 (stack, level, living, seed) -> living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F
         ));
         event.enqueueWork(ClientModBusEvents::registerBoundBowItemProperties);
+        event.enqueueWork(() -> {
+            if (ModList.get().isLoaded(ArsNouveauLuminousDeviceCompat.MOD_ID)) {
+                ArsNouveauLuminousDeviceCompat.register();
+            }
+        });
+        event.enqueueWork(() -> {
+            if (ModList.get().isLoaded(SodiumDynamicLightsLuminousDeviceCompat.MOD_ID)) {
+                SodiumDynamicLightsLuminousDeviceCompat.register();
+            }
+        });
         event.enqueueWork(() -> {
             if (ModList.get().isLoaded(BetterCombatClientCompat.MOD_ID)) {
                 BetterCombatClientCompat.register();
