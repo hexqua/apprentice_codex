@@ -12,6 +12,8 @@ import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.SneakSelectionUiItem;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -348,6 +350,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         if (!level.isClientSide
                 && delegatedResult.getResult().consumesAction()) {
             consumeSelectedForUse(player, deviceStack);
+            sendItemRemainingNotification(player, deviceStack, selectedStack);
         }
         return new InteractionResultHolder<>(delegatedResult.getResult(), deviceStack);
     }
@@ -454,6 +457,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         if (deviceManaCost > 0) {
             setStoredMana(deviceStack, getStoredMana(deviceStack) - deviceManaCost);
         }
+        sendManaRemainingNotification(serverPlayer, deviceStack);
         return InteractionResultHolder.success(deviceStack);
     }
 
@@ -498,6 +502,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         if (!context.getLevel().isClientSide
                 && delegatedResult.consumesAction()) {
             consumeSelectedForUse(player, deviceStack);
+            sendItemRemainingNotification(player, deviceStack, selectedStack);
         }
         return delegatedResult;
     }
@@ -551,6 +556,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
                 maxStoredMana,
                 (long) getStoredMana(deviceStack) + recoveredMana
         ));
+        sendManaRemainingNotification(player, deviceStack);
         AudioTools.playSoundFromEntity(
                 level,
                 player,
@@ -1129,6 +1135,48 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
                 ).withStyle(ChatFormatting.RED),
                 true
         );
+    }
+
+    private static void sendItemRemainingNotification(
+            Player player,
+            ItemStack deviceStack,
+            ItemStack selectedStack
+    ) {
+        sendRemainingNotification(
+                player,
+                selectedStack,
+                getStoredCount(deviceStack, selectedStack),
+                SyncRemainingCountNotificationPacket.DisplayType.ITEM_REMAINING
+        );
+    }
+
+    private static void sendManaRemainingNotification(Player player, ItemStack deviceStack) {
+        sendRemainingNotification(
+                player,
+                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()),
+                getStoredMana(deviceStack),
+                SyncRemainingCountNotificationPacket.DisplayType.MANA_REMAINING
+        );
+    }
+
+    private static void sendRemainingNotification(
+            Player player,
+            ItemStack iconStack,
+            long remainingCount,
+            SyncRemainingCountNotificationPacket.DisplayType displayType
+    ) {
+        if (player.getAbilities().instabuild
+                || !(player instanceof ServerPlayer serverPlayer)
+                || serverPlayer.connection == null) {
+            return;
+        }
+
+        Networks.sendToPlayer(serverPlayer, new SyncRemainingCountNotificationPacket(
+                ItemRegistry.LUMINOUS_DEVICE.getId().toString(),
+                iconStack,
+                remainingCount,
+                displayType
+        ));
     }
 
     private static List<StoredEntry> readContents(ItemStack deviceStack) {

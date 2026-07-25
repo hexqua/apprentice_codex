@@ -887,8 +887,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void autocastAmuletNotificationControllerUpdatesLinearBuildRemaining(GameTestHelper helper) {
-        AutocastAmuletGameTestScenarios.autocastAmuletNotificationControllerUpdatesLinearBuildRemaining(helper);
+    public static void autocastAmuletNotificationControllerUpdatesRemainingCounts(GameTestHelper helper) {
+        AutocastAmuletGameTestScenarios.autocastAmuletNotificationControllerUpdatesRemainingCounts(helper);
     }
 
     @GameTest(template = TEMPLATE)

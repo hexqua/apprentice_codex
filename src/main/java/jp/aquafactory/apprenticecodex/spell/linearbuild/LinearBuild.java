@@ -11,7 +11,7 @@ import jp.aquafactory.apprenticecodex.compat.create.CreateToolboxLinearBuildBrid
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
 import jp.aquafactory.apprenticecodex.network.Networks;
-import jp.aquafactory.apprenticecodex.network.packet.SyncLinearBuildNotificationPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
@@ -655,7 +655,12 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
     private void sendRemainingBlockNotification(ServerPlayer player, ItemStack blockTemplate, long remainingBlocks) {
         var iconStack = blockTemplate.copy();
         iconStack.setCount(1);
-        Networks.sendToPlayer(player, new SyncLinearBuildNotificationPacket(getSpellResource().toString(), iconStack, remainingBlocks));
+        Networks.sendToPlayer(player, new SyncRemainingCountNotificationPacket(
+                getSpellResource().toString(),
+                iconStack,
+                remainingBlocks,
+                SyncRemainingCountNotificationPacket.DisplayType.ITEM_REMAINING
+        ));
     }
 
     private void sendBlockTemplateError(LivingEntity entity, BlockTemplateResult result) {

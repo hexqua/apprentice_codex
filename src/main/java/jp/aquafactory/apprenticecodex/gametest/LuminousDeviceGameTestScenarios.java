@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceUpgrade;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmLuminousDeviceSelectionPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncLuminousDeviceConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMageLightConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -594,6 +595,27 @@ final class LuminousDeviceGameTestScenarios {
             var decodedMageLightConfig = SyncMageLightConfigPacket.decode(mageLightConfigBuffer);
             helper.assertTrue(Math.abs(decodedMageLightConfig.maxRange() - 48.0D) < 1.0E-9D,
                     "Mage Light config sync should preserve the configured maximum range");
+
+            var remainingBuffer = new FriendlyByteBuf(Unpooled.buffer());
+            SyncRemainingCountNotificationPacket.encode(
+                    new SyncRemainingCountNotificationPacket(
+                            ItemRegistry.LUMINOUS_DEVICE.getId().toString(),
+                            new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()),
+                            1234,
+                            SyncRemainingCountNotificationPacket.DisplayType.MANA_REMAINING
+                    ),
+                    remainingBuffer
+            );
+            var decodedRemaining = SyncRemainingCountNotificationPacket.decode(remainingBuffer);
+            helper.assertTrue(decodedRemaining.sourceId().equals(ItemRegistry.LUMINOUS_DEVICE.getId().toString())
+                            && decodedRemaining.iconStack().is(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get())
+                            && decodedRemaining.remainingCount() == 1234
+                            && decodedRemaining.displayType() == SyncRemainingCountNotificationPacket.DisplayType.MANA_REMAINING,
+                    "Remaining count sync should preserve the source, mana rune icon, count, and display type");
+            helper.assertTrue("1K".equals(SyncRemainingCountNotificationPacket.DisplayType.ITEM_REMAINING.format(1234))
+                            && "1234".equals(SyncRemainingCountNotificationPacket.DisplayType.MANA_REMAINING.format(1234))
+                            && "0".equals(SyncRemainingCountNotificationPacket.DisplayType.MANA_REMAINING.format(-1)),
+                    "Remaining count display types should compact item counts and keep full non-negative mana counts");
 
             var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
             var emptyViews = LuminousDevice.getSelectionViews(deviceStack);

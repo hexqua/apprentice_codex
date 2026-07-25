@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.curios.autocastamulet;
 
+import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -29,13 +30,18 @@ public final class AutocastAmuletClientNotificationState {
         CONTROLLER.queueManaLow(gameTime, spellId, spellIcon);
     }
 
-    public static void updateLinearBuildRemaining(ResourceLocation spellId, ItemStack iconStack, String countLabel) {
+    public static void updateRemainingCount(
+            ResourceLocation sourceId,
+            ItemStack iconStack,
+            String countLabel,
+            SyncRemainingCountNotificationPacket.DisplayType displayType
+    ) {
         var gameTime = resolveCurrentGameTime();
         if (gameTime < 0L) {
             return;
         }
 
-        CONTROLLER.updateLinearBuildRemaining(gameTime, spellId, iconStack, countLabel);
+        CONTROLLER.updateRemainingCount(gameTime, sourceId, iconStack, countLabel, displayType);
     }
 
     public static void tick() {

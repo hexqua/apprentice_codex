@@ -38,7 +38,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncChargecastCatalystbookC
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncLinearBuildNotificationPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncLuminousDeviceConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMageLightConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPacket;
@@ -69,7 +69,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "67";
+    private static final String PROTOCOL_VERSION = "68";
 
     private Networks() {
     }
@@ -291,9 +291,9 @@ public final class Networks {
                 SyncAutocastAmuletProfileSpellIdsPacket::handle
         );
         registrar.playToClient(
-                SyncLinearBuildNotificationPacket.TYPE,
-                SyncLinearBuildNotificationPacket.STREAM_CODEC,
-                SyncLinearBuildNotificationPacket::handle
+                SyncRemainingCountNotificationPacket.TYPE,
+                SyncRemainingCountNotificationPacket.STREAM_CODEC,
+                SyncRemainingCountNotificationPacket::handle
         );
         registrar.playToClient(
                 SyncFocusStaffbowCastStatePacket.TYPE,
