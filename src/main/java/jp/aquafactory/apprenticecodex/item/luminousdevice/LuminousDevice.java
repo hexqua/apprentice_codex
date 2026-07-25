@@ -18,6 +18,7 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import jp.aquafactory.apprenticecodex.renderer.item.LuminousDeviceRenderer;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightCastContext;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
@@ -25,6 +26,7 @@ import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import jp.aquafactory.apprenticecodex.utility.CompactCountFormatter;
 import jp.aquafactory.apprenticecodex.utility.ManaPotionRecoveryHelper;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -51,14 +53,23 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
-public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBypassSpellItem, UniqueItem {
+public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBypassSpellItem, UniqueItem, GeoItem {
     private static final String STORAGE_TAG = "LuminousDevice";
     private static final String CONTENTS_TAG = "Contents";
     private static final String SELECTED_STACK_TAG = "SelectedStack";
@@ -73,9 +84,42 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
     private static final int MANA_BAR_COLOR = 0x4F88E8;
     private static final int CLEAN_COOLDOWN_TICKS = 20;
     private static final int SPELL_LEVEL = 1;
+    private static final String MAIN_CONTROLLER = "main";
+    private static final RawAnimation IDLE_ANIMATION = RawAnimation.begin().thenLoop("idle");
+
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public LuminousDevice() {
         super(new Properties().stacksTo(1).fireResistant());
+        GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+        consumer.accept(new IClientItemExtensions() {
+            private LuminousDeviceRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new LuminousDeviceRenderer();
+                }
+                return renderer;
+            }
+        });
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, MAIN_CONTROLLER, 0, state -> {
+            state.setAnimation(IDLE_ANIMATION);
+            return PlayState.CONTINUE;
+        }));
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return cache;
     }
 
     @Override
