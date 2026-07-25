@@ -41,14 +41,14 @@ public final class SpellcasterWorkbenchRecipeSerializer implements RecipeSeriali
                 }
             };
 
-    private static final Codec<Operation> OPERATION_CODEC = RecordCodecBuilder.create(instance ->
+    private static final Codec<Operation> OPERATION_CODEC = RecordCodecBuilder.<Operation>create(instance ->
             instance.group(
                     Codec.STRING.fieldOf("type").forGetter(Operation::type),
                     ResourceLocation.CODEC.fieldOf("feature").forGetter(Operation::feature),
                     ResourceLocation.CODEC.optionalFieldOf("required_spell").forGetter(Operation::requiredSpell),
                     Codec.INT.optionalFieldOf("minimum_spell_level", 1).forGetter(Operation::minimumSpellLevel)
             ).apply(instance, Operation::new)
-    ).validate(operation -> {
+    ).validate((Operation operation) -> {
         if (!"add_luminous_device_upgrade".equals(operation.type())) {
             return DataResult.error(() -> "Unknown SpellcasterWorkbench operation: " + operation.type());
         }

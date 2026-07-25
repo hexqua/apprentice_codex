@@ -9,15 +9,15 @@ import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ContainerScreenEvent;
-import net.minecraftforge.client.event.ScreenEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ContainerScreenEvent;
+import net.neoforged.neoforge.client.event.ScreenEvent;
 
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class InventoryInsertHintRenderEvent {
     private static final int ITEM_INSERT_COLOR = 0xFFFF55;
     private static final int MANA_INSERT_COLOR = 0x55FFFF;
@@ -44,7 +44,7 @@ public final class InventoryInsertHintRenderEvent {
                 continue;
             }
 
-            // Foreground はスロット相対座標なので、Forge 1.20.1 側では GUI 原点の加算を行わない。
+            // Foreground はスロット相対座標なので、GUI 原点の加算を行わない。
             var poseStack = event.getGuiGraphics().pose();
             poseStack.pushPose();
             poseStack.translate(0.0F, 0.0F, 300.0F);

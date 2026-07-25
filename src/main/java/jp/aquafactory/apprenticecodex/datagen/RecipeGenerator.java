@@ -163,7 +163,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('C', Tags.Items.CHESTS)
                 .define('W', ItemTags.PLANKS)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.CINDER_ESSENCE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.CINDER_ESSENCE.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SCARLET_THIRST.get())
                 .pattern("VI ")

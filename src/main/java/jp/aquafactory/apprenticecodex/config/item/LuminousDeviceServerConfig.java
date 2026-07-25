@@ -1,6 +1,6 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class LuminousDeviceServerConfig {
     public static final int DEFAULT_MAX_STORED_ITEMS = 1024;
@@ -13,13 +13,13 @@ public final class LuminousDeviceServerConfig {
     public static final double DEFAULT_MAGE_LIGHT_EXTENDED_RANGE = 32.0D;
     public static final double MAX_MAGE_LIGHT_EXTENDED_RANGE = 64.0D;
 
-    private final ForgeConfigSpec.IntValue maxStoredItems;
-    private final ForgeConfigSpec.IntValue maxStoredMana;
-    private final ForgeConfigSpec.IntValue upgradedMaxStoredMana;
-    private final ForgeConfigSpec.IntValue cleanRadius;
-    private final ForgeConfigSpec.IntValue mageLightManaRecovery;
-    private final ForgeConfigSpec.IntValue wizardlampManaRecovery;
-    private final ForgeConfigSpec.DoubleValue mageLightExtendedRange;
+    private final ModConfigSpec.IntValue maxStoredItems;
+    private final ModConfigSpec.IntValue maxStoredMana;
+    private final ModConfigSpec.IntValue upgradedMaxStoredMana;
+    private final ModConfigSpec.IntValue cleanRadius;
+    private final ModConfigSpec.IntValue mageLightManaRecovery;
+    private final ModConfigSpec.IntValue wizardlampManaRecovery;
+    private final ModConfigSpec.DoubleValue mageLightExtendedRange;
     private Integer maxStoredItemsOverride;
     private Integer maxStoredManaOverride;
     private Integer upgradedMaxStoredManaOverride;
@@ -29,13 +29,13 @@ public final class LuminousDeviceServerConfig {
     private Double mageLightExtendedRangeOverride;
 
     private LuminousDeviceServerConfig(
-            ForgeConfigSpec.IntValue maxStoredItems,
-            ForgeConfigSpec.IntValue maxStoredMana,
-            ForgeConfigSpec.IntValue upgradedMaxStoredMana,
-            ForgeConfigSpec.IntValue cleanRadius,
-            ForgeConfigSpec.IntValue mageLightManaRecovery,
-            ForgeConfigSpec.IntValue wizardlampManaRecovery,
-            ForgeConfigSpec.DoubleValue mageLightExtendedRange
+            ModConfigSpec.IntValue maxStoredItems,
+            ModConfigSpec.IntValue maxStoredMana,
+            ModConfigSpec.IntValue upgradedMaxStoredMana,
+            ModConfigSpec.IntValue cleanRadius,
+            ModConfigSpec.IntValue mageLightManaRecovery,
+            ModConfigSpec.IntValue wizardlampManaRecovery,
+            ModConfigSpec.DoubleValue mageLightExtendedRange
     ) {
         this.maxStoredItems = maxStoredItems;
         this.maxStoredMana = maxStoredMana;
@@ -46,7 +46,7 @@ public final class LuminousDeviceServerConfig {
         this.mageLightExtendedRange = mageLightExtendedRange;
     }
 
-    public static LuminousDeviceServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static LuminousDeviceServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("LuminousDevice");
         var maxStoredItems = builder
                 .comment("Maximum total item count stored by a Luminous Device.")

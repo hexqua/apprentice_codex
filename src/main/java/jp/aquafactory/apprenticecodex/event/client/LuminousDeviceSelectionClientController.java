@@ -8,18 +8,18 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.client.event.RenderGuiEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class LuminousDeviceSelectionClientController {
     private static final ResourceLocation CLEAN_MODE_ICON = ResourceLocation.fromNamespaceAndPath(
             ApprenticeCodex.MODID,
@@ -34,11 +34,7 @@ public final class LuminousDeviceSelectionClientController {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
+    public static void onClientTick(ClientTickEvent.Post event) {
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         var sneakKeyDown = minecraft.screen == null && minecraft.options.keyShift.isDown();
@@ -76,10 +72,10 @@ public final class LuminousDeviceSelectionClientController {
         }
 
         event.setCanceled(true);
-        if (event.getScrollDelta() == 0.0D || activeState.views().size() <= 1) {
+        if (event.getScrollDeltaY() == 0.0D || activeState.views().size() <= 1) {
             return;
         }
-        moveSelection(event.getScrollDelta() > 0.0D ? -1 : 1);
+        moveSelection(event.getScrollDeltaY() > 0.0D ? -1 : 1);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
@@ -124,8 +120,8 @@ public final class LuminousDeviceSelectionClientController {
         DeferredSelectionHudRenderer.render(
                 event.getGuiGraphics(),
                 minecraft.font,
-                event.getWindow().getGuiScaledWidth(),
-                event.getWindow().getGuiScaledHeight(),
+                minecraft.getWindow().getGuiScaledWidth(),
+                minecraft.getWindow().getGuiScaledHeight(),
                 hudViews,
                 activeState.selectedIndex()
         );
@@ -260,7 +256,7 @@ public final class LuminousDeviceSelectionClientController {
                     && switch (view.mode()) {
                         case CLEAN -> true;
                         case SPELL -> java.util.Objects.equals(view.spellId(), selectedView.spellId());
-                        case PLACE -> ItemStack.isSameItemSameTags(view.iconStack(), selectedView.iconStack());
+                        case PLACE -> ItemStack.isSameItemSameComponents(view.iconStack(), selectedView.iconStack());
                     }) {
                 return i;
             }

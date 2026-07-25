@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import jp.aquafactory.apprenticecodex.utility.ClientBlockTargetingHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -227,7 +228,7 @@ public class Wizardlamp extends AbstractSpell implements IClientBlockTargetingSp
         }
 
         @Override
-        public CompoundTag serializeNBT() {
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
             var tag = new CompoundTag();
             if (position != null) {
                 tag.putLong("Position", position.asLong());
@@ -236,7 +237,7 @@ public class Wizardlamp extends AbstractSpell implements IClientBlockTargetingSp
         }
 
         @Override
-        public void deserializeNBT(CompoundTag nbt) {
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
             position = nbt.contains("Position") ? BlockPos.of(nbt.getLong("Position")) : null;
         }
     }

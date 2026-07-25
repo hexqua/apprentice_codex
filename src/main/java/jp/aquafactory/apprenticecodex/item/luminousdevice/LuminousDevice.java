@@ -17,12 +17,11 @@ import jp.aquafactory.apprenticecodex.item.SneakSelectionUiItem;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
-import jp.aquafactory.apprenticecodex.renderer.item.LuminousDeviceRenderer;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightCastContext;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
@@ -30,9 +29,11 @@ import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import jp.aquafactory.apprenticecodex.utility.CompactCountFormatter;
 import jp.aquafactory.apprenticecodex.utility.ManaPotionRecoveryHelper;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -55,26 +56,27 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBypassSpellItem, UniqueItem, GeoItem, InventoryInsertTarget {
+    private static final net.minecraft.core.HolderLookup.Provider SERIALIZATION_LOOKUP =
+            RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     private static final String STORAGE_TAG = "LuminousDevice";
     private static final String CONTENTS_TAG = "Contents";
     private static final String SELECTED_STACK_TAG = "SelectedStack";
@@ -99,19 +101,8 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         GeoItem.registerSyncedAnimatable(this);
     }
 
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private LuminousDeviceRenderer renderer;
-
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                if (renderer == null) {
-                    renderer = new LuminousDeviceRenderer();
-                }
-                return renderer;
-            }
-        });
+    public boolean hasCustomRendering() {
+        return true;
     }
 
     @Override
@@ -175,11 +166,11 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
     @Override
     public void appendHoverText(
             @NotNull ItemStack stack,
-            @Nullable Level level,
+            Item.@NotNull TooltipContext context,
             @NotNull List<Component> lines,
             @NotNull TooltipFlag flag
     ) {
-        super.appendHoverText(stack, level, lines, flag);
+        super.appendHoverText(stack, context, lines, flag);
         var maxStoredItems = LuminousDeviceConfigState.maxStoredItems();
         var maxStoredMana = clientMaxStoredMana(stack);
         lines.add(Component.literal(
@@ -250,7 +241,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
             return inserted > 0;
         }
 
-        var previousTag = deviceStack.getTag() == null ? null : deviceStack.getTag().copy();
+        var previousData = deviceStack.get(DataComponents.CUSTOM_DATA);
         var previousSelection = getStoredSelectedStack(deviceStack);
         var removedStack = removeStackForInventory(deviceStack);
         if (removedStack.isEmpty()) {
@@ -262,7 +253,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         var leftover = slot.safeInsert(removedStack);
         var insertedCount = removedCount - leftover.getCount();
         if (insertedCount <= 0) {
-            deviceStack.setTag(previousTag);
+            restoreCustomData(deviceStack, previousData);
             return false;
         }
         if (!leftover.isEmpty()) {
@@ -297,14 +288,14 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         }
 
         if (otherStack.isEmpty()) {
-            var previousTag = deviceStack.getTag() == null ? null : deviceStack.getTag().copy();
+            var previousData = deviceStack.get(DataComponents.CUSTOM_DATA);
             var removedStack = removeStackForInventory(deviceStack);
             if (removedStack.isEmpty()) {
                 return false;
             }
 
             if (!slotAccess.set(removedStack)) {
-                deviceStack.setTag(previousTag);
+                restoreCustomData(deviceStack, previousData);
                 return false;
             }
 
@@ -666,7 +657,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
             return 0;
         }
 
-        var storageTag = deviceStack.getTagElement(STORAGE_TAG);
+        var storageTag = getStorageTag(deviceStack);
         return storageTag == null ? 0 : Math.max(0, storageTag.getInt(MANA_TAG));
     }
 
@@ -677,22 +668,18 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
 
         var normalizedMana = Math.max(0, mana);
         if (normalizedMana > 0) {
-            deviceStack.getOrCreateTagElement(STORAGE_TAG).putInt(MANA_TAG, normalizedMana);
+            updateStorageTag(deviceStack, storageTag -> storageTag.putInt(MANA_TAG, normalizedMana));
             return;
         }
 
-        var storageTag = deviceStack.getTagElement(STORAGE_TAG);
-        if (storageTag != null) {
-            storageTag.remove(MANA_TAG);
-            removeEmptyStorageTag(deviceStack);
-        }
+        updateStorageTag(deviceStack, storageTag -> storageTag.remove(MANA_TAG));
     }
 
     public static boolean hasUpgrade(ItemStack deviceStack, LuminousDeviceUpgrade upgrade) {
         if (!(deviceStack.getItem() instanceof LuminousDevice)) {
             return false;
         }
-        var storageTag = deviceStack.getTagElement(STORAGE_TAG);
+        var storageTag = getStorageTag(deviceStack);
         if (storageTag == null || !storageTag.contains(UPGRADES_TAG, Tag.TAG_LIST)) {
             return false;
         }
@@ -709,12 +696,13 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         if (!(deviceStack.getItem() instanceof LuminousDevice) || hasUpgrade(deviceStack, upgrade)) {
             return false;
         }
-        var storageTag = deviceStack.getOrCreateTagElement(STORAGE_TAG);
-        var upgrades = storageTag.contains(UPGRADES_TAG, Tag.TAG_LIST)
-                ? storageTag.getList(UPGRADES_TAG, Tag.TAG_STRING)
-                : new ListTag();
-        upgrades.add(StringTag.valueOf(upgrade.id().toString()));
-        storageTag.put(UPGRADES_TAG, upgrades);
+        updateStorageTag(deviceStack, storageTag -> {
+            var upgrades = storageTag.contains(UPGRADES_TAG, Tag.TAG_LIST)
+                    ? storageTag.getList(UPGRADES_TAG, Tag.TAG_STRING)
+                    : new ListTag();
+            upgrades.add(StringTag.valueOf(upgrade.id().toString()));
+            storageTag.put(UPGRADES_TAG, upgrades);
+        });
         return true;
     }
 
@@ -815,11 +803,11 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
             return ItemStack.EMPTY;
         }
 
-        var storageTag = deviceStack.getTagElement(STORAGE_TAG);
+        var storageTag = getStorageTag(deviceStack);
         if (storageTag == null || !storageTag.contains(SELECTED_STACK_TAG, Tag.TAG_COMPOUND)) {
             return ItemStack.EMPTY;
         }
-        return normalizeStoredStack(ItemStack.of(storageTag.getCompound(SELECTED_STACK_TAG)));
+        return normalizeStoredStack(ItemStack.parseOptional(SERIALIZATION_LOOKUP, storageTag.getCompound(SELECTED_STACK_TAG)));
     }
 
     public static boolean setSelectedStack(ItemStack deviceStack, ItemStack requestedStack) {
@@ -843,7 +831,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
             return Mode.PLACE;
         }
 
-        var storageTag = deviceStack.getTagElement(STORAGE_TAG);
+        var storageTag = getStorageTag(deviceStack);
         if (storageTag == null || !storageTag.contains(MODE_TAG, Tag.TAG_STRING)) {
             return Mode.PLACE;
         }
@@ -874,7 +862,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
             return SpellData.EMPTY;
         }
 
-        var storageTag = deviceStack.getTagElement(STORAGE_TAG);
+        var storageTag = getStorageTag(deviceStack);
         if (storageTag == null || !storageTag.contains(SELECTED_SPELL_TAG, Tag.TAG_STRING)) {
             return SpellData.EMPTY;
         }
@@ -888,7 +876,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
             return false;
         }
 
-        deviceStack.getOrCreateTagElement(STORAGE_TAG).putString(SELECTED_SPELL_TAG, spellId.toString());
+        updateStorageTag(deviceStack, storageTag -> storageTag.putString(SELECTED_SPELL_TAG, spellId.toString()));
         setModeInternal(deviceStack, Mode.SPELL);
         return true;
     }
@@ -1113,9 +1101,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
                 && SpellcastersFlask.canExtractOneDose(inputStack)) {
             potionStack = SpellcastersFlask.getStoredItem(inputStack);
             remainingStack = SpellcastersFlask.copyAfterExtractingOneDose(inputStack);
-            amplifierBonus = EnchantmentRegistry.GLOW_ENERGY.isPresent()
-                    ? inputStack.getEnchantmentLevel(EnchantmentRegistry.GLOW_ENERGY.get())
-                    : 0;
+            amplifierBonus = Enchantments.getLevel(inputStack, Enchantments.GLOW_ENERGY);
         } else if (ManaPotionRecoveryHelper.isSupportedManaPotion(inputStack)) {
             potionStack = inputStack;
             remainingStack = new ItemStack(Items.GLASS_BOTTLE);
@@ -1225,7 +1211,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
     }
 
     private static List<StoredEntry> readContents(ItemStack deviceStack) {
-        var storageTag = deviceStack.getTagElement(STORAGE_TAG);
+        var storageTag = getStorageTag(deviceStack);
         if (storageTag == null || !storageTag.contains(CONTENTS_TAG, Tag.TAG_LIST)) {
             return new ArrayList<>();
         }
@@ -1237,7 +1223,10 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
                 continue;
             }
 
-            var storedStack = normalizeStoredStack(ItemStack.of(compoundTag.getCompound(STACK_TAG)));
+            var storedStack = normalizeStoredStack(ItemStack.parseOptional(
+                    SERIALIZATION_LOOKUP,
+                    compoundTag.getCompound(STACK_TAG)
+            ));
             var storedCount = compoundTag.getInt(COUNT_TAG);
             if (!storedStack.isEmpty() && storedCount > 0) {
                 mergeStoredEntry(contents, storedStack, storedCount);
@@ -1247,56 +1236,78 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
     }
 
     private static void writeContents(ItemStack deviceStack, List<StoredEntry> contents) {
-        var storageTag = deviceStack.getOrCreateTagElement(STORAGE_TAG);
         var contentsTag = new ListTag();
         for (var entry : contents) {
             if (entry.displayStack.isEmpty() || entry.count <= 0) {
                 continue;
             }
             var entryTag = new CompoundTag();
-            entryTag.put(STACK_TAG, normalizeStoredStack(entry.displayStack).save(new CompoundTag()));
+            entryTag.put(STACK_TAG, normalizeStoredStack(entry.displayStack).saveOptional(SERIALIZATION_LOOKUP));
             entryTag.putInt(COUNT_TAG, entry.count);
             contentsTag.add(entryTag);
         }
 
-        if (contentsTag.isEmpty()) {
-            storageTag.remove(CONTENTS_TAG);
-        } else {
-            storageTag.put(CONTENTS_TAG, contentsTag);
-        }
-        removeEmptyStorageTag(deviceStack);
+        updateStorageTag(deviceStack, storageTag -> {
+            if (contentsTag.isEmpty()) {
+                storageTag.remove(CONTENTS_TAG);
+            } else {
+                storageTag.put(CONTENTS_TAG, contentsTag);
+            }
+        });
     }
 
     private static void setSelectedStackInternal(ItemStack deviceStack, ItemStack selectedStack) {
-        deviceStack.getOrCreateTagElement(STORAGE_TAG).put(
+        updateStorageTag(deviceStack, storageTag -> storageTag.put(
                 SELECTED_STACK_TAG,
-                normalizeStoredStack(selectedStack).save(new CompoundTag())
-        );
+                normalizeStoredStack(selectedStack).saveOptional(SERIALIZATION_LOOKUP)
+        ));
     }
 
     private static void setModeInternal(ItemStack deviceStack, Mode mode) {
-        var storageTag = deviceStack.getOrCreateTagElement(STORAGE_TAG);
-        if (mode == Mode.PLACE) {
-            storageTag.remove(MODE_TAG);
-            removeEmptyStorageTag(deviceStack);
-            return;
-        }
-        storageTag.putString(MODE_TAG, mode.serializedName);
+        updateStorageTag(deviceStack, storageTag -> {
+            if (mode == Mode.PLACE) {
+                storageTag.remove(MODE_TAG);
+            } else {
+                storageTag.putString(MODE_TAG, mode.serializedName);
+            }
+        });
     }
 
     private static void clearSelectedStack(ItemStack deviceStack) {
-        var storageTag = deviceStack.getTagElement(STORAGE_TAG);
-        if (storageTag == null) {
-            return;
-        }
-        storageTag.remove(SELECTED_STACK_TAG);
-        removeEmptyStorageTag(deviceStack);
+        updateStorageTag(deviceStack, storageTag -> storageTag.remove(SELECTED_STACK_TAG));
     }
 
-    private static void removeEmptyStorageTag(ItemStack deviceStack) {
-        var storageTag = deviceStack.getTagElement(STORAGE_TAG);
-        if (storageTag != null && storageTag.isEmpty()) {
-            deviceStack.removeTagKey(STORAGE_TAG);
+    @Nullable
+    private static CompoundTag getStorageTag(ItemStack deviceStack) {
+        var customData = deviceStack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return null;
+        }
+        var rootTag = customData.copyTag();
+        return rootTag.contains(STORAGE_TAG, Tag.TAG_COMPOUND)
+                ? rootTag.getCompound(STORAGE_TAG)
+                : null;
+    }
+
+    private static void updateStorageTag(ItemStack deviceStack, java.util.function.Consumer<CompoundTag> updater) {
+        CustomData.update(DataComponents.CUSTOM_DATA, deviceStack, rootTag -> {
+            var storageTag = rootTag.contains(STORAGE_TAG, Tag.TAG_COMPOUND)
+                    ? rootTag.getCompound(STORAGE_TAG)
+                    : new CompoundTag();
+            updater.accept(storageTag);
+            if (storageTag.isEmpty()) {
+                rootTag.remove(STORAGE_TAG);
+            } else {
+                rootTag.put(STORAGE_TAG, storageTag);
+            }
+        });
+    }
+
+    private static void restoreCustomData(ItemStack stack, @Nullable CustomData previousData) {
+        if (previousData == null) {
+            stack.remove(DataComponents.CUSTOM_DATA);
+        } else {
+            stack.set(DataComponents.CUSTOM_DATA, previousData);
         }
     }
 
@@ -1340,7 +1351,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
     }
 
     private static boolean sameStoredItem(ItemStack first, ItemStack second) {
-        return !first.isEmpty() && !second.isEmpty() && ItemStack.isSameItemSameTags(first, second);
+        return !first.isEmpty() && !second.isEmpty() && ItemStack.isSameItemSameComponents(first, second);
     }
 
     private static boolean sameAutoPickupItem(ItemStack first, ItemStack second) {

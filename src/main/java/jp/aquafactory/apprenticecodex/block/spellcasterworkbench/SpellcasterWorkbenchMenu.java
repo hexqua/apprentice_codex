@@ -893,7 +893,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     private @NotNull ItemStack getActiveResult() {
         var activeRecipe = getActiveRecipe();
         if (activeRecipe != null) {
-            return activeRecipe.assemble(container, playerInventory.player.level().registryAccess());
+            return activeRecipe.assemble(createRecipeInput(), playerInventory.player.level().registryAccess());
         }
 
         var spellExtractionAttempt = getSpellExtractionAttempt();

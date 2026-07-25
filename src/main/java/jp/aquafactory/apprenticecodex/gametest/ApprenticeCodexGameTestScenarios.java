@@ -396,6 +396,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.common.damagesource.DamageContainer;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
@@ -8807,7 +8808,7 @@ public class ApprenticeCodexGameTestScenarios {
                 }
             };
 
-            MinecraftForge.EVENT_BUS.addListener(cancelListener);
+            NeoForge.EVENT_BUS.addListener(cancelListener);
             try {
                 var wizardlamp = (Wizardlamp) SpellRegistry.WIZARDLAMP.get();
                 var wizardlampTarget = new BlockTargetData();
@@ -8847,7 +8848,7 @@ public class ApprenticeCodexGameTestScenarios {
                 helper.setBlock(new BlockPos(4, 3, 2), Blocks.STONE);
                 castLinearBuild(helper, linearBuildPlayer, new BlockPos(4, 3, 2), Direction.WEST);
             } finally {
-                MinecraftForge.EVENT_BUS.unregister(cancelListener);
+                NeoForge.EVENT_BUS.unregister(cancelListener);
             }
 
             helper.assertTrue(wizardlampEvents.get() == 1,
@@ -8959,8 +8960,8 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(zeroSelectionPlayer.getInventory().getItem(10).isEmpty(),
                     "A zero-count selection should use matching blocks from another source");
 
-            var fallbackTargetPos = new BlockPos(5, 3, 5);
-            var fallbackPlayer = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 5),
+            var fallbackTargetPos = new BlockPos(5, 3, 4);
+            var fallbackPlayer = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 4),
                     "linear_build_empty_luminous_fallback_test");
             fallbackPlayer.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.GLOWSTONE, 2));
             fallbackPlayer.setItemInHand(
@@ -8971,8 +8972,8 @@ public class ApprenticeCodexGameTestScenarios {
 
             castLinearBuild(helper, fallbackPlayer, fallbackTargetPos, Direction.WEST);
 
-            helper.assertBlockPresent(Blocks.GLOWSTONE, new BlockPos(4, 3, 5));
-            helper.assertBlockPresent(Blocks.GLOWSTONE, new BlockPos(3, 3, 5));
+            helper.assertBlockPresent(Blocks.GLOWSTONE, new BlockPos(4, 3, 4));
+            helper.assertBlockPresent(Blocks.GLOWSTONE, new BlockPos(3, 3, 4));
             helper.assertTrue(fallbackPlayer.getMainHandItem().isEmpty(),
                     "An empty offhand Luminous Device should fall back to the main-hand block");
         });

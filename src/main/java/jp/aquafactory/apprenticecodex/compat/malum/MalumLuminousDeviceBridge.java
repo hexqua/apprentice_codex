@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.compat.malum;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 
 public final class MalumLuminousDeviceBridge {
     private static final String MALUM_MOD_ID = "malum";

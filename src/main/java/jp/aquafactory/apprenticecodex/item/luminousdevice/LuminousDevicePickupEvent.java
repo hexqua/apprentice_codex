@@ -1,26 +1,25 @@
 package jp.aquafactory.apprenticecodex.item.luminousdevice;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.util.TriState;
+import net.neoforged.neoforge.event.EventHooks;
+import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class LuminousDevicePickupEvent {
-    private static final String OWNER_TAG = "Owner";
-
     private LuminousDevicePickupEvent() {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public static void onEntityItemPickup(EntityItemPickupEvent event) {
-        var player = event.getEntity();
-        var itemEntity = event.getItem();
+    public static void onEntityItemPickup(ItemEntityPickupEvent.Pre event) {
+        var player = event.getPlayer();
+        var itemEntity = event.getItemEntity();
         var entityStack = itemEntity.getItem();
         if (!LuminousDevice.accepts(entityStack) || !canBePickedUpBy(itemEntity, player)) {
             return;
@@ -43,7 +42,7 @@ public final class LuminousDevicePickupEvent {
         }
 
         pickedUpStack.setCount(pickedUpCount);
-        net.minecraftforge.event.ForgeEventFactory.firePlayerItemPickupEvent(player, itemEntity, pickedUpStack);
+        EventHooks.fireItemPickupPost(itemEntity, player, pickedUpStack);
         player.take(itemEntity, pickedUpCount);
         if (entityStack.isEmpty()) {
             itemEntity.discard();
@@ -51,11 +50,10 @@ public final class LuminousDevicePickupEvent {
         }
         player.awardStat(Stats.ITEM_PICKED_UP.get(pickedUpStack.getItem()), pickedUpCount);
         player.onItemPickup(itemEntity);
-        event.setCanceled(true);
+        event.setCanPickup(TriState.FALSE);
     }
 
     private static boolean canBePickedUpBy(ItemEntity itemEntity, Player player) {
-        var itemEntityTag = itemEntity.saveWithoutId(new CompoundTag());
-        return !itemEntityTag.hasUUID(OWNER_TAG) || itemEntityTag.getUUID(OWNER_TAG).equals(player.getUUID());
+        return itemEntity.getOwner() == null || itemEntity.getOwner().equals(player.getUUID());
     }
 }

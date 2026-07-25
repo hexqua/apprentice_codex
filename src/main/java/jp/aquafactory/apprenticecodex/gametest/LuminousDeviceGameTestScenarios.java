@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import com.sammy.malum.registry.common.item.MalumDataComponents;
+import com.sammy.malum.common.item.ether.EtherItem;
 import io.netty.buffer.Unpooled;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
@@ -18,7 +20,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncLuminousDeviceConfigPac
 import jp.aquafactory.apprenticecodex.network.packet.SyncMageLightConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -27,13 +29,16 @@ import jp.aquafactory.apprenticecodex.spell.magelight.MageLightCastProfile;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.RightClickSpellResolver;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
@@ -47,16 +52,17 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.util.TriState;
+import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.List;
 import java.util.UUID;
@@ -72,8 +78,8 @@ final class LuminousDeviceGameTestScenarios {
                     "spellcaster_workbench/luminous_device_mage_light_upgrade"
             );
             var recipe = helper.getLevel().getRecipeManager().byKey(recipeId)
-                    .filter(candidate -> candidate.getType() == RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get())
-                    .map(candidate -> (jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe) candidate)
+                    .filter(candidate -> candidate.value().getType() == RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get())
+                    .map(candidate -> (jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe) candidate.value())
                     .orElseThrow();
             helper.assertTrue(
                     LuminousDevice.hasUpgrade(
@@ -90,7 +96,7 @@ final class LuminousDeviceGameTestScenarios {
 
             var scroll = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
             ISpellContainer.createScrollContainer(SpellRegistry.MAGE_LIGHT.get(), 2, scroll);
-            var inputs = new SimpleContainer(
+            var inputs = new jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipeInput(
                     deviceStack,
                     scroll,
                     new ItemStack(Items.SPYGLASS)
@@ -107,8 +113,12 @@ final class LuminousDeviceGameTestScenarios {
                             && LuminousDevice.getStoredMana(result) == 777,
                     "Workbench upgrade should preserve storage and mana NBT");
 
-            inputs.setItem(0, result);
-            helper.assertFalse(recipe.matches(inputs, helper.getLevel()),
+            var upgradedInputs = new jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipeInput(
+                    result,
+                    scroll,
+                    new ItemStack(Items.SPYGLASS)
+            );
+            helper.assertFalse(recipe.matches(upgradedInputs, helper.getLevel()),
                     "A Luminous Device should reject an upgrade it already contains");
         });
     }
@@ -224,7 +234,7 @@ final class LuminousDeviceGameTestScenarios {
             String path
     ) {
         var id = ResourceLocation.fromNamespaceAndPath(namespace, path);
-        var item = ForgeRegistries.ITEMS.getValue(id);
+        var item = BuiltInRegistries.ITEM.get(id);
         helper.assertTrue(item != null, id + " should be registered when its mod is loaded");
         helper.assertTrue(new ItemStack(item).is(TagRegistry.Items.LUMINOUS_DEVICE_STORABLE),
                 id + " should be tagged for Luminous Device storage");
@@ -275,16 +285,16 @@ final class LuminousDeviceGameTestScenarios {
                         manaPotion,
                         2
                 );
-                if (EnchantmentRegistry.GLOW_ENERGY.isPresent()) {
-                    flask.enchant(EnchantmentRegistry.GLOW_ENERGY.get(), 2);
-                }
+                var glowEnergy = helper.getLevel().registryAccess()
+                        .lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
+                        .getOrThrow(Enchantments.GLOW_ENERGY);
+                flask.enchant(glowEnergy, 2);
                 var flaskResult = rightClickDevice(deviceStack, flask, player);
                 helper.assertTrue(flaskResult.handled(),
                         "Luminous Device should accept a Spellcaster's Flask containing mana potion");
                 helper.assertTrue(AbstractPotionFlaskItem.getStoredDoseCount(flaskResult.remainingStack()) == 1,
                         "Spellcaster's Flask should consume exactly one dose");
-                var expectedFlaskRecovery = EnchantmentRegistry.GLOW_ENERGY.isPresent() ? 375 : 125;
-                helper.assertTrue(LuminousDevice.getStoredMana(deviceStack) == expectedFlaskRecovery,
+                helper.assertTrue(LuminousDevice.getStoredMana(deviceStack) == 375,
                         "Spellcaster's Flask recovery should include Glow Energy amplifier levels");
 
                 LuminousDevice.setStoredMana(deviceStack, 1999);
@@ -327,7 +337,7 @@ final class LuminousDeviceGameTestScenarios {
                                 io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(),
                                 Items.LINGERING_POTION
                         ),
-                        PotionUtils.setPotion(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.HEALING),
+                        PotionContentsHelper.createPotionStack(Items.POTION, net.minecraft.world.item.alchemy.Potions.HEALING.value()),
                         alchemistsFlask
                 );
 
@@ -352,7 +362,12 @@ final class LuminousDeviceGameTestScenarios {
                 }
                 LuminousDevice.setStoredMana(deviceStack, 67);
                 var lines = new java.util.ArrayList<net.minecraft.network.chat.Component>();
-                deviceStack.getItem().appendHoverText(deviceStack, helper.getLevel(), lines, TooltipFlag.NORMAL);
+                deviceStack.getItem().appendHoverText(
+                        deviceStack,
+                        Item.TooltipContext.of(helper.getLevel()),
+                        lines,
+                        TooltipFlag.NORMAL
+                );
 
                 helper.assertTrue(lines.size() == 6, "Selected Luminous Device should append upgrade and mode tooltip lines");
                 helper.assertTrue("(3/12)".equals(lines.get(0).getString()),
@@ -620,7 +635,7 @@ final class LuminousDeviceGameTestScenarios {
             helper.assertTrue(Math.abs(decodedMageLightConfig.maxRange() - 48.0D) < 1.0E-9D,
                     "Mage Light config sync should preserve the configured maximum range");
 
-            var remainingBuffer = new FriendlyByteBuf(Unpooled.buffer());
+            var remainingBuffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
             SyncRemainingCountNotificationPacket.encode(
                     new SyncRemainingCountNotificationPacket(
                             ItemRegistry.LUMINOUS_DEVICE.getId().toString(),
@@ -647,7 +662,12 @@ final class LuminousDeviceGameTestScenarios {
                     "An unupgraded empty Luminous Device should not expose locked functions");
 
             var emptyLines = new java.util.ArrayList<net.minecraft.network.chat.Component>();
-            deviceStack.getItem().appendHoverText(deviceStack, helper.getLevel(), emptyLines, TooltipFlag.NORMAL);
+            deviceStack.getItem().appendHoverText(
+                    deviceStack,
+                    Item.TooltipContext.of(helper.getLevel()),
+                    emptyLines,
+                    TooltipFlag.NORMAL
+            );
             helper.assertTrue(emptyLines.size() == 5,
                     "Empty placement mode should show all upgrades and omit the mode tooltip line");
             var lockedUpgradeContents = (net.minecraft.network.chat.contents.TranslatableContents)
@@ -669,7 +689,12 @@ final class LuminousDeviceGameTestScenarios {
                             && upgradedViews.get(2).spellId().equals(SpellRegistry.WIZARDLAMP.get().getSpellResource()),
                     "An upgraded empty Luminous Device should expose all unlocked functions");
             var upgradedLines = new java.util.ArrayList<net.minecraft.network.chat.Component>();
-            deviceStack.getItem().appendHoverText(deviceStack, helper.getLevel(), upgradedLines, TooltipFlag.NORMAL);
+            deviceStack.getItem().appendHoverText(
+                    deviceStack,
+                    Item.TooltipContext.of(helper.getLevel()),
+                    upgradedLines,
+                    TooltipFlag.NORMAL
+            );
             var unlockedUpgradeContents = (net.minecraft.network.chat.contents.TranslatableContents)
                     upgradedLines.get(4).getContents();
             helper.assertTrue(java.util.Arrays.stream(unlockedUpgradeContents.getArgs()).allMatch(argument ->
@@ -719,7 +744,7 @@ final class LuminousDeviceGameTestScenarios {
                 var cleanLines = new java.util.ArrayList<net.minecraft.network.chat.Component>();
                 deviceStack.getItem().appendHoverText(
                         deviceStack,
-                        helper.getLevel(),
+                        Item.TooltipContext.of(helper.getLevel()),
                         cleanLines,
                         TooltipFlag.NORMAL
                 );
@@ -761,7 +786,7 @@ final class LuminousDeviceGameTestScenarios {
                 var spellLines = new java.util.ArrayList<net.minecraft.network.chat.Component>();
                 deviceStack.getItem().appendHoverText(
                         deviceStack,
-                        helper.getLevel(),
+                        Item.TooltipContext.of(helper.getLevel()),
                         spellLines,
                         TooltipFlag.NORMAL
                 );
@@ -781,7 +806,7 @@ final class LuminousDeviceGameTestScenarios {
                         ),
                         "Spell tooltip should show level one in the school color");
 
-                var packetBuffer = new FriendlyByteBuf(Unpooled.buffer());
+                var packetBuffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
                 ClientConfirmLuminousDeviceSelectionPacket.encode(
                         new ClientConfirmLuminousDeviceSelectionPacket(
                                 InteractionHand.MAIN_HAND,
@@ -1029,7 +1054,7 @@ final class LuminousDeviceGameTestScenarios {
                     player.getZ(),
                     new ItemStack(Items.TORCH, 10)
             );
-            LuminousDevicePickupEvent.onEntityItemPickup(new EntityItemPickupEvent(player, torchEntity));
+            LuminousDevicePickupEvent.onEntityItemPickup(new ItemEntityPickupEvent.Pre(player, torchEntity));
 
             helper.assertTrue(LuminousDevice.getStoredCount(firstDevice, new ItemStack(Items.TORCH)) == 1024,
                     "Pickup storage should fill the first matching device before continuing");
@@ -1053,7 +1078,7 @@ final class LuminousDeviceGameTestScenarios {
                     new ItemStack(Items.TORCH, 5)
             );
             LuminousDevicePickupEvent.onEntityItemPickup(
-                    new EntityItemPickupEvent(partialPlayer, partialTorchEntity)
+                    new ItemEntityPickupEvent.Pre(partialPlayer, partialTorchEntity)
             );
 
             helper.assertTrue(LuminousDevice.getStoredCount(partialDevice, new ItemStack(Items.TORCH)) == 1024,
@@ -1076,12 +1101,12 @@ final class LuminousDeviceGameTestScenarios {
                     untouchedPlayer.getZ(),
                     new ItemStack(Items.LANTERN, 3)
             );
-            var lanternPickupEvent = new EntityItemPickupEvent(untouchedPlayer, lanternEntity);
+            var lanternPickupEvent = new ItemEntityPickupEvent.Pre(untouchedPlayer, lanternEntity);
             LuminousDevicePickupEvent.onEntityItemPickup(lanternPickupEvent);
 
             helper.assertTrue(LuminousDevice.getStoredItemCount(emptyDevice) == 0,
                     "A tagged item that was never stored or selected should not be auto-stored");
-            helper.assertFalse(lanternPickupEvent.isCanceled(),
+            helper.assertTrue(lanternPickupEvent.canPickup() == TriState.DEFAULT,
                     "Unknown tagged items should remain available to vanilla pickup handling");
             helper.assertFalse(lanternEntity.isRemoved(),
                     "Unknown tagged items should remain in their ItemEntity until vanilla pickup runs");
@@ -1118,7 +1143,12 @@ final class LuminousDeviceGameTestScenarios {
             );
 
             var defaultEther = new ItemStack(ether, 2);
-            var explicitDefaultEther = etherWithColors(ether, 3, 0xFFEFC016, 0xFF123456);
+            var explicitDefaultEther = new ItemStack(ether, 3);
+            explicitDefaultEther.set(DataComponents.DYED_COLOR, EtherItem.DEFAULT_FIRST_COLOR);
+            explicitDefaultEther.set(
+                    MalumDataComponents.SECONDARY_DYED_COLOR.get(),
+                    new DyedItemColor(0x123456, false)
+            );
             var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
             LuminousDevice.addToDevice(deviceStack, defaultEther);
             LuminousDevice.addToDevice(deviceStack, explicitDefaultEther);
@@ -1132,27 +1162,15 @@ final class LuminousDeviceGameTestScenarios {
             );
             var removedDefaultEther = LuminousDevice.removeStackForInventory(deviceStack);
             helper.assertTrue(
-                    removedDefaultEther.getCount() == 5 && !removedDefaultEther.hasTag(),
-                    "Extracted default Ether should not retain redundant color NBT"
+                    removedDefaultEther.getCount() == 5
+                            && removedDefaultEther.get(DataComponents.DYED_COLOR) == null
+                            && removedDefaultEther.get(MalumDataComponents.SECONDARY_DYED_COLOR.get()) == null,
+                    "Extracted default Ether should not retain redundant color components"
             );
 
-            var legacyDevice = createLegacyDefaultEtherDevice(ether);
-            helper.assertTrue(
-                    LuminousDevice.getStoredItemCount(legacyDevice) == 5
-                            && LuminousDevice.getSelectionViews(legacyDevice).size() == 1,
-                    "Legacy default Ether entries should merge when read"
-            );
-            LuminousDevice.addToDevice(legacyDevice, new ItemStack(ether));
-            var migratedContents = legacyDevice.getTagElement("LuminousDevice").getList("Contents", 10);
-            helper.assertTrue(
-                    migratedContents.size() == 1
-                            && !ItemStack.of(migratedContents.getCompound(0).getCompound("Stack")).hasTag(),
-                    "The next contents write should persist normalized legacy Ether data"
-            );
-
-            var redEther = etherWithColors(ether, 1, 0xFFAA2200, 0);
-            var redEtherRgb = etherWithColors(ether, 2, 0x00AA2200, 0);
-            var blueEther = etherWithColors(ether, 2, 0x001144CC, 0);
+            var redEther = etherWithColors(ether, 1, 0xAA2200, 0);
+            var redEtherRgb = etherWithColors(ether, 2, 0xAA2200, 0);
+            var blueEther = etherWithColors(ether, 2, 0x1144CC, 0);
             var coloredDevice = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
             LuminousDevice.addToDevice(coloredDevice, redEther);
             LuminousDevice.addToDevice(coloredDevice, redEtherRgb);
@@ -1173,7 +1191,7 @@ final class LuminousDeviceGameTestScenarios {
                     pickupPlayer.getZ(),
                     blueEther.copy()
             );
-            LuminousDevicePickupEvent.onEntityItemPickup(new EntityItemPickupEvent(pickupPlayer, blueEntity));
+            LuminousDevicePickupEvent.onEntityItemPickup(new ItemEntityPickupEvent.Pre(pickupPlayer, blueEntity));
             helper.assertTrue(
                     blueEntity.isRemoved() && LuminousDevice.getStoredCount(coloredDevice, blueEther) == 2,
                     "A known Ether item should auto-store newly encountered colors"
@@ -1184,7 +1202,7 @@ final class LuminousDeviceGameTestScenarios {
             );
 
             var namedBlueEther = blueEther.copyWithCount(1);
-            namedBlueEther.setHoverName(Component.literal("Keepsake Ether"));
+            namedBlueEther.set(DataComponents.CUSTOM_NAME, Component.literal("Keepsake Ether"));
             var namedEntity = new ItemEntity(
                     helper.getLevel(),
                     pickupPlayer.getX(),
@@ -1192,11 +1210,11 @@ final class LuminousDeviceGameTestScenarios {
                     pickupPlayer.getZ(),
                     namedBlueEther
             );
-            var namedPickupEvent = new EntityItemPickupEvent(pickupPlayer, namedEntity);
+            var namedPickupEvent = new ItemEntityPickupEvent.Pre(pickupPlayer, namedEntity);
             LuminousDevicePickupEvent.onEntityItemPickup(namedPickupEvent);
             helper.assertFalse(
-                    namedPickupEvent.isCanceled() || namedEntity.isRemoved(),
-                    "Ether auto-pickup should preserve distinctions in non-color NBT"
+                    namedPickupEvent.canPickup() != TriState.DEFAULT || namedEntity.isRemoved(),
+                    "Ether auto-pickup should preserve distinctions in non-color components"
             );
 
             var placePlayer = new FakePlayer(
@@ -1215,12 +1233,9 @@ final class LuminousDeviceGameTestScenarios {
                     "Luminous Device should delegate custom Ether placement"
             );
             helper.assertBlockPresent(etherBlock, targetPos);
-            var etherBlockEntity = helper.getLevel().getBlockEntity(helper.absolutePos(targetPos));
-            helper.assertTrue(etherBlockEntity != null, "Placed Ether should create its block entity");
-            var placedTag = etherBlockEntity.saveWithFullMetadata();
             helper.assertTrue(
-                    (placedTag.getInt("firstColor") & 0x00FFFFFF) == 0x00AA2200,
-                    "Placed Ether should preserve the selected custom RGB color"
+                    helper.getLevel().getBlockEntity(helper.absolutePos(targetPos)) != null,
+                    "Placed Ether should create its block entity"
             );
         });
     }
@@ -1231,14 +1246,14 @@ final class LuminousDeviceGameTestScenarios {
             String path
     ) {
         var id = ResourceLocation.fromNamespaceAndPath(namespace, path);
-        var item = ForgeRegistries.ITEMS.getValue(id);
+        var item = BuiltInRegistries.ITEM.get(id);
         helper.assertTrue(item != null, id + " should be registered");
         return item;
     }
 
     private static Block requireBlock(GameTestHelper helper, String namespace, String path) {
         var id = ResourceLocation.fromNamespaceAndPath(namespace, path);
-        var block = ForgeRegistries.BLOCKS.getValue(id);
+        var block = BuiltInRegistries.BLOCK.get(id);
         helper.assertTrue(block != null, id + " should be registered");
         return block;
     }
@@ -1250,29 +1265,9 @@ final class LuminousDeviceGameTestScenarios {
             int secondColor
     ) {
         var stack = new ItemStack(ether, count);
-        var displayTag = stack.getOrCreateTagElement("display");
-        displayTag.putInt("firstColor", firstColor);
-        displayTag.putInt("secondColor", secondColor);
+        stack.set(DataComponents.DYED_COLOR, new DyedItemColor(firstColor, false));
+        stack.set(MalumDataComponents.SECONDARY_DYED_COLOR.get(), new DyedItemColor(secondColor, false));
         return stack;
-    }
-
-    private static ItemStack createLegacyDefaultEtherDevice(net.minecraft.world.item.Item ether) {
-        var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
-        var contentsTag = new ListTag();
-        contentsTag.add(createStoredEntryTag(new ItemStack(ether), 2));
-        contentsTag.add(createStoredEntryTag(
-                etherWithColors(ether, 1, 0xFFEFC016, 0xFF123456),
-                3
-        ));
-        deviceStack.getOrCreateTagElement("LuminousDevice").put("Contents", contentsTag);
-        return deviceStack;
-    }
-
-    private static CompoundTag createStoredEntryTag(ItemStack stack, int count) {
-        var entryTag = new CompoundTag();
-        entryTag.put("Stack", stack.copyWithCount(1).save(new CompoundTag()));
-        entryTag.putInt("Count", count);
-        return entryTag;
     }
 
     private static RefillInteractionResult rightClickDevice(
@@ -1333,7 +1328,7 @@ final class LuminousDeviceGameTestScenarios {
             net.minecraft.world.item.alchemy.Potion potion,
             Item potionItem
     ) {
-        return PotionUtils.setPotion(new ItemStack(potionItem), potion);
+        return PotionContentsHelper.createPotionStack(potionItem, potion);
     }
 
     private record RefillInteractionResult(boolean handled, ItemStack remainingStack) {

@@ -1,46 +1,57 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletClientNotificationState;
 import jp.aquafactory.apprenticecodex.utility.CompactCountFormatter;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
-
-import java.util.function.Supplier;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
 
 public record SyncRemainingCountNotificationPacket(
         String sourceId,
         ItemStack iconStack,
         long remainingCount,
         DisplayType displayType
-) {
-    public static void encode(SyncRemainingCountNotificationPacket packet, FriendlyByteBuf buffer) {
+) implements CustomPacketPayload {
+    public static final Type<SyncRemainingCountNotificationPacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_remaining_count_notification"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, SyncRemainingCountNotificationPacket> STREAM_CODEC =
+            StreamCodec.of((buffer, packet) -> encode(packet, buffer), SyncRemainingCountNotificationPacket::decode);
+
+    @Override
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+    public static void encode(SyncRemainingCountNotificationPacket packet, RegistryFriendlyByteBuf buffer) {
         buffer.writeUtf(packet.sourceId);
-        buffer.writeItem(packet.iconStack);
+        ItemStack.OPTIONAL_STREAM_CODEC.encode(buffer, packet.iconStack);
         buffer.writeVarLong(packet.remainingCount);
         buffer.writeEnum(packet.displayType);
     }
 
-    public static SyncRemainingCountNotificationPacket decode(FriendlyByteBuf buffer) {
+    public static SyncRemainingCountNotificationPacket decode(RegistryFriendlyByteBuf buffer) {
         return new SyncRemainingCountNotificationPacket(
                 buffer.readUtf(),
-                buffer.readItem(),
+                ItemStack.OPTIONAL_STREAM_CODEC.decode(buffer),
                 buffer.readVarLong(),
                 buffer.readEnum(DisplayType.class)
         );
     }
 
-    public static void handle(SyncRemainingCountNotificationPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
-        var context = contextSupplier.get();
-        context.enqueueWork(() ->
-                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientHandler.handle(packet))
-        );
-        context.setPacketHandled(true);
+    public static void handle(SyncRemainingCountNotificationPacket packet, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (FMLEnvironment.dist == Dist.CLIENT) {
+                ClientHandler.handle(packet);
+            }
+        });
     }
 
     public enum DisplayType {

@@ -15,8 +15,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.util.BlockSnapshot;
-import net.minecraftforge.event.ForgeEventFactory;
+import net.neoforged.neoforge.common.util.BlockSnapshot;
+import net.neoforged.neoforge.event.EventHooks;
 
 import java.util.Optional;
 
@@ -70,9 +70,9 @@ public final class BlockTools {
             return false;
         }
 
-        // 魔法による直接配置も通常のBlockItem配置と同じForgeイベントへ流し、土地保護MODが拒否できるようにする。
-        if (ForgeEventFactory.onBlockPlace(entity, snapshot, placedFace)) {
-            snapshot.restore(true, false);
+        // 魔法による直接配置も通常の BlockItem 配置と同じイベントへ流し、土地保護 MOD が拒否できるようにする。
+        if (EventHooks.onBlockPlace(entity, snapshot, placedFace)) {
+            snapshot.restore();
             return false;
         }
         return true;

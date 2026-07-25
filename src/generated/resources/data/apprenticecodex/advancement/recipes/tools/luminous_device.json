@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "irons_spellbooks:cinder_essence"
-            ]
+            "items": "irons_spellbooks:cinder_essence"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_cinder_essence",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_cinder_essence"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:luminous_device"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

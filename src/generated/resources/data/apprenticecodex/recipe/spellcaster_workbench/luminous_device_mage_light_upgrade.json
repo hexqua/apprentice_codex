@@ -29,8 +29,7 @@
   "priority": 10,
   "results": [
     {
-      "count": 1,
-      "item": "apprenticecodex:luminous_device"
+      "id": "apprenticecodex:luminous_device"
     }
   ]
 }

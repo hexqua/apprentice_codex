@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.Spellcast
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.SlotAccess;
@@ -14,8 +15,7 @@ import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
-import net.minecraftforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -54,8 +54,8 @@ final class InventoryInsertHintGameTestScenarios {
                         == InventoryInsertTarget.InsertHint.NONE,
                 "A full Luminous Device should not advertise item insertion");
 
-        var manaPotion = PotionUtils.setPotion(
-                new ItemStack(Items.POTION),
+        var manaPotion = PotionContentsHelper.createPotionStack(
+                Items.POTION,
                 io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()
         );
         helper.assertTrue(resolveHint(deviceStack, manaPotion, player)

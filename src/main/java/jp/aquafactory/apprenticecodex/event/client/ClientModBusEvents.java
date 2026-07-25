@@ -14,11 +14,9 @@ import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticleP
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchScreen;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchScreen;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserScreen;
-import jp.aquafactory.apprenticecodex.compat.arsnouveau.ArsNouveauLuminousDeviceCompat;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightClientCompat;
 import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBuiltinTemplateSupport;
-import jp.aquafactory.apprenticecodex.compat.sodiumdynamiclights.SodiumDynamicLightsLuminousDeviceCompat;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
@@ -58,6 +56,7 @@ import jp.aquafactory.apprenticecodex.renderer.item.FocusStaffbowRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.GoldSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IronSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IlluminateStellarStaffRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.LuminousDeviceRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.MithrilFreecastStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.MultipurposeStaffrifleRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.MulticastEchoStaffRenderer;
@@ -252,16 +251,6 @@ public final class ClientModBusEvents {
         ));
         event.enqueueWork(ClientModBusEvents::registerBoundBowItemProperties);
         event.enqueueWork(() -> {
-            if (ModList.get().isLoaded(ArsNouveauLuminousDeviceCompat.MOD_ID)) {
-                ArsNouveauLuminousDeviceCompat.register();
-            }
-        });
-        event.enqueueWork(() -> {
-            if (ModList.get().isLoaded(SodiumDynamicLightsLuminousDeviceCompat.MOD_ID)) {
-                SodiumDynamicLightsLuminousDeviceCompat.register();
-            }
-        });
-        event.enqueueWork(() -> {
             if (ModList.get().isLoaded(BetterCombatClientCompat.MOD_ID)) {
                 BetterCombatClientCompat.register();
             }
@@ -330,6 +319,17 @@ public final class ClientModBusEvents {
     }
 
     private static void registerClientExtensions(RegisterClientExtensionsEvent event) {
+        event.registerItem(new IClientItemExtensions() {
+            private LuminousDeviceRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new LuminousDeviceRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.LUMINOUS_DEVICE.get());
         event.registerItem(new ClientStaffItemExtensions() {
             private PastelStaffRenderer renderer;
 

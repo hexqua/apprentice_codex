@@ -6,7 +6,7 @@
       "item": "apprenticecodex:arcane_cinder"
     },
     "C": {
-      "tag": "forge:chests"
+      "tag": "c:chests"
     },
     "I": {
       "item": "irons_spellbooks:arcane_ingot"
@@ -21,7 +21,7 @@
     "IC "
   ],
   "result": {
-    "item": "apprenticecodex:luminous_device"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:luminous_device"
+  }
 }

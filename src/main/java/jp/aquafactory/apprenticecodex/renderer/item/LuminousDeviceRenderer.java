@@ -23,7 +23,7 @@ import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
 import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 public final class LuminousDeviceRenderer extends GeoItemRenderer<LuminousDevice> {
     private static final String STAR_CORE_BONE = "star_core";
@@ -65,10 +65,9 @@ public final class LuminousDeviceRenderer extends GeoItemRenderer<LuminousDevice
     @Override
     public void preRender(PoseStack poseStack, LuminousDevice animatable, BakedGeoModel model,
                           MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
-                          float partialTick, int packedLight, int packedOverlay,
-                          float red, float green, float blue, float alpha) {
+                          float partialTick, int packedLight, int packedOverlay, int renderColor) {
         super.preRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha);
+                packedLight, packedOverlay, renderColor);
         if (isReRender) {
             return;
         }
@@ -83,10 +82,9 @@ public final class LuminousDeviceRenderer extends GeoItemRenderer<LuminousDevice
     @Override
     public void postRender(PoseStack poseStack, LuminousDevice animatable, BakedGeoModel model,
                            MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
-                           float partialTick, int packedLight, int packedOverlay,
-                           float red, float green, float blue, float alpha) {
+                           float partialTick, int packedLight, int packedOverlay, int renderColor) {
         super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha);
+                packedLight, packedOverlay, renderColor);
         if (isReRender) {
             return;
         }
@@ -105,19 +103,19 @@ public final class LuminousDeviceRenderer extends GeoItemRenderer<LuminousDevice
     public void renderRecursively(PoseStack poseStack, LuminousDevice animatable, GeoBone bone,
                                   RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                   boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                  float red, float green, float blue, float alpha) {
+                                  int renderColor) {
         if (this.specialPass == SpecialPass.NONE) {
             if (isSpecialBone(bone)) {
                 renderChildBonesOnly(
                         poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender,
-                        partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                        partialTick, packedLight, packedOverlay, renderColor
                 );
                 return;
             }
 
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender,
-                    partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                    partialTick, packedLight, packedOverlay, renderColor
             );
             return;
         }
@@ -130,14 +128,14 @@ public final class LuminousDeviceRenderer extends GeoItemRenderer<LuminousDevice
         if (target) {
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender,
-                    partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                    partialTick, packedLight, packedOverlay, renderColor
             );
             return;
         }
 
         renderChildBonesOnly(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender,
-                partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                partialTick, packedLight, packedOverlay, renderColor
         );
     }
 
@@ -166,10 +164,7 @@ public final class LuminousDeviceRenderer extends GeoItemRenderer<LuminousDevice
                     partialTick,
                     LightTexture.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY,
-                    brightness,
-                    brightness,
-                    brightness,
-                    1.0F
+                    colorForBrightness(brightness)
             );
         } finally {
             this.specialPass = SpecialPass.NONE;
@@ -179,17 +174,17 @@ public final class LuminousDeviceRenderer extends GeoItemRenderer<LuminousDevice
     private void renderChildBonesOnly(PoseStack poseStack, LuminousDevice animatable, GeoBone bone,
                                       RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                       boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                      float red, float green, float blue, float alpha) {
+                                      int renderColor) {
         poseStack.pushPose();
         if (bone.isTrackingMatrices()) {
             var poseState = new Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
         }
-        RenderUtils.prepMatrixForBone(poseStack, bone);
+        RenderUtil.prepMatrixForBone(poseStack, bone);
         renderChildBones(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender,
-                partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                partialTick, packedLight, packedOverlay, renderColor
         );
         poseStack.popPose();
     }
@@ -201,7 +196,7 @@ public final class LuminousDeviceRenderer extends GeoItemRenderer<LuminousDevice
         }
 
         poseStack.pushPose();
-        RenderUtils.translateAndRotateMatrixForBone(poseStack, bone);
+        RenderUtil.translateAndRotateMatrixForBone(poseStack, bone);
         poseStack.mulPose(Axis.XP.rotationDegrees(this.renderTime * DISPLAY_ITEM_ROTATION_X_PER_TICK));
         poseStack.mulPose(Axis.YP.rotationDegrees(this.renderTime * DISPLAY_ITEM_ROTATION_Y_PER_TICK));
         poseStack.mulPose(Axis.ZP.rotationDegrees(this.renderTime * DISPLAY_ITEM_ROTATION_Z_PER_TICK));
@@ -248,6 +243,11 @@ public final class LuminousDeviceRenderer extends GeoItemRenderer<LuminousDevice
             return 1.0F;
         }
         return 0.95F + 0.05F * Mth.sin(time * Mth.TWO_PI / STAR_CORE_PULSE_PERIOD_TICKS);
+    }
+
+    private static int colorForBrightness(float brightness) {
+        var channel = Mth.clamp(Math.round(brightness * 255.0F), 0, 255);
+        return 0xFF000000 | channel << 16 | channel << 8 | channel;
     }
 
     private static boolean isHandheldPerspective(ItemDisplayContext perspective) {
