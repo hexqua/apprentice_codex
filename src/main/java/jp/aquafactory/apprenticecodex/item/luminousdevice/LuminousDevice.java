@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.config.ServerConfigs;
 import io.redspace.ironsspellbooks.item.UniqueItem;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumLuminousDeviceBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
@@ -567,7 +568,9 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
     }
 
     public static boolean accepts(ItemStack stack) {
-        return !stack.isEmpty() && stack.is(TagRegistry.Items.LUMINOUS_DEVICE_STORABLE);
+        return !stack.isEmpty()
+                && (stack.is(TagRegistry.Items.LUMINOUS_DEVICE_STORABLE)
+                || MalumLuminousDeviceBridge.isSupportedEther(stack));
     }
 
     public static int addToDevice(ItemStack deviceStack, ItemStack stack) {
@@ -594,8 +597,13 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
             return false;
         }
 
-        return getStoredCount(deviceStack, stack) > 0
-                || sameStoredItem(getStoredSelectedStack(deviceStack), stack);
+        var normalizedStack = normalizeStoredStack(stack);
+        for (var entry : readContents(deviceStack)) {
+            if (sameAutoPickupItem(entry.displayStack, normalizedStack)) {
+                return true;
+            }
+        }
+        return sameAutoPickupItem(getStoredSelectedStack(deviceStack), normalizedStack);
     }
 
     public static int storePickedUpStackInInventoryDevices(Player player, ItemStack stack) {
@@ -713,10 +721,11 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
     }
 
     public static boolean consumeOneStored(ItemStack deviceStack, ItemStack targetStack) {
+        var normalizedTarget = normalizeStoredStack(targetStack);
         var contents = readContents(deviceStack);
         for (int i = 0; i < contents.size(); ++i) {
             var entry = contents.get(i);
-            if (!sameStoredItem(entry.displayStack, targetStack) || entry.count <= 0) {
+            if (!sameStoredItem(entry.displayStack, normalizedTarget) || entry.count <= 0) {
                 continue;
             }
 
@@ -787,8 +796,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         if (storageTag == null || !storageTag.contains(SELECTED_STACK_TAG, Tag.TAG_COMPOUND)) {
             return ItemStack.EMPTY;
         }
-        var selectedStack = ItemStack.of(storageTag.getCompound(SELECTED_STACK_TAG));
-        return selectedStack.isEmpty() ? ItemStack.EMPTY : selectedStack.copyWithCount(1);
+        return normalizeStoredStack(ItemStack.of(storageTag.getCompound(SELECTED_STACK_TAG)));
     }
 
     public static boolean setSelectedStack(ItemStack deviceStack, ItemStack requestedStack) {
@@ -796,12 +804,13 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
             return false;
         }
 
+        var normalizedRequest = normalizeStoredStack(requestedStack);
         var currentSelection = getStoredSelectedStack(deviceStack);
-        if (!sameStoredItem(currentSelection, requestedStack)
-                && getStoredCount(deviceStack, requestedStack) <= 0) {
+        if (!sameStoredItem(currentSelection, normalizedRequest)
+                && getStoredCount(deviceStack, normalizedRequest) <= 0) {
             return false;
         }
-        setSelectedStackInternal(deviceStack, requestedStack);
+        setSelectedStackInternal(deviceStack, normalizedRequest);
         setModeInternal(deviceStack, Mode.PLACE);
         return true;
     }
@@ -977,9 +986,10 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
             return 0;
         }
 
+        var normalizedStack = normalizeStoredStack(stack);
         var contents = readContents(deviceStack);
         for (var entry : contents) {
-            if (!sameStoredItem(entry.displayStack, stack)) {
+            if (!sameStoredItem(entry.displayStack, normalizedStack)) {
                 continue;
             }
             entry.count += inserted;
@@ -988,7 +998,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         }
 
         // ItemStack の Count を1024まで拡張せず、表示用スタックと実数を分けて保持する。
-        contents.add(new StoredEntry(stack.copyWithCount(1), inserted));
+        contents.add(new StoredEntry(normalizedStack, inserted));
         writeContents(deviceStack, contents);
         return inserted;
     }
@@ -1192,10 +1202,10 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
                 continue;
             }
 
-            var storedStack = ItemStack.of(compoundTag.getCompound(STACK_TAG));
+            var storedStack = normalizeStoredStack(ItemStack.of(compoundTag.getCompound(STACK_TAG)));
             var storedCount = compoundTag.getInt(COUNT_TAG);
             if (!storedStack.isEmpty() && storedCount > 0) {
-                contents.add(new StoredEntry(storedStack.copyWithCount(1), storedCount));
+                mergeStoredEntry(contents, storedStack, storedCount);
             }
         }
         return contents;
@@ -1209,7 +1219,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
                 continue;
             }
             var entryTag = new CompoundTag();
-            entryTag.put(STACK_TAG, entry.displayStack.copyWithCount(1).save(new CompoundTag()));
+            entryTag.put(STACK_TAG, normalizeStoredStack(entry.displayStack).save(new CompoundTag()));
             entryTag.putInt(COUNT_TAG, entry.count);
             contentsTag.add(entryTag);
         }
@@ -1225,7 +1235,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
     private static void setSelectedStackInternal(ItemStack deviceStack, ItemStack selectedStack) {
         deviceStack.getOrCreateTagElement(STORAGE_TAG).put(
                 SELECTED_STACK_TAG,
-                selectedStack.copyWithCount(1).save(new CompoundTag())
+                normalizeStoredStack(selectedStack).save(new CompoundTag())
         );
     }
 
@@ -1256,13 +1266,14 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
     }
 
     private static int countStoredItem(List<StoredEntry> contents, ItemStack targetStack) {
-        if (targetStack.isEmpty()) {
+        var normalizedTarget = normalizeStoredStack(targetStack);
+        if (normalizedTarget.isEmpty()) {
             return 0;
         }
 
         var total = 0;
         for (var entry : contents) {
-            if (sameStoredItem(entry.displayStack, targetStack)) {
+            if (sameStoredItem(entry.displayStack, normalizedTarget)) {
                 total += entry.count;
             }
         }
@@ -1295,6 +1306,32 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
 
     private static boolean sameStoredItem(ItemStack first, ItemStack second) {
         return !first.isEmpty() && !second.isEmpty() && ItemStack.isSameItemSameTags(first, second);
+    }
+
+    private static boolean sameAutoPickupItem(ItemStack first, ItemStack second) {
+        return sameStoredItem(first, second)
+                || MalumLuminousDeviceBridge.isSameEtherIgnoringColor(first, second);
+    }
+
+    private static ItemStack normalizeStoredStack(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+
+        var normalizedStack = stack.copyWithCount(1);
+        MalumLuminousDeviceBridge.normalizeForStorage(normalizedStack);
+        return normalizedStack;
+    }
+
+    private static void mergeStoredEntry(List<StoredEntry> contents, ItemStack stack, int count) {
+        for (var entry : contents) {
+            if (!sameStoredItem(entry.displayStack, stack)) {
+                continue;
+            }
+            entry.count = (int) Math.min(Integer.MAX_VALUE, (long) entry.count + count);
+            return;
+        }
+        contents.add(new StoredEntry(stack, count));
     }
 
     public enum Mode {
