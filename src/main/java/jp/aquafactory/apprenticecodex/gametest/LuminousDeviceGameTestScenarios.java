@@ -32,6 +32,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleContainer;
@@ -51,6 +52,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
 import java.util.UUID;
@@ -189,6 +192,10 @@ final class LuminousDeviceGameTestScenarios {
                     "Items from nested item tags should be tagged for Luminous Device storage");
             helper.assertFalse(new ItemStack(Items.DIRT).is(TagRegistry.Items.LUMINOUS_DEVICE_STORABLE),
                     "Dirt should not be tagged for Luminous Device storage");
+            if (ModList.get().isLoaded("create")) {
+                assertLuminousDeviceStorable(helper, "create", "experience_block");
+                assertLuminousDeviceStorable(helper, "create", "rose_quartz_lamp");
+            }
 
             try (var ignored = ApprenticeCodexServerConfig.useLuminousDeviceConfigOverrideForGameTest(1024, 2000)) {
                 var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
@@ -206,6 +213,18 @@ final class LuminousDeviceGameTestScenarios {
                         "Luminous Device should reject items outside its storage tag");
             }
         });
+    }
+
+    private static void assertLuminousDeviceStorable(
+            GameTestHelper helper,
+            String namespace,
+            String path
+    ) {
+        var id = ResourceLocation.fromNamespaceAndPath(namespace, path);
+        var item = ForgeRegistries.ITEMS.getValue(id);
+        helper.assertTrue(item != null, id + " should be registered when its mod is loaded");
+        helper.assertTrue(new ItemStack(item).is(TagRegistry.Items.LUMINOUS_DEVICE_STORABLE),
+                id + " should be tagged for Luminous Device storage");
     }
 
     static void luminousDeviceUsesConfiguredItemCapacityWithoutTruncatingContents(GameTestHelper helper) {
