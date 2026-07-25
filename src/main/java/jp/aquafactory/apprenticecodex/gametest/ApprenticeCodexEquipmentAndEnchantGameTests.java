@@ -2392,6 +2392,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void inventoryInsertHintsMatchStorageRules(GameTestHelper helper) {
+        InventoryInsertHintGameTestScenarios.inventoryInsertHintsMatchStorageRules(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
     public static void luminousDeviceUsePlacesSelectedBlocksAndKeepsEmptySelection(GameTestHelper helper) {
         LuminousDeviceGameTestScenarios.luminousDeviceUsePlacesSelectedBlocksAndKeepsEmptySelection(helper);
     }

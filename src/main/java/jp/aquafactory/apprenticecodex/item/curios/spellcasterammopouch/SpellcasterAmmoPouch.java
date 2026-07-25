@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch;
 
+import jp.aquafactory.apprenticecodex.item.InventoryInsertTarget;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
@@ -30,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class SpellcasterAmmoPouch extends Item implements ICurioItem {
+public class SpellcasterAmmoPouch extends Item implements ICurioItem, InventoryInsertTarget {
     private static final float EQUIPPED_EMPTY_CASING_RETURN_CHANCE = 0.9F;
     private static final int MAX_STORED_ITEMS = 1024;
     private static final int BAR_COLOR = 0xD79C37;
@@ -151,6 +152,9 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem {
         if (action != ClickAction.SECONDARY) {
             return false;
         }
+        if (!InventoryInsertTarget.canModifyStorageSlot(pouchStack, slot, player)) {
+            return false;
+        }
 
         if (otherStack.isEmpty()) {
             var removedStack = removeStackFromPouch(pouchStack);
@@ -176,6 +180,15 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem {
         slotAccess.set(otherStack);
         slot.setChanged();
         return true;
+    }
+
+    @Override
+    public InsertHint getInventoryInsertHint(ItemStack storageStack, ItemStack incomingStack, Player player) {
+        return storageStack.getItem() instanceof SpellcasterAmmoPouch
+                && accepts(incomingStack)
+                && getStoredItemCount(storageStack) < MAX_STORED_ITEMS
+                ? InsertHint.ITEM
+                : InsertHint.NONE;
     }
 
     @Override
