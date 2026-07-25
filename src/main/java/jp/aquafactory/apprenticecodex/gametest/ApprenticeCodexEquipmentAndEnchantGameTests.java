@@ -2462,6 +2462,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceSupportsAndNormalizesMalumEther(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceSupportsAndNormalizesMalumEther(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
     public static void luminousDeviceModesUpdateSelectionNameAndTooltip(GameTestHelper helper) {
         LuminousDeviceGameTestScenarios.luminousDeviceModesUpdateSelectionNameAndTooltip(helper);
     }

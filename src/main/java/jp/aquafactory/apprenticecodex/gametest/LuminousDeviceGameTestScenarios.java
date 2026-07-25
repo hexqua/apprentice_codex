@@ -31,7 +31,10 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -1073,6 +1076,193 @@ final class LuminousDeviceGameTestScenarios {
             helper.assertFalse(lanternEntity.isRemoved(),
                     "Unknown tagged items should remain in their ItemEntity until vanilla pickup runs");
         });
+    }
+
+    static void luminousDeviceSupportsAndNormalizesMalumEther(GameTestHelper helper) {
+        if (!ModList.get().isLoaded("malum")) {
+            helper.succeed();
+            return;
+        }
+
+        helper.succeedIf(() -> {
+            var ether = requireItem(helper, "malum", "ether");
+            var etherBlock = requireBlock(helper, "malum", "ether");
+            for (var path : List.of(
+                    "ether",
+                    "ether_torch",
+                    "tainted_ether_brazier",
+                    "twisted_ether_brazier",
+                    "iridescent_ether",
+                    "iridescent_ether_torch",
+                    "tainted_iridescent_ether_brazier",
+                    "twisted_iridescent_ether_brazier"
+            )) {
+                helper.assertTrue(
+                        LuminousDevice.accepts(new ItemStack(requireItem(helper, "malum", path))),
+                        "Luminous Device should accept Malum Ether item " + path
+                );
+            }
+            helper.assertFalse(
+                    LuminousDevice.accepts(new ItemStack(requireItem(helper, "malum", "malignant_lead"))),
+                    "Luminous Device should not accept unrelated Malum items"
+            );
+
+            var defaultEther = new ItemStack(ether, 2);
+            var explicitDefaultEther = etherWithColors(ether, 3, 0xFFEFC016, 0xFF123456);
+            var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+            LuminousDevice.addToDevice(deviceStack, defaultEther);
+            LuminousDevice.addToDevice(deviceStack, explicitDefaultEther);
+            helper.assertTrue(
+                    LuminousDevice.getStoredCount(deviceStack, new ItemStack(ether)) == 5,
+                    "Default Ether RGB/ARGB forms should normalize into one stored entry"
+            );
+            helper.assertTrue(
+                    LuminousDevice.getSelectionViews(deviceStack).size() == 1,
+                    "Default Ether normalization should avoid duplicate selection entries"
+            );
+            var removedDefaultEther = LuminousDevice.removeStackForInventory(deviceStack);
+            helper.assertTrue(
+                    removedDefaultEther.getCount() == 5 && !removedDefaultEther.hasTag(),
+                    "Extracted default Ether should not retain redundant color NBT"
+            );
+
+            var legacyDevice = createLegacyDefaultEtherDevice(ether);
+            helper.assertTrue(
+                    LuminousDevice.getStoredItemCount(legacyDevice) == 5
+                            && LuminousDevice.getSelectionViews(legacyDevice).size() == 1,
+                    "Legacy default Ether entries should merge when read"
+            );
+            LuminousDevice.addToDevice(legacyDevice, new ItemStack(ether));
+            var migratedContents = legacyDevice.getTagElement("LuminousDevice").getList("Contents", 10);
+            helper.assertTrue(
+                    migratedContents.size() == 1
+                            && !ItemStack.of(migratedContents.getCompound(0).getCompound("Stack")).hasTag(),
+                    "The next contents write should persist normalized legacy Ether data"
+            );
+
+            var redEther = etherWithColors(ether, 1, 0xFFAA2200, 0);
+            var redEtherRgb = etherWithColors(ether, 2, 0x00AA2200, 0);
+            var blueEther = etherWithColors(ether, 2, 0x001144CC, 0);
+            var coloredDevice = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+            LuminousDevice.addToDevice(coloredDevice, redEther);
+            LuminousDevice.addToDevice(coloredDevice, redEtherRgb);
+            helper.assertTrue(
+                    LuminousDevice.getStoredCount(coloredDevice, redEther) == 3,
+                    "Equivalent custom Ether RGB/ARGB forms should share one stored entry"
+            );
+
+            var pickupPlayer = new FakePlayer(
+                    helper.getLevel(),
+                    new GameProfile(UUID.randomUUID(), "luminous_device_malum_pickup_test")
+            );
+            pickupPlayer.getInventory().setItem(10, coloredDevice);
+            var blueEntity = new ItemEntity(
+                    helper.getLevel(),
+                    pickupPlayer.getX(),
+                    pickupPlayer.getY(),
+                    pickupPlayer.getZ(),
+                    blueEther.copy()
+            );
+            LuminousDevicePickupEvent.onEntityItemPickup(new EntityItemPickupEvent(pickupPlayer, blueEntity));
+            helper.assertTrue(
+                    blueEntity.isRemoved() && LuminousDevice.getStoredCount(coloredDevice, blueEther) == 2,
+                    "A known Ether item should auto-store newly encountered colors"
+            );
+            helper.assertTrue(
+                    LuminousDevice.getStoredCount(coloredDevice, redEther) == 3,
+                    "Auto-stored Ether colors should remain separate stored variants"
+            );
+
+            var namedBlueEther = blueEther.copyWithCount(1);
+            namedBlueEther.setHoverName(Component.literal("Keepsake Ether"));
+            var namedEntity = new ItemEntity(
+                    helper.getLevel(),
+                    pickupPlayer.getX(),
+                    pickupPlayer.getY(),
+                    pickupPlayer.getZ(),
+                    namedBlueEther
+            );
+            var namedPickupEvent = new EntityItemPickupEvent(pickupPlayer, namedEntity);
+            LuminousDevicePickupEvent.onEntityItemPickup(namedPickupEvent);
+            helper.assertFalse(
+                    namedPickupEvent.isCanceled() || namedEntity.isRemoved(),
+                    "Ether auto-pickup should preserve distinctions in non-color NBT"
+            );
+
+            var placePlayer = new FakePlayer(
+                    helper.getLevel(),
+                    new GameProfile(UUID.randomUUID(), "luminous_device_malum_place_test")
+            );
+            var placeDevice = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+            LuminousDevice.addToDevice(placeDevice, redEther);
+            placePlayer.setItemInHand(InteractionHand.MAIN_HAND, placeDevice);
+            var supportPos = new BlockPos(7, 0, 7);
+            var targetPos = supportPos.above();
+            helper.setBlock(supportPos, Blocks.STONE);
+            helper.setBlock(targetPos, Blocks.AIR);
+            helper.assertTrue(
+                    useDeviceOn(helper, placePlayer, supportPos).consumesAction(),
+                    "Luminous Device should delegate custom Ether placement"
+            );
+            helper.assertBlockPresent(etherBlock, targetPos);
+            var etherBlockEntity = helper.getLevel().getBlockEntity(helper.absolutePos(targetPos));
+            helper.assertTrue(etherBlockEntity != null, "Placed Ether should create its block entity");
+            var placedTag = etherBlockEntity.saveWithFullMetadata();
+            helper.assertTrue(
+                    (placedTag.getInt("firstColor") & 0x00FFFFFF) == 0x00AA2200,
+                    "Placed Ether should preserve the selected custom RGB color"
+            );
+        });
+    }
+
+    private static net.minecraft.world.item.Item requireItem(
+            GameTestHelper helper,
+            String namespace,
+            String path
+    ) {
+        var id = ResourceLocation.fromNamespaceAndPath(namespace, path);
+        var item = ForgeRegistries.ITEMS.getValue(id);
+        helper.assertTrue(item != null, id + " should be registered");
+        return item;
+    }
+
+    private static Block requireBlock(GameTestHelper helper, String namespace, String path) {
+        var id = ResourceLocation.fromNamespaceAndPath(namespace, path);
+        var block = ForgeRegistries.BLOCKS.getValue(id);
+        helper.assertTrue(block != null, id + " should be registered");
+        return block;
+    }
+
+    private static ItemStack etherWithColors(
+            net.minecraft.world.item.Item ether,
+            int count,
+            int firstColor,
+            int secondColor
+    ) {
+        var stack = new ItemStack(ether, count);
+        var displayTag = stack.getOrCreateTagElement("display");
+        displayTag.putInt("firstColor", firstColor);
+        displayTag.putInt("secondColor", secondColor);
+        return stack;
+    }
+
+    private static ItemStack createLegacyDefaultEtherDevice(net.minecraft.world.item.Item ether) {
+        var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+        var contentsTag = new ListTag();
+        contentsTag.add(createStoredEntryTag(new ItemStack(ether), 2));
+        contentsTag.add(createStoredEntryTag(
+                etherWithColors(ether, 1, 0xFFEFC016, 0xFF123456),
+                3
+        ));
+        deviceStack.getOrCreateTagElement("LuminousDevice").put("Contents", contentsTag);
+        return deviceStack;
+    }
+
+    private static CompoundTag createStoredEntryTag(ItemStack stack, int count) {
+        var entryTag = new CompoundTag();
+        entryTag.put("Stack", stack.copyWithCount(1).save(new CompoundTag()));
+        entryTag.putInt("Count", count);
+        return entryTag;
     }
 
     private static RefillInteractionResult rightClickDevice(
