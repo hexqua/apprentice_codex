@@ -1,0 +1,34 @@
+{
+  "type": "apprenticecodex:spellcaster_workbench",
+  "ingredients": [
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "apprenticecodex:luminous_device"
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "tag": "apprenticecodex:luminous_device_clean_upgrade_catalysts"
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "tag": "apprenticecodex:luminous_device_clean_upgrade_materials"
+      }
+    }
+  ],
+  "operation": {
+    "type": "add_luminous_device_upgrade",
+    "feature": "apprenticecodex:clean"
+  },
+  "priority": 10,
+  "results": [
+    {
+      "count": 1,
+      "item": "apprenticecodex:luminous_device"
+    }
+  ]
+}

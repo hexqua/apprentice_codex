@@ -65,6 +65,7 @@ public final class LuminousDeviceConfigSyncEvents {
         return new SyncLuminousDeviceConfigPacket(
                 ApprenticeCodexServerConfig.luminousDeviceMaxStoredItems(),
                 ApprenticeCodexServerConfig.luminousDeviceMaxStoredMana(),
+                ApprenticeCodexServerConfig.luminousDeviceUpgradedMaxStoredMana(),
                 ApprenticeCodexServerConfig.luminousDeviceCleanRadius(),
                 ApprenticeCodexServerConfig.luminousDeviceMageLightExtendedRange()
         );

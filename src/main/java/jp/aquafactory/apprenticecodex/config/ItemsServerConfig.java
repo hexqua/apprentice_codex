@@ -758,6 +758,10 @@ final class ItemsServerConfig {
         return luminousDeviceConfig.maxStoredMana();
     }
 
+    int luminousDeviceUpgradedMaxStoredMana() {
+        return luminousDeviceConfig.upgradedMaxStoredMana();
+    }
+
     int luminousDeviceCleanRadius() {
         return luminousDeviceConfig.cleanRadius();
     }
@@ -1059,6 +1063,10 @@ final class ItemsServerConfig {
 
     void setLuminousDeviceConfigForGameTest(int maxStoredItems, int maxStoredMana) {
         luminousDeviceConfig.setForGameTest(maxStoredItems, maxStoredMana);
+    }
+
+    void setLuminousDeviceUpgradedMaxStoredManaForGameTest(int maxStoredMana) {
+        luminousDeviceConfig.setUpgradedMaxStoredManaForGameTest(maxStoredMana);
     }
 
     void setLuminousDeviceMageLightExtendedRangeForGameTest(double range) {

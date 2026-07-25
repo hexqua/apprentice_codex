@@ -209,6 +209,10 @@
   "item.apprenticecodex.luminous_device.spell.max_range": " 最大設置可能距離: %sブロック",
   "item.apprenticecodex.luminous_device.spell.range_mana": " 通常射程を超えると距離に応じて消費マナが増加",
   "item.apprenticecodex.luminous_device.spell.mana_range": " 消費マナ: %1$d～%2$d",
+  "item.apprenticecodex.luminous_device.upgrade": "アップグレード: %1$s / %2$s / %3$s",
+  "item.apprenticecodex.luminous_device.upgrade.clean": "掃除",
+  "item.apprenticecodex.luminous_device.upgrade.enhanced_mage_light": "遠隔",
+  "item.apprenticecodex.luminous_device.upgrade.mana_wizardlamp": "ランプ",
   "item.apprenticecodex.elemental_bow.mode": "現在の射撃モード: %s",
   "item.apprenticecodex.elemental_bow.desc": "スニークをすることでモード切り替えが可能",
   "item.apprenticecodex.elemental_bow.spell.no_enchantment": "詠唱には矢を必要とする。",
@@ -493,6 +497,7 @@
 
   "jei.apprenticecodex.archivists_grimoire.upgrade_hint": "スロット数が9増加",
   "jei.apprenticecodex.spell_throwable_cards.craft_hint": "スクロールは消費しない",
+  "jei.apprenticecodex.luminous_device.upgrade_hint": "%sがアンロック",
 
   "enchantment.apprenticecodex.reflux": "還流",
   "enchantment.apprenticecodex.reservoir": "貯蔵",

@@ -6,17 +6,20 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceConfigState;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevicePickupEvent;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceTooltip;
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceUpgrade;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmLuminousDeviceSelectionPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncLuminousDeviceConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMageLightConfigPacket;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightCastProfile;
@@ -53,6 +56,124 @@ import java.util.UUID;
 
 final class LuminousDeviceGameTestScenarios {
     private LuminousDeviceGameTestScenarios() {
+    }
+
+    static void luminousDeviceWorkbenchUpgradesAreIndependentAndPreserveState(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var recipeId = net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(
+                    jp.aquafactory.apprenticecodex.ApprenticeCodex.MODID,
+                    "spellcaster_workbench/luminous_device_mage_light_upgrade"
+            );
+            var recipe = helper.getLevel().getRecipeManager().byKey(recipeId)
+                    .filter(candidate -> candidate.getType() == RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get())
+                    .map(candidate -> (jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe) candidate)
+                    .orElseThrow();
+            helper.assertTrue(
+                    LuminousDevice.hasUpgrade(
+                            recipe.getResultTemplates().get(0),
+                            LuminousDeviceUpgrade.ENHANCED_MAGE_LIGHT
+                    ),
+                    "JEI-facing recipe output should include the upgrade NBT"
+            );
+
+            var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+            LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.TORCH, 3));
+            LuminousDevice.setStoredMana(deviceStack, 777);
+            LuminousDevice.addUpgrade(deviceStack, LuminousDeviceUpgrade.CLEAN);
+
+            var scroll = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+            ISpellContainer.createScrollContainer(SpellRegistry.MAGE_LIGHT.get(), 2, scroll);
+            var inputs = new SimpleContainer(
+                    deviceStack,
+                    scroll,
+                    new ItemStack(Items.SPYGLASS)
+            );
+            helper.assertTrue(recipe.matches(inputs, helper.getLevel()),
+                    "Mage Light upgrade recipe should accept a scroll above level one");
+
+            var result = recipe.assemble(inputs, helper.getLevel().registryAccess());
+            helper.assertTrue(LuminousDevice.hasUpgrade(result, LuminousDeviceUpgrade.CLEAN)
+                            && LuminousDevice.hasUpgrade(result, LuminousDeviceUpgrade.ENHANCED_MAGE_LIGHT)
+                            && !LuminousDevice.hasUpgrade(result, LuminousDeviceUpgrade.MANA_WIZARDLAMP),
+                    "Workbench upgrade should add only the requested independent feature");
+            helper.assertTrue(LuminousDevice.getStoredItemCount(result) == 3
+                            && LuminousDevice.getStoredMana(result) == 777,
+                    "Workbench upgrade should preserve storage and mana NBT");
+
+            inputs.setItem(0, result);
+            helper.assertFalse(recipe.matches(inputs, helper.getLevel()),
+                    "A Luminous Device should reject an upgrade it already contains");
+        });
+    }
+
+    static void luminousDeviceWorkbenchMenuCraftsEveryUpgrade(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertWorkbenchMenuUpgrade(
+                    helper,
+                    LuminousDeviceUpgrade.CLEAN,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SHRIVING_STONE.get()),
+                    new ItemStack(Items.BRUSH)
+            );
+
+            var mageLightScroll = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+            ISpellContainer.createScrollContainer(SpellRegistry.MAGE_LIGHT.get(), 1, mageLightScroll);
+            assertWorkbenchMenuUpgrade(
+                    helper,
+                    LuminousDeviceUpgrade.ENHANCED_MAGE_LIGHT,
+                    mageLightScroll,
+                    new ItemStack(Items.SPYGLASS)
+            );
+
+            var wizardlampScroll = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+            ISpellContainer.createScrollContainer(SpellRegistry.WIZARDLAMP.get(), 1, wizardlampScroll);
+            assertWorkbenchMenuUpgrade(
+                    helper,
+                    LuminousDeviceUpgrade.MANA_WIZARDLAMP,
+                    wizardlampScroll,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get())
+            );
+        });
+    }
+
+    private static void assertWorkbenchMenuUpgrade(
+            GameTestHelper helper,
+            LuminousDeviceUpgrade upgrade,
+            ItemStack secondIngredient,
+            ItemStack thirdIngredient
+    ) {
+        var player = new FakePlayer(
+                helper.getLevel(),
+                new GameProfile(UUID.randomUUID(), "luminous_device_workbench_" + upgrade.name().toLowerCase())
+        );
+        var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+        LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.TORCH, 3));
+        LuminousDevice.setStoredMana(deviceStack, 777);
+
+        var manualMenu = new SpellcasterWorkbenchMenu(0, player.getInventory());
+        manualMenu.getSlot(0).set(deviceStack.copy());
+        manualMenu.getSlot(1).set(secondIngredient.copy());
+        manualMenu.getSlot(2).set(thirdIngredient.copy());
+        var manualPreview = manualMenu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem();
+        helper.assertTrue(LuminousDevice.hasUpgrade(manualPreview, upgrade),
+                "Workbench should resolve manually placed or JEI-transferred inputs for " + upgrade.id());
+        helper.assertTrue(LuminousDevice.getStoredItemCount(manualPreview) == 3
+                        && LuminousDevice.getStoredMana(manualPreview) == 777,
+                "Manual Workbench preview should preserve populated Luminous Device NBT");
+
+        helper.assertFalse(manualMenu.getSelectableIcons().stream()
+                        .anyMatch(icon -> LuminousDevice.hasUpgrade(icon, upgrade)),
+                "Luminous Device upgrades should not appear in the mass-production recipe buttons");
+
+        var freshMenu = new SpellcasterWorkbenchMenu(0, player.getInventory());
+        freshMenu.getSlot(0).set(new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get()));
+        freshMenu.getSlot(1).set(secondIngredient.copy());
+        freshMenu.getSlot(2).set(thirdIngredient.copy());
+        var preview = freshMenu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem();
+        helper.assertTrue(LuminousDevice.hasUpgrade(preview, upgrade),
+                "Workbench should preview a manually supplied fresh Luminous Device for " + upgrade.id());
+        var crafted = freshMenu.quickMoveStack(player, SpellcasterWorkbenchMenu.RESULT_SLOT);
+        helper.assertTrue(LuminousDevice.hasUpgrade(crafted, upgrade),
+                "Workbench should craft the upgraded Luminous Device for " + upgrade.id());
     }
 
     static void luminousDeviceStoresOnlyTaggedItemsAndCapsTotal(GameTestHelper helper) {
@@ -208,7 +329,7 @@ final class LuminousDeviceGameTestScenarios {
                 var lines = new java.util.ArrayList<net.minecraft.network.chat.Component>();
                 deviceStack.getItem().appendHoverText(deviceStack, helper.getLevel(), lines, TooltipFlag.NORMAL);
 
-                helper.assertTrue(lines.size() == 5, "Selected Luminous Device should append a mode tooltip line");
+                helper.assertTrue(lines.size() == 6, "Selected Luminous Device should append upgrade and mode tooltip lines");
                 helper.assertTrue("(3/12)".equals(lines.get(0).getString()),
                         "Tooltip should display literal item count and synced capacity");
                 helper.assertTrue(lines.get(3).getString().contains("67")
@@ -224,7 +345,7 @@ final class LuminousDeviceGameTestScenarios {
                                 && currentMana.getStyle().getColor().getValue() == ChatFormatting.AQUA.getColor()
                                 && maxMana.getStyle().getColor().getValue() == ChatFormatting.AQUA.getColor(),
                         "Both mana values should always use cyan formatting");
-                helper.assertTrue(lines.get(4).getContents()
+                helper.assertTrue(lines.get(5).getContents()
                                 instanceof net.minecraft.network.chat.contents.TranslatableContents modeContents
                                 && "item.apprenticecodex.luminous_device.mode".equals(modeContents.getKey()),
                         "The selected placement mode should be displayed on the final tooltip line");
@@ -370,14 +491,11 @@ final class LuminousDeviceGameTestScenarios {
                         "Use consumption should preserve the empty selected item");
 
                 var views = LuminousDevice.getSelectionViews(deviceStack);
-                helper.assertTrue(views.size() == 4
+                helper.assertTrue(views.size() == 1
                                 && views.get(0).currentSelection()
                                 && views.get(0).mode() == LuminousDevice.Mode.PLACE
-                                && views.get(1).mode() == LuminousDevice.Mode.CLEAN
-                                && views.get(2).spellId().equals(SpellRegistry.MAGE_LIGHT.get().getSpellResource())
-                                && views.get(3).spellId().equals(SpellRegistry.WIZARDLAMP.get().getSpellResource())
                                 && "0".equals(views.get(0).badgeText()),
-                        "Selection UI data should retain the selected zero-count item");
+                        "Selection UI data should retain the selected zero-count item without locked functions");
                 helper.assertTrue(deviceStack.getItem().useOn(
                                 new UseOnContext(player, InteractionHand.MAIN_HAND, hitResult)
                         ) == InteractionResult.FAIL,
@@ -466,6 +584,7 @@ final class LuminousDeviceGameTestScenarios {
             var decodedConfig = SyncLuminousDeviceConfigPacket.decode(configBuffer);
             helper.assertTrue(decodedConfig.maxStoredItems() == 12
                             && decodedConfig.maxStoredMana() == 345
+                            && decodedConfig.upgradedMaxStoredMana() == 5000
                             && decodedConfig.cleanRadius() == 2
                             && Math.abs(decodedConfig.mageLightExtendedRange() - 47.5D) < 1.0E-9D,
                     "Luminous Device config sync should preserve the cleanup radius and Mage Light range");
@@ -478,16 +597,42 @@ final class LuminousDeviceGameTestScenarios {
 
             var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
             var emptyViews = LuminousDevice.getSelectionViews(deviceStack);
-            helper.assertTrue(emptyViews.size() == 3
-                            && emptyViews.get(0).mode() == LuminousDevice.Mode.CLEAN
-                            && emptyViews.get(1).spellId().equals(SpellRegistry.MAGE_LIGHT.get().getSpellResource())
-                            && emptyViews.get(2).spellId().equals(SpellRegistry.WIZARDLAMP.get().getSpellResource()),
-                    "An empty Luminous Device should expose clean mode followed by its fixed spells");
+            helper.assertTrue(emptyViews.isEmpty(),
+                    "An unupgraded empty Luminous Device should not expose locked functions");
 
             var emptyLines = new java.util.ArrayList<net.minecraft.network.chat.Component>();
             deviceStack.getItem().appendHoverText(deviceStack, helper.getLevel(), emptyLines, TooltipFlag.NORMAL);
-            helper.assertTrue(emptyLines.size() == 4,
-                    "Empty placement mode should omit the mode tooltip line");
+            helper.assertTrue(emptyLines.size() == 5,
+                    "Empty placement mode should show all upgrades and omit the mode tooltip line");
+            var lockedUpgradeContents = (net.minecraft.network.chat.contents.TranslatableContents)
+                    emptyLines.get(4).getContents();
+            helper.assertTrue(java.util.Arrays.stream(lockedUpgradeContents.getArgs()).allMatch(argument ->
+                            argument instanceof net.minecraft.network.chat.Component component
+                                    && component.getStyle().getColor() != null
+                                    && component.getStyle().getColor().getValue() == ChatFormatting.GRAY.getColor()),
+                    "Locked upgrades should all be gray");
+
+            for (var upgrade : LuminousDeviceUpgrade.values()) {
+                helper.assertTrue(LuminousDevice.addUpgrade(deviceStack, upgrade),
+                        "Each independent Luminous Device upgrade should be applicable");
+            }
+            var upgradedViews = LuminousDevice.getSelectionViews(deviceStack);
+            helper.assertTrue(upgradedViews.size() == 3
+                            && upgradedViews.get(0).mode() == LuminousDevice.Mode.CLEAN
+                            && upgradedViews.get(1).spellId().equals(SpellRegistry.MAGE_LIGHT.get().getSpellResource())
+                            && upgradedViews.get(2).spellId().equals(SpellRegistry.WIZARDLAMP.get().getSpellResource()),
+                    "An upgraded empty Luminous Device should expose all unlocked functions");
+            var upgradedLines = new java.util.ArrayList<net.minecraft.network.chat.Component>();
+            deviceStack.getItem().appendHoverText(deviceStack, helper.getLevel(), upgradedLines, TooltipFlag.NORMAL);
+            var unlockedUpgradeContents = (net.minecraft.network.chat.contents.TranslatableContents)
+                    upgradedLines.get(4).getContents();
+            helper.assertTrue(java.util.Arrays.stream(unlockedUpgradeContents.getArgs()).allMatch(argument ->
+                            argument instanceof net.minecraft.network.chat.Component component
+                                    && component.getStyle().getColor() != null
+                                    && component.getStyle().getColor().getValue() == ChatFormatting.GREEN.getColor()),
+                    "Unlocked upgrades should all be green");
+            helper.assertTrue(upgradedLines.get(3).getString().contains("5000"),
+                    "Mana upgrade should use the synced upgraded capacity");
 
             LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.TORCH, 2));
             helper.assertTrue(LuminousDevice.getMode(deviceStack) == LuminousDevice.Mode.PLACE
@@ -532,10 +677,10 @@ final class LuminousDeviceGameTestScenarios {
                         cleanLines,
                         TooltipFlag.NORMAL
                 );
-                helper.assertTrue(cleanLines.size() == 5,
+                helper.assertTrue(cleanLines.size() == 6,
                         "Clean mode should append its mode tooltip line");
                 var modeContents = (net.minecraft.network.chat.contents.TranslatableContents)
-                        cleanLines.get(4).getContents();
+                        cleanLines.get(5).getContents();
                 var cleanSize = (net.minecraft.network.chat.Component) modeContents.getArgs()[1];
                 var cleanSizeContents = (net.minecraft.network.chat.contents.TranslatableContents)
                         cleanSize.getContents();
@@ -575,7 +720,7 @@ final class LuminousDeviceGameTestScenarios {
                         TooltipFlag.NORMAL
                 );
                 var spellModeContents = (net.minecraft.network.chat.contents.TranslatableContents)
-                        spellLines.get(4).getContents();
+                        spellLines.get(5).getContents();
                 var spellModeName = (net.minecraft.network.chat.Component) spellModeContents.getArgs()[0];
                 var tooltipSpell = (net.minecraft.network.chat.Component) spellModeContents.getArgs()[1];
                 helper.assertTrue(spellModeName.getContents()
@@ -632,6 +777,8 @@ final class LuminousDeviceGameTestScenarios {
                     "Luminous Device should not expose its fixed spells through a SpellContainer");
 
             var mageLight = SpellRegistry.MAGE_LIGHT.get();
+            LuminousDevice.addUpgrade(deviceStack, LuminousDeviceUpgrade.ENHANCED_MAGE_LIGHT);
+            LuminousDevice.addUpgrade(deviceStack, LuminousDeviceUpgrade.MANA_WIZARDLAMP);
             LuminousDevice.setSelectedSpell(deviceStack, mageLight.getSpellResource());
             LuminousDevice.setStoredMana(deviceStack, 100);
             var resolvedSpell = RightClickSpellResolver.resolve(player, InteractionHand.MAIN_HAND);
@@ -754,6 +901,7 @@ final class LuminousDeviceGameTestScenarios {
                         new GameProfile(UUID.randomUUID(), "luminous_device_clean_test")
                 );
                 var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+                LuminousDevice.addUpgrade(deviceStack, LuminousDeviceUpgrade.CLEAN);
                 LuminousDevice.setCleanMode(deviceStack);
                 LuminousDevice.setStoredMana(deviceStack, 100);
                 player.setItemInHand(InteractionHand.MAIN_HAND, deviceStack);

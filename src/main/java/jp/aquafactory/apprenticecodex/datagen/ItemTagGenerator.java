@@ -503,6 +503,14 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 Items.LANTERN,
                 Items.GLOWSTONE
         );
+        tag(TagRegistry.Items.LUMINOUS_DEVICE_CLEAN_UPGRADE_CATALYSTS).add(
+                io.redspace.ironsspellbooks.registries.ItemRegistry.SHRIVING_STONE.get()
+        );
+        tag(TagRegistry.Items.LUMINOUS_DEVICE_CLEAN_UPGRADE_MATERIALS).add(Items.BRUSH);
+        tag(TagRegistry.Items.LUMINOUS_DEVICE_MAGE_LIGHT_UPGRADE_MATERIALS).add(Items.SPYGLASS);
+        tag(TagRegistry.Items.LUMINOUS_DEVICE_WIZARDLAMP_UPGRADE_MATERIALS).add(
+                io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()
+        );
         tag(TagRegistry.Items.SPELLCASTER_EMPTY_CASINGS).add(
                 ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_BASIC_SPELLCASTER_CASING.get(),

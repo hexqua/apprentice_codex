@@ -4,12 +4,16 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 import org.jetbrains.annotations.NotNull;
 
@@ -145,6 +149,27 @@ public final class SpellcasterWorkbenchRecipeDataGenerator implements DataProvid
                         ),
                         List.of(result(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 16)),
                         0
+                ),
+                luminousDeviceUpgradeRecipe(
+                        "luminous_device_clean_upgrade",
+                        ingredient(TagRegistry.Items.LUMINOUS_DEVICE_CLEAN_UPGRADE_CATALYSTS, 1),
+                        ingredient(TagRegistry.Items.LUMINOUS_DEVICE_CLEAN_UPGRADE_MATERIALS, 1),
+                        "apprenticecodex:clean",
+                        null
+                ),
+                luminousDeviceUpgradeRecipe(
+                        "luminous_device_mage_light_upgrade",
+                        ingredient(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get(), 1),
+                        ingredient(TagRegistry.Items.LUMINOUS_DEVICE_MAGE_LIGHT_UPGRADE_MATERIALS, 1),
+                        "apprenticecodex:enhanced_mage_light",
+                        SpellRegistry.MAGE_LIGHT.get().getSpellResource().toString()
+                ),
+                luminousDeviceUpgradeRecipe(
+                        "luminous_device_wizardlamp_upgrade",
+                        ingredient(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get(), 1),
+                        ingredient(TagRegistry.Items.LUMINOUS_DEVICE_WIZARDLAMP_UPGRADE_MATERIALS, 1),
+                        "apprenticecodex:mana_wizardlamp",
+                        SpellRegistry.WIZARDLAMP.get().getSpellResource().toString()
                 )
         );
 
@@ -187,6 +212,16 @@ public final class SpellcasterWorkbenchRecipeDataGenerator implements DataProvid
             results.add(serializeResult(result.item(), result.count()));
         }
         json.add("results", results);
+        if (recipe.operation() != null) {
+            var operation = new JsonObject();
+            operation.addProperty("type", "add_luminous_device_upgrade");
+            operation.addProperty("feature", recipe.operation().feature());
+            if (recipe.operation().requiredSpell() != null) {
+                operation.addProperty("required_spell", recipe.operation().requiredSpell());
+                operation.addProperty("minimum_spell_level", 1);
+            }
+            json.add("operation", operation);
+        }
         return json;
     }
 
@@ -210,11 +245,37 @@ public final class SpellcasterWorkbenchRecipeDataGenerator implements DataProvid
             List<RecipeResult> results,
             int priority
     ) {
-        return new RecipeDefinition(path, ingredients, results, priority);
+        return new RecipeDefinition(path, ingredients, results, priority, null);
     }
 
     private static RecipeIngredient ingredient(ItemLike item, int count) {
         return new RecipeIngredient(itemId(item), count);
+    }
+
+    private static RecipeIngredient ingredient(TagKey<Item> tag, int count) {
+        var json = new JsonObject();
+        json.addProperty("tag", tag.location().toString());
+        return new RecipeIngredient(json, count);
+    }
+
+    private static RecipeDefinition luminousDeviceUpgradeRecipe(
+            String path,
+            RecipeIngredient specialIngredient,
+            RecipeIngredient material,
+            String feature,
+            String requiredSpell
+    ) {
+        return new RecipeDefinition(
+                path,
+                List.of(
+                        ingredient(ItemRegistry.LUMINOUS_DEVICE.get(), 1),
+                        specialIngredient,
+                        material
+                ),
+                List.of(result(ItemRegistry.LUMINOUS_DEVICE.get(), 1)),
+                10,
+                new Operation(feature, requiredSpell)
+        );
     }
 
     private static RecipeResult result(ItemLike item, int count) {
@@ -241,7 +302,8 @@ public final class SpellcasterWorkbenchRecipeDataGenerator implements DataProvid
             String path,
             List<RecipeIngredient> ingredients,
             List<RecipeResult> results,
-            int priority
+            int priority,
+            Operation operation
     ) {
     }
 
@@ -254,6 +316,12 @@ public final class SpellcasterWorkbenchRecipeDataGenerator implements DataProvid
     private record RecipeResult(
             ItemLike item,
             int count
+    ) {
+    }
+
+    private record Operation(
+            String feature,
+            String requiredSpell
     ) {
     }
 }

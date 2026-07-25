@@ -29,6 +29,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -64,6 +65,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
     private static final String SELECTED_SPELL_TAG = "SelectedSpell";
     private static final String MODE_TAG = "Mode";
     private static final String MANA_TAG = "Mana";
+    private static final String UPGRADES_TAG = "Upgrades";
     private static final String STACK_TAG = "Stack";
     private static final String COUNT_TAG = "Count";
     private static final int SELECTION_COUNT_COLOR = 0xFFFFFF;
@@ -130,7 +132,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
     ) {
         super.appendHoverText(stack, level, lines, flag);
         var maxStoredItems = LuminousDeviceConfigState.maxStoredItems();
-        var maxStoredMana = LuminousDeviceConfigState.maxStoredMana();
+        var maxStoredMana = clientMaxStoredMana(stack);
         lines.add(Component.literal(
                 "(" + getStoredItemCount(stack) + "/" + maxStoredItems + ")"
         ).withStyle(ChatFormatting.GRAY));
@@ -140,6 +142,12 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
                 getDescriptionId() + ".mana_label",
                 Component.literal(Integer.toString(getStoredMana(stack))).withStyle(ChatFormatting.AQUA),
                 Component.literal(Integer.toString(maxStoredMana)).withStyle(ChatFormatting.AQUA)
+        ).withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable(
+                getDescriptionId() + ".upgrade",
+                createUpgradeTooltipEntry(stack, LuminousDeviceUpgrade.CLEAN),
+                createUpgradeTooltipEntry(stack, LuminousDeviceUpgrade.ENHANCED_MAGE_LIGHT),
+                createUpgradeTooltipEntry(stack, LuminousDeviceUpgrade.MANA_WIZARDLAMP)
         ).withStyle(ChatFormatting.GRAY));
         appendModeTooltip(stack, lines);
     }
@@ -156,7 +164,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
             return 0;
         }
 
-        var maxStoredMana = LuminousDeviceConfigState.maxStoredMana();
+        var maxStoredMana = clientMaxStoredMana(stack);
         if (maxStoredMana <= 0) {
             return 13;
         }
@@ -494,7 +502,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
             return InteractionResult.CONSUME;
         }
 
-        var maxStoredMana = ApprenticeCodexServerConfig.luminousDeviceMaxStoredMana();
+        var maxStoredMana = serverMaxStoredMana(deviceStack);
         setStoredMana(deviceStack, (int) Math.min(
                 maxStoredMana,
                 (long) getStoredMana(deviceStack) + recoveredMana
@@ -612,6 +620,44 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         }
     }
 
+    public static boolean hasUpgrade(ItemStack deviceStack, LuminousDeviceUpgrade upgrade) {
+        if (!(deviceStack.getItem() instanceof LuminousDevice)) {
+            return false;
+        }
+        var storageTag = deviceStack.getTagElement(STORAGE_TAG);
+        if (storageTag == null || !storageTag.contains(UPGRADES_TAG, Tag.TAG_LIST)) {
+            return false;
+        }
+        var upgrades = storageTag.getList(UPGRADES_TAG, Tag.TAG_STRING);
+        for (var index = 0; index < upgrades.size(); ++index) {
+            if (upgrade.id().toString().equals(upgrades.getString(index))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean addUpgrade(ItemStack deviceStack, LuminousDeviceUpgrade upgrade) {
+        if (!(deviceStack.getItem() instanceof LuminousDevice) || hasUpgrade(deviceStack, upgrade)) {
+            return false;
+        }
+        var storageTag = deviceStack.getOrCreateTagElement(STORAGE_TAG);
+        var upgrades = storageTag.contains(UPGRADES_TAG, Tag.TAG_LIST)
+                ? storageTag.getList(UPGRADES_TAG, Tag.TAG_STRING)
+                : new ListTag();
+        upgrades.add(StringTag.valueOf(upgrade.id().toString()));
+        storageTag.put(UPGRADES_TAG, upgrades);
+        return true;
+    }
+
+    public static ItemStack createUpgradeResult(ItemStack deviceStack, LuminousDeviceUpgrade upgrade) {
+        if (!(deviceStack.getItem() instanceof LuminousDevice) || hasUpgrade(deviceStack, upgrade)) {
+            return ItemStack.EMPTY;
+        }
+        var result = deviceStack.copyWithCount(1);
+        return addUpgrade(result, upgrade) ? result : ItemStack.EMPTY;
+    }
+
     public static int getStoredCount(ItemStack deviceStack, ItemStack targetStack) {
         return countStoredItem(readContents(deviceStack), targetStack);
     }
@@ -719,11 +765,22 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         if (storageTag == null || !storageTag.contains(MODE_TAG, Tag.TAG_STRING)) {
             return Mode.PLACE;
         }
-        return Mode.fromSerializedName(storageTag.getString(MODE_TAG));
+        var mode = Mode.fromSerializedName(storageTag.getString(MODE_TAG));
+        if (mode == Mode.CLEAN && !hasUpgrade(deviceStack, LuminousDeviceUpgrade.CLEAN)) {
+            return Mode.PLACE;
+        }
+        if (mode == Mode.SPELL) {
+            var spellId = ResourceLocation.tryParse(storageTag.getString(SELECTED_SPELL_TAG));
+            if (getAllowedSpell(deviceStack, spellId) == null) {
+                return Mode.PLACE;
+            }
+        }
+        return mode;
     }
 
     public static boolean setCleanMode(ItemStack deviceStack) {
-        if (!(deviceStack.getItem() instanceof LuminousDevice)) {
+        if (!(deviceStack.getItem() instanceof LuminousDevice)
+                || !hasUpgrade(deviceStack, LuminousDeviceUpgrade.CLEAN)) {
             return false;
         }
         setModeInternal(deviceStack, Mode.CLEAN);
@@ -740,12 +797,12 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
             return SpellData.EMPTY;
         }
         var spellId = ResourceLocation.tryParse(storageTag.getString(SELECTED_SPELL_TAG));
-        var spell = getAllowedSpell(spellId);
+        var spell = getAllowedSpell(deviceStack, spellId);
         return spell == null ? SpellData.EMPTY : new SpellData(spell, SPELL_LEVEL);
     }
 
     public static boolean setSelectedSpell(ItemStack deviceStack, @Nullable ResourceLocation spellId) {
-        if (!(deviceStack.getItem() instanceof LuminousDevice) || getAllowedSpell(spellId) == null) {
+        if (!(deviceStack.getItem() instanceof LuminousDevice) || getAllowedSpell(deviceStack, spellId) == null) {
             return false;
         }
 
@@ -771,18 +828,24 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         if (mode == Mode.PLACE && !selectedStack.isEmpty() && !selectedPresent) {
             views.add(createSelectionView(selectedStack, 0, true));
         }
-        views.add(new SelectionView(
-                Mode.CLEAN,
-                deviceStack.copyWithCount(1),
-                null,
-                null,
-                Component.translatable("ui.apprenticecodex.luminous_device.clean.desc"),
-                "",
-                SELECTION_COUNT_COLOR,
-                mode == Mode.CLEAN
-        ));
-        addSpellSelectionView(views, SpellRegistry.MAGE_LIGHT.get(), mode, getSelectedSpellData(deviceStack));
-        addSpellSelectionView(views, SpellRegistry.WIZARDLAMP.get(), mode, getSelectedSpellData(deviceStack));
+        if (hasUpgrade(deviceStack, LuminousDeviceUpgrade.CLEAN)) {
+            views.add(new SelectionView(
+                    Mode.CLEAN,
+                    deviceStack.copyWithCount(1),
+                    null,
+                    null,
+                    Component.translatable("ui.apprenticecodex.luminous_device.clean.desc"),
+                    "",
+                    SELECTION_COUNT_COLOR,
+                    mode == Mode.CLEAN
+            ));
+        }
+        if (hasUpgrade(deviceStack, LuminousDeviceUpgrade.ENHANCED_MAGE_LIGHT)) {
+            addSpellSelectionView(views, SpellRegistry.MAGE_LIGHT.get(), mode, getSelectedSpellData(deviceStack));
+        }
+        if (hasUpgrade(deviceStack, LuminousDeviceUpgrade.MANA_WIZARDLAMP)) {
+            addSpellSelectionView(views, SpellRegistry.WIZARDLAMP.get(), mode, getSelectedSpellData(deviceStack));
+        }
         return List.copyOf(views);
     }
 
@@ -829,14 +892,16 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
     }
 
     @Nullable
-    private static AbstractSpell getAllowedSpell(@Nullable ResourceLocation spellId) {
+    private static AbstractSpell getAllowedSpell(ItemStack deviceStack, @Nullable ResourceLocation spellId) {
         if (spellId == null) {
             return null;
         }
-        if (spellId.equals(SpellRegistry.MAGE_LIGHT.get().getSpellResource())) {
+        if (spellId.equals(SpellRegistry.MAGE_LIGHT.get().getSpellResource())
+                && hasUpgrade(deviceStack, LuminousDeviceUpgrade.ENHANCED_MAGE_LIGHT)) {
             return SpellRegistry.MAGE_LIGHT.get();
         }
-        if (spellId.equals(SpellRegistry.WIZARDLAMP.get().getSpellResource())) {
+        if (spellId.equals(SpellRegistry.WIZARDLAMP.get().getSpellResource())
+                && hasUpgrade(deviceStack, LuminousDeviceUpgrade.MANA_WIZARDLAMP)) {
             return SpellRegistry.WIZARDLAMP.get();
         }
         return null;
@@ -934,7 +999,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
             return false;
         }
 
-        var maxStoredMana = maxStoredMana(player);
+        var maxStoredMana = maxStoredMana(player, deviceStack);
         var storedMana = getStoredMana(deviceStack);
         if (maxStoredMana <= 0 || storedMana >= maxStoredMana) {
             return false;
@@ -982,10 +1047,31 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
                 : ApprenticeCodexServerConfig.luminousDeviceMaxStoredItems();
     }
 
-    private static int maxStoredMana(Player player) {
+    private static int maxStoredMana(Player player, ItemStack deviceStack) {
         return player.level().isClientSide
-                ? LuminousDeviceConfigState.maxStoredMana()
+                ? clientMaxStoredMana(deviceStack)
+                : serverMaxStoredMana(deviceStack);
+    }
+
+    private static int clientMaxStoredMana(ItemStack deviceStack) {
+        return hasUpgrade(deviceStack, LuminousDeviceUpgrade.MANA_WIZARDLAMP)
+                ? Math.max(LuminousDeviceConfigState.maxStoredMana(), LuminousDeviceConfigState.upgradedMaxStoredMana())
+                : LuminousDeviceConfigState.maxStoredMana();
+    }
+
+    private static int serverMaxStoredMana(ItemStack deviceStack) {
+        return hasUpgrade(deviceStack, LuminousDeviceUpgrade.MANA_WIZARDLAMP)
+                ? Math.max(
+                        ApprenticeCodexServerConfig.luminousDeviceMaxStoredMana(),
+                        ApprenticeCodexServerConfig.luminousDeviceUpgradedMaxStoredMana()
+                )
                 : ApprenticeCodexServerConfig.luminousDeviceMaxStoredMana();
+    }
+
+    private static Component createUpgradeTooltipEntry(ItemStack stack, LuminousDeviceUpgrade upgrade) {
+        return Component.translatable(upgrade.translationKey()).withStyle(
+                hasUpgrade(stack, upgrade) ? ChatFormatting.GREEN : ChatFormatting.GRAY
+        );
     }
 
     private static void displayOutOfItem(Player player, ItemStack selectedStack) {
