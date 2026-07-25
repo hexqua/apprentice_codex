@@ -9,7 +9,9 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.UUID;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowCastEvent;
@@ -726,6 +728,36 @@ final class ElementalBowGameTestScenarios {
                     "Elemental Bow Synthesis magic shot should still damage the bow after a successful cast");
             helper.assertTrue(magicData.getMana() < initialMana,
                     "Elemental Bow Synthesis magic shot should still consume spell mana");
+        });
+    }
+
+    static void elementalBowMagicArrowCatalystItemsAllowsConfiguredSpecialArrow(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useElementalBowMagicArrowCatalystItemsOverrideForGameTest(
+                    List.of("minecraft:spectral_arrow")
+            )) {
+                var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_configured_arrow_test");
+                var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+                setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+                player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+                player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW, 2));
+                player.getInventory().setItem(2, new ItemStack(Items.ARROW, 3));
+
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Elemental Bow configured catalyst test could not resolve player mana data");
+                magicData.setMana(250.0F);
+
+                var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+                helper.assertTrue(result.getResult().consumesAction(),
+                        "Elemental Bow magic mode should accept a configured special arrow catalyst: " + result.getResult());
+                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
+                player.stopUsingItem();
+
+                helper.assertTrue(player.getInventory().getItem(1).getCount() == 1,
+                        "Elemental Bow magic mode should consume the configured spectral arrow catalyst");
+                helper.assertTrue(player.getInventory().getItem(2).getCount() == 3,
+                        "Elemental Bow magic mode should leave unconfigured normal arrows untouched");
+            }
         });
     }
 

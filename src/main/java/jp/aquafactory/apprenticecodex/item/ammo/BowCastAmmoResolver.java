@@ -128,11 +128,27 @@ public final class BowCastAmmoResolver {
             Player player,
             List<ResourceLocation> arrowCatalystItemIds
     ) {
+        return resolveArrowCatalystAmmo(player, arrowCatalystItemIds);
+    }
+
+    @Nullable
+    public static SpellcasterQuiverBowAmmoResolver.AmmoSource resolveElementalMagicArrowCatalystAmmo(
+            Player player,
+            List<ResourceLocation> arrowCatalystItemIds
+    ) {
+        return resolveArrowCatalystAmmo(player, arrowCatalystItemIds);
+    }
+
+    @Nullable
+    private static SpellcasterQuiverBowAmmoResolver.AmmoSource resolveArrowCatalystAmmo(
+            Player player,
+            List<ResourceLocation> arrowCatalystItemIds
+    ) {
         if (arrowCatalystItemIds.isEmpty()) {
             return null;
         }
 
-        Predicate<ItemStack> catalystPredicate = stack -> isFocusStaffbowArrowCatalyst(stack, arrowCatalystItemIds);
+        Predicate<ItemStack> catalystPredicate = stack -> isArrowCatalyst(stack, arrowCatalystItemIds);
 
         var quiverAmmo = SpellcasterQuiver.findAccessibleArrow(player, catalystPredicate);
         if (quiverAmmo != null) {
@@ -160,7 +176,7 @@ public final class BowCastAmmoResolver {
                 && stack.getEnchantmentLevel(EnchantmentRegistry.SYNTHESIS.get()) > 0;
     }
 
-    private static boolean isFocusStaffbowArrowCatalyst(ItemStack stack, List<ResourceLocation> arrowCatalystItemIds) {
+    private static boolean isArrowCatalyst(ItemStack stack, List<ResourceLocation> arrowCatalystItemIds) {
         var itemId = net.minecraftforge.registries.ForgeRegistries.ITEMS.getKey(stack.getItem());
         return itemId != null && arrowCatalystItemIds.contains(itemId);
     }

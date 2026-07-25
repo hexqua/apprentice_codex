@@ -666,6 +666,14 @@ final class ItemsServerConfig {
         return elementalBowConfig.magicReadyDrawTicksMultiplier();
     }
 
+    List<ResourceLocation> elementalBowMagicArrowCatalystItemIds() {
+        return elementalBowConfig.magicArrowCatalystItemIds();
+    }
+
+    List<String> elementalBowMagicArrowCatalystItems() {
+        return elementalBowConfig.magicArrowCatalystItems();
+    }
+
     float elementalBowOverheatAdditionalManaLinearMultiplier() {
         return elementalBowConfig.overheatAdditionalManaLinearMultiplier();
     }
@@ -898,6 +906,10 @@ final class ItemsServerConfig {
                 overheatDurationCapTicks,
                 powerArrowSpellLevelBonusPerLevel
         );
+    }
+
+    void setElementalBowMagicArrowCatalystItemsForGameTest(List<String> magicArrowCatalystItems) {
+        elementalBowConfig.setMagicArrowCatalystItemsForGameTest(magicArrowCatalystItems);
     }
 
     void setCircuitHeatStaffConfigForGameTest(
