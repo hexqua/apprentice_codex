@@ -12,6 +12,8 @@ import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.PriorityOffhandUseDeferringItem;
 import jp.aquafactory.apprenticecodex.item.RightClickSpellItemHelper;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceConfigState;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import net.minecraft.resources.ResourceLocation;
@@ -84,6 +86,9 @@ public final class RightClickSpellResolver {
                     "storage_stabilizer_selected"
             );
         }
+        if (mainHandStack.getItem() instanceof LuminousDevice) {
+            return resolveLuminousDeviceSpell(player, mainHandStack, InteractionHand.MAIN_HAND);
+        }
         // 独自右クリック武器は CastingItem 継承ではないが、右クリック時は選択 spell を使う。
         if (mainHandStack.getItem() instanceof AbstractRightClickMagicWeaponItem) {
             return resolveSelectionSpell(player, InteractionHand.MAIN_HAND, "right_click_magic_weapon_selection");
@@ -121,6 +126,9 @@ public final class RightClickSpellResolver {
                     "storage_stabilizer_selected"
             );
         }
+        if (offHandStack.getItem() instanceof LuminousDevice) {
+            return resolveLuminousDeviceSpell(player, offHandStack, InteractionHand.OFF_HAND);
+        }
         if (offHandStack.getItem() instanceof CastingItem || RightClickSpellItemHelper.isRightClickSpellItem(offHandStack)) {
             return resolveSelectionSpell(player, InteractionHand.OFF_HAND, "casting_item_selection");
         }
@@ -154,6 +162,33 @@ public final class RightClickSpellResolver {
                 ? new SpellSelectionManager(player).getSelectedSpellData()
                 : ChargecastCatalystbook.getSelectedSpellData(stack);
         return createResolvedSpell(spellData, player, hand, "chargecast_catalystbook_selected");
+    }
+
+    private static Optional<ResolvedRightClickSpell> resolveLuminousDeviceSpell(
+            Player player,
+            ItemStack stack,
+            InteractionHand hand
+    ) {
+        var resolved = createResolvedSpell(
+                LuminousDevice.getSelectedSpellData(stack),
+                player,
+                hand,
+                "luminous_device_selected"
+        );
+        if (resolved.isEmpty()
+                || resolved.get().spellData().getSpell()
+                != jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get()) {
+            return resolved;
+        }
+
+        var mageLight = (jp.aquafactory.apprenticecodex.spell.magelight.MageLight)
+                jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get();
+        var range = mageLight.createCastProfile(
+                resolved.get().spellLevel(),
+                player,
+                LuminousDeviceConfigState.mageLightExtendedRange()
+        ).effectiveRange();
+        return Optional.of(resolved.get().withTargetingRangeOverride(range));
     }
 
     private static Optional<ResolvedRightClickSpell> resolveContainerSpell(ItemStack stack, Player player, InteractionHand hand,
@@ -194,7 +229,28 @@ public final class RightClickSpellResolver {
             ResourceLocation spellResource,
             int spellLevel,
             InteractionHand hand,
-            String resolutionPath
+            String resolutionPath,
+            @Nullable Double targetingRangeOverride
     ) {
+        private ResolvedRightClickSpell(
+                SpellData spellData,
+                ResourceLocation spellResource,
+                int spellLevel,
+                InteractionHand hand,
+                String resolutionPath
+        ) {
+            this(spellData, spellResource, spellLevel, hand, resolutionPath, null);
+        }
+
+        private ResolvedRightClickSpell withTargetingRangeOverride(double range) {
+            return new ResolvedRightClickSpell(
+                    spellData,
+                    spellResource,
+                    spellLevel,
+                    hand,
+                    resolutionPath,
+                    range
+            );
+        }
     }
 }

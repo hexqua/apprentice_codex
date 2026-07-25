@@ -1,0 +1,35 @@
+{
+  "type": "apprenticecodex:spellcaster_workbench",
+  "ingredients": [
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "apprenticecodex:luminous_device"
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "irons_spellbooks:scroll"
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "tag": "apprenticecodex:luminous_device_wizardlamp_upgrade_materials"
+      }
+    }
+  ],
+  "operation": {
+    "type": "add_luminous_device_upgrade",
+    "feature": "apprenticecodex:mana_wizardlamp",
+    "minimum_spell_level": 1,
+    "required_spell": "apprenticecodex:wizardlamp"
+  },
+  "priority": 10,
+  "results": [
+    {
+      "id": "apprenticecodex:luminous_device"
+    }
+  ]
+}

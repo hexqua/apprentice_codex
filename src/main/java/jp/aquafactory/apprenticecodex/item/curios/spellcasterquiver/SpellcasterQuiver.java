@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver;
 
+import jp.aquafactory.apprenticecodex.item.InventoryInsertTarget;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
@@ -41,7 +42,7 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
-public class SpellcasterQuiver extends Item implements ICurioItem {
+public class SpellcasterQuiver extends Item implements ICurioItem, InventoryInsertTarget {
     private static final int MAX_STORED_ITEMS = 512;
     private static final int BAR_COLOR = 0xA8792A;
     private static final net.minecraft.core.HolderLookup.Provider SERIALIZATION_LOOKUP =
@@ -163,6 +164,9 @@ public class SpellcasterQuiver extends Item implements ICurioItem {
         if (action != ClickAction.SECONDARY) {
             return false;
         }
+        if (!InventoryInsertTarget.canModifyStorageSlot(quiverStack, slot, player)) {
+            return false;
+        }
 
         if (otherStack.isEmpty()) {
             var removedStack = removeStackFromQuiver(quiverStack);
@@ -188,6 +192,15 @@ public class SpellcasterQuiver extends Item implements ICurioItem {
         slotAccess.set(otherStack);
         slot.setChanged();
         return true;
+    }
+
+    @Override
+    public InsertHint getInventoryInsertHint(ItemStack storageStack, ItemStack incomingStack, Player player) {
+        return storageStack.getItem() instanceof SpellcasterQuiver
+                && accepts(incomingStack)
+                && getStoredItemCount(storageStack) < MAX_STORED_ITEMS
+                ? InsertHint.ITEM
+                : InsertHint.NONE;
     }
 
     @Override

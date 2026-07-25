@@ -621,6 +621,16 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildUsesOffhandLuminousDeviceBeforeShulkerSource(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildUsesOffhandLuminousDeviceBeforeShulkerSource(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildResolvesZeroCountLuminousDeviceSelectionAndEmptyFallback(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildResolvesZeroCountLuminousDeviceSelectionAndEmptyFallback(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
     public static void linearBuildConsumesReplaceablePlacedBlockTemplate(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.linearBuildConsumesReplaceablePlacedBlockTemplate(helper);
     }

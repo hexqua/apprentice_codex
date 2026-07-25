@@ -23,6 +23,7 @@ public final class AutocastAmuletCooldownOverlayEvent {
     private static final int TEXT_COLOR = 0xFFFFFF;
     private static final int THRESHOLD_TEXT_COLOR = 0xFFF0B44A;
     private static final int MANA_LOW_TEXT_COLOR = 0xFFFF6666;
+    private static final int MANA_REMAINING_TEXT_COLOR = 0xFF55FFFF;
     private static final int ICON_SIZE = 16;
     private static final int SPELL_ICON_TEXTURE_SIZE = 16;
 
@@ -100,7 +101,8 @@ public final class AutocastAmuletCooldownOverlayEvent {
             case CAST -> TEXT_COLOR;
             case THRESHOLD -> THRESHOLD_TEXT_COLOR;
             case MANA_LOW -> MANA_LOW_TEXT_COLOR;
-            case LINEAR_BUILD_REMAINING -> TEXT_COLOR;
+            case ITEM_REMAINING -> TEXT_COLOR;
+            case MANA_REMAINING -> MANA_REMAINING_TEXT_COLOR;
         };
     }
 

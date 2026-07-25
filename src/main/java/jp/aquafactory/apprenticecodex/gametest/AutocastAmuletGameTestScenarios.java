@@ -185,6 +185,7 @@ import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.CreativeTabRegistry;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.LootConditionRegistry;
 import jp.aquafactory.apprenticecodex.registry.PoiTypeRegistry;
@@ -1035,36 +1036,62 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
         });
     }
 
-    static void autocastAmuletNotificationControllerUpdatesLinearBuildRemaining(GameTestHelper helper) {
+    static void autocastAmuletNotificationControllerUpdatesRemainingCounts(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var linearController = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
             var linearId = ResourceLocation.fromNamespaceAndPath("apprenticecodex", "linear_build");
+            var luminousDeviceId = ResourceLocation.fromNamespaceAndPath("apprenticecodex", "luminous_device");
             var castId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "greater_heal");
             var castIcon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/greater_heal.png");
 
-            linearController.updateLinearBuildRemaining(0L, linearId, new ItemStack(Items.FERN), "10");
-            linearController.updateLinearBuildRemaining(5L, linearId, new ItemStack(Items.FERN), "9");
+            linearController.updateRemainingCount(
+                    0L,
+                    linearId,
+                    new ItemStack(Items.FERN),
+                    "10",
+                    SyncRemainingCountNotificationPacket.DisplayType.ITEM_REMAINING
+            );
+            linearController.updateRemainingCount(
+                    5L,
+                    linearId,
+                    new ItemStack(Items.FERN),
+                    "9",
+                    SyncRemainingCountNotificationPacket.DisplayType.ITEM_REMAINING
+            );
             linearController.advance(34L);
 
             var activeLinear = linearController.getActiveNotification();
             helper.assertTrue(activeLinear != null
-                            && activeLinear.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.LINEAR_BUILD_REMAINING
+                            && activeLinear.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.ITEM_REMAINING
                             && "9".equals(activeLinear.displayText()),
                     "Linear Build remaining notification should update the active entry and refresh its display duration");
 
             var queuedController = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
             queuedController.queueCooldownCast(0L, castId, castIcon, 1200);
-            queuedController.updateLinearBuildRemaining(1L, linearId, new ItemStack(Items.FERN), "10");
-            queuedController.updateLinearBuildRemaining(2L, linearId, new ItemStack(Items.FERN), "9");
+            queuedController.updateRemainingCount(
+                    1L,
+                    linearId,
+                    new ItemStack(Items.FERN),
+                    "10",
+                    SyncRemainingCountNotificationPacket.DisplayType.ITEM_REMAINING
+            );
+            queuedController.updateRemainingCount(
+                    2L,
+                    luminousDeviceId,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()),
+                    "80",
+                    SyncRemainingCountNotificationPacket.DisplayType.MANA_REMAINING
+            );
             helper.assertTrue(queuedController.getPendingQueueSize() == 1,
-                    "Linear Build remaining notifications should keep only the latest pending entry");
+                    "Remaining notifications should keep only the latest pending entry across display types");
 
             queuedController.advance(30L);
-            var queuedLinear = queuedController.getActiveNotification();
-            helper.assertTrue(queuedLinear != null
-                            && queuedLinear.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.LINEAR_BUILD_REMAINING
-                            && "9".equals(queuedLinear.displayText()),
-                    "Linear Build remaining notification should show the latest queued value after earlier notifications finish");
+            var queuedRemaining = queuedController.getActiveNotification();
+            helper.assertTrue(queuedRemaining != null
+                            && queuedRemaining.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.MANA_REMAINING
+                            && queuedRemaining.itemIcon().is(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get())
+                            && "80".equals(queuedRemaining.displayText()),
+                    "Remaining notification should show the latest queued mana value after earlier notifications finish");
         });
     }
 

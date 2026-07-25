@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.utility;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -10,9 +11,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.util.BlockSnapshot;
+import net.neoforged.neoforge.event.EventHooks;
 
 import java.util.Optional;
 
@@ -47,6 +51,31 @@ public final class BlockTools {
         }
 
         return Optional.of(new PlaceData(placePos, hit.getDirection().getOpposite()));
+    }
+
+    public static boolean tryPlaceBlockByEntity(Level level, LivingEntity entity, BlockPos pos,
+                                                BlockState state, Direction placedFace) {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return level.setBlockAndUpdate(pos, state);
+        }
+
+        if (entity instanceof ServerPlayer player
+                && (!serverLevel.mayInteract(player, pos)
+                || !player.mayUseItemAt(pos, placedFace, ItemStack.EMPTY))) {
+            return false;
+        }
+
+        var snapshot = BlockSnapshot.create(serverLevel.dimension(), serverLevel, pos);
+        if (!serverLevel.setBlockAndUpdate(pos, state)) {
+            return false;
+        }
+
+        // 魔法による直接配置も通常の BlockItem 配置と同じイベントへ流し、土地保護 MOD が拒否できるようにする。
+        if (EventHooks.onBlockPlace(entity, snapshot, placedFace)) {
+            snapshot.restore();
+            return false;
+        }
+        return true;
     }
 
     public static void breakBlockByPlayerHands(Level level, ServerPlayer player, BlockPos pos, ItemStack dummyTool){
@@ -91,7 +120,7 @@ public final class BlockTools {
         }
 
         var originalItem = player.getMainHandItem();
-        var effectiveInteractionStack = normalizeInteractionStackForTemporaryUse(interactionStack);
+        var effectiveInteractionStack = copyForTemporaryUse(interactionStack);
         // まずは通常の useItemOn 経路へ流し、mod 独自の右クリック収穫を優先する。
         var hitResult = new BlockHitResult(Vec3.atCenterOf(pos), hitFace, pos, false);
         try {
@@ -103,13 +132,14 @@ public final class BlockTools {
         }
     }
 
-    private static ItemStack normalizeInteractionStackForTemporaryUse(ItemStack interactionStack) {
+    public static ItemStack copyForTemporaryUse(ItemStack interactionStack) {
         if (interactionStack.isEmpty()) {
             return interactionStack;
         }
 
         var normalizedStack = interactionStack.copy();
-        // 仮想スタックが空になると AutoStock 系 mod が本物の手持ちスロットを補充対象と誤認しうる。
+        // 仮想スタックが空になると外部の restock 系 MOD が本物の手持ちスロットを補充対象と誤認しうる。
+        // 2 個なら通常の 1 回使用後にも 1 個残り、アイテム側へ見せる個数の差も最小限に抑えられる。
         if (normalizedStack.getCount() <= 1 && normalizedStack.getMaxStackSize() > 1) {
             normalizedStack.setCount(2);
         }

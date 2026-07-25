@@ -1,0 +1,103 @@
+{
+  "values": [
+    "minecraft:torch",
+    "minecraft:soul_torch",
+    "minecraft:redstone_torch",
+    "minecraft:lantern",
+    "minecraft:soul_lantern",
+    "minecraft:end_rod",
+    "minecraft:sea_lantern",
+    "minecraft:redstone_lamp",
+    "minecraft:glowstone",
+    "minecraft:shroomlight",
+    "minecraft:ochre_froglight",
+    "minecraft:pearlescent_froglight",
+    "minecraft:verdant_froglight",
+    "minecraft:campfire",
+    "minecraft:soul_campfire",
+    "irons_spellbooks:firefly_jar",
+    "irons_spellbooks:brazier",
+    "irons_spellbooks:brazier_soul",
+    "#minecraft:candles",
+    {
+      "id": "#quark:crystal_lamp",
+      "required": false
+    },
+    {
+      "id": "#supplementaries:candle_holders",
+      "required": false
+    },
+    {
+      "id": "#supplementaries:sconces",
+      "required": false
+    },
+    {
+      "id": "create:experience_block",
+      "required": false
+    },
+    {
+      "id": "create:rose_quartz_lamp",
+      "required": false
+    },
+    {
+      "id": "quark:blaze_lantern",
+      "required": false
+    },
+    {
+      "id": "quark:duskbound_lantern",
+      "required": false
+    },
+    {
+      "id": "quark:stone_lamp",
+      "required": false
+    },
+    {
+      "id": "quark:stone_brick_lamp",
+      "required": false
+    },
+    {
+      "id": "quark:paper_lantern",
+      "required": false
+    },
+    {
+      "id": "quark:paper_lantern_sakura",
+      "required": false
+    },
+    {
+      "id": "supplementaries:sconce_lever",
+      "required": false
+    },
+    {
+      "id": "supplementaries:stone_lamp",
+      "required": false
+    },
+    {
+      "id": "supplementaries:blackstone_lamp",
+      "required": false
+    },
+    {
+      "id": "supplementaries:deepslate_lamp",
+      "required": false
+    },
+    {
+      "id": "supplementaries:end_stone_lamp",
+      "required": false
+    },
+    {
+      "id": "supplementaries:fire_pit",
+      "required": false
+    },
+    {
+      "id": "suppsquared:copper_lantern",
+      "required": false
+    },
+    {
+      "id": "suppsquared:crimson_lantern",
+      "required": false
+    },
+    {
+      "id": "suppsquared:brass_lantern",
+      "required": false
+    }
+  ]
+}

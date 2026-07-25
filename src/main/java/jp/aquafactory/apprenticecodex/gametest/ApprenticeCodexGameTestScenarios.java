@@ -111,6 +111,10 @@ import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
+import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
+import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
+import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfile;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfileManager;
@@ -195,6 +199,7 @@ import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceBurst;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerEntity;
 import jp.aquafactory.apprenticecodex.spell.linearbuild.LinearBuild;
+import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileEntity;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidanceEvents;
@@ -247,6 +252,8 @@ import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeStats;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
+import jp.aquafactory.apprenticecodex.spell.wizardlamp.Wizardlamp;
+import jp.aquafactory.apprenticecodex.spell.wizardlamp.WizardlampLanternBlock;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
@@ -389,6 +396,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.common.damagesource.DamageContainer;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
@@ -2791,6 +2799,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void serverBlocksAndEntitiesCanBeInstantiated(GameTestHelper helper) {
         helper.succeedIf(() -> {
             placeAndAssertBlockEntity(helper, new BlockPos(0, 1, 0), BlockRegistry.MAGE_LIGHT_TORCH.get(), BlockEntityRegistry.MAGE_LIGHT_TORCH.get());
+            placeAndAssertBlockEntity(helper, new BlockPos(0, 2, 0), BlockRegistry.WIZARDLAMP_LANTERN.get(), BlockEntityRegistry.WIZARDLAMP_LANTERN.get());
             placeAndAssertBlockEntity(helper, new BlockPos(1, 1, 0), BlockRegistry.PERSONAL_SHELF_CHEST.get(), BlockEntityRegistry.PERSONAL_SHELF_CHEST.get());
             placeAndAssertBlockEntity(helper, new BlockPos(2, 1, 0), BlockRegistry.ARCANUM_IN_A_JAR.get(), BlockEntityRegistry.ARCANUM_IN_A_JAR.get());
             placeAndAssertBlockEntity(helper, new BlockPos(0, 1, 1), BlockRegistry.ESSENCE_SMOKER.get(), BlockEntityRegistry.ESSENCE_SMOKER.get());
@@ -8608,6 +8617,16 @@ public class ApprenticeCodexGameTestScenarios {
         player.getInventory().setItem(9, inventoryDirt.copy());
 
         helper.runAtTickTime(1, () -> {
+            var effectiveVirtualDirt = BlockTools.copyForTemporaryUse(virtualDirt);
+            helper.assertTrue(
+                    effectiveVirtualDirt.is(Items.DIRT) && effectiveVirtualDirt.getCount() == 2,
+                    "Temporary stack normalization should leave one item after a single placement"
+            );
+            helper.assertTrue(
+                    virtualDirt.is(Items.DIRT) && virtualDirt.getCount() == 1,
+                    "Temporary stack normalization should not mutate its source"
+            );
+
             var result = BlockTools.useItemOnBlockByPlayerMainHand(
                     helper.getLevel(),
                     player,
@@ -8707,6 +8726,256 @@ public class ApprenticeCodexGameTestScenarios {
                     "Linear Build should not use the main hand block when the offhand holds a block");
             helper.assertTrue(player.getOffhandItem().is(Items.OAK_PLANKS) && player.getOffhandItem().getCount() == 1,
                     "Linear Build should consume the selected offhand block template");
+        });
+    }
+
+    static void wizardlampUsesClientCellAndClampsItWithoutLineOfSight(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(1, 2, 1), "wizardlamp_target_test");
+            var spell = (Wizardlamp) SpellRegistry.WIZARDLAMP.get();
+            var eyePosition = player.getEyePosition(1.0F);
+
+            var inRangePos = BlockPos.containing(eyePosition.add(2.0, 0.0, 0.0));
+            var inRangeTarget = new BlockTargetData();
+            inRangeTarget.setTarget(inRangePos, Direction.UP, Vec3.atCenterOf(inRangePos), inRangePos, Direction.DOWN);
+            helper.assertTrue(
+                    Wizardlamp.resolveClientPlacePos(level, player, inRangeTarget, 6.0).orElseThrow().equals(inRangePos),
+                    "Wizardlamp should keep an in-range client placement cell"
+            );
+
+            var farPos = BlockPos.containing(eyePosition.add(12.0, 0.0, 0.0));
+            var farTarget = new BlockTargetData();
+            farTarget.setTarget(farPos, Direction.UP, Vec3.atCenterOf(farPos), farPos, Direction.DOWN);
+            var offset = Vec3.atCenterOf(farPos).subtract(eyePosition);
+            var expectedPos = BlockPos.containing(eyePosition.add(offset.normalize().scale(6.0)));
+            var wallPos = BlockPos.containing(eyePosition.add(offset.normalize().scale(2.0)));
+            level.setBlockAndUpdate(wallPos, Blocks.STONE.defaultBlockState());
+
+            BlockTargetingHelper.setPendingServerTarget(player, spell.getSpellResource(), farTarget);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Wizardlamp test could not resolve player magic data");
+            helper.assertTrue(
+                    spell.checkPreCastConditions(level, 1, player, magicData),
+                    "Wizardlamp should accept a replaceable clamped cell without requiring line of sight"
+            );
+            spell.onCast(level, 1, player, CastSource.SPELLBOOK, magicData);
+
+            helper.assertTrue(
+                    level.getBlockState(expectedPos).is(BlockRegistry.WIZARDLAMP_LANTERN.get()),
+                    "Wizardlamp should place its lantern at the maximum-range cell along the client vector"
+            );
+            helper.assertTrue(
+                    level.getBlockState(expectedPos.below()).isAir(),
+                    "Wizardlamp lantern should remain placed without a supporting block"
+            );
+            helper.assertTrue(
+                    !level.getBlockState(farPos).is(BlockRegistry.WIZARDLAMP_LANTERN.get()),
+                    "Wizardlamp should not trust an out-of-range placement cell directly"
+            );
+        });
+    }
+
+    static void blockPlacementSpellsRespectForgePlaceEvent(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var wizardlampPlayer = createEquipmentTestPlayer(
+                    helper, new BlockPos(1, 2, 1), "wizardlamp_place_event_test");
+            var mageLightPlayer = createEquipmentTestPlayer(
+                    helper, new BlockPos(1, 2, 3), "mage_light_place_event_test");
+            var linearBuildPlayer = createEquipmentTestPlayer(
+                    helper, new BlockPos(2, 3, 2), "linear_build_place_event_test");
+            var wizardlampPos = helper.absolutePos(new BlockPos(2, 3, 1));
+            var mageLightPos = helper.absolutePos(new BlockPos(2, 3, 3));
+            var linearBuildPos = new BlockPos(3, 3, 2);
+            var wizardlampEvents = new AtomicInteger();
+            var mageLightEvents = new AtomicInteger();
+            var linearBuildEvents = new AtomicInteger();
+
+            java.util.function.Consumer<BlockEvent.EntityPlaceEvent> cancelListener = event -> {
+                if (event.getEntity() == wizardlampPlayer
+                        && event.getPlacedBlock().is(BlockRegistry.WIZARDLAMP_LANTERN.get())) {
+                    wizardlampEvents.incrementAndGet();
+                    event.setCanceled(true);
+                } else if (event.getEntity() == mageLightPlayer
+                        && event.getPlacedBlock().is(BlockRegistry.MAGE_LIGHT_TORCH.get())) {
+                    mageLightEvents.incrementAndGet();
+                    event.setCanceled(true);
+                } else if (event.getEntity() == linearBuildPlayer
+                        && event.getPlacedBlock().is(Blocks.OAK_PLANKS)) {
+                    linearBuildEvents.incrementAndGet();
+                    event.setCanceled(true);
+                }
+            };
+
+            NeoForge.EVENT_BUS.addListener(cancelListener);
+            try {
+                var wizardlamp = (Wizardlamp) SpellRegistry.WIZARDLAMP.get();
+                var wizardlampTarget = new BlockTargetData();
+                wizardlampTarget.setTarget(
+                        wizardlampPos,
+                        Direction.UP,
+                        Vec3.atCenterOf(wizardlampPos),
+                        wizardlampPos,
+                        Direction.DOWN
+                );
+                BlockTargetingHelper.setPendingServerTarget(
+                        wizardlampPlayer, wizardlamp.getSpellResource(), wizardlampTarget);
+                var wizardlampMagicData = MagicData.getPlayerMagicData(wizardlampPlayer);
+                helper.assertTrue(wizardlamp.checkPreCastConditions(
+                                level, 1, wizardlampPlayer, wizardlampMagicData),
+                        "Wizardlamp pre-cast check should accept the prepared target");
+                wizardlamp.onCast(level, 1, wizardlampPlayer, CastSource.SPELLBOOK, wizardlampMagicData);
+
+                var mageLight = (MageLight) SpellRegistry.MAGE_LIGHT.get();
+                var mageLightTarget = new BlockTargetData();
+                mageLightTarget.setTarget(
+                        mageLightPos,
+                        Direction.UP,
+                        Vec3.atCenterOf(mageLightPos),
+                        mageLightPos,
+                        Direction.DOWN
+                );
+                BlockTargetingHelper.setPendingServerTarget(
+                        mageLightPlayer, mageLight.getSpellResource(), mageLightTarget);
+                var mageLightMagicData = MagicData.getPlayerMagicData(mageLightPlayer);
+                helper.assertTrue(mageLight.checkPreCastConditions(
+                                level, 1, mageLightPlayer, mageLightMagicData),
+                        "Mage Light pre-cast check should accept the prepared target");
+                mageLight.onCast(level, 1, mageLightPlayer, CastSource.SPELLBOOK, mageLightMagicData);
+
+                linearBuildPlayer.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 2));
+                helper.setBlock(new BlockPos(4, 3, 2), Blocks.STONE);
+                castLinearBuild(helper, linearBuildPlayer, new BlockPos(4, 3, 2), Direction.WEST);
+            } finally {
+                NeoForge.EVENT_BUS.unregister(cancelListener);
+            }
+
+            helper.assertTrue(wizardlampEvents.get() == 1,
+                    "Wizardlamp should fire one Forge EntityPlaceEvent");
+            helper.assertTrue(mageLightEvents.get() == 1,
+                    "Mage Light should fire one Forge EntityPlaceEvent");
+            helper.assertTrue(linearBuildEvents.get() == 1,
+                    "Linear Build should keep using the Forge block placement event path");
+            helper.assertBlockNotPresent(BlockRegistry.WIZARDLAMP_LANTERN.get(), new BlockPos(2, 3, 1));
+            helper.assertBlockNotPresent(BlockRegistry.MAGE_LIGHT_TORCH.get(), new BlockPos(2, 3, 3));
+            helper.assertBlockNotPresent(Blocks.OAK_PLANKS, linearBuildPos);
+            helper.assertTrue(linearBuildPlayer.getMainHandItem().getCount() == 2,
+                    "Canceled Linear Build placement should not consume its source block");
+        });
+    }
+
+    static void wizardlampLanternHasLanternCollisionAndNoDrops(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var absolutePos = helper.absolutePos(new BlockPos(2, 3, 2));
+            var state = BlockRegistry.WIZARDLAMP_LANTERN.get().defaultBlockState();
+            level.setBlockAndUpdate(absolutePos, state);
+
+            helper.assertTrue(state.canSurvive(level, absolutePos),
+                    "Wizardlamp lantern should survive without support");
+            helper.assertTrue(!state.getCollisionShape(level, absolutePos).isEmpty(),
+                    "Wizardlamp lantern should have a collision shape");
+            var outlineShape = state.getShape(level, absolutePos);
+            var collisionShape = state.getCollisionShape(level, absolutePos);
+            helper.assertTrue(
+                    Math.abs(outlineShape.min(Direction.Axis.Y) - WizardlampLanternBlock.FLOATING_OFFSET) < 0.0001D,
+                    "Wizardlamp lantern outline should be raised with its rendered model"
+            );
+            helper.assertTrue(
+                    Math.abs(collisionShape.min(Direction.Axis.Y) - WizardlampLanternBlock.FLOATING_OFFSET) < 0.0001D,
+                    "Wizardlamp lantern collision should be raised with its rendered model"
+            );
+            helper.assertTrue(state.getLightEmission() == 15,
+                    "Wizardlamp lantern should emit maximum block light");
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(1, 2, 1), "wizardlamp_break_test");
+            var bareHandProgress = state.getDestroyProgress(player, level, absolutePos);
+            helper.assertTrue(Math.abs(state.getDestroySpeed(level, absolutePos) - 0.3F) < 0.0001F,
+                    "Wizardlamp lantern hardness should produce a 30-tick bare-hand break time");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.IRON_PICKAXE));
+            var pickaxeProgress = state.getDestroyProgress(player, level, absolutePos);
+            helper.assertTrue(pickaxeProgress > bareHandProgress,
+                    "Wizardlamp lantern should break faster with a pickaxe");
+
+            var drops = Block.getDrops(
+                    state,
+                    level,
+                    absolutePos,
+                    level.getBlockEntity(absolutePos),
+                    player,
+                    player.getMainHandItem()
+            );
+            helper.assertTrue(drops.isEmpty(), "Wizardlamp lantern should not drop items");
+        });
+    }
+
+    static void linearBuildUsesOffhandLuminousDeviceBeforeShulkerSource(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var targetPos = new BlockPos(5, 3, 2);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2),
+                    "linear_build_luminous_device_source_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIRT, 4));
+            var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+            LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.GLOWSTONE, 2));
+            player.setItemInHand(InteractionHand.OFF_HAND, deviceStack);
+            player.getInventory().setItem(10, createShulkerWithItem(new ItemStack(Items.GLOWSTONE, 2)));
+            helper.setBlock(targetPos, Blocks.STONE);
+
+            castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+            helper.assertBlockPresent(Blocks.GLOWSTONE, new BlockPos(4, 3, 2));
+            helper.assertBlockPresent(Blocks.GLOWSTONE, new BlockPos(3, 3, 2));
+            helper.assertTrue(LuminousDevice.getStoredCount(deviceStack, new ItemStack(Items.GLOWSTONE)) == 0,
+                    "Linear Build should consume matching Luminous Device contents before Shulker contents");
+            helper.assertTrue(LuminousDevice.getSelectedStack(deviceStack).is(Items.GLOWSTONE),
+                    "Linear Build consumption should preserve the zero-count selected template");
+            var shulkerStack = getNestedContainerItem(player.getInventory().getItem(10), 0);
+            helper.assertTrue(shulkerStack.is(Items.GLOWSTONE) && shulkerStack.getCount() == 2,
+                    "Linear Build should leave lower-priority Shulker contents untouched");
+            helper.assertTrue(player.getMainHandItem().is(Items.DIRT) && player.getMainHandItem().getCount() == 4,
+                    "An offhand Luminous Device selection should take priority over the main-hand block");
+        });
+    }
+
+    static void linearBuildResolvesZeroCountLuminousDeviceSelectionAndEmptyFallback(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var zeroTargetPos = new BlockPos(5, 3, 2);
+            var zeroSelectionPlayer = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2),
+                    "linear_build_zero_luminous_selection_test");
+            zeroSelectionPlayer.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIRT, 4));
+            var zeroSelectionDevice = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+            LuminousDevice.addToDevice(zeroSelectionDevice, new ItemStack(Items.GLOWSTONE));
+            LuminousDevice.consumeOneStored(zeroSelectionDevice, new ItemStack(Items.GLOWSTONE));
+            zeroSelectionPlayer.setItemInHand(InteractionHand.OFF_HAND, zeroSelectionDevice);
+            zeroSelectionPlayer.getInventory().setItem(10, new ItemStack(Items.GLOWSTONE, 2));
+            helper.setBlock(zeroTargetPos, Blocks.STONE);
+
+            castLinearBuild(helper, zeroSelectionPlayer, zeroTargetPos, Direction.WEST);
+
+            helper.assertBlockPresent(Blocks.GLOWSTONE, new BlockPos(4, 3, 2));
+            helper.assertBlockPresent(Blocks.GLOWSTONE, new BlockPos(3, 3, 2));
+            helper.assertTrue(zeroSelectionPlayer.getMainHandItem().is(Items.DIRT),
+                    "A zero-count selected item should still be resolved instead of falling back to main hand");
+            helper.assertTrue(zeroSelectionPlayer.getInventory().getItem(10).isEmpty(),
+                    "A zero-count selection should use matching blocks from another source");
+
+            var fallbackTargetPos = new BlockPos(5, 3, 4);
+            var fallbackPlayer = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 4),
+                    "linear_build_empty_luminous_fallback_test");
+            fallbackPlayer.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.GLOWSTONE, 2));
+            fallbackPlayer.setItemInHand(
+                    InteractionHand.OFF_HAND,
+                    new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get())
+            );
+            helper.setBlock(fallbackTargetPos, Blocks.STONE);
+
+            castLinearBuild(helper, fallbackPlayer, fallbackTargetPos, Direction.WEST);
+
+            helper.assertBlockPresent(Blocks.GLOWSTONE, new BlockPos(4, 3, 4));
+            helper.assertBlockPresent(Blocks.GLOWSTONE, new BlockPos(3, 3, 4));
+            helper.assertTrue(fallbackPlayer.getMainHandItem().isEmpty(),
+                    "An empty offhand Luminous Device should fall back to the main-hand block");
         });
     }
 

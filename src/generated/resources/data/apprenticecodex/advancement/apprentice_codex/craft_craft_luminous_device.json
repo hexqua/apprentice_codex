@@ -1,0 +1,30 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_explorers_codex",
+  "criteria": {
+    "crafted_craft_luminous_device": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:luminous_device"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_luminous_device.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:luminous_device"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_luminous_device.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_craft_luminous_device"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

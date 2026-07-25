@@ -131,6 +131,21 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void wizardlampUsesClientCellAndClampsItWithoutLineOfSight(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.wizardlampUsesClientCellAndClampsItWithoutLineOfSight(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void blockPlacementSpellsRespectForgePlaceEvent(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.blockPlacementSpellsRespectForgePlaceEvent(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void wizardlampLanternHasLanternCollisionAndNoDrops(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.wizardlampLanternHasLanternCollisionAndNoDrops(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellCalibrationBenchStoresScrollsOnGauntlet(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellCalibrationBenchStoresScrollsOnGauntlet(helper);
     }

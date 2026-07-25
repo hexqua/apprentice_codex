@@ -15,6 +15,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
             "apprenticecodex.craftsmans_delight_graced_rain_denylist_config";
     private static final String EQUIPMENT_SPELL_TIMING_MULTIPLIER_CONFIG_BATCH =
             "apprenticecodex.equipment_spell_timing_multiplier_config";
+    private static final String LUMINOUS_DEVICE_CONFIG_BATCH =
+            "apprenticecodex.luminous_device_config";
     private static final String FOCUS_STAFFBOW_CONTINUOUS_BATCH = "apprenticecodex.focus_staffbow_continuous";
     private static final String FOCUS_STAFFBOW_ARROW_CONFIG_BATCH =
             "apprenticecodex.focus_staffbow_arrow_config";
@@ -885,8 +887,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void autocastAmuletNotificationControllerUpdatesLinearBuildRemaining(GameTestHelper helper) {
-        AutocastAmuletGameTestScenarios.autocastAmuletNotificationControllerUpdatesLinearBuildRemaining(helper);
+    public static void autocastAmuletNotificationControllerUpdatesRemainingCounts(GameTestHelper helper) {
+        AutocastAmuletGameTestScenarios.autocastAmuletNotificationControllerUpdatesRemainingCounts(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -2407,5 +2409,95 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void circuitHeatStaffKeepsStoredLongItemOverheatDuration(GameTestHelper helper) {
         CircuitHeatStaffGameTestScenarios.circuitHeatStaffKeepsStoredLongItemOverheatDuration(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceStoresOnlyTaggedItemsAndCapsTotal(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceStoresOnlyTaggedItemsAndCapsTotal(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceUsesConfiguredItemCapacityWithoutTruncatingContents(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceUsesConfiguredItemCapacityWithoutTruncatingContents(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceRefillsManaFromSupportedPotionContainers(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceRefillsManaFromSupportedPotionContainers(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceRejectsUnsupportedPotionContainers(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceRejectsUnsupportedPotionContainers(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceTooltipUsesSyncedCapacityAndCyanManaValues(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceTooltipUsesSyncedCapacityAndCyanManaValues(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceManaBarUsesSyncedCapacityWithoutItemDamage(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceManaBarUsesSyncedCapacityWithoutItemDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceRemovalPrefersSelectionAndUpdatesSelection(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceRemovalPrefersSelectionAndUpdatesSelection(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void inventoryInsertHintsMatchStorageRules(GameTestHelper helper) {
+        InventoryInsertHintGameTestScenarios.inventoryInsertHintsMatchStorageRules(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceUsePlacesSelectedBlocksAndKeepsEmptySelection(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceUsePlacesSelectedBlocksAndKeepsEmptySelection(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceEmptyTooltipAndManualEmptyClearGhostSelection(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceEmptyTooltipAndManualEmptyClearGhostSelection(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceAutoStoresOnlyKnownPickedUpItemsAcrossInventoryDevices(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceAutoStoresOnlyKnownPickedUpItemsAcrossInventoryDevices(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceSupportsAndNormalizesMalumEther(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceSupportsAndNormalizesMalumEther(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceModesUpdateSelectionNameAndTooltip(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceModesUpdateSelectionNameAndTooltip(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceWorkbenchUpgradesAreIndependentAndPreserveState(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceWorkbenchUpgradesAreIndependentAndPreserveState(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceWorkbenchMenuCraftsEveryUpgrade(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceWorkbenchMenuCraftsEveryUpgrade(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceCleanModeRemovesLightsAndRecoversConfiguredMana(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceCleanModeRemovesLightsAndRecoversConfiguredMana(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceSpellModeUsesStoredManaWithoutSpellContainer(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceSpellModeUsesStoredManaWithoutSpellContainer(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
+    public static void luminousDeviceMageLightProfileScalesManaAndDisablesRedundantExtension(GameTestHelper helper) {
+        LuminousDeviceGameTestScenarios.luminousDeviceMageLightProfileScalesManaAndDisablesRedundantExtension(helper);
     }
 }

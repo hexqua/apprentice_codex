@@ -1,0 +1,8 @@
+{
+  "item": "apprenticecodex:luminous_device",
+  "match": {
+    "items": "apprenticecodex:luminous_device"
+  },
+  "luminance": 15,
+  "water_sensitive": false
+}

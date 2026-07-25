@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.curios.autocastamulet;
 
+import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -70,30 +71,35 @@ public final class AutocastAmuletNotificationController {
         advance(currentTick);
     }
 
-    public void updateLinearBuildRemaining(
+    public void updateRemainingCount(
             long currentTick,
-            ResourceLocation spellId,
+            ResourceLocation sourceId,
             ItemStack iconStack,
-            String countLabel
+            String countLabel,
+            SyncRemainingCountNotificationPacket.DisplayType displayType
     ) {
         var displayStack = iconStack.copy();
         displayStack.setCount(1);
+        var notificationType = switch (displayType) {
+            case ITEM_REMAINING -> NotificationType.ITEM_REMAINING;
+            case MANA_REMAINING -> NotificationType.MANA_REMAINING;
+        };
         var entry = new NotificationEntry(
-                NotificationType.LINEAR_BUILD_REMAINING,
-                spellId,
-                spellId,
+                notificationType,
+                sourceId,
+                sourceId,
                 displayStack,
                 -1,
                 countLabel
         );
-        if (activeNotification != null && activeNotification.type() == NotificationType.LINEAR_BUILD_REMAINING) {
+        if (activeNotification != null && activeNotification.type().isRemainingCount()) {
             activeNotification = entry;
             activeNotificationStartedTick = currentTick;
-            pendingQueue.removeIf(notification -> notification.type() == NotificationType.LINEAR_BUILD_REMAINING);
+            pendingQueue.removeIf(notification -> notification.type().isRemainingCount());
             return;
         }
 
-        pendingQueue.removeIf(notification -> notification.type() == NotificationType.LINEAR_BUILD_REMAINING);
+        pendingQueue.removeIf(notification -> notification.type().isRemainingCount());
         pendingQueue.addLast(entry);
         advance(currentTick);
     }
@@ -192,7 +198,12 @@ public final class AutocastAmuletNotificationController {
         CAST,
         THRESHOLD,
         MANA_LOW,
-        LINEAR_BUILD_REMAINING
+        ITEM_REMAINING,
+        MANA_REMAINING;
+
+        public boolean isRemainingCount() {
+            return this == ITEM_REMAINING || this == MANA_REMAINING;
+        }
     }
 
     public record NotificationEntry(

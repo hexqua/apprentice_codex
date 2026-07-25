@@ -77,6 +77,7 @@ import jp.aquafactory.apprenticecodex.spell.tirovolley.TiroVolley;
 import jp.aquafactory.apprenticecodex.spell.totemofpermafrost.TotemOfPermafrost;
 import jp.aquafactory.apprenticecodex.spell.treasuredivination.TreasureDivination;
 import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLuna;
+import jp.aquafactory.apprenticecodex.spell.wizardlamp.Wizardlamp;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatter;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -153,6 +154,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MYSTIC_SHIELD = reg("mystic_shield", MysticShield::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> DIVINE_POSSESSION = reg("divine_possession", DivinePossession::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MANA_MENDING = reg("mana_mending", ManaMending::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> WIZARDLAMP = reg("wizardlamp", Wizardlamp::new);
 
     // 氷.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> FROST_RUNE = reg("frost_rune", FrostRune::new);

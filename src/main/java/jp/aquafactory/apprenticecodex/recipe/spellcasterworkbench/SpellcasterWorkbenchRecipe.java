@@ -1,5 +1,9 @@
 package jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench;
 
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceUpgrade;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -22,25 +26,50 @@ public final class SpellcasterWorkbenchRecipe implements Recipe<SpellcasterWorkb
     private final List<SizedIngredient> ingredients;
     private final List<ItemStack> results;
     private final int priority;
+    private final @Nullable LuminousDeviceUpgrade luminousDeviceUpgrade;
+    private final @Nullable net.minecraft.resources.ResourceLocation requiredSpell;
+    private final int minimumSpellLevel;
 
     public SpellcasterWorkbenchRecipe(
             List<SizedIngredient> ingredients,
             List<ItemStack> results,
             int priority
     ) {
+        this(ingredients, results, priority, null, null, 1);
+    }
+
+    public SpellcasterWorkbenchRecipe(
+            List<SizedIngredient> ingredients,
+            List<ItemStack> results,
+            int priority,
+            @Nullable LuminousDeviceUpgrade luminousDeviceUpgrade,
+            @Nullable net.minecraft.resources.ResourceLocation requiredSpell,
+            int minimumSpellLevel
+    ) {
         this.ingredients = sanitizeIngredients(ingredients);
         this.results = sanitizeResults(results);
         this.priority = priority;
+        this.luminousDeviceUpgrade = luminousDeviceUpgrade;
+        this.requiredSpell = requiredSpell;
+        this.minimumSpellLevel = Math.max(1, minimumSpellLevel);
     }
 
     @Override
     public boolean matches(@NotNull SpellcasterWorkbenchRecipeInput input, @NotNull Level level) {
-        return findMatchingSlots(input) != null;
+        var matchedSlots = findMatchingSlots(input);
+        return matchedSlots != null && canApplyOperation(input, matchedSlots);
     }
 
     @Override
     public @NotNull ItemStack assemble(@NotNull SpellcasterWorkbenchRecipeInput input, HolderLookup.Provider registries) {
-        return getPrimaryResultTemplate();
+        var matchedSlots = findMatchingSlots(input);
+        if (matchedSlots == null || !canApplyOperation(input, matchedSlots)) {
+            return ItemStack.EMPTY;
+        }
+        if (luminousDeviceUpgrade == null) {
+            return getPrimaryResultTemplate();
+        }
+        return LuminousDevice.createUpgradeResult(findLuminousDevice(input, matchedSlots), luminousDeviceUpgrade);
     }
 
     @Override
@@ -83,19 +112,54 @@ public final class SpellcasterWorkbenchRecipe implements Recipe<SpellcasterWorkb
     }
 
     public @NotNull ItemStack getPrimaryResultTemplate() {
-        return results.getFirst().copy();
+        var result = results.getFirst().copy();
+        if (luminousDeviceUpgrade != null) {
+            LuminousDevice.addUpgrade(result, luminousDeviceUpgrade);
+        }
+        return result;
     }
 
     public @NotNull List<ItemStack> getResultTemplates() {
         var copies = new ArrayList<ItemStack>(results.size());
-        for (var result : results) {
-            copies.add(result.copy());
+        for (var index = 0; index < results.size(); ++index) {
+            copies.add(index == 0 ? getPrimaryResultTemplate() : results.get(index).copy());
         }
         return copies;
     }
 
     public int getPriority() {
         return priority;
+    }
+
+    public @Nullable LuminousDeviceUpgrade getLuminousDeviceUpgrade() {
+        return luminousDeviceUpgrade;
+    }
+
+    public @Nullable net.minecraft.resources.ResourceLocation getRequiredSpell() {
+        return requiredSpell;
+    }
+
+    public int getMinimumSpellLevel() {
+        return minimumSpellLevel;
+    }
+
+    public boolean matchesIngredientItem(int ingredientIndex, ItemStack stack) {
+        if (ingredientIndex < 0
+                || ingredientIndex >= ingredients.size()
+                || !ingredients.get(ingredientIndex).ingredient().test(stack)) {
+            return false;
+        }
+        if (luminousDeviceUpgrade == null) {
+            return true;
+        }
+        if (stack.getItem() instanceof LuminousDevice) {
+            return !LuminousDevice.hasUpgrade(stack, luminousDeviceUpgrade);
+        }
+        if (requiredSpell != null
+                && stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get())) {
+            return isRequiredSpellScroll(stack);
+        }
+        return true;
     }
 
     public @Nullable int[] findMatchingSlots(@NotNull SpellcasterWorkbenchRecipeInput input) {
@@ -139,6 +203,50 @@ public final class SpellcasterWorkbenchRecipe implements Recipe<SpellcasterWorkb
         }
 
         return false;
+    }
+
+    private boolean canApplyOperation(SpellcasterWorkbenchRecipeInput input, int[] matchedSlots) {
+        if (luminousDeviceUpgrade == null) {
+            return true;
+        }
+        var deviceStack = findLuminousDevice(input, matchedSlots);
+        if (deviceStack.isEmpty() || LuminousDevice.hasUpgrade(deviceStack, luminousDeviceUpgrade)) {
+            return false;
+        }
+        if (requiredSpell == null) {
+            return true;
+        }
+        for (var slot : matchedSlots) {
+            if (isRequiredSpellScroll(input.getItem(slot))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isRequiredSpellScroll(ItemStack stack) {
+        if (requiredSpell == null
+                || !stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get())
+                || !ISpellContainer.isSpellContainer(stack)) {
+            return false;
+        }
+        var spellContainer = ISpellContainer.get(stack);
+        var spellData = spellContainer == null ? SpellData.EMPTY : spellContainer.getSpellAtIndex(0);
+        return spellData != null
+                && spellData != SpellData.EMPTY
+                && spellData.getSpell() != null
+                && requiredSpell.equals(spellData.getSpell().getSpellResource())
+                && spellData.getLevel() >= minimumSpellLevel;
+    }
+
+    private static ItemStack findLuminousDevice(SpellcasterWorkbenchRecipeInput input, int[] matchedSlots) {
+        for (var slot : matchedSlots) {
+            var stack = input.getItem(slot);
+            if (stack.getItem() instanceof LuminousDevice) {
+                return stack;
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     private static List<SizedIngredient> sanitizeIngredients(List<SizedIngredient> ingredients) {

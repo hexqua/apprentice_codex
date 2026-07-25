@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.renderer.tooltip;
 
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
+import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceTooltip;
+import jp.aquafactory.apprenticecodex.item.storage.StoredItemGridTooltip;
 import jp.aquafactory.apprenticecodex.utility.CompactCountFormatter;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -20,6 +22,14 @@ public final class SpellcasterAmmoPouchClientTooltipComponent implements ClientT
     private final boolean full;
 
     public SpellcasterAmmoPouchClientTooltipComponent(SpellcasterAmmoPouchTooltip tooltip) {
+        this((StoredItemGridTooltip) tooltip);
+    }
+
+    public SpellcasterAmmoPouchClientTooltipComponent(LuminousDeviceTooltip tooltip) {
+        this((StoredItemGridTooltip) tooltip);
+    }
+
+    private SpellcasterAmmoPouchClientTooltipComponent(StoredItemGridTooltip tooltip) {
         items = tooltip.items();
         highlightedIndex = tooltip.highlightedIndex();
         full = tooltip.full();

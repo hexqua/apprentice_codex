@@ -1,0 +1,6 @@
+{
+  "id": "apprenticecodex:luminous_device",
+  "light": 15,
+  "works_underwater": true,
+  "works_on_land": true
+}

@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.config.item.BulwarkGreatshieldServerConfig
 import jp.aquafactory.apprenticecodex.config.item.ElementalBowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FocusStaffbowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagiCompressorGadgetServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaForceBladeServerConfig;
@@ -67,6 +68,7 @@ final class ItemsServerConfig {
     private final ArchivistsGrimoireServerConfig archivistsGrimoireConfig;
     private final SatelliteFollowcastAmuletServerConfig satelliteFollowcastAmuletConfig;
     private final RemoteOwnerCastServerConfig remoteOwnerCastConfig;
+    private final LuminousDeviceServerConfig luminousDeviceConfig;
 
     private ItemsServerConfig(
             ArcaneCinderServerConfig arcaneCinderConfig,
@@ -98,7 +100,8 @@ final class ItemsServerConfig {
             SpellThrowableCardServerConfig spellThrowableCardConfig,
             ArchivistsGrimoireServerConfig archivistsGrimoireConfig,
             SatelliteFollowcastAmuletServerConfig satelliteFollowcastAmuletConfig,
-            RemoteOwnerCastServerConfig remoteOwnerCastConfig
+            RemoteOwnerCastServerConfig remoteOwnerCastConfig,
+            LuminousDeviceServerConfig luminousDeviceConfig
     ) {
         this.arcaneCinderConfig = arcaneCinderConfig;
         this.absorptionAmplifyAmuletConfig = absorptionAmplifyAmuletConfig;
@@ -130,6 +133,7 @@ final class ItemsServerConfig {
         this.archivistsGrimoireConfig = archivistsGrimoireConfig;
         this.satelliteFollowcastAmuletConfig = satelliteFollowcastAmuletConfig;
         this.remoteOwnerCastConfig = remoteOwnerCastConfig;
+        this.luminousDeviceConfig = luminousDeviceConfig;
     }
 
     static ItemsServerConfig define(ModConfigSpec.Builder builder) {
@@ -164,6 +168,7 @@ final class ItemsServerConfig {
         var archivistsGrimoireConfig = ArchivistsGrimoireServerConfig.define(builder);
         var satelliteFollowcastAmuletConfig = SatelliteFollowcastAmuletServerConfig.define(builder);
         var remoteOwnerCastConfig = RemoteOwnerCastServerConfig.define(builder);
+        var luminousDeviceConfig = LuminousDeviceServerConfig.define(builder);
         builder.pop();
 
         return new ItemsServerConfig(
@@ -196,7 +201,8 @@ final class ItemsServerConfig {
                 spellThrowableCardConfig,
                 archivistsGrimoireConfig,
                 satelliteFollowcastAmuletConfig,
-                remoteOwnerCastConfig
+                remoteOwnerCastConfig,
+                luminousDeviceConfig
         );
     }
 
@@ -744,6 +750,34 @@ final class ItemsServerConfig {
         return remoteOwnerCastConfig.remoteOwnerCastDenylist();
     }
 
+    int luminousDeviceMaxStoredItems() {
+        return luminousDeviceConfig.maxStoredItems();
+    }
+
+    int luminousDeviceMaxStoredMana() {
+        return luminousDeviceConfig.maxStoredMana();
+    }
+
+    int luminousDeviceUpgradedMaxStoredMana() {
+        return luminousDeviceConfig.upgradedMaxStoredMana();
+    }
+
+    int luminousDeviceCleanRadius() {
+        return luminousDeviceConfig.cleanRadius();
+    }
+
+    int luminousDeviceMageLightManaRecovery() {
+        return luminousDeviceConfig.mageLightManaRecovery();
+    }
+
+    int luminousDeviceWizardlampManaRecovery() {
+        return luminousDeviceConfig.wizardlampManaRecovery();
+    }
+
+    double luminousDeviceMageLightExtendedRange() {
+        return luminousDeviceConfig.mageLightExtendedRange();
+    }
+
     List<String> multipurposeStaffrifleSpellDenylist() {
         return multipurposeStaffrifleConfig.spellDenylist();
     }
@@ -1024,6 +1058,30 @@ final class ItemsServerConfig {
         remoteOwnerCastConfig.setForGameTest(
                 enableRemotePlayerGeometry,
                 remoteOwnerCastDenylist
+        );
+    }
+
+    void setLuminousDeviceConfigForGameTest(int maxStoredItems, int maxStoredMana) {
+        luminousDeviceConfig.setForGameTest(maxStoredItems, maxStoredMana);
+    }
+
+    void setLuminousDeviceUpgradedMaxStoredManaForGameTest(int maxStoredMana) {
+        luminousDeviceConfig.setUpgradedMaxStoredManaForGameTest(maxStoredMana);
+    }
+
+    void setLuminousDeviceMageLightExtendedRangeForGameTest(double range) {
+        luminousDeviceConfig.setMageLightExtendedRangeForGameTest(range);
+    }
+
+    void setLuminousDeviceCleanConfigForGameTest(
+            int cleanRadius,
+            int mageLightManaRecovery,
+            int wizardlampManaRecovery
+    ) {
+        luminousDeviceConfig.setCleanForGameTest(
+                cleanRadius,
+                mageLightManaRecovery,
+                wizardlampManaRecovery
         );
     }
 }

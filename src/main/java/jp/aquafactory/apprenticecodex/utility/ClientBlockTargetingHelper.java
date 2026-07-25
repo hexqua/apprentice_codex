@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.utility;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -30,6 +31,30 @@ public final class ClientBlockTargetingHelper {
             return targetData;
         }
 
+        targetData.setTarget(hitPos, hitFace, blockHit.getLocation(), placePos, hitFace.getOpposite());
+        return targetData;
+    }
+
+    public static BlockTargetData captureRaycastTarget(Player player, double range) {
+        var targetData = new BlockTargetData();
+        if (range <= 0.0D) {
+            return targetData;
+        }
+
+        // 通常の照準結果はブロックリーチで打ち切られるため、スペル固有射程で改めてレイを取得する。
+        var hitResult = player.pick(range, 1.0F, false);
+        if (!(hitResult instanceof BlockHitResult blockHit)) {
+            return targetData;
+        }
+
+        var level = player.level();
+        var hitPos = blockHit.getBlockPos();
+        var hitFace = blockHit.getDirection();
+        var placePos = blockHit.getType() == HitResult.Type.BLOCK
+                ? (level.getBlockState(hitPos).canBeReplaced() ? hitPos : hitPos.relative(hitFace))
+                : BlockPos.containing(blockHit.getLocation());
+
+        // MISS終点も送ることで、短射程側が視線方向を保ったまま空中座標へ補正できる。
         targetData.setTarget(hitPos, hitFace, blockHit.getLocation(), placePos, hitFace.getOpposite());
         return targetData;
     }
