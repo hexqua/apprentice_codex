@@ -850,7 +850,9 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     private AmmoSource resolveMagicArrowCatalystAmmoSource(Player player) {
         return adaptAmmoSource(BowCastAmmoResolver.resolveElementalMagicArrowCatalystAmmo(
                 player,
-                ApprenticeCodexServerConfig.elementalBowMagicArrowCatalystItemIds()
+                player.level().isClientSide
+                        ? ElementalBowClientConfigState.magicArrowCatalystItemIds()
+                        : ApprenticeCodexServerConfig.elementalBowMagicArrowCatalystItemIds()
         ));
     }
 

@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.event.ModEntityAttributeEvent;
 import jp.aquafactory.apprenticecodex.event.ZenithStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.client.ClientModBusEvents;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeSchoolPowerBonusEvents;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.network.Networks;
@@ -87,6 +88,7 @@ public class ApprenticeCodex
         CircuitHeatStaffConfigSyncEvents.register(modEventBus);
         EquipmentSpellTimingConfigSyncEvents.register(modEventBus);
         ChargecastCatalystbookConfigSyncEvents.register(modEventBus);
+        ElementalBowConfigSyncEvents.register(modEventBus);
         FocusStaffbowConfigSyncEvents.register(modEventBus);
         IsekaiTravelGuidebookConfigSyncEvents.register(modEventBus);
         ManaForceBladeConfigSyncEvents.register(modEventBus);
