@@ -117,6 +117,7 @@ import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDe
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightSpellSupport;
 import jp.aquafactory.apprenticecodex.item.curios.manashieldcharm.ManaShieldCharm;
 import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
+import jp.aquafactory.apprenticecodex.item.ammo.BowAmmoConsumptionNotification;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverPickupEvent;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
@@ -640,6 +641,78 @@ final class SpellcasterQuiverGameTestScenarios {
                     "Focus Staffbow should consume the equipped Spellcaster Quiver arrow before loose inventory arrows");
             helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
                     "Focus Staffbow should leave loose inventory arrows untouched while the quiver still has arrows");
+        });
+    }
+
+    static void bowAmmoNotificationCountsExactArrowsAcrossInventoryAndQuiver(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "bow_ammo_notification_count_test");
+            var healingArrow = PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, Potions.HEALING.value());
+            healingArrow.setCount(4);
+            var poisonArrow = PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, Potions.POISON.value());
+            poisonArrow.setCount(3);
+            player.getInventory().setItem(1, healingArrow.copy());
+            player.setItemInHand(InteractionHand.OFF_HAND, poisonArrow.copy());
+
+            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+            SpellcasterQuiver.store(
+                    quiverStack,
+                    PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, Potions.HEALING.value()).copyWithCount(2)
+            );
+            SpellcasterQuiver.store(
+                    quiverStack,
+                    PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, Potions.POISON.value()).copyWithCount(5)
+            );
+            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
+
+            var packet = BowAmmoConsumptionNotification.createPacket(
+                    player,
+                    ItemRegistry.ELEMENTAL_BOW.getId(),
+                    healingArrow
+            );
+            helper.assertTrue(packet.sourceId().equals(ItemRegistry.ELEMENTAL_BOW.getId().toString()),
+                    "Bow ammo notification should preserve the source weapon id");
+            helper.assertTrue(ItemStack.isSameItemSameComponents(packet.iconStack(), healingArrow)
+                            && packet.iconStack().getCount() == 1,
+                    "Bow ammo notification should preserve the consumed tipped arrow as a single icon");
+            helper.assertTrue(packet.remainingCount() == 6L,
+                    "Bow ammo notification should total matching inventory and quiver arrows while excluding different potion NBT");
+        });
+    }
+
+    static void focusStaffbowAmmoConsumptionResultDistinguishesConsumptionFromBypass(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_ammo_result_test");
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
+
+            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.ARROW, 2));
+            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
+
+            var consumed = BowCastAmmoResolver.consumeFocusStaffbowAmmoWithResult(
+                    player,
+                    BowCastAmmoResolver.FocusStaffbowAmmoRoute.ARROW_CATALYST
+            );
+            helper.assertTrue(consumed.successful() && consumed.consumedArrow()
+                            && consumed.consumedStack().is(Items.ARROW)
+                            && consumed.consumedStack().getCount() == 1,
+                    "Focus Staffbow ammo result should preserve the arrow that was actually consumed");
+            helper.assertTrue(BowAmmoConsumptionNotification.countRemaining(player, consumed.consumedStack()) == 4L,
+                    "Focus Staffbow notification count should include the remaining quiver and inventory arrows");
+
+            var bypassed = BowCastAmmoResolver.consumeFocusStaffbowAmmoWithResult(
+                    player,
+                    BowCastAmmoResolver.FocusStaffbowAmmoRoute.BYPASS
+            );
+            helper.assertTrue(bypassed.successful() && !bypassed.consumedArrow(),
+                    "Focus Staffbow creative, Synthesis, and disabled-requirement bypasses should not report arrow consumption");
+
+            var rejected = BowCastAmmoResolver.consumeFocusStaffbowAmmoWithResult(
+                    player,
+                    BowCastAmmoResolver.FocusStaffbowAmmoRoute.NONE
+            );
+            helper.assertTrue(!rejected.successful() && !rejected.consumedArrow(),
+                    "Focus Staffbow missing-ammo results should fail without reporting arrow consumption");
         });
     }
 }

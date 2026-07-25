@@ -13,12 +13,14 @@ import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.SneakSelectionUiItem;
+import jp.aquafactory.apprenticecodex.item.ammo.BowAmmoConsumptionNotification;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverBowAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.ResolvedDefinition;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.ChatFormatting;
@@ -443,7 +445,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         fireVanillaArrow(level, player, stack, ammoStack, power, infiniteAmmo);
         if (!player.getAbilities().instabuild && hasAmmo && !infiniteAmmo) {
-            ammoSource.consume();
+            consumeAmmoAndNotify(player, ammoSource);
         }
         triggerReleaseAnimation(player, stack);
     }
@@ -462,8 +464,8 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             }
 
             @Override
-            public void consume() {
-                ammoSource.consume();
+            public boolean consume() {
+                return ammoSource.consume();
             }
 
             @Override
@@ -502,7 +504,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         fireVanillaArrow(level, player, stack, ammoStack, power, infiniteAmmo);
         if (!player.getAbilities().instabuild && hasAmmo && !infiniteAmmo) {
-            ammoSource.consume();
+            consumeAmmoAndNotify(player, ammoSource);
         }
         triggerReleaseAnimation(player, stack);
     }
@@ -566,7 +568,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         if (!player.getAbilities().instabuild) {
             stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(player.getUsedItemHand()));
             if (ammoSource != null && !hasSynthesisEnchantment) {
-                ammoSource.consume();
+                consumeAmmoAndNotify(player, ammoSource);
             }
         }
 
@@ -642,6 +644,19 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
                 1.0F / (player.getRandom().nextFloat() * 0.4F + 1.2F) + power * 0.5F
         );
         player.awardStat(Stats.ITEM_USED.get(this));
+    }
+
+    private void consumeAmmoAndNotify(Player player, AmmoSource ammoSource) {
+        var consumedStack = ammoSource.stack().copyWithCount(1);
+        if (!ammoSource.consume() || !(player instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+
+        BowAmmoConsumptionNotification.send(
+                serverPlayer,
+                ItemRegistry.ELEMENTAL_BOW.getId(),
+                consumedStack
+        );
     }
 
     @Nullable
@@ -913,8 +928,8 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             }
 
             @Override
-            public void consume() {
-                ammoSource.consume();
+            public boolean consume() {
+                return ammoSource.consume();
             }
 
             @Override
@@ -1517,7 +1532,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     private interface AmmoSource {
         ItemStack stack();
 
-        void consume();
+        boolean consume();
 
         default boolean isInfinite(ItemStack bowStack, Player player) {
             return stack().getItem() instanceof ArrowItem arrowItem && arrowItem.isInfinite(stack(), bowStack, player);
@@ -1526,15 +1541,16 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     private record LooseAmmoSource(ItemStack stack) implements AmmoSource {
         @Override
-        public void consume() {
+        public boolean consume() {
             stack.shrink(1);
+            return true;
         }
     }
 
     private record StoredAmmoSource(ItemStack stack, BooleanSupplier consumer) implements AmmoSource {
         @Override
-        public void consume() {
-            consumer.getAsBoolean();
+        public boolean consume() {
+            return consumer.getAsBoolean();
         }
     }
 

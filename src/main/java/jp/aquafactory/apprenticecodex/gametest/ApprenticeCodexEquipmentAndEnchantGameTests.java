@@ -1417,6 +1417,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         SpellcasterQuiverGameTestScenarios.focusStaffbowConsumesSpellcasterQuiverArrowsBeforeInventory(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
+    public static void bowAmmoNotificationCountsExactArrowsAcrossInventoryAndQuiver(GameTestHelper helper) {
+        SpellcasterQuiverGameTestScenarios.bowAmmoNotificationCountsExactArrowsAcrossInventoryAndQuiver(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
+    public static void focusStaffbowAmmoConsumptionResultDistinguishesConsumptionFromBypass(GameTestHelper helper) {
+        SpellcasterQuiverGameTestScenarios.focusStaffbowAmmoConsumptionResultDistinguishesConsumptionFromBypass(helper);
+    }
+
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowExposesExpectedMainhandAttributes(GameTestHelper helper) {
         FocusStaffbowGameTestScenarios.focusStaffbowExposesExpectedMainhandAttributes(helper);
