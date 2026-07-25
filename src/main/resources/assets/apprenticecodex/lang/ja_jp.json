@@ -1017,6 +1017,8 @@
   "ui.apprenticecodex.spell_throwable_cards.not_imbued": "この札には魔法が注入されていない！",
   "ui.apprenticecodex.luminous_device.out_of_item": "%1$sが入っていない！",
   "ui.apprenticecodex.luminous_device.not_found": "近くに魔術師が出した光源が存在しない！",
+  "ui.apprenticecodex.inventory_insert.store": "右クリックで収納",
+  "ui.apprenticecodex.inventory_insert.refill_mana": "右クリックでマナを補充",
 
   "ui.apprenticecodex.spell_selector.empty": "選択候補無し",
   "ui.apprenticecodex.luminous_device.clean.desc": "近くの魔術師の光源を掃除",

@@ -1012,6 +1012,8 @@
   "ui.apprenticecodex.spell_throwable_cards.not_imbued": "This card has no imbued spell!",
   "ui.apprenticecodex.luminous_device.out_of_item": "%1$s is missing!",
   "ui.apprenticecodex.luminous_device.not_found": "There are no magical light sources nearby!",
+  "ui.apprenticecodex.inventory_insert.store": "Right-click to store",
+  "ui.apprenticecodex.inventory_insert.refill_mana": "Right-click to refill mana",
 
   "ui.apprenticecodex.spell_selector.empty": "No selectable spells",
   "ui.apprenticecodex.luminous_device.clean.desc": "Clean up nearby magical light sources",

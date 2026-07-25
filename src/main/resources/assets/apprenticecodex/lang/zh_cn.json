@@ -1008,6 +1008,8 @@
   "ui.apprenticecodex.zenith_staff.insufficient_mana": "%1$s的法力值消耗已增加到%2$s，当前法力值不足！",
   "ui.apprenticecodex.spell_throwable_cards.not_imbued": "这张符卡尚未注入法术！",
   "ui.apprenticecodex.luminous_device.not_found": "附近没有魔法师召唤的光源！",
+  "ui.apprenticecodex.inventory_insert.store": "右键点击以收纳",
+  "ui.apprenticecodex.inventory_insert.refill_mana": "右键点击以补充法力",
 
   "ui.apprenticecodex.spell_selector.empty": "无可选法术",
   "ui.apprenticecodex.luminous_device.clean.desc": "清理附近由魔法师召唤的光源",

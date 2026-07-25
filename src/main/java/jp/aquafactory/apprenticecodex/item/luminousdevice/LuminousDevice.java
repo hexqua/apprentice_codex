@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.config.ServerConfigs;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumLuminousDeviceBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.InventoryInsertTarget;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
@@ -72,7 +73,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBypassSpellItem, UniqueItem, GeoItem {
+public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBypassSpellItem, UniqueItem, GeoItem, InventoryInsertTarget {
     private static final String STORAGE_TAG = "LuminousDevice";
     private static final String CONTENTS_TAG = "Contents";
     private static final String SELECTED_STACK_TAG = "SelectedStack";
@@ -282,6 +283,9 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
             @NotNull SlotAccess slotAccess
     ) {
         if (action != ClickAction.SECONDARY) {
+            return false;
+        }
+        if (!InventoryInsertTarget.canModifyStorageSlot(deviceStack, slot, player)) {
             return false;
         }
 
@@ -708,6 +712,19 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
         return true;
     }
 
+    @Override
+    public InsertHint getInventoryInsertHint(ItemStack storageStack, ItemStack incomingStack, Player player) {
+        if (!(storageStack.getItem() instanceof LuminousDevice) || incomingStack.isEmpty()) {
+            return InsertHint.NONE;
+        }
+        if (createManaRefillPlan(storageStack, incomingStack, player) != null) {
+            return InsertHint.MANA;
+        }
+        return accepts(incomingStack) && getStoredItemCount(storageStack) < maxStoredItems(player)
+                ? InsertHint.ITEM
+                : InsertHint.NONE;
+    }
+
     public static ItemStack createUpgradeResult(ItemStack deviceStack, LuminousDeviceUpgrade upgrade) {
         if (!(deviceStack.getItem() instanceof LuminousDevice) || hasUpgrade(deviceStack, upgrade)) {
             return ItemStack.EMPTY;
@@ -1055,14 +1072,32 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
             SlotAccess slotAccess,
             Player player
     ) {
-        if (!(deviceStack.getItem() instanceof LuminousDevice) || inputStack.isEmpty()) {
+        var refillPlan = createManaRefillPlan(deviceStack, inputStack, player);
+        if (refillPlan == null) {
             return false;
+        }
+        if (!slotAccess.set(refillPlan.remainingStack())) {
+            return false;
+        }
+        setStoredMana(deviceStack, (int) Math.min(
+                refillPlan.maxStoredMana(),
+                (long) getStoredMana(deviceStack) + refillPlan.recoveredMana()
+        ));
+        return true;
+    }
+
+    private static @Nullable ManaRefillPlan createManaRefillPlan(
+            ItemStack deviceStack,
+            ItemStack inputStack,
+            Player player
+    ) {
+        if (!(deviceStack.getItem() instanceof LuminousDevice) || inputStack.isEmpty()) {
+            return null;
         }
 
         var maxStoredMana = maxStoredMana(player, deviceStack);
-        var storedMana = getStoredMana(deviceStack);
-        if (maxStoredMana <= 0 || storedMana >= maxStoredMana) {
-            return false;
+        if (maxStoredMana <= 0 || getStoredMana(deviceStack) >= maxStoredMana) {
+            return null;
         }
 
         ItemStack potionStack;
@@ -1079,7 +1114,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
             potionStack = inputStack;
             remainingStack = new ItemStack(Items.GLASS_BOTTLE);
         } else {
-            return false;
+            return null;
         }
 
         var recoveredMana = ManaPotionRecoveryHelper.getRecovery(
@@ -1087,18 +1122,9 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
                 maxStoredMana,
                 amplifierBonus
         );
-        if (recoveredMana <= 0 || remainingStack.isEmpty()) {
-            return false;
-        }
-
-        if (!slotAccess.set(remainingStack)) {
-            return false;
-        }
-        setStoredMana(deviceStack, (int) Math.min(
-                maxStoredMana,
-                (long) storedMana + recoveredMana
-        ));
-        return true;
+        return recoveredMana > 0 && !remainingStack.isEmpty()
+                ? new ManaRefillPlan(remainingStack, recoveredMana, maxStoredMana)
+                : null;
     }
 
     private static int maxStoredItems(Player player) {
@@ -1126,6 +1152,9 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
                         ApprenticeCodexServerConfig.luminousDeviceUpgradedMaxStoredMana()
                 )
                 : ApprenticeCodexServerConfig.luminousDeviceMaxStoredMana();
+    }
+
+    private record ManaRefillPlan(ItemStack remainingStack, int recoveredMana, int maxStoredMana) {
     }
 
     private static Component createUpgradeTooltipEntry(ItemStack stack, LuminousDeviceUpgrade upgrade) {
