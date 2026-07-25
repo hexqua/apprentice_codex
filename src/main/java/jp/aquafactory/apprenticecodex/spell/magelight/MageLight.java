@@ -13,9 +13,11 @@ import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
+import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.particles.ParticleTypes;
@@ -29,10 +31,10 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -156,8 +158,13 @@ public class MageLight extends AbstractSpell implements jp.aquafactory.apprentic
                     .orElse(null);
         }
 
-        if (placePos != null) {
-            level.setBlockAndUpdate(placePos, BlockRegistry.MAGE_LIGHT_TORCH.get().defaultBlockState());
+        if (placePos != null && BlockTools.tryPlaceBlockByEntity(
+                level,
+                entity,
+                placePos,
+                BlockRegistry.MAGE_LIGHT_TORCH.get().defaultBlockState(),
+                Direction.UP
+        )) {
             AudioTools.playSoundFromPosition(level, placePos.getCenter(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS);
 
             if (level instanceof ServerLevel server) {
@@ -180,7 +187,7 @@ public class MageLight extends AbstractSpell implements jp.aquafactory.apprentic
             // アウトラインの面選択を尊重するため再レイキャストせず、通常ブロックリーチ付近の入力だけを受理する。
             var clientTargetRange = Math.min(
                     range,
-                    entity.getAttributeValue(ForgeMod.BLOCK_REACH.get()) + 1.0D
+                    entity.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE) + 1.0D
             );
             var validated = BlockTargetingHelper.validateTarget(
                     level,

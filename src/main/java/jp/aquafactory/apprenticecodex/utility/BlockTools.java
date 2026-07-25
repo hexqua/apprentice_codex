@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.utility;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -10,9 +11,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.util.BlockSnapshot;
+import net.minecraftforge.event.ForgeEventFactory;
 
 import java.util.Optional;
 
@@ -47,6 +51,31 @@ public final class BlockTools {
         }
 
         return Optional.of(new PlaceData(placePos, hit.getDirection().getOpposite()));
+    }
+
+    public static boolean tryPlaceBlockByEntity(Level level, LivingEntity entity, BlockPos pos,
+                                                BlockState state, Direction placedFace) {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return level.setBlockAndUpdate(pos, state);
+        }
+
+        if (entity instanceof ServerPlayer player
+                && (!serverLevel.mayInteract(player, pos)
+                || !player.mayUseItemAt(pos, placedFace, ItemStack.EMPTY))) {
+            return false;
+        }
+
+        var snapshot = BlockSnapshot.create(serverLevel.dimension(), serverLevel, pos);
+        if (!serverLevel.setBlockAndUpdate(pos, state)) {
+            return false;
+        }
+
+        // 魔法による直接配置も通常のBlockItem配置と同じForgeイベントへ流し、土地保護MODが拒否できるようにする。
+        if (ForgeEventFactory.onBlockPlace(entity, snapshot, placedFace)) {
+            snapshot.restore(true, false);
+            return false;
+        }
+        return true;
     }
 
     public static void breakBlockByPlayerHands(Level level, ServerPlayer player, BlockPos pos, ItemStack dummyTool){
