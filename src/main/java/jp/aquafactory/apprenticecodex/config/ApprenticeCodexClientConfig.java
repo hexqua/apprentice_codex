@@ -13,6 +13,7 @@ public final class ApprenticeCodexClientConfig {
     private static final ModConfigSpec.BooleanValue ENABLE_MANA_FORCE_BLADE_HOTBAR_SHEATH_RENDERING;
     private static final ModConfigSpec.BooleanValue ENABLE_SMASHCAST_SCEPTER_TREMOR_BLOCK_RENDERING;
     private static final ModConfigSpec.BooleanValue ENABLE_HEAVENLY_FIST_TREMOR_BLOCK_RENDERING;
+    private static final ModConfigSpec.EnumValue<WallThroughHighlightRenderMode> WALL_THROUGH_HIGHLIGHT_RENDER_MODE;
     private static final ModConfigSpec.ConfigValue<List<? extends String>>
             SCROLLCASTER_GAUNTLET_OFFHAND_VISUAL_DISABLED_MAINHAND_CATEGORIES;
     private static final ModConfigSpec.ConfigValue<List<? extends String>>
@@ -89,6 +90,15 @@ public final class ApprenticeCodexClientConfig {
         builder.pop();
 
         builder.push("Spells");
+        builder.push("Rendering");
+        WALL_THROUGH_HIGHLIGHT_RENDER_MODE = builder
+                .comment(
+                        "壁越しハイライトの描画タイミングを選択する",
+                        "WORLD: ワールド描画中に描画し、シェーダーの見た目へ統合する",
+                        "COMPAT_OVERLAY: ワールド描画完了後に描画し、シェーダーMODとの互換性を優先する"
+                )
+                .defineEnum("wallThroughHighlightRenderMode", WallThroughHighlightRenderMode.WORLD);
+        builder.pop();
         builder.push("HeavenlyFist");
         ENABLE_HEAVENLY_FIST_TREMOR_BLOCK_RENDERING = builder
                 .comment("天からの鉄拳の着弾時に一時的なブロック揺れを描画する")
@@ -126,6 +136,10 @@ public final class ApprenticeCodexClientConfig {
 
     public static boolean enableHeavenlyFistTremorBlockRendering() {
         return ENABLE_HEAVENLY_FIST_TREMOR_BLOCK_RENDERING.get();
+    }
+
+    public static WallThroughHighlightRenderMode wallThroughHighlightRenderMode() {
+        return WALL_THROUGH_HIGHLIGHT_RENDER_MODE.get();
     }
 
     public static boolean isScrollcasterGauntletOffhandVisualDisabledForMainhandCategory(String categoryName) {
@@ -173,5 +187,10 @@ public final class ApprenticeCodexClientConfig {
         return resourceLocation == null
                 ? itemId.trim().toLowerCase(Locale.ROOT)
                 : resourceLocation.toString();
+    }
+
+    public enum WallThroughHighlightRenderMode {
+        WORLD,
+        COMPAT_OVERLAY
     }
 }

@@ -1,10 +1,10 @@
 package jp.aquafactory.apprenticecodex.spell.senseevil;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
+import jp.aquafactory.apprenticecodex.renderer.WallThroughHighlightRenderSupport;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
@@ -63,7 +63,7 @@ public final class SenseEvilHighlightRenderEvent {
 
     @SubscribeEvent
     public static void onRenderLevelStage(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES || ACTIVE_CASTS.isEmpty()) {
+        if (!WallThroughHighlightRenderSupport.shouldRenderAt(event.getStage()) || ACTIVE_CASTS.isEmpty()) {
             return;
         }
 
@@ -76,37 +76,28 @@ public final class SenseEvilHighlightRenderEvent {
 
         var poseStack = event.getPoseStack();
         var cameraPosition = event.getCamera().getPosition();
-        var buffers = minecraft.renderBuffers().bufferSource();
         var gameTime = level.getGameTime();
         var partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(true);
         var cameraRotation = new Quaternionf(event.getCamera().rotation());
 
-        // SenseEvil は粒子設定より「壁越しでも必ず見えること」を優先するため、直描画を維持する。
-        RenderSystem.disableDepthTest();
-        RenderSystem.depthMask(false);
-        try {
-            poseStack.pushPose();
-            poseStack.translate(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);
+        poseStack.pushPose();
+        poseStack.translate(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);
 
-            var circleBuffer = buffers.getBuffer(CIRCLE_RENDER_TYPE);
-            var iterator = ACTIVE_CASTS.iterator();
-            while (iterator.hasNext()) {
-                var activeCast = iterator.next();
-                var age = (float) (gameTime - activeCast.startGameTime()) + partialTick;
-                if (age >= TOTAL_TICKS) {
-                    iterator.remove();
-                    continue;
-                }
-
-                renderCast(poseStack, circleBuffer, activeCast.targets(), age, cameraRotation);
+        var circleBuffer = WallThroughHighlightRenderSupport.getBuffer(CIRCLE_RENDER_TYPE);
+        var iterator = ACTIVE_CASTS.iterator();
+        while (iterator.hasNext()) {
+            var activeCast = iterator.next();
+            var age = (float) (gameTime - activeCast.startGameTime()) + partialTick;
+            if (age >= TOTAL_TICKS) {
+                iterator.remove();
+                continue;
             }
 
-            poseStack.popPose();
-            buffers.endBatch(CIRCLE_RENDER_TYPE);
-        } finally {
-            RenderSystem.depthMask(true);
-            RenderSystem.enableDepthTest();
+            renderCast(poseStack, circleBuffer, activeCast.targets(), age, cameraRotation);
         }
+
+        poseStack.popPose();
+        WallThroughHighlightRenderSupport.endBatch(CIRCLE_RENDER_TYPE);
     }
 
     private static void renderCast(PoseStack poseStack, VertexConsumer circleBuffer,
