@@ -28,10 +28,10 @@ public final class ApprenticeCodexClientConfig {
         var builder = new ModConfigSpec.Builder();
         builder.push("Items");
         ENABLE_APPRENTICE_MAGE_ROBE_CAPE_ANIMATION = builder
-                .comment("見習い魔術師のローブのケープアニメーションを有効化する")
+                .comment("Enable cape animation for the Apprentice Mage Robe.")
                 .define("enableApprenticeMageRobeCapeAnimation", true);
         ENABLE_SPELLGUN_AMMO_HUD = builder
-                .comment("スペルガンの残弾 HUD をクロスヘア付近に表示する")
+                .comment("Show Spellgun ammo HUD near the crosshair.")
                 .define("enableSpellgunAmmoHud", true);
         ENABLE_MANA_FORCE_BLADE_HOTBAR_SHEATH_RENDERING = builder
                 .comment(
@@ -40,7 +40,7 @@ public final class ApprenticeCodexClientConfig {
                 )
                 .define("enableManaForceBladeHotbarSheathRendering", true);
         ENABLE_SMASHCAST_SCEPTER_TREMOR_BLOCK_RENDERING = builder
-                .comment("スマッシュキャストの錫杖のスマッシュ攻撃命中時に一時的なブロック揺れを描画する")
+                .comment("Render temporary block tremors when Smashcast Scepter smash attacks hit.")
                 .define("enableSmashcastScepterTremorBlockRendering", true);
         SCROLLCASTER_GAUNTLET_OFFHAND_VISUAL_DISABLED_MAINHAND_CATEGORIES = builder
                 .comment(
@@ -93,22 +93,22 @@ public final class ApprenticeCodexClientConfig {
         builder.push("Rendering");
         WALL_THROUGH_HIGHLIGHT_RENDER_MODE = builder
                 .comment(
-                        "壁越しハイライトの描画タイミングを選択する",
-                        "WORLD: ワールド描画中に描画し、シェーダーの見た目へ統合する",
-                        "COMPAT_OVERLAY: ワールド描画完了後に描画し、シェーダーMODとの互換性を優先する"
+                        "Choose when wall-through highlights are rendered.",
+                        "WORLD: Render during world rendering and integrate them into the shader's world presentation.",
+                        "COMPAT_OVERLAY: Render after world rendering to prioritize shader mod compatibility."
                 )
                 .defineEnum("wallThroughHighlightRenderMode", WallThroughHighlightRenderMode.WORLD);
         builder.pop();
         builder.push("HeavenlyFist");
         ENABLE_HEAVENLY_FIST_TREMOR_BLOCK_RENDERING = builder
-                .comment("天からの鉄拳の着弾時に一時的なブロック揺れを描画する")
+                .comment("Render temporary block tremors when Heavenly Fist impacts the ground.")
                 .define("enableTremorBlockRendering", true);
         builder.pop();
         builder.pop();
 
         builder.push("Blocks");
         DISABLE_ESSENCE_SMOKER_PARTICLE_TEXTURE_ANALYSIS = builder
-                .comment("エッセンス燻製台のパーティクル色解析を無効化し、常に代替色を使う")
+                .comment("Disable Essence Smoker particle texture analysis and always use fallback colors.")
                 .define("disableEssenceSmokerParticleTextureAnalysis", false);
         builder.pop();
 
