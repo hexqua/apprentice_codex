@@ -93,9 +93,9 @@ public final class ApprenticeCodexClientConfig {
         builder.push("Rendering");
         WALL_THROUGH_HIGHLIGHT_RENDER_MODE = builder
                 .comment(
-                        "壁越しハイライトの描画タイミングを選択する",
-                        "WORLD: ワールド描画中に描画し、シェーダーの見た目へ統合する",
-                        "COMPAT_OVERLAY: ワールド描画完了後に描画し、シェーダーMODとの互換性を優先する"
+                        "Choose when wall-through highlights are rendered.",
+                        "WORLD: Render during world rendering and integrate them into the shader's world presentation.",
+                        "COMPAT_OVERLAY: Render after world rendering to prioritize shader mod compatibility."
                 )
                 .defineEnum("wallThroughHighlightRenderMode", WallThroughHighlightRenderMode.WORLD);
         builder.pop();
