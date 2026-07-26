@@ -1,6 +1,6 @@
 # GitHub PR 保護設定
 
-このリポジトリでは `main` への反映を PR に統一し、GitHub Actions の check run `build-and-gametest` が成功しない限りマージしない。Codex Cloud のスマートトリガーレビューは PR レビュー補助として使い、CI と人間の判断を置き換えない。
+このリポジトリでは `main` への反映を PR に統一し、GitHub Actions の check run `build` が成功しない限りマージしない。`gametest` も実行するが、1.20.1 側では任意チェックとして結果を確認する。Codex Cloud のスマートトリガーレビューは PR レビュー補助として使い、CI と人間の判断を置き換えない。
 
 ## 1. Actions セキュリティ設定
 
@@ -31,12 +31,12 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` で `main-pr-ci-protection` を�
 - Require a pull request before merging: `On`
 - Require status checks to pass before merging: `On`
 - Required status checks:
-  - `build-and-gametest`（GitHub Actions）
+  - `build`（GitHub Actions）
 - Require branches to be up to date before merging: `On`
 
 補足:
 
-- GitHub の画面上では workflow 名込みで `PR CI / build-and-gametest` と表示されることがあるが、ruleset には GitHub Actions の check run `build-and-gametest` を登録する。
+- GitHub の画面上では workflow 名込みで `PR CI / build` と表示されることがあるが、ruleset には GitHub Actions の check run `build` を登録する。`PR CI / gametest` は任意チェックとして登録しない。
 
 必要に応じて次も有効化する。
 
@@ -47,7 +47,7 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` で `main-pr-ci-protection` を�
 
 - PR 作成後、Codex Cloud のスマートトリガーレビューを走らせる。
 - 指摘が出た場合は、修正するか、見送る理由を PR 上で明示する。
-- スマートトリガーレビューは必須 CI の代替にしない。`build-and-gametest` と人間のレビューを最終判断に使う。
+- スマートトリガーレビューは必須 CI の代替にしない。`build`、任意の `gametest` の結果、人間のレビューを最終判断に使う。
 - 将来、Codex Cloud 側で安定した check 名を required status check にできる状態になった場合のみ、Ruleset への追加を検討する。
 
 ## 4. Merge 運用
@@ -59,8 +59,8 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` で `main-pr-ci-protection` を�
 
 ## 5. 受け入れ確認
 
-1. 軽微な変更で PR を作成し、`PR CI / build-and-gametest` の workflow が自動起動し、`build-and-gametest` check run が記録されることを確認する。
-2. 意図的に GameTest を落とした PR で required check failure により merge できないことを確認する。
-3. 修正 push 後に同じ check 名で再実行され、成功時のみ merge 可能になることを確認する。
+1. 軽微な変更で PR を作成し、`PR CI / build` と `PR CI / gametest` が自動起動し、各 check run が記録されることを確認する。
+2. 意図的に `build` を落とした PR で required check failure により merge できないことを確認する。
+3. `gametest` が失敗しても任意チェックとして記録され、`build` が成功していれば required check を満たすことを確認する。
 4. `main` への直接 push が拒否されることを確認する。
 5. Codex Cloud のスマートトリガーレビューが PR 上で確認でき、指摘の対応状況を追えることを確認する。
