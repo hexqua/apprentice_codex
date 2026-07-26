@@ -1,10 +1,10 @@
 package jp.aquafactory.apprenticecodex.spell.terraresonance;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
+import jp.aquafactory.apprenticecodex.renderer.WallThroughHighlightRenderSupport;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LightTexture;
@@ -75,7 +75,7 @@ public final class TerraResonanceHighlightRenderEvent {
 
     @SubscribeEvent
     public static void onRenderLevelStage(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES || ACTIVE_CASTS.isEmpty()) {
+        if (!WallThroughHighlightRenderSupport.shouldRenderAt(event.getStage()) || ACTIVE_CASTS.isEmpty()) {
             return;
         }
 
@@ -89,8 +89,7 @@ public final class TerraResonanceHighlightRenderEvent {
         var cameraPosition = event.getCamera().getPosition();
         var cameraRotation = new Quaternionf(event.getCamera().rotation());
         var poseStack = event.getPoseStack();
-        var buffers = minecraft.renderBuffers().bufferSource();
-        var buffer = buffers.getBuffer(RHOMBUS_RENDER_TYPE);
+        var buffer = WallThroughHighlightRenderSupport.getBuffer(RHOMBUS_RENDER_TYPE);
         var gameTime = level.getGameTime();
 
         poseStack.pushPose();
@@ -111,14 +110,7 @@ public final class TerraResonanceHighlightRenderEvent {
             renderTargets(poseStack, buffer, cast.targets(), age, cameraRotation);
         }
         poseStack.popPose();
-        // RenderType側でも深度テストを切るが、実際の描画はendBatch時に行われるため、
-        // Forge 1.20.1の描画順に左右されず壁越し表示になるよう描き出し中も明示する。
-        RenderSystem.disableDepthTest();
-        try {
-            buffers.endBatch(RHOMBUS_RENDER_TYPE);
-        } finally {
-            RenderSystem.enableDepthTest();
-        }
+        WallThroughHighlightRenderSupport.endBatch(RHOMBUS_RENDER_TYPE);
     }
 
     private static void renderTargets(PoseStack poseStack, VertexConsumer buffer, List<BlockPos> targets,
