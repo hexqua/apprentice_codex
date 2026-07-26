@@ -125,7 +125,7 @@ Get-ChildItem build\libs\*.jar
 8. client 専用 UI、renderer、screen、入力操作に影響する変更では必要に応じて `./gradlew.bat runClient` で確認する。
 9. コミットはレビューしやすく、forward-port しやすい粒度に分ける。無関係な整形や広域整理を混ぜない。
 10. `1.21.1-main` へ取り込む変更は必ずブランチ + PR で流し、直 push しない。
-11. PR では GitHub Actions の `PR CI / build-and-gametest`、Codex Cloud のスマートトリガーレビュー、人間のレビューを確認してから取り込む。スマートトリガーレビューは補助であり、CI と人間の判断を置き換えない。
+11. PR では必須の GitHub Actions `PR CI / build` と `PR CI / gametest`、Codex Cloud のスマートトリガーレビュー、人間のレビューを確認してから取り込む。スマートトリガーレビューは補助であり、CI と人間の判断を置き換えない。
 12. 通常は merge commit で取り込む。バージョン更新だけは rebase merge を使ってよい。squash merge は使わない。
 
 ## 6. レビューチェックリスト
@@ -133,7 +133,7 @@ Get-ChildItem build\libs\*.jar
 - サーバー側の登録、データ読込、レシピ、生成に影響する変更では `./gradlew.bat runGameTestServer` が成功していること。
 - `main` から `1.21.1-main` への forward-port では、実装内容に関係なく `./gradlew.bat runGameTestServer` と `./gradlew.bat build` が成功していること。
 - optional MOD 連携に影響する変更では、該当する `runGameTestServerCompat` / `runGameTestServerEasyMagic` / `runGameTestServerBetterCombat` / `runGameTestServerEpicFight`、または対応する `runClient...` の実行結果が説明されていること。
-- `1.21.1-main` 向け PR では GitHub Actions の `PR CI / build-and-gametest` が成功していること。
+- `1.21.1-main` 向け PR では GitHub Actions の `PR CI / build` と `PR CI / gametest` が成功していること。
 - Codex Cloud のスマートトリガーレビューで指摘が出ている場合、対応または明示的な見送り理由があること。
 - 追加・変更した要素の登録漏れ（Registry/EventBus）がないこと。
 - サーバー専用環境で問題となるクライアント専用参照を追加していないこと。
@@ -166,7 +166,7 @@ Get-ChildItem build\libs\*.jar
 
 ## 8.1 `1.21.1-main` の PR CI 運用
 - `1.21.1-main` への反映は PR 経由のみとし、直接 push しない。
-- required check は `PR CI / build-and-gametest` とする。
+- required check は `PR CI / build` と `PR CI / gametest` とする。
 - workflow は `pull_request` でのみ動かし、`pull_request_target` は使わない。
 - CI では repository secrets を使わず、`GITHUB_TOKEN` は read-only に固定する。
 - 通常変更は `merge commit` を使い、バージョン更新 PR だけ `rebase merge` を許可する。

@@ -122,7 +122,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
 
 ## PR 運用
 
-- `1.21.1-main` への取り込みは PR 経由で行い、`PR CI / build-and-gametest` の成功を必須とします。
+- `1.21.1-main` への取り込みは PR 経由で行い、`PR CI / build` と `PR CI / gametest` の成功を必須とします。
 - optional MOD 付きの特殊 GameTest / client 起動は required CI に含めません。必要な変更ではローカルまたは Codex 実行結果を PR コメントや最終報告に残します。
 - Codex Cloud のスマートトリガーレビューをレビュー補助として使います。人間の判断と CI 通過を置き換えるものではありません。
 - GitHub Actions は `pull_request` でのみ実行し、`pull_request_target` は使いません。
