@@ -114,14 +114,14 @@ Get-ChildItem build\libs\*.jar
    - 組み合わせバランス確認: `./gradlew.bat runClientCompatEasyBetter`
 9. コミットはレビューしやすく、forward-port しやすい粒度に分ける。無関係な整形や広域整理を混ぜない。
 10. `main` へ反映する変更は必ずブランチ + PR で流し、直 push しない。
-11. PR では GitHub Actions の `PR CI / build-and-gametest`、Codex Cloud のスマートトリガーレビュー、人間のレビューを確認してから取り込む。スマートトリガーレビューは補助であり、CI と人間の判断を置き換えない。
+11. PR では必須の GitHub Actions `PR CI / build`、任意の `PR CI / gametest`、Codex Cloud のスマートトリガーレビュー、人間のレビューを確認してから取り込む。スマートトリガーレビューは補助であり、CI と人間の判断を置き換えない。
 12. 通常は merge commit で取り込む。バージョン更新だけは rebase merge を使ってよい。squash merge は使わない。
 
 ## 6. レビューチェックリスト
 - Java 17 環境で必要な検証が通っていること。コード/リソース変更では `./gradlew.bat build` を必須とする。
 - サーバー側の登録、データ読込、レシピ、生成に影響する変更では `./gradlew.bat runGameTestServer` が成功していること。
 - optional MOD 連携に影響する変更では、該当する `runGameTestServerCompat` / `runGameTestServerEasyMagic` / `runGameTestServerBetterCombat` / `runGameTestServerEpicFight`、または対応する `runClient...` の実行結果が説明されていること。
-- `main` へ送る PR では GitHub Actions の `PR CI / build-and-gametest` が成功していること。
+- `main` へ送る PR では GitHub Actions の `PR CI / build` が成功し、任意の `PR CI / gametest` の結果も確認されていること。
 - Codex Cloud のスマートトリガーレビューで指摘が出ている場合、対応または明示的な見送り理由があること。
 - 追加・変更した要素の登録漏れ（Registry/EventBus）がないこと。
 - サーバー専用環境で問題となるクライアント専用参照を追加していないこと。
