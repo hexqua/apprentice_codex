@@ -1,6 +1,6 @@
 # GitHub PR 保護設定（`1.21.1-main`）
 
-このリポジトリでは `1.21.1-main` への反映を PR に統一し、`PR CI / build-and-gametest` が成功しない限りマージしない。Codex Cloud のスマートトリガーレビューは PR レビュー補助として使い、CI と人間の判断を置き換えない。
+このリポジトリでは `1.21.1-main` への反映を PR に統一し、`PR CI / build` と `PR CI / gametest` が成功しない限りマージしない。Codex Cloud のスマートトリガーレビューは PR レビュー補助として使い、CI と人間の判断を置き換えない。
 
 ## 1. Actions セキュリティ設定
 
@@ -26,10 +26,10 @@ target branch に workflow が存在しない段階で required check を先に�
 
 1. `1.21.1-main` 向け workflow を含む PR を作る
 2. required status check はまだ有効化しない
-3. その PR で `PR CI / build-and-gametest` が 1 回成功することを確認する
+3. その PR で `PR CI / build` と `PR CI / gametest` が 1 回成功することを確認する
 4. PR を `Create a merge commit` で `1.21.1-main` に取り込む
 5. `1.21.1-main` 上に `.github/workflows/pr-ci.yml` が存在することを確認する
-6. その後で ruleset に `PR CI / build-and-gametest` を required check として追加する
+6. その後で ruleset に check run `build` と `gametest` を required check として追加する
 
 ## 3. `1.21.1-main` の Ruleset
 
@@ -41,7 +41,8 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` で `1-21-1-main-pr-ci-protection
 - Require a pull request before merging: `On`
 - Allowed merge methods: `merge`, `rebase`
 - Required status checks:
-  - `PR CI / build-and-gametest`
+  - `build`（GitHub Actions）
+  - `gametest`（GitHub Actions）
 - Require branches to be up to date before merging: `On`
 
 補足:
@@ -49,6 +50,7 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` で `1-21-1-main-pr-ci-protection
 - `Squash and merge` は repository settings 側で無効化する。
 - 通常変更は `Create a merge commit` を使う。
 - バージョン更新 PR だけ `Rebase and merge` を使ってよい。
+- GitHub の画面上では workflow 名込みで `PR CI / build` と `PR CI / gametest` と表示されることがあるが、ruleset には check run `build` と `gametest` を登録する。
 
 必要に応じて次も有効化する。
 
@@ -59,7 +61,7 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` で `1-21-1-main-pr-ci-protection
 
 - PR 作成後、Codex Cloud のスマートトリガーレビューを走らせる。
 - 指摘が出た場合は、修正するか、見送る理由を PR 上で明示する。
-- スマートトリガーレビューは必須 CI の代替にしない。`PR CI / build-and-gametest` と人間のレビューを最終判断に使う。
+- スマートトリガーレビューは必須 CI の代替にしない。`build`、`gametest`、人間のレビューを最終判断に使う。
 - 将来、Codex Cloud 側で安定した check 名を required status check にできる状態になった場合のみ、Ruleset への追加を検討する。
 
 ## 5. Merge 運用
@@ -71,9 +73,9 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` で `1-21-1-main-pr-ci-protection
 
 ## 6. 受け入れ確認
 
-1. 軽微な変更で `1.21.1-main` 向け PR を作成し、`PR CI / build-and-gametest` が自動起動することを確認する。
+1. 軽微な変更で `1.21.1-main` 向け PR を作成し、`PR CI / build` と `PR CI / gametest` が自動起動することを確認する。
 2. workflow を含む最初の PR では、required check 未設定の状態で CI 成功後に merge できることを確認する。
-3. workflow 反映後に ruleset へ `PR CI / build-and-gametest` を required check として追加する。
-4. 以後の PR では、この check が成功しない限り merge できないことを確認する。
+3. workflow 反映後に ruleset へ check run `build` と `gametest` を required check として追加する。
+4. 以後の PR では、両checkが成功しない限り merge できないことを確認する。
 5. merge 可否まで確認したい場合は、無害な docs 変更を使った検証 PR を 1 本だけ merge してもよい。
 6. Codex Cloud のスマートトリガーレビューが PR 上で確認でき、指摘の対応状況を追えることを確認する。
