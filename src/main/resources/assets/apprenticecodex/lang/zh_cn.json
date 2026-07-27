@@ -25,6 +25,13 @@
   "block.apprenticecodex.otherworld_lens_lens": "异界水晶",
   "block.apprenticecodex.wizardlamp_lantern": "魔法师灯笼",
 
+  "item.apprenticecodex.partially_used_ink": "用过的墨水",
+  "item.apprenticecodex.partially_used_ink.named": "用过的%1$s",
+  "item.apprenticecodex.partially_used_ink.unknown": "用过的神秘墨水",
+  "item.apprenticecodex.partially_used_ink.desc": "由于已经用过，只能用于制作法杖。",
+  "item.apprenticecodex.partially_used_ink.remaining": "剩余使用次数：%1$d/%2$d",
+  "item.apprenticecodex.partially_used_ink.remaining_unknown": "剩余使用次数：未知",
+
   "item.apprenticecodex.arcane_cinder": "奥术余烬",
   "item.apprenticecodex.wisdom_shard": "智慧碎片",
   "item.apprenticecodex.spell_extract_shard": "法术提取碎片",
@@ -136,6 +143,8 @@
   "item.apprenticecodex.luminous_device.spell.mana_range": " 法力消耗：%1$d～%2$d",
   "item.apprenticecodex.scrollcaster_gauntlet": "卷轴施法臂铠",
   "item.apprenticecodex.chargecast_catalystbook": "强化施法催化书",
+  "item.apprenticecodex.wooden_wand": "木制魔杖",
+  "item.apprenticecodex.wooden_wand.imbue_spell": "%1$s魔杖",
   "item.apprenticecodex.apprentice_mage_scarf": "学徒法师围巾",
   "item.apprenticecodex.apprentice_mage_torso": "学徒法师长袍",
   "item.apprenticecodex.apprentice_mage_leggings": "学徒法师护腿",
@@ -346,6 +355,7 @@
   "item.apprenticecodex.chargecast_catalystbook.desc": "使用[%1$s]通过此书施法时，以增加%2$s施法时间为代价，使法术强度提升%3$s。",
   "item.apprenticecodex.chargecast_catalystbook.spell_power": "%d%%",
   "item.apprenticecodex.chargecast_catalystbook.school_rune": "该书已调律至“%s”学派。",
+  "item.apprenticecodex.wooden_wand.desc": "按[%1$s]消耗耐久度施放注入的法术。",
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "作为熔炉、高炉、烟熏炉燃料时，可提升加工速度。",
   "jei.apprenticecodex.arcane_cinder.desc_2": "在其他机器中无效果。",
@@ -602,6 +612,7 @@
   "entity.apprenticecodex.zombie_villager.errand_mage": "跑腿法师",
   "container.apprenticecodex.personal_shelf": "个人置物架",
   "container.apprenticecodex.apprentice_desk": "学徒书桌",
+  "container.apprenticecodex.apprentice_desk.ink_conversion_tooltip": "此墨水可使用%1$d次，但使用一次后便无法再用于制作卷轴。",
   "container.apprenticecodex.spellcaster_workbench": "施法工作台",
   "container.apprenticecodex.spell_dispenser": "法术发射器",
   "container.apprenticecodex.spell_dispenser.owner.tooltip": "所有者：%1$s",

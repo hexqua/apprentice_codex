@@ -135,6 +135,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var vanillaMaceEnchantableTag = tag(MINECRAFT_ENCHANTABLE_MACE);
         var vanillaTridentEnchantableTag = tag(MINECRAFT_ENCHANTABLE_TRIDENT);
         var vanillaDurabilityEnchantableTag = tag(MINECRAFT_ENCHANTABLE_DURABILITY);
+        // Wooden Wand は Elytra を判定プローブとして使うため、1.21.1 のタグ面も同じ許可範囲へ揃える。
+        vanillaDurabilityEnchantableTag.add(ItemRegistry.WOODEN_WAND.get());
         ironsUpgradeWhitelist.add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
                 ItemRegistry.ARCHIVISTS_GRIMOIRE.get(),
@@ -373,6 +375,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.REFLECTCAST_SHIELD.get()
         );
         tag(MINECRAFT_ENCHANTABLE_EQUIPPABLE).add(
+                ItemRegistry.WOODEN_WAND.get(),
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
                 ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
                 ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
@@ -399,6 +402,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()
         );
         tag(MINECRAFT_ENCHANTABLE_VANISHING).add(
+                ItemRegistry.WOODEN_WAND.get(),
                 ItemRegistry.BULWARK_GREATSHIELD.get(),
                 ItemRegistry.PARRYCAST_BUCKLER.get(),
                 ItemRegistry.REFLECTCAST_SHIELD.get(),
@@ -600,6 +604,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(TagRegistry.Items.SPELL_AUTONOMY_CARD_CRAFTING_MATERIALS).add(
                 net.minecraft.world.item.Items.ENDER_EYE
         );
+        tag(TagRegistry.Items.WAND_BASE).add(net.minecraft.world.item.Items.STICK);
         tag(TagRegistry.Items.MANA_MENDING_DENYLIST);
 
         // 魔法召喚武器はダミー用途のため、JEIなどのレシピビューアから除外する.

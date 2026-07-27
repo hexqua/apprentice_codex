@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.ArcaneCinderItem;
+import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkItem;
 import jp.aquafactory.apprenticecodex.item.blockitem.ArcanumInAJarItem;
 import jp.aquafactory.apprenticecodex.item.blockitem.ApprenticeDeskItem;
 import jp.aquafactory.apprenticecodex.item.blockitem.AtelierStationItem;
@@ -67,6 +68,7 @@ import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
 import jp.aquafactory.apprenticecodex.item.magicitem.GrimoireManifest;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
+import jp.aquafactory.apprenticecodex.item.magicitem.WoodenWand;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff;
@@ -282,6 +284,8 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> APPRENTICE_DESK =
             ITEMS.register("apprentice_desk",
                     () -> new ApprenticeDeskItem(BlockRegistry.APPRENTICE_DESK.get(), new Item.Properties()));
+    public static final DeferredHolder<Item, Item> PARTIALLY_USED_INK =
+            ITEMS.register("partially_used_ink", PartiallyUsedInkItem::new);
     public static final DeferredHolder<Item, Item> SPELLCASTER_WORKBENCH =
             ITEMS.register("spellcaster_workbench",
                     () -> new SpellcasterWorkbenchItem(BlockRegistry.SPELLCASTER_WORKBENCH.get(), new Item.Properties()));
@@ -375,6 +379,8 @@ public final class ItemRegistry {
             ITEMS.register("alchemists_flask", AlchemistsFlask::new);
     public static final DeferredHolder<Item, Item> GRIMOIRE_MANIFEST =
             ITEMS.register("grimoire_manifest", GrimoireManifest::new);
+    public static final DeferredHolder<Item, Item> WOODEN_WAND =
+            ITEMS.register("wooden_wand", WoodenWand::new);
     public static final DeferredHolder<Item, Item> PASTEL_STAFF =
             ITEMS.register("pastel_staff", PastelStaff::new);
     public static final DeferredHolder<Item, Item> MULTICAST_ECHO_STAFF =

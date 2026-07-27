@@ -12,17 +12,18 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public final class SyncApprenticeDeskConfigPacket implements CustomPacketPayload {
+public record SyncApprenticeDeskConfigPacket(
+        boolean disableNonJobSiteFeatures,
+        int commonInkMaxUses,
+        int uncommonInkMaxUses,
+        int rareInkMaxUses,
+        int epicInkMaxUses,
+        int legendaryInkMaxUses
+) implements CustomPacketPayload {
     public static final Type<SyncApprenticeDeskConfigPacket> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_apprentice_desk_config"));
     public static final StreamCodec<RegistryFriendlyByteBuf, SyncApprenticeDeskConfigPacket> STREAM_CODEC =
             StreamCodec.of((buffer, packet) -> encode(packet, buffer), SyncApprenticeDeskConfigPacket::decode);
-
-    private final boolean disableNonJobSiteFeatures;
-
-    public SyncApprenticeDeskConfigPacket(boolean disableNonJobSiteFeatures) {
-        this.disableNonJobSiteFeatures = disableNonJobSiteFeatures;
-    }
 
     @Override
     public Type<? extends CustomPacketPayload> type() {
@@ -30,11 +31,23 @@ public final class SyncApprenticeDeskConfigPacket implements CustomPacketPayload
     }
 
     private static void encode(SyncApprenticeDeskConfigPacket packet, FriendlyByteBuf buffer) {
-        buffer.writeBoolean(packet.disableNonJobSiteFeatures);
+        buffer.writeBoolean(packet.disableNonJobSiteFeatures());
+        buffer.writeVarInt(packet.commonInkMaxUses());
+        buffer.writeVarInt(packet.uncommonInkMaxUses());
+        buffer.writeVarInt(packet.rareInkMaxUses());
+        buffer.writeVarInt(packet.epicInkMaxUses());
+        buffer.writeVarInt(packet.legendaryInkMaxUses());
     }
 
     private static SyncApprenticeDeskConfigPacket decode(FriendlyByteBuf buffer) {
-        return new SyncApprenticeDeskConfigPacket(buffer.readBoolean());
+        return new SyncApprenticeDeskConfigPacket(
+                buffer.readBoolean(),
+                buffer.readVarInt(),
+                buffer.readVarInt(),
+                buffer.readVarInt(),
+                buffer.readVarInt(),
+                buffer.readVarInt()
+        );
     }
 
     public static void handle(SyncApprenticeDeskConfigPacket packet, IPayloadContext context) {
@@ -51,7 +64,14 @@ public final class SyncApprenticeDeskConfigPacket implements CustomPacketPayload
         }
 
         private static void handle(SyncApprenticeDeskConfigPacket packet) {
-            ApprenticeDeskFeatureState.setDisableNonJobSiteFeatures(packet.disableNonJobSiteFeatures);
+            ApprenticeDeskFeatureState.setDisableNonJobSiteFeatures(packet.disableNonJobSiteFeatures());
+            ApprenticeDeskFeatureState.setInkMaxUses(
+                    packet.commonInkMaxUses(),
+                    packet.uncommonInkMaxUses(),
+                    packet.rareInkMaxUses(),
+                    packet.epicInkMaxUses(),
+                    packet.legendaryInkMaxUses()
+            );
         }
     }
 }

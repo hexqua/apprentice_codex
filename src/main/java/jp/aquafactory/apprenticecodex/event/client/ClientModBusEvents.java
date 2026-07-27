@@ -20,7 +20,9 @@ import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightClientCompat;
 import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBuiltinTemplateSupport;
 import jp.aquafactory.apprenticecodex.compat.sodiumdynamiclights.SodiumDynamicLightsLuminousDeviceCompat;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkState;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
+import jp.aquafactory.apprenticecodex.item.magicitem.client.WoodenWandClientRenderState;
 import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticle;
 import jp.aquafactory.apprenticecodex.particle.AdditiveRhombusParticle;
@@ -245,6 +247,19 @@ public final class ClientModBusEvents {
                 ItemRegistry.STORAGE_STABILIZER.get(),
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "selected_spell"),
                 (stack, level, living, seed) -> StorageStabilizer.getSelectedSpellIndex(stack)
+        ));
+        event.enqueueWork(() -> ItemProperties.register(
+                ItemRegistry.WOODEN_WAND.get(),
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_cooldown"),
+                // Iron's の同期状態はローカル本人の描画だけに使い、他者やドロップ品へ流用しない。
+                (stack, level, living, seed) ->
+                        WoodenWandClientRenderState.isImbuedSpellOnCooldown(stack, living) ? 1.0F : 0.0F
+        ));
+        event.enqueueWork(() -> ItemProperties.register(
+                ItemRegistry.PARTIALLY_USED_INK.get(),
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "ink_rarity"),
+                // 1.20.1 の NBT モデル判定は client 接着コードとし、状態の解釈自体は共通ヘルパーへ寄せる。
+                (stack, level, living, seed) -> PartiallyUsedInkState.getModelProperty(stack)
         ));
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),

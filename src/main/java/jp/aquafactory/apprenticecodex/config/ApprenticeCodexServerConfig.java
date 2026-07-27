@@ -208,12 +208,55 @@ public final class ApprenticeCodexServerConfig {
         return BLOCKS_CONFIG.apprenticeDeskSpellCraftBlacklist();
     }
 
-    public static boolean apprenticeDeskRequireSameSchool() {
-        return BLOCKS_CONFIG.apprenticeDeskRequireSameSchool();
+    public static int apprenticeDeskInkMaxUses(io.redspace.ironsspellbooks.api.spells.SpellRarity rarity) {
+        return BLOCKS_CONFIG.apprenticeDeskInkMaxUses(rarity);
     }
 
-    public static boolean apprenticeDeskDisableCommonRarityConversion() {
-        return BLOCKS_CONFIG.apprenticeDeskDisableCommonRarityConversion();
+    public static boolean apprenticeDeskReturnGlassBottleWhenInkDepleted() {
+        return BLOCKS_CONFIG.apprenticeDeskReturnGlassBottleWhenInkDepleted();
+    }
+
+    public static GameTestConfigOverride useApprenticeDeskInkConfigOverrideForGameTest(
+            int common,
+            int uncommon,
+            int rare,
+            int epic,
+            int legendary,
+            boolean returnGlassBottle
+    ) {
+        var previousCommon = apprenticeDeskInkMaxUses(
+                io.redspace.ironsspellbooks.api.spells.SpellRarity.COMMON
+        );
+        var previousUncommon = apprenticeDeskInkMaxUses(
+                io.redspace.ironsspellbooks.api.spells.SpellRarity.UNCOMMON
+        );
+        var previousRare = apprenticeDeskInkMaxUses(
+                io.redspace.ironsspellbooks.api.spells.SpellRarity.RARE
+        );
+        var previousEpic = apprenticeDeskInkMaxUses(
+                io.redspace.ironsspellbooks.api.spells.SpellRarity.EPIC
+        );
+        var previousLegendary = apprenticeDeskInkMaxUses(
+                io.redspace.ironsspellbooks.api.spells.SpellRarity.LEGENDARY
+        );
+        var previousReturnGlassBottle = apprenticeDeskReturnGlassBottleWhenInkDepleted();
+
+        BLOCKS_CONFIG.setApprenticeDeskInkConfigForGameTest(
+                common,
+                uncommon,
+                rare,
+                epic,
+                legendary,
+                returnGlassBottle
+        );
+        return () -> BLOCKS_CONFIG.setApprenticeDeskInkConfigForGameTest(
+                previousCommon,
+                previousUncommon,
+                previousRare,
+                previousEpic,
+                previousLegendary,
+                previousReturnGlassBottle
+        );
     }
 
     public static boolean isSatelliteFollowcastAmuletSpellDenied(ResourceLocation spellId) {

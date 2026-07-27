@@ -25,6 +25,13 @@
   "block.apprenticecodex.otherworld_lens_lens" : "異界の水晶",
   "block.apprenticecodex.wizardlamp_lantern": "魔術師のランタン",
 
+  "item.apprenticecodex.partially_used_ink": "使いかけのインク",
+  "item.apprenticecodex.partially_used_ink.named": "使いかけの%1$s",
+  "item.apprenticecodex.partially_used_ink.unknown": "使いかけの謎のインク",
+  "item.apprenticecodex.partially_used_ink.desc": "使いかけのため、ワンドを作る用途にしか使えない。",
+  "item.apprenticecodex.partially_used_ink.remaining": "残り使用回数: %1$d/%2$d",
+  "item.apprenticecodex.partially_used_ink.remaining_unknown": "残り使用回数: 不明",
+
   "item.apprenticecodex.arcane_cinder": "神秘の燃え殻",
   "item.apprenticecodex.wisdom_shard": "叡智の破片",
   "item.apprenticecodex.spell_extract_shard": "術式抽出の破片",
@@ -119,6 +126,8 @@
   "item.apprenticecodex.luminous_device.with_select": "%1$s(%2$s)",
   "item.apprenticecodex.scrollcaster_gauntlet": "術式装填ガントレット",
   "item.apprenticecodex.chargecast_catalystbook": "詠唱強化の触媒書",
+  "item.apprenticecodex.wooden_wand": "木のワンド",
+  "item.apprenticecodex.wooden_wand.imbue_spell": "%1$sのワンド",
   "item.apprenticecodex.bound_sword": "錬成剣",
   "item.apprenticecodex.bound_bow": "錬成弓",
   "item.apprenticecodex.apprentice_mage_scarf": "見習い魔術師のスカーフ",
@@ -346,6 +355,7 @@
   "item.apprenticecodex.chargecast_catalystbook.desc": "[%1$s]で本から詠唱時、%2$sの詠唱を伴う代わりに魔法威力を%3$s強化する。",
   "item.apprenticecodex.chargecast_catalystbook.spell_power": "%d%%",
   "item.apprenticecodex.chargecast_catalystbook.school_rune": "この本は\"%s\"の系統に調律されている。",
+  "item.apprenticecodex.wooden_wand.desc": "[%1$s]で耐久力を消費して注入されている魔法を詠唱する。",
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "かまど・溶鉱炉・燻製器の燃料として使用することで加工速度が上昇する。",
   "jei.apprenticecodex.arcane_cinder.desc_2": "それ以外の機材では効果を発揮しない。",
@@ -605,6 +615,7 @@
 
   "container.apprenticecodex.personal_shelf": "パーソナルシェルフ",
   "container.apprenticecodex.apprentice_desk": "見習い用の机",
+  "container.apprenticecodex.apprentice_desk.ink_conversion_tooltip": "このインクは%1$d回使用できるが、一度使うとスクロールの作成には使えなくなる。",
   "container.apprenticecodex.spellcaster_workbench": "詠唱者の作業台",
   "container.apprenticecodex.spell_dispenser": "スペルディスペンサー",
   "container.apprenticecodex.spell_dispenser.owner.tooltip": "設置したユーザー: %1$s",
