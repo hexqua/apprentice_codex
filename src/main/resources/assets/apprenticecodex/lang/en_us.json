@@ -134,6 +134,8 @@
   "item.apprenticecodex.luminous_device.spell.mana_range": " %1$d\u2013%2$d Mana Cost",
   "item.apprenticecodex.scrollcaster_gauntlet": "Scrollcaster Gauntlet",
   "item.apprenticecodex.chargecast_catalystbook": "Catalystbook of Chargecast",
+  "item.apprenticecodex.wooden_wand": "Wooden Wand",
+  "item.apprenticecodex.wooden_wand.imbue_spell": "Wand of %1$s",
   "item.apprenticecodex.apprentice_mage_scarf": "Apprentice Mage's Scarf",
   "item.apprenticecodex.apprentice_mage_torso": "Apprentice Mage's Robe",
   "item.apprenticecodex.apprentice_mage_leggings": "Apprentice Mage's Leggings",
