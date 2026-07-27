@@ -67,6 +67,7 @@ import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
 import jp.aquafactory.apprenticecodex.item.magicitem.GrimoireManifest;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
+import jp.aquafactory.apprenticecodex.item.magicitem.WoodenWand;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff;
@@ -375,6 +376,8 @@ public final class ItemRegistry {
             ITEMS.register("alchemists_flask", AlchemistsFlask::new);
     public static final DeferredHolder<Item, Item> GRIMOIRE_MANIFEST =
             ITEMS.register("grimoire_manifest", GrimoireManifest::new);
+    public static final DeferredHolder<Item, Item> WOODEN_WAND =
+            ITEMS.register("wooden_wand", WoodenWand::new);
     public static final DeferredHolder<Item, Item> PASTEL_STAFF =
             ITEMS.register("pastel_staff", PastelStaff::new);
     public static final DeferredHolder<Item, Item> MULTICAST_ECHO_STAFF =

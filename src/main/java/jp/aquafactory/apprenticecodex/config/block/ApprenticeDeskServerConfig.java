@@ -8,21 +8,15 @@ public final class ApprenticeDeskServerConfig {
     private final ModConfigSpec.BooleanValue disableNonJobSiteFeatures;
     private final ModConfigSpec.BooleanValue enableSpellCraftBlacklist;
     private final ModConfigSpec.ConfigValue<List<? extends String>> spellCraftBlacklist;
-    private final ModConfigSpec.BooleanValue requireSameSchool;
-    private final ModConfigSpec.BooleanValue disableCommonRarityConversion;
 
     private ApprenticeDeskServerConfig(
             ModConfigSpec.BooleanValue disableNonJobSiteFeatures,
             ModConfigSpec.BooleanValue enableSpellCraftBlacklist,
-            ModConfigSpec.ConfigValue<List<? extends String>> spellCraftBlacklist,
-            ModConfigSpec.BooleanValue requireSameSchool,
-            ModConfigSpec.BooleanValue disableCommonRarityConversion
+            ModConfigSpec.ConfigValue<List<? extends String>> spellCraftBlacklist
     ) {
         this.disableNonJobSiteFeatures = disableNonJobSiteFeatures;
         this.enableSpellCraftBlacklist = enableSpellCraftBlacklist;
         this.spellCraftBlacklist = spellCraftBlacklist;
-        this.requireSameSchool = requireSameSchool;
-        this.disableCommonRarityConversion = disableCommonRarityConversion;
     }
 
     public static ApprenticeDeskServerConfig define(ModConfigSpec.Builder builder) {
@@ -33,16 +27,12 @@ public final class ApprenticeDeskServerConfig {
         var enableSpellCraftBlacklist = builder.define("enableSpellCraftBlacklist", false);
         var spellCraftBlacklist = builder.defineListAllowEmpty("spellCraftBlacklist", List.<String>of(),
                 value -> value instanceof String text && !text.isBlank());
-        var requireSameSchool = builder.define("requireSameSchool", false);
-        var disableCommonRarityConversion = builder.define("disableCommonRarityConversion", false);
 
         builder.pop();
         return new ApprenticeDeskServerConfig(
                 disableNonJobSiteFeatures,
                 enableSpellCraftBlacklist,
-                spellCraftBlacklist,
-                requireSameSchool,
-                disableCommonRarityConversion
+                spellCraftBlacklist
         );
     }
 
@@ -60,11 +50,4 @@ public final class ApprenticeDeskServerConfig {
                 .toList();
     }
 
-    public boolean requireSameSchool() {
-        return requireSameSchool.get();
-    }
-
-    public boolean disableCommonRarityConversion() {
-        return disableCommonRarityConversion.get();
-    }
 }
