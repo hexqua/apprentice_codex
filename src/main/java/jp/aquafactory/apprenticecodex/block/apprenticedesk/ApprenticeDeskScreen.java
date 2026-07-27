@@ -70,6 +70,24 @@ public class ApprenticeDeskScreen extends AbstractContainerScreen<ApprenticeDesk
     }
 
     @Override
+    protected void renderTooltip(@NotNull GuiGraphics gui, int mouseX, int mouseY) {
+        if (menu.getCarried().isEmpty()
+                && hoveredSlot != null
+                && hoveredSlot.hasItem()
+                && hoveredSlot.index == ApprenticeDeskMenu.INK_SLOT) {
+            var stack = hoveredSlot.getItem();
+            var conversionTooltip = ApprenticeDeskInkTooltip.create(stack);
+            if (conversionTooltip != null) {
+                var lines = new ArrayList<>(getTooltipFromContainerItem(stack));
+                lines.add(conversionTooltip);
+                gui.renderTooltip(font, lines, stack.getTooltipImage(), stack, mouseX, mouseY);
+                return;
+            }
+        }
+        super.renderTooltip(gui, mouseX, mouseY);
+    }
+
+    @Override
     protected void renderBg(@NotNull GuiGraphics gui, float partialTick, int mouseX, int mouseY) {
         gui.blit(APPRENTICE_DESK_TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
         if (shouldShowSpellList()) {

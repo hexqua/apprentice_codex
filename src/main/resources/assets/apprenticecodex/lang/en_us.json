@@ -614,6 +614,7 @@
   "entity.apprenticecodex.zombie_villager.errand_mage": "Errand Mage",
   "container.apprenticecodex.personal_shelf": "Personal Shelf",
   "container.apprenticecodex.apprentice_desk": "Apprentice Desk",
+  "container.apprenticecodex.apprentice_desk.ink_conversion_tooltip": "This ink can be used %1$d times, but once used, it can no longer be used to create scrolls.",
   "container.apprenticecodex.spellcaster_workbench": "Spellcaster Workbench",
   "container.apprenticecodex.spell_dispenser": "Spell Dispenser",
   "container.apprenticecodex.spell_dispenser.owner.tooltip": "Owner: %1$s",

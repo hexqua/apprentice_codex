@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import io.netty.buffer.Unpooled;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.config.SpellConfigManager;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
@@ -7,18 +8,22 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskFeatureState;
+import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskInkTooltip;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskMenu;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkItem;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkState;
 import jp.aquafactory.apprenticecodex.item.magicitem.WoodenWand;
 import jp.aquafactory.apprenticecodex.item.magicitem.WoodenWandDurabilityEvent;
+import jp.aquafactory.apprenticecodex.network.packet.SyncApprenticeDeskConfigPacket;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -188,6 +193,43 @@ public final class ApprenticeDeskReworkGameTests {
         helper.assertTrue(stack.getItem().getBarWidth(stack) == 5,
                 "Partially used ink returned the wrong remaining-use bar width");
         helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void originalInkTooltipUsesSyncedServerConfig(GameTestHelper helper) {
+        var buffer = new FriendlyByteBuf(Unpooled.buffer());
+        try {
+            var sent = new SyncApprenticeDeskConfigPacket(false, 9, 8, 7, 6, 5);
+            SyncApprenticeDeskConfigPacket.encode(sent, buffer);
+            var received = SyncApprenticeDeskConfigPacket.decode(buffer);
+            ApprenticeDeskFeatureState.setInkMaxUses(
+                    received.commonInkMaxUses(),
+                    received.uncommonInkMaxUses(),
+                    received.rareInkMaxUses(),
+                    received.epicInkMaxUses(),
+                    received.legendaryInkMaxUses()
+            );
+
+            var expectedUses = new int[]{9, 8, 7, 6, 5};
+            for (var source : PartiallyUsedInkState.OfficialInk.values()) {
+                var tooltip = ApprenticeDeskInkTooltip.create(new ItemStack(source.item()));
+                helper.assertTrue(tooltip != null
+                                && tooltip.getContents() instanceof TranslatableContents contents
+                                && "container.apprenticecodex.apprentice_desk.ink_conversion_tooltip"
+                                .equals(contents.getKey())
+                                && contents.getArgs().length == 1
+                                && contents.getArgs()[0].equals(expectedUses[source.ordinal()]),
+                        "Original " + source + " ink tooltip did not use the synced server value");
+            }
+
+            helper.assertTrue(ApprenticeDeskInkTooltip.create(
+                    PartiallyUsedInkState.create(PartiallyUsedInkState.OfficialInk.COMMON, 9)
+            ) == null, "Partially used ink unexpectedly displayed the original-ink conversion warning");
+            helper.succeed();
+        } finally {
+            ApprenticeDeskFeatureState.reset();
+            buffer.release();
+        }
     }
 
     @GameTest(template = TEMPLATE)

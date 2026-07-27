@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.event;
 
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskFeatureState;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -42,9 +43,7 @@ public final class ApprenticeDeskConfigSyncEvents {
     }
 
     private static void syncToPlayer(ServerPlayer player) {
-        Networks.sendToPlayer(player, new SyncApprenticeDeskConfigPacket(
-                ApprenticeCodexServerConfig.apprenticeDeskDisableNonJobSiteFeatures()
-        ));
+        Networks.sendToPlayer(player, createPacket());
     }
 
     private static void syncToAllPlayers() {
@@ -53,12 +52,21 @@ public final class ApprenticeDeskConfigSyncEvents {
             return;
         }
 
-        var packet = new SyncApprenticeDeskConfigPacket(
-                ApprenticeCodexServerConfig.apprenticeDeskDisableNonJobSiteFeatures()
-        );
+        var packet = createPacket();
         for (var player : server.getPlayerList().getPlayers()) {
             Networks.sendToPlayer(player, packet);
         }
+    }
+
+    private static SyncApprenticeDeskConfigPacket createPacket() {
+        return new SyncApprenticeDeskConfigPacket(
+                ApprenticeCodexServerConfig.apprenticeDeskDisableNonJobSiteFeatures(),
+                ApprenticeCodexServerConfig.apprenticeDeskInkMaxUses(SpellRarity.COMMON),
+                ApprenticeCodexServerConfig.apprenticeDeskInkMaxUses(SpellRarity.UNCOMMON),
+                ApprenticeCodexServerConfig.apprenticeDeskInkMaxUses(SpellRarity.RARE),
+                ApprenticeCodexServerConfig.apprenticeDeskInkMaxUses(SpellRarity.EPIC),
+                ApprenticeCodexServerConfig.apprenticeDeskInkMaxUses(SpellRarity.LEGENDARY)
+        );
     }
 
     @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)

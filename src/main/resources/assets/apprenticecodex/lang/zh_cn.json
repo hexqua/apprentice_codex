@@ -614,6 +614,7 @@
 
   "container.apprenticecodex.personal_shelf": "个人置物架",
   "container.apprenticecodex.apprentice_desk": "学徒书桌",
+  "container.apprenticecodex.apprentice_desk.ink_conversion_tooltip": "此墨水可使用%1$d次，但使用一次后便无法再用于制作卷轴。",
   "container.apprenticecodex.spellcaster_workbench": "施法工作台",
   "container.apprenticecodex.spell_dispenser": "法术发射器",
   "container.apprenticecodex.spell_dispenser.owner.tooltip": "所有者：%1$s",

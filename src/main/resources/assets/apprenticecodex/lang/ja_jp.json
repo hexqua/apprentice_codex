@@ -617,6 +617,7 @@
 
   "container.apprenticecodex.personal_shelf": "パーソナルシェルフ",
   "container.apprenticecodex.apprentice_desk": "見習い用の机",
+  "container.apprenticecodex.apprentice_desk.ink_conversion_tooltip": "このインクは%1$d回使用できるが、一度使うとスクロールの作成には使えなくなる。",
   "container.apprenticecodex.spellcaster_workbench": "詠唱者の作業台",
   "container.apprenticecodex.spell_dispenser": "スペルディスペンサー",
   "container.apprenticecodex.spell_dispenser.owner.tooltip": "設置したユーザー: %1$s",
