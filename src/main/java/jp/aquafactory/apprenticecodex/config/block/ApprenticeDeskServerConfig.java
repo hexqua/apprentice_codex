@@ -5,18 +5,38 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 import java.util.List;
 
 public final class ApprenticeDeskServerConfig {
+    private static final int MAX_INK_USES = 1_000_000;
+
     private final ModConfigSpec.BooleanValue disableNonJobSiteFeatures;
     private final ModConfigSpec.BooleanValue enableSpellCraftBlacklist;
     private final ModConfigSpec.ConfigValue<List<? extends String>> spellCraftBlacklist;
+    private final ModConfigSpec.IntValue commonInkMaxUses;
+    private final ModConfigSpec.IntValue uncommonInkMaxUses;
+    private final ModConfigSpec.IntValue rareInkMaxUses;
+    private final ModConfigSpec.IntValue epicInkMaxUses;
+    private final ModConfigSpec.IntValue legendaryInkMaxUses;
+    private final ModConfigSpec.BooleanValue returnGlassBottleWhenInkDepleted;
 
     private ApprenticeDeskServerConfig(
             ModConfigSpec.BooleanValue disableNonJobSiteFeatures,
             ModConfigSpec.BooleanValue enableSpellCraftBlacklist,
-            ModConfigSpec.ConfigValue<List<? extends String>> spellCraftBlacklist
+            ModConfigSpec.ConfigValue<List<? extends String>> spellCraftBlacklist,
+            ModConfigSpec.IntValue commonInkMaxUses,
+            ModConfigSpec.IntValue uncommonInkMaxUses,
+            ModConfigSpec.IntValue rareInkMaxUses,
+            ModConfigSpec.IntValue epicInkMaxUses,
+            ModConfigSpec.IntValue legendaryInkMaxUses,
+            ModConfigSpec.BooleanValue returnGlassBottleWhenInkDepleted
     ) {
         this.disableNonJobSiteFeatures = disableNonJobSiteFeatures;
         this.enableSpellCraftBlacklist = enableSpellCraftBlacklist;
         this.spellCraftBlacklist = spellCraftBlacklist;
+        this.commonInkMaxUses = commonInkMaxUses;
+        this.uncommonInkMaxUses = uncommonInkMaxUses;
+        this.rareInkMaxUses = rareInkMaxUses;
+        this.epicInkMaxUses = epicInkMaxUses;
+        this.legendaryInkMaxUses = legendaryInkMaxUses;
+        this.returnGlassBottleWhenInkDepleted = returnGlassBottleWhenInkDepleted;
     }
 
     public static ApprenticeDeskServerConfig define(ModConfigSpec.Builder builder) {
@@ -27,12 +47,36 @@ public final class ApprenticeDeskServerConfig {
         var enableSpellCraftBlacklist = builder.define("enableSpellCraftBlacklist", false);
         var spellCraftBlacklist = builder.defineListAllowEmpty("spellCraftBlacklist", List.<String>of(),
                 value -> value instanceof String text && !text.isBlank());
+        var commonInkMaxUses = builder
+                .comment("Total Apprentice Desk crafts provided by one Common ink.")
+                .defineInRange("commonInkMaxUses", 5, 1, MAX_INK_USES);
+        var uncommonInkMaxUses = builder
+                .comment("Total Apprentice Desk crafts provided by one Uncommon ink.")
+                .defineInRange("uncommonInkMaxUses", 4, 1, MAX_INK_USES);
+        var rareInkMaxUses = builder
+                .comment("Total Apprentice Desk crafts provided by one Rare ink.")
+                .defineInRange("rareInkMaxUses", 3, 1, MAX_INK_USES);
+        var epicInkMaxUses = builder
+                .comment("Total Apprentice Desk crafts provided by one Epic ink.")
+                .defineInRange("epicInkMaxUses", 3, 1, MAX_INK_USES);
+        var legendaryInkMaxUses = builder
+                .comment("Total Apprentice Desk crafts provided by one Legendary ink.")
+                .defineInRange("legendaryInkMaxUses", 2, 1, MAX_INK_USES);
+        var returnGlassBottleWhenInkDepleted = builder
+                .comment("Return a glass bottle when a partially used ink runs out.")
+                .define("returnGlassBottleWhenInkDepleted", true);
 
         builder.pop();
         return new ApprenticeDeskServerConfig(
                 disableNonJobSiteFeatures,
                 enableSpellCraftBlacklist,
-                spellCraftBlacklist
+                spellCraftBlacklist,
+                commonInkMaxUses,
+                uncommonInkMaxUses,
+                rareInkMaxUses,
+                epicInkMaxUses,
+                legendaryInkMaxUses,
+                returnGlassBottleWhenInkDepleted
         );
     }
 
@@ -48,6 +92,36 @@ public final class ApprenticeDeskServerConfig {
         return spellCraftBlacklist.get().stream()
                 .map(String::valueOf)
                 .toList();
+    }
+
+    public int inkMaxUses(io.redspace.ironsspellbooks.api.spells.SpellRarity rarity) {
+        return switch (rarity) {
+            case COMMON -> commonInkMaxUses.get();
+            case UNCOMMON -> uncommonInkMaxUses.get();
+            case RARE -> rareInkMaxUses.get();
+            case EPIC -> epicInkMaxUses.get();
+            case LEGENDARY -> legendaryInkMaxUses.get();
+        };
+    }
+
+    public boolean returnGlassBottleWhenInkDepleted() {
+        return returnGlassBottleWhenInkDepleted.get();
+    }
+
+    public void setInkConfigForGameTest(
+            int common,
+            int uncommon,
+            int rare,
+            int epic,
+            int legendary,
+            boolean returnGlassBottle
+    ) {
+        commonInkMaxUses.set(common);
+        uncommonInkMaxUses.set(uncommon);
+        rareInkMaxUses.set(rare);
+        epicInkMaxUses.set(epic);
+        legendaryInkMaxUses.set(legendary);
+        returnGlassBottleWhenInkDepleted.set(returnGlassBottle);
     }
 
 }

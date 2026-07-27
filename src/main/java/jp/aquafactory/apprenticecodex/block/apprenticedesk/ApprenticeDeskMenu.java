@@ -9,9 +9,9 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
-import io.redspace.ironsspellbooks.item.InkItem;
 import io.redspace.ironsspellbooks.util.ModTags;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkState;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -80,6 +80,11 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
             public boolean mayPlace(@NotNull ItemStack stack) {
                 return isValidInk(stack);
             }
+
+            @Override
+            public int getMaxStackSize() {
+                return 1;
+            }
         });
         wandBaseSlot = addSlot(new Slot(container, WAND_BASE_SLOT, 35, 17) {
             @Override
@@ -92,6 +97,11 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
             public boolean mayPlace(@NotNull ItemStack stack) {
                 return isValidFocus(stack);
             }
+
+            @Override
+            public int getMaxStackSize() {
+                return 1;
+            }
         });
         resultSlot = addSlot(new Slot(resultContainer, 0, 35, 47) {
             @Override
@@ -102,7 +112,7 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
             @Override
             public void onTake(@NotNull Player player, @NotNull ItemStack stack) {
                 stack.onCraftedBy(player.level(), player, stack.getCount());
-                ApprenticeDeskMenu.this.inkSlot.remove(1);
+                ApprenticeDeskMenu.this.consumeInk();
                 ApprenticeDeskMenu.this.wandBaseSlot.remove(1);
                 ApprenticeDeskMenu.this.setupResultSlot();
 
@@ -190,7 +200,9 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
     }
 
     private static boolean isValidInk(ItemStack stack) {
-        return !stack.isEmpty() && stack.getItem() instanceof InkItem;
+        return !stack.isEmpty()
+                && (PartiallyUsedInkState.OfficialInk.fromOriginal(stack) != null
+                || PartiallyUsedInkState.readValid(stack).isPresent());
     }
 
     private static boolean isValidWandBase(ItemStack stack) {
@@ -263,7 +275,32 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
     }
 
     private @Nullable SpellRarity getInkRarity() {
-        return inkSlot.getItem().getItem() instanceof InkItem inkItem ? inkItem.getRarity() : null;
+        var stack = inkSlot.getItem();
+        var original = PartiallyUsedInkState.OfficialInk.fromOriginal(stack);
+        if (original != null) {
+            return original.rarity();
+        }
+        return PartiallyUsedInkState.readValid(stack)
+                .map(state -> state.source().rarity())
+                .orElse(null);
+    }
+
+    private void consumeInk() {
+        var stack = inkSlot.getItem();
+        var returnGlassBottle =
+                ApprenticeCodexServerConfig.apprenticeDeskReturnGlassBottleWhenInkDepleted();
+        var original = PartiallyUsedInkState.OfficialInk.fromOriginal(stack);
+        if (original != null) {
+            inkSlot.set(PartiallyUsedInkState.consumeOriginal(
+                    original,
+                    ApprenticeCodexServerConfig.apprenticeDeskInkMaxUses(original.rarity()),
+                    returnGlassBottle
+            ));
+            return;
+        }
+        if (PartiallyUsedInkState.readValid(stack).isPresent()) {
+            inkSlot.set(PartiallyUsedInkState.consumePartiallyUsed(stack, returnGlassBottle));
+        }
     }
 
     private static @Nullable SpellData getScrollSpell(ItemStack stack) {

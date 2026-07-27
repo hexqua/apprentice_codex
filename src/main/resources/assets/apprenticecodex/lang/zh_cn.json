@@ -25,6 +25,13 @@
   "block.apprenticecodex.otherworld_lens_lens": "异界水晶",
   "block.apprenticecodex.wizardlamp_lantern": "魔法师灯笼",
 
+  "item.apprenticecodex.partially_used_ink": "用过的墨水",
+  "item.apprenticecodex.partially_used_ink.named": "用过的%1$s",
+  "item.apprenticecodex.partially_used_ink.unknown": "用过的神秘墨水",
+  "item.apprenticecodex.partially_used_ink.desc": "由于已经用过，只能用于制作法杖。",
+  "item.apprenticecodex.partially_used_ink.remaining": "剩余使用次数：%1$d/%2$d",
+  "item.apprenticecodex.partially_used_ink.remaining_unknown": "剩余使用次数：未知",
+
   "item.apprenticecodex.arcane_cinder": "奥术余烬",
   "item.apprenticecodex.wisdom_shard": "智慧碎片",
   "item.apprenticecodex.spell_extract_shard": "法术提取碎片",

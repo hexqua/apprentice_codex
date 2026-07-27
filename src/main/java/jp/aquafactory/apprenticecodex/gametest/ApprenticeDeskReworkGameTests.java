@@ -8,6 +8,9 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskMenu;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkItem;
+import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkState;
 import jp.aquafactory.apprenticecodex.item.magicitem.WoodenWand;
 import jp.aquafactory.apprenticecodex.item.magicitem.WoodenWandDurabilityEvent;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
@@ -39,7 +42,9 @@ public final class ApprenticeDeskReworkGameTests {
     @GameTest(template = TEMPLATE, batch = DESK_SPELL_CONFIG_BATCH)
     public static void apprenticeDeskCraftsWandAndKeepsFocus(GameTestHelper helper) {
         var previousSpellConfigManager = SpellConfigManager.INSTANCE;
-        try {
+        try (var ignored = ApprenticeCodexServerConfig.useApprenticeDeskInkConfigOverrideForGameTest(
+                5, 4, 3, 3, 2, true
+        )) {
             SpellConfigManager.INSTANCE = new SpellConfigManager();
             SpellConfigManager.INSTANCE.handleServerConfigUpdate();
             SpellConfigManager.onDatapackSync(new OnDatapackSyncEvent(
@@ -57,7 +62,7 @@ public final class ApprenticeDeskReworkGameTests {
             );
             menu.container.setItem(
                     ApprenticeDeskMenu.INK_SLOT,
-                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INK_LEGENDARY.get(), 2)
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INK_LEGENDARY.get())
             );
             menu.container.setItem(ApprenticeDeskMenu.WAND_BASE_SLOT, new ItemStack(Items.STICK, 2));
             menu.container.setItem(
@@ -88,12 +93,26 @@ public final class ApprenticeDeskReworkGameTests {
 
             var taken = resultSlot.remove(1);
             resultSlot.onTake(player, taken);
-            helper.assertTrue(menu.container.getItem(ApprenticeDeskMenu.INK_SLOT).getCount() == 1,
-                    "Taking a wand did not consume exactly one ink");
+            var partiallyUsedInk = menu.container.getItem(ApprenticeDeskMenu.INK_SLOT);
+            var inkState = PartiallyUsedInkState.readValid(partiallyUsedInk).orElse(null);
+            helper.assertTrue(inkState != null
+                            && inkState.source() == PartiallyUsedInkState.OfficialInk.LEGENDARY
+                            && inkState.remainingUses() == 1
+                            && inkState.capacity() == 2,
+                    "Taking the first wand did not convert Legendary ink to a 1/2 partially used ink");
             helper.assertTrue(menu.container.getItem(ApprenticeDeskMenu.WAND_BASE_SLOT).getCount() == 1,
                     "Taking a wand did not consume exactly one wand base");
             helper.assertTrue(menu.container.getItem(ApprenticeDeskMenu.FOCUS_SLOT).is(Items.BLAZE_ROD),
                     "Taking a wand consumed the school focus");
+
+            var secondResult = resultSlot.remove(1);
+            resultSlot.onTake(player, secondResult);
+            helper.assertTrue(menu.container.getItem(ApprenticeDeskMenu.INK_SLOT).is(Items.GLASS_BOTTLE),
+                    "Taking the final wand did not replace depleted ink with a glass bottle");
+            helper.assertTrue(menu.container.getItem(ApprenticeDeskMenu.WAND_BASE_SLOT).isEmpty(),
+                    "Taking the second wand did not consume the remaining wand base");
+            helper.assertTrue(menu.container.getItem(ApprenticeDeskMenu.FOCUS_SLOT).is(Items.BLAZE_ROD),
+                    "Taking the second wand consumed the school focus");
 
             var magicData = MagicData.getPlayerMagicData(player);
             var maxMana = player.getAttribute(
@@ -136,6 +155,104 @@ public final class ApprenticeDeskReworkGameTests {
         } finally {
             SpellConfigManager.INSTANCE = previousSpellConfigManager;
         }
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void partiallyUsedInkSupportsOnlyOfficialRaritiesAndCustomCharges(GameTestHelper helper) {
+        for (var source : PartiallyUsedInkState.OfficialInk.values()) {
+            var stack = PartiallyUsedInkState.create(source, source.creativeDefaultCapacity());
+            var state = PartiallyUsedInkState.readValid(stack).orElse(null);
+            helper.assertTrue(state != null
+                            && state.source() == source
+                            && state.source().rarity() == source.rarity()
+                            && state.remainingUses() == source.creativeDefaultCapacity()
+                            && state.capacity() == source.creativeDefaultCapacity(),
+                    "Partially used ink state did not preserve " + source + " rarity and capacity");
+            helper.assertTrue(PartiallyUsedInkState.getModelProperty(stack) == source.modelProperty(),
+                    "Partially used ink exposed the wrong model property for " + source);
+        }
+
+        var stack = PartiallyUsedInkState.create(PartiallyUsedInkState.OfficialInk.COMMON, 5, 2);
+        helper.assertTrue(!stack.isDamageableItem() && stack.getDamageValue() == 0,
+                "Partially used ink unexpectedly uses vanilla item damage");
+        helper.assertTrue(stack.getItem() instanceof PartiallyUsedInkItem,
+                "Partially used ink was registered with the wrong item class");
+        helper.assertFalse(stack.getItem() instanceof io.redspace.ironsspellbooks.item.InkItem,
+                "Partially used ink inherited Iron's InkItem and may be accepted by fluid integrations");
+        helper.assertFalse(stack.isEnchantable(),
+                "Partially used ink unexpectedly allows enchanting");
+        helper.assertFalse(Enchantments.UNBREAKING.canEnchant(stack) || Enchantments.MENDING.canEnchant(stack),
+                "Partially used ink unexpectedly accepts durability enchantments");
+        helper.assertTrue(stack.getItem().isBarVisible(stack),
+                "Partially used ink did not expose its remaining-use bar");
+        helper.assertTrue(stack.getItem().getBarWidth(stack) == 5,
+                "Partially used ink returned the wrong remaining-use bar width");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void apprenticeDeskRejectsBrokenInkAndLimitsReusableInputs(GameTestHelper helper) {
+        var player = createPlayer(helper, "apprentice_desk_broken_ink_test");
+        var menu = new ApprenticeDeskMenu(0, player.getInventory(), ContainerLevelAccess.NULL);
+
+        helper.assertTrue(menu.getSlot(ApprenticeDeskMenu.INK_SLOT).getMaxStackSize() == 1,
+                "Apprentice Desk ink slot accepts more than one item");
+        helper.assertTrue(menu.getSlot(ApprenticeDeskMenu.FOCUS_SLOT).getMaxStackSize() == 1,
+                "Apprentice Desk focus slot accepts more than one item");
+        helper.assertTrue(menu.getSlot(ApprenticeDeskMenu.WAND_BASE_SLOT).getMaxStackSize() > 1,
+                "Apprentice Desk wand-base slot no longer supports batch crafting");
+
+        var unknownInk = new ItemStack(ItemRegistry.PARTIALLY_USED_INK.get());
+        helper.assertTrue(unknownInk.getHoverName().getContents() instanceof TranslatableContents contents
+                        && "item.apprenticecodex.partially_used_ink.unknown".equals(contents.getKey()),
+                "Partially used ink with missing NBT did not use the unknown name");
+        helper.assertTrue(PartiallyUsedInkState.readValid(unknownInk).isEmpty(),
+                "Partially used ink with missing NBT was treated as usable");
+        helper.assertTrue(PartiallyUsedInkState.getModelProperty(unknownInk)
+                        == PartiallyUsedInkState.OfficialInk.COMMON.modelProperty(),
+                "Partially used ink with missing NBT did not fall back to the Common model");
+
+        menu.container.setItem(ApprenticeDeskMenu.INK_SLOT, unknownInk);
+        menu.container.setItem(ApprenticeDeskMenu.WAND_BASE_SLOT, new ItemStack(Items.STICK));
+        menu.container.setItem(ApprenticeDeskMenu.FOCUS_SLOT, new ItemStack(Items.BLAZE_ROD));
+        helper.assertFalse(menu.hasAllInputs(),
+                "Apprentice Desk accepted partially used ink with missing NBT");
+
+        var brokenCharges = PartiallyUsedInkState.create(PartiallyUsedInkState.OfficialInk.RARE, 3);
+        brokenCharges.getOrCreateTag()
+                .getCompound("ApprenticeDeskInk")
+                .putInt("RemainingUses", 4);
+        helper.assertTrue(PartiallyUsedInkState.readSourceOnly(brokenCharges)
+                        .orElse(null) == PartiallyUsedInkState.OfficialInk.RARE,
+                "Broken charge data discarded the valid source-ink identity");
+        helper.assertTrue(PartiallyUsedInkState.readValid(brokenCharges).isEmpty(),
+                "Out-of-range remaining uses were treated as valid");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void partiallyUsedInkDepletionHonorsServerBottleSetting(GameTestHelper helper) {
+        try (var ignored = ApprenticeCodexServerConfig.useApprenticeDeskInkConfigOverrideForGameTest(
+                1, 2, 3, 4, 5, false
+        )) {
+            helper.assertTrue(ApprenticeCodexServerConfig.apprenticeDeskInkMaxUses(SpellRarity.COMMON) == 1,
+                    "Apprentice Desk Common ink use-count override was not applied");
+            helper.assertFalse(ApprenticeCodexServerConfig.apprenticeDeskReturnGlassBottleWhenInkDepleted(),
+                    "Apprentice Desk bottle-return override was not applied");
+            helper.assertTrue(PartiallyUsedInkState.consumeOriginal(
+                    PartiallyUsedInkState.OfficialInk.COMMON,
+                    ApprenticeCodexServerConfig.apprenticeDeskInkMaxUses(SpellRarity.COMMON),
+                    ApprenticeCodexServerConfig.apprenticeDeskReturnGlassBottleWhenInkDepleted()
+            ).isEmpty(), "A depleted ink remained when bottle return was disabled");
+        }
+
+        var bottled = PartiallyUsedInkState.consumePartiallyUsed(
+                PartiallyUsedInkState.create(PartiallyUsedInkState.OfficialInk.LEGENDARY, 2, 1),
+                true
+        );
+        helper.assertTrue(bottled.is(Items.GLASS_BOTTLE),
+                "A depleted partially used ink did not return a glass bottle");
+        helper.succeed();
     }
 
     @GameTest(template = TEMPLATE)

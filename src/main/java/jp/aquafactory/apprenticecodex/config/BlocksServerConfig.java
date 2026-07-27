@@ -46,6 +46,32 @@ final class BlocksServerConfig {
         return apprenticeDeskConfig.spellCraftBlacklist();
     }
 
+    int apprenticeDeskInkMaxUses(io.redspace.ironsspellbooks.api.spells.SpellRarity rarity) {
+        return apprenticeDeskConfig.inkMaxUses(rarity);
+    }
+
+    boolean apprenticeDeskReturnGlassBottleWhenInkDepleted() {
+        return apprenticeDeskConfig.returnGlassBottleWhenInkDepleted();
+    }
+
+    void setApprenticeDeskInkConfigForGameTest(
+            int common,
+            int uncommon,
+            int rare,
+            int epic,
+            int legendary,
+            boolean returnGlassBottle
+    ) {
+        apprenticeDeskConfig.setInkConfigForGameTest(
+                common,
+                uncommon,
+                rare,
+                epic,
+                legendary,
+                returnGlassBottle
+        );
+    }
+
     int arcanumInAJarTicksPerStoredParameter() {
         return arcanumInAJarConfig.ticksPerStoredParameter();
     }
