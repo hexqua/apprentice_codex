@@ -2,5 +2,13 @@
   "parent": "item/handheld",
   "textures": {
     "layer0": "apprenticecodex:item/wooden_wand"
-  }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "apprenticecodex:spell_cooldown": 1.0
+      },
+      "model": "apprenticecodex:item/wooden_wand_cooldown"
+    }
+  ]
 }
