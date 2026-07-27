@@ -23,6 +23,13 @@
   "block.apprenticecodex.otherworld_lens_lens" : "Otherworld Lens",
   "block.apprenticecodex.wizardlamp_lantern": "Wizard's Lantern",
 
+  "item.apprenticecodex.partially_used_ink": "Partially Used Ink",
+  "item.apprenticecodex.partially_used_ink.named": "Partially Used %1$s",
+  "item.apprenticecodex.partially_used_ink.unknown": "Partially Used Mysterious Ink",
+  "item.apprenticecodex.partially_used_ink.desc": "Partially used; it can only be used to craft wands.",
+  "item.apprenticecodex.partially_used_ink.remaining": "Uses remaining: %1$d/%2$d",
+  "item.apprenticecodex.partially_used_ink.remaining_unknown": "Uses remaining: Unknown",
+
   "item.apprenticecodex.arcane_cinder": "Arcane Cinder",
   "item.apprenticecodex.wisdom_shard": "Shard of Wisdom",
   "item.apprenticecodex.spell_extract_shard": "Shard of Spell Extraction",

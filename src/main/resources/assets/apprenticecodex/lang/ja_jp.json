@@ -23,6 +23,13 @@
   "block.apprenticecodex.otherworld_lens_lens" : "異界の水晶",
   "block.apprenticecodex.wizardlamp_lantern": "魔術師のランタン",
 
+  "item.apprenticecodex.partially_used_ink": "使いかけのインク",
+  "item.apprenticecodex.partially_used_ink.named": "使いかけの%1$s",
+  "item.apprenticecodex.partially_used_ink.unknown": "使いかけの謎のインク",
+  "item.apprenticecodex.partially_used_ink.desc": "使いかけのため、ワンドを作る用途にしか使えない。",
+  "item.apprenticecodex.partially_used_ink.remaining": "残り使用回数: %1$d/%2$d",
+  "item.apprenticecodex.partially_used_ink.remaining_unknown": "残り使用回数: 不明",
+
   "item.apprenticecodex.arcane_cinder": "神秘の燃え殻",
   "item.apprenticecodex.wisdom_shard": "叡智の破片",
   "item.apprenticecodex.spell_extract_shard": "術式抽出の破片",

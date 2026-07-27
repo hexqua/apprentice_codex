@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightClientCompat;
 import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBuiltinTemplateSupport;
 import jp.aquafactory.apprenticecodex.compat.sodiumdynamiclights.SodiumDynamicLightsLuminousDeviceCompat;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkState;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import jp.aquafactory.apprenticecodex.item.magicitem.client.WoodenWandClientRenderState;
 import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
@@ -212,6 +213,12 @@ public final class ClientModBusEvents {
                 // Iron's のクライアント同期状態だけを描画に使い、表示用 NBT は追加しない。
                 (stack, level, living, seed) ->
                         WoodenWandClientRenderState.isImbuedSpellOnCooldown(stack) ? 1.0F : 0.0F
+        ));
+        event.enqueueWork(() -> ItemProperties.register(
+                ItemRegistry.PARTIALLY_USED_INK.get(),
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "ink_rarity"),
+                // 1.20.1 の NBT モデル判定は client 接着コードとし、状態の解釈自体は共通ヘルパーへ寄せる。
+                (stack, level, living, seed) -> PartiallyUsedInkState.getModelProperty(stack)
         ));
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),

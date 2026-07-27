@@ -1,0 +1,29 @@
+{
+  "parent": "irons_spellbooks:item/common_ink",
+  "overrides": [
+    {
+      "predicate": {
+        "apprenticecodex:ink_rarity": 1.0
+      },
+      "model": "apprenticecodex:item/partially_used_ink_uncommon"
+    },
+    {
+      "predicate": {
+        "apprenticecodex:ink_rarity": 2.0
+      },
+      "model": "apprenticecodex:item/partially_used_ink_rare"
+    },
+    {
+      "predicate": {
+        "apprenticecodex:ink_rarity": 3.0
+      },
+      "model": "apprenticecodex:item/partially_used_ink_epic"
+    },
+    {
+      "predicate": {
+        "apprenticecodex:ink_rarity": 4.0
+      },
+      "model": "apprenticecodex:item/partially_used_ink_legendary"
+    }
+  ]
+}

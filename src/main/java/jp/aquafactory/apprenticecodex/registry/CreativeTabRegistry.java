@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
+import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkState;
 import jp.aquafactory.apprenticecodex.potion.SchoolAffinityPotion;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.core.registries.Registries;
@@ -42,6 +43,9 @@ public final class CreativeTabRegistry {
 
     private static void addItemsToTab(CreativeModeTab.ItemDisplayParameters params, CreativeModeTab.Output output) {
         output.accept(ItemRegistry.APPRENTICE_DESK.get());
+        for (var source : PartiallyUsedInkState.OfficialInk.values()) {
+            output.accept(PartiallyUsedInkState.create(source, source.creativeDefaultCapacity()));
+        }
         output.accept(ItemRegistry.SPELLCASTER_WORKBENCH.get());
         output.accept(ItemRegistry.SPELL_CALIBRATION_BENCH.get());
         output.accept(ItemRegistry.SPELL_DISPENSER.get());
