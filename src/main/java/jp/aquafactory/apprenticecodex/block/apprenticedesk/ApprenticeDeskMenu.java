@@ -3,16 +3,19 @@ package jp.aquafactory.apprenticecodex.block.apprenticedesk;
 import com.google.common.collect.Lists;
 import io.redspace.ironsspellbooks.api.config.SpellConfigManager;
 import io.redspace.ironsspellbooks.api.config.SpellConfigParameter;
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
-import io.redspace.ironsspellbooks.registries.ItemRegistry;
+import io.redspace.ironsspellbooks.util.ModTags;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkState;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -25,30 +28,35 @@ import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class ApprenticeDeskMenu extends AbstractContainerMenu {
-    public static final int INPUT_SLOT = 0;
-    public static final int RESULT_SLOT = 1;
-    private static final int INVENTORY_SLOT_START = 2;
-    private static final int INVENTORY_SLOT_END = 29;
-    private static final int HOTBAR_SLOT_START = 29;
-    private static final int HOTBAR_SLOT_END = 38;
-    private static final int NO_TARGET_RARITY = -1;
+    public static final int INK_SLOT = 0;
+    public static final int WAND_BASE_SLOT = 1;
+    public static final int FOCUS_SLOT = 2;
+    public static final int RESULT_SLOT = 3;
+    private static final int INVENTORY_SLOT_START = 4;
+    private static final int INVENTORY_SLOT_END = 31;
+    private static final int HOTBAR_SLOT_START = 31;
+    private static final int HOTBAR_SLOT_END = 40;
 
     private final ContainerLevelAccess access;
     private final DataSlot selectedRecipeIndex = DataSlot.standalone();
     private final List<AbstractSpell> availableSpells = Lists.newArrayList();
 
     long lastSoundTime;
-    final Slot inputSlot;
+    final Slot inkSlot;
+    final Slot wandBaseSlot;
+    final Slot focusSlot;
     final Slot resultSlot;
     Runnable slotUpdateListener = () -> {};
 
-    public final Container container = new SimpleContainer(1) {
+    public final Container container = new SimpleContainer(3) {
         @Override
         public void setChanged() {
             super.setChanged();
@@ -67,13 +75,35 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
         super(MenuRegistry.APPRENTICE_DESK.get(), containerId);
         access = containerAccess;
 
-        inputSlot = addSlot(new Slot(container, INPUT_SLOT, 18, 17) {
+        inkSlot = addSlot(new Slot(container, INK_SLOT, 12, 17) {
             @Override
             public boolean mayPlace(@NotNull ItemStack stack) {
-                return isValidInputItem(stack);
+                return isValidInk(stack);
+            }
+
+            @Override
+            public int getMaxStackSize() {
+                return 1;
             }
         });
-        resultSlot = addSlot(new Slot(resultContainer, RESULT_SLOT, 18, 47) {
+        wandBaseSlot = addSlot(new Slot(container, WAND_BASE_SLOT, 35, 17) {
+            @Override
+            public boolean mayPlace(@NotNull ItemStack stack) {
+                return isValidWandBase(stack);
+            }
+        });
+        focusSlot = addSlot(new Slot(container, FOCUS_SLOT, 58, 17) {
+            @Override
+            public boolean mayPlace(@NotNull ItemStack stack) {
+                return isValidFocus(stack);
+            }
+
+            @Override
+            public int getMaxStackSize() {
+                return 1;
+            }
+        });
+        resultSlot = addSlot(new Slot(resultContainer, 0, 35, 47) {
             @Override
             public boolean mayPlace(@NotNull ItemStack stack) {
                 return false;
@@ -82,13 +112,21 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
             @Override
             public void onTake(@NotNull Player player, @NotNull ItemStack stack) {
                 stack.onCraftedBy(player.level(), player, stack.getCount());
-                ApprenticeDeskMenu.this.inputSlot.remove(1);
+                ApprenticeDeskMenu.this.consumeInk();
+                ApprenticeDeskMenu.this.wandBaseSlot.remove(1);
                 ApprenticeDeskMenu.this.setupResultSlot();
 
-                containerAccess.execute((targetLevel, targetPos) -> {
+                access.execute((targetLevel, targetPos) -> {
                     var gameTime = targetLevel.getGameTime();
                     if (ApprenticeDeskMenu.this.lastSoundTime != gameTime) {
-                        targetLevel.playSound(null, targetPos, SoundRegistry.VANILLA_USE_DESK.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+                        targetLevel.playSound(
+                                null,
+                                targetPos,
+                                SoundRegistry.VANILLA_USE_DESK.get(),
+                                SoundSource.BLOCKS,
+                                1.0F,
+                                1.0F
+                        );
                         ApprenticeDeskMenu.this.lastSoundTime = gameTime;
                     }
                 });
@@ -98,12 +136,12 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
 
         for (var row = 0; row < 3; ++row) {
             for (var col = 0; col < 9; ++col) {
-                addSlot(new Slot(inventory, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
+                addSlot(new Slot(inventory, col + row * 9 + 9, 29 + col * 18, 84 + row * 18));
             }
         }
 
         for (var col = 0; col < 9; ++col) {
-            addSlot(new Slot(inventory, col, 8 + col * 18, 142));
+            addSlot(new Slot(inventory, col, 29 + col * 18, 142));
         }
 
         addDataSlot(selectedRecipeIndex);
@@ -119,8 +157,21 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
         return availableSpells;
     }
 
-    public boolean hasInputItem() {
-        return isValidInputItem(inputSlot.getItem());
+    public Slot getInkSlot() {
+        return inkSlot;
+    }
+
+    public boolean hasAllInputs() {
+        return isValidInk(inkSlot.getItem())
+                && isValidWandBase(wandBaseSlot.getItem())
+                && isValidFocus(focusSlot.getItem());
+    }
+
+    public boolean canInkCraft(AbstractSpell spell) {
+        var inkRarity = getInkRarity();
+        return inkRarity != null
+                && SpellConfigManager.getSpellConfigValue(spell, SpellConfigParameter.MIN_RARITY).getValue()
+                <= inkRarity.getValue();
     }
 
     @Override
@@ -130,128 +181,147 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
 
     @Override
     public boolean clickMenuButton(@NotNull Player player, int recipeIndex) {
-        if (isValidSpellIndex(recipeIndex)) {
-            selectedRecipeIndex.set(recipeIndex);
-            setupResultSlot();
-            return true;
+        if (!hasAllInputs() || !isValidSpellIndex(recipeIndex)) {
+            return false;
         }
 
-        return false;
+        var spell = availableSpells.get(recipeIndex);
+        if (!canInkCraft(spell) || !spell.canBeCraftedBy(player)) {
+            return false;
+        }
+
+        selectedRecipeIndex.set(recipeIndex);
+        setupResultSlot();
+        return true;
     }
 
     private boolean isValidSpellIndex(int recipeIndex) {
         return recipeIndex >= 0 && recipeIndex < availableSpells.size();
     }
 
-    private boolean isValidInputItem(ItemStack stack) {
-        return stack.is(ItemRegistry.SCROLL.get());
+    private static boolean isValidInk(ItemStack stack) {
+        return !stack.isEmpty()
+                && (PartiallyUsedInkState.OfficialInk.fromOriginal(stack) != null
+                || PartiallyUsedInkState.readValid(stack).isPresent());
+    }
+
+    private static boolean isValidWandBase(ItemStack stack) {
+        return stack.is(TagRegistry.Items.WAND_BASE);
+    }
+
+    private static boolean isValidFocus(ItemStack stack) {
+        return stack.is(ModTags.SCHOOL_FOCUS) || getScrollSpell(stack) != null;
     }
 
     @Override
-    public void slotsChanged(@NotNull Container container) {
+    public void slotsChanged(@NotNull Container changedContainer) {
+        var previousSelection = isValidSpellIndex(selectedRecipeIndex.get())
+                ? availableSpells.get(selectedRecipeIndex.get())
+                : null;
         refreshAvailableSpells();
-        if (!isValidSpellIndex(selectedRecipeIndex.get())) {
+        selectedRecipeIndex.set(previousSelection == null ? -1 : availableSpells.indexOf(previousSelection));
+        if (!hasAllInputs() || !isValidSpellIndex(selectedRecipeIndex.get())) {
             selectedRecipeIndex.set(-1);
         }
         setupResultSlot();
     }
 
     void setupResultSlot() {
-        if (hasInputItem() && isValidSpellIndex(selectedRecipeIndex.get())) {
+        var result = ItemStack.EMPTY;
+        if (hasAllInputs() && isValidSpellIndex(selectedRecipeIndex.get())) {
             var spell = availableSpells.get(selectedRecipeIndex.get());
-            var result = new ItemStack(ItemRegistry.SCROLL.get());
-            ISpellContainer.createScrollContainer(spell, 1, result);
-            resultSlot.set(result);
-        } else {
-            resultSlot.set(ItemStack.EMPTY);
+            if (canInkCraft(spell)) {
+                var inkRarity = getInkRarity();
+                var spellLevel = spell.getMinLevelForRarity(inkRarity);
+                result = new ItemStack(jp.aquafactory.apprenticecodex.registry.ItemRegistry.WOODEN_WAND.get());
+                var spellContainer = ISpellContainer.create(1, false, false).mutableCopy();
+                spellContainer.addSpellAtIndex(spell, spellLevel, 0, true);
+                ISpellContainer.set(result, spellContainer.toImmutable());
+            }
         }
 
+        resultSlot.set(result);
         broadcastChanges();
     }
 
     private void refreshAvailableSpells() {
-        var targetMinRarity = getTargetMinRarity();
+        var schools = getFocusSchools();
+        var spellCraftBlacklist = getSpellCraftBlacklist();
         availableSpells.clear();
-        if (targetMinRarity == NO_TARGET_RARITY) {
+        if (schools.isEmpty()) {
             return;
         }
 
-        var sourceSpell = getSourceSpell();
-        var spellCraftBlacklist = getSpellCraftBlacklist();
-        availableSpells.addAll(
-                SpellRegistry.getEnabledSpells()
-                        .stream()
-                        .filter(AbstractSpell::allowCrafting)
-                        .filter(spell -> SpellConfigManager.getSpellConfigValue(spell, SpellConfigParameter.MIN_RARITY).getValue() == targetMinRarity)
-                        .filter(spell -> isAllowedBySameSchoolSetting(spell, sourceSpell))
-                        .filter(spell -> !spellCraftBlacklist.contains(spell.getSpellId()))
-                        .toList()
-        );
-
-        // getDisplayNameのプレイヤーは未解禁時の難読化用なのでソートには使わない.
+        availableSpells.addAll(SpellRegistry.getEnabledSpells().stream()
+                .filter(AbstractSpell::allowCrafting)
+                .filter(spell -> schools.contains(spell.getSchoolType()))
+                .filter(spell -> !spellCraftBlacklist.contains(spell.getSpellId()))
+                .toList());
         availableSpells.sort(Comparator
-                .comparing(this::getSchoolTypeSortKey)
+                .comparingInt((AbstractSpell spell) ->
+                        SpellConfigManager.getSpellConfigValue(spell, SpellConfigParameter.MIN_RARITY).getValue())
+                .thenComparing(spell -> spell.getSchoolType().getId().toString())
                 .thenComparing(spell -> spell.getDisplayName(null).getString()));
     }
 
-    private int getTargetMinRarity() {
-        var sourceSpellData = getSourceSpellData();
-        if (sourceSpellData == null) {
-            return SpellRarity.COMMON.getValue();
+    private Set<io.redspace.ironsspellbooks.api.spells.SchoolType> getFocusSchools() {
+        var focusStack = focusSlot.getItem();
+        if (focusStack.is(ModTags.SCHOOL_FOCUS)) {
+            return new HashSet<>(SchoolRegistry.getSchoolsFromFocus(focusStack));
         }
 
-        // Scroll は 1 スロット構成のため、先頭呪文のレアリティを基準に候補を決定する。
-        var sourceRarityValue = sourceSpellData.getRarity().getValue();
-        if (ApprenticeCodexServerConfig.apprenticeDeskDisableCommonRarityConversion()
-                && sourceRarityValue <= SpellRarity.COMMON.getValue()) {
-            return NO_TARGET_RARITY;
-        }
-
-        return Math.max(sourceRarityValue - 1, SpellRarity.COMMON.getValue());
+        var scrollSpell = getScrollSpell(focusStack);
+        return scrollSpell == null ? Set.of() : Set.of(scrollSpell.getSpell().getSchoolType());
     }
 
-    private SpellData getSourceSpellData() {
-        var inputItem = inputSlot.getItem();
-        if (!isValidInputItem(inputItem) || !ISpellContainer.isSpellContainer(inputItem)) {
+    private @Nullable SpellRarity getInkRarity() {
+        var stack = inkSlot.getItem();
+        var original = PartiallyUsedInkState.OfficialInk.fromOriginal(stack);
+        if (original != null) {
+            return original.rarity();
+        }
+        return PartiallyUsedInkState.readValid(stack)
+                .map(state -> state.source().rarity())
+                .orElse(null);
+    }
+
+    private void consumeInk() {
+        var stack = inkSlot.getItem();
+        var returnGlassBottle =
+                ApprenticeCodexServerConfig.apprenticeDeskReturnGlassBottleWhenInkDepleted();
+        var original = PartiallyUsedInkState.OfficialInk.fromOriginal(stack);
+        if (original != null) {
+            inkSlot.set(PartiallyUsedInkState.consumeOriginal(
+                    original,
+                    ApprenticeCodexServerConfig.apprenticeDeskInkMaxUses(original.rarity()),
+                    returnGlassBottle
+            ));
+            return;
+        }
+        if (PartiallyUsedInkState.readValid(stack).isPresent()) {
+            inkSlot.set(PartiallyUsedInkState.consumePartiallyUsed(stack, returnGlassBottle));
+        }
+    }
+
+    private static @Nullable SpellData getScrollSpell(ItemStack stack) {
+        if (!stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get())
+                || !ISpellContainer.isSpellContainer(stack)) {
             return null;
         }
 
-        var spellContainer = ISpellContainer.get(inputItem);
-        if (spellContainer == null || spellContainer.isEmpty()) {
+        var container = ISpellContainer.get(stack);
+        if (container == null || container.isEmpty()) {
             return null;
         }
-
-        var spellData = spellContainer.getSpellAtIndex(0);
-        return spellData == SpellData.EMPTY ? null : spellData;
-    }
-
-    private AbstractSpell getSourceSpell() {
-        var spellData = getSourceSpellData();
-        return spellData == null ? null : spellData.getSpell();
-    }
-
-    private boolean isAllowedBySameSchoolSetting(AbstractSpell spell, AbstractSpell sourceSpell) {
-        if (!ApprenticeCodexServerConfig.apprenticeDeskRequireSameSchool()) {
-            return true;
-        }
-
-        if (sourceSpell == null) {
-            return false;
-        }
-
-        return spell.getSchoolType().equals(sourceSpell.getSchoolType());
+        var spellData = container.getSpellAtIndex(0);
+        return spellData == SpellData.EMPTY || spellData.getSpell() == null ? null : spellData;
     }
 
     private Set<String> getSpellCraftBlacklist() {
         if (!ApprenticeCodexServerConfig.apprenticeDeskEnableSpellCraftBlacklist()) {
             return Set.of();
         }
-
         return Set.copyOf(ApprenticeCodexServerConfig.apprenticeDeskSpellCraftBlacklist());
-    }
-
-    private String getSchoolTypeSortKey(AbstractSpell spell) {
-        return spell.getSchoolType().getId().toString();
     }
 
     @Override
@@ -263,53 +333,65 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
     public @NotNull ItemStack quickMoveStack(@NotNull Player player, int slotIndex) {
         var moved = ItemStack.EMPTY;
         var slot = slots.get(slotIndex);
-        if (slot.hasItem()) {
-            var stackInSlot = slot.getItem();
-            var item = stackInSlot.getItem();
-            moved = stackInSlot.copy();
-            if (slotIndex == RESULT_SLOT) {
-                item.onCraftedBy(stackInSlot, player.level(), player);
-                if (!moveItemStackTo(stackInSlot, INVENTORY_SLOT_START, HOTBAR_SLOT_END, true)) {
-                    return ItemStack.EMPTY;
-                }
-
-                slot.onQuickCraft(stackInSlot, moved);
-            } else if (slotIndex == INPUT_SLOT) {
-                if (!moveItemStackTo(stackInSlot, INVENTORY_SLOT_START, HOTBAR_SLOT_END, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (slotIndex >= INVENTORY_SLOT_START && slotIndex < HOTBAR_SLOT_END) {
-                if (!moveItemStackTo(stackInSlot, INPUT_SLOT, RESULT_SLOT, false)) {
-                    if (slotIndex < INVENTORY_SLOT_END) {
-                        if (!moveItemStackTo(stackInSlot, HOTBAR_SLOT_START, HOTBAR_SLOT_END, false)) {
-                            return ItemStack.EMPTY;
-                        }
-                    } else if (!moveItemStackTo(stackInSlot, INVENTORY_SLOT_START, INVENTORY_SLOT_END, false)) {
-                        return ItemStack.EMPTY;
-                    }
-                }
-            }
-
-            if (stackInSlot.isEmpty()) {
-                slot.setByPlayer(ItemStack.EMPTY);
-            }
-
-            slot.setChanged();
-            if (stackInSlot.getCount() == moved.getCount()) {
-                return ItemStack.EMPTY;
-            }
-
-            slot.onTake(player, stackInSlot);
-            broadcastChanges();
+        if (!slot.hasItem()) {
+            return moved;
         }
 
+        var stackInSlot = slot.getItem();
+        moved = stackInSlot.copy();
+        if (slotIndex == RESULT_SLOT) {
+            if (!moveItemStackTo(stackInSlot, INVENTORY_SLOT_START, HOTBAR_SLOT_END, true)) {
+                return ItemStack.EMPTY;
+            }
+            slot.onQuickCraft(stackInSlot, moved);
+        } else if (slotIndex >= INK_SLOT && slotIndex < RESULT_SLOT) {
+            if (!moveItemStackTo(stackInSlot, INVENTORY_SLOT_START, HOTBAR_SLOT_END, false)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (slotIndex >= INVENTORY_SLOT_START && slotIndex < HOTBAR_SLOT_END) {
+            var targetSlot = getInputTargetSlot(stackInSlot);
+            if (targetSlot < 0 || !moveItemStackTo(stackInSlot, targetSlot, targetSlot + 1, false)) {
+                if (slotIndex < INVENTORY_SLOT_END) {
+                    if (!moveItemStackTo(stackInSlot, HOTBAR_SLOT_START, HOTBAR_SLOT_END, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else if (!moveItemStackTo(stackInSlot, INVENTORY_SLOT_START, INVENTORY_SLOT_END, false)) {
+                    return ItemStack.EMPTY;
+                }
+            }
+        }
+
+        if (stackInSlot.isEmpty()) {
+            slot.setByPlayer(ItemStack.EMPTY);
+        } else {
+            slot.setChanged();
+        }
+        if (stackInSlot.getCount() == moved.getCount()) {
+            return ItemStack.EMPTY;
+        }
+
+        slot.onTake(player, stackInSlot);
+        broadcastChanges();
         return moved;
+    }
+
+    private static int getInputTargetSlot(ItemStack stack) {
+        if (isValidInk(stack)) {
+            return INK_SLOT;
+        }
+        if (isValidWandBase(stack)) {
+            return WAND_BASE_SLOT;
+        }
+        if (isValidFocus(stack)) {
+            return FOCUS_SLOT;
+        }
+        return -1;
     }
 
     @Override
     public void removed(@NotNull Player player) {
         super.removed(player);
-        resultContainer.removeItemNoUpdate(RESULT_SLOT);
+        resultContainer.removeItemNoUpdate(0);
         access.execute((targetLevel, targetPos) -> clearContainer(player, container));
     }
 }

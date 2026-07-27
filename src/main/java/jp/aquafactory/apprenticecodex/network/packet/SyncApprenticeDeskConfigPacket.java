@@ -9,19 +9,33 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public final class SyncApprenticeDeskConfigPacket {
-    private final boolean disableNonJobSiteFeatures;
-
-    public SyncApprenticeDeskConfigPacket(boolean disableNonJobSiteFeatures) {
-        this.disableNonJobSiteFeatures = disableNonJobSiteFeatures;
-    }
+public record SyncApprenticeDeskConfigPacket(
+        boolean disableNonJobSiteFeatures,
+        int commonInkMaxUses,
+        int uncommonInkMaxUses,
+        int rareInkMaxUses,
+        int epicInkMaxUses,
+        int legendaryInkMaxUses
+) {
 
     public static void encode(SyncApprenticeDeskConfigPacket packet, FriendlyByteBuf buffer) {
-        buffer.writeBoolean(packet.disableNonJobSiteFeatures);
+        buffer.writeBoolean(packet.disableNonJobSiteFeatures());
+        buffer.writeVarInt(packet.commonInkMaxUses());
+        buffer.writeVarInt(packet.uncommonInkMaxUses());
+        buffer.writeVarInt(packet.rareInkMaxUses());
+        buffer.writeVarInt(packet.epicInkMaxUses());
+        buffer.writeVarInt(packet.legendaryInkMaxUses());
     }
 
     public static SyncApprenticeDeskConfigPacket decode(FriendlyByteBuf buffer) {
-        return new SyncApprenticeDeskConfigPacket(buffer.readBoolean());
+        return new SyncApprenticeDeskConfigPacket(
+                buffer.readBoolean(),
+                buffer.readVarInt(),
+                buffer.readVarInt(),
+                buffer.readVarInt(),
+                buffer.readVarInt(),
+                buffer.readVarInt()
+        );
     }
 
     public static void handle(SyncApprenticeDeskConfigPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
@@ -38,7 +52,14 @@ public final class SyncApprenticeDeskConfigPacket {
         }
 
         private static void handle(SyncApprenticeDeskConfigPacket packet) {
-            ApprenticeDeskFeatureState.setDisableNonJobSiteFeatures(packet.disableNonJobSiteFeatures);
+            ApprenticeDeskFeatureState.setDisableNonJobSiteFeatures(packet.disableNonJobSiteFeatures());
+            ApprenticeDeskFeatureState.setInkMaxUses(
+                    packet.commonInkMaxUses(),
+                    packet.uncommonInkMaxUses(),
+                    packet.rareInkMaxUses(),
+                    packet.epicInkMaxUses(),
+                    packet.legendaryInkMaxUses()
+            );
         }
     }
 }
