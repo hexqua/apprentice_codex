@@ -46,14 +46,6 @@ final class BlocksServerConfig {
         return apprenticeDeskConfig.spellCraftBlacklist();
     }
 
-    boolean apprenticeDeskRequireSameSchool() {
-        return apprenticeDeskConfig.requireSameSchool();
-    }
-
-    boolean apprenticeDeskDisableCommonRarityConversion() {
-        return apprenticeDeskConfig.disableCommonRarityConversion();
-    }
-
     int arcanumInAJarTicksPerStoredParameter() {
         return arcanumInAJarConfig.ticksPerStoredParameter();
     }

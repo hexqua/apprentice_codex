@@ -209,14 +209,6 @@ public final class ApprenticeCodexServerConfig {
         return BLOCKS_CONFIG.apprenticeDeskSpellCraftBlacklist();
     }
 
-    public static boolean apprenticeDeskRequireSameSchool() {
-        return BLOCKS_CONFIG.apprenticeDeskRequireSameSchool();
-    }
-
-    public static boolean apprenticeDeskDisableCommonRarityConversion() {
-        return BLOCKS_CONFIG.apprenticeDeskDisableCommonRarityConversion();
-    }
-
     public static boolean isSatelliteFollowcastAmuletSpellDenied(ResourceLocation spellId) {
         return ITEMS_CONFIG.isSatelliteFollowcastAmuletSpellDenied(spellId);
     }
