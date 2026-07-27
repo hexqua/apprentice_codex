@@ -273,6 +273,25 @@ public final class ApprenticeDeskReworkGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void apprenticeDeskQuickMoveFallsBackWhenInputIsFull(GameTestHelper helper) {
+        var player = createPlayer(helper, "apprentice_desk_quick_move_fallback_test");
+        var menu = new ApprenticeDeskMenu(0, player.getInventory(), ContainerLevelAccess.NULL);
+        var ink = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INK_COMMON.get());
+        menu.container.setItem(ApprenticeDeskMenu.INK_SLOT, ink.copy());
+        player.getInventory().setItem(9, ink.copy());
+
+        var moved = menu.quickMoveStack(player, 4);
+
+        helper.assertTrue(moved.is(ink.getItem()),
+                "Shift-clicking matching ink with a full input slot reported no movement");
+        helper.assertTrue(player.getInventory().getItem(9).isEmpty(),
+                "Shift-clicking matching ink with a full input slot left it in the main inventory");
+        helper.assertTrue(player.getInventory().getItem(0).is(ink.getItem()),
+                "Shift-clicking matching ink with a full input slot did not fall back to the hotbar");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void partiallyUsedInkDepletionHonorsServerBottleSetting(GameTestHelper helper) {
         try (var ignored = ApprenticeCodexServerConfig.useApprenticeDeskInkConfigOverrideForGameTest(
                 1, 2, 3, 4, 5, false

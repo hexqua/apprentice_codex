@@ -350,16 +350,14 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
             }
         } else if (slotIndex >= INVENTORY_SLOT_START && slotIndex < HOTBAR_SLOT_END) {
             var targetSlot = getInputTargetSlot(stackInSlot);
-            if (targetSlot >= 0) {
-                if (!moveItemStackTo(stackInSlot, targetSlot, targetSlot + 1, false)) {
+            if (targetSlot < 0 || !moveItemStackTo(stackInSlot, targetSlot, targetSlot + 1, false)) {
+                if (slotIndex < INVENTORY_SLOT_END) {
+                    if (!moveItemStackTo(stackInSlot, HOTBAR_SLOT_START, HOTBAR_SLOT_END, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else if (!moveItemStackTo(stackInSlot, INVENTORY_SLOT_START, INVENTORY_SLOT_END, false)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (slotIndex < INVENTORY_SLOT_END) {
-                if (!moveItemStackTo(stackInSlot, HOTBAR_SLOT_START, HOTBAR_SLOT_END, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (!moveItemStackTo(stackInSlot, INVENTORY_SLOT_START, INVENTORY_SLOT_END, false)) {
-                return ItemStack.EMPTY;
             }
         }
 
