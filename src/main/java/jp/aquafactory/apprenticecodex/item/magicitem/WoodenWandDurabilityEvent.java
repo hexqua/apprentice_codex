@@ -6,10 +6,11 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraft.world.entity.LivingEntity;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class WoodenWandDurabilityEvent {
     private WoodenWandDurabilityEvent() {
     }
@@ -35,6 +36,6 @@ public final class WoodenWandDurabilityEvent {
         var usedHand = player.getOffhandItem() == castingStack
                 ? InteractionHand.OFF_HAND
                 : InteractionHand.MAIN_HAND;
-        castingStack.hurtAndBreak(1, player, brokenPlayer -> brokenPlayer.broadcastBreakEvent(usedHand));
+        castingStack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(usedHand));
     }
 }

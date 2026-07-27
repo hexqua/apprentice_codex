@@ -1,15 +1,14 @@
 package jp.aquafactory.apprenticecodex.item.apprenticedesk;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -33,11 +32,11 @@ public final class PartiallyUsedInkItem extends Item {
     @Override
     public void appendHoverText(
             @NotNull ItemStack stack,
-            @Nullable Level level,
+            Item.@NotNull TooltipContext context,
             @NotNull List<Component> lines,
             @NotNull TooltipFlag flag
     ) {
-        super.appendHoverText(stack, level, lines, flag);
+        super.appendHoverText(stack, context, lines, flag);
         lines.add(Component.translatable("item.apprenticecodex.partially_used_ink.desc")
                 .withStyle(ChatFormatting.GRAY));
 
@@ -89,7 +88,12 @@ public final class PartiallyUsedInkItem extends Item {
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        return false;
+    }
+
+    @Override
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         return false;
     }
 

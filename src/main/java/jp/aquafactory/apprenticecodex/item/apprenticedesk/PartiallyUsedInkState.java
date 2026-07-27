@@ -2,12 +2,15 @@ package jp.aquafactory.apprenticecodex.item.apprenticedesk;
 
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -17,8 +20,8 @@ import java.util.function.Supplier;
 /**
  * 使いかけインクの永続状態を扱う。
  *
- * <p>1.20.1 では NBT を使うが、メニュー側へ保存形式を漏らさず、
- * 1.21.1 で Data Component へ置き換える範囲をこのクラスへ限定する。</p>
+ * <p>保存形式をメニュー側へ漏らさず、使いかけインク固有の
+ * Custom Data Component 操作をこのクラスへ集約する。</p>
  */
 public final class PartiallyUsedInkState {
     private static final String ROOT_TAG = "ApprenticeDeskInk";
@@ -55,8 +58,8 @@ public final class PartiallyUsedInkState {
 
         var root = getRootTag(stack);
         if (root == null
-                || !root.contains(REMAINING_USES_TAG, CompoundTag.TAG_INT)
-                || !root.contains(CAPACITY_TAG, CompoundTag.TAG_INT)) {
+                || !root.contains(REMAINING_USES_TAG, Tag.TAG_INT)
+                || !root.contains(CAPACITY_TAG, Tag.TAG_INT)) {
             return Optional.empty();
         }
 
@@ -109,12 +112,12 @@ public final class PartiallyUsedInkState {
         root.putString(SOURCE_INK_TAG, source.id().toString());
         root.putInt(REMAINING_USES_TAG, remainingUses);
         root.putInt(CAPACITY_TAG, capacity);
-        stack.getOrCreateTag().put(ROOT_TAG, root);
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.put(ROOT_TAG, root));
     }
 
     private static @Nullable OfficialInk readSource(ItemStack stack) {
         var root = getRootTag(stack);
-        if (root == null || !root.contains(SOURCE_INK_TAG, CompoundTag.TAG_STRING)) {
+        if (root == null || !root.contains(SOURCE_INK_TAG, Tag.TAG_STRING)) {
             return null;
         }
 
@@ -123,8 +126,12 @@ public final class PartiallyUsedInkState {
     }
 
     private static @Nullable CompoundTag getRootTag(ItemStack stack) {
-        var tag = stack.getTag();
-        return tag != null && tag.contains(ROOT_TAG, CompoundTag.TAG_COMPOUND)
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return null;
+        }
+        var tag = customData.copyTag();
+        return tag.contains(ROOT_TAG, Tag.TAG_COMPOUND)
                 ? tag.getCompound(ROOT_TAG)
                 : null;
     }

@@ -9,8 +9,8 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -86,7 +86,7 @@ public final class WoodenWand extends Item implements UniqueItem, WisdomPolicy, 
     }
 
     @Override
-    public int getUseDuration(@NotNull ItemStack stack) {
+    public int getUseDuration(@NotNull ItemStack stack, @NotNull LivingEntity entity) {
         return 7200;
     }
 
@@ -118,10 +118,15 @@ public final class WoodenWand extends Item implements UniqueItem, WisdomPolicy, 
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(@NotNull ItemStack stack, @NotNull Enchantment enchantment) {
-        return enchantment.canApplyAtEnchantingTable(DURABILITY_ENCHANTMENT_PROBE)
-                || enchantment == EnchantmentRegistry.WISDOM.get()
-                || enchantment == EnchantmentRegistry.PLUNDER.get();
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        return DURABILITY_ENCHANTMENT_PROBE.supportsEnchantment(enchantment)
+                || enchantment.is(jp.aquafactory.apprenticecodex.enchantment.Enchantments.WISDOM)
+                || enchantment.is(jp.aquafactory.apprenticecodex.enchantment.Enchantments.PLUNDER);
+    }
+
+    @Override
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        return supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -130,9 +135,9 @@ public final class WoodenWand extends Item implements UniqueItem, WisdomPolicy, 
             return false;
         }
 
-        var enchantments = EnchantmentHelper.getEnchantments(book);
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
         return enchantments.isEmpty()
-                || enchantments.keySet().stream().allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
+                || enchantments.keySet().stream().allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     @Override
@@ -144,7 +149,7 @@ public final class WoodenWand extends Item implements UniqueItem, WisdomPolicy, 
     @Override
     public void appendHoverText(
             @NotNull ItemStack stack,
-            @Nullable Level level,
+            Item.@NotNull TooltipContext context,
             @NotNull List<Component> lines,
             @NotNull TooltipFlag flag
     ) {
@@ -152,7 +157,7 @@ public final class WoodenWand extends Item implements UniqueItem, WisdomPolicy, 
                 getDescriptionId() + ".desc",
                 Component.keybind("key.use")
         ).withStyle(ChatFormatting.GRAY));
-        super.appendHoverText(stack, level, lines, flag);
+        super.appendHoverText(stack, context, lines, flag);
     }
 
     public static @Nullable SpellData getImbuedSpell(ItemStack stack) {

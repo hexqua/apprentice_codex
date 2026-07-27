@@ -18,22 +18,24 @@ import jp.aquafactory.apprenticecodex.item.magicitem.WoodenWand;
 import jp.aquafactory.apprenticecodex.item.magicitem.WoodenWandDurabilityEvent;
 import jp.aquafactory.apprenticecodex.network.packet.SyncApprenticeDeskConfigPacket;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.event.OnDatapackSyncEvent;
-import net.minecraftforge.gametest.GameTestHolder;
-import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.event.OnDatapackSyncEvent;
+import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -121,7 +123,7 @@ public final class ApprenticeDeskReworkGameTests {
 
             var magicData = MagicData.getPlayerMagicData(player);
             var maxMana = player.getAttribute(
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get()
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA
             );
             helper.assertTrue(maxMana != null, "Wooden wand test could not resolve max mana");
             maxMana.setBaseValue(1000.0D);
@@ -186,7 +188,9 @@ public final class ApprenticeDeskReworkGameTests {
                 "Partially used ink inherited Iron's InkItem and may be accepted by fluid integrations");
         helper.assertFalse(stack.isEnchantable(),
                 "Partially used ink unexpectedly allows enchanting");
-        helper.assertFalse(Enchantments.UNBREAKING.canEnchant(stack) || Enchantments.MENDING.canEnchant(stack),
+        var enchantments = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        helper.assertFalse(enchantments.getOrThrow(Enchantments.UNBREAKING).value().canEnchant(stack)
+                        || enchantments.getOrThrow(Enchantments.MENDING).value().canEnchant(stack),
                 "Partially used ink unexpectedly accepts durability enchantments");
         helper.assertTrue(stack.getItem().isBarVisible(stack),
                 "Partially used ink did not expose its remaining-use bar");
@@ -197,11 +201,11 @@ public final class ApprenticeDeskReworkGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void originalInkTooltipUsesSyncedServerConfig(GameTestHelper helper) {
-        var buffer = new FriendlyByteBuf(Unpooled.buffer());
+        var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
         try {
             var sent = new SyncApprenticeDeskConfigPacket(false, 9, 8, 7, 6, 5);
-            SyncApprenticeDeskConfigPacket.encode(sent, buffer);
-            var received = SyncApprenticeDeskConfigPacket.decode(buffer);
+            SyncApprenticeDeskConfigPacket.STREAM_CODEC.encode(buffer, sent);
+            var received = SyncApprenticeDeskConfigPacket.STREAM_CODEC.decode(buffer);
             ApprenticeDeskFeatureState.setInkMaxUses(
                     received.commonInkMaxUses(),
                     received.uncommonInkMaxUses(),
@@ -261,9 +265,11 @@ public final class ApprenticeDeskReworkGameTests {
                 "Apprentice Desk accepted partially used ink with missing NBT");
 
         var brokenCharges = PartiallyUsedInkState.create(PartiallyUsedInkState.OfficialInk.RARE, 3);
-        brokenCharges.getOrCreateTag()
-                .getCompound("ApprenticeDeskInk")
-                .putInt("RemainingUses", 4);
+        CustomData.update(DataComponents.CUSTOM_DATA, brokenCharges, root -> {
+            var ink = root.getCompound("ApprenticeDeskInk");
+            ink.putInt("RemainingUses", 4);
+            root.put("ApprenticeDeskInk", ink);
+        });
         helper.assertTrue(PartiallyUsedInkState.readSourceOnly(brokenCharges)
                         .orElse(null) == PartiallyUsedInkState.OfficialInk.RARE,
                 "Broken charge data discarded the valid source-ink identity");
@@ -369,12 +375,23 @@ public final class ApprenticeDeskReworkGameTests {
                 "Wooden wand has the wrong durability");
         helper.assertTrue(wandItem.getEnchantmentValue(wand) == 15,
                 "Wooden wand has the wrong enchantment value");
-        helper.assertTrue(wandItem.canApplyAtEnchantingTable(wand, Enchantments.UNBREAKING)
-                        && wandItem.canApplyAtEnchantingTable(wand, Enchantments.MENDING)
-                        && wandItem.canApplyAtEnchantingTable(wand, EnchantmentRegistry.WISDOM.get())
-                        && wandItem.canApplyAtEnchantingTable(wand, EnchantmentRegistry.PLUNDER.get()),
+        var enchantments = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        var unbreaking = enchantments.getOrThrow(Enchantments.UNBREAKING);
+        var mending = enchantments.getOrThrow(Enchantments.MENDING);
+        var wisdom = enchantments.getOrThrow(jp.aquafactory.apprenticecodex.enchantment.Enchantments.WISDOM);
+        var plunder = enchantments.getOrThrow(jp.aquafactory.apprenticecodex.enchantment.Enchantments.PLUNDER);
+        var sharpness = enchantments.getOrThrow(Enchantments.SHARPNESS);
+        helper.assertTrue(wandItem.supportsEnchantment(wand, unbreaking)
+                        && wandItem.supportsEnchantment(wand, mending)
+                        && wandItem.supportsEnchantment(wand, wisdom)
+                        && wandItem.supportsEnchantment(wand, plunder)
+                        && unbreaking.value().canEnchant(wand)
+                        && mending.value().canEnchant(wand)
+                        && wisdom.value().canEnchant(wand)
+                        && plunder.value().canEnchant(wand),
                 "Wooden wand rejected an allowed enchantment");
-        helper.assertFalse(wandItem.canApplyAtEnchantingTable(wand, Enchantments.SHARPNESS),
+        helper.assertFalse(wandItem.supportsEnchantment(wand, sharpness)
+                        || sharpness.value().canEnchant(wand),
                 "Wooden wand accepted a non-durability combat enchantment");
         helper.assertTrue(wandItem.isValidRepairItem(
                         wand,
