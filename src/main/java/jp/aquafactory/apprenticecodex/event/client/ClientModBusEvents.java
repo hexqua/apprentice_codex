@@ -210,9 +210,9 @@ public final class ClientModBusEvents {
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.WOODEN_WAND.get(),
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_cooldown"),
-                // Iron's のクライアント同期状態だけを描画に使い、表示用 NBT は追加しない。
+                // Iron's の同期状態はローカル本人の描画だけに使い、他者やドロップ品へ流用しない。
                 (stack, level, living, seed) ->
-                        WoodenWandClientRenderState.isImbuedSpellOnCooldown(stack) ? 1.0F : 0.0F
+                        WoodenWandClientRenderState.isImbuedSpellOnCooldown(stack, living) ? 1.0F : 0.0F
         ));
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.PARTIALLY_USED_INK.get(),
