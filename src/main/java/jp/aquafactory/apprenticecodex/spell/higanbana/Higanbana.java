@@ -60,6 +60,7 @@ public class Higanbana extends AbstractSummonWeaponSpell<HiganbanaKatanaEntity> 
     }
 
     private double getRange(){
+        // あくまでも理想値であり、壁向きに張り付いて使うとmoveでめり込まない都合上射程が短くなるが仕様.
         return HiganbanaKatanaEntity.getAttackDepth();
     }
 

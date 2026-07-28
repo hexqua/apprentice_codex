@@ -248,6 +248,90 @@ final class KatanaAreaHitGameTestScenarios {
         helper.succeed();
     }
 
+    static void katanasKeepAttackOriginBeforeThinCover(GameTestHelper helper) {
+        var level = helper.getLevel();
+        setThinPaneWall(helper, 2);
+        setThinPaneWall(helper, 6);
+
+        var slashOwner = createPlayer(
+                helper,
+                "slash_blade_thin_cover_owner",
+                new Vec3(2.5D, 2.0D, 2.1D)
+        );
+        slashOwner.setYRot(0.0F);
+        var slashWeapon = new SlashBladeKatanaEntity(
+                EntityRegistry.SLASH_BLADE_KATANA.get(),
+                level,
+                slashOwner
+        );
+        slashWeapon.setDamage(4.0F);
+        slashWeapon.setBlockPenetrationDamageMultiplier(0.5F);
+        level.addFreshEntity(slashWeapon);
+        var slashUnobstructedPosition =
+                RotationTools.calculateBehindPosition(slashOwner, -0.5D, 0.0D, -0.75D);
+        helper.assertTrue(
+                slashWeapon.position().distanceTo(slashUnobstructedPosition) > POSITION_EPSILON,
+                "Slash Blade attack origin should stop before thin cover"
+        );
+
+        var slashTarget = createZombie(level, helper.absoluteVec(new Vec3(2.5D, 2.0D, 4.0D)));
+        slashTarget.getAttribute(Attributes.ARMOR).setBaseValue(0.0D);
+        var slashInitialHealth = slashTarget.getHealth();
+        slashWeapon.slash(level);
+        var slashDamage = slashInitialHealth - slashTarget.getHealth();
+        helper.assertTrue(
+                slashDamage > HEALTH_EPSILON && slashDamage < 4.0F - HEALTH_EPSILON,
+                "Slash Blade should apply reduced damage through thin cover"
+        );
+
+        var higanbanaOwner = createPlayer(
+                helper,
+                "higanbana_thin_cover_owner",
+                new Vec3(6.5D, 2.0D, 2.1D)
+        );
+        higanbanaOwner.setYRot(0.0F);
+        var higanbanaWeapon = new HiganbanaKatanaEntity(
+                EntityRegistry.HIGANBANA_KATANA.get(),
+                level,
+                higanbanaOwner
+        );
+        higanbanaWeapon.setDamage(4.0F);
+        higanbanaWeapon.setRemainingSlashCount(1);
+        level.addFreshEntity(higanbanaWeapon);
+        var higanbanaUnobstructedPosition =
+                RotationTools.calculateBehindPosition(higanbanaOwner, -0.9D, 0.0D, -0.75D);
+        helper.assertTrue(
+                higanbanaWeapon.position().distanceTo(higanbanaUnobstructedPosition) > POSITION_EPSILON,
+                "Higanbana attack origin should stop before thin cover"
+        );
+
+        var higanbanaTarget = createZombie(level, helper.absoluteVec(new Vec3(6.5D, 2.0D, 4.0D)));
+        var higanbanaInitialHealth = higanbanaTarget.getHealth();
+        higanbanaWeapon.slash(level);
+        helper.assertTrue(
+                Math.abs(higanbanaTarget.getHealth() - higanbanaInitialHealth) < HEALTH_EPSILON,
+                "Higanbana should reject a target behind thin cover"
+        );
+
+        discard(
+                slashOwner,
+                slashWeapon,
+                slashTarget,
+                higanbanaOwner,
+                higanbanaWeapon,
+                higanbanaTarget
+        );
+        helper.succeed();
+    }
+
+    private static void setThinPaneWall(GameTestHelper helper, int centerX) {
+        for (var x = centerX - 1; x <= centerX + 1; ++x) {
+            for (var y = 2; y <= 3; ++y) {
+                helper.setBlock(new BlockPos(x, y, 2), Blocks.GLASS_PANE);
+            }
+        }
+    }
+
     private static RaycastTools.OrientedBoxHit singleHit(
             GameTestHelper helper,
             ServerLevel level,

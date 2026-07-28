@@ -18,6 +18,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -63,6 +64,7 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
 
     public SlashBladeKatanaEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
         super(pEntityType, pLevel, owner);
+        moveToCollisionLimitedStandbyPosition(owner);
     }
 
     @Override
@@ -181,10 +183,18 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
     }
 
     private void refreshAttackPose(LivingEntity owner) {
-        followTargetPosition(getStandbyPosition());
+        moveToCollisionLimitedStandbyPosition(owner);
         setYRot(owner.getYRot());
         setXRot(0);
         setRot(getYRot(), getXRot());
+    }
+
+    private void moveToCollisionLimitedStandbyPosition(LivingEntity owner) {
+        // 術者から攻撃起点までの薄い遮蔽物を飛び越さないよう、術者側から衝突を伴って移動する。
+        var casterSidePosition = RotationTools.calculateBehindPosition(owner, 0.0D, 0.0D, -0.75D);
+        var standbyPosition = getStandbyPosition();
+        setPos(casterSidePosition.x, casterSidePosition.y, casterSidePosition.z);
+        move(MoverType.SELF, standbyPosition.subtract(casterSidePosition));
     }
 
     public void setDamage(float damage){

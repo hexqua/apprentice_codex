@@ -151,6 +151,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         KatanaAreaHitGameTestScenarios.higanbanaStaysHorizontalAndRejectsWallHits(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void katanasKeepAttackOriginBeforeThinCover(GameTestHelper helper) {
+        KatanaAreaHitGameTestScenarios.katanasKeepAttackOriginBeforeThinCover(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = FUJIN_ISOLATED_BATCH)
     public static void fujinKatanaFollowsOwnerAndReleases(GameTestHelper helper) {
         FujinGameTestScenarios.fujinKatanaFollowsOwnerAndReleases(helper);

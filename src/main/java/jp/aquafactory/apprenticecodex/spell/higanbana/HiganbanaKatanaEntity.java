@@ -24,6 +24,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -73,6 +74,7 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
 
     public HiganbanaKatanaEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
         super(pEntityType, pLevel, owner);
+        moveToCollisionLimitedStandbyPosition(owner);
     }
 
     static public double getAttackDepth(){
@@ -306,6 +308,14 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
         }
 
         return Vec3.ZERO;
+    }
+
+    private void moveToCollisionLimitedStandbyPosition(LivingEntity owner) {
+        // 術者から攻撃起点までの薄い遮蔽物を飛び越さないよう、術者側から衝突を伴って移動する。
+        var casterSidePosition = RotationTools.calculateBehindPosition(owner, 0.0D, 0.0D, -0.75D);
+        var standbyPosition = getStandbyPosition();
+        setPos(casterSidePosition.x, casterSidePosition.y, casterSidePosition.z);
+        move(MoverType.SELF, standbyPosition.subtract(casterSidePosition));
     }
 
     @Override
