@@ -131,7 +131,7 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
 
     public void slash(Level level){
         triggerAnim("main", "quickdraw");
-        entityData.set(ANIMATION_SPEED, 5.0f);
+        entityData.set(ANIMATION_SPEED, 3.0f);
         entityData.set(SHOW_TRAIL, true);
         lifeTick = STAY_SLASHED_TICK;
         isSlashed = true;
@@ -186,7 +186,7 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
     public Vec3 getStandbyPosition() {
         // 鞘と刀身でセットのため、中央に出す.
         if (getOwner() instanceof LivingEntity owner) {
-            return RotationTools.calculateBehindPosition(owner, 0, 0, -0.75);
+            return RotationTools.calculateBehindPosition(owner, -0.5, 0, -0.75);
         }
 
         return Vec3.ZERO;
