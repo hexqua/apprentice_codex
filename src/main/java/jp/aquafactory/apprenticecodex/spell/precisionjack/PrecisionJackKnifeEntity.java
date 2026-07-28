@@ -147,7 +147,7 @@ public class PrecisionJackKnifeEntity extends SummonWeaponEntity implements GeoE
         var point = getLookAngle().normalize().scale(0.75);
         var source = createCombatDamageSource(DamageTypes.PRECISION_JACK);
 
-        var hitResult = RaycastTools.hitsSphere(
+        var hitResult = RaycastTools.hitsAabb(
                 level,
                 position().add(point),
                 SLICE_RANGE,

@@ -139,7 +139,7 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
         if ((getOwner() instanceof LivingEntity owner)) {
             var point = getLookAngle().normalize().scale(0.75);
             var source = createCombatDamageSource(DamageTypes.SLASH_BLADE);
-            var hitResult = RaycastTools.hitsSphere(level,
+            var hitResult = RaycastTools.hitsAabb(level,
                     position().add(point),
                     2.5,
                     e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
