@@ -35,6 +35,9 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
     private static final double ATTACK_HALF_WIDTH = 2.75D;
     private static final double ATTACK_HALF_HEIGHT = 0.75D;
     private static final double ATTACK_DEPTH = 4.5D;
+    private static final double FOLLOW_FORWARD_OFFSET = 0.5D;
+    private static final String BLOCK_PENETRATION_DAMAGE_MULTIPLIER_TAG =
+            "BlockPenetrationDamageMultiplier";
     public static final String BLADE_CACHE_KEY = "default";
     public static final String SCABBARD_CACHE_KEY = "scabbard";
 
@@ -49,6 +52,7 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     private float damage;
+    private float blockPenetrationDamageMultiplier = 1.0F;
     private int lifeTick = 0;
     private boolean isSlashed = false;
     private boolean isStandby = false;
@@ -73,6 +77,10 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
         GeoBonePoseCache.remove(getUUID());
 
         super.onClientRemoval();
+    }
+
+    static public double getAttackDepth(){
+        return ATTACK_DEPTH + FOLLOW_FORWARD_OFFSET;
     }
 
     private void spawnRemovalLineParticle(String cacheKey) {
@@ -159,13 +167,15 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.KATANA_SLASH.get(), SoundSource.PLAYERS);
         AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
         for (var hit : hitResult){
-            // 壁越しの威力調整へ拡張できるよう遮蔽情報は保持するが、現時点では同じ威力で命中させる。
+            var isBlockPenetrationHit = hit.blockOccluded();
             CombatTools.applyDamage(
                     hit.entity(),
-                    damage,
+                    isBlockPenetrationHit ? damage * blockPenetrationDamageMultiplier : damage,
                     source,
                     SpellRegistry.SLASH_BLADE.get().getSchoolType(),
-                    CombatTools.KnockbackTypes.DEFAULT
+                    isBlockPenetrationHit
+                            ? CombatTools.KnockbackTypes.NO_KNOCKBACK
+                            : CombatTools.KnockbackTypes.DEFAULT
             );
         }
     }
@@ -185,6 +195,14 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
         return damage;
     }
 
+    public void setBlockPenetrationDamageMultiplier(float multiplier) {
+        blockPenetrationDamageMultiplier = Mth.clamp(multiplier, 0.0F, 1.0F);
+    }
+
+    public float getBlockPenetrationDamageMultiplierForGameTest() {
+        return blockPenetrationDamageMultiplier;
+    }
+
     @Override
     public boolean isTrailActive() {
         return entityData.get(SHOW_TRAIL);
@@ -199,19 +217,30 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
     protected void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         damage = pCompound.getFloat("Damage");
+        if (pCompound.contains(BLOCK_PENETRATION_DAMAGE_MULTIPLIER_TAG)) {
+            setBlockPenetrationDamageMultiplier(
+                    pCompound.getFloat(BLOCK_PENETRATION_DAMAGE_MULTIPLIER_TAG)
+            );
+        }
     }
 
     @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
         pCompound.putFloat("Damage", damage);
+        pCompound.putFloat(
+                BLOCK_PENETRATION_DAMAGE_MULTIPLIER_TAG,
+                blockPenetrationDamageMultiplier
+        );
     }
 
     @Override
     public Vec3 getStandbyPosition() {
         // 鞘と刀身でセットのため、中央に出す.
         if (getOwner() instanceof LivingEntity owner) {
-            return RotationTools.calculateBehindPosition(owner, -0.5, 0, -0.75);
+            // ピッチ追従は操作感を損ねるため意図的に行わず、水平方向の攻撃として扱う.
+            // back方向なのでマイナスでforward方向になる.
+            return RotationTools.calculateBehindPosition(owner, -FOLLOW_FORWARD_OFFSET, 0, -0.75);
         }
 
         return Vec3.ZERO;

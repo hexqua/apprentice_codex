@@ -42,6 +42,7 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
     private static final double ATTACK_HALF_WIDTH = 2.5D;
     private static final double ATTACK_HALF_HEIGHT = 0.75D;
     private static final double ATTACK_DEPTH = 2.5D;
+    private static final double FOLLOW_FORWARD_OFFSET = 0.9D;
     private static final DustParticleOptions DRAIN_DUST_PARTICLE =
             new DustParticleOptions(new Vector3f(1.0f, 0.0f, 0.0f), 1.0f);
     private static final int DRAIN_DUST_COUNT = 20;
@@ -72,6 +73,10 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
 
     public HiganbanaKatanaEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
         super(pEntityType, pLevel, owner);
+    }
+
+    static public double getAttackDepth(){
+        return ATTACK_DEPTH + FOLLOW_FORWARD_OFFSET;
     }
 
     @Override
@@ -295,8 +300,9 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
     @Override
     public Vec3 getStandbyPosition() {
         if (getOwner() instanceof LivingEntity owner) {
-            // ピッチ追従は操作感を損ねたため意図的に行わず、水平方向の攻撃として扱う。
-            return RotationTools.calculateBehindPosition(owner, -0.9, 0, -0.75);
+            // ピッチ追従は操作感を損ねるため意図的に行わず、水平方向の攻撃として扱う.
+            // back方向なのでマイナスでforward方向になる.
+            return RotationTools.calculateBehindPosition(owner, -FOLLOW_FORWARD_OFFSET, 0, -0.75);
         }
 
         return Vec3.ZERO;

@@ -49,6 +49,7 @@ public class Higanbana extends AbstractSummonWeaponSpell<HiganbanaKatanaEntity> 
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1)),
                 Component.translatable("ui.apprenticecodex.slash_count", getSlashCount())
         );
     }
@@ -56,6 +57,10 @@ public class Higanbana extends AbstractSummonWeaponSpell<HiganbanaKatanaEntity> 
     private float getDamage(int spellLevel, LivingEntity entity) {
         var rawDamage = 1 + getSpellPower(spellLevel, entity) / 100.0f;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.HIGANBANA);
+    }
+
+    private double getRange(){
+        return HiganbanaKatanaEntity.getAttackDepth();
     }
 
     public int getSlashCount() {

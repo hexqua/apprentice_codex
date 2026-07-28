@@ -18,6 +18,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -50,13 +51,27 @@ public class SlashBlade extends AbstractSummonWeaponSpell<SlashBladeKatanaEntity
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2))
+                Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1)),
+                Component.translatable("ui.apprenticecodex.block_penetration_damage_multiplier", Utils.stringTruncation(getBlockPenetrationDamageMultiplierPercent(spellLevel), 0))
         );
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
         var rawDamage = getSpellPower(spellLevel, entity) / 100.0f;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.SLASH_BLADE);
+    }
+
+    private double getRange(){
+        return SlashBladeKatanaEntity.getAttackDepth();
+    }
+
+    private int getBlockPenetrationDamageMultiplierPercent(int spellLevel){
+        return Mth.clamp(20 + spellLevel * 5, 10, 90);
+    }
+
+    private float getBlockPenetrationDamageMultiplier(int spellLevel) {
+        return getBlockPenetrationDamageMultiplierPercent(spellLevel) / 100.0F;
     }
 
     @Override
@@ -104,6 +119,7 @@ public class SlashBlade extends AbstractSummonWeaponSpell<SlashBladeKatanaEntity
     public SlashBladeKatanaEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var summonWeapon = new SlashBladeKatanaEntity(EntityRegistry.SLASH_BLADE_KATANA.get(), level, entity);
         summonWeapon.setDamage(getDamage(spellLevel, entity));
+        summonWeapon.setBlockPenetrationDamageMultiplier(getBlockPenetrationDamageMultiplier(spellLevel));
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }
@@ -113,6 +129,7 @@ public class SlashBlade extends AbstractSummonWeaponSpell<SlashBladeKatanaEntity
                                            MagicData playerMagicData, @NotNull SlashBladeKatanaEntity weapon) {
         // FocusStaffbow などの完了時補正を、直後に行う抜刀攻撃へ反映する。
         weapon.setDamage(getDamage(spellLevel, entity));
+        weapon.setBlockPenetrationDamageMultiplier(getBlockPenetrationDamageMultiplier(spellLevel));
     }
 
     @Override

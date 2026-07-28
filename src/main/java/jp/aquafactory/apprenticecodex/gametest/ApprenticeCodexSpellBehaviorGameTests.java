@@ -142,6 +142,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void slashBladeKeepsFullDamageAndKnockbackWithoutWall(GameTestHelper helper) {
+        KatanaAreaHitGameTestScenarios.slashBladeKeepsFullDamageAndKnockbackWithoutWall(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
     public static void higanbanaStaysHorizontalAndRejectsWallHits(GameTestHelper helper) {
         KatanaAreaHitGameTestScenarios.higanbanaStaysHorizontalAndRejectsWallHits(helper);
     }
