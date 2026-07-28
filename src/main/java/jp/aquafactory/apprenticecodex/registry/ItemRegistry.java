@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.ArcaneCinderItem;
+import jp.aquafactory.apprenticecodex.item.apprenticedesk.CrudeInkItem;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkItem;
 import jp.aquafactory.apprenticecodex.item.blockitem.ArcanumInAJarItem;
 import jp.aquafactory.apprenticecodex.item.blockitem.ApprenticeDeskItem;
@@ -284,6 +285,8 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> APPRENTICE_DESK =
             ITEMS.register("apprentice_desk",
                     () -> new ApprenticeDeskItem(BlockRegistry.APPRENTICE_DESK.get(), new Item.Properties()));
+    public static final DeferredHolder<Item, Item> CRUDE_INK =
+            ITEMS.register("crude_ink", CrudeInkItem::new);
     public static final DeferredHolder<Item, Item> PARTIALLY_USED_INK =
             ITEMS.register("partially_used_ink", PartiallyUsedInkItem::new);
     public static final DeferredHolder<Item, Item> SPELLCASTER_WORKBENCH =
