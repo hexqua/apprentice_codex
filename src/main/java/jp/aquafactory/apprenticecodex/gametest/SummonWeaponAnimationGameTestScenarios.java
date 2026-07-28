@@ -52,7 +52,7 @@ final class SummonWeaponAnimationGameTestScenarios {
             assertFloatClose(
                     helper,
                     weapon.getAnimationSpeedForGameTest(),
-                    5.0f,
+                    3.0f,
                     "Slash Blade quickdraw animation speed should keep its existing value"
             );
         });

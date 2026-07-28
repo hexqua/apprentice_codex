@@ -125,7 +125,7 @@ public class MantisLeapBladeEntity extends SummonWeaponEntity implements GeoEnti
         if (getOwner() instanceof LivingEntity owner) {
             var point = getLookAngle().normalize().scale(1.5);
             var source = createCombatDamageSource(DamageTypes.MANTIS_LEAP);
-            var hitResult = RaycastTools.hitsSphere(
+            var hitResult = RaycastTools.hitsAabb(
                     level,
                     position().add(point),
                     3.0,
