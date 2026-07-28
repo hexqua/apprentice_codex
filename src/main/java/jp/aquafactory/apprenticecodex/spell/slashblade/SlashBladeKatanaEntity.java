@@ -32,6 +32,9 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEntity, ISwordTrailEntity {
 
     private static final int STAY_SLASHED_TICK = 10;
+    private static final double ATTACK_HALF_WIDTH = 2.75D;
+    private static final double ATTACK_HALF_HEIGHT = 0.75D;
+    private static final double ATTACK_DEPTH = 4.5D;
     public static final String BLADE_CACHE_KEY = "default";
     public static final String SCABBARD_CACHE_KEY = "scabbard";
 
@@ -104,10 +107,7 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
             }
         }
 
-        followTargetPosition(getStandbyPosition());
-        setYRot(owner.getYRot());
-        setXRot(0);
-        setRot(getYRot(), getXRot());
+        refreshAttackPose(owner);
     }
 
     public void setStandby(){
@@ -130,26 +130,51 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
     }
 
     public void slash(Level level){
+        if (!(getOwner() instanceof LivingEntity owner)) {
+            return;
+        }
+
+        // 詠唱中の移動と旋回を抜刀時の攻撃範囲へ反映する。
+        refreshAttackPose(owner);
         triggerAnim("main", "quickdraw");
         entityData.set(ANIMATION_SPEED, 3.0f);
         entityData.set(SHOW_TRAIL, true);
         lifeTick = STAY_SLASHED_TICK;
         isSlashed = true;
 
-        if ((getOwner() instanceof LivingEntity owner)) {
-            var point = getLookAngle().normalize().scale(0.75);
-            var source = createCombatDamageSource(DamageTypes.SLASH_BLADE);
-            var hitResult = RaycastTools.hitsAabb(level,
-                    position().add(point),
-                    2.5,
-                    e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
+        var attackBox = new RaycastTools.HorizontalOrientedBox(
+                position(),
+                getLookAngle(),
+                ATTACK_HALF_WIDTH,
+                ATTACK_HALF_HEIGHT,
+                ATTACK_DEPTH
+        );
+        var source = createCombatDamageSource(DamageTypes.SLASH_BLADE);
+        var hitResult = RaycastTools.hitsHorizontalOrientedBox(
+                level,
+                this,
+                attackBox,
+                e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
+        );
+        AudioTools.playSoundFromEntity(level, this, SoundRegistry.KATANA_SLASH.get(), SoundSource.PLAYERS);
+        AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
+        for (var hit : hitResult){
+            // 壁越しの威力調整へ拡張できるよう遮蔽情報は保持するが、現時点では同じ威力で命中させる。
+            CombatTools.applyDamage(
+                    hit.entity(),
+                    damage,
+                    source,
+                    SpellRegistry.SLASH_BLADE.get().getSchoolType(),
+                    CombatTools.KnockbackTypes.DEFAULT
             );
-            AudioTools.playSoundFromEntity(level, this, SoundRegistry.KATANA_SLASH.get(), SoundSource.PLAYERS);
-            AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
-            for (var hit : hitResult){
-                CombatTools.applyDamage(hit, damage, source, SpellRegistry.SLASH_BLADE.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
-            }
         }
+    }
+
+    private void refreshAttackPose(LivingEntity owner) {
+        followTargetPosition(getStandbyPosition());
+        setYRot(owner.getYRot());
+        setXRot(0);
+        setRot(getYRot(), getXRot());
     }
 
     public void setDamage(float damage){
