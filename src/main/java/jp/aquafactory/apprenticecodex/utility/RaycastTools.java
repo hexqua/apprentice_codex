@@ -19,6 +19,9 @@ import java.util.*;
 import java.util.function.Predicate;
 
 public final class RaycastTools {
+    private static final double ORIENTED_BOX_EPSILON = 1.0E-7D;
+    private static final double OCCLUSION_POINT_INSET = 1.0E-4D;
+
     private RaycastTools() {}
 
     public enum TargetType {
@@ -33,6 +36,45 @@ public final class RaycastTools {
             Entity hitEntity,
             BlockPos hitBlock
     ) {}
+
+    public record HorizontalOrientedBox(
+            Vec3 faceCenter,
+            Vec3 forward,
+            double halfWidth,
+            double halfHeight,
+            double depth
+    ) {
+        public HorizontalOrientedBox {
+            var horizontalForward = new Vec3(forward.x, 0.0D, forward.z);
+            if (horizontalForward.lengthSqr() <= ORIENTED_BOX_EPSILON) {
+                throw new IllegalArgumentException("forward must have a horizontal component");
+            }
+            if (halfWidth < 0.0D || halfHeight < 0.0D || depth < 0.0D) {
+                throw new IllegalArgumentException("box dimensions must not be negative");
+            }
+            forward = horizontalForward.normalize();
+        }
+    }
+
+    public record OrientedBoxHit(Entity entity, boolean blockOccluded) {
+    }
+
+    private static final class OrientedBoxHitAccumulator {
+        private final Entity entity;
+        private boolean blockOccluded = true;
+
+        private OrientedBoxHitAccumulator(Entity entity) {
+            this.entity = entity;
+        }
+
+        private void include(boolean partBlockOccluded) {
+            blockOccluded &= partBlockOccluded;
+        }
+
+        private OrientedBoxHit toResult() {
+            return new OrientedBoxHit(entity, blockOccluded);
+        }
+    }
 
     public static TargetResult raycast(Entity source, Vec3 look, double blockRange, double entityRange, double boxWidth, Predicate<Entity> predicate){
         var level = source.level();
@@ -260,6 +302,165 @@ public final class RaycastTools {
         }
 
         return hits;
+    }
+
+    public static List<OrientedBoxHit> hitsHorizontalOrientedBox(
+            Level level,
+            Entity source,
+            HorizontalOrientedBox box,
+            Predicate<Entity> filter
+    ) {
+        var broadBounds = createHorizontalOrientedBoxBounds(box).inflate(ORIENTED_BOX_EPSILON);
+        var sourceInsideBlock = isInsideBlockCollision(level, source, box.faceCenter());
+        var hitsByTarget = new LinkedHashMap<UUID, OrientedBoxHitAccumulator>();
+
+        for (var rawTarget : level.getEntities(source, broadBounds, Entity::isAlive)) {
+            if (!intersectsHorizontalOrientedBox(rawTarget.getBoundingBox(), box)) {
+                continue;
+            }
+
+            // ForgeはPartEntityも候補へ返すため、部位AABBで交差を確定してから親単位へ集約する。
+            var target = CombatTools.resolutePartEntity(rawTarget);
+            if (!target.isAlive() || !filter.test(target)) {
+                continue;
+            }
+
+            var targetHit = hitsByTarget.computeIfAbsent(
+                    target.getUUID(),
+                    ignored -> new OrientedBoxHitAccumulator(target)
+            );
+            var partBlockOccluded = sourceInsideBlock
+                    || isAabbBlockOccluded(level, source, box.faceCenter(), rawTarget.getBoundingBox());
+            targetHit.include(partBlockOccluded);
+        }
+
+        return hitsByTarget.values().stream()
+                .map(OrientedBoxHitAccumulator::toResult)
+                .toList();
+    }
+
+    private static AABB createHorizontalOrientedBoxBounds(HorizontalOrientedBox box) {
+        var right = horizontalRight(box.forward());
+        var halfDepth = box.depth() * 0.5D;
+        var center = box.faceCenter().add(box.forward().scale(halfDepth));
+        var halfX = Math.abs(right.x) * box.halfWidth() + Math.abs(box.forward().x) * halfDepth;
+        var halfZ = Math.abs(right.z) * box.halfWidth() + Math.abs(box.forward().z) * halfDepth;
+        return new AABB(
+                center.x - halfX,
+                box.faceCenter().y - box.halfHeight(),
+                center.z - halfZ,
+                center.x + halfX,
+                box.faceCenter().y + box.halfHeight(),
+                center.z + halfZ
+        );
+    }
+
+    private static boolean intersectsHorizontalOrientedBox(AABB targetBox, HorizontalOrientedBox box) {
+        var right = horizontalRight(box.forward());
+        var halfDepth = box.depth() * 0.5D;
+        var boxCenter = box.faceCenter().add(box.forward().scale(halfDepth));
+        var targetCenter = targetBox.getCenter();
+        var centerDelta = targetCenter.subtract(boxCenter);
+        var targetHalfX = targetBox.getXsize() * 0.5D;
+        var targetHalfY = targetBox.getYsize() * 0.5D;
+        var targetHalfZ = targetBox.getZsize() * 0.5D;
+
+        if (Math.abs(centerDelta.y) > box.halfHeight() + targetHalfY + ORIENTED_BOX_EPSILON) {
+            return false;
+        }
+
+        return overlapsOnHorizontalAxis(centerDelta, new Vec3(1.0D, 0.0D, 0.0D),
+                right, box.forward(), box.halfWidth(), halfDepth, targetHalfX, targetHalfZ)
+                && overlapsOnHorizontalAxis(centerDelta, new Vec3(0.0D, 0.0D, 1.0D),
+                right, box.forward(), box.halfWidth(), halfDepth, targetHalfX, targetHalfZ)
+                && overlapsOnHorizontalAxis(centerDelta, right,
+                right, box.forward(), box.halfWidth(), halfDepth, targetHalfX, targetHalfZ)
+                && overlapsOnHorizontalAxis(centerDelta, box.forward(),
+                right, box.forward(), box.halfWidth(), halfDepth, targetHalfX, targetHalfZ);
+    }
+
+    private static boolean overlapsOnHorizontalAxis(
+            Vec3 centerDelta,
+            Vec3 axis,
+            Vec3 orientedRight,
+            Vec3 orientedForward,
+            double orientedHalfWidth,
+            double orientedHalfDepth,
+            double targetHalfX,
+            double targetHalfZ
+    ) {
+        var centerDistance = Math.abs(centerDelta.dot(axis));
+        var orientedRadius = Math.abs(orientedRight.dot(axis)) * orientedHalfWidth
+                + Math.abs(orientedForward.dot(axis)) * orientedHalfDepth;
+        var targetRadius = Math.abs(axis.x) * targetHalfX + Math.abs(axis.z) * targetHalfZ;
+        return centerDistance <= orientedRadius + targetRadius + ORIENTED_BOX_EPSILON;
+    }
+
+    private static Vec3 horizontalRight(Vec3 forward) {
+        return new Vec3(-forward.z, 0.0D, forward.x);
+    }
+
+    private static boolean isInsideBlockCollision(Level level, Entity source, Vec3 point) {
+        var pointBounds = new AABB(point, point).inflate(ORIENTED_BOX_EPSILON);
+        for (var collisionShape : level.getBlockCollisions(source, pointBounds)) {
+            for (var collisionBox : collisionShape.toAabbs()) {
+                if (point.x > collisionBox.minX + ORIENTED_BOX_EPSILON
+                        && point.x < collisionBox.maxX - ORIENTED_BOX_EPSILON
+                        && point.y > collisionBox.minY + ORIENTED_BOX_EPSILON
+                        && point.y < collisionBox.maxY - ORIENTED_BOX_EPSILON
+                        && point.z > collisionBox.minZ + ORIENTED_BOX_EPSILON
+                        && point.z < collisionBox.maxZ - ORIENTED_BOX_EPSILON) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean isAabbBlockOccluded(Level level, Entity source, Vec3 start, AABB targetBox) {
+        for (var targetPoint : createOcclusionTargetPoints(targetBox)) {
+            var blockHit = level.clip(new ClipContext(
+                    start,
+                    targetPoint,
+                    ClipContext.Block.COLLIDER,
+                    ClipContext.Fluid.NONE,
+                    source
+            ));
+            if (blockHit.getType() == HitResult.Type.MISS) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static List<Vec3> createOcclusionTargetPoints(AABB box) {
+        var center = box.getCenter();
+        var points = new ArrayList<Vec3>(15);
+        points.add(center);
+        points.add(insetTowardsCenter(new Vec3(box.minX, center.y, center.z), center));
+        points.add(insetTowardsCenter(new Vec3(box.maxX, center.y, center.z), center));
+        points.add(insetTowardsCenter(new Vec3(center.x, box.minY, center.z), center));
+        points.add(insetTowardsCenter(new Vec3(center.x, box.maxY, center.z), center));
+        points.add(insetTowardsCenter(new Vec3(center.x, center.y, box.minZ), center));
+        points.add(insetTowardsCenter(new Vec3(center.x, center.y, box.maxZ), center));
+
+        for (var x : new double[]{box.minX, box.maxX}) {
+            for (var y : new double[]{box.minY, box.maxY}) {
+                for (var z : new double[]{box.minZ, box.maxZ}) {
+                    points.add(insetTowardsCenter(new Vec3(x, y, z), center));
+                }
+            }
+        }
+        return points;
+    }
+
+    private static Vec3 insetTowardsCenter(Vec3 point, Vec3 center) {
+        var toCenter = center.subtract(point);
+        var distance = toCenter.length();
+        if (distance <= OCCLUSION_POINT_INSET) {
+            return center;
+        }
+        return point.add(toCenter.scale(OCCLUSION_POINT_INSET / distance));
     }
 
     public static Set<Entity> sampleBeamHits(

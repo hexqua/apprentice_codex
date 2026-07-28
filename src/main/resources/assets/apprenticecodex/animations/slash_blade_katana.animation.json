@@ -276,7 +276,7 @@
 		},
 		"quickdraw": {
 			"loop": "hold_on_last_frame",
-			"animation_length": 0.5,
+			"animation_length": 0.75,
 			"bones": {
 				"all": {
 					"rotation": {
@@ -293,7 +293,12 @@
 							"easing": "easeOutCubic"
 						},
 						"0.5": {
-							"vector": [0, 7.5, 0]
+							"vector": [0, 7.5, 0],
+							"easing": "linear"
+						},
+						"0.75": {
+							"vector": [0, 9, 0],
+							"easing": "easeOutSine"
 						}
 					}
 				},
@@ -328,8 +333,9 @@
 							"vector": [0, 0, 0],
 							"easing": "easeOutCubic"
 						},
-						"0.5": {
-							"vector": [0, 5, 0]
+						"0.75": {
+							"vector": [0, 10, 0],
+							"easing": "easeOutQuad"
 						}
 					}
 				},
