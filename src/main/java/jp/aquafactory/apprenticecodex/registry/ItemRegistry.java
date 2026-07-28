@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.*;
+import jp.aquafactory.apprenticecodex.item.apprenticedesk.CrudeInkItem;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkItem;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
@@ -264,6 +265,8 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> APPRENTICE_DESK =
             ITEMS.register("apprentice_desk",
                     () -> new ApprenticeDeskItem(BlockRegistry.APPRENTICE_DESK.get(), new Item.Properties()));
+    public static final RegistryObject<Item> CRUDE_INK =
+            ITEMS.register("crude_ink", CrudeInkItem::new);
     public static final RegistryObject<Item> PARTIALLY_USED_INK =
             ITEMS.register("partially_used_ink", PartiallyUsedInkItem::new);
     public static final RegistryObject<Item> SPELLCASTER_WORKBENCH =
