@@ -319,7 +319,7 @@ public final class RaycastTools {
                 continue;
             }
 
-            // ForgeはPartEntityも候補へ返すため、部位AABBで交差を確定してから親単位へ集約する。
+            // NeoForgeはPartEntityも候補へ返すため、部位AABBで交差を確定してから親単位へ集約する。
             var target = CombatTools.resolutePartEntity(rawTarget);
             if (!target.isAlive() || !filter.test(target)) {
                 continue;
