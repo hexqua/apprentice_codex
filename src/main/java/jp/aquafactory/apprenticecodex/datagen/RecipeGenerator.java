@@ -2,11 +2,13 @@ package jp.aquafactory.apprenticecodex.datagen;
 
 import jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe;
 import jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
@@ -17,13 +19,16 @@ import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.recipes.SmithingTransformRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.CompletableFuture;
 
@@ -43,6 +48,24 @@ public final class RecipeGenerator extends RecipeProvider {
 
     @Override
     protected void buildRecipes(@NotNull RecipeOutput recipeOutput) {
+        var waterPotion = PotionContentsHelper.createPotionStack(Items.POTION, Potions.WATER.value());
+        var waterPotionContents = waterPotion.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ItemRegistry.CRUDE_INK.get())
+                // 1.21.1 ではポーション種別をデータコンポーネントで照合し、通常の水入り瓶だけを受理する。
+                .requires(DataComponentIngredient.of(
+                        false,
+                        DataComponents.POTION_CONTENTS,
+                        waterPotionContents,
+                        Items.POTION
+                ))
+                .requires(Items.LAPIS_LAZULI)
+                .requires(Items.REDSTONE)
+                .requires(Items.GLOW_BERRIES, 2)
+                .requires(Items.INK_SAC)
+                .unlockedBy(getHasName(Items.GLOW_BERRIES), has(Items.GLOW_BERRIES))
+                .save(recipeOutput, ItemRegistry.CRUDE_INK.getId());
+
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ItemRegistry.APPRENTICE_DESK.get())
                 .pattern("CAC")
                 .pattern("SSS")

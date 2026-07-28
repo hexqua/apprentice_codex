@@ -11,8 +11,10 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.util.ModTags;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.apprenticedesk.CrudeInkItem;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkState;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
@@ -27,6 +29,7 @@ import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -201,7 +204,8 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
 
     private static boolean isValidInk(ItemStack stack) {
         return !stack.isEmpty()
-                && (PartiallyUsedInkState.OfficialInk.fromOriginal(stack) != null
+                && (stack.is(ItemRegistry.CRUDE_INK.get())
+                || PartiallyUsedInkState.OfficialInk.fromOriginal(stack) != null
                 || PartiallyUsedInkState.readValid(stack).isPresent());
     }
 
@@ -233,7 +237,7 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
             if (canInkCraft(spell)) {
                 var inkRarity = getInkRarity();
                 var spellLevel = spell.getMinLevelForRarity(inkRarity);
-                result = new ItemStack(jp.aquafactory.apprenticecodex.registry.ItemRegistry.WOODEN_WAND.get());
+                result = new ItemStack(ItemRegistry.WOODEN_WAND.get());
                 var spellContainer = ISpellContainer.create(1, false, false).mutableCopy();
                 spellContainer.addSpellAtIndex(spell, spellLevel, 0, true);
                 ISpellContainer.set(result, spellContainer.toImmutable());
@@ -276,6 +280,9 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
 
     private @Nullable SpellRarity getInkRarity() {
         var stack = inkSlot.getItem();
+        if (stack.is(ItemRegistry.CRUDE_INK.get())) {
+            return CrudeInkItem.RARITY;
+        }
         var original = PartiallyUsedInkState.OfficialInk.fromOriginal(stack);
         if (original != null) {
             return original.rarity();
@@ -289,6 +296,10 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
         var stack = inkSlot.getItem();
         var returnGlassBottle =
                 ApprenticeCodexServerConfig.apprenticeDeskReturnGlassBottleWhenInkDepleted();
+        if (stack.is(ItemRegistry.CRUDE_INK.get())) {
+            inkSlot.set(returnGlassBottle ? new ItemStack(Items.GLASS_BOTTLE) : ItemStack.EMPTY);
+            return;
+        }
         var original = PartiallyUsedInkState.OfficialInk.fromOriginal(stack);
         if (original != null) {
             inkSlot.set(PartiallyUsedInkState.consumeOriginal(

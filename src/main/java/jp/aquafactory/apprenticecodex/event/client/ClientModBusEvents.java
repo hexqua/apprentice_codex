@@ -660,6 +660,10 @@ public final class ClientModBusEvents {
 
     private static void registerItemColors(RegisterColorHandlersEvent.Item event) {
         event.register(SpellcastersFlask::getItemTintColor, ItemRegistry.SPELLCASTERS_FLASK.get(), ItemRegistry.ALCHEMISTS_FLASK.get());
+        event.register(
+                (stack, tintIndex) -> tintIndex == 0 ? 0x000000 : -1,
+                ItemRegistry.CRUDE_INK.get()
+        );
     }
 
     private static void registerRenderBuffers(RegisterRenderBuffersEvent event) {
