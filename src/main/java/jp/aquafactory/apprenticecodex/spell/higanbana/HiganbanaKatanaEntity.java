@@ -155,7 +155,7 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
         if (getOwner() instanceof LivingEntity owner) {
             var point = getLookAngle().normalize().scale(0.75);
             var source = createCombatDamageSource(DamageTypes.HIGANBANA);
-            var hitResult = RaycastTools.hitsSphere(
+            var hitResult = RaycastTools.hitsAabb(
                     level,
                     position().add(point),
                     2.5,

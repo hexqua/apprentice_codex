@@ -241,7 +241,7 @@ public final class RaycastTools {
     }
 
 
-    public static Set<Entity> hitsSphere(
+    public static Set<Entity> hitsAabb(
             Level level,
             Vec3 point,
             double radius,
