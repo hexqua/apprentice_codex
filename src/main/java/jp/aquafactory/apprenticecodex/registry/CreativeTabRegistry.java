@@ -43,6 +43,7 @@ public final class CreativeTabRegistry {
 
     private static void addItemsToTab(CreativeModeTab.ItemDisplayParameters params, CreativeModeTab.Output output) {
         output.accept(ItemRegistry.APPRENTICE_DESK.get());
+        output.accept(ItemRegistry.CRUDE_INK.get());
         for (var source : PartiallyUsedInkState.OfficialInk.values()) {
             output.accept(PartiallyUsedInkState.create(source, source.creativeDefaultCapacity()));
         }

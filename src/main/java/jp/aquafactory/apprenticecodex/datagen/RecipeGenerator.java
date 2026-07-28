@@ -15,10 +15,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraftforge.common.Tags;
+import net.minecraftforge.common.crafting.PartialNBTIngredient;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,6 +47,18 @@ public final class RecipeGenerator extends RecipeProvider {
     @SuppressWarnings("DataFlowIssue")
     @Override
     protected void buildRecipes(@NotNull Consumer<FinishedRecipe> recipeWriter) {
+        var waterPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.WATER);
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ItemRegistry.CRUDE_INK.get())
+                // 1.20.1 ではポーション種別がNBTにあるため、水入り瓶だけに部分一致させる。
+                .requires(PartialNBTIngredient.of(Items.POTION, waterPotion.getOrCreateTag()))
+                .requires(Items.LAPIS_LAZULI)
+                .requires(Items.REDSTONE)
+                .requires(Items.GLOW_BERRIES, 2)
+                .requires(Items.INK_SAC)
+                .unlockedBy(getHasName(Items.GLOW_BERRIES), has(Items.GLOW_BERRIES))
+                .save(recipeWriter, ItemRegistry.CRUDE_INK.getId());
+
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ItemRegistry.APPRENTICE_DESK.get())
                 .pattern("CAC")
                 .pattern("SSS")

@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskFeature
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskInkTooltip;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskMenu;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.apprenticedesk.CrudeInkItem;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkItem;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkState;
 import jp.aquafactory.apprenticecodex.item.magicitem.WoodenWand;
@@ -24,16 +25,27 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.crafting.ShapelessRecipe;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
+
+import java.util.ArrayList;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -354,6 +366,149 @@ public final class ApprenticeDeskReworkGameTests {
         helper.succeed();
     }
 
+    @GameTest(template = TEMPLATE, batch = DESK_SPELL_CONFIG_BATCH)
+    public static void crudeInkCraftsCommonWandAndDepletesOnce(GameTestHelper helper) {
+        var previousSpellConfigManager = SpellConfigManager.INSTANCE;
+        try (var ignored = ApprenticeCodexServerConfig.useApprenticeDeskInkConfigOverrideForGameTest(
+                99, 4, 3, 3, 2, true
+        )) {
+            SpellConfigManager.INSTANCE = new SpellConfigManager();
+            SpellConfigManager.INSTANCE.handleServerConfigUpdate();
+            SpellConfigManager.onDatapackSync(new OnDatapackSyncEvent(
+                    helper.getLevel().getServer().getPlayerList(),
+                    null
+            ));
+
+            var player = createPlayer(helper, "crude_ink_common_wand_test");
+            var menu = new ApprenticeDeskMenu(0, player.getInventory(), ContainerLevelAccess.NULL);
+            var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            MagicData.getPlayerMagicData(player).getSyncedData().learnSpell(magicMissile, false);
+
+            menu.container.setItem(ApprenticeDeskMenu.INK_SLOT, new ItemStack(ItemRegistry.CRUDE_INK.get()));
+            menu.container.setItem(ApprenticeDeskMenu.WAND_BASE_SLOT, new ItemStack(Items.STICK));
+            menu.container.setItem(ApprenticeDeskMenu.FOCUS_SLOT, new ItemStack(Items.ENDER_PEARL));
+
+            helper.assertTrue(menu.hasAllInputs(), "Apprentice Desk did not accept Crude Ink");
+            helper.assertTrue(menu.canInkCraft(magicMissile), "Crude Ink did not support a Common spell");
+            var selectedIndex = menu.getAvailableSpells().indexOf(magicMissile);
+            helper.assertTrue(selectedIndex >= 0 && menu.clickMenuButton(player, selectedIndex),
+                    "Crude Ink could not select Magic Missile");
+
+            var resultSlot = menu.getSlot(ApprenticeDeskMenu.RESULT_SLOT);
+            var result = resultSlot.getItem();
+            var spellContainer = ISpellContainer.get(result);
+            helper.assertTrue(result.is(ItemRegistry.WOODEN_WAND.get())
+                            && spellContainer != null
+                            && spellContainer.getSpellAtIndex(0).getSpell() == magicMissile
+                            && spellContainer.getSpellAtIndex(0).getLevel()
+                            == magicMissile.getMinLevelForRarity(SpellRarity.COMMON),
+                    "Crude Ink did not create an unmodified Common wand");
+            helper.assertTrue(result.getMaxDamage() == WoodenWand.MAX_DAMAGE && result.getDamageValue() == 0,
+                    "Crude Ink changed the wooden wand durability");
+
+            var taken = resultSlot.remove(1);
+            resultSlot.onTake(player, taken);
+            helper.assertTrue(menu.container.getItem(ApprenticeDeskMenu.INK_SLOT).is(Items.GLASS_BOTTLE),
+                    "Crude Ink did not return a bottle when bottle return was enabled");
+            helper.assertTrue(menu.container.getItem(ApprenticeDeskMenu.FOCUS_SLOT).is(Items.ENDER_PEARL),
+                    "Crude Ink crafting consumed the school focus");
+        } finally {
+            SpellConfigManager.INSTANCE = previousSpellConfigManager;
+        }
+
+        SpellConfigManager.INSTANCE = new SpellConfigManager();
+        SpellConfigManager.INSTANCE.handleServerConfigUpdate();
+        SpellConfigManager.onDatapackSync(new OnDatapackSyncEvent(
+                helper.getLevel().getServer().getPlayerList(),
+                null
+        ));
+        try (var ignored = ApprenticeCodexServerConfig.useApprenticeDeskInkConfigOverrideForGameTest(
+                99, 4, 3, 3, 2, false
+        )) {
+            var player = createPlayer(helper, "crude_ink_no_bottle_test");
+            var menu = new ApprenticeDeskMenu(0, player.getInventory(), ContainerLevelAccess.NULL);
+            menu.container.setItem(ApprenticeDeskMenu.INK_SLOT, new ItemStack(ItemRegistry.CRUDE_INK.get()));
+            menu.container.setItem(ApprenticeDeskMenu.WAND_BASE_SLOT, new ItemStack(Items.STICK));
+            menu.container.setItem(ApprenticeDeskMenu.FOCUS_SLOT, new ItemStack(Items.ENDER_PEARL));
+            var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            MagicData.getPlayerMagicData(player).getSyncedData().learnSpell(magicMissile, false);
+            var selectedIndex = menu.getAvailableSpells().indexOf(magicMissile);
+            helper.assertTrue(selectedIndex >= 0 && menu.clickMenuButton(player, selectedIndex),
+                    "Crude Ink could not select Magic Missile with bottle return disabled");
+            var resultSlot = menu.getSlot(ApprenticeDeskMenu.RESULT_SLOT);
+            var taken = resultSlot.remove(1);
+            resultSlot.onTake(player, taken);
+            helper.assertTrue(menu.container.getItem(ApprenticeDeskMenu.INK_SLOT).isEmpty(),
+                    "Depleted Crude Ink remained when bottle return was disabled");
+        } finally {
+            SpellConfigManager.INSTANCE = previousSpellConfigManager;
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crudeInkTooltipShowsSingleUseDescription(GameTestHelper helper) {
+        var stack = new ItemStack(ItemRegistry.CRUDE_INK.get());
+        var lines = new ArrayList<Component>();
+        stack.getItem().appendHoverText(stack, null, lines, TooltipFlag.Default.NORMAL);
+
+        helper.assertTrue(stack.getItem() instanceof CrudeInkItem,
+                "Crude Ink was registered with the wrong item class");
+        helper.assertTrue(lines.size() == 2
+                        && lines.get(0).getContents() instanceof TranslatableContents description
+                        && "item.apprenticecodex.crude_ink.desc".equals(description.getKey())
+                        && lines.get(1).getContents() instanceof TranslatableContents singleUse
+                        && "item.apprenticecodex.crude_ink.single_use".equals(singleUse.getKey())
+                        && singleUse.getArgs().length == 0,
+                "Crude Ink tooltip did not expose its description and single-use behavior");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crudeInkRecipeRequiresExactShapelessIngredients(GameTestHelper helper) {
+        var recipe = (ShapelessRecipe) helper.getLevel().getRecipeManager()
+                .byKey(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "crude_ink"))
+                .orElseThrow();
+        var waterBottle = PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.WATER);
+        var valid = createCraftingContainer(
+                new ItemStack(Items.GLOW_BERRIES),
+                new ItemStack(Items.INK_SAC),
+                waterBottle,
+                new ItemStack(Items.REDSTONE),
+                new ItemStack(Items.GLOW_BERRIES),
+                new ItemStack(Items.LAPIS_LAZULI)
+        );
+
+        helper.assertTrue(recipe.matches(valid, helper.getLevel()),
+                "Crude Ink recipe rejected the required ingredients in a shuffled layout");
+        helper.assertTrue(recipe.assemble(valid, helper.getLevel().registryAccess()).is(ItemRegistry.CRUDE_INK.get()),
+                "Crude Ink recipe returned the wrong item");
+        helper.assertTrue(recipe.getRemainingItems(valid).stream().allMatch(ItemStack::isEmpty),
+                "Crude Ink recipe returned a glass bottle before the ink was used");
+
+        var wrongPotion = createCraftingContainer(
+                PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.AWKWARD),
+                new ItemStack(Items.LAPIS_LAZULI),
+                new ItemStack(Items.REDSTONE),
+                new ItemStack(Items.GLOW_BERRIES),
+                new ItemStack(Items.GLOW_BERRIES),
+                new ItemStack(Items.INK_SAC)
+        );
+        helper.assertFalse(recipe.matches(wrongPotion, helper.getLevel()),
+                "Crude Ink recipe accepted a non-water potion");
+
+        var missingBerry = createCraftingContainer(
+                waterBottle,
+                new ItemStack(Items.LAPIS_LAZULI),
+                new ItemStack(Items.REDSTONE),
+                new ItemStack(Items.GLOW_BERRIES),
+                new ItemStack(Items.INK_SAC)
+        );
+        helper.assertFalse(recipe.matches(missingBerry, helper.getLevel()),
+                "Crude Ink recipe accepted only one Glow Berry");
+        helper.succeed();
+    }
+
     @GameTest(template = TEMPLATE)
     public static void woodenWandUsesOwnSpellAndConsumesDurabilityOnCooldown(GameTestHelper helper) {
         var player = createPlayer(helper, "wooden_wand_durability_test");
@@ -404,5 +559,24 @@ public final class ApprenticeDeskReworkGameTests {
 
     private static FakePlayer createPlayer(GameTestHelper helper, String name) {
         return BowGameTestSupport.createEquipmentTestPlayer(helper, new BlockPos(1, 2, 1), name);
+    }
+
+    private static TransientCraftingContainer createCraftingContainer(ItemStack... stacks) {
+        var menu = new AbstractContainerMenu(null, -1) {
+            @Override
+            public ItemStack quickMoveStack(Player player, int index) {
+                return ItemStack.EMPTY;
+            }
+
+            @Override
+            public boolean stillValid(Player player) {
+                return false;
+            }
+        };
+        var container = new TransientCraftingContainer(menu, 3, 3);
+        for (int i = 0; i < stacks.length; ++i) {
+            container.setItem(i, stacks[i]);
+        }
+        return container;
     }
 }

@@ -29,6 +29,9 @@
   "item.apprenticecodex.partially_used_ink.desc": "Partially used; it can only be used to craft wands.",
   "item.apprenticecodex.partially_used_ink.remaining": "Uses remaining: %1$d/%2$d",
   "item.apprenticecodex.partially_used_ink.remaining_unknown": "Uses remaining: Unknown",
+  "item.apprenticecodex.crude_ink": "Crude Ink",
+  "item.apprenticecodex.crude_ink.desc": "Its quality is too poor for anything except crafting wands with Common spells.",
+  "item.apprenticecodex.crude_ink.single_use": "Consumed completely after one use.",
 
   "item.apprenticecodex.arcane_cinder": "Arcane Cinder",
   "item.apprenticecodex.wisdom_shard": "Shard of Wisdom",
