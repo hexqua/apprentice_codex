@@ -56,19 +56,22 @@ final class KatanaAreaHitGameTestScenarios {
                 new Vec3(0.0D, 0.0D, 1.0D),
                 1.0D,
                 0.75D,
-                4.5D
+                2.5D
         );
-        var target = createZombie(level, helper.absoluteVec(new Vec3(2.5D, 2.0D, 6.5D)));
+        var target = createZombie(level, helper.absoluteVec(new Vec3(2.5D, 3.0D, 4.5D)));
 
         var visibleHit = singleHit(helper, level, source, attackBox);
         helper.assertFalse(visibleHit.blockOccluded(), "Target without a wall should not be occluded");
 
-        helper.setBlock(new BlockPos(2, 2, 4), Blocks.STONE);
-        helper.setBlock(new BlockPos(2, 3, 4), Blocks.STONE);
+        helper.setBlock(new BlockPos(2, 2, 3), Blocks.STONE);
+        helper.setBlock(new BlockPos(2, 3, 3), Blocks.STONE);
+        helper.setBlock(new BlockPos(2, 4, 3), Blocks.STONE);
         var fullyBlockedHit = singleHit(helper, level, source, attackBox);
-        helper.assertTrue(fullyBlockedHit.blockOccluded(), "Two-block wall should fully occlude the target");
+        helper.assertTrue(fullyBlockedHit.blockOccluded(), "Three-block wall should fully occlude the target");
 
-        helper.setBlock(new BlockPos(2, 3, 4), Blocks.AIR);
+        helper.setBlock(new BlockPos(2, 2, 3), Blocks.STONE_SLAB);
+        helper.setBlock(new BlockPos(2, 3, 3), Blocks.AIR);
+        helper.setBlock(new BlockPos(2, 4, 3), Blocks.AIR);
         var partiallyVisibleHit = singleHit(helper, level, source, attackBox);
         helper.assertFalse(partiallyVisibleHit.blockOccluded(),
                 "Target with any visible sampled point should not be occluded");
@@ -219,7 +222,7 @@ final class KatanaAreaHitGameTestScenarios {
 
     static void higanbanaStaysHorizontalAndRejectsWallHits(GameTestHelper helper) {
         var level = helper.getLevel();
-        var owner = createPlayer(helper, "higanbana_area_owner", new Vec3(2.5D, 2.0D, 2.5D));
+        var owner = createPlayer(helper, "higanbana_area_owner", new Vec3(2.5D, 3.0D, 2.5D));
         owner.setYRot(0.0F);
         owner.setXRot(60.0F);
         var weapon = new HiganbanaKatanaEntity(EntityRegistry.HIGANBANA_KATANA.get(), level, owner);
@@ -229,8 +232,8 @@ final class KatanaAreaHitGameTestScenarios {
 
         var target = createZombie(level, weapon.position().add(0.0D, 0.0D, 2.0D));
         var initialHealth = target.getHealth();
-        helper.setBlock(new BlockPos(2, 2, 4), Blocks.STONE);
         helper.setBlock(new BlockPos(2, 3, 4), Blocks.STONE);
+        helper.setBlock(new BlockPos(2, 4, 4), Blocks.STONE);
 
         weapon.slash(level);
         helper.assertTrue(Math.abs(target.getHealth() - initialHealth) < HEALTH_EPSILON,
@@ -238,8 +241,8 @@ final class KatanaAreaHitGameTestScenarios {
         helper.assertTrue(Math.abs(weapon.getXRot()) < POSITION_EPSILON,
                 "Higanbana should remain horizontal regardless of owner pitch");
 
-        helper.setBlock(new BlockPos(2, 2, 4), Blocks.AIR);
         helper.setBlock(new BlockPos(2, 3, 4), Blocks.AIR);
+        helper.setBlock(new BlockPos(2, 4, 4), Blocks.AIR);
         tickWeapon(level, weapon, 5);
         helper.assertTrue(target.getHealth() < initialHealth - HEALTH_EPSILON,
                 "Higanbana should reevaluate the wall and damage on a later slash");
