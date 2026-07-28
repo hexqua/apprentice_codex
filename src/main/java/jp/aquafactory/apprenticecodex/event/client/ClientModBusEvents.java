@@ -661,7 +661,8 @@ public final class ClientModBusEvents {
     private static void registerItemColors(RegisterColorHandlersEvent.Item event) {
         event.register(SpellcastersFlask::getItemTintColor, ItemRegistry.SPELLCASTERS_FLASK.get(), ItemRegistry.ALCHEMISTS_FLASK.get());
         event.register(
-                (stack, tintIndex) -> tintIndex == 0 ? 0x000000 : -1,
+                // 1.21.1 は tint のアルファ値も描画に使うため、不透明な黒を返す。
+                (stack, tintIndex) -> tintIndex == 0 ? 0xFF000000 : -1,
                 ItemRegistry.CRUDE_INK.get()
         );
     }
