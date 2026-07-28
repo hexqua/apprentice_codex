@@ -58,6 +58,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String SUMMON_WEAPON_ANIMATION_BATCH = "apprenticecodex.summon_weapon_animation";
     private static final String COMBAT_TARGET_POLICY_BATCH = "apprenticecodex.combat_target_policy";
     private static final String HIGANBANA_ISOLATED_BATCH = "apprenticecodex.higanbana_isolated";
+    private static final String KATANA_AREA_HIT_ISOLATED_BATCH = "apprenticecodex.katana_area_hit_isolated";
     private static final String FUJIN_ISOLATED_BATCH = "apprenticecodex.fujin_isolated";
     private static final String OTHERWORLD_LENS_ISOLATED_BATCH = "apprenticecodex.otherworld_lens_isolated";
 
@@ -118,6 +119,41 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = HIGANBANA_ISOLATED_BATCH)
     public static void higanbanaDamageHasNoKnockbackAndHealsHalf(GameTestHelper helper) {
         HiganbanaGameTestScenarios.higanbanaDamageHasNoKnockbackAndHealsHalf(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void horizontalOrientedBoxRejectsBroadPhaseCorners(GameTestHelper helper) {
+        KatanaAreaHitGameTestScenarios.horizontalOrientedBoxRejectsBroadPhaseCorners(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void orientedBoxOcclusionUsesPartialVisibilityAndEmbeddedSource(GameTestHelper helper) {
+        KatanaAreaHitGameTestScenarios.orientedBoxOcclusionUsesPartialVisibilityAndEmbeddedSource(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void orientedBoxDeduplicatesMultipartTargets(GameTestHelper helper) {
+        KatanaAreaHitGameTestScenarios.orientedBoxDeduplicatesMultipartTargets(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void slashBladeRefreshesPoseAndDamagesThroughWall(GameTestHelper helper) {
+        KatanaAreaHitGameTestScenarios.slashBladeRefreshesPoseAndDamagesThroughWall(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void slashBladeKeepsFullDamageAndKnockbackWithoutWall(GameTestHelper helper) {
+        KatanaAreaHitGameTestScenarios.slashBladeKeepsFullDamageAndKnockbackWithoutWall(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void higanbanaStaysHorizontalAndRejectsWallHits(GameTestHelper helper) {
+        KatanaAreaHitGameTestScenarios.higanbanaStaysHorizontalAndRejectsWallHits(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void katanasKeepAttackOriginBeforeThinCover(GameTestHelper helper) {
+        KatanaAreaHitGameTestScenarios.katanasKeepAttackOriginBeforeThinCover(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FUJIN_ISOLATED_BATCH)

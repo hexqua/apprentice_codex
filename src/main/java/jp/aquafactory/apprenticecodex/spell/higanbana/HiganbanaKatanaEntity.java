@@ -24,6 +24,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +40,10 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEntity, ISwordTrailEntity {
     private static final int SLASH_EFFECT_TICK = 10;
     private static final int SLASH_STANDBY_TICK = 5;
+    private static final double ATTACK_HALF_WIDTH = 2.5D;
+    private static final double ATTACK_HALF_HEIGHT = 0.75D;
+    private static final double ATTACK_DEPTH = 2.5D;
+    private static final double FOLLOW_FORWARD_OFFSET = 0.9D;
     private static final DustParticleOptions DRAIN_DUST_PARTICLE =
             new DustParticleOptions(new Vector3f(1.0f, 0.0f, 0.0f), 1.0f);
     private static final int DRAIN_DUST_COUNT = 20;
@@ -69,6 +74,11 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
 
     public HiganbanaKatanaEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
         super(pEntityType, pLevel, owner);
+        moveToCollisionLimitedStandbyPosition(owner);
+    }
+
+    static public double getAttackDepth(){
+        return ATTACK_DEPTH + FOLLOW_FORWARD_OFFSET;
     }
 
     @Override
@@ -153,18 +163,33 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
         slashEffectTick = SLASH_EFFECT_TICK;
 
         if (getOwner() instanceof LivingEntity owner) {
-            var point = getLookAngle().normalize().scale(0.75);
+            var attackBox = new RaycastTools.HorizontalOrientedBox(
+                    position(),
+                    getLookAngle(),
+                    ATTACK_HALF_WIDTH,
+                    ATTACK_HALF_HEIGHT,
+                    ATTACK_DEPTH
+            );
             var source = createCombatDamageSource(DamageTypes.HIGANBANA);
-            var hitResult = RaycastTools.hitsSphere(
+            var hitResult = RaycastTools.hitsHorizontalOrientedBox(
                     level,
-                    position().add(point),
-                    2.5,
+                    this,
+                    attackBox,
                     e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
             );
             AudioTools.playSoundFromEntity(level, this, SoundRegistry.KATANA_SLASH.get(), SoundSource.PLAYERS);
             AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
             for (var hit : hitResult) {
-                var applied = CombatTools.applyDamage(hit, damage, source, SpellRegistry.HIGANBANA.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+                if (hit.blockOccluded()) {
+                    continue;
+                }
+                var applied = CombatTools.applyDamage(
+                        hit.entity(),
+                        damage,
+                        source,
+                        SpellRegistry.HIGANBANA.get().getSchoolType(),
+                        CombatTools.KnockbackTypes.NO_KNOCKBACK
+                );
                 if (applied) {
                     playDrainFeedback(level, owner);
                 }
@@ -277,11 +302,20 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
     @Override
     public Vec3 getStandbyPosition() {
         if (getOwner() instanceof LivingEntity owner) {
-            // 彼岸花は水平方向の攻撃しかできないため、backOffset調整だけでよい.
-            return RotationTools.calculateBehindPosition(owner, -0.9, 0, -0.75);
+            // ピッチ追従は操作感を損ねるため意図的に行わず、水平方向の攻撃として扱う.
+            // back方向なのでマイナスでforward方向になる.
+            return RotationTools.calculateBehindPosition(owner, -FOLLOW_FORWARD_OFFSET, 0, -0.75);
         }
 
         return Vec3.ZERO;
+    }
+
+    private void moveToCollisionLimitedStandbyPosition(LivingEntity owner) {
+        // 術者から攻撃起点までの薄い遮蔽物を飛び越さないよう、術者側から衝突を伴って移動する。
+        var casterSidePosition = RotationTools.calculateBehindPosition(owner, 0.0D, 0.0D, -0.75D);
+        var standbyPosition = getStandbyPosition();
+        setPos(casterSidePosition.x, casterSidePosition.y, casterSidePosition.z);
+        move(MoverType.SELF, standbyPosition.subtract(casterSidePosition));
     }
 
     @Override

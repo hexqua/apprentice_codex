@@ -18,6 +18,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +33,12 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEntity, ISwordTrailEntity {
 
     private static final int STAY_SLASHED_TICK = 10;
+    private static final double ATTACK_HALF_WIDTH = 2.75D;
+    private static final double ATTACK_HALF_HEIGHT = 0.75D;
+    private static final double ATTACK_DEPTH = 4.5D;
+    private static final double FOLLOW_FORWARD_OFFSET = 0.5D;
+    private static final String BLOCK_PENETRATION_DAMAGE_MULTIPLIER_TAG =
+            "BlockPenetrationDamageMultiplier";
     public static final String BLADE_CACHE_KEY = "default";
     public static final String SCABBARD_CACHE_KEY = "scabbard";
 
@@ -46,6 +53,7 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     private float damage;
+    private float blockPenetrationDamageMultiplier = 1.0F;
     private int lifeTick = 0;
     private boolean isSlashed = false;
     private boolean isStandby = false;
@@ -56,6 +64,7 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
 
     public SlashBladeKatanaEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
         super(pEntityType, pLevel, owner);
+        moveToCollisionLimitedStandbyPosition(owner);
     }
 
     @Override
@@ -70,6 +79,10 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
         GeoBonePoseCache.remove(getUUID());
 
         super.onClientRemoval();
+    }
+
+    static public double getAttackDepth(){
+        return ATTACK_DEPTH + FOLLOW_FORWARD_OFFSET;
     }
 
     private void spawnRemovalLineParticle(String cacheKey) {
@@ -104,10 +117,7 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
             }
         }
 
-        followTargetPosition(getStandbyPosition());
-        setYRot(owner.getYRot());
-        setXRot(0);
-        setRot(getYRot(), getXRot());
+        refreshAttackPose(owner);
     }
 
     public void setStandby(){
@@ -130,26 +140,61 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
     }
 
     public void slash(Level level){
+        if (!(getOwner() instanceof LivingEntity owner)) {
+            return;
+        }
+
+        // 詠唱中の移動と旋回を抜刀時の攻撃範囲へ反映する。
+        refreshAttackPose(owner);
         triggerAnim("main", "quickdraw");
-        entityData.set(ANIMATION_SPEED, 5.0f);
+        entityData.set(ANIMATION_SPEED, 3.0f);
         entityData.set(SHOW_TRAIL, true);
         lifeTick = STAY_SLASHED_TICK;
         isSlashed = true;
 
-        if ((getOwner() instanceof LivingEntity owner)) {
-            var point = getLookAngle().normalize().scale(0.75);
-            var source = createCombatDamageSource(DamageTypes.SLASH_BLADE);
-            var hitResult = RaycastTools.hitsSphere(level,
-                    position().add(point),
-                    2.5,
-                    e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
+        var attackBox = new RaycastTools.HorizontalOrientedBox(
+                position(),
+                getLookAngle(),
+                ATTACK_HALF_WIDTH,
+                ATTACK_HALF_HEIGHT,
+                ATTACK_DEPTH
+        );
+        var source = createCombatDamageSource(DamageTypes.SLASH_BLADE);
+        var hitResult = RaycastTools.hitsHorizontalOrientedBox(
+                level,
+                this,
+                attackBox,
+                e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
+        );
+        AudioTools.playSoundFromEntity(level, this, SoundRegistry.KATANA_SLASH.get(), SoundSource.PLAYERS);
+        AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
+        for (var hit : hitResult){
+            var isBlockPenetrationHit = hit.blockOccluded();
+            CombatTools.applyDamage(
+                    hit.entity(),
+                    isBlockPenetrationHit ? damage * blockPenetrationDamageMultiplier : damage,
+                    source,
+                    SpellRegistry.SLASH_BLADE.get().getSchoolType(),
+                    isBlockPenetrationHit
+                            ? CombatTools.KnockbackTypes.NO_KNOCKBACK
+                            : CombatTools.KnockbackTypes.DEFAULT
             );
-            AudioTools.playSoundFromEntity(level, this, SoundRegistry.KATANA_SLASH.get(), SoundSource.PLAYERS);
-            AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
-            for (var hit : hitResult){
-                CombatTools.applyDamage(hit, damage, source, SpellRegistry.SLASH_BLADE.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
-            }
         }
+    }
+
+    private void refreshAttackPose(LivingEntity owner) {
+        moveToCollisionLimitedStandbyPosition(owner);
+        setYRot(owner.getYRot());
+        setXRot(0);
+        setRot(getYRot(), getXRot());
+    }
+
+    private void moveToCollisionLimitedStandbyPosition(LivingEntity owner) {
+        // 術者から攻撃起点までの薄い遮蔽物を飛び越さないよう、術者側から衝突を伴って移動する。
+        var casterSidePosition = RotationTools.calculateBehindPosition(owner, 0.0D, 0.0D, -0.75D);
+        var standbyPosition = getStandbyPosition();
+        setPos(casterSidePosition.x, casterSidePosition.y, casterSidePosition.z);
+        move(MoverType.SELF, standbyPosition.subtract(casterSidePosition));
     }
 
     public void setDamage(float damage){
@@ -158,6 +203,14 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
 
     public float getDamageForGameTest() {
         return damage;
+    }
+
+    public void setBlockPenetrationDamageMultiplier(float multiplier) {
+        blockPenetrationDamageMultiplier = Mth.clamp(multiplier, 0.0F, 1.0F);
+    }
+
+    public float getBlockPenetrationDamageMultiplierForGameTest() {
+        return blockPenetrationDamageMultiplier;
     }
 
     @Override
@@ -174,19 +227,30 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
     protected void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         damage = pCompound.getFloat("Damage");
+        if (pCompound.contains(BLOCK_PENETRATION_DAMAGE_MULTIPLIER_TAG)) {
+            setBlockPenetrationDamageMultiplier(
+                    pCompound.getFloat(BLOCK_PENETRATION_DAMAGE_MULTIPLIER_TAG)
+            );
+        }
     }
 
     @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
         pCompound.putFloat("Damage", damage);
+        pCompound.putFloat(
+                BLOCK_PENETRATION_DAMAGE_MULTIPLIER_TAG,
+                blockPenetrationDamageMultiplier
+        );
     }
 
     @Override
     public Vec3 getStandbyPosition() {
         // 鞘と刀身でセットのため、中央に出す.
         if (getOwner() instanceof LivingEntity owner) {
-            return RotationTools.calculateBehindPosition(owner, 0, 0, -0.75);
+            // ピッチ追従は操作感を損ねるため意図的に行わず、水平方向の攻撃として扱う.
+            // back方向なのでマイナスでforward方向になる.
+            return RotationTools.calculateBehindPosition(owner, -FOLLOW_FORWARD_OFFSET, 0, -0.75);
         }
 
         return Vec3.ZERO;

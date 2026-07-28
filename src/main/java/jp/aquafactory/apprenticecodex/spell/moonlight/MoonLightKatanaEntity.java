@@ -149,7 +149,7 @@ public class MoonLightKatanaEntity extends SummonWeaponEntity implements GeoEnti
         if (getOwner() instanceof LivingEntity owner) {
             var point = getLookAngle().normalize().scale(0.75);
             var source = createCombatDamageSource(DamageTypes.MOON_LIGHT);
-            var hitResult = RaycastTools.hitsSphere(
+            var hitResult = RaycastTools.hitsAabb(
                     level,
                     position().add(point),
                     2.5,
