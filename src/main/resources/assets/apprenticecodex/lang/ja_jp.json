@@ -157,6 +157,10 @@
   "item.apprenticecodex.magi_agent_suit_coat": "マギ・エージェントのコート",
   "item.apprenticecodex.magi_agent_suit_leggings": "マギ・エージェントのスラックス",
   "item.apprenticecodex.magi_agent_suit_boots": "マギ・エージェントの革靴",
+  "item.apprenticecodex.soulcollector_hat": "魂収集家の帽子",
+  "item.apprenticecodex.soulcollector_robe": "魂収集家のローブ",
+  "item.apprenticecodex.soulcollector_leggings": "魂収集家のズボン",
+  "item.apprenticecodex.soulcollector_boots": "魂収集家の靴",
 
   "item.apprenticecodex.spellgun.tooltip.hint": "ShiftまたはAltキーで詳細を表示",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "注入した魔法への特殊効果:",
