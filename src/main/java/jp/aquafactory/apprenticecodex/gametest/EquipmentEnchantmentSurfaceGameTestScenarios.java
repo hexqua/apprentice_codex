@@ -1517,27 +1517,11 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
 
     static void soulcollectorRobeAddsLodestoneMagicProficiencyAndMalumInfusions(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-            var protection = enchantmentLookup.getOrThrow(ResourceKey.create(
-                    Registries.ENCHANTMENT, ResourceLocation.withDefaultNamespace("protection")));
-            var unbreaking = enchantmentLookup.getOrThrow(ResourceKey.create(
-                    Registries.ENCHANTMENT, ResourceLocation.withDefaultNamespace("unbreaking")));
             var stack = new ItemStack(ItemRegistry.SOULCOLLECTOR_ROBE.get());
             helper.assertTrue(stack.getItem().supportsEnchantment(stack,
-                            enchantmentLookup.getOrThrow(Enchantments.WISDOM)),
+                            helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                                    .getOrThrow(Enchantments.WISDOM)),
                     "Soulcollector Robe should support Wisdom");
-            for (var armor : List.of(
-                    ItemRegistry.SOULCOLLECTOR_HAT.get(),
-                    ItemRegistry.SOULCOLLECTOR_ROBE.get(),
-                    ItemRegistry.SOULCOLLECTOR_LEGGINGS.get(),
-                    ItemRegistry.SOULCOLLECTOR_BOOTS.get()
-            )) {
-                var armorStack = new ItemStack(armor);
-                helper.assertTrue(protection.value().canEnchant(armorStack),
-                        "Soulcollector armor should be in vanilla armor enchantment tags: " + armor);
-                helper.assertTrue(unbreaking.value().canEnchant(armorStack),
-                        "Soulcollector armor should be in minecraft:enchantable/durability: " + armor);
-            }
             if (ModList.get().isLoaded("lodestone")) {
                 var proficiency = BuiltInRegistries.ATTRIBUTE.getOptional(
                         ResourceLocation.fromNamespaceAndPath("lodestone", "magic_proficiency")).orElse(null);
@@ -1557,6 +1541,63 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                 }
             }
         });
+    }
+
+    /**
+     * 1.21.1 では防具のバニラ付呪可否が item tag で決まるため、登録済みの全防具を部位ごとの革防具と照合する。
+     * 追加のバニラ／MOD エンチャントは個別のバランス検証に委ね、ここでは移植時に欠けやすい部位基準のバニラ面だけを監視する。
+     */
+    static void allRegisteredArmorMatchesVanillaEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var registryAccess = helper.getLevel().registryAccess();
+            var testedArmorCount = 0;
+            for (var itemEntry : ItemRegistry.ITEMS.getEntries()) {
+                var item = itemEntry.get();
+                if (!(item instanceof ArmorItem armorItem) || armorItem.getType() == ArmorItem.Type.BODY) {
+                    continue;
+                }
+
+                var stack = new ItemStack(item);
+                var referenceStack = createArmorProbeStack(stack);
+                assertVanillaArmorEnchantmentSurface(helper, registryAccess, stack, referenceStack, "primary",
+                        enchantment -> item.isPrimaryItemFor(stack, enchantment),
+                        enchantment -> referenceStack.getItem().isPrimaryItemFor(referenceStack, enchantment));
+                assertVanillaArmorEnchantmentSurface(helper, registryAccess, stack, referenceStack, "supported",
+                        enchantment -> item.supportsEnchantment(stack, enchantment),
+                        enchantment -> referenceStack.getItem().supportsEnchantment(referenceStack, enchantment));
+                assertVanillaArmorEnchantmentSurface(helper, registryAccess, stack, referenceStack, "definition",
+                        enchantment -> enchantment.value().canEnchant(stack),
+                        enchantment -> enchantment.value().canEnchant(referenceStack));
+                assertVanillaArmorEnchantmentSurface(helper, registryAccess, stack, referenceStack, "book",
+                        enchantment -> item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                        enchantment -> referenceStack.getItem().isBookEnchantable(referenceStack, createEnchantedBook(enchantment)));
+                testedArmorCount++;
+            }
+            helper.assertTrue(testedArmorCount > 0, "No Apprentice's Codex armor was found for vanilla enchantment checks");
+        });
+    }
+
+    private static void assertVanillaArmorEnchantmentSurface(
+            GameTestHelper helper,
+            RegistryAccess registryAccess,
+            ItemStack stack,
+            ItemStack referenceStack,
+            String surface,
+            Predicate<Holder<Enchantment>> actualPredicate,
+            Predicate<Holder<Enchantment>> expectedPredicate
+    ) {
+        var expected = collectAllowedEnchantments(registryAccess,
+                enchantment -> isVanillaEnchantment(enchantment) && expectedPredicate.test(enchantment));
+        var actual = collectAllowedEnchantments(registryAccess,
+                enchantment -> isVanillaEnchantment(enchantment) && actualPredicate.test(enchantment));
+        helper.assertTrue(actual.equals(expected),
+                "Vanilla armor enchantment " + surface + " differs from " + referenceStack.getItem()
+                        + " for " + stack.getItem() + ": " + describeEnchantmentDifference(expected, actual));
+    }
+
+    private static boolean isVanillaEnchantment(Holder<Enchantment> enchantment) {
+        return enchantment.unwrapKey().map(key -> key.location().getNamespace().equals(ResourceLocation.DEFAULT_NAMESPACE))
+                .orElse(false);
     }
 
     static void scrollcasterGauntletKeepsExpectedStatsAndBenchEnchantingRules(GameTestHelper helper) {

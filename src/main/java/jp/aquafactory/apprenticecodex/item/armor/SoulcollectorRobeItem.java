@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.enchantment.VanillaEnchantmentCompatibility;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.renderer.armor.SoulcollectorRobeRenderer;
 import net.minecraft.client.model.HumanoidModel;
@@ -15,7 +16,6 @@ import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -85,13 +85,16 @@ public class SoulcollectorRobeItem extends ArmorItem implements GeoItem, IPreset
 
     @Override
     public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
-        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
+        return super.isPrimaryItemFor(stack, enchantment)
+                || VanillaEnchantmentCompatibility.isNonVanillaAndSupported(enchantment,
+                supportedEnchantment -> supportsEnchantment(stack, supportedEnchantment));
     }
 
     @Override
     public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
-        return super.isBookEnchantable(stack, book) && EnchantmentHelper.getEnchantmentsForCrafting(book).keySet()
-                .stream().allMatch(enchantment -> supportsEnchantment(stack, enchantment));
+        return super.isBookEnchantable(stack, book)
+                && VanillaEnchantmentCompatibility.bookContainsOnlyVanillaOrSupported(book,
+                supportedEnchantment -> supportsEnchantment(stack, supportedEnchantment));
     }
 
     @Override

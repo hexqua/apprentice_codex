@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.enchantment.VanillaEnchantmentCompatibility;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
@@ -35,7 +36,6 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -137,7 +137,9 @@ public class MagiAgentSuitItem extends ArmorItem
 
     @Override
     public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
-        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
+        return super.isPrimaryItemFor(stack, enchantment)
+                || VanillaEnchantmentCompatibility.isNonVanillaAndSupported(enchantment,
+                supportedEnchantment -> supportsEnchantment(stack, supportedEnchantment));
     }
 
     @Override
@@ -146,13 +148,8 @@ public class MagiAgentSuitItem extends ArmorItem
             return false;
         }
 
-        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
-        if (enchantments.isEmpty()) {
-            return true;
-        }
-
-        return enchantments.keySet().stream()
-                .allMatch(enchantment -> supportsEnchantment(stack, enchantment));
+        return VanillaEnchantmentCompatibility.bookContainsOnlyVanillaOrSupported(book,
+                supportedEnchantment -> supportsEnchantment(stack, supportedEnchantment));
     }
 
     @Override

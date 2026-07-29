@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.enchantment.VanillaEnchantmentCompatibility;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.renderer.armor.StealthRuneArmorRenderer;
@@ -26,7 +27,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -170,7 +170,9 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
 
     @Override
     public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
-        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
+        return super.isPrimaryItemFor(stack, enchantment)
+                || VanillaEnchantmentCompatibility.isNonVanillaAndSupported(enchantment,
+                supportedEnchantment -> supportsEnchantment(stack, supportedEnchantment));
     }
 
     @Override
@@ -179,9 +181,8 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
             return false;
         }
 
-        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
-        return enchantments.isEmpty()
-                || enchantments.keySet().stream().allMatch(enchantment -> supportsEnchantment(stack, enchantment));
+        return VanillaEnchantmentCompatibility.bookContainsOnlyVanillaOrSupported(book,
+                supportedEnchantment -> supportsEnchantment(stack, supportedEnchantment));
     }
 
     @Override

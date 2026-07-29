@@ -2182,6 +2182,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void allRegisteredArmorMatchesVanillaEnchantmentSurfaces(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.allRegisteredArmorMatchesVanillaEnchantmentSurfaces(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void chromaticMagiaDressRecordsCastHistoryByArmorTypeAndIgnoresRecasts(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.chromaticMagiaDressRecordsCastHistoryByArmorTypeAndIgnoresRecasts(helper);
     }
