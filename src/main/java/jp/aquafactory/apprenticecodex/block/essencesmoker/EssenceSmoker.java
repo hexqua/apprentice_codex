@@ -173,8 +173,7 @@ public class EssenceSmoker extends BaseEntityBlock {
                 displayError(player, "ui.apprenticecodex.max_count_material");
             } else {
                 displayError(player, "ui.apprenticecodex.need_ignite",
-                        Items.FLINT_AND_STEEL.getDescription(),
-                        Component.translatable("spell.irons_spellbooks.firebolt"));
+                        Items.FLINT_AND_STEEL.getDescription());
             }
             return InteractionResult.CONSUME;
         }
@@ -201,8 +200,7 @@ public class EssenceSmoker extends BaseEntityBlock {
 
         if (blockEntity.hasMaterials() && heldStack.getMaxStackSize() == 1) {
             displayError(player, "ui.apprenticecodex.need_ignite",
-                    Items.FLINT_AND_STEEL.getDescription(),
-                    Component.translatable("spell.irons_spellbooks.firebolt"));
+                    Items.FLINT_AND_STEEL.getDescription());
             return InteractionResult.CONSUME;
         }
 

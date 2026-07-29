@@ -927,7 +927,7 @@
   "ui.apprenticecodex.not_match_material": "%1$s does not react with %2$s",
   "ui.apprenticecodex.max_count_material": "Can't supply more materials!",
   "ui.apprenticecodex.need_material_and_catalyst": "You need to set catalyst and material first!",
-  "ui.apprenticecodex.need_ignite": "%1$s or %2$s is required to ignite!",
+  "ui.apprenticecodex.need_ignite": "%1$s is required to ignite!",
   "ui.apprenticecodex.now_smoke_processing": "Still needs time",
   "ui.apprenticecodex.cant_open_hole": "Can't open hole on %s",
   "ui.apprenticecodex.spell.dimension_not_allowed": "Can't use this spell in this dimension",
