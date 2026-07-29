@@ -88,7 +88,8 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_SWORD);
     private static final ItemStack TRIDENT_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.TRIDENT);
     private static final Set<String> EXTRA_ENCHANTMENTS = Set.of(
-            "apprenticecodex:wisdom"
+            "apprenticecodex:wisdom",
+            "malum:replenishing"
     );
     private static final String MAIN_CONTROLLER = "main";
     private static final double USING_IDLE_ANIMATION_SPEED = 4.0D;
