@@ -16,7 +16,7 @@
 - Mod ローダー: NeoForge 21.1.219
 - 言語/実行環境: Java 21
 - ビルドツール: Gradle Wrapper（Windows では `./gradlew.bat` を使用）
-- 主要依存 MOD: Iron's Spells 'n Spellbooks（1.21.1-3.15.4）, Curios（9.5.1+1.21.1）, GeckoLib（4.8.3）
+- 主要依存 MOD: Iron's Spells 'n Spellbooks（1.21.1-3.16.2）, Iron's Lib（1.21.1-2.1.0）, Curios（9.5.1+1.21.1）, GeckoLib（4.8.3）
 - ローカルでは `JDK21_HOME` を設定し、必要に応じて `.\scripts\use-java.ps1` で `JAVA_HOME` を切り替える。
 - `main`（1.20.1）を触る場合のみ Java 17 を使う。
 

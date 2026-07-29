@@ -37,6 +37,13 @@ config="mixins.apprenticecodex.json"
     side="BOTH"
 
 [[dependencies.apprenticecodex]]
+    modId="irons_lib"
+    mandatory=true
+    versionRange="[${irons_lib_version},)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.apprenticecodex]]
     modId="geckolib"
     mandatory=true
     versionRange="[${geckolib_version},)"
