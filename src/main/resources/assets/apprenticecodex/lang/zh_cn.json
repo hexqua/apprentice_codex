@@ -946,7 +946,7 @@
   "ui.apprenticecodex.not_match_material": "%1$s 与 %2$s 无法发生反应",
   "ui.apprenticecodex.max_count_material": "无法供应更多材料！",
   "ui.apprenticecodex.need_material_and_catalyst": "你需要先设置催化剂和材料！",
-  "ui.apprenticecodex.need_ignite": "需要 %1$s 或 %2$s 才能点燃！",
+  "ui.apprenticecodex.need_ignite": "需要 %1$s 才能点燃！",
   "ui.apprenticecodex.now_smoke_processing": "还需要时间",
   "ui.apprenticecodex.cant_open_hole": "无法在 %s 上开孔",
   "ui.apprenticecodex.spell.dimension_not_allowed": "无法在此维度使用该法术",
