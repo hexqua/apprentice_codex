@@ -39,6 +39,7 @@ import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
+import jp.aquafactory.apprenticecodex.item.armor.SoulcollectorRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
@@ -134,6 +135,10 @@ public final class ItemRegistry {
 
     private static DeferredHolder<Item, Item> enchantressArmor(String id, ArmorItem.Type type) {
         return ITEMS.register(id, () -> new EnchantressRobeItem(type));
+    }
+
+    private static DeferredHolder<Item, Item> soulcollectorArmor(String id, ArmorItem.Type type) {
+        return ITEMS.register(id, () -> new SoulcollectorRobeItem(type));
     }
 
     private static DeferredHolder<Item, Item> stealthRuneArmor(String id, ArmorItem.Type type) {
@@ -250,6 +255,14 @@ public final class ItemRegistry {
             enchantressArmor("enchantress_leggings", ArmorItem.Type.LEGGINGS);
     public static final DeferredHolder<Item, Item> ENCHANTRESS_BOOTS =
             enchantressArmor("enchantress_boots", ArmorItem.Type.BOOTS);
+    public static final DeferredHolder<Item, Item> SOULCOLLECTOR_HAT =
+            soulcollectorArmor("soulcollector_hat", ArmorItem.Type.HELMET);
+    public static final DeferredHolder<Item, Item> SOULCOLLECTOR_ROBE =
+            soulcollectorArmor("soulcollector_robe", ArmorItem.Type.CHESTPLATE);
+    public static final DeferredHolder<Item, Item> SOULCOLLECTOR_LEGGINGS =
+            soulcollectorArmor("soulcollector_leggings", ArmorItem.Type.LEGGINGS);
+    public static final DeferredHolder<Item, Item> SOULCOLLECTOR_BOOTS =
+            soulcollectorArmor("soulcollector_boots", ArmorItem.Type.BOOTS);
     public static final DeferredHolder<Item, Item> STEALTH_RUNE_ARMOR_HEAD =
             stealthRuneArmor("stealth_rune_armor_head", ArmorItem.Type.HELMET);
     public static final DeferredHolder<Item, Item> STEALTH_RUNE_ARMOR_BODY =

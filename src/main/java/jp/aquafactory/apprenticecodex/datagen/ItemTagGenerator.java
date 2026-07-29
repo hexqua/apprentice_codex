@@ -22,6 +22,7 @@ import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import io.redspace.ironsspellbooks.item.weapons.StaffItem;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
@@ -62,6 +63,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_VANISHING = createTag("minecraft", "enchantable/vanishing");
     private static final TagKey<Item> MALUM_MAGIC_CAPABLE_WEAPON = createTag("malum", "magic_capable_weapon");
     private static final TagKey<Item> MALUM_SOUL_SHATTER_CAPABLE_WEAPON = createTag("malum", "soul_shatter_capable_weapon");
+    private static final TagKey<Item> MALUM_REPLENISHING_ENCHANTABLE = createTag("malum", "enchantable/replenishing");
     private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = createTag("traveloptics", "can_cast_reversal");
     private static final TagKey<Item> HIDDEN_FROM_RECIPE_VIEWERS = createTag("c", "hidden_from_recipe_viewers");
     private static final TagKey<Item> ALACRITY_ENCHANTABLE = Enchantments.ALACRITY_ENCHANTABLE;
@@ -113,6 +115,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
         var malumMagicCapableWeaponTag = tag(MALUM_MAGIC_CAPABLE_WEAPON);
         var malumSoulShatterCapableWeaponTag = tag(MALUM_SOUL_SHATTER_CAPABLE_WEAPON);
+        var malumReplenishingEnchantableTag = tag(MALUM_REPLENISHING_ENCHANTABLE);
         var tomagicReversalWeaponTag = tag(TOMAGIC_REVERSAL_WEAPON);
         var transcendenceEnchantableTag = tag(TRANSCENDENCE_ENCHANTABLE);
         var wisdomEnchantableTag = tag(WISDOM_ENCHANTABLE);
@@ -153,6 +156,13 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.CHARGECAST_CATALYSTBOOK.get()
         );
         // Focus Staffbow は 1.20.1 と同様に専用魔法 enchant と互換 MOD の対象だけへ絞る。
+        // Replenishing は 1.20.1 で明示的に許可していた主手魔法武器へだけ戻す。
+        // Iron's 本体の StaffItem はこの MOD のレジストリを走査しないため対象外のままになる。
+        malumReplenishingEnchantableTag.add(
+                ItemRegistry.FOCUS_STAFFBOW.get(),
+                ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
+                ItemRegistry.SCROLLCASTER_GAUNTLET.get()
+        );
         malumMagicCapableWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         tomagicReversalWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
@@ -302,6 +312,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                     vanillaWeaponEnchantableTag.add(item);
                 }
             }
+
+            if (item instanceof StaffItem || item instanceof AbstractRightClickMagicWeaponItem) {
+                malumReplenishingEnchantableTag.add(item);
+            }
         }
         tag(CURIOS_SPELLBOOK).add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
@@ -314,6 +328,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(MINECRAFT_HEAD_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
                 ItemRegistry.ENCHANTRESS_HAT.get(),
+                ItemRegistry.SOULCOLLECTOR_HAT.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
                 ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
@@ -322,6 +337,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(MINECRAFT_CHEST_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
+                ItemRegistry.SOULCOLLECTOR_ROBE.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
                 ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
@@ -330,6 +346,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(MINECRAFT_LEG_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
                 ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
+                ItemRegistry.SOULCOLLECTOR_LEGGINGS.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
                 ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get(),
@@ -338,6 +355,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(MINECRAFT_FOOT_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_BOOTS.get(),
                 ItemRegistry.ENCHANTRESS_BOOTS.get(),
+                ItemRegistry.SOULCOLLECTOR_BOOTS.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get(),
                 ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get(),
@@ -355,6 +373,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
                 ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
                 ItemRegistry.ENCHANTRESS_BOOTS.get(),
+                ItemRegistry.SOULCOLLECTOR_HAT.get(),
+                ItemRegistry.SOULCOLLECTOR_ROBE.get(),
+                ItemRegistry.SOULCOLLECTOR_LEGGINGS.get(),
+                ItemRegistry.SOULCOLLECTOR_BOOTS.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
@@ -384,6 +406,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
                 ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
                 ItemRegistry.ENCHANTRESS_BOOTS.get(),
+                ItemRegistry.SOULCOLLECTOR_HAT.get(),
+                ItemRegistry.SOULCOLLECTOR_ROBE.get(),
+                ItemRegistry.SOULCOLLECTOR_LEGGINGS.get(),
+                ItemRegistry.SOULCOLLECTOR_BOOTS.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
@@ -414,6 +440,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
                 ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
                 ItemRegistry.ENCHANTRESS_BOOTS.get(),
+                ItemRegistry.SOULCOLLECTOR_HAT.get(),
+                ItemRegistry.SOULCOLLECTOR_ROBE.get(),
+                ItemRegistry.SOULCOLLECTOR_LEGGINGS.get(),
+                ItemRegistry.SOULCOLLECTOR_BOOTS.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
@@ -567,6 +597,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE).add(
                 ItemRegistry.ENCHANTED_CIRCLET.get(),
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
+                ItemRegistry.SOULCOLLECTOR_ROBE.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get()

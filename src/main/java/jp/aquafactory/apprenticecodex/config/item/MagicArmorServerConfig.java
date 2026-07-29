@@ -5,6 +5,8 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public final class MagicArmorServerConfig {
     private final ModConfigSpec.DoubleValue apprenticeMageRobeSpellPowerBonusPerPiece;
     private final ModConfigSpec.DoubleValue enchantressRobeSpellPowerBonusPerPiece;
+    private final ModConfigSpec.DoubleValue soulcollectorRobeSpellPowerBonusPerPiece;
+    private final ModConfigSpec.DoubleValue soulcollectorRobeMagicProficiencyBonusPerPiece;
     private final ModConfigSpec.DoubleValue chromaticMagiaDressSpellPowerBonusPerPiece;
     private final ModConfigSpec.DoubleValue elementMaidenRobeSpellPowerBonus;
     private final ModConfigSpec.DoubleValue elementMaidenRobeSchoolSpellPowerBonus;
@@ -25,6 +27,8 @@ public final class MagicArmorServerConfig {
     private MagicArmorServerConfig(
             ModConfigSpec.DoubleValue apprenticeMageRobeSpellPowerBonusPerPiece,
             ModConfigSpec.DoubleValue enchantressRobeSpellPowerBonusPerPiece,
+            ModConfigSpec.DoubleValue soulcollectorRobeSpellPowerBonusPerPiece,
+            ModConfigSpec.DoubleValue soulcollectorRobeMagicProficiencyBonusPerPiece,
             ModConfigSpec.DoubleValue chromaticMagiaDressSpellPowerBonusPerPiece,
             ModConfigSpec.DoubleValue elementMaidenRobeSpellPowerBonus,
             ModConfigSpec.DoubleValue elementMaidenRobeSchoolSpellPowerBonus,
@@ -38,6 +42,8 @@ public final class MagicArmorServerConfig {
     ) {
         this.apprenticeMageRobeSpellPowerBonusPerPiece = apprenticeMageRobeSpellPowerBonusPerPiece;
         this.enchantressRobeSpellPowerBonusPerPiece = enchantressRobeSpellPowerBonusPerPiece;
+        this.soulcollectorRobeSpellPowerBonusPerPiece = soulcollectorRobeSpellPowerBonusPerPiece;
+        this.soulcollectorRobeMagicProficiencyBonusPerPiece = soulcollectorRobeMagicProficiencyBonusPerPiece;
         this.chromaticMagiaDressSpellPowerBonusPerPiece = chromaticMagiaDressSpellPowerBonusPerPiece;
         this.elementMaidenRobeSpellPowerBonus = elementMaidenRobeSpellPowerBonus;
         this.elementMaidenRobeSchoolSpellPowerBonus = elementMaidenRobeSchoolSpellPowerBonus;
@@ -61,6 +67,16 @@ public final class MagicArmorServerConfig {
                 builder,
                 "EnchantressRobe",
                 0.10D
+        );
+        var soulcollectorRobeSpellPowerBonusPerPiece = defineSpellPowerBonusPerPiece(
+                builder,
+                "SoulcollectorRobe",
+                0.10D
+        );
+        var soulcollectorRobeMagicProficiencyBonusPerPiece = defineMagicProficiencyBonusPerPiece(
+                builder,
+                "SoulcollectorRobe",
+                0.15D
         );
         var chromaticMagiaDressSpellPowerBonusPerPiece = defineSpellPowerBonusPerPiece(
                 builder,
@@ -101,6 +117,8 @@ public final class MagicArmorServerConfig {
         return new MagicArmorServerConfig(
                 apprenticeMageRobeSpellPowerBonusPerPiece,
                 enchantressRobeSpellPowerBonusPerPiece,
+                soulcollectorRobeSpellPowerBonusPerPiece,
+                soulcollectorRobeMagicProficiencyBonusPerPiece,
                 chromaticMagiaDressSpellPowerBonusPerPiece,
                 elementMaidenRobeSpellPowerBonus,
                 elementMaidenRobeSchoolSpellPowerBonus,
@@ -120,6 +138,14 @@ public final class MagicArmorServerConfig {
 
     public double enchantressRobeSpellPowerBonusPerPiece() {
         return enchantressRobeSpellPowerBonusPerPiece.get();
+    }
+
+    public double soulcollectorRobeSpellPowerBonusPerPiece() {
+        return soulcollectorRobeSpellPowerBonusPerPiece.get();
+    }
+
+    public double soulcollectorRobeMagicProficiencyBonusPerPiece() {
+        return soulcollectorRobeMagicProficiencyBonusPerPiece.get();
     }
 
     public double chromaticMagiaDressSpellPowerBonusPerPiece() {
@@ -202,6 +228,23 @@ public final class MagicArmorServerConfig {
                 .push(sectionName);
         var value = builder.defineInRange(
                 "spellPowerBonusPerPiece",
+                defaultValue,
+                0.0D,
+                10.0D
+        );
+        builder.pop();
+        return value;
+    }
+
+    private static ModConfigSpec.DoubleValue defineMagicProficiencyBonusPerPiece(
+            ModConfigSpec.Builder builder,
+            String sectionName,
+            double defaultValue
+    ) {
+        builder.comment("Lodestone magic proficiency attribute modifier amount per armor piece. 0.01 = +1%.")
+                .push(sectionName);
+        var value = builder.defineInRange(
+                "magicProficiencyBonusPerPiece",
                 defaultValue,
                 0.0D,
                 10.0D

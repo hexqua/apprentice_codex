@@ -113,7 +113,11 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
                                 jp.aquafactory.apprenticecodex.registry.ItemRegistry.MAGI_AGENT_SUIT_HOOD.get(),
                                 jp.aquafactory.apprenticecodex.registry.ItemRegistry.MAGI_AGENT_SUIT_COAT.get(),
                                 jp.aquafactory.apprenticecodex.registry.ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get(),
-                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get(),
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.SOULCOLLECTOR_HAT.get(),
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.SOULCOLLECTOR_ROBE.get(),
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.SOULCOLLECTOR_LEGGINGS.get(),
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.SOULCOLLECTOR_BOOTS.get()
                         ),
                         io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get(),
                         1,

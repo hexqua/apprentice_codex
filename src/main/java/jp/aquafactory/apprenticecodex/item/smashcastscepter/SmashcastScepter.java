@@ -326,6 +326,7 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
         return enchantment.is(jp.aquafactory.apprenticecodex.enchantment.Enchantments.WISDOM)
                 || enchantment.is(jp.aquafactory.apprenticecodex.enchantment.Enchantments.PLUNDER)
                 || enchantment.is(jp.aquafactory.apprenticecodex.enchantment.Enchantments.TRANSCENDENCE)
+                || MalumCompatibility.isReplenishingEnchantment(enchantmentId)
                 || enchantment.value().canEnchant(VANILLA_MACE_ENCHANTMENT_PROBE_STACK);
     }
 

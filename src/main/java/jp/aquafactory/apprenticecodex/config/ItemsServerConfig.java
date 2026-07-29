@@ -282,6 +282,14 @@ final class ItemsServerConfig {
         return magicArmorConfig.enchantressRobeSpellPowerBonusPerPiece();
     }
 
+    double soulcollectorRobeSpellPowerBonusPerPiece() {
+        return magicArmorConfig.soulcollectorRobeSpellPowerBonusPerPiece();
+    }
+
+    double soulcollectorRobeMagicProficiencyBonusPerPiece() {
+        return magicArmorConfig.soulcollectorRobeMagicProficiencyBonusPerPiece();
+    }
+
     double chromaticMagiaDressSpellPowerBonusPerPiece() {
         return magicArmorConfig.chromaticMagiaDressSpellPowerBonusPerPiece();
     }

@@ -20,6 +20,8 @@ public final class MalumCompatibility {
             ResourceLocation.fromNamespaceAndPath(MOD_ID, "haunted");
     public static final ResourceLocation ANIMATED =
             ResourceLocation.fromNamespaceAndPath(MOD_ID, "animated");
+    public static final ResourceLocation REPLENISHING =
+            ResourceLocation.fromNamespaceAndPath(MOD_ID, "replenishing");
     private static final ResourceLocation RUNEWOOD_LOG =
             ResourceLocation.fromNamespaceAndPath(MOD_ID, "runewood_log");
     private static final ResourceLocation RUNEWOOD =
@@ -85,6 +87,10 @@ public final class MalumCompatibility {
         return enchantmentId != null
                 && MAGIC_CAPABLE_WEAPON_ENCHANTMENTS.contains(enchantmentId)
                 && stack.is(MAGIC_CAPABLE_WEAPON);
+    }
+
+    public static boolean isReplenishingEnchantment(@Nullable ResourceLocation enchantmentId) {
+        return REPLENISHING.equals(enchantmentId);
     }
 
     public static boolean isRunewoodOrSoulwoodLog(BlockState state) {

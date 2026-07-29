@@ -587,6 +587,8 @@ public class ApprenticeCodexGameTestScenarios {
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "totem_of_permafrost_summon_damage_test");
     static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
+    static final ResourceLocation MALUM_REPLENISHING =
+            ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "replenishing");
     static final ResourceLocation MALUM_HAUNTED =
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "haunted");
     static final ResourceLocation MALUM_ANIMATED =
@@ -12350,6 +12352,7 @@ public class ApprenticeCodexGameTestScenarios {
             ));
             addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedEnchantments);
             addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
+            addExpectedMalumReplenishingIfPresent(stack, expectedEnchantments);
             return expectedEnchantments;
         }
 
@@ -12372,6 +12375,7 @@ public class ApprenticeCodexGameTestScenarios {
         }
         addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
         addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedEnchantments);
+        addExpectedMalumReplenishingIfPresent(stack, expectedEnchantments);
         return expectedEnchantments;
     }
 
@@ -13012,6 +13016,14 @@ public class ApprenticeCodexGameTestScenarios {
     static void addExpectedMalumSpiritPlunderIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
         if (ModList.get().isLoaded(MALUM_MOD_ID) && stack.is(MALUM_SOUL_SHATTER_CAPABLE_WEAPON)) {
             expectedEnchantments.add(MALUM_SPIRIT_PLUNDER);
+        }
+    }
+
+    static void addExpectedMalumReplenishingIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
+        if (ModList.get().isLoaded(MALUM_MOD_ID)
+                && stack.is(TagKey.create(Registries.ITEM,
+                ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "enchantable/replenishing")))) {
+            expectedEnchantments.add(MALUM_REPLENISHING);
         }
     }
 

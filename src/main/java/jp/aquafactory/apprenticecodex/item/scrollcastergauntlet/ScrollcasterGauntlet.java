@@ -567,6 +567,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         }
 
         return isExplicitlySupportedMagicEnchantment(enchantment)
+                || MalumCompatibility.isReplenishingEnchantment(enchantmentId)
                 || MalumCompatibility.isSpiritPlunderSupported(gauntletStack, enchantmentId)
                 || MalumCompatibility.isMagicCapableWeaponEnchantment(gauntletStack, enchantmentId)
                 || (enchantmentId != null
