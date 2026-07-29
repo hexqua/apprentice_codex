@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -74,6 +75,86 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             helper.assertFalse(stack.is(MALUM_SOUL_HUNTER_WEAPON),
                     "Reflectcast Shield should stay outside malum:soul_hunter_weapon");
         });
+    }
+
+    static void soulcollectorRobeAddsLodestoneMagicProficiencyAndMalumInfusions(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(LODESTONE_MOD_ID) || !ModList.get().isLoaded(MALUM_MOD_ID)) {
+                return;
+            }
+
+            var magicProficiency = ForgeRegistries.ATTRIBUTES.getValue(LODESTONE_MAGIC_PROFICIENCY);
+            helper.assertTrue(magicProficiency != null, "lodestone:magic_proficiency is not registered");
+            helper.assertTrue(Math.abs(ApprenticeCodexServerConfig.soulcollectorRobeMagicProficiencyBonusPerPiece() - 0.15D)
+                            < 1.0e-9D,
+                    "Soulcollector Robe default magic proficiency bonus should be 0.15");
+
+            assertSoulcollectorMagicProficiency(helper, ItemRegistry.SOULCOLLECTOR_HAT.get(), ArmorItem.Type.HELMET,
+                    magicProficiency);
+            assertSoulcollectorMagicProficiency(helper, ItemRegistry.SOULCOLLECTOR_ROBE.get(), ArmorItem.Type.CHESTPLATE,
+                    magicProficiency);
+            assertSoulcollectorMagicProficiency(helper, ItemRegistry.SOULCOLLECTOR_LEGGINGS.get(), ArmorItem.Type.LEGGINGS,
+                    magicProficiency);
+            assertSoulcollectorMagicProficiency(helper, ItemRegistry.SOULCOLLECTOR_BOOTS.get(), ArmorItem.Type.BOOTS,
+                    magicProficiency);
+
+            assertSoulcollectorSpiritInfusions(helper);
+        });
+    }
+
+    private static void assertSoulcollectorMagicProficiency(
+            GameTestHelper helper,
+            Item item,
+            ArmorItem.Type armorType,
+            net.minecraft.world.entity.ai.attributes.Attribute magicProficiency
+    ) {
+        var stack = new ItemStack(item);
+        var modifiers = stack.getAttributeModifiers(armorType.getSlot()).get(magicProficiency);
+        helper.assertTrue(modifiers.size() == 1, "Soulcollector " + armorType + " should add one magic proficiency modifier");
+        var modifier = modifiers.iterator().next();
+        helper.assertTrue(modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE,
+                "Soulcollector " + armorType + " magic proficiency should use MULTIPLY_BASE");
+        helper.assertTrue(Math.abs(modifier.getAmount() - 0.15D) < 1.0e-9D,
+                "Soulcollector " + armorType + " magic proficiency should be 0.15");
+    }
+
+    private static void assertSoulcollectorSpiritInfusions(GameTestHelper helper) {
+        var level = helper.getLevel();
+        assertSoulcollectorSpiritInfusion(level, "soulcollector_hat", "soul_hunter_cloak",
+                ItemRegistry.APPRENTICE_MAGE_SCARF.get(), ItemRegistry.SOULCOLLECTOR_HAT.get());
+        assertSoulcollectorSpiritInfusion(level, "soulcollector_robe", "soul_hunter_robe",
+                ItemRegistry.APPRENTICE_MAGE_TORSO.get(), ItemRegistry.SOULCOLLECTOR_ROBE.get());
+        assertSoulcollectorSpiritInfusion(level, "soulcollector_leggings", "soul_hunter_leggings",
+                ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(), ItemRegistry.SOULCOLLECTOR_LEGGINGS.get());
+        assertSoulcollectorSpiritInfusion(level, "soulcollector_boots", "soul_hunter_boots",
+                ItemRegistry.APPRENTICE_MAGE_BOOTS.get(), ItemRegistry.SOULCOLLECTOR_BOOTS.get());
+    }
+
+    private static void assertSoulcollectorSpiritInfusion(
+            net.minecraft.world.level.Level level,
+            String path,
+            String malumInputPath,
+            Item apprenticeRobe,
+            Item result
+    ) {
+        var malumInput = ForgeRegistries.ITEMS.getValue(ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, malumInputPath));
+        var processedSoulstone = ForgeRegistries.ITEMS.getValue(
+                ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "processed_soulstone"));
+        if (malumInput == null || processedSoulstone == null) {
+            throw new AssertionError("Malum Soul Hunter recipe ingredients are not registered");
+        }
+
+        jp.aquafactory.apprenticecodex.gametest.malum.MalumGameTestHooks.assertSpiritInfusionRecipe(
+                level,
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "malum/spirit_infusion/" + path),
+                new ItemStack(malumInput),
+                List.of(
+                        new ItemStack(apprenticeRobe),
+                        new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get(), 2),
+                        new ItemStack(processedSoulstone, 4)
+                ),
+                new ItemStack(result)
+        );
     }
 
     static void scrollcasterGauntletOffhandUseCastsSelectedScrollWhenMainHandDoesNotConsumeUse(GameTestHelper helper) {

@@ -6,6 +6,7 @@ public final class MagicArmorServerConfig {
     private final ForgeConfigSpec.DoubleValue apprenticeMageRobeSpellPowerBonusPerPiece;
     private final ForgeConfigSpec.DoubleValue enchantressRobeSpellPowerBonusPerPiece;
     private final ForgeConfigSpec.DoubleValue soulcollectorRobeSpellPowerBonusPerPiece;
+    private final ForgeConfigSpec.DoubleValue soulcollectorRobeMagicProficiencyBonusPerPiece;
     private final ForgeConfigSpec.DoubleValue chromaticMagiaDressSpellPowerBonusPerPiece;
     private final ForgeConfigSpec.DoubleValue elementMaidenRobeSpellPowerBonus;
     private final ForgeConfigSpec.DoubleValue elementMaidenRobeSchoolSpellPowerBonus;
@@ -27,6 +28,7 @@ public final class MagicArmorServerConfig {
             ForgeConfigSpec.DoubleValue apprenticeMageRobeSpellPowerBonusPerPiece,
             ForgeConfigSpec.DoubleValue enchantressRobeSpellPowerBonusPerPiece,
             ForgeConfigSpec.DoubleValue soulcollectorRobeSpellPowerBonusPerPiece,
+            ForgeConfigSpec.DoubleValue soulcollectorRobeMagicProficiencyBonusPerPiece,
             ForgeConfigSpec.DoubleValue chromaticMagiaDressSpellPowerBonusPerPiece,
             ForgeConfigSpec.DoubleValue elementMaidenRobeSpellPowerBonus,
             ForgeConfigSpec.DoubleValue elementMaidenRobeSchoolSpellPowerBonus,
@@ -41,6 +43,7 @@ public final class MagicArmorServerConfig {
         this.apprenticeMageRobeSpellPowerBonusPerPiece = apprenticeMageRobeSpellPowerBonusPerPiece;
         this.enchantressRobeSpellPowerBonusPerPiece = enchantressRobeSpellPowerBonusPerPiece;
         this.soulcollectorRobeSpellPowerBonusPerPiece = soulcollectorRobeSpellPowerBonusPerPiece;
+        this.soulcollectorRobeMagicProficiencyBonusPerPiece = soulcollectorRobeMagicProficiencyBonusPerPiece;
         this.chromaticMagiaDressSpellPowerBonusPerPiece = chromaticMagiaDressSpellPowerBonusPerPiece;
         this.elementMaidenRobeSpellPowerBonus = elementMaidenRobeSpellPowerBonus;
         this.elementMaidenRobeSchoolSpellPowerBonus = elementMaidenRobeSchoolSpellPowerBonus;
@@ -69,6 +72,11 @@ public final class MagicArmorServerConfig {
                 builder,
                 "SoulcollectorRobe",
                 0.10D
+        );
+        var soulcollectorRobeMagicProficiencyBonusPerPiece = defineMagicProficiencyBonusPerPiece(
+                builder,
+                "SoulcollectorRobe",
+                0.15D
         );
         var chromaticMagiaDressSpellPowerBonusPerPiece = defineSpellPowerBonusPerPiece(
                 builder,
@@ -110,6 +118,7 @@ public final class MagicArmorServerConfig {
                 apprenticeMageRobeSpellPowerBonusPerPiece,
                 enchantressRobeSpellPowerBonusPerPiece,
                 soulcollectorRobeSpellPowerBonusPerPiece,
+                soulcollectorRobeMagicProficiencyBonusPerPiece,
                 chromaticMagiaDressSpellPowerBonusPerPiece,
                 elementMaidenRobeSpellPowerBonus,
                 elementMaidenRobeSchoolSpellPowerBonus,
@@ -132,6 +141,10 @@ public final class MagicArmorServerConfig {
 
     public double soulcollectorRobeSpellPowerBonusPerPiece() {
         return soulcollectorRobeSpellPowerBonusPerPiece.get();
+    }
+
+    public double soulcollectorRobeMagicProficiencyBonusPerPiece() {
+        return soulcollectorRobeMagicProficiencyBonusPerPiece.get();
     }
 
     public double chromaticMagiaDressSpellPowerBonusPerPiece() {
@@ -214,6 +227,23 @@ public final class MagicArmorServerConfig {
                 .push(sectionName);
         var value = builder.defineInRange(
                 "spellPowerBonusPerPiece",
+                defaultValue,
+                0.0D,
+                10.0D
+        );
+        builder.pop();
+        return value;
+    }
+
+    private static ForgeConfigSpec.DoubleValue defineMagicProficiencyBonusPerPiece(
+            ForgeConfigSpec.Builder builder,
+            String sectionName,
+            double defaultValue
+    ) {
+        builder.comment("Lodestone magic proficiency attribute modifier amount shared by each armor piece. 0.01 = +1%.")
+                .push(sectionName);
+        var value = builder.defineInRange(
+                "magicProficiencyBonus",
                 defaultValue,
                 0.0D,
                 10.0D

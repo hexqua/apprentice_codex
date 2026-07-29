@@ -7,12 +7,14 @@ import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
@@ -25,6 +27,8 @@ import java.util.function.Supplier;
 public final class SoulcollectorRobeStats {
     public static final ArmorMaterial MATERIAL = new SoulcollectorRobeMaterial();
     public static final double MAX_MANA_BONUS_PER_PIECE = 75.0D;
+    private static final ResourceLocation LODESTONE_MAGIC_PROFICIENCY =
+            ResourceLocation.fromNamespaceAndPath("lodestone", "magic_proficiency");
 
     // 耐久力係数、鉄=15、ダイヤ=33、ネザライト=37、見習い=24、MalumのSoulhunterはおよそ15.
     private static final int DURABILITY_MULTIPLIER = 19;
@@ -49,7 +53,6 @@ public final class SoulcollectorRobeStats {
             ArmorItem.Type.BOOTS, 1
     );
 
-    // todo:LodestoneのMagicProficiency対応(Malum Soulhunter=0.15d, ServerConfigにしてもよい)
     private static final List<AttributeBonus> COMMON_ATTRIBUTE_BONUSES = List.of(
             new AttributeBonus(AttributeRegistry.MAX_MANA, MAX_MANA_BONUS_PER_PIECE, AttributeModifier.Operation.ADDITION, "max_mana")
     );
@@ -108,6 +111,25 @@ public final class SoulcollectorRobeStats {
                 amount,
                 AttributeModifier.Operation.MULTIPLY_BASE,
                 "apprenticecodex.soulcollector_robe." + typeToken(type) + ".spell_power.1"
+        );
+    }
+
+    static void addMagicProficiencyModifier(
+            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            ArmorItem.Type type,
+            double amount
+    ) {
+        var attribute = ForgeRegistries.ATTRIBUTES.getValue(LODESTONE_MAGIC_PROFICIENCY);
+        if (attribute == null) {
+            return;
+        }
+
+        MagicArmorAttributeHelper.addModifier(
+                builder,
+                attribute,
+                amount,
+                AttributeModifier.Operation.MULTIPLY_BASE,
+                "apprenticecodex.soulcollector_robe." + typeToken(type) + ".magic_proficiency.1"
         );
     }
 
