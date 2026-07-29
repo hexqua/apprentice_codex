@@ -48,6 +48,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.registries.ForgeRegistries;
+
+import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.MALUM_MOD_ID;
+import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.MALUM_REPLENISHING;
 
 final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private SpellCalibrationEquipmentGameTestScenarios() {
@@ -436,6 +441,17 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
                             gauntlet, 1, unbreakingBook),
                     "Scrollcaster Gauntlet should accept a different first enchantment");
+            if (ModList.get().isLoaded(MALUM_MOD_ID)) {
+                var replenishing = ForgeRegistries.ENCHANTMENTS.getValue(MALUM_REPLENISHING);
+                helper.assertTrue(replenishing != null, "Malum Replenishing is not registered");
+                var replenishingBook = new ItemStack(Items.ENCHANTED_BOOK);
+                EnchantedBookItem.addEnchantment(replenishingBook, new EnchantmentInstance(replenishing, 2));
+                helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                                gauntlet, 2, replenishingBook),
+                        "Scrollcaster Gauntlet should accept a Replenishing enchanted book");
+                helper.assertTrue(gauntlet.getEnchantmentLevel(replenishing) == 2,
+                        "Scrollcaster Gauntlet should transfer Replenishing II from its calibration book");
+            }
 
             var calibration = autocast.getTagElement("SpellCalibration");
             helper.assertTrue(calibration != null, "Legacy duplicate test requires calibration NBT");

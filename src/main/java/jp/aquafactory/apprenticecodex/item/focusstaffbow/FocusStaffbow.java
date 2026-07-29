@@ -76,7 +76,8 @@ public final class FocusStaffbow extends CastingItem
     );
     private static final Set<ResourceLocation> ALLOWED_MAGIC_ITEM_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom"),
-            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "plunder")
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "plunder"),
+            ResourceLocation.fromNamespaceAndPath("malum", "replenishing")
     );
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
     private static final UUID SPELL_POWER_MODIFIER_ID = UUID.fromString("3c83fe4d-4081-47d3-8fb5-0a0fce4fd887");

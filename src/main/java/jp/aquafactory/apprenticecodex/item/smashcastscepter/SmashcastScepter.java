@@ -88,6 +88,8 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath("malum", "spirit_plunder");
+    private static final ResourceLocation MALUM_REPLENISHING =
+            ResourceLocation.fromNamespaceAndPath("malum", "replenishing");
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("malum", "soul_hunter_weapon")
@@ -349,6 +351,7 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
         return (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
                 || (EnchantmentRegistry.PLUNDER.isPresent() && enchantment == EnchantmentRegistry.PLUNDER.get())
                 || (EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get())
+                || MALUM_REPLENISHING.equals(enchantmentId)
                 || ALLOWED_VANILLA_ENCHANTMENTS.contains(enchantmentId);
     }
 

@@ -135,6 +135,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     private static final String MALUM_NAMESPACE = "malum";
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
+    private static final ResourceLocation MALUM_REPLENISHING =
+            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "replenishing");
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
@@ -517,7 +519,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     private static boolean isExplicitlySupportedMagicEnchantment(Enchantment enchantment) {
-        return AttributeEnchantmentType.from(enchantment).isPresent()
+        return MALUM_REPLENISHING.equals(ForgeRegistries.ENCHANTMENTS.getKey(enchantment))
+                || AttributeEnchantmentType.from(enchantment).isPresent()
                 || matches(enchantment, EnchantmentRegistry.TRANSCENDENCE)
                 || matches(enchantment, EnchantmentRegistry.WISDOM);
     }

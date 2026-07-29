@@ -30,6 +30,8 @@ final class EnchantmentApplicationGameTestSupport {
     static final ResourceLocation MALUM_HAUNTED = MalumHauntedCompat.hauntedEnchantmentId();
     static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
+    static final ResourceLocation MALUM_REPLENISHING =
+            ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "replenishing");
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "soul_hunter_weapon")
@@ -167,6 +169,12 @@ final class EnchantmentApplicationGameTestSupport {
         if (ModList.get().isLoaded(MALUM_MOD_ID)
                 && MalumHauntedCompat.isSupportedHauntedMainhandItem(stack)) {
             expectedEnchantments.add(MALUM_HAUNTED);
+        }
+    }
+
+    static void addExpectedMalumReplenishingIfPresent(Set<ResourceLocation> expectedEnchantments) {
+        if (ModList.get().isLoaded(MALUM_MOD_ID)) {
+            expectedEnchantments.add(MALUM_REPLENISHING);
         }
     }
 

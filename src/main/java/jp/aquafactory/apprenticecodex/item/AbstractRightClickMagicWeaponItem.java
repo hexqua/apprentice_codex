@@ -58,13 +58,16 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item
     private static final String MALUM_NAMESPACE = "malum";
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
+    private static final ResourceLocation MALUM_REPLENISHING =
+            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "replenishing");
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
     );
     private static final Set<ResourceLocation> ALLOWED_MAGIC_ITEM_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "transcendence"),
-            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom")
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom"),
+            MALUM_REPLENISHING
     );
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
     private static final UUID ATTACK_DAMAGE_MODIFIER_ID = Item.BASE_ATTACK_DAMAGE_UUID;
