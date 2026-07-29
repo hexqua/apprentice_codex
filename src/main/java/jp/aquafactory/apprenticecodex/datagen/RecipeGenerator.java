@@ -971,6 +971,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .save(recipeWriter, ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.getId());
 
         saveMalumSpiritRepairRecipes(recipeWriter);
+        saveMalumSpiritInfusionRecipes(recipeWriter);
         saveAlchemistsFlaskSmithingRecipe(recipeWriter);
         saveSpellbookCarryoverSmithingRecipe(recipeWriter);
 
@@ -1198,6 +1199,84 @@ public final class RecipeGenerator extends RecipeProvider {
         );
     }
 
+    private void saveMalumSpiritInfusionRecipes(@NotNull Consumer<FinishedRecipe> recipeWriter) {
+        // Malum の装備IDは optional dependency のため、ResourceLocation で参照して datagen を単独実行可能にする.
+        var spirits = List.of(
+                new MalumSpiritCost("arcane", 16),
+                new MalumSpiritCost("wicked", 16)
+        );
+
+        saveMalumSpiritInfusionRecipe(
+                recipeWriter,
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "malum/spirit_infusion/soulcollector_hat"),
+                ResourceLocation.fromNamespaceAndPath("malum", "soul_hunter_cloak"),
+                itemId(ItemRegistry.SOULCOLLECTOR_HAT.get()),
+                List.of(
+                        new MalumRecipeItem(itemId(ItemRegistry.APPRENTICE_MAGE_SCARF.get()), 1),
+                        new MalumRecipeItem(itemId(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()), 2),
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "processed_soulstone"), 4)
+                ),
+                spirits
+        );
+        saveMalumSpiritInfusionRecipe(
+                recipeWriter,
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "malum/spirit_infusion/soulcollector_robe"),
+                ResourceLocation.fromNamespaceAndPath("malum", "soul_hunter_robe"),
+                itemId(ItemRegistry.SOULCOLLECTOR_ROBE.get()),
+                List.of(
+                        new MalumRecipeItem(itemId(ItemRegistry.APPRENTICE_MAGE_TORSO.get()), 1),
+                        new MalumRecipeItem(itemId(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()), 2),
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "processed_soulstone"), 4)
+                ),
+                spirits
+        );
+        saveMalumSpiritInfusionRecipe(
+                recipeWriter,
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "malum/spirit_infusion/soulcollector_leggings"),
+                ResourceLocation.fromNamespaceAndPath("malum", "soul_hunter_leggings"),
+                itemId(ItemRegistry.SOULCOLLECTOR_LEGGINGS.get()),
+                List.of(
+                        new MalumRecipeItem(itemId(ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get()), 1),
+                        new MalumRecipeItem(itemId(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()), 2),
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "processed_soulstone"), 4)
+                ),
+                spirits
+        );
+        saveMalumSpiritInfusionRecipe(
+                recipeWriter,
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "malum/spirit_infusion/soulcollector_boots"),
+                ResourceLocation.fromNamespaceAndPath("malum", "soul_hunter_boots"),
+                itemId(ItemRegistry.SOULCOLLECTOR_BOOTS.get()),
+                List.of(
+                        new MalumRecipeItem(itemId(ItemRegistry.APPRENTICE_MAGE_BOOTS.get()), 1),
+                        new MalumRecipeItem(itemId(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()), 2),
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "processed_soulstone"), 4)
+                ),
+                spirits
+        );
+    }
+
+    private void saveMalumSpiritInfusionRecipe(
+            @NotNull Consumer<FinishedRecipe> recipeWriter,
+            @NotNull ResourceLocation recipeId,
+            @NotNull ResourceLocation input,
+            @NotNull ResourceLocation output,
+            @NotNull List<MalumRecipeItem> extraItems,
+            @NotNull List<MalumSpiritCost> spirits
+    ) {
+        recipeWriter.accept(new MalumSpiritInfusionFinishedRecipe(
+                recipeId,
+                input,
+                output,
+                extraItems,
+                spirits
+        ));
+    }
+
+    private static ResourceLocation itemId(Item item) {
+        return ForgeRegistries.ITEMS.getKey(item);
+    }
+
     private void saveMalumSpiritRepairRecipe(
             @NotNull Consumer<FinishedRecipe> recipeWriter,
             @NotNull String name,
@@ -1402,6 +1481,75 @@ public final class RecipeGenerator extends RecipeProvider {
         @Override
         public @Nullable ResourceLocation getAdvancementId() {
             return null;
+        }
+    }
+
+    private record MalumSpiritInfusionFinishedRecipe(
+            ResourceLocation id,
+            ResourceLocation input,
+            ResourceLocation output,
+            List<MalumRecipeItem> extraItems,
+            List<MalumSpiritCost> spirits
+    ) implements FinishedRecipe {
+        @Override
+        public @NotNull ResourceLocation getId() {
+            return id;
+        }
+
+        @Override
+        public void serializeRecipeData(JsonObject json) {
+            var conditions = new com.google.gson.JsonArray();
+            var modLoadedCondition = new JsonObject();
+            modLoadedCondition.addProperty("type", "forge:mod_loaded");
+            modLoadedCondition.addProperty("modid", "malum");
+            conditions.add(modLoadedCondition);
+            json.add("conditions", conditions);
+
+            json.addProperty("type", "malum:spirit_infusion");
+
+            var extraItemsJson = new com.google.gson.JsonArray();
+            for (var extraItem : extraItems) {
+                extraItemsJson.add(extraItem.toJson());
+            }
+            json.add("extra_items", extraItemsJson);
+            json.add("input", itemStackJson(input, 1));
+            json.add("output", itemStackJson(output, 1));
+
+            var spiritArray = new com.google.gson.JsonArray();
+            for (var spirit : spirits) {
+                spiritArray.add(spirit.toJson());
+            }
+            json.add("spirits", spiritArray);
+        }
+
+        private static JsonObject itemStackJson(ResourceLocation item, int count) {
+            var json = new JsonObject();
+            json.addProperty("item", item.toString());
+            if (count > 1) {
+                json.addProperty("count", count);
+            }
+            return json;
+        }
+
+        @Override
+        public @NotNull RecipeSerializer<?> getType() {
+            return RecipeSerializer.SHAPELESS_RECIPE;
+        }
+
+        @Override
+        public @Nullable JsonObject serializeAdvancement() {
+            return null;
+        }
+
+        @Override
+        public @Nullable ResourceLocation getAdvancementId() {
+            return null;
+        }
+    }
+
+    private record MalumRecipeItem(ResourceLocation item, int count) {
+        private JsonObject toJson() {
+            return MalumSpiritInfusionFinishedRecipe.itemStackJson(item, count);
         }
     }
 
