@@ -303,6 +303,9 @@ dependencies {
     // ISSへの強依存を追加.
     implementation "io.redspace:irons_spellbooks:${irons_spells_version}"
 
+    // Iron's Lib.
+    runtimeOnly "io.redspace:irons_lib:${irons_lib_version}"
+
     // GeckoLib.
     implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
 
@@ -394,6 +397,7 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             mod_issue_tracker_url  : mod_issue_tracker_url,
             mod_logo_file          : mod_logo_file,
             irons_spells_version   : irons_spells_version,
+            irons_lib_version      : irons_lib_version,
             geckolib_version       : geckolib_version,
             curios_version         : curios_version,
             patchouli_version      : patchouli_version,
@@ -429,6 +433,7 @@ tasks.named('processResources', ProcessResources).configure {
             mod_issue_tracker_url  : mod_issue_tracker_url,
             mod_logo_file          : mod_logo_file,
             irons_spells_version   : irons_spells_version,
+            irons_lib_version      : irons_lib_version,
             geckolib_version       : geckolib_version,
             curios_version         : curios_version,
             patchouli_version      : patchouli_version,
