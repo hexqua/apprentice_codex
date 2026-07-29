@@ -1,0 +1,38 @@
+{
+  "type": "malum:spirit_infusion",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "malum"
+    }
+  ],
+  "extra_items": [
+    {
+      "item": "apprenticecodex:apprentice_mage_leggings"
+    },
+    {
+      "count": 2,
+      "item": "irons_spellbooks:magic_cloth"
+    },
+    {
+      "count": 4,
+      "item": "malum:processed_soulstone"
+    }
+  ],
+  "input": {
+    "item": "malum:soul_hunter_leggings"
+  },
+  "output": {
+    "item": "apprenticecodex:soulcollector_leggings"
+  },
+  "spirits": [
+    {
+      "type": "arcane",
+      "count": 16
+    },
+    {
+      "type": "wicked",
+      "count": 16
+    }
+  ]
+}
