@@ -309,6 +309,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE).add(
                 ItemRegistry.ENCHANTED_CIRCLET.get(),
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
+                ItemRegistry.SOULCOLLECTOR_ROBE.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get()

@@ -4,12 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.*;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.CrudeInkItem;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkItem;
-import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
-import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
-import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
-import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
-import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
-import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
+import jp.aquafactory.apprenticecodex.item.armor.*;
 import jp.aquafactory.apprenticecodex.item.blockitem.*;
 import jp.aquafactory.apprenticecodex.item.boundweapon.BoundBowItem;
 import jp.aquafactory.apprenticecodex.item.boundweapon.BoundSwordItem;
@@ -113,6 +108,11 @@ public final class ItemRegistry {
 
     private static RegistryObject<Item> enchantressArmor(String id, ArmorItem.Type type) {
         return ITEMS.register(id, () -> new EnchantressRobeItem(type));
+    }
+
+    private static RegistryObject<Item> soulcollectorArmor(String id, ArmorItem.Type type) {
+        // Malumの導入に関係なく登録はする.
+        return ITEMS.register(id, () -> new SoulcollectorRobeItem(type));
     }
 
     private static RegistryObject<Item> stealthRuneArmor(String id, ArmorItem.Type type) {
@@ -230,6 +230,14 @@ public final class ItemRegistry {
             enchantressArmor("enchantress_leggings", ArmorItem.Type.LEGGINGS);
     public static final RegistryObject<Item> ENCHANTRESS_BOOTS =
             enchantressArmor("enchantress_boots", ArmorItem.Type.BOOTS);
+    public static final RegistryObject<Item> SOULCOLLECTOR_HAT =
+            soulcollectorArmor("soulcollector_hat", ArmorItem.Type.HELMET);
+    public static final RegistryObject<Item> SOULCOLLECTOR_ROBE =
+            soulcollectorArmor("soulcollector_robe", ArmorItem.Type.CHESTPLATE);
+    public static final RegistryObject<Item> SOULCOLLECTOR_LEGGINGS =
+            soulcollectorArmor("soulcollector_leggings", ArmorItem.Type.LEGGINGS);
+    public static final RegistryObject<Item> SOULCOLLECTOR_BOOTS =
+            soulcollectorArmor("soulcollector_boots", ArmorItem.Type.BOOTS);
     public static final RegistryObject<Item> STEALTH_RUNE_ARMOR_HEAD =
             stealthRuneArmor("stealth_rune_armor_head", ArmorItem.Type.HELMET);
     public static final RegistryObject<Item> STEALTH_RUNE_ARMOR_BODY =

@@ -5,11 +5,9 @@ import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
-import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
-import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
-import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
-import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
-import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
+import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
+import jp.aquafactory.apprenticecodex.item.armor.*;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
@@ -41,8 +39,10 @@ import java.util.Set;
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.MALUM_ANIMATED;
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.MALUM_MOD_ID;
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.MALUM_HAUNTED;
+import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.MALUM_REPLENISHING;
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.MALUM_SPIRIT_PLUNDER;
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.addExpectedMalumHauntedIfPresent;
+import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.addExpectedMalumReplenishingIfPresent;
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.addExpectedMalumSpiritPlunderIfPresent;
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.assertCategoryEnchantments;
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.assertExactEnchantmentSurfaces;
@@ -82,6 +82,9 @@ final class EnchantmentApplicationGameTestScenarios {
             assertCategoryEnchantments(helper, "Enchantress Robe",
                     item -> item instanceof EnchantressRobeItem,
                     EnchantmentApplicationGameTestScenarios::expectedEnchantressRobeEnchantments);
+            assertCategoryEnchantments(helper, "Soulcollector Robe",
+                    item -> item instanceof SoulcollectorRobeItem,
+                    EnchantmentApplicationGameTestScenarios::expectedSoulcollectorRobeEnchantments);
             assertCategoryEnchantments(helper, "Stealth Rune Armor",
                     item -> item instanceof StealthRuneArmorItem,
                     EnchantmentApplicationGameTestScenarios::expectedStealthRuneArmorEnchantments);
@@ -153,6 +156,7 @@ final class EnchantmentApplicationGameTestScenarios {
             assertBulwarkAndParrycastRules(helper);
             assertElementalBowSynthesisRules(helper);
             assertLocalStaffRules(helper);
+            assertReplenishingRules(helper);
         });
     }
 
@@ -401,6 +405,9 @@ final class EnchantmentApplicationGameTestScenarios {
             helper.assertTrue(haunted != null && animated != null, "Malum enchantments are not registered");
             assertRule(helper, stack, item, haunted, true, "malum:haunted");
             assertRule(helper, stack, item, animated, false, "malum:animated");
+            var replenishing = ForgeRegistries.ENCHANTMENTS.getValue(MALUM_REPLENISHING);
+            helper.assertTrue(replenishing != null, "Malum Replenishing is not registered");
+            assertRule(helper, stack, item, replenishing, true, "malum:replenishing");
         }
     }
 
@@ -528,10 +535,60 @@ final class EnchantmentApplicationGameTestScenarios {
                     || enchantment == EnchantmentRegistry.WISDOM.get()) {
                 helper.assertTrue(table && book, itemName + " should allow " + id);
             }
-            if (MALUM_ANIMATED.equals(id)
-                    || ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "replenishing").equals(id)) {
+            if (MALUM_REPLENISHING.equals(id)) {
+                helper.assertTrue(table && book, itemName + " should allow " + id);
+            }
+            if (MALUM_ANIMATED.equals(id)) {
                 helper.assertFalse(table || book, itemName + " should reject " + id);
             }
+        }
+    }
+
+    private static void assertReplenishingRules(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
+            return;
+        }
+
+        var replenishing = ForgeRegistries.ENCHANTMENTS.getValue(MALUM_REPLENISHING);
+        helper.assertTrue(replenishing != null, "Malum Replenishing is not registered");
+
+        for (var entry : List.of(
+                Map.entry("Pastel Staff", new ItemStack(ItemRegistry.PASTEL_STAFF.get())),
+                Map.entry("Multicast Echo Staff", new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get())),
+                Map.entry("Zenith Staff", new ItemStack(ItemRegistry.ZENITH_STAFF.get())),
+                Map.entry("Circuit Heat Staff", new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get()))
+        )) {
+            assertReplenishingRule(helper, entry.getValue(), replenishing, entry.getKey());
+        }
+
+        var rightClickWeapons = ItemRegistry.ITEMS.getEntries().stream()
+                .map(RegistryObject::get)
+                .filter(item -> item instanceof AbstractRightClickMagicWeaponItem)
+                .map(ItemStack::new)
+                .toList();
+        helper.assertFalse(rightClickWeapons.isEmpty(), "No items matched Replenishing right-click weapon coverage");
+        for (var stack : rightClickWeapons) {
+            assertReplenishingRule(helper, stack, replenishing,
+                    "Right-click magic weapon " + ForgeRegistries.ITEMS.getKey(stack.getItem()));
+        }
+        assertReplenishingRule(helper, new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()), replenishing,
+                "Charged Twin Blade Staff");
+    }
+
+    private static void assertReplenishingRule(
+            GameTestHelper helper,
+            ItemStack stack,
+            Enchantment replenishing,
+            String itemName
+    ) {
+        var item = stack.getItem();
+        helper.assertTrue(item.canApplyAtEnchantingTable(stack, replenishing),
+                itemName + " should accept Replenishing at the enchanting table");
+        helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(replenishing)),
+                itemName + " should accept a Replenishing enchanted book");
+        if (item instanceof NonDamageableAnvilMergeItem mergeItem) {
+            helper.assertTrue(mergeItem.isAnvilMergeEnchantmentAllowed(stack, replenishing),
+                    itemName + " should accept Replenishing in an anvil merge");
         }
     }
 
@@ -630,6 +687,7 @@ final class EnchantmentApplicationGameTestScenarios {
         }
         addExpectedMalumHauntedIfPresent(stack, expected);
         addExpectedMalumSpiritPlunderIfPresent(stack, expected);
+        addExpectedMalumReplenishingIfPresent(expected);
         return expected;
     }
 
@@ -641,6 +699,7 @@ final class EnchantmentApplicationGameTestScenarios {
         expected.addAll(registryIdSet(EnchantmentRegistry.COMPRESS, EnchantmentRegistry.RELEASE,
                 EnchantmentRegistry.WISDOM, EnchantmentRegistry.PLUNDER, EnchantmentRegistry.TRANSCENDENCE));
         addExpectedMalumHauntedIfPresent(stack, expected);
+        addExpectedMalumReplenishingIfPresent(expected);
         addExpectedMalumSpiritPlunderIfPresent(stack, expected);
         return expected;
     }
@@ -658,6 +717,7 @@ final class EnchantmentApplicationGameTestScenarios {
                 enchantment.canApplyAtEnchantingTable(trident) && !isDurabilityTargetEnchantment(enchantment)));
         expected.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
         addExpectedMalumHauntedIfPresent(stack, expected);
+        addExpectedMalumReplenishingIfPresent(expected);
         return expected;
     }
 
@@ -683,6 +743,7 @@ final class EnchantmentApplicationGameTestScenarios {
         expected.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
         addExpectedMalumHauntedIfPresent(stack, expected);
         addExpectedMalumSpiritPlunderIfPresent(stack, expected);
+        addExpectedMalumReplenishingIfPresent(expected);
         return expected;
     }
 
@@ -736,6 +797,10 @@ final class EnchantmentApplicationGameTestScenarios {
     }
 
     private static Set<ResourceLocation> expectedEnchantressRobeEnchantments(ItemStack stack) {
+        return expectedNormalMagicArmorEnchantments(stack);
+    }
+
+    private static Set<ResourceLocation> expectedSoulcollectorRobeEnchantments(ItemStack stack) {
         return expectedNormalMagicArmorEnchantments(stack);
     }
 

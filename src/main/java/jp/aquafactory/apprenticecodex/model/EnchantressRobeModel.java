@@ -2,12 +2,12 @@ package jp.aquafactory.apprenticecodex.model;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexClientConfig;
-import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import software.bernie.geckolib.cache.object.GeoBone;
+import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.model.GeoModel;
@@ -15,7 +15,7 @@ import software.bernie.geckolib.model.GeoModel;
 import java.util.HashMap;
 import java.util.Map;
 
-public class EnchantressRobeModel extends GeoModel<EnchantressRobeItem> {
+public class EnchantressRobeModel<T extends GeoItem> extends GeoModel<T> {
     private static final String HAT_ACCESSORY_BONE = "hat_acc";
     private static final String CAPE_ROOT_BONE = "cape_root";
     private static final String CAPE_MID_BONE = "came_mid";
@@ -44,39 +44,50 @@ public class EnchantressRobeModel extends GeoModel<EnchantressRobeItem> {
     private static final float CAPE_MOVE_SWING_Z = 6.0f * Mth.DEG_TO_RAD;
     private static final float CAPE_MOVE_TWIST_Y = 3.0f * Mth.DEG_TO_RAD;
 
-    private static final ResourceLocation MODEL =
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "geo/enchantress_robe.geo.json");
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/enchantress_robe.png");
-    private static final ResourceLocation ANIMATION =
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "animations/enchantress_robe.animation.json");
+    private final ResourceLocation model;
+    private final ResourceLocation texture;
+    private final ResourceLocation animation;
     private final Map<Long, HatAccessorySwingState> hatAccessorySwingStates = new HashMap<>();
 
-    @Override
-    public ResourceLocation getModelResource(EnchantressRobeItem animatable) {
-        return MODEL;
+    public EnchantressRobeModel() {
+        this(
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "geo/enchantress_robe.geo.json"),
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/enchantress_robe.png"),
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "animations/enchantress_robe.animation.json")
+        );
+    }
+
+    protected EnchantressRobeModel(ResourceLocation model, ResourceLocation texture, ResourceLocation animation) {
+        this.model = model;
+        this.texture = texture;
+        this.animation = animation;
     }
 
     @Override
-    public ResourceLocation getTextureResource(EnchantressRobeItem animatable) {
-        return TEXTURE;
+    public ResourceLocation getModelResource(T animatable) {
+        return model;
     }
 
     @Override
-    public ResourceLocation getAnimationResource(EnchantressRobeItem animatable) {
-        return ANIMATION;
+    public ResourceLocation getTextureResource(T animatable) {
+        return texture;
     }
 
     @Override
-    public void setCustomAnimations(EnchantressRobeItem animatable, long instanceId,
-                                    AnimationState<EnchantressRobeItem> animationState) {
+    public ResourceLocation getAnimationResource(T animatable) {
+        return animation;
+    }
+
+    @Override
+    public void setCustomAnimations(T animatable, long instanceId,
+                                    AnimationState<T> animationState) {
         super.setCustomAnimations(animatable, instanceId, animationState);
 
         applyHatAccessoryAnimation(instanceId, animationState);
         applyCapeAnimation(animatable, instanceId, animationState);
     }
 
-    private void applyHatAccessoryAnimation(long instanceId, AnimationState<EnchantressRobeItem> animationState) {
+    private void applyHatAccessoryAnimation(long instanceId, AnimationState<T> animationState) {
         var hatAccessory = getBone(HAT_ACCESSORY_BONE).orElse(null);
         if (hatAccessory == null) {
             return;
@@ -162,8 +173,8 @@ public class EnchantressRobeModel extends GeoModel<EnchantressRobeItem> {
         hatAccessorySwingStates.entrySet().removeIf(entry -> currentTick - entry.getValue().lastSeenTick > HAT_ACCESSORY_STATE_EXPIRE_TICKS);
     }
 
-    private void applyCapeAnimation(EnchantressRobeItem animatable, long instanceId,
-                                    AnimationState<EnchantressRobeItem> animationState) {
+    private void applyCapeAnimation(T animatable, long instanceId,
+                                    AnimationState<T> animationState) {
         var capeRoot = getBone(CAPE_ROOT_BONE).orElse(null);
         var capeMid = getBone(CAPE_MID_BONE).orElse(null);
         var capeTip = getBone(CAPE_TIP_BONE).orElse(null);

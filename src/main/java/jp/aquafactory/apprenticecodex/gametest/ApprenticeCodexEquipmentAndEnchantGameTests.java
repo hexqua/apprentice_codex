@@ -2187,6 +2187,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void soulcollectorRobeAddsLodestoneMagicProficiencyAndMalumInfusions(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.soulcollectorRobeAddsLodestoneMagicProficiencyAndMalumInfusions(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void chromaticMagiaDressRecordsCastHistoryByArmorTypeAndIgnoresRecasts(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.chromaticMagiaDressRecordsCastHistoryByArmorTypeAndIgnoresRecasts(helper);
     }

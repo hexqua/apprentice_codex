@@ -10,9 +10,6 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraftforge.registries.ForgeRegistries;
 
 public final class StaffEnchantmentTargeting {
-    private static final String MALUM_NAMESPACE = "malum";
-    private static final ResourceLocation MALUM_REPLENISHING =
-            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "replenishing");
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_SWORD);
 
@@ -31,7 +28,7 @@ public final class StaffEnchantmentTargeting {
 
         // Malum 1.20.1 の Animated は大鎌系前提のため staff では拒否する。
         // 1.21.1 では大鎌限定ではなくなるため、forward-port 時は許容へ戻すこと。
-        if (MalumHauntedCompat.isAnimatedEnchantment(enchantmentId) || MALUM_REPLENISHING.equals(enchantmentId)) {
+        if (MalumHauntedCompat.isAnimatedEnchantment(enchantmentId)) {
             return false;
         }
 

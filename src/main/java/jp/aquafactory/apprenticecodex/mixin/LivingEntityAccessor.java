@@ -14,6 +14,9 @@ public interface LivingEntityAccessor {
     @Accessor("useItemRemaining")
     void apprenticecodex$setUseItemRemaining(int value);
 
+    @Accessor("attackStrengthTicker")
+    void apprenticecodex$setAttackStrengthTicker(int value);
+
     @Invoker("setLivingEntityFlag")
     void apprenticecodex$setLivingEntityFlag(int key, boolean value);
 }
