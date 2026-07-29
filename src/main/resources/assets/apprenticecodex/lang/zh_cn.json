@@ -172,6 +172,10 @@
   "item.apprenticecodex.magi_agent_suit_coat": "魔导特工外套",
   "item.apprenticecodex.magi_agent_suit_leggings": "魔导特工西裤",
   "item.apprenticecodex.magi_agent_suit_boots": "魔导特工皮鞋",
+  "item.apprenticecodex.soulcollector_hat": "灵魂收集者帽",
+  "item.apprenticecodex.soulcollector_robe": "灵魂收集者长袍",
+  "item.apprenticecodex.soulcollector_leggings": "灵魂收集者护腿",
+  "item.apprenticecodex.soulcollector_boots": "灵魂收集者靴子",
 
   "item.apprenticecodex.spellgun.tooltip.hint": "按住 Shift 或 Alt 查看详情。",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "注入法术效果：",
