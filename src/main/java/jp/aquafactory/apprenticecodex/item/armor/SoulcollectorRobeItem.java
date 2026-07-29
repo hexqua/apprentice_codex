@@ -20,7 +20,6 @@ import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
@@ -103,21 +102,6 @@ public class SoulcollectorRobeItem extends ArmorItem implements GeoItem, IPreset
         }
 
         return enchantment.canApplyAtEnchantingTable(createArmorProbeStack());
-    }
-
-    @Override
-    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
-        if (!super.isBookEnchantable(stack, book)) {
-            return false;
-        }
-
-        var enchantments = EnchantmentHelper.getEnchantments(book);
-        if (enchantments.isEmpty()) {
-            return true;
-        }
-
-        return enchantments.keySet().stream()
-                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
     }
 
     @Override

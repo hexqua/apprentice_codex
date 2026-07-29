@@ -64,6 +64,34 @@ final class EnchantmentApplicationGameTestSupport {
         }
     }
 
+    static void assertArmorCategoryEnchantments(
+            GameTestHelper helper,
+            String categoryName,
+            Predicate<Item> itemPredicate,
+            Function<ItemStack, Set<ResourceLocation>> expectedEnchantingTableEnchantmentsResolver,
+            Function<ItemStack, Set<ResourceLocation>> expectedAnvilEnchantmentsResolver
+    ) {
+        var stacks = ItemRegistry.ITEMS.getEntries().stream()
+                .map(RegistryObject::get)
+                .filter(itemPredicate)
+                .sorted(Comparator.comparing(item -> String.valueOf(ForgeRegistries.ITEMS.getKey(item))))
+                .map(ItemStack::new)
+                .toList();
+        helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: " + categoryName);
+
+        var expectedBookEnchantments = getRegisteredEnchantmentIds();
+        for (var stack : stacks) {
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedEnchantingTableEnchantmentsResolver.apply(stack),
+                    expectedBookEnchantments,
+                    expectedAnvilEnchantmentsResolver.apply(stack),
+                    categoryName + " " + ForgeRegistries.ITEMS.getKey(stack.getItem())
+            );
+        }
+    }
+
     static void assertExactEnchantmentSurfaces(
             GameTestHelper helper,
             ItemStack stack,
@@ -103,14 +131,23 @@ final class EnchantmentApplicationGameTestSupport {
                 itemName + " book enchantments changed: "
                         + describeEnchantmentDifference(expectedBookEnchantments, actualBookEnchantments));
 
-        if (item instanceof NonDamageableAnvilMergeItem mergeItem) {
-            var actualAnvilEnchantments = collectAllowedEnchantments(
-                    enchantment -> mergeItem.isAnvilMergeEnchantmentAllowed(stack, enchantment)
-            );
-            helper.assertTrue(actualAnvilEnchantments.equals(expectedAnvilEnchantments),
-                    itemName + " anvil enchantments changed: "
-                            + describeEnchantmentDifference(expectedAnvilEnchantments, actualAnvilEnchantments));
+        var actualAnvilEnchantments = collectAllowedEnchantments(enchantment ->
+                item.isBookEnchantable(stack, createEnchantedBook(enchantment))
+                        && enchantment.canEnchant(stack));
+        helper.assertTrue(actualAnvilEnchantments.equals(expectedAnvilEnchantments),
+                itemName + " anvil enchantments changed: "
+                        + describeEnchantmentDifference(expectedAnvilEnchantments, actualAnvilEnchantments));
+
+        if (!(item instanceof NonDamageableAnvilMergeItem mergeItem)) {
+            return;
         }
+
+        var actualSameItemAnvilEnchantments = collectAllowedEnchantments(
+                enchantment -> mergeItem.isAnvilMergeEnchantmentAllowed(stack, enchantment)
+        );
+        helper.assertTrue(actualSameItemAnvilEnchantments.equals(expectedAnvilEnchantments),
+                itemName + " same-item anvil enchantments changed: "
+                        + describeEnchantmentDifference(expectedAnvilEnchantments, actualSameItemAnvilEnchantments));
     }
 
     static Set<ResourceLocation> collectAllowedEnchantments(Predicate<Enchantment> predicate) {
@@ -146,6 +183,13 @@ final class EnchantmentApplicationGameTestSupport {
         return ForgeRegistries.ENCHANTMENTS.getValues().stream()
                 .sorted(Comparator.comparing(enchantment -> String.valueOf(ForgeRegistries.ENCHANTMENTS.getKey(enchantment))))
                 .toList();
+    }
+
+    private static Set<ResourceLocation> getRegisteredEnchantmentIds() {
+        return getRegisteredEnchantments().stream()
+                .map(ForgeRegistries.ENCHANTMENTS::getKey)
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
     }
 
     static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {

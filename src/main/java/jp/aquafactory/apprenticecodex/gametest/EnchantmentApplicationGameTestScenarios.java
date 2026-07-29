@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
@@ -45,6 +46,7 @@ import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGame
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.addExpectedMalumReplenishingIfPresent;
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.addExpectedMalumSpiritPlunderIfPresent;
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.assertCategoryEnchantments;
+import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.assertArmorCategoryEnchantments;
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.assertExactEnchantmentSurfaces;
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.collectAllowedEnchantments;
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.createEnchantedBook;
@@ -79,24 +81,30 @@ final class EnchantmentApplicationGameTestScenarios {
             assertCategoryEnchantments(helper, "Alchemists Flask",
                     item -> item.getClass() == AlchemistsFlask.class,
                     stack -> expectedAlchemistsFlaskEnchantments());
-            assertCategoryEnchantments(helper, "Enchantress Robe",
+            assertArmorCategoryEnchantments(helper, "Enchantress Robe",
                     item -> item instanceof EnchantressRobeItem,
-                    EnchantmentApplicationGameTestScenarios::expectedEnchantressRobeEnchantments);
-            assertCategoryEnchantments(helper, "Soulcollector Robe",
+                    EnchantmentApplicationGameTestScenarios::expectedEnchantressRobeEnchantments,
+                    EnchantmentApplicationGameTestScenarios::expectedArmorAnvilEnchantments);
+            assertArmorCategoryEnchantments(helper, "Soulcollector Robe",
                     item -> item instanceof SoulcollectorRobeItem,
-                    EnchantmentApplicationGameTestScenarios::expectedSoulcollectorRobeEnchantments);
-            assertCategoryEnchantments(helper, "Stealth Rune Armor",
+                    EnchantmentApplicationGameTestScenarios::expectedSoulcollectorRobeEnchantments,
+                    EnchantmentApplicationGameTestScenarios::expectedArmorAnvilEnchantments);
+            assertArmorCategoryEnchantments(helper, "Stealth Rune Armor",
                     item -> item instanceof StealthRuneArmorItem,
-                    EnchantmentApplicationGameTestScenarios::expectedStealthRuneArmorEnchantments);
-            assertCategoryEnchantments(helper, "Chromatic Magia Dress",
+                    EnchantmentApplicationGameTestScenarios::expectedStealthRuneArmorEnchantments,
+                    EnchantmentApplicationGameTestScenarios::expectedArmorAnvilEnchantments);
+            assertArmorCategoryEnchantments(helper, "Chromatic Magia Dress",
                     item -> item instanceof ChromaticMagiaDressItem,
-                    EnchantmentApplicationGameTestScenarios::expectedChromaticMagiaDressEnchantments);
-            assertCategoryEnchantments(helper, "Element Maiden Robe",
+                    EnchantmentApplicationGameTestScenarios::expectedChromaticMagiaDressEnchantments,
+                    EnchantmentApplicationGameTestScenarios::expectedArmorAnvilEnchantments);
+            assertArmorCategoryEnchantments(helper, "Element Maiden Robe",
                     item -> item instanceof ElementMaidenRobeItem,
-                    EnchantmentApplicationGameTestScenarios::expectedElementMaidenRobeEnchantments);
-            assertCategoryEnchantments(helper, "Magi Agent Suit",
+                    EnchantmentApplicationGameTestScenarios::expectedElementMaidenRobeEnchantments,
+                    EnchantmentApplicationGameTestScenarios::expectedArmorAnvilEnchantments);
+            assertArmorCategoryEnchantments(helper, "Magi Agent Suit",
                     item -> item instanceof MagiAgentSuitItem,
-                    EnchantmentApplicationGameTestScenarios::expectedMagiAgentSuitEnchantments);
+                    EnchantmentApplicationGameTestScenarios::expectedMagiAgentSuitEnchantments,
+                    EnchantmentApplicationGameTestScenarios::expectedArmorAnvilEnchantments);
 
             assertExactEnchantmentSurfaces(helper,
                     new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get()),
@@ -835,6 +843,18 @@ final class EnchantmentApplicationGameTestScenarios {
         var probe = createArmorProbeStack(stack);
         var expected = collectAllowedEnchantments(enchantment -> enchantment.canApplyAtEnchantingTable(probe));
         expected.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
+        return expected;
+    }
+
+    private static Set<ResourceLocation> expectedArmorAnvilEnchantments(ItemStack stack) {
+        var probe = createArmorProbeStack(stack);
+        var expected = collectAllowedEnchantments(enchantment -> enchantment.canEnchant(probe));
+        expected.addAll(collectAllowedEnchantments(enchantment -> {
+            var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+            return enchantmentId != null
+                    && ApprenticeCodex.MODID.equals(enchantmentId.getNamespace())
+                    && stack.canApplyAtEnchantingTable(enchantment);
+        }));
         return expected;
     }
 
