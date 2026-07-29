@@ -27,6 +27,8 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
     private static final String EFIS_COMPAT_MIXIN_PREFIX = "jp.aquafactory.apprenticecodex.mixin.EfisCompat";
     private static final String MALUM_MANAWEAVING_MIXIN =
             "jp.aquafactory.apprenticecodex.mixin.MalumIronsSpellsCompatMixin";
+    private static final String MALUM_REPLENISHING_OFFHAND_MIXIN =
+            "jp.aquafactory.apprenticecodex.mixin.MalumReplenishingOffhandMixin";
 
     @Override
     public void onLoad(String mixinPackage) {
@@ -66,7 +68,14 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
         if (MALUM_MANAWEAVING_MIXIN.equals(mixinClassName)) {
             var loadingModList = FMLLoader.getLoadingModList();
             var malumModFile = loadingModList == null ? null : loadingModList.getModFileById(MALUM_MOD_ID);
+            // クラッシュ対応パッチなのでバージョン決め打ち.
+            // 申し送り:1.21.1対応時にも制限するか検討する.
             return malumModFile != null && MALUM_MANAWEAVING_PATCH_VERSION.equals(malumModFile.versionString());
+        }
+        if (MALUM_REPLENISHING_OFFHAND_MIXIN.equals(mixinClassName)) {
+            var loadingModList = FMLLoader.getLoadingModList();
+            // 通常MOD要素連携なのでバージョン制限無し.
+            return loadingModList != null && loadingModList.getModFileById(MALUM_MOD_ID) != null;
         }
         return true;
     }
