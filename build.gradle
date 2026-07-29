@@ -337,7 +337,8 @@ dependencies {
     // ISSへの強依存を追加.
     implementation fg.deobf("io.redspace:irons_spellbooks:${irons_spells_version}")
 
-    // ISS前提MOD(2026/1/21時点それぞれ最新,動作確認用のみなのでruntimeOnly)
+    // ISS前提MOD(2026/7/29時点それぞれ最新,動作確認用のみなのでruntimeOnly)
+    runtimeOnly fg.deobf("maven.modrinth:9nfaJPtX:${irons_lib_modrinth_version_id}")
     runtimeOnly fg.deobf("maven.modrinth:curios:IPQlZkz1")
     runtimeOnly fg.deobf("maven.modrinth:geckolib:HVdLnQMI")
     runtimeOnly fg.deobf("maven.modrinth:playeranimator:xe2EVE6q")
@@ -415,6 +416,7 @@ tasks.named('processResources', ProcessResources).configure {
             minecraft_version: minecraft_version, minecraft_version_range: minecraft_version_range,
             forge_version: forge_version, forge_version_range: forge_version_range,
             loader_version_range: loader_version_range, create_version: create_version,
+            irons_spells_version: irons_spells_version, irons_lib_version: irons_lib_version,
             botania_version: botania_version, jade_version: jade_version,
             lodestone_version: lodestone_version, malum_version: malum_version,
             epicfight_version: epicfight_version,
