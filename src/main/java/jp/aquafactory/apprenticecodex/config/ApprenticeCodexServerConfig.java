@@ -456,6 +456,10 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.enchantressRobeSpellPowerBonusPerPiece();
     }
 
+    public static double soulcollectorRobeSpellPowerBonusPerPiece() {
+        return ITEMS_CONFIG.soulcollectorRobeSpellPowerBonusPerPiece();
+    }
+
     public static double chromaticMagiaDressSpellPowerBonusPerPiece() {
         return ITEMS_CONFIG.chromaticMagiaDressSpellPowerBonusPerPiece();
     }

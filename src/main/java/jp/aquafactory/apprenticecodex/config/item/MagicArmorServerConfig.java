@@ -5,6 +5,7 @@ import net.minecraftforge.common.ForgeConfigSpec;
 public final class MagicArmorServerConfig {
     private final ForgeConfigSpec.DoubleValue apprenticeMageRobeSpellPowerBonusPerPiece;
     private final ForgeConfigSpec.DoubleValue enchantressRobeSpellPowerBonusPerPiece;
+    private final ForgeConfigSpec.DoubleValue soulcollectorRobeSpellPowerBonusPerPiece;
     private final ForgeConfigSpec.DoubleValue chromaticMagiaDressSpellPowerBonusPerPiece;
     private final ForgeConfigSpec.DoubleValue elementMaidenRobeSpellPowerBonus;
     private final ForgeConfigSpec.DoubleValue elementMaidenRobeSchoolSpellPowerBonus;
@@ -25,6 +26,7 @@ public final class MagicArmorServerConfig {
     private MagicArmorServerConfig(
             ForgeConfigSpec.DoubleValue apprenticeMageRobeSpellPowerBonusPerPiece,
             ForgeConfigSpec.DoubleValue enchantressRobeSpellPowerBonusPerPiece,
+            ForgeConfigSpec.DoubleValue soulcollectorRobeSpellPowerBonusPerPiece,
             ForgeConfigSpec.DoubleValue chromaticMagiaDressSpellPowerBonusPerPiece,
             ForgeConfigSpec.DoubleValue elementMaidenRobeSpellPowerBonus,
             ForgeConfigSpec.DoubleValue elementMaidenRobeSchoolSpellPowerBonus,
@@ -38,6 +40,7 @@ public final class MagicArmorServerConfig {
     ) {
         this.apprenticeMageRobeSpellPowerBonusPerPiece = apprenticeMageRobeSpellPowerBonusPerPiece;
         this.enchantressRobeSpellPowerBonusPerPiece = enchantressRobeSpellPowerBonusPerPiece;
+        this.soulcollectorRobeSpellPowerBonusPerPiece = soulcollectorRobeSpellPowerBonusPerPiece;
         this.chromaticMagiaDressSpellPowerBonusPerPiece = chromaticMagiaDressSpellPowerBonusPerPiece;
         this.elementMaidenRobeSpellPowerBonus = elementMaidenRobeSpellPowerBonus;
         this.elementMaidenRobeSchoolSpellPowerBonus = elementMaidenRobeSchoolSpellPowerBonus;
@@ -60,6 +63,11 @@ public final class MagicArmorServerConfig {
         var enchantressRobeSpellPowerBonusPerPiece = defineSpellPowerBonusPerPiece(
                 builder,
                 "EnchantressRobe",
+                0.10D
+        );
+        var soulcollectorRobeSpellPowerBonusPerPiece = defineSpellPowerBonusPerPiece(
+                builder,
+                "SoulcollectorRobe",
                 0.10D
         );
         var chromaticMagiaDressSpellPowerBonusPerPiece = defineSpellPowerBonusPerPiece(
@@ -101,6 +109,7 @@ public final class MagicArmorServerConfig {
         return new MagicArmorServerConfig(
                 apprenticeMageRobeSpellPowerBonusPerPiece,
                 enchantressRobeSpellPowerBonusPerPiece,
+                soulcollectorRobeSpellPowerBonusPerPiece,
                 chromaticMagiaDressSpellPowerBonusPerPiece,
                 elementMaidenRobeSpellPowerBonus,
                 elementMaidenRobeSchoolSpellPowerBonus,
@@ -110,8 +119,7 @@ public final class MagicArmorServerConfig {
                 magiAgentSuitBootsCastTimeMultiplier,
                 magiAgentSuitAmmoNoConsumeChance,
                 magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed,
-                stealthRuneArmorSpellPowerBonusPerPiece
-        );
+                stealthRuneArmorSpellPowerBonusPerPiece);
     }
 
     public double apprenticeMageRobeSpellPowerBonusPerPiece() {
@@ -120,6 +128,10 @@ public final class MagicArmorServerConfig {
 
     public double enchantressRobeSpellPowerBonusPerPiece() {
         return enchantressRobeSpellPowerBonusPerPiece.get();
+    }
+
+    public double soulcollectorRobeSpellPowerBonusPerPiece() {
+        return soulcollectorRobeSpellPowerBonusPerPiece.get();
     }
 
     public double chromaticMagiaDressSpellPowerBonusPerPiece() {

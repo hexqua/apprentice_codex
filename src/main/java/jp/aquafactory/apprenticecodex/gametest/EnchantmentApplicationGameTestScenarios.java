@@ -5,11 +5,7 @@ import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
-import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
-import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
-import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
-import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
-import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
+import jp.aquafactory.apprenticecodex.item.armor.*;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
@@ -82,6 +78,9 @@ final class EnchantmentApplicationGameTestScenarios {
             assertCategoryEnchantments(helper, "Enchantress Robe",
                     item -> item instanceof EnchantressRobeItem,
                     EnchantmentApplicationGameTestScenarios::expectedEnchantressRobeEnchantments);
+            assertCategoryEnchantments(helper, "Soulcollector Robe",
+                    item -> item instanceof SoulcollectorRobeItem,
+                    EnchantmentApplicationGameTestScenarios::expectedSoulcollectorRobeEnchantments);
             assertCategoryEnchantments(helper, "Stealth Rune Armor",
                     item -> item instanceof StealthRuneArmorItem,
                     EnchantmentApplicationGameTestScenarios::expectedStealthRuneArmorEnchantments);
@@ -736,6 +735,10 @@ final class EnchantmentApplicationGameTestScenarios {
     }
 
     private static Set<ResourceLocation> expectedEnchantressRobeEnchantments(ItemStack stack) {
+        return expectedNormalMagicArmorEnchantments(stack);
+    }
+
+    private static Set<ResourceLocation> expectedSoulcollectorRobeEnchantments(ItemStack stack) {
         return expectedNormalMagicArmorEnchantments(stack);
     }
 

@@ -127,6 +127,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.ENCHANTRESS_ROBE.get());
         output.accept(ItemRegistry.ENCHANTRESS_LEGGINGS.get());
         output.accept(ItemRegistry.ENCHANTRESS_BOOTS.get());
+        addMalumRelatedItemsToTab(output);
         output.accept(ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get());
         output.accept(ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get());
         output.accept(ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get());
@@ -177,6 +178,18 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.SPELL_BULLET_HEAD.get());
         output.accept(ItemRegistry.SPELL_BULLET_MOLD.get());
         output.accept(ItemRegistry.SPELL_CASING_MOLD.get());
+    }
+
+    private static void addMalumRelatedItemsToTab(CreativeModeTab.Output output) {
+        // todo:Compatクラスを用意してそちらに移動する?
+        if (!ModList.get().isLoaded("malum")) {
+            return;
+        }
+
+        output.accept(ItemRegistry.SOULCOLLECTOR_HAT.get());
+        output.accept(ItemRegistry.SOULCOLLECTOR_ROBE.get());
+        output.accept(ItemRegistry.SOULCOLLECTOR_LEGGINGS.get());
+        output.accept(ItemRegistry.SOULCOLLECTOR_BOOTS.get());
     }
 
     private static void addSpellScrollsToTab(CreativeModeTab.Output output) {

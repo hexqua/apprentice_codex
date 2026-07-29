@@ -1182,7 +1182,11 @@ public final class RecipeGenerator extends RecipeProvider {
                         ItemRegistry.MAGI_AGENT_SUIT_HOOD.get(),
                         ItemRegistry.MAGI_AGENT_SUIT_COAT.get(),
                         ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get(),
-                        ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()
+                        ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get(),
+                        ItemRegistry.SOULCOLLECTOR_HAT.get(),
+                        ItemRegistry.SOULCOLLECTOR_ROBE.get(),
+                        ItemRegistry.SOULCOLLECTOR_LEGGINGS.get(),
+                        ItemRegistry.SOULCOLLECTOR_BOOTS.get()
                 ),
                 io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get(),
                 1,
