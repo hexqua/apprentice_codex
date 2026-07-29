@@ -1543,6 +1543,56 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         });
     }
 
+    static void soulwovenPouchEfficientItemsFollowMalumStoragePolicy(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
+                return;
+            }
+
+            var expectedItems = new LinkedHashSet<Item>();
+            for (var itemEntry : ItemRegistry.ITEMS.getEntries()) {
+                var item = itemEntry.get();
+                if (item instanceof ArmorItem || item instanceof AbstractOffhandMagicItem) {
+                    expectedItems.add(item);
+                }
+            }
+            expectedItems.addAll(List.of(
+                    ItemRegistry.CHARGECAST_CATALYSTBOOK.get(),
+                    ItemRegistry.ELEMENTAL_BOW.get(),
+                    ItemRegistry.LUMINOUS_DEVICE.get(),
+                    ItemRegistry.STORAGE_STABILIZER.get(),
+                    ItemRegistry.REFLECTCAST_SHIELD.get(),
+                    ItemRegistry.PARRYCAST_BUCKLER.get(),
+                    ItemRegistry.BULWARK_GREATSHIELD.get(),
+                    ItemRegistry.MANA_SHIELD_CHARM.get(),
+                    ItemRegistry.ASHEN_CIRCLET.get(),
+                    ItemRegistry.ENCHANTED_CIRCLET.get(),
+                    ItemRegistry.ARCANE_CINDER.get(),
+                    ItemRegistry.SPELL_EXTRACT_SHARD.get(),
+                    ItemRegistry.WISDOM_SHARD.get(),
+                    ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get()
+            ));
+            for (var item : expectedItems) {
+                helper.assertTrue(new ItemStack(item).is(MALUM_SOULWOVEN_POUCH_EFFICIENT),
+                        "Soulwoven Pouch should store " + item + " efficiently");
+            }
+
+            for (var excludedItem : List.of(
+                    ItemRegistry.ENDER_GRIMOIRE.get(),
+                    ItemRegistry.ARCHIVISTS_GRIMOIRE.get(),
+                    ItemRegistry.EXPLORERS_CODEX.get(),
+                    ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get(),
+                    ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get(),
+                    ItemRegistry.SPELLCASTER_QUIVER.get(),
+                    ItemRegistry.MANA_THRUSTER.get(),
+                    ItemRegistry.JUMPCAST_CHARM.get()
+            )) {
+                helper.assertFalse(new ItemStack(excludedItem).is(MALUM_SOULWOVEN_POUCH_EFFICIENT),
+                        "Soulwoven Pouch should not store " + excludedItem + " efficiently");
+            }
+        });
+    }
+
     /**
      * 1.21.1 では防具のバニラ付呪可否が item tag で決まるため、登録済みの全防具を部位ごとの革防具と照合する。
      * 追加のバニラ／MOD エンチャントは個別のバランス検証に委ね、ここでは移植時に欠けやすい部位基準のバニラ面だけを監視する。

@@ -20,6 +20,7 @@ import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import io.redspace.ironsspellbooks.item.weapons.StaffItem;
@@ -63,6 +64,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_VANISHING = createTag("minecraft", "enchantable/vanishing");
     private static final TagKey<Item> MALUM_MAGIC_CAPABLE_WEAPON = createTag("malum", "magic_capable_weapon");
     private static final TagKey<Item> MALUM_SOUL_SHATTER_CAPABLE_WEAPON = createTag("malum", "soul_shatter_capable_weapon");
+    private static final TagKey<Item> MALUM_SOULWOVEN_POUCH_EFFICIENT = createTag("malum", "soulwoven_pouch_efficient");
     private static final TagKey<Item> MALUM_REPLENISHING_ENCHANTABLE = createTag("malum", "enchantable/replenishing");
     private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = createTag("traveloptics", "can_cast_reversal");
     private static final TagKey<Item> HIDDEN_FROM_RECIPE_VIEWERS = createTag("c", "hidden_from_recipe_viewers");
@@ -115,6 +117,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
         var malumMagicCapableWeaponTag = tag(MALUM_MAGIC_CAPABLE_WEAPON);
         var malumSoulShatterCapableWeaponTag = tag(MALUM_SOUL_SHATTER_CAPABLE_WEAPON);
+        var malumSoulwovenPouchEfficientTag = tag(MALUM_SOULWOVEN_POUCH_EFFICIENT);
         var malumReplenishingEnchantableTag = tag(MALUM_REPLENISHING_ENCHANTABLE);
         var tomagicReversalWeaponTag = tag(TOMAGIC_REVERSAL_WEAPON);
         var transcendenceEnchantableTag = tag(TRANSCENDENCE_ENCHANTABLE);
@@ -271,6 +274,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         for (var itemEntry : ItemRegistry.ITEMS.getEntries()) {
             var item = itemEntry.get();
             var isSmashcastScepter = item == ItemRegistry.SMASHCAST_SCEPTER.get();
+            // Soulwoven Pouch は Malum 側で全防具を効率化するため、AC 側も防具全体を同じ収納面へ揃える。
+            if (item instanceof ArmorItem || item instanceof AbstractOffhandMagicItem) {
+                malumSoulwovenPouchEfficientTag.add(item);
+            }
             if (TranscendencePolicy.supportsDirectApplication(item)) {
                 transcendenceEnchantableTag.add(item);
             }
@@ -317,6 +324,24 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 malumReplenishingEnchantableTag.add(item);
             }
         }
+        // Soul Shatter 武器とは別に、Iron's の魔法を保持・行使する装備と魔法素材を直接効率化する。
+        // 自動回収は Spirit Arcana 専用のままとし、soulwoven_pouch_autocollect には追加しない。
+        malumSoulwovenPouchEfficientTag.add(
+                ItemRegistry.CHARGECAST_CATALYSTBOOK.get(),
+                ItemRegistry.ELEMENTAL_BOW.get(),
+                ItemRegistry.LUMINOUS_DEVICE.get(),
+                ItemRegistry.STORAGE_STABILIZER.get(),
+                ItemRegistry.REFLECTCAST_SHIELD.get(),
+                ItemRegistry.PARRYCAST_BUCKLER.get(),
+                ItemRegistry.BULWARK_GREATSHIELD.get(),
+                ItemRegistry.MANA_SHIELD_CHARM.get(),
+                ItemRegistry.ASHEN_CIRCLET.get(),
+                ItemRegistry.ENCHANTED_CIRCLET.get(),
+                ItemRegistry.ARCANE_CINDER.get(),
+                ItemRegistry.SPELL_EXTRACT_SHARD.get(),
+                ItemRegistry.WISDOM_SHARD.get(),
+                ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get()
+        );
         tag(CURIOS_SPELLBOOK).add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
                 ItemRegistry.ARCHIVISTS_GRIMOIRE.get(),

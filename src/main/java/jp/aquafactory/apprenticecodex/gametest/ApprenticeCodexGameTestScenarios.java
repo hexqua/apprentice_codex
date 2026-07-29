@@ -559,6 +559,10 @@ public class ApprenticeCodexGameTestScenarios {
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "soul_shatter_capable_weapon")
     );
+    static final TagKey<Item> MALUM_SOULWOVEN_POUCH_EFFICIENT = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "soulwoven_pouch_efficient")
+    );
     static final TagKey<Item> MALUM_MAGIC_CAPABLE_WEAPON = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "magic_capable_weapon")
