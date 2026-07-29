@@ -19,7 +19,7 @@ public class EnchantressRobeRenderer extends GeoArmorRenderer<EnchantressRobeIte
     private boolean renderRunes;
 
     public EnchantressRobeRenderer() {
-        super(new EnchantressRobeModel());
+        super(new EnchantressRobeModel<>());
         addRenderLayer(new EnchantressRobeGlowLayer(this));
     }
 

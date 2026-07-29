@@ -1,0 +1,14 @@
+{
+  "type": "malum:spirit_infusion",
+  "extra_items": [
+    { "item": "apprenticecodex:apprentice_mage_torso" },
+    { "count": 2, "item": "irons_spellbooks:magic_cloth" },
+    { "count": 4, "item": "malum:processed_soulstone" }
+  ],
+  "input": { "item": "malum:soul_hunter_robe" },
+  "output": { "item": "apprenticecodex:soulcollector_robe" },
+  "spirits": [
+    { "type": "arcane", "count": 16 },
+    { "type": "wicked", "count": 16 }
+  ]
+}

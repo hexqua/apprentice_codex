@@ -8,7 +8,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
-import jp.aquafactory.apprenticecodex.renderer.armor.EnchantressRobeRenderer;
+import jp.aquafactory.apprenticecodex.renderer.armor.SoulcollectorRobeRenderer;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -63,8 +63,7 @@ public class SoulcollectorRobeItem extends ArmorItem implements GeoItem, IPreset
             public @NotNull HumanoidModel<?> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack itemStack,
                                                                    EquipmentSlot equipmentSlot, HumanoidModel<?> original) {
                 if (renderer == null) {
-                    // todo:ソウルコレクターに差し替える。
-                    renderer = new EnchantressRobeRenderer();
+                    renderer = new SoulcollectorRobeRenderer();
                 }
 
                 renderer.prepForRender(livingEntity, itemStack, equipmentSlot, original);
@@ -136,6 +135,11 @@ public class SoulcollectorRobeItem extends ArmorItem implements GeoItem, IPreset
                 armorType,
                 ApprenticeCodexServerConfig.soulcollectorRobeSpellPowerBonusPerPiece()
         );
+        SoulcollectorRobeStats.addMagicProficiencyModifier(
+                builder,
+                armorType,
+                ApprenticeCodexServerConfig.soulcollectorRobeMagicProficiencyBonusPerPiece()
+        );
         return builder.build();
     }
 
@@ -151,7 +155,7 @@ public class SoulcollectorRobeItem extends ArmorItem implements GeoItem, IPreset
 
     @Override
     public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
-        // GeoArmor 描画とは別に vanilla 防具テクスチャも問い合わせられるため、既存テクスチャへ解決して警告を出させない。
+        // GeoArmor 描画とは別に vanilla 防具テクスチャも問い合わせられるため、Soulcollector のテクスチャへ解決する。
         return ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/soulcollector_robe.png").toString();
     }
 
