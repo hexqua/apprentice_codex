@@ -38,6 +38,7 @@
     "MagicDataAccessor",
     "MagicDataMixin",
     "MagicManagerMixin",
+    "MalumIronsSpellsCompatMixin",
     "MerchantMenuMixin",
     "MerchantOfferMixin",
     "PotionFluidTypeMixin",
