@@ -41,6 +41,7 @@
     "ItemCostMixin",
     "MagicDataMixin",
     "MagicManagerMixin",
+    "MalumReplenishingOffhandMixin",
     "MerchantMenuMixin",
     "PotionFluidTypeMixin",
     "PlayerRemoteOwnerCastMixin",

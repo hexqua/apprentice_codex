@@ -70,7 +70,8 @@ public final class FocusStaffbow extends CastingItem
     private static final Set<ResourceLocation> ALLOWED_EXTRA_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom"),
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "plunder"),
-            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "synthesis")
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "synthesis"),
+            ResourceLocation.fromNamespaceAndPath("malum", "replenishing")
     );
     private static final Set<ResourceLocation> EXCLUDED_EXTRA_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "transcendence")

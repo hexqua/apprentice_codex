@@ -52,7 +52,8 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item
         TranscendencePolicy, WisdomPolicy {
     private static final Set<ResourceLocation> ALLOWED_MAGIC_ITEM_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "transcendence"),
-            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom")
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom"),
+            MalumCompatibility.REPLENISHING
     );
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
     private final @Nullable Supplier<? extends AbstractSpell> configuredSpell;

@@ -1,12 +1,12 @@
 {
-  "type": "malum:spirit_infusion",
-  "conditions": [
+  "neoforge:conditions": [
     {
-      "type": "forge:mod_loaded",
+      "type": "neoforge:mod_loaded",
       "modid": "malum"
     }
   ],
-  "extra_items": [
+  "type": "malum:spirit_infusion",
+  "extraInputs": [
     {
       "item": "apprenticecodex:apprentice_mage_scarf"
     },
@@ -16,22 +16,22 @@
     },
     {
       "count": 4,
-      "item": "malum:processed_soulstone"
+      "item": "malum:refined_soulstone"
     }
   ],
   "input": {
     "item": "malum:soul_hunter_cloak"
   },
-  "output": {
-    "item": "apprenticecodex:soulcollector_hat"
+  "result": {
+    "id": "apprenticecodex:soulcollector_hat"
   },
   "spirits": [
     {
-      "type": "arcane",
+      "type": "malum:arcane",
       "count": 16
     },
     {
-      "type": "wicked",
+      "type": "malum:wicked",
       "count": 16
     }
   ]

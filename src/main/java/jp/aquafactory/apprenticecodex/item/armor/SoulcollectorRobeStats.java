@@ -1,70 +1,48 @@
 package jp.aquafactory.apprenticecodex.item.armor;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
-import net.minecraft.sounds.SoundEvent;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.registries.ForgeRegistries;
-import org.jetbrains.annotations.NotNull;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
 import java.util.function.Supplier;
 
 public final class SoulcollectorRobeStats {
-    public static final ArmorMaterial MATERIAL = new SoulcollectorRobeMaterial();
     public static final double MAX_MANA_BONUS_PER_PIECE = 75.0D;
-    private static final ResourceLocation LODESTONE_MAGIC_PROFICIENCY =
-            ResourceLocation.fromNamespaceAndPath("lodestone", "magic_proficiency");
-
-    // 耐久力係数、鉄=15、ダイヤ=33、ネザライト=37、見習い=24、MalumのSoulhunterはおよそ15.
     private static final int DURABILITY_MULTIPLIER = 19;
     private static final int ENCHANTMENT_VALUE = 22;
-    private static final float TOUGHNESS = 0.0F;
-    private static final float KNOCKBACK_RESISTANCE = 0.0F;
-    private static final SoundEvent EQUIP_SOUND = SoundRegistry.VANILLA_ARMOR_EQUIP_ROBE.get();
     private static final Supplier<Ingredient> REPAIR_INGREDIENT = () -> Ingredient.of(ItemRegistry.MAGIC_CLOTH.get());
-
-    private static final Map<ArmorItem.Type, Integer> BASE_DURABILITY = Map.of(
-            ArmorItem.Type.HELMET, 11,
-            ArmorItem.Type.CHESTPLATE, 16,
-            ArmorItem.Type.LEGGINGS, 15,
-            ArmorItem.Type.BOOTS, 13
-    );
-
-    // MalumのSoulhunter合わせ.
+    private static final ResourceLocation LODESTONE_MAGIC_PROFICIENCY =
+            ResourceLocation.fromNamespaceAndPath("lodestone", "magic_proficiency");
     private static final Map<ArmorItem.Type, Integer> DEFENSE = Map.of(
-            ArmorItem.Type.HELMET, 2,
-            ArmorItem.Type.CHESTPLATE, 4,
-            ArmorItem.Type.LEGGINGS, 3,
-            ArmorItem.Type.BOOTS, 1
+            ArmorItem.Type.HELMET, 2, ArmorItem.Type.CHESTPLATE, 4,
+            ArmorItem.Type.LEGGINGS, 3, ArmorItem.Type.BOOTS, 1
     );
-
-    private static final List<AttributeBonus> COMMON_ATTRIBUTE_BONUSES = List.of(
-            new AttributeBonus(AttributeRegistry.MAX_MANA, MAX_MANA_BONUS_PER_PIECE, AttributeModifier.Operation.ADDITION, "max_mana")
-    );
-
-    private static final Map<ArmorItem.Type, List<AttributeBonus>> ATTRIBUTE_BONUSES = Map.of(
-            ArmorItem.Type.HELMET, COMMON_ATTRIBUTE_BONUSES,
-            ArmorItem.Type.CHESTPLATE, COMMON_ATTRIBUTE_BONUSES,
-            ArmorItem.Type.LEGGINGS, COMMON_ATTRIBUTE_BONUSES,
-            ArmorItem.Type.BOOTS, COMMON_ATTRIBUTE_BONUSES
+    public static final ArmorMaterial MATERIAL = new ArmorMaterial(
+            DEFENSE, ENCHANTMENT_VALUE, SoundRegistry.VANILLA_ARMOR_EQUIP_ROBE, REPAIR_INGREDIENT,
+            List.of(new ArmorMaterial.Layer(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "soulcollector_robe"))),
+            0.0F, 0.0F
     );
 
     private SoulcollectorRobeStats() {
+    }
+
+    public static Item.Properties createProperties(ArmorItem.Type type) {
+        return new Item.Properties().stacksTo(1).durability(type.getDurability(DURABILITY_MULTIPLIER));
     }
 
     public static int enchantmentValue() {
@@ -75,133 +53,36 @@ public final class SoulcollectorRobeStats {
         return REPAIR_INGREDIENT.get().test(stack);
     }
 
-    public static Multimap<Attribute, AttributeModifier> createAttributeModifiers(ArmorItem.Type type) {
-        var bonuses = ATTRIBUTE_BONUSES.get(type);
-        if (bonuses == null || bonuses.isEmpty()) {
-            return ImmutableMultimap.of();
-        }
-
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        var prefix = "apprenticecodex.soulcollector_robe." + typeToken(type);
-        for (int i = 0; i < bonuses.size(); ++i) {
-            var bonus = bonuses.get(i);
-            var attribute = bonus.attributeSupplier().get();
-            if (attribute == null) {
-                continue;
-            }
-
-            var modifierSeed = prefix + "." + bonus.key() + "." + i;
-            var modifierId = UUID.nameUUIDFromBytes(modifierSeed.getBytes(StandardCharsets.UTF_8));
-            builder.put(
-                    attribute,
-                    new AttributeModifier(modifierId, modifierSeed, bonus.amount(), bonus.operation())
-            );
-        }
+    public static ItemAttributeModifiers createAttributeModifiers(ArmorItem.Type type) {
+        var builder = ItemAttributeModifiers.builder();
+        var slot = EquipmentSlotGroup.bySlot(type.getSlot());
+        builder.add(AttributeRegistry.MAX_MANA, new AttributeModifier(
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "soulcollector_robe_" + token(type) + "_max_mana"),
+                MAX_MANA_BONUS_PER_PIECE, AttributeModifier.Operation.ADD_VALUE), slot);
         return builder.build();
     }
 
-    static void addSpellPowerModifier(
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
-            ArmorItem.Type type,
-            double amount
-    ) {
-        MagicArmorAttributeHelper.addModifier(
-                builder,
-                AttributeRegistry.SPELL_POWER.get(),
-                amount,
-                AttributeModifier.Operation.MULTIPLY_BASE,
-                "apprenticecodex.soulcollector_robe." + typeToken(type) + ".spell_power.1"
-        );
-    }
-
-    static void addMagicProficiencyModifier(
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
-            ArmorItem.Type type,
-            double amount
-    ) {
-        var attribute = ForgeRegistries.ATTRIBUTES.getValue(LODESTONE_MAGIC_PROFICIENCY);
-        if (attribute == null) {
-            return;
+    static void addConfiguredModifiers(ItemAttributeModifiers.Builder builder, ArmorItem.Type type,
+                                       double spellPower, double magicProficiency) {
+        var slot = EquipmentSlotGroup.bySlot(type.getSlot());
+        MagicArmorAttributeHelper.addModifier(builder, AttributeRegistry.SPELL_POWER, spellPower,
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE, slot,
+                "soulcollector_robe_" + token(type) + "_spell_power_config");
+        var proficiency = BuiltInRegistries.ATTRIBUTE.getOptional(LODESTONE_MAGIC_PROFICIENCY).orElse(null);
+        if (proficiency != null) {
+            MagicArmorAttributeHelper.addModifier(builder, BuiltInRegistries.ATTRIBUTE.wrapAsHolder(proficiency), magicProficiency,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE, slot,
+                    "soulcollector_robe_" + token(type) + "_magic_proficiency_config");
         }
-
-        MagicArmorAttributeHelper.addModifier(
-                builder,
-                attribute,
-                amount,
-                AttributeModifier.Operation.MULTIPLY_BASE,
-                "apprenticecodex.soulcollector_robe." + typeToken(type) + ".magic_proficiency.1"
-        );
     }
 
-    private static int durabilityFor(ArmorItem.Type type) {
-        return BASE_DURABILITY.getOrDefault(type, 0) * DURABILITY_MULTIPLIER;
-    }
-
-    private static int defenseFor(ArmorItem.Type type) {
-        return DEFENSE.getOrDefault(type, 0);
-    }
-
-    private static String typeToken(ArmorItem.Type type) {
+    private static String token(ArmorItem.Type type) {
         return switch (type) {
             case HELMET -> "helmet";
             case CHESTPLATE -> "chestplate";
             case LEGGINGS -> "leggings";
             case BOOTS -> "boots";
+            case BODY -> "body";
         };
-    }
-
-    private record AttributeBonus(
-            Supplier<? extends Attribute> attributeSupplier,
-            double amount,
-            AttributeModifier.Operation operation,
-            String key
-    ) {
-        private AttributeBonus {
-            Objects.requireNonNull(attributeSupplier);
-            Objects.requireNonNull(operation);
-            Objects.requireNonNull(key);
-        }
-    }
-
-    private static final class SoulcollectorRobeMaterial implements ArmorMaterial {
-        @Override
-        public int getDurabilityForType(ArmorItem.@NotNull Type type) {
-            return durabilityFor(type);
-        }
-
-        @Override
-        public int getDefenseForType(ArmorItem.@NotNull Type type) {
-            return defenseFor(type);
-        }
-
-        @Override
-        public int getEnchantmentValue() {
-            return ENCHANTMENT_VALUE;
-        }
-
-        @Override
-        public @NotNull SoundEvent getEquipSound() {
-            return EQUIP_SOUND;
-        }
-
-        @Override
-        public @NotNull Ingredient getRepairIngredient() {
-            return REPAIR_INGREDIENT.get();
-        }
-
-        @Override
-        public @NotNull String getName() {
-            return ApprenticeCodex.MODID + ":soulcollector_robe";
-        }
-
-        @Override
-        public float getToughness() {
-            return TOUGHNESS;
-        }
-
-        @Override
-        public float getKnockbackResistance() {
-            return KNOCKBACK_RESISTANCE;
-        }
     }
 }

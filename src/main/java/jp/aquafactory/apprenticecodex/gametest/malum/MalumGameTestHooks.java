@@ -1,10 +1,10 @@
 package jp.aquafactory.apprenticecodex.gametest.malum;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -27,7 +27,7 @@ public final class MalumGameTestHooks {
         try {
             var recipeClass = Class.forName(SPIRIT_INFUSION_RECIPE);
             Recipe<?> recipe = level.getRecipeManager().byKey(recipeId)
-                    .orElseThrow(() -> new AssertionError("Missing Malum Spirit Altar recipe " + recipeId));
+                    .orElseThrow(() -> new AssertionError("Missing Malum Spirit Altar recipe " + recipeId)).value();
             if (!recipeClass.isInstance(recipe)) {
                 throw new AssertionError("Recipe " + recipeId + " is not malum:spirit_infusion");
             }
@@ -49,7 +49,7 @@ public final class MalumGameTestHooks {
 
             Field outputField = recipeClass.getField("output");
             var output = (ItemStack) outputField.get(recipe);
-            if (!ItemStack.isSameItemSameTags(output, expectedOutput)) {
+            if (!ItemStack.isSameItemSameComponents(output, expectedOutput)) {
                 throw new AssertionError("Malum Spirit Altar recipe " + recipeId + " output expected="
                         + itemId(expectedOutput) + ", actual=" + itemId(output));
             }
@@ -70,7 +70,7 @@ public final class MalumGameTestHooks {
             Method getCount = spirit.getClass().getMethod("getCount");
             var item = (net.minecraft.world.item.Item) getItem.invoke(spirit);
             int count = (int) getCount.invoke(spirit);
-            var itemId = ForgeRegistries.ITEMS.getKey(item);
+            var itemId = BuiltInRegistries.ITEM.getKey(item);
             if (itemId != null && expectedPath.equals(itemId.getPath()) && count == expectedCount) {
                 return;
             }
@@ -99,7 +99,7 @@ public final class MalumGameTestHooks {
     }
 
     private static String itemId(ItemStack stack) {
-        var id = ForgeRegistries.ITEMS.getKey(stack.getItem());
+        var id = BuiltInRegistries.ITEM.getKey(stack.getItem());
         return id == null ? stack.toString() : id.toString();
     }
 }

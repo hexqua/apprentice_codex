@@ -1,47 +1,38 @@
 package jp.aquafactory.apprenticecodex.item.armor;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.renderer.armor.SoulcollectorRobeRenderer;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.renderer.GeoArmorRenderer;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.function.Consumer;
 
 public class SoulcollectorRobeItem extends ArmorItem implements GeoItem, IPresetSpellContainer, WisdomPolicy {
-
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private final Type armorType;
-    private final Multimap<Attribute, AttributeModifier> robeAttributeModifiers;
+    private final ItemAttributeModifiers baseModifiers;
 
     public SoulcollectorRobeItem(Type type) {
-        super(SoulcollectorRobeStats.MATERIAL, type, new Properties());
-        this.armorType = type;
-        this.robeAttributeModifiers = SoulcollectorRobeStats.createAttributeModifiers(type);
+        super(Holder.direct(SoulcollectorRobeStats.MATERIAL), type, SoulcollectorRobeStats.createProperties(type));
+        this.baseModifiers = SoulcollectorRobeStats.createAttributeModifiers(type);
         GeoItem.registerSyncedAnimatable(this);
     }
 
@@ -50,23 +41,16 @@ public class SoulcollectorRobeItem extends ArmorItem implements GeoItem, IPreset
         return false;
     }
 
-    public boolean hasImbueSlot() {
-        return armorType == Type.CHESTPLATE;
-    }
-
     @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private GeoArmorRenderer<?> renderer;
+    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
+        consumer.accept(new GeoRenderProvider() {
+            private SoulcollectorRobeRenderer renderer;
 
             @Override
-            public @NotNull HumanoidModel<?> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack itemStack,
-                                                                   EquipmentSlot equipmentSlot, HumanoidModel<?> original) {
-                if (renderer == null) {
-                    renderer = new SoulcollectorRobeRenderer();
-                }
-
-                renderer.prepForRender(livingEntity, itemStack, equipmentSlot, original);
+            public <T extends LivingEntity> HumanoidModel<?> getGeoArmorRenderer(@Nullable T entity, ItemStack stack,
+                                                                                   @Nullable EquipmentSlot slot,
+                                                                                   @Nullable HumanoidModel<T> original) {
+                if (renderer == null) renderer = new SoulcollectorRobeRenderer();
                 return renderer;
             }
         });
@@ -77,70 +61,37 @@ public class SoulcollectorRobeItem extends ArmorItem implements GeoItem, IPreset
     }
 
     @Override
-    public void initializeSpellContainer(ItemStack itemStack) {
-        if (itemStack == null || !hasImbueSlot() || ISpellContainer.isSpellContainer(itemStack)) {
-            return;
+    public void initializeSpellContainer(ItemStack stack) {
+        if (getType() == Type.CHESTPLATE && !ISpellContainer.isSpellContainer(stack)) {
+            ISpellContainer.set(stack, ISpellContainer.create(1, true, true));
         }
-
-        // 胴体のみ Imbue を受けるための魔法枠を持たせる.
-        ISpellContainer.set(itemStack, ISpellContainer.create(1, true, true));
     }
 
     @Override
-    public boolean isEnchantable(@NotNull ItemStack stack) {
-        return getEnchantmentValue(stack) > 0;
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        var builder = ItemAttributeModifiers.builder();
+        for (var entry : super.getDefaultAttributeModifiers(stack).modifiers()) builder.add(entry.attribute(), entry.modifier(), entry.slot());
+        for (var entry : baseModifiers.modifiers()) builder.add(entry.attribute(), entry.modifier(), entry.slot());
+        SoulcollectorRobeStats.addConfiguredModifiers(builder, getType(),
+                ApprenticeCodexServerConfig.soulcollectorRobeSpellPowerBonusPerPiece(),
+                ApprenticeCodexServerConfig.soulcollectorRobeMagicProficiencyBonusPerPiece());
+        return builder.build();
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-        if (enchantmentId == null) {
-            return false;
-        }
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.supportsEnchantment(stack, enchantment) || enchantment.is(Enchantments.WISDOM);
+    }
 
-        if (ApprenticeCodex.MODID.equals(enchantmentId.getNamespace())) {
-            return isSupportedRobeEnchantment(enchantment);
-        }
-
-        return enchantment.canApplyAtEnchantingTable(createArmorProbeStack());
+    @Override
+    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
     public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
-        if (!super.isBookEnchantable(stack, book)) {
-            return false;
-        }
-
-        var enchantments = EnchantmentHelper.getEnchantments(book);
-        if (enchantments.isEmpty()) {
-            return true;
-        }
-
-        return enchantments.keySet().stream()
-                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
-    }
-
-    @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        var baseModifiers = super.getAttributeModifiers(slot, stack);
-        if (slot != armorType.getSlot()) {
-            return baseModifiers;
-        }
-
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        builder.putAll(baseModifiers);
-        builder.putAll(robeAttributeModifiers);
-        SoulcollectorRobeStats.addSpellPowerModifier(
-                builder,
-                armorType,
-                ApprenticeCodexServerConfig.soulcollectorRobeSpellPowerBonusPerPiece()
-        );
-        SoulcollectorRobeStats.addMagicProficiencyModifier(
-                builder,
-                armorType,
-                ApprenticeCodexServerConfig.soulcollectorRobeMagicProficiencyBonusPerPiece()
-        );
-        return builder.build();
+        return super.isBookEnchantable(stack, book) && EnchantmentHelper.getEnchantmentsForCrafting(book).keySet()
+                .stream().allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     @Override
@@ -149,31 +100,12 @@ public class SoulcollectorRobeItem extends ArmorItem implements GeoItem, IPreset
     }
 
     @Override
-    public boolean isValidRepairItem(@NotNull ItemStack toRepair, @NotNull ItemStack repair) {
-        return SoulcollectorRobeStats.isRepairIngredient(repair) || super.isValidRepairItem(toRepair, repair);
-    }
-
-    @Override
-    public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
-        // GeoArmor 描画とは別に vanilla 防具テクスチャも問い合わせられるため、Soulcollector のテクスチャへ解決する。
-        return ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/soulcollector_robe.png").toString();
+    public boolean isValidRepairItem(@NotNull ItemStack stack, @NotNull ItemStack repair) {
+        return SoulcollectorRobeStats.isRepairIngredient(repair) || super.isValidRepairItem(stack, repair);
     }
 
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
-    }
-
-    private boolean isSupportedRobeEnchantment(Enchantment enchantment) {
-        return EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get();
-    }
-
-    private ItemStack createArmorProbeStack() {
-        return switch (armorType) {
-            case HELMET -> new ItemStack(Items.LEATHER_HELMET);
-            case CHESTPLATE -> new ItemStack(Items.LEATHER_CHESTPLATE);
-            case LEGGINGS -> new ItemStack(Items.LEATHER_LEGGINGS);
-            case BOOTS -> new ItemStack(Items.LEATHER_BOOTS);
-        };
     }
 }

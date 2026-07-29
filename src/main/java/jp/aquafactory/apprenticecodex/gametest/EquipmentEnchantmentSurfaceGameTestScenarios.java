@@ -1515,6 +1515,34 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         });
     }
 
+    static void soulcollectorRobeAddsLodestoneMagicProficiencyAndMalumInfusions(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.SOULCOLLECTOR_ROBE.get());
+            helper.assertTrue(stack.getItem().supportsEnchantment(stack,
+                            helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                                    .getOrThrow(Enchantments.WISDOM)),
+                    "Soulcollector Robe should support Wisdom");
+            if (ModList.get().isLoaded("lodestone")) {
+                var proficiency = BuiltInRegistries.ATTRIBUTE.getOptional(
+                        ResourceLocation.fromNamespaceAndPath("lodestone", "magic_proficiency")).orElse(null);
+                helper.assertTrue(proficiency != null, "lodestone:magic_proficiency is not registered");
+                if (proficiency != null) {
+                    helper.assertTrue(stack.getItem().getDefaultAttributeModifiers(stack).modifiers().stream()
+                                    .anyMatch(entry -> entry.attribute().value() == proficiency),
+                            "Soulcollector Robe should add Lodestone magic proficiency");
+                }
+            }
+            if (ModList.get().isLoaded(MALUM_MOD_ID)) {
+                var recipes = helper.getLevel().getRecipeManager();
+                for (var part : List.of("hat", "robe", "leggings", "boots")) {
+                    assertRecipePresent(helper, recipes,
+                            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID,
+                                    "malum/spirit_infusion/soulcollector_" + part));
+                }
+            }
+        });
+    }
+
     static void scrollcasterGauntletKeepsExpectedStatsAndBenchEnchantingRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
@@ -1534,6 +1562,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             ));
             addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedTaggedEnchantments);
             addExpectedMalumSpiritPlunderIfPresent(stack, expectedTaggedEnchantments);
+            addExpectedMalumReplenishingIfPresent(stack, expectedTaggedEnchantments);
             assertExactEnchantmentSurfaces(
                     helper,
                     stack,
