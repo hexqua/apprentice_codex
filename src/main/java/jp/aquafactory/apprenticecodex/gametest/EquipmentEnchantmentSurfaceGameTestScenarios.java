@@ -1517,11 +1517,27 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
 
     static void soulcollectorRobeAddsLodestoneMagicProficiencyAndMalumInfusions(GameTestHelper helper) {
         helper.succeedIf(() -> {
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var protection = enchantmentLookup.getOrThrow(ResourceKey.create(
+                    Registries.ENCHANTMENT, ResourceLocation.withDefaultNamespace("protection")));
+            var unbreaking = enchantmentLookup.getOrThrow(ResourceKey.create(
+                    Registries.ENCHANTMENT, ResourceLocation.withDefaultNamespace("unbreaking")));
             var stack = new ItemStack(ItemRegistry.SOULCOLLECTOR_ROBE.get());
             helper.assertTrue(stack.getItem().supportsEnchantment(stack,
-                            helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
-                                    .getOrThrow(Enchantments.WISDOM)),
+                            enchantmentLookup.getOrThrow(Enchantments.WISDOM)),
                     "Soulcollector Robe should support Wisdom");
+            for (var armor : List.of(
+                    ItemRegistry.SOULCOLLECTOR_HAT.get(),
+                    ItemRegistry.SOULCOLLECTOR_ROBE.get(),
+                    ItemRegistry.SOULCOLLECTOR_LEGGINGS.get(),
+                    ItemRegistry.SOULCOLLECTOR_BOOTS.get()
+            )) {
+                var armorStack = new ItemStack(armor);
+                helper.assertTrue(protection.value().canEnchant(armorStack),
+                        "Soulcollector armor should be in vanilla armor enchantment tags: " + armor);
+                helper.assertTrue(unbreaking.value().canEnchant(armorStack),
+                        "Soulcollector armor should be in minecraft:enchantable/durability: " + armor);
+            }
             if (ModList.get().isLoaded("lodestone")) {
                 var proficiency = BuiltInRegistries.ATTRIBUTE.getOptional(
                         ResourceLocation.fromNamespaceAndPath("lodestone", "magic_proficiency")).orElse(null);
