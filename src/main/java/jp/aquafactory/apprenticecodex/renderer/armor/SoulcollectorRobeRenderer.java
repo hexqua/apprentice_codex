@@ -34,7 +34,11 @@ public final class SoulcollectorRobeRenderer extends GeoArmorRenderer<Soulcollec
         var level = Minecraft.getInstance().level;
         var tick = (level == null ? 0.0F : level.getGameTime()) + partialTick;
         var blend = (Mth.sin(Mth.TWO_PI * tick / RUNE_CYCLE_TICKS) + 1.0F) * 0.5F;
-        runeColour = 0xFF000000 | Mth.lerpInt(blend, FIRST_RUNE_COLOR, SECOND_RUNE_COLOR);
+        // RGB 値全体を整数として補間すると桁上がりで各色が不連続に変わるため、チャンネルごとに補間する。
+        runeColour = 0xFF000000
+                | (Mth.lerpInt(blend, red(FIRST_RUNE_COLOR), red(SECOND_RUNE_COLOR)) << 16)
+                | (Mth.lerpInt(blend, green(FIRST_RUNE_COLOR), green(SECOND_RUNE_COLOR)) << 8)
+                | Mth.lerpInt(blend, blue(FIRST_RUNE_COLOR), blue(SECOND_RUNE_COLOR));
     }
 
     @Override
@@ -55,5 +59,17 @@ public final class SoulcollectorRobeRenderer extends GeoArmorRenderer<Soulcollec
 
     private static boolean isRuneBone(GeoBone bone) {
         return RUNE_TINT_RIGHT_BONE.equals(bone.getName()) || RUNE_TINT_LEFT_BONE.equals(bone.getName());
+    }
+
+    private static int red(int colour) {
+        return (colour >>> 16) & 0xFF;
+    }
+
+    private static int green(int colour) {
+        return (colour >>> 8) & 0xFF;
+    }
+
+    private static int blue(int colour) {
+        return colour & 0xFF;
     }
 }
