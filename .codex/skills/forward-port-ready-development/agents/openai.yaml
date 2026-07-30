@@ -1,4 +1,0 @@
-interface:
-  display_name: "Forward-Port対応開発"
-  short_description: "1.20.1側で移植しやすい差分設計と確認観点を整理する"
-  default_prompt: "Use $forward-port-ready-development to plan or review a 1.20.1 Forge change so it stays easy to forward-port into main."

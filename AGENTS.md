@@ -4,6 +4,9 @@
 
 ## 0. 言語ポリシー
 - 本プロジェクトでのやり取り、ドキュメント、レビューコメントは原則として日本語を使用する。
+- プレイヤー向けテキストは、`lang` による言語選択ができる場合は `lang` を使用し、言語選択ができない部分は英語を必須とする。
+- `src` 内の `config` 配下にある `comment` 引数と、プレイヤー向けの GitHub Issue フォームは言語選択ができないため、英語を必須とする。
+- GitHub PR は開発者向けのため原則として日本語を使用する。ただし、他の開発者が英語で作成した PR は許容し、日本語への統一を要求しない。
 - コミットメッセージは日本語で記述する。
 - 外部資料が英語の場合は、日本語で要点を補足する。ツール仕様などで英語が必須の箇所のみ、必要最小限で英語を使用する。
 
@@ -18,16 +21,12 @@
 - ビルドツール: Gradle Wrapper（Windows では `./gradlew.bat` を使用）
 - 主要依存 MOD: Iron's Spells 'n Spellbooks（1.20.1-3.16.2）, Iron's Lib（1.20.1-2.1.0）, Curios（5.14.1+1.20.1）, GeckoLib（4.8.3）
 - ローカルでは `JDK17_HOME` を設定し、必要に応じて `.\scripts\use-java.ps1` で `JAVA_HOME` を切り替える。
-- `main` を触る場合のみ Java 21 を使う。着手前に必ず合意を取る。
+- `main`（1.21.1 / NeoForge）からの backport 作業でも、このブランチの実装と検証には Java 17 を使う。
 
 ## 3. 実行コマンド
 - Java 17 を一時適用:
 ```powershell
 .\scripts\use-java.ps1
-```
-- Java 21 を一時適用（`main` 作業用）:
-```powershell
-.\scripts\use-java.ps1 -Version 21
 ```
 - 通常ビルド:
 ```powershell
@@ -81,6 +80,7 @@ Get-ChildItem build\libs\*.jar
 - `runGameTestServerEasyMagic` は Puzzles Lib / Easy Magic 連携の確認に使う。
 - `runGameTestServerBetterCombat` は Cloth Config / Better Combat 連携の確認に使う。
 - `runGameTestServerEpicFight` は Epic Fight 連携の確認に使う。
+- いずれかの GameTest task が一度でも失敗した場合は、後続実行が成功しても失敗を省略せず、`.codex/skills/report-gametest-failure` を使用して観測結果を最終報告に残す。
 - `runClientEpicFightController` は Epic Fight / Controlify / YACL を入れ、実機コントローラー入力を確認する。
 - `runClientCompatEasyBetter` は compat + EasyMagic + Better Combat を入れた実環境寄りの手動バランス確認用。Epic Fight は含めず、自動テスト対象にも含めない。
 - Better Combat と Epic Fight は干渉が大きいため、通常確認では同時投入しない。
@@ -95,16 +95,17 @@ Get-ChildItem build\libs\*.jar
 - コメントは「何をしているか」より「なぜそうするか」を優先する。外部 MOD 仕様依存、ワークアラウンド、クライアント/サーバー差分、実行順依存、魔法値には日本語コメントを残す。
 - テキストファイルは UTF-8（BOM なし）を原則とする。
 - 日本語を含むファイルや文字化けが疑われるファイルを扱う場合は、英語で書かれた `.codex/skills/text-encoding-hygiene` を先に確認する。
-- 依存関係の追加・更新は `gradle.properties` に集約し、必須依存を追加する場合は `mods.toml` も更新する。外部アセット/ライブラリ利用時は `THIRD_PARTY_NOTICES.md` の追記要否を確認する。
+- 依存関係の追加・更新では、ビルドで使用するバージョンを `gradle.properties` に集約し、必須依存を追加する場合は `mods.toml` も更新する。外部アセット/ライブラリ利用時は `THIRD_PARTY_NOTICES.md` の追記要否を確認する。
+- 明確に非互換と判明しているバージョン境界を拒否する上限は、理由と維持・更新条件をコメントしたうえで、例外的に `mods.toml` へ直接記述してよい。
 
 ## 5. 変更フロー
 1. 変更内容を 1〜2 文で決める（何を、なぜ変えるか）。
-2. 実装前に、変更を「共通ロジック」「1.20.1 固有の接着コード」「generated/resource 更新」「ドキュメント」に分けて考える。通常開発では `.codex/skills/forward-port-ready-development`、実際の 1.21.1 移植では `.codex/skills/forward-port-1-21-1` を使う。
+2. `main` の変更を実際に取り込む場合は `.codex/skills/backport-1-20-1` を使い、移植元の非 `merge` コミット、共通ロジック、1.20.1 / Forge 固有補正、generated/resource、対象外要素を分けて考える。1.20.1 固有修正にはこの Skill を使用しない。
 3. 実装する。
 4. `git diff` / `git diff --name-status` で、依頼範囲外の整形、rename、コメント削除、文字化け差分が混ざっていないことを確認する。
 5. コード、リソース、依存、datagen に影響する変更では `./gradlew.bat build` を成功させる。このビルドには明らかな文字化けと UTF-8 BOM の検査も含める。ドキュメントのみの変更では省略してよいが、最終報告に理由を残す。
 6. サーバー側の登録、データ読込、レシピ、生成、GameTest 対象構造に影響する変更では `./gradlew.bat runGameTestServer` を成功させる。
-7. client 専用 UI、renderer、screen、入力操作に影響する変更では必要に応じて `./gradlew.bat runClient` で確認する。
+7. `main` からの backport では、影響範囲にかかわらず Java 17 で `./gradlew.bat runGameTestServer` と `./gradlew.bat build` を成功させる。
 8. optional MOD 連携に影響する変更では、対象に応じて特殊 GameTest / client 構成を追加実行する。
    - Create / Botania / Lodestone / Malum / Farmer's Delight: `./gradlew.bat runGameTestServerCompat`
    - EasyMagic / エンチャントメニュー: `./gradlew.bat runGameTestServerEasyMagic`
@@ -112,23 +113,31 @@ Get-ChildItem build\libs\*.jar
    - Epic Fight / mixin / capabilities / item_skins: `./gradlew.bat runGameTestServerEpicFight`
    - client 側の連携確認: 対応する `runClient...` 構成
    - 組み合わせバランス確認: `./gradlew.bat runClientCompatEasyBetter`
-9. コミットはレビューしやすく、forward-port しやすい粒度に分ける。無関係な整形や広域整理を混ぜない。
-10. `1.20.1-main` へ反映する変更は必ずブランチ + PR で流し、直 push しない。
-11. PR では必須の GitHub Actions `PR CI / build`、任意の `PR CI / gametest`、Codex Cloud のスマートトリガーレビュー、人間のレビューを確認してから取り込む。スマートトリガーレビューは補助であり、CI と人間の判断を置き換えない。
-12. 通常は merge commit で取り込む。バージョン更新だけは rebase merge を使ってよい。squash merge は使わない。
+9. client 専用 UI、renderer、screen、入力操作に影響する変更では必要に応じて `./gradlew.bat runClient` で確認する。
+10. コミット前に `.codex/skills/review-local-change` を使い、未コミット差分を変更せずにレビューする。
+11. コミットはレビューしやすく、移植元と1.20.1固有補正を追跡しやすい粒度に分け、無関係な整形や広域整理を混ぜない。
+12. 機能としてコミット列が完成したら `.codex/skills/review-feature-branch` を使い、`1.20.1-main` との差分全体をレビューしてから PR を作成する。
+13. `1.20.1-main` へ反映する変更は必ずブランチ + PR で流し、直 push しない。
+14. PR では必須の GitHub Actions `PR CI / build`、任意の `PR CI / gametest`、Codex Cloud のスマートトリガーレビュー、人間のレビューを確認する。スマートトリガーレビューは補助であり、CI と人間の判断を置き換えない。
+15. 外部レビュー結果がそろった後に `.codex/skills/review-feature-branch` を再実行し、readiness が `Ready` であることを確認する。
+16. 通常は merge commit で取り込む。バージョン更新だけは rebase merge を使ってよい。squash merge は使わない。
 
-## 6. レビューチェックリスト
-- Java 17 環境で必要な検証が通っていること。コード/リソース変更では `./gradlew.bat build` を必須とする。
-- サーバー側の登録、データ読込、レシピ、生成に影響する変更では `./gradlew.bat runGameTestServer` が成功していること。
-- optional MOD 連携に影響する変更では、該当する `runGameTestServerCompat` / `runGameTestServerEasyMagic` / `runGameTestServerBetterCombat` / `runGameTestServerEpicFight`、または対応する `runClient...` の実行結果が説明されていること。
-- `1.20.1-main` へ送る PR では GitHub Actions の `PR CI / build` が成功し、任意の `PR CI / gametest` の結果も確認されていること。
-- Codex Cloud のスマートトリガーレビューで指摘が出ている場合、対応または明示的な見送り理由があること。
-- 追加・変更した要素の登録漏れ（Registry/EventBus）がないこと。
-- サーバー専用環境で問題となるクライアント専用参照を追加していないこと。
-- 1 機能が `cherry-pick` しやすい独立したコミット列として保たれていること。
-- generated/resource の削除・改名・出力パス変更がある場合、forward-port 先で stale 出力に気づける差分になっていること。
-- 既存コンテンツの ID 変更や削除による互換性破壊を避けていること。
-- 依存 MOD バージョン条件を変更した場合、`mods.toml` と `gradle.properties` の整合性が取れていること。
+## 6. Code Review Rules
+
+### Skill の使い分け
+- コミット前の staged / unstaged / untracked 差分または指定コミットは `.codex/skills/review-local-change` でレビューする。
+- `1.20.1-main` に対する機能ブランチ全体、PR、CI、Codex Cloud、人間レビューを含む readiness は `.codex/skills/review-feature-branch` で確認する。
+- どちらの Skill もデフォルトでは findings の報告だけを行い、明示指示なしに修正、stage、commit、push、PR コメント、merge を行わない。
+
+### 常設レビュー規則
+- 追加・変更した要素は既存の registry 構成と EventBus 初期化へ登録し、未登録のままにしない。
+- client 専用参照は client 初期化または適切な実行環境境界へ隔離し、専用サーバーから読み込まれる共通コードへ追加しない。
+- client 由来の入力は不正値を想定するが、client の視線・選択結果を server 側で完全再現することは一律に要求しない。射程、権限・所有権、対象の有効性、置換・破壊可否、コスト、影響範囲など、server が守るべき制約の突破と具体的な実害で判断する。
+- UX のため意図的に client / server 間の差を許容する変更では、許容する挙動と拒否すべき境界の両方を GameTest で明示する。重要な server 側制約が守られた既存仕様として確認できる場合は厳格化を修正方針にせず、テスト不足を指摘する。判断できない挙動をテスト追加だけで仕様化しない。
+- 既存の content ID、設定キー、保存データを維持する。変更が不可避な場合は互換経路または migration 方針を同じ変更で示す。
+- generated/resource の削除・改名・出力パス変更では、旧出力の削除差分と1.20.1側の再生成方針を追跡可能にし、stale 出力を残さない。
+- 依存 MOD のバージョン条件は `gradle.properties`、`build.gradle`、`mods.toml` で整合させる。TOML に固定上限がある場合、下限をその上限以上へ更新する変更では、同じ変更内で上限を維持できる範囲へ更新し、`build` と `runGameTestServer` を成功させる。
+- Backportでは `.codex/skills/backport-1-20-1` に従い、移植元、1.20.1側の補正、対象外要素を説明できるコミット列にする。
 
 ## 7. ドキュメント更新
 - コード変更時に関連しやすいファイル: `gradle.properties`（バージョン）、`build.gradle`（依存/タスク）、`src/main/resources/META-INF/mods.toml`（依存条件）、`README.md`（仕様/導入手順）、`THIRD_PARTY_NOTICES.md`（ライセンス）、`.codex/skills/**`（エージェント向け手順）。
@@ -137,25 +146,22 @@ Get-ChildItem build\libs\*.jar
 - GitHub Actions / Ruleset / merge / Codex Cloud レビュー運用に変更がある場合は `docs/github-pr-protection.md` も更新する。
 - データパック系の利用者向け情報は順次 GitHub wiki へ移行する。README には詳細仕様を戻さない。
 
-## 8. ブランチ間取り込み準備（1.20.1 -> 1.21.1）
-- `1.20.1-main`（1.20.1 / Forge）を開発基準ブランチとし、`main` への反映は forward-port（`cherry-pick`）前提で考える。
-- このブランチでは 1.21.1 への port 作業を合意なしに開始しない。
-- `1.20.1-main` と `main` の直接 `merge` は前提にせず、取り込み対象は個別コミット単位で扱う。
-- 1 機能を独立した連続コミット系列として保ち、無関係な整形、rename、広域整理、loader 固有接着コードの書き換えを共通ロジック変更と混ぜない。
-- 1.21.1 側で再実装が必要になりそうな箇所は、Java や JSON の差分だけで意図が読めると決めつけず、日本語コメントで理由、制約、移植判断材料を残す。
-- 同種コンフリクトの再解決コストを下げるため、`git config rerere.enabled true` を推奨する。
+## 8. ブランチ間取り込み（1.21.1 -> 1.20.1）
+- `main`（1.21.1 / NeoForge）を開発基準ブランチとし、この `1.20.1-main`（1.20.1 / Forge）は保守・backport先として扱う。
+- 新機能と共通不具合修正は原則として `main` へ先に実装し、利用価値、実装差、検証コストを確認して、このブランチへの取り込み対象を選ぶ。
+- 両ブランチが Iron's Spells 'n Spellbooks 3.x を使用している間は、Minecraft / loader / 外部 MOD 固有差分を除き、可能な範囲で機能をそろえる。
+- Iron's Spells 'n Spellbooks 4.x の安定版へ `main` が移行する前に、3.x 系最終対応時点で両ブランチの共通機能をそろえる。
+- `main` の4.x移行後は、このブランチをIron's 3.x系LTSとして扱い、完全な機能同一性は保証しない。
+- `mods.toml` に直接記述する Iron's 4.0 未満の上限は3.x系LTSの互換性境界として維持する。
+- `main` の非 `merge` コミットを実際に取り込む場合は `.codex/skills/backport-1-20-1` を使用し、`git cherry-pick -x` で移植元を記録する。
+- `main` と `1.20.1-main` の直接 `merge` は原則禁止とし、取り込み対象は個別コミット単位で扱う。
+- `1.20.1-main` だけで必要になった修正は、`main` にも必要かを別途判断し、自動的な逆取り込みは行わない。
+- 将来 Minecraft 26.1.x 系へ対応する場合も、1.20.1 / Forge を移植元として経由しない。
 
 ## 9. Codex運用上の注意
-- PowerShell 5.1 などの環境では、UTF-8 の日本語ファイルでも既定の `Get-Content` 表示が文字化けすることがある。この環境差は完全には解消できないため、運用でカバーする。
-- 日本語を含むファイルは UTF-8 として読み書きし、文字化け表示が出た状態では編集しない。
-- 日本語を含むファイルを PowerShell で読む前に `[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)` を設定し、`Get-Content -Encoding UTF8` または `[System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)` を使う。
-- PowerShell 5.1 では `Set-Content` / `Out-File` の既定エンコーディング書き込みを使わない。シェル経由で保存が必要な場合は UTF-8 BOM なしを明示する。
-- Python などの検証ツールが既定エンコーディングで日本語ファイルを読めない場合は、`PYTHONUTF8=1` を一時設定して UTF-8 読みを強制する。
-- 文字化け表示（例: `縺`）が見えた場合は編集を中断し、UTF-8 指定で再読込して正常表示を確認してから作業する。
-- 文字化けが疑われる場合や日本語コメント・翻訳・ドキュメントを広く触る場合は、英語で書かれた `.codex/skills/text-encoding-hygiene` を先に確認する。
-- 編集は必要最小限の差分に限定し、ファイル全体の再書き込みや無関係なコメント整理を避ける。
-- 変更後は `git diff` を確認し、依頼範囲外のコメント削除や日本語の文字化け差分があれば修正してから完了する。
-- コード、リソース、依存、datagen に影響する変更では `./gradlew.bat build` を通し、`checkTextEncodingHygiene` による明らかな文字化け検査も成功させる。
+- 日本語・中国語、翻訳、Markdown、resource、AGENTS.md、Skill を扱う場合や文字化けが疑われる場合は、英語で書かれた `.codex/skills/text-encoding-hygiene` を先に確認し、UTF-8（BOM なし）として扱う。
+- 文字化け表示が見えた場合は編集を中断し、Skill の手順で正常表示を確認してから作業する。
+- 編集は必要最小限の差分に限定し、変更後は `git diff` で依頼範囲外の削除や文字化けがないことを確認する。
 - ユーザーが事前確認やローカルレビューを明示した作業では、明示指示があるまで push、PR 作成、リモート操作を行わない。
 
 ## 10. 直近の注意傾向

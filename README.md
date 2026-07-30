@@ -4,16 +4,23 @@
 
 Iron's Spells 'n Spellbooks用の小さなアドオンMODです.
 
+### ブランチとサポート方針
+
+- `main`（Minecraft 1.21.1 / NeoForge）を開発基準ブランチとし、新機能と共通不具合修正は原則として `main` へ先に実装します。
+- この `1.20.1-main`（Minecraft 1.20.1 / Forge）は保守・backport先として扱い、取り込む変更は利用価値、実装差、検証コストを見て選択します。
+- 両ブランチが Iron's Spells 'n Spellbooks 3.x を使用している間は、Minecraft / loader / 外部 MOD 固有差分を除き、可能な範囲で機能をそろえます。
+- `main` が Iron's 4.x へ移行した後、このブランチは3.x系LTSとなり、完全な機能同一性は保証しません。
+- 将来Minecraft 26.1.x系へ対応する場合はNeoForgeの `main` を移植元とし、1.20.1 / Forgeを経由しません。
+
 ## 開発環境
 
 - このブランチ（`1.20.1-main` / 1.20.1）では Java 17 を使用します。
-- `main` では Java 21 を使用します。
 - `build.gradle` では Java toolchain を 17 に固定していますが、`gradlew.bat` 自体が使う JVM は `JAVA_HOME` または `PATH` に依存します。
 - ローカル開発では PowerShell 用の [`scripts/use-java.ps1`](scripts/use-java.ps1) を使う前提にします。
 
 ## Java 切替
 
-- 推奨: ユーザー環境変数 `JDK17_HOME` / `JDK21_HOME` を設定します。
+- 推奨: ユーザー環境変数 `JDK17_HOME` を設定します。
 - `JDKxx_HOME` が未設定でも、スクリプトは `%USERPROFILE%\.jdks` と `%USERPROFILE%\.gradle\jdks` を自動検出します。
 - スクリプトは Windows のローカル開発用です。CI の Java 設定は workflow 側で別管理します。
 
@@ -21,7 +28,6 @@ Iron's Spells 'n Spellbooks用の小さなアドオンMODです.
 
 ```powershell
 setx JDK17_HOME "%USERPROFILE%\.jdks\ms-17.0.16"
-setx JDK21_HOME "%USERPROFILE%\.jdks\ms-21.0.10"
 ```
 
 - `setx` 実行後は PowerShell を開き直してから使います。
@@ -29,12 +35,6 @@ setx JDK21_HOME "%USERPROFILE%\.jdks\ms-21.0.10"
 
 ```powershell
 .\scripts\use-java.ps1
-```
-
-- `main` で作業する場合:
-
-```powershell
-.\scripts\use-java.ps1 -Version 21
 ```
 
 - 実行ポリシーでブロックされる環境では、次の形でも実行できます。
@@ -121,6 +121,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
 ## GitHub 運用
 
 - `1.20.1-main` への反映は、バージョン更新を含めてすべて PR 経由で行います。
+- `main` からの backport では、影響範囲にかかわらずJava 17で通常ビルドと通常GameTestを成功させます。
 - PR では GitHub Actions の `PR CI / build` が必須です。`PR CI / gametest` も実行しますが、1.20.1 側では任意チェックとして結果を確認します。
 - optional MOD 付きの特殊 GameTest / client 起動は required CI に含めません。必要な変更ではローカルまたは Codex 実行結果を PR コメントや最終報告に残します。
 - Codex Cloud のスマートトリガーレビューをレビュー補助として使います。人間の判断と CI 通過を置き換えるものではありません。
