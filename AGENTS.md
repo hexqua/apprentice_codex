@@ -83,7 +83,7 @@ Get-ChildItem build\libs\*.jar
 - `runClient` は GUI を起動するため、CI やヘッドレス環境では実行しない。
 - `runGameTestServer` はサーバー側の登録、データ読込、レシピ、生成まわりの検証に使う。renderer / screen など client 専用の起動不良は別途 `runClient` で確認する。
 - `runGameTestServer` は専用 world `run/codex_gametest_clean` を毎回初期化してから起動する。通常の手動確認用 `run/world` は削除しない。
-- `runGameTestServerCompat` は Farmer's Delight / Create / Lodestone / Malum 連携の確認に使う。
+- `runGameTestServerCompat` は Farmer's Delight / Create / Lodestone / Malum / Atlas API / Iron's Gems 'n Jewelry 連携の確認に使う。
 - `runGameTestServerEasyMagic` は Puzzles Lib / Easy Magic 連携の確認に使う。
 - `runGameTestServerBetterCombat` は Cloth Config / Better Combat 連携の確認に使う。
 - `runGameTestServerEpicFight` は Epic Fight 連携の確認に使う。
@@ -116,7 +116,7 @@ Get-ChildItem build\libs\*.jar
 5. サーバー側の登録、データ読込、レシピ、生成、GameTest 対象構造に影響する変更では `./gradlew.bat runGameTestServer` を成功させる。
 6. `main` から `1.21.1-main` への forward-port では、実装内容に関係なく `./gradlew.bat runGameTestServer` と `./gradlew.bat build` を成功させる。
 7. optional MOD 連携に影響する変更では、対象に応じて特殊 GameTest / client 構成を追加実行する。
-   - Create / Lodestone / Malum / Farmer's Delight: `./gradlew.bat runGameTestServerCompat`
+   - Create / Lodestone / Malum / Farmer's Delight / Atlas API / Iron's Gems 'n Jewelry: `./gradlew.bat runGameTestServerCompat`
    - Easy Magic / エンチャントメニュー: `./gradlew.bat runGameTestServerEasyMagic`
    - Better Combat / offhand / weapon_attributes: `./gradlew.bat runGameTestServerBetterCombat`
    - Epic Fight / mixin / capabilities / item_skins: `./gradlew.bat runGameTestServerEpicFight`
