@@ -6,7 +6,7 @@ body:
     attributes:
       value: |
         Thank you for reporting a bug.
-        
+
         Please do not paste the entire log directly into the issue body.
         Attach `latest.log` or the crash report file instead whenever possible.
 
