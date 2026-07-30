@@ -2,8 +2,6 @@ package jp.aquafactory.apprenticecodex.block.atelierstation;
 
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
-import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
-import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Container;

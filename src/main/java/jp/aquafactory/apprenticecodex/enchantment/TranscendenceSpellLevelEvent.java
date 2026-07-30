@@ -2,7 +2,6 @@ package jp.aquafactory.apprenticecodex.enchantment;
 
 import io.redspace.ironsspellbooks.api.events.ModifySpellLevelEvent;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
