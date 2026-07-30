@@ -96,7 +96,6 @@ Get-ChildItem build\libs\*.jar
 - 通常確認で `clean` は付けない。必要時のみ `./gradlew.bat clean build` を使う。
 - `runData` の出力先は `src/generated/resources` であり、`src/generated/resources/.cache` に記録された生成物だけが再生成・差分管理される前提で扱う。
 - `src/generated/resources/.cache` は Git 管理外のため、branch 切替・`cherry-pick`・手動コピーで持ち込んだ古い JSON は `runData` だけでは削除されない場合がある。
-- `main` から `1.20.1-main` へ backport する場合は、後述の専用 Skill を使って作業手順と確認観点を確認する。
 
 ## 4. コーディング規約
 - クラス/インターフェースは `PascalCase`、メソッド/フィールド/ローカル変数は `camelCase`、定数は `UPPER_SNAKE_CASE` を使用する。
@@ -110,7 +109,7 @@ Get-ChildItem build\libs\*.jar
 
 ## 5. 変更フロー
 1. 変更内容を 1〜2 文で決める（何を、なぜ変えるか）。
-2. 実装前に、変更を「共通ロジック」「1.21.1 / NeoForge 固有の接着コード」「generated/resource 更新」「backport 対象外」に分けて考える。
+2. 実装前に、変更を「共通ロジック」「1.21.1 / NeoForge 固有の接着コード」「generated/resource 更新」「backport 対象外」に分けて考える。`main` の共通機能・共通不具合修正、registry、datagen/resource、依存変更、refactor を計画・実装・レビューする場合は `.codex/skills/backport-ready-development` を使う。
 3. 実装する。
 4. `git diff` / `git diff --name-status` で、依頼範囲外の整形、rename、コメント削除、文字化け差分が混ざっていないことを確認する。
 5. コード、リソース、依存、datagen に影響する変更では `./gradlew.bat build` を成功させる。このビルドには明らかな文字化けと UTF-8 BOM の検査も含める。ドキュメントのみの変更では省略してよいが、最終報告に理由を残す。
@@ -136,6 +135,7 @@ Get-ChildItem build\libs\*.jar
 - optional MOD 連携に影響する変更では、該当する `runGameTestServerCompat` / `runGameTestServerEasyMagic` / `runGameTestServerBetterCombat` / `runGameTestServerEpicFight`、または対応する `runClient...` の実行結果が説明されていること。
 - `main` 向け PR では GitHub Actions の `PR CI / build` と `PR CI / gametest` が成功していること。
 - Codex Cloud のスマートトリガーレビューで指摘が出ている場合、対応または明示的な見送り理由があること。
+- Backport 候補の変更では、`.codex/skills/backport-ready-development` に従い、移植対象、1.20.1 側の補正、対象外要素を説明できること。
 - 追加・変更した要素の登録漏れ（Registry/EventBus）がないこと。
 - サーバー専用環境で問題となるクライアント専用参照を追加していないこと。
 - 1 機能が `cherry-pick` しやすい独立したコミット列として保たれていること。
@@ -158,12 +158,9 @@ Get-ChildItem build\libs\*.jar
 - 4.x の Casting API 移行中は、`main` の新機能追加を原則停止し、移行作業と致命的不具合修正を優先する。
 - 4.x 移行後の `1.20.1-main` は 3.x 系 LTS とし、完全な機能同一性は保証しない。既存ノウハウで低コストに実装できる要素は個別に採用を判断する。
 - 将来 Minecraft 26.1.x 系へ対応する場合は、NeoForge の `main` を移植元とし、1.20.1 / Forge を経由するバケツリレーは行わない。
+- `main` で backport 候補を計画・実装・レビューする場合は `.codex/skills/backport-ready-development` を使用する。
+- `main` の非 `merge` コミットを `1.20.1-main` へ実際に取り込む場合は `.codex/skills/backport-1-20-1` を使用する。
 - `main` と `1.20.1-main` の直接 `merge` は原則禁止とし、取り込み対象は個別コミット単位で扱う。
-- `merge` コミットの直接 `cherry-pick`（`git cherry-pick -m` を含む）は禁止する。元になった非 `merge` コミットを洗い出し、`git cherry-pick -x` で取り込む。
-- 実作業では `.codex/skills/backport-1-20-1` を使用する。
-- 共通ロジック、NeoForge 固有接着コード、generated/resource、ドキュメントを可能な範囲で分け、1.20.1へ不要な実装を持ち込まない。
-- 1.20.1 側の Forge API、Java 17、resource配置、datagen出力を正とし、cherry-pick後の補正理由を差分または日本語コメントで追跡可能にする。
-- 同種コンフリクトの再解決コストを下げるため、`git config rerere.enabled true` を推奨する。
 - `1.20.1-main` だけで必要になった修正は、`main` にも必要かを別途判断し、自動的な逆取り込みは行わない。
 
 ## 8.1 `main` の PR CI 運用
@@ -176,16 +173,9 @@ Get-ChildItem build\libs\*.jar
 - bootstrap 詰まりを避けるため、workflow を target branch に載せる前に required check を有効化しない。手順は `docs/github-pr-protection.md` に従う。
 
 ## 9. Codex運用上の注意
-- PowerShell 5.1 などの環境では、UTF-8 の日本語ファイルでも既定の `Get-Content` 表示が文字化けすることがある。この環境差は完全には解消できないため、運用でカバーする。
-- 日本語を含むファイルは UTF-8 として読み書きし、文字化け表示が出た状態では編集しない。
-- 日本語を含むファイルを PowerShell で読む前に `[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)` を設定し、`Get-Content -Encoding UTF8` または `[System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)` を使う。
-- PowerShell 5.1 では `Set-Content` / `Out-File` の既定エンコーディング書き込みを使わない。シェル経由で保存が必要な場合は UTF-8 BOM なしを明示する。
-- Python などの検証ツールが既定エンコーディングで日本語ファイルを読めない場合は、`PYTHONUTF8=1` を一時設定して UTF-8 読みを強制する。
-- 文字化け表示（例: `縺`）が見えた場合は編集を中断し、UTF-8 指定で再読込して正常表示を確認してから作業する。
-- 文字化けが疑われる場合や日本語コメント・翻訳・ドキュメントを広く触る場合は、英語で書かれた `.codex/skills/text-encoding-hygiene` を先に確認する。
-- 編集は必要最小限の差分に限定し、ファイル全体の再書き込みや無関係なコメント整理を避ける。
-- 変更後は `git diff` を確認し、依頼範囲外のコメント削除や日本語の文字化け差分があれば修正してから完了する。
-- コード、リソース、依存、datagen に影響する変更では `./gradlew.bat build` を通し、`checkTextEncodingHygiene` による明らかな文字化け検査も成功させる。
+- 日本語・中国語、翻訳、Markdown、resource、AGENTS.md、Skill を扱う場合や文字化けが疑われる場合は、英語で書かれた `.codex/skills/text-encoding-hygiene` を先に確認し、UTF-8（BOM なし）として扱う。
+- 文字化け表示が見えた場合は編集を中断し、Skill の手順で正常表示を確認してから作業する。
+- 編集は必要最小限の差分に限定し、変更後は `git diff` で依頼範囲外の削除や文字化けがないことを確認する。
 - ユーザーが事前確認やローカルレビューを明示した作業では、明示指示があるまで push、PR 作成、リモート操作を行わない。
 
 ## 10. 直近の注意傾向

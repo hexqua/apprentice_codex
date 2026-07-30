@@ -1,11 +1,11 @@
 ---
 name: backport-1-20-1
-description: Minecraft 1.21.1 / NeoForge の `main` から、選択した変更を Minecraft 1.20.1 / Forge の `1.20.1-main` へ backport する。非 merge SHA の選定、`git cherry-pick -x` の計画・レビュー、共通ロジックと loader 補正の分離、互換性のない generated resource の整理、1.20.1 側の enchantment・修理・tag 動作確認に使用する。
+description: Minecraft 1.21.1 / NeoForgeの`main`から、選択した変更をMinecraft 1.20.1 / Forgeの`1.20.1-main`へ実際にbackportする。非merge SHAの選定、`git cherry-pick -x`、target側のAPI・resource補正、enchantment・修理・tag確認、Java 17検証に使用する。mainでの通常開発やbackport-ready設計レビュー、1.20.1固有修正には使用しない。
 ---
 
 # 1.20.1 Backport
 
-`main`（Minecraft 1.21.1 / NeoForge / Java 21）から選んだ変更を、`1.20.1-main`（Minecraft 1.20.1 / Forge / Java 17）へ取り込むときに使用する。
+`main`（Minecraft 1.21.1 / NeoForge / Java 21）から選んだ変更を、`1.20.1-main`（Minecraft 1.20.1 / Forge / Java 17）へ取り込む。
 
 ## 手順
 
@@ -41,6 +41,6 @@ description: Minecraft 1.21.1 / NeoForge の `main` から、選択した変更�
 
 ## 参照
 
-- [Backport チェックリスト](references/backport-checklist.md)
-- [Generated resource の整理](references/generated-cleanup.md)
-- [Enchantment と修理の確認](references/enchant-repair.md)
+- 作業開始前に[Backportチェックリスト](references/backport-checklist.md)を読む。
+- generated/resourceを含む場合は[Generated resourceの整理](references/generated-cleanup.md)を読む。
+- item、enchantment、修理、関連tagを含む場合は[Enchantmentと修理の確認](references/enchant-repair.md)を読む。
