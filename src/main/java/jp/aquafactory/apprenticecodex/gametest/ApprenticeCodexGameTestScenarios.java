@@ -1146,7 +1146,7 @@ public class ApprenticeCodexGameTestScenarios {
                     helper,
                     templatePoolRegistry,
                     ResourceLocation.withDefaultNamespace("village/snowy/houses"),
-                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/snowy/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("empty"),
                     3
             );
@@ -1154,7 +1154,7 @@ public class ApprenticeCodexGameTestScenarios {
                     helper,
                     templatePoolRegistry,
                     ResourceLocation.withDefaultNamespace("village/taiga/houses"),
-                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/taiga/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("mossify_10_percent"),
                     3
             );
@@ -1180,6 +1180,18 @@ public class ApprenticeCodexGameTestScenarios {
                     structureTemplateManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/savanna/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("village/savanna/villagers")
+            );
+            assertVillageHouseTemplateLoadsWithJigsaws(
+                    helper,
+                    structureTemplateManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/snowy/errand_mage_house"),
+                    ResourceLocation.withDefaultNamespace("village/snowy/villagers")
+            );
+            assertVillageHouseTemplateLoadsWithJigsaws(
+                    helper,
+                    structureTemplateManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/taiga/errand_mage_house"),
+                    ResourceLocation.withDefaultNamespace("village/taiga/villagers")
             );
         });
     }
