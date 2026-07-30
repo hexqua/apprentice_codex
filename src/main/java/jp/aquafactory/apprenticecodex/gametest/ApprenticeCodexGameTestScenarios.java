@@ -304,6 +304,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -981,7 +983,7 @@ public class ApprenticeCodexGameTestScenarios {
                     helper,
                     templatePoolRegistry,
                     ResourceLocation.withDefaultNamespace("village/snowy/houses"),
-                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/snowy/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("empty"),
                     3
             );
@@ -989,9 +991,44 @@ public class ApprenticeCodexGameTestScenarios {
                     helper,
                     templatePoolRegistry,
                     ResourceLocation.withDefaultNamespace("village/taiga/houses"),
-                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/taiga/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("mossify_10_percent"),
                     3
+            );
+        });
+    }
+    static void errandMageVillageHouseTemplatesAreLoadableAndKeepRequiredJigsaws(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var structureTemplateManager = helper.getLevel().getStructureManager();
+            assertVillageHouseTemplateLoadsWithJigsaws(
+                    helper,
+                    structureTemplateManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
+                    ResourceLocation.withDefaultNamespace("village/plains/villagers")
+            );
+            assertVillageHouseTemplateLoadsWithJigsaws(
+                    helper,
+                    structureTemplateManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/desert/errand_mage_house"),
+                    ResourceLocation.withDefaultNamespace("village/desert/villagers")
+            );
+            assertVillageHouseTemplateLoadsWithJigsaws(
+                    helper,
+                    structureTemplateManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/savanna/errand_mage_house"),
+                    ResourceLocation.withDefaultNamespace("village/savanna/villagers")
+            );
+            assertVillageHouseTemplateLoadsWithJigsaws(
+                    helper,
+                    structureTemplateManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/snowy/errand_mage_house"),
+                    ResourceLocation.withDefaultNamespace("village/snowy/villagers")
+            );
+            assertVillageHouseTemplateLoadsWithJigsaws(
+                    helper,
+                    structureTemplateManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/taiga/errand_mage_house"),
+                    ResourceLocation.withDefaultNamespace("village/taiga/villagers")
             );
         });
     }
@@ -12498,6 +12535,50 @@ public class ApprenticeCodexGameTestScenarios {
                 .map(key -> key.location())
                 .orElse(null);
         return expectedStructureId.equals(structureId) && expectedProcessorId.equals(processorId);
+    }
+
+    static void assertVillageHouseTemplateLoadsWithJigsaws(
+            GameTestHelper helper,
+            net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager structureTemplateManager,
+            ResourceLocation structureId,
+            ResourceLocation expectedVillagerPool
+    ) {
+        var template = structureTemplateManager.get(structureId).orElse(null);
+        helper.assertTrue(template != null, "Missing village house template: " + structureId);
+
+        var jigsawBlocks = template != null
+                ? template.filterBlocks(BlockPos.ZERO, new StructurePlaceSettings(), Blocks.JIGSAW, true)
+                : List.<StructureTemplate.StructureBlockInfo>of();
+        helper.assertTrue(jigsawBlocks.size() == 2,
+                "Unexpected jigsaw count for " + structureId + ": " + jigsawBlocks.size());
+
+        boolean hasBottom = false;
+        boolean hasEntrance = false;
+        for (var jigsawBlock : jigsawBlocks) {
+            var nbt = jigsawBlock.nbt();
+            helper.assertTrue(nbt != null,
+                    "Village house jigsaw is missing NBT: " + structureId + " at " + jigsawBlock.pos());
+            if (nbt == null) {
+                continue;
+            }
+
+            var name = ResourceLocation.tryParse(nbt.getString("name"));
+            var target = ResourceLocation.tryParse(nbt.getString("target"));
+            var pool = ResourceLocation.tryParse(nbt.getString("pool"));
+            if (ResourceLocation.withDefaultNamespace("bottom").equals(name)
+                    && ResourceLocation.withDefaultNamespace("bottom").equals(target)
+                    && expectedVillagerPool.equals(pool)) {
+                hasBottom = true;
+            }
+            if (ResourceLocation.withDefaultNamespace("building_entrance").equals(name)
+                    && ResourceLocation.withDefaultNamespace("building_entrance").equals(target)
+                    && ResourceLocation.withDefaultNamespace("empty").equals(pool)) {
+                hasEntrance = true;
+            }
+        }
+
+        helper.assertTrue(hasBottom, "Village house is missing villager spawn jigsaw: " + structureId);
+        helper.assertTrue(hasEntrance, "Village house is missing building entrance jigsaw: " + structureId);
     }
 
     static LootParams createChestLootParams(GameTestHelper helper) {
