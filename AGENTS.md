@@ -123,25 +123,28 @@ Get-ChildItem build\libs\*.jar
    - client 側の連携確認: 対応する `runClient...` 構成
    - 組み合わせバランス確認: `./gradlew.bat runClientCompatEasyBetter`
 9. client 専用 UI、renderer、screen、入力操作に影響する変更では必要に応じて `./gradlew.bat runClient` で確認する。
-10. コミットはレビューしやすく、backport 対象を選びやすい粒度に分ける。共通ロジックと NeoForge 固有接着コードを可能な範囲で別コミットにし、無関係な整形や広域整理を混ぜない。
-11. `main` へ取り込む変更は必ずブランチ + PR で流し、直 push しない。
-12. PR では必須の GitHub Actions `PR CI / build` と `PR CI / gametest`、Codex Cloud のスマートトリガーレビュー、人間のレビューを確認してから取り込む。スマートトリガーレビューは補助であり、CI と人間の判断を置き換えない。
-13. 通常は merge commit で取り込む。バージョン更新だけは rebase merge を使ってよい。squash merge は使わない。
+10. コミット前に `.codex/skills/review-local-change` を使い、未コミット差分を変更せずにレビューする。
+11. コミットはレビューしやすく、backport 対象を選びやすい粒度に分ける。共通ロジックと NeoForge 固有接着コードを可能な範囲で別コミットにし、無関係な整形や広域整理を混ぜない。
+12. 機能としてコミット列が完成したら `.codex/skills/review-feature-branch` を使い、対象 base branch との差分全体をレビューしてから PR を作成する。
+13. `main` へ取り込む変更は必ずブランチ + PR で流し、直 push しない。
+14. PR では必須の GitHub Actions `PR CI / build` と `PR CI / gametest`、Codex Cloud のスマートトリガーレビュー、人間のレビューを確認する。スマートトリガーレビューは補助であり、CI と人間の判断を置き換えない。
+15. 外部レビュー結果がそろった後に `.codex/skills/review-feature-branch` を再実行し、readiness が `Ready` であることを確認する。
+16. 通常は merge commit で取り込む。バージョン更新だけは rebase merge を使ってよい。squash merge は使わない。
 
-## 6. レビューチェックリスト
-- Java 21 環境で必要な検証が通っていること。コード/リソース変更では `./gradlew.bat build` を必須とする。
-- サーバー側の登録、データ読込、レシピ、生成に影響する変更では `./gradlew.bat runGameTestServer` が成功していること。
-- `main` から `1.20.1-main` への backport では、1.20.1 / Forge 側の `./gradlew.bat runGameTestServer` と `./gradlew.bat build` が成功していること。
-- optional MOD 連携に影響する変更では、該当する `runGameTestServerCompat` / `runGameTestServerEasyMagic` / `runGameTestServerBetterCombat` / `runGameTestServerEpicFight`、または対応する `runClient...` の実行結果が説明されていること。
-- `main` 向け PR では GitHub Actions の `PR CI / build` と `PR CI / gametest` が成功していること。
-- Codex Cloud のスマートトリガーレビューで指摘が出ている場合、対応または明示的な見送り理由があること。
-- Backport 候補の変更では、`.codex/skills/backport-ready-development` に従い、移植対象、1.20.1 側の補正、対象外要素を説明できること。
-- 追加・変更した要素の登録漏れ（Registry/EventBus）がないこと。
-- サーバー専用環境で問題となるクライアント専用参照を追加していないこと。
-- 1 機能が `cherry-pick` しやすい独立したコミット列として保たれていること。
-- generated/resource の削除・改名・出力パス変更がある場合、backport 先で stale 出力に気づける差分になっていること。
-- 既存コンテンツの ID 変更や削除による互換性破壊を避けていること。
-- 依存 MOD バージョン条件を変更した場合、`neoforge.mods.toml` と `gradle.properties` の整合性が取れていること。
+## 6. Code Review Rules
+
+### Skill の使い分け
+- コミット前の staged / unstaged / untracked 差分または指定コミットは `.codex/skills/review-local-change` でレビューする。
+- base branch に対する機能ブランチ全体、PR、CI、Codex Cloud、人間レビューを含む readiness は `.codex/skills/review-feature-branch` で確認する。
+- どちらの Skill もデフォルトでは findings の報告だけを行い、明示指示なしに修正、stage、commit、push、PR コメント、merge を行わない。
+
+### 常設レビュー規則
+- 追加・変更した要素は既存の registry 構成と EventBus 初期化へ登録し、未登録のままにしない。
+- client 専用参照は client 初期化または適切な実行環境境界へ隔離し、専用サーバーから読み込まれる共通コードへ追加しない。
+- 既存の content ID、設定キー、保存データを維持する。変更が不可避な場合は互換経路または migration 方針を同じ変更で示す。
+- generated/resource の削除・改名・出力パス変更では、旧出力の削除差分と target 側の再生成方針を追跡可能にし、stale 出力を残さない。
+- 依存 MOD のバージョン条件は `gradle.properties`、`build.gradle`、`neoforge.mods.toml` で整合させる。
+- Backport 候補では `.codex/skills/backport-ready-development` に従い、移植対象、1.20.1 側の補正、対象外要素を説明できるコミット列にする。
 
 ## 7. ドキュメント更新
 - コード変更時に関連しやすいファイル: `gradle.properties`（バージョン）、`build.gradle`（依存/タスク）、`src/main/resources/META-INF/neoforge.mods.toml`（依存条件）、`README.md`（仕様/導入手順）、`THIRD_PARTY_NOTICES.md`（ライセンス）、`.codex/skills/**`（エージェント向け手順）。

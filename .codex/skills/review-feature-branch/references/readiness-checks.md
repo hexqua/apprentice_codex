@@ -1,0 +1,31 @@
+# Readiness確認
+
+## ブランチ構成
+
+- base branchとmerge-baseが正しいか。
+- 1機能が追跡可能な非mergeコミット列になっているか。
+- 無関係な変更、重複コミット、取り込み漏れ、意図しないmergeがないか。
+- 各コミットだけでなく累積diffの最終状態が成立しているか。
+- 未コミット・未追跡差分が残っていないか。
+
+## 機能全体
+
+- 実装、登録、resource、datagen、設定、依存、テスト、ドキュメントが同じ仕様を表しているか。
+- content ID、保存データ、設定キー、外部MOD連携に意図しない互換性破壊がないか。
+- generated/resourceの旧出力や削除漏れが最終成果物へ混入しないか。
+- mainからのbackport候補と1.21.1固有変更をコミット単位で区別できるか。
+
+## 検証とレビュー
+
+- ローカルで必要なbuild、GameTest、client、optional MOD検証が実行され、結果が説明されているか。
+- 対象base branchの`AGENTS.md`、workflow、rulesetでrequiredとされたcheckが成功しているか。`main`向けでは`PR CI / build`と`PR CI / gametest`を確認する。
+- Codex Cloudと人間レビューの指摘が解決済み、または見送り理由が明示されているか。
+- 未解決conversation、変更要求、失敗中または未完了のrequired checkがないか。
+- Codex Cloudは補助レビューとして扱い、CIと人間の判断を代替していないか。
+
+## Findings
+
+- 単一差分の局所的な問題だけでなく、コミット間の不整合と累積結果を優先する。
+- 外部状態が未確認なだけの場合はコードfindingにせず、readinessを`Conditional`にする。
+- Findingには場所、影響、根拠、安全な対応方針を含める。
+- 問題がなければ、確認済み範囲と未確認状態を明示する。

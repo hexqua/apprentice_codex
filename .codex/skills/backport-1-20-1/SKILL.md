@@ -29,7 +29,7 @@ description: Minecraft 1.21.1 / NeoForgeの`main`から、選択した変更をM
    - 1.21.1 の tag や data-driven rule は、1.20.1 では Java override や Forge hook が必要になる場合がある。
    - エンチャントテーブル適用、エンチャント本適用、修理素材を個別に確認する。
 6. Java 17 で検証する。
-   - `.\scripts\use-java.ps1` を実行する。
+   - `.\scripts\use-java.ps1 -Version 17` を実行する。
    - `./gradlew.bat build` を実行する。
    - サーバー登録、データ読込、recipe、生成、GameTest 対象動作に影響する場合は `./gradlew.bat runGameTestServer` を実行する。
    - optional MOD 連携に触れる場合は対応する検証タスクも実行する。
