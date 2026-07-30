@@ -18,14 +18,14 @@
 - ビルドツール: Gradle Wrapper（Windows では `./gradlew.bat` を使用）
 - 主要依存 MOD: Iron's Spells 'n Spellbooks（1.21.1-3.16.2）, Iron's Lib（1.21.1-2.1.0）, Curios（9.5.1+1.21.1）, GeckoLib（4.8.3）
 - ローカルでは `JDK21_HOME` を設定し、必要に応じて `.\scripts\use-java.ps1` で `JAVA_HOME` を切り替える。
-- `main`（1.20.1）を触る場合のみ Java 17 を使う。
+- `1.20.1-main`（1.20.1）を触る場合のみ Java 17 を使う。
 
 ## 3. 実行コマンド
 - Java 21 を一時適用:
 ```powershell
 .\scripts\use-java.ps1
 ```
-- Java 17 を一時適用（`main` / 1.20.1 作業用）:
+- Java 17 を一時適用（`1.20.1-main` / 1.20.1 作業用）:
 ```powershell
 .\scripts\use-java.ps1 -Version 17
 ```
@@ -96,7 +96,7 @@ Get-ChildItem build\libs\*.jar
 - 通常確認で `clean` は付けない。必要時のみ `./gradlew.bat clean build` を使う。
 - `runData` の出力先は `src/generated/resources` であり、`src/generated/resources/.cache` に記録された生成物だけが再生成・差分管理される前提で扱う。
 - `src/generated/resources/.cache` は Git 管理外のため、branch 切替・`cherry-pick`・手動コピーで持ち込んだ古い JSON は `runData` だけでは削除されない場合がある。
-- `main` から `1.21.1-main` へ forward-port する場合は、後述の専用 Skill を使って作業手順と確認観点を確認する。
+- `1.20.1-main` から `main` へ forward-port する場合は、後述の専用 Skill を使って作業手順と確認観点を確認する。
 
 ## 4. コーディング規約
 - クラス/インターフェースは `PascalCase`、メソッド/フィールド/ローカル変数は `camelCase`、定数は `UPPER_SNAKE_CASE` を使用する。
@@ -114,7 +114,7 @@ Get-ChildItem build\libs\*.jar
 3. `git diff` / `git diff --name-status` で、依頼範囲外の整形、rename、コメント削除、文字化け差分が混ざっていないことを確認する。
 4. コード、リソース、依存、datagen に影響する変更では `./gradlew.bat build` を成功させる。このビルドには明らかな文字化けと UTF-8 BOM の検査も含める。ドキュメントのみの変更では省略してよいが、最終報告に理由を残す。
 5. サーバー側の登録、データ読込、レシピ、生成、GameTest 対象構造に影響する変更では `./gradlew.bat runGameTestServer` を成功させる。
-6. `main` から `1.21.1-main` への forward-port では、実装内容に関係なく `./gradlew.bat runGameTestServer` と `./gradlew.bat build` を成功させる。
+6. `1.20.1-main` から `main` への forward-port では、実装内容に関係なく `./gradlew.bat runGameTestServer` と `./gradlew.bat build` を成功させる。
 7. optional MOD 連携に影響する変更では、対象に応じて特殊 GameTest / client 構成を追加実行する。
    - Create / Lodestone / Malum / Farmer's Delight / Atlas API / Iron's Gems 'n Jewelry: `./gradlew.bat runGameTestServerCompat`
    - Easy Magic / エンチャントメニュー: `./gradlew.bat runGameTestServerEasyMagic`
@@ -124,16 +124,16 @@ Get-ChildItem build\libs\*.jar
    - 組み合わせバランス確認: `./gradlew.bat runClientCompatEasyBetter`
 8. client 専用 UI、renderer、screen、入力操作に影響する変更では必要に応じて `./gradlew.bat runClient` で確認する。
 9. コミットはレビューしやすく、forward-port しやすい粒度に分ける。無関係な整形や広域整理を混ぜない。
-10. `1.21.1-main` へ取り込む変更は必ずブランチ + PR で流し、直 push しない。
+10. `main` へ取り込む変更は必ずブランチ + PR で流し、直 push しない。
 11. PR では必須の GitHub Actions `PR CI / build` と `PR CI / gametest`、Codex Cloud のスマートトリガーレビュー、人間のレビューを確認してから取り込む。スマートトリガーレビューは補助であり、CI と人間の判断を置き換えない。
 12. 通常は merge commit で取り込む。バージョン更新だけは rebase merge を使ってよい。squash merge は使わない。
 
 ## 6. レビューチェックリスト
 - Java 21 環境で必要な検証が通っていること。コード/リソース変更では `./gradlew.bat build` を必須とする。
 - サーバー側の登録、データ読込、レシピ、生成に影響する変更では `./gradlew.bat runGameTestServer` が成功していること。
-- `main` から `1.21.1-main` への forward-port では、実装内容に関係なく `./gradlew.bat runGameTestServer` と `./gradlew.bat build` が成功していること。
+- `1.20.1-main` から `main` への forward-port では、実装内容に関係なく `./gradlew.bat runGameTestServer` と `./gradlew.bat build` が成功していること。
 - optional MOD 連携に影響する変更では、該当する `runGameTestServerCompat` / `runGameTestServerEasyMagic` / `runGameTestServerBetterCombat` / `runGameTestServerEpicFight`、または対応する `runClient...` の実行結果が説明されていること。
-- `1.21.1-main` 向け PR では GitHub Actions の `PR CI / build` と `PR CI / gametest` が成功していること。
+- `main` 向け PR では GitHub Actions の `PR CI / build` と `PR CI / gametest` が成功していること。
 - Codex Cloud のスマートトリガーレビューで指摘が出ている場合、対応または明示的な見送り理由があること。
 - 追加・変更した要素の登録漏れ（Registry/EventBus）がないこと。
 - サーバー専用環境で問題となるクライアント専用参照を追加していないこと。
@@ -150,8 +150,8 @@ Get-ChildItem build\libs\*.jar
 - データパック系の利用者向け情報は順次 GitHub wiki へ移行する。README には詳細仕様を戻さない。
 
 ## 8. ブランチ間取り込み（1.20.1 -> 1.21.1）
-- `main`（1.20.1）を開発基準ブランチとし、`1.21.1-main` への反映は forward-port（`cherry-pick`）で行う。
-- `main` と `1.21.1-main` の直接 `merge` は原則禁止とし、必要な場合は事前合意を必須とする。
+- `1.20.1-main`（1.20.1）を開発基準ブランチとし、`main` への反映は forward-port（`cherry-pick`）で行う。
+- `1.20.1-main` と `main` の直接 `merge` は原則禁止とし、必要な場合は事前合意を必須とする。
 - `merge` コミットの直接 `cherry-pick`（`git cherry-pick -m` を含む）は禁止とし、取り込み対象は個別コミット単位で扱う。
 - 実作業では `.codex/skills/forward-port-1-21-1` を使用する。
 - Skill を使う理由: generated JSON の削除漏れ、1.21.1 の enchant/repair/tag 差分、旧版書式の残留確認は通常作業では不要であり、常設ルールと分離した方が見落としにくいため。
@@ -160,12 +160,12 @@ Get-ChildItem build\libs\*.jar
 - 1.21.1 の enchant 適用可否や修理可否は Java の override だけで完了と判断せず、enchantment JSON と item tag も確認する。
 - 1 機能を独立した連続コミット系列として保ち、`cherry-pick` しやすくする。
 - `merge` コミットしか見つからない場合でも、その `merge` 自体は取り込まず、元になった個別コミットを洗い出してから取り込む。
-- 取り込み判断で迷わないよう、`main` 側では無関係な整形・リネームの混在を避ける。
+- 取り込み判断で迷わないよう、`1.20.1-main` 側では無関係な整形・リネームの混在を避ける。
 - 同種コンフリクトの再解決コストを下げるため、`git config rerere.enabled true` を推奨する。
-- `1.21.1-main` のみで必要になった修正は、`main` への逆取り込みが必要かを別途判断し、必要時のみ個別対応で反映する。
+- `main` のみで必要になった修正は、`1.20.1-main` への逆取り込みが必要かを別途判断し、必要時のみ個別対応で反映する。
 
-## 8.1 `1.21.1-main` の PR CI 運用
-- `1.21.1-main` への反映は PR 経由のみとし、直接 push しない。
+## 8.1 `main` の PR CI 運用
+- `main` への反映は PR 経由のみとし、直接 push しない。
 - required check は `PR CI / build` と `PR CI / gametest` とする。
 - workflow は `pull_request` でのみ動かし、`pull_request_target` は使わない。
 - CI では repository secrets を使わず、`GITHUB_TOKEN` は read-only に固定する。

@@ -1,6 +1,6 @@
-# GitHub PR 保護設定（`1.21.1-main`）
+# GitHub PR 保護設定（`main`）
 
-このリポジトリでは `1.21.1-main` への反映を PR に統一し、`PR CI / build` と `PR CI / gametest` が成功しない限りマージしない。Codex Cloud のスマートトリガーレビューは PR レビュー補助として使い、CI と人間の判断を置き換えない。
+このリポジトリでは `main` への反映を PR に統一し、`PR CI / build` と `PR CI / gametest` が成功しない限りマージしない。Codex Cloud のスマートトリガーレビューは PR レビュー補助として使い、CI と人間の判断を置き換えない。
 
 ## 1. Actions セキュリティ設定
 
@@ -22,20 +22,20 @@ GitHub の `Settings` -> `Actions` -> `General` で次を設定する。
 
 ## 2. bootstrap 手順
 
-target branch に workflow が存在しない段階で required check を先に有効化すると、`Expected — Waiting for status to be reported` のまま詰まることがある。`1.21.1-main` では次の順序を必ず守る。
+target branch に workflow が存在しない段階で required check を先に有効化すると、`Expected — Waiting for status to be reported` のまま詰まることがある。`main` では次の順序を必ず守る。
 
-1. `1.21.1-main` 向け workflow を含む PR を作る
+1. `main` 向け workflow を含む PR を作る
 2. required status check はまだ有効化しない
 3. その PR で `PR CI / build` と `PR CI / gametest` が 1 回成功することを確認する
-4. PR を `Create a merge commit` で `1.21.1-main` に取り込む
-5. `1.21.1-main` 上に `.github/workflows/pr-ci.yml` が存在することを確認する
+4. PR を `Create a merge commit` で `main` に取り込む
+5. `main` 上に `.github/workflows/pr-ci.yml` が存在することを確認する
 6. その後で ruleset に check run `build` と `gametest` を required check として追加する
 
-## 3. `1.21.1-main` の Ruleset
+## 3. `main` の Ruleset
 
-GitHub の `Settings` -> `Rules` -> `Rulesets` で `1-21-1-main-pr-ci-protection` を作成する。
+GitHub の `Settings` -> `Rules` -> `Rulesets` で `main-pr-ci-protection` を作成する。
 
-- Target branches: `1.21.1-main`
+- Target branches: `main`
 - Restrict deletions: `On`
 - Block force pushes: `On`
 - Require a pull request before merging: `On`
@@ -66,14 +66,14 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` で `1-21-1-main-pr-ci-protection
 
 ## 5. Merge 運用
 
-- `1.21.1-main` への直接 push は行わず、バージョン更新を含めて PR で流す。
+- `main` への直接 push は行わず、バージョン更新を含めて PR で流す。
 - このリポジトリでは通常変更は `Create a merge commit` を使う。
-- バージョン更新 PR だけは、`1.21.1-main` 上の見た目を直積みに近づけるため `Rebase merge` を使ってよい。
+- バージョン更新 PR だけは、`main` 上の見た目を直積みに近づけるため `Rebase merge` を使ってよい。
 - `Squash merge` は無効化し、`Rebase merge` は有効のまま残す。
 
 ## 6. 受け入れ確認
 
-1. 軽微な変更で `1.21.1-main` 向け PR を作成し、`PR CI / build` と `PR CI / gametest` が自動起動することを確認する。
+1. 軽微な変更で `main` 向け PR を作成し、`PR CI / build` と `PR CI / gametest` が自動起動することを確認する。
 2. workflow を含む最初の PR では、required check 未設定の状態で CI 成功後に merge できることを確認する。
 3. workflow 反映後に ruleset へ check run `build` と `gametest` を required check として追加する。
 4. 以後の PR では、両checkが成功しない限り merge できないことを確認する。

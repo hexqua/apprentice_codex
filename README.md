@@ -6,7 +6,7 @@ Iron's Spells 'n Spellbooks用の小さなアドオンMODです.
 
 ## 開発環境
 
-- 開発ブランチ `1.21.1-main` では Java 21 を使用します。
+- 開発ブランチ `main` では Java 21 を使用します。
 - `build.gradle` では Java toolchain を 21 に固定していますが、`gradlew.bat` 自体が使う JVM は `JAVA_HOME` または `PATH` に依存します。
 - ローカル開発では PowerShell 用の [`scripts/use-java.ps1`](scripts/use-java.ps1) を使う前提にします。
 
@@ -24,13 +24,13 @@ setx JDK21_HOME "%USERPROFILE%\.jdks\ms-21.0.10"
 ```
 
 - `setx` 実行後は PowerShell を開き直してから使います。
-- `1.21.1-main` で作業する場合:
+- `main` で作業する場合:
 
 ```powershell
 .\scripts\use-java.ps1
 ```
 
-- `main`（1.20.1）で作業する場合:
+- `1.20.1-main`（1.20.1）で作業する場合:
 
 ```powershell
 .\scripts\use-java.ps1 -Version 17
@@ -123,7 +123,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
 
 ## PR 運用
 
-- `1.21.1-main` への取り込みは PR 経由で行い、`PR CI / build` と `PR CI / gametest` の成功を必須とします。
+- `main` への取り込みは PR 経由で行い、`PR CI / build` と `PR CI / gametest` の成功を必須とします。
 - optional MOD 付きの特殊 GameTest / client 起動は required CI に含めません。必要な変更ではローカルまたは Codex 実行結果を PR コメントや最終報告に残します。
 - Codex Cloud のスマートトリガーレビューをレビュー補助として使います。人間の判断と CI 通過を置き換えるものではありません。
 - GitHub Actions は `pull_request` でのみ実行し、`pull_request_target` は使いません。
