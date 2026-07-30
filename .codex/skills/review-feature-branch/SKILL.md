@@ -22,6 +22,7 @@ description: "機能ブランチ全体をbase branchと比較し、PR作成前�
 3. 累積結果をレビューする。
    - 最終的なコード、resource、datagen、設定、依存、テスト、ドキュメントが互いに整合するか確認する。
    - mainからのbackport候補では`backport-ready-development`の結果とコミット境界も確認する。
+   - client由来の入力でserver側の状態を変更する機能では`review-client-server-authority`を使用し、許容する挙動と拒否すべき境界のテストを確認する。
 4. PRの外部状態を確認する。
    - PRが存在し、GitHubへのread-onlyアクセスが利用できる場合は、checks、review、conversation、Codex Cloudの結果を取得する。
    - 取得できない状態は成功と推測せず、未確認として扱う。
@@ -30,7 +31,7 @@ description: "機能ブランチ全体をbase branchと比較し、PR作成前�
 5. Readinessを判定する。
    - `Ready`: blockerがなく、必須検証とレビューが確認済み。
    - `Conditional`: コード上のblockerはないが、CIや人間レビューなど外部状態が未完了。
-   - `Not ready`: 修正が必要なfinding、未コミット差分、必須検証失敗、未解決指摘がある。
+   - `Not ready`: 修正または仕様テストによる明確化が必要なfinding、未コミット差分、必須検証失敗、根拠なく未解決の指摘がある。
 6. 結果だけを返す。
    - 重大度順のfindings、検証・レビュー状態、readiness、次に必要な作業を示す。
    - ユーザーが明示的に依頼するまで、修正、PRコメント、commit、push、mergeを行わない。

@@ -19,7 +19,8 @@
 
 - ローカルで必要なbuild、GameTest、client、optional MOD検証が実行され、結果が説明されているか。
 - 対象base branchの`AGENTS.md`、workflow、rulesetでrequiredとされたcheckが成功しているか。`main`向けでは`PR CI / build`と`PR CI / gametest`を確認する。
-- Codex Cloudと人間レビューの指摘が解決済み、または見送り理由が明示されているか。
+- Codex Cloudと人間レビューの指摘が、実装修正、意図した仕様と拒否境界を示すテスト、または根拠を示した見送りのいずれかで解決されているか。
+- 仕様テストで対応した指摘では、疑わしい挙動を追認しただけでなく、既存仕様または人間の判断から意図を確認でき、重要なserver側制約も対応するテストで守られているか。
 - 未解決conversation、変更要求、失敗中または未完了のrequired checkがないか。
 - Codex Cloudは補助レビューとして扱い、CIと人間の判断を代替していないか。
 

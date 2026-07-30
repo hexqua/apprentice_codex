@@ -22,6 +22,7 @@ description: "コミット前のローカル変更を読み取り専用でレビ
    - 詳細な観点は[レビュー観点](references/review-criteria.md)を読む。
 4. 条件付きの専門観点を適用する。
    - mainからのbackport候補では`backport-ready-development`の観点も適用する。
+   - clientから受け取った座標、対象、slot、modeなどでserver側の状態を変更する差分では`review-client-server-authority`を使用する。
    - 日本語・中国語や文字化けが疑われる差分では`text-encoding-hygiene`を使用する。
 5. 検証状況を確認する。
    - `AGENTS.md`が要求するbuild、GameTest、optional MOD検証と、変更に対応するテストの有無を確認する。
@@ -29,6 +30,7 @@ description: "コミット前のローカル変更を読み取り専用でレビ
    - レビュー判断に必要なread-only検証は実行してよいが、tracked fileを更新するtaskは実行しない。
 6. Findingsを返す。
    - 重大度順に、場所、問題、影響、根拠、安全な修正方針を示す。
+   - 安全な対応方針は実装修正に限定しない。意図された許容差で重要なserver側制約が守られている場合は、許容動作と拒否境界を固定するテスト追加を示す。
    - 問題がない場合は「重大なfindingsなし」とし、未実行検証と残余リスクを示す。
    - ユーザーが明示的に依頼するまで、修正、stage、commit、push、PR操作を行わない。
 
