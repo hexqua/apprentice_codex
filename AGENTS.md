@@ -18,14 +18,14 @@
 - ビルドツール: Gradle Wrapper（Windows では `./gradlew.bat` を使用）
 - 主要依存 MOD: Iron's Spells 'n Spellbooks（1.20.1-3.16.2）, Iron's Lib（1.20.1-2.1.0）, Curios（5.14.1+1.20.1）, GeckoLib（4.8.3）
 - ローカルでは `JDK17_HOME` を設定し、必要に応じて `.\scripts\use-java.ps1` で `JAVA_HOME` を切り替える。
-- `1.21.1-main` を触る場合のみ Java 21 を使う。着手前に必ず合意を取る。
+- `main` を触る場合のみ Java 21 を使う。着手前に必ず合意を取る。
 
 ## 3. 実行コマンド
 - Java 17 を一時適用:
 ```powershell
 .\scripts\use-java.ps1
 ```
-- Java 21 を一時適用（`1.21.1-main` 作業用）:
+- Java 21 を一時適用（`main` 作業用）:
 ```powershell
 .\scripts\use-java.ps1 -Version 21
 ```
@@ -113,7 +113,7 @@ Get-ChildItem build\libs\*.jar
    - client 側の連携確認: 対応する `runClient...` 構成
    - 組み合わせバランス確認: `./gradlew.bat runClientCompatEasyBetter`
 9. コミットはレビューしやすく、forward-port しやすい粒度に分ける。無関係な整形や広域整理を混ぜない。
-10. `main` へ反映する変更は必ずブランチ + PR で流し、直 push しない。
+10. `1.20.1-main` へ反映する変更は必ずブランチ + PR で流し、直 push しない。
 11. PR では必須の GitHub Actions `PR CI / build`、任意の `PR CI / gametest`、Codex Cloud のスマートトリガーレビュー、人間のレビューを確認してから取り込む。スマートトリガーレビューは補助であり、CI と人間の判断を置き換えない。
 12. 通常は merge commit で取り込む。バージョン更新だけは rebase merge を使ってよい。squash merge は使わない。
 
@@ -121,7 +121,7 @@ Get-ChildItem build\libs\*.jar
 - Java 17 環境で必要な検証が通っていること。コード/リソース変更では `./gradlew.bat build` を必須とする。
 - サーバー側の登録、データ読込、レシピ、生成に影響する変更では `./gradlew.bat runGameTestServer` が成功していること。
 - optional MOD 連携に影響する変更では、該当する `runGameTestServerCompat` / `runGameTestServerEasyMagic` / `runGameTestServerBetterCombat` / `runGameTestServerEpicFight`、または対応する `runClient...` の実行結果が説明されていること。
-- `main` へ送る PR では GitHub Actions の `PR CI / build` が成功し、任意の `PR CI / gametest` の結果も確認されていること。
+- `1.20.1-main` へ送る PR では GitHub Actions の `PR CI / build` が成功し、任意の `PR CI / gametest` の結果も確認されていること。
 - Codex Cloud のスマートトリガーレビューで指摘が出ている場合、対応または明示的な見送り理由があること。
 - 追加・変更した要素の登録漏れ（Registry/EventBus）がないこと。
 - サーバー専用環境で問題となるクライアント専用参照を追加していないこと。
@@ -138,9 +138,9 @@ Get-ChildItem build\libs\*.jar
 - データパック系の利用者向け情報は順次 GitHub wiki へ移行する。README には詳細仕様を戻さない。
 
 ## 8. ブランチ間取り込み準備（1.20.1 -> 1.21.1）
-- `main`（1.20.1 / Forge）を開発基準ブランチとし、`1.21.1-main` への反映は forward-port（`cherry-pick`）前提で考える。
+- `1.20.1-main`（1.20.1 / Forge）を開発基準ブランチとし、`main` への反映は forward-port（`cherry-pick`）前提で考える。
 - このブランチでは 1.21.1 への port 作業を合意なしに開始しない。
-- `main` と `1.21.1-main` の直接 `merge` は前提にせず、取り込み対象は個別コミット単位で扱う。
+- `1.20.1-main` と `main` の直接 `merge` は前提にせず、取り込み対象は個別コミット単位で扱う。
 - 1 機能を独立した連続コミット系列として保ち、無関係な整形、rename、広域整理、loader 固有接着コードの書き換えを共通ロジック変更と混ぜない。
 - 1.21.1 側で再実装が必要になりそうな箇所は、Java や JSON の差分だけで意図が読めると決めつけず、日本語コメントで理由、制約、移植判断材料を残す。
 - 同種コンフリクトの再解決コストを下げるため、`git config rerere.enabled true` を推奨する。

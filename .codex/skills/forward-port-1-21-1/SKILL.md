@@ -1,13 +1,13 @@
 ---
 name: forward-port-1-21-1
-description: Standard workflow for forward-porting selected `main` commits from this 1.20.1 Forge repository into `1.21.1-main`. Use when work involves choosing non-merge SHAs, planning or reviewing `git cherry-pick -x`, resolving Forge to NeoForge differences, cleaning stale generated JSON, or checking 1.21.1 enchantment, repair, and tag behavior after a port.
+description: Standard workflow for forward-porting selected `1.20.1-main` commits from this 1.20.1 Forge repository into `main`. Use when work involves choosing non-merge SHAs, planning or reviewing `git cherry-pick -x`, resolving Forge to NeoForge differences, cleaning stale generated JSON, or checking 1.21.1 enchantment, repair, and tag behavior after a port.
 ---
 
 # Forward Port 1.21.1
 
 ## Overview
 
-`main` から `1.21.1-main` へ forward-port するときの標準手順を扱う。通常の実装タスクとして進めず、対象 SHA、generated cleanup、1.21.1 固有確認を先に固定してから作業する。
+`1.20.1-main` から `main` へ forward-port するときの標準手順を扱う。通常の実装タスクとして進めず、対象 SHA、generated cleanup、1.21.1 固有確認を先に固定してから作業する。
 
 ## Quick Start
 

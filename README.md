@@ -6,8 +6,8 @@ Iron's Spells 'n Spellbooks用の小さなアドオンMODです.
 
 ## 開発環境
 
-- このブランチ（`main` / 1.20.1）では Java 17 を使用します。
-- `1.21.1-main` では Java 21 を使用します。
+- このブランチ（`1.20.1-main` / 1.20.1）では Java 17 を使用します。
+- `main` では Java 21 を使用します。
 - `build.gradle` では Java toolchain を 17 に固定していますが、`gradlew.bat` 自体が使う JVM は `JAVA_HOME` または `PATH` に依存します。
 - ローカル開発では PowerShell 用の [`scripts/use-java.ps1`](scripts/use-java.ps1) を使う前提にします。
 
@@ -25,13 +25,13 @@ setx JDK21_HOME "%USERPROFILE%\.jdks\ms-21.0.10"
 ```
 
 - `setx` 実行後は PowerShell を開き直してから使います。
-- `main`（1.20.1）で作業する場合:
+- `1.20.1-main`（1.20.1）で作業する場合:
 
 ```powershell
 .\scripts\use-java.ps1
 ```
 
-- `1.21.1-main` で作業する場合:
+- `main` で作業する場合:
 
 ```powershell
 .\scripts\use-java.ps1 -Version 21
@@ -120,14 +120,14 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
 
 ## GitHub 運用
 
-- `main` への反映は、バージョン更新を含めてすべて PR 経由で行います。
+- `1.20.1-main` への反映は、バージョン更新を含めてすべて PR 経由で行います。
 - PR では GitHub Actions の `PR CI / build` が必須です。`PR CI / gametest` も実行しますが、1.20.1 側では任意チェックとして結果を確認します。
 - optional MOD 付きの特殊 GameTest / client 起動は required CI に含めません。必要な変更ではローカルまたは Codex 実行結果を PR コメントや最終報告に残します。
 - Codex Cloud のスマートトリガーレビューをレビュー補助として使います。人間の判断と CI 通過を置き換えるものではありません。
 - CI は GitHub-hosted runner 上で `pull_request` イベントだけを使い、repository secrets は使いません。
 - workflow の action はフル SHA pin を前提にし、`GITHUB_TOKEN` は read-only に制限します。
 - 通常のマージ方法は `merge commit` を使います。
-- バージョン更新だけは、`main` 上で不要なマージコミットを増やさないために `rebase merge` を使って構いません。
+- バージョン更新だけは、`1.20.1-main` 上で不要なマージコミットを増やさないために `rebase merge` を使って構いません。
 - `squash merge` は使いません。
 - GitHub 側の具体的な Ruleset / Actions 設定手順は [docs/github-pr-protection.md](docs/github-pr-protection.md) を参照してください。
 

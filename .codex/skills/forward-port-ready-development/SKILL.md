@@ -1,13 +1,13 @@
 ---
 name: forward-port-ready-development
-description: Keep 1.20.1 Forge changes easy to forward-port into `1.21.1-main`. Use when implementing or reviewing features, registry updates, datagen/resource edits, dependency changes, refactors, or commit splits in this repository and you need to keep cherry-pick boundaries, loader boundaries, and stale generated/resource risks visible.
+description: Keep 1.20.1 Forge changes easy to forward-port into `main`. Use when implementing or reviewing features, registry updates, datagen/resource edits, dependency changes, refactors, or commit splits in this repository and you need to keep cherry-pick boundaries, loader boundaries, and stale generated/resource risks visible.
 ---
 
 # Forward-Port Ready Development
 
 ## Overview
 
-1.20.1 Forge 側の通常開発で、`1.21.1-main` へ運びやすい差分構成を保つための確認手順を扱う。port 作業そのものではなく、「今この変更をどう切ると後で事故りにくいか」を先に整えるために使う。
+1.20.1 Forge 側の通常開発で、`main` へ運びやすい差分構成を保つための確認手順を扱う。port 作業そのものではなく、「今この変更をどう切ると後で事故りにくいか」を先に整えるために使う。
 
 ## Quick Start
 
