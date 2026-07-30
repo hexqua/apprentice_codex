@@ -1,6 +1,6 @@
 # GitHub PR 保護設定
 
-このリポジトリでは `main` への反映を PR に統一し、GitHub Actions の check run `build` が成功しない限りマージしない。`gametest` も実行するが、1.20.1 側では任意チェックとして結果を確認する。Codex Cloud のスマートトリガーレビューは PR レビュー補助として使い、CI と人間の判断を置き換えない。
+このリポジトリでは `1.20.1-main` への反映を PR に統一し、GitHub Actions の check run `build` が成功しない限りマージしない。`gametest` も実行するが、1.20.1 側では任意チェックとして結果を確認する。Codex Cloud のスマートトリガーレビューは PR レビュー補助として使い、CI と人間の判断を置き換えない。
 
 ## 1. Actions セキュリティ設定
 
@@ -21,11 +21,11 @@ GitHub の `Settings` -> `Actions` -> `General` で次を設定する。
 - workflow は `pull_request` のみで動かし、`pull_request_target` は使わない。
 - `gradle/actions/wrapper-validation` を先に実行し、PR から差し替えられた wrapper をそのまま叩かない。
 
-## 2. `main` の Ruleset / Branch protection
+## 2. `1.20.1-main` の Ruleset / Branch protection
 
-GitHub の `Settings` -> `Rules` -> `Rulesets` で `main-pr-ci-protection` を作る。旧 UI の branch protection でもよいが、設定内容は同じにそろえる。
+GitHub の `Settings` -> `Rules` -> `Rulesets` で `1-20-1-main-pr-ci-protection` を作る。旧 UI の branch protection でもよいが、設定内容は同じにそろえる。
 
-- Target branches: `main`
+- Target branches: `1.20.1-main`
 - Restrict deletions: `On`
 - Block force pushes: `On`
 - Require a pull request before merging: `On`
@@ -52,9 +52,9 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` で `main-pr-ci-protection` を�
 
 ## 4. Merge 運用
 
-- `main` への直接 push は行わず、バージョン更新を含めて PR で流す。
+- `1.20.1-main` への直接 push は行わず、バージョン更新を含めて PR で流す。
 - このリポジトリでは通常変更は `Create a merge commit` を使う。
-- バージョン更新 PR だけは、`main` 上の見た目を直積みに近づけるため `Rebase merge` を使ってよい。
+- バージョン更新 PR だけは、`1.20.1-main` 上の見た目を直積みに近づけるため `Rebase merge` を使ってよい。
 - `Squash merge` は無効化し、`Rebase merge` は有効のまま残す。
 
 ## 5. 受け入れ確認
@@ -62,5 +62,5 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` で `main-pr-ci-protection` を�
 1. 軽微な変更で PR を作成し、`PR CI / build` と `PR CI / gametest` が自動起動し、各 check run が記録されることを確認する。
 2. 意図的に `build` を落とした PR で required check failure により merge できないことを確認する。
 3. `gametest` が失敗しても任意チェックとして記録され、`build` が成功していれば required check を満たすことを確認する。
-4. `main` への直接 push が拒否されることを確認する。
+4. `1.20.1-main` への直接 push が拒否されることを確認する。
 5. Codex Cloud のスマートトリガーレビューが PR 上で確認でき、指摘の対応状況を追えることを確認する。
