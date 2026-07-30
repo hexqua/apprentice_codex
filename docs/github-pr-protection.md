@@ -48,6 +48,8 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` で `1-20-1-main-pr-ci-protection
 - PR 作成後、Codex Cloud のスマートトリガーレビューを走らせる。
 - 指摘が出た場合は、修正するか、見送る理由を PR 上で明示する。
 - スマートトリガーレビューは必須 CI の代替にしない。`build`、任意の `gametest` の結果、人間のレビューを最終判断に使う。
+- CI、Codex Cloud、人間レビューの結果と指摘対応がそろった後に `.codex/skills/review-feature-branch` を再実行し、readiness が `Ready` であることを確認してからマージする。
+- 最終確認後に追加コミットが入った場合は、CI と外部レビューの結果を再確認し、`review-feature-branch` による最終確認をやり直す。
 - 将来、Codex Cloud 側で安定した check 名を required status check にできる状態になった場合のみ、Ruleset への追加を検討する。
 
 ## 4. Merge 運用
@@ -64,3 +66,4 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` で `1-20-1-main-pr-ci-protection
 3. `gametest` が失敗しても任意チェックとして記録され、`build` が成功していれば required check を満たすことを確認する。
 4. `1.20.1-main` への直接 push が拒否されることを確認する。
 5. Codex Cloud のスマートトリガーレビューが PR 上で確認でき、指摘の対応状況を追えることを確認する。
+6. CI、Codex Cloud、人間レビューの結果と指摘対応がそろった後に `.codex/skills/review-feature-branch` を再実行し、readiness が `Ready` でなければマージしない運用になっていることを確認する。
