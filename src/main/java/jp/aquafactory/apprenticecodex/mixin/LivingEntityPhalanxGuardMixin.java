@@ -8,6 +8,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -41,7 +42,7 @@ public abstract class LivingEntityPhalanxGuardMixin {
             return;
         }
 
-        if (!isVirtualShield(useItem)) {
+        if (!apprentice_codex$isVirtualShield(useItem)) {
             return;
         }
 
@@ -50,7 +51,8 @@ public abstract class LivingEntityPhalanxGuardMixin {
         ci.cancel();
     }
 
-    private static boolean isVirtualShield(ItemStack stack) {
+    @Unique
+    private static boolean apprentice_codex$isVirtualShield(ItemStack stack) {
         if (stack.isEmpty() || stack.getItem() != Items.SHIELD) {
             return false;
         }

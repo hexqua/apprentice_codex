@@ -18,6 +18,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.event.EventHooks;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -59,7 +60,7 @@ public abstract class BowItemSpellcasterQuiverMixin {
 
         var ammoSource = SpellcasterQuiverBowAmmoResolver.resolveBowAmmo(player, bowStack);
         var canFireWithoutAmmo = player.getAbilities().instabuild
-                || getEnchantmentLevel(bowStack, Enchantments.INFINITY) > 0;
+                || apprentice_codex$getEnchantmentLevel(bowStack, Enchantments.INFINITY) > 0;
         var drawDuration = bowStack.getUseDuration(player) - timeLeft;
         drawDuration = EventHooks.onArrowLoose(bowStack, level, player, drawDuration, ammoSource != null || canFireWithoutAmmo);
         if (drawDuration < 0) {
@@ -110,7 +111,8 @@ public abstract class BowItemSpellcasterQuiverMixin {
         ci.cancel();
     }
 
-    private static int getEnchantmentLevel(ItemStack stack, net.minecraft.resources.ResourceKey<net.minecraft.world.item.enchantment.Enchantment> enchantmentKey) {
+    @Unique
+    private static int apprentice_codex$getEnchantmentLevel(ItemStack stack, net.minecraft.resources.ResourceKey<net.minecraft.world.item.enchantment.Enchantment> enchantmentKey) {
         var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
         if (enchantments.isEmpty()) {
             return 0;
