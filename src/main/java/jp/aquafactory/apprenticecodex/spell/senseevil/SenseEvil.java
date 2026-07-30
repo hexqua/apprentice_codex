@@ -118,7 +118,7 @@ public class SenseEvil extends AbstractSpell {
             if (configuredVariant == null && !UndeadTools.isUndead(target.getType())) {
                 continue;
             }
-            var scale = Mth.clamp((float) target.getBbWidth() * 1.2f, MIN_ENTITY_HIGHLIGHT_SCALE, MAX_ENTITY_HIGHLIGHT_SCALE);
+            var scale = Mth.clamp(target.getBbWidth() * 1.2f, MIN_ENTITY_HIGHLIGHT_SCALE, MAX_ENTITY_HIGHLIGHT_SCALE);
             highlights.add(new SenseEvilHighlightsPacket.TargetData(
                     target.getBoundingBox().getCenter(),
                     scale,

@@ -724,65 +724,52 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         void accept(int slot, ItemStack stack);
     }
 
-    private static final class ContainerSource implements LinearBuildItemSource {
-        private final Container container;
-        private final Component label;
-        private final boolean notifyRetrieved;
-
-        private ContainerSource(Container container, Component label, boolean notifyRetrieved) {
-            this.container = container;
-            this.label = label;
-            this.notifyRetrieved = notifyRetrieved;
-        }
+    private record ContainerSource(Container container, Component label,
+                                   boolean notifyRetrieved) implements LinearBuildItemSource {
 
         @Override
-        public Component label() {
-            return label;
-        }
-
-        @Override
-        public boolean shouldNotifyRetrieved() {
-            return notifyRetrieved;
-        }
-
-        @Override
-        public boolean hasMatchingItem(ItemStack template) {
-            return findSlot(template) >= 0;
-        }
-
-        @Override
-        public boolean consumeOne(ItemStack template) {
-            var slot = findSlot(template);
-            if (slot < 0) {
-                return false;
+            public boolean shouldNotifyRetrieved() {
+                return notifyRetrieved;
             }
-            container.removeItem(slot, 1);
-            container.setChanged();
-            return true;
-        }
 
-        @Override
-        public long countMatchingItems(ItemStack template) {
-            var total = 0L;
-            for (var slot = 0; slot < container.getContainerSize(); ++slot) {
-                var stack = container.getItem(slot);
-                if (isSameItemIgnoringEmptyTag(stack, template)) {
-                    total += stack.getCount();
+            @Override
+            public boolean hasMatchingItem(ItemStack template) {
+                return findSlot(template) >= 0;
+            }
+
+            @Override
+            public boolean consumeOne(ItemStack template) {
+                var slot = findSlot(template);
+                if (slot < 0) {
+                    return false;
                 }
+                container.removeItem(slot, 1);
+                container.setChanged();
+                return true;
             }
-            return total;
-        }
 
-        private int findSlot(ItemStack template) {
-            for (var slot = 0; slot < container.getContainerSize(); ++slot) {
-                var stack = container.getItem(slot);
-                if (isSameItemIgnoringEmptyTag(stack, template)) {
-                    return slot;
+            @Override
+            public long countMatchingItems(ItemStack template) {
+                var total = 0L;
+                for (var slot = 0; slot < container.getContainerSize(); ++slot) {
+                    var stack = container.getItem(slot);
+                    if (isSameItemIgnoringEmptyTag(stack, template)) {
+                        total += stack.getCount();
+                    }
                 }
+                return total;
             }
-            return -1;
+
+            private int findSlot(ItemStack template) {
+                for (var slot = 0; slot < container.getContainerSize(); ++slot) {
+                    var stack = container.getItem(slot);
+                    if (isSameItemIgnoringEmptyTag(stack, template)) {
+                        return slot;
+                    }
+                }
+                return -1;
+            }
         }
-    }
 
     private static class InventorySlotSource implements LinearBuildItemSource {
         private final Inventory inventory;

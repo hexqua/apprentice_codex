@@ -9,6 +9,7 @@ import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -22,14 +23,15 @@ public abstract class LivingEntityBulwarkGreatshieldMixin {
     ) {
         var defender = (LivingEntity) (Object) this;
         if (!defender.isBlocking() || !(defender.getUseItem().getItem() instanceof BulwarkGreatshield)
-                || !isSupportedSpecialSource(source) || !isFromFront(defender, source)) {
+                || !apprentice_codex$isSupportedSpecialSource(source) || !apprentice_codex$isFromFront(defender, source)) {
             return;
         }
         // 1.20.1ではここを通さないと ShieldBlockEvent・盾統計・耐久処理が一切発生しない。
         cir.setReturnValue(true);
     }
 
-    private static boolean isSupportedSpecialSource(DamageSource source) {
+    @Unique
+    private static boolean apprentice_codex$isSupportedSpecialSource(DamageSource source) {
         var direct = source.getDirectEntity();
         var owner = source.getEntity();
         return direct instanceof AbstractArrow arrow && arrow.getPierceLevel() > 0
@@ -37,7 +39,8 @@ public abstract class LivingEntityBulwarkGreatshieldMixin {
                 || !source.is(DamageTypes.THORNS) && (direct instanceof Guardian || owner instanceof Guardian);
     }
 
-    private static boolean isFromFront(LivingEntity defender, DamageSource source) {
+    @Unique
+    private static boolean apprentice_codex$isFromFront(LivingEntity defender, DamageSource source) {
         Vec3 origin = source.getSourcePosition();
         if (origin == null) {
             return false;

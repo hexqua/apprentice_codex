@@ -3,7 +3,6 @@ package jp.aquafactory.apprenticecodex.mixin;
 import jp.aquafactory.apprenticecodex.utility.ErrandMageTradeHelper;
 import net.minecraft.world.inventory.MerchantContainer;
 import net.minecraft.world.inventory.MerchantMenu;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.trading.ItemCost;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;

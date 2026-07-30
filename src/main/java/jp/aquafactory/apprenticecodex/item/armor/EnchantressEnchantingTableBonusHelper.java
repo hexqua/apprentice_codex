@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.armor;
 
 import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.EnchantmentMenu;
@@ -44,7 +45,7 @@ public final class EnchantressEnchantingTableBonusHelper {
                     continue;
                 }
 
-                var entryAttributeId = entry.attribute().unwrapKey().map(key -> key.location()).orElse(null);
+                var entryAttributeId = entry.attribute().unwrapKey().map(ResourceKey::location).orElse(null);
                 if (attributeId != null && attributeId.equals(entryAttributeId)) {
                     bonus += entry.modifier().amount();
                 }

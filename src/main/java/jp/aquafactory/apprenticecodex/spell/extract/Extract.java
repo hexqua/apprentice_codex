@@ -257,7 +257,7 @@ public class Extract extends AbstractSpell {
             }
 
             friendlyByteBuf.writeEnum(hand);
-            friendlyByteBuf.writeNbt((CompoundTag) storedItem.saveOptional(SERIALIZATION_LOOKUP));
+            friendlyByteBuf.writeNbt(storedItem.saveOptional(SERIALIZATION_LOOKUP));
         }
 
         @Override

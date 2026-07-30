@@ -14,11 +14,11 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
@@ -125,7 +125,7 @@ public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPres
             return true;
         }
 
-        var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
+        var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
         return enchantmentId != null && isSupportedArmorEnchantment(enchantmentId);
     }
 

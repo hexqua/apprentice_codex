@@ -22,6 +22,8 @@ public abstract class ArcaneAnvilMenuMixin {
     // createResult は継承元 ItemCombinerMenu 由来で本番 jar では Minecraft 名へ難読化される.
     @Inject(method = "createResult()V", at = @At("RETURN"), remap = true, require = 1)
     private void apprenticecodex$blockUnsupportedSpellImbuement(CallbackInfo ci) {
+        // mixinはIDE上の型が取れてないケースがあり、冗長ではない型キャストの可能性があるため抑制.
+        //noinspection RedundantCast
         var itemCombinerMenu = (ItemCombinerMenuAccessor) (ItemCombinerMenu) (Object) this;
         var inputSlots = itemCombinerMenu.apprenticecodex$getInputSlots();
         var baseStack = inputSlots.getItem(0);

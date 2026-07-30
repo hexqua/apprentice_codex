@@ -20,13 +20,11 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.component.LodestoneTracker;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.Blocks;
@@ -39,6 +37,7 @@ import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
+import java.util.Objects;
 
 public class ExplorersCane extends AbstractOffhandMagicItem implements GeoItem, UniqueItem {
     private static final int ENCHANTMENT_VALUE = 15;
@@ -297,7 +296,7 @@ public class ExplorersCane extends AbstractOffhandMagicItem implements GeoItem, 
 
     private static boolean setStoredNetherPortalPos(ItemStack stack, @Nullable BlockPos pos) {
         var oldPos = getStoredNetherPortalPos(stack);
-        if (oldPos == null ? pos == null : oldPos.equals(pos)) {
+        if (Objects.equals(oldPos, pos)) {
             return false;
         }
 
@@ -351,7 +350,7 @@ public class ExplorersCane extends AbstractOffhandMagicItem implements GeoItem, 
 
     private static boolean setStoredRespawnTarget(ItemStack stack, @Nullable GlobalPos target) {
         var current = getStoredRespawnTarget(stack);
-        if (current == null ? target == null : current.equals(target)) {
+        if (Objects.equals(current, target)) {
             return false;
         }
 

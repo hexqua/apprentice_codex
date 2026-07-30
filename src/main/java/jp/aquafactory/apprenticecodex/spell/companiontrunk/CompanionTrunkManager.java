@@ -12,12 +12,12 @@ import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public final class CompanionTrunkManager {
@@ -401,7 +401,7 @@ public final class CompanionTrunkManager {
     }
 
     private static boolean managedUuidEquals(@Nullable UUID left, @Nullable UUID right) {
-        return left == null ? right == null : left.equals(right);
+        return Objects.equals(left, right);
     }
 
     private static void sendActionBar(ServerPlayer player, Component message) {

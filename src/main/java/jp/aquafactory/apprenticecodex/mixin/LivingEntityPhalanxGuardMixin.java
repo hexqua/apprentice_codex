@@ -8,6 +8,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -29,10 +30,9 @@ public abstract class LivingEntityPhalanxGuardMixin {
     private void apprenticecodex$keepVirtualShieldUse(CallbackInfo ci) {
         // Mixin適用後は this が LivingEntity 実体を指す。明示キャストで静的解析の誤判定を避ける。
         var self = (LivingEntity) (Object) this;
-        if (!(self instanceof Player)) {
+        if (!(self instanceof Player player)) {
             return;
         }
-        var player = (Player) self;
 
         if (!player.hasEffect(net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.PHALANX_STANCE.get()))) {
             return;
@@ -42,7 +42,7 @@ public abstract class LivingEntityPhalanxGuardMixin {
             return;
         }
 
-        if (!isVirtualShield(useItem)) {
+        if (!apprentice_codex$isVirtualShield(useItem)) {
             return;
         }
 
@@ -51,7 +51,8 @@ public abstract class LivingEntityPhalanxGuardMixin {
         ci.cancel();
     }
 
-    private static boolean isVirtualShield(ItemStack stack) {
+    @Unique
+    private static boolean apprentice_codex$isVirtualShield(ItemStack stack) {
         if (stack.isEmpty() || stack.getItem() != Items.SHIELD) {
             return false;
         }

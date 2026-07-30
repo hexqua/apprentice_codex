@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public final class AutoMagnetFamiliarManager {
@@ -259,6 +260,6 @@ public final class AutoMagnetFamiliarManager {
     }
 
     private static boolean managedUuidEquals(@Nullable UUID left, @Nullable UUID right) {
-        return left == null ? right == null : left.equals(right);
+        return Objects.equals(left, right);
     }
 }

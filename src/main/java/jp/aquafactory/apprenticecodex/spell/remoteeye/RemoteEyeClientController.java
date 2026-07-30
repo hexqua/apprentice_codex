@@ -332,7 +332,7 @@ public final class RemoteEyeClientController {
 
         var level = minecraft.level;
         if (level instanceof ClientLevel) {
-            removeCameraEntity((ClientLevel) level);
+            removeCameraEntity(level);
         }
 
         activeCamera = null;

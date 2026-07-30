@@ -3,7 +3,6 @@ package jp.aquafactory.apprenticecodex.block.spelldispenser;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;

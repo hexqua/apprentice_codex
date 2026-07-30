@@ -401,6 +401,8 @@ public final class CreateGameTestHooks {
 
     private static final class TestMountedItemStorage extends WrapperMountedItemStorage<ItemStackHandler> {
         private TestMountedItemStorage(ItemStackHandler wrapped) {
+            // Compat内冗長ではない型キャストの可能性があるため抑制.
+            //noinspection RedundantCast
             super((MountedItemStorageType<?>) AllMountedStorageTypes.SIMPLE.get(), wrapped);
         }
 
