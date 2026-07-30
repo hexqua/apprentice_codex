@@ -1,13 +1,13 @@
 ---
 name: forward-port-1-21-1
-description: Forward-port tasks from the `main` branch (Minecraft 1.20.1) to `1.21.1-main` in this repository. Use when work involves `git cherry-pick -x`, conflict resolution between the two branches, `runData` regeneration, cleanup of stale generated JSON, or checking 1.21.1-specific enchantment, repair, and item-tag differences after a port.
+description: Forward-port tasks from the `1.20.1-main` branch (Minecraft 1.20.1) to `main` in this repository. Use when work involves `git cherry-pick -x`, conflict resolution between the two branches, `runData` regeneration, cleanup of stale generated JSON, or checking 1.21.1-specific enchantment, repair, and item-tag differences after a port.
 ---
 
 # Forward Port 1.21.1
 
 ## Overview
 
-`main` から `1.21.1-main` へ forward-port するときの標準手順を扱う。通常の実装タスクとして進めず、移植専用の確認項目を先に固定してから作業する。
+`1.20.1-main` から `main` へ forward-port するときの標準手順を扱う。通常の実装タスクとして進めず、移植専用の確認項目を先に固定してから作業する。
 
 ## Quick Start
 
@@ -23,7 +23,7 @@ description: Forward-port tasks from the `main` branch (Minecraft 1.20.1) to `1.
 
 - `merge` コミットはそのまま取り込まない。
 - 1 機能ごとに連続したコミット系列を保ち、`git cherry-pick -x <sha...>` で取り込む。
-- コンフリクト時は `1.21.1-main` の既存差分を優先し、port に不要な 1.20.1 実装を戻さない。
+- コンフリクト時は `main` の既存差分を優先し、port に不要な 1.20.1 実装を戻さない。
 
 ### 2. Datagen 事故を先に防ぐ
 
