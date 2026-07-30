@@ -19,5 +19,6 @@
 - 未解決の conflict marker と 1.21.1 固有の stale resource を検索する。
 - generated resource が変わった場合は 1.20.1 側で datagen を行う。
 - enchantment 適用、エンチャント本適用、修理素材、関連 tag を確認する。
-- Java 17 の `build` と、影響範囲に必要な GameTest / optional MOD タスクを実行する。
+- 影響範囲にかかわらず、Java 17 で `./gradlew.bat build` と `./gradlew.bat runGameTestServer` を実行する。
+- optional MOD 連携に触れる場合は、対応する検証タスクも実行する。
 - 実装動作を `main` と比較し、意図的に省いた要素や移植先固有差分を記録する。

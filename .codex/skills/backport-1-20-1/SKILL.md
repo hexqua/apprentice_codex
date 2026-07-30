@@ -31,9 +31,9 @@ description: Minecraft 1.21.1 / NeoForgeの`main`から、選択した変更をM
 6. Java 17 で検証する。
    - `.\scripts\use-java.ps1 -Version 17` を実行する。
    - `./gradlew.bat build` を実行する。
-   - サーバー登録、データ読込、recipe、生成、GameTest 対象動作に影響する場合は `./gradlew.bat runGameTestServer` を実行する。
+   - 影響範囲にかかわらず `./gradlew.bat runGameTestServer` を実行する。
    - optional MOD 連携に触れる場合は対応する検証タスクも実行する。
-   - GameTest task が一度でも失敗した場合は`report-gametest-failure`を使用し、後続実行が成功しても初回失敗と観測結果を報告する。
+   - GameTest task が一度でも失敗した場合は `report-gametest-failure` を使用し、後続実行が成功しても初回失敗と観測結果を報告する。
 7. コミット列をレビューする。
    - 取り込んだコミットを `main` まで追跡できる状態にする。
    - 移植先の補正コミットでは、1.20.1 側だけ異なる理由を説明する。
