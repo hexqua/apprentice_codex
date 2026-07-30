@@ -32,7 +32,8 @@ config="mixins.apprenticecodex.json"
 [[dependencies.apprenticecodex]]
     modId="irons_spellbooks"
     mandatory=true
-    versionRange="[${irons_spells_version},)"
+    # Iron's 4.0 changes Casting API incompatibly; remove this upper bound after migration.
+    versionRange="[${irons_spells_version},1.21.1-4.0.0)"
     ordering="NONE"
     side="BOTH"
 
