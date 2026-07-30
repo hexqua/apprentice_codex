@@ -33,7 +33,7 @@ description: Minecraft 1.21.1 / NeoForgeの`main`から、選択した変更をM
    - `./gradlew.bat build` を実行する。
    - サーバー登録、データ読込、recipe、生成、GameTest 対象動作に影響する場合は `./gradlew.bat runGameTestServer` を実行する。
    - optional MOD 連携に触れる場合は対応する検証タスクも実行する。
-   - 既存テストが flaky と疑われる場合は再実行して根拠を報告し、既知の不安定さで新規失敗を隠さない。
+   - GameTest task が一度でも失敗した場合は`report-gametest-failure`を使用し、後続実行が成功しても初回失敗と観測結果を報告する。
 7. コミット列をレビューする。
    - 取り込んだコミットを `main` まで追跡できる状態にする。
    - 移植先の補正コミットでは、1.20.1 側だけ異なる理由を説明する。

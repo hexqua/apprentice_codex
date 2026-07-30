@@ -87,6 +87,7 @@ Get-ChildItem build\libs\*.jar
 - `runGameTestServerEasyMagic` は Puzzles Lib / Easy Magic 連携の確認に使う。
 - `runGameTestServerBetterCombat` は Cloth Config / Better Combat 連携の確認に使う。
 - `runGameTestServerEpicFight` は Epic Fight 連携の確認に使う。
+- いずれかの GameTest task が一度でも失敗した場合は、後続実行が成功しても失敗を省略せず、`.codex/skills/report-gametest-failure` を使用して観測結果を最終報告に残す。
 - `runClientEpicFightController` は Epic Fight / Controlify / YACL を入れ、実機コントローラー入力を確認する。
 - `runClientCompatEasyBetter` は compat + Easy Magic + Better Combat を入れた実環境寄りの手動バランス確認用。Epic Fight は含めず、自動テスト対象にも含めない。
 - IntelliJ IDEA から client 構成を起動して `Unsupported major.minor version 65.0` が出る場合は、Project SDK / Gradle JVM / 古い実行構成が Java 17 を参照している。IDEA 側を JDK 21 にそろえ、`neoForgeIdeSync` を再実行し、必要なら古い Minecraft run configuration を削除して再生成する。
