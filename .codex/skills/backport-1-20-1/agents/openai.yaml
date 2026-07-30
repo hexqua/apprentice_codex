@@ -1,0 +1,4 @@
+interface:
+  display_name: "1.20.1 Backport"
+  short_description: "1.21.1 NeoForge の変更を 1.20.1 Forge へ backport"
+  default_prompt: "$backport-1-20-1 を使い、選択した main のコミットを 1.20.1-main へ backport してください。"
