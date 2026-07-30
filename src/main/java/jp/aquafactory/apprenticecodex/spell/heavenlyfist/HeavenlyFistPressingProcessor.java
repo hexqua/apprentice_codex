@@ -166,15 +166,12 @@ final class HeavenlyFistPressingProcessor {
         }
 
         var type = BuiltInRegistries.RECIPE_TYPE.getOptional(CREATE_PRESSING_RECIPE_TYPE_ID);
-        if (type.isEmpty()) {
-            return Optional.empty();
-        }
-
-        return level.getRecipeManager().getRecipes().stream()
-                .filter(recipe -> recipe.value().getType() == type.get())
+        return type.flatMap(recipeType -> level.getRecipeManager().getRecipes().stream()
+                .filter(recipe -> recipe.value().getType() == recipeType)
                 .filter(recipe -> !ApprenticeCodexServerConfig.isHeavenlyFistCreateRecipeDenied(recipe.id()))
                 .filter(recipe -> matchesFirstIngredient(recipe.value(), inputStack))
-                .findFirst();
+                .findFirst());
+
     }
 
     private static boolean matchesFirstIngredient(Recipe<?> recipe, ItemStack inputStack) {
