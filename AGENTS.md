@@ -109,7 +109,8 @@ Get-ChildItem build\libs\*.jar
 - コメントは「何をしているか」より「なぜそうするか」を優先する。外部 MOD 仕様依存、ワークアラウンド、クライアント/サーバー差分、実行順依存、魔法値には日本語コメントを残す。
 - テキストファイルは UTF-8（BOM なし）を原則とする。
 - 日本語を含むファイルや文字化けが疑われるファイルを扱う場合は、英語で書かれた `.codex/skills/text-encoding-hygiene` を先に確認する。
-- 依存関係の追加・更新は `gradle.properties` に集約し、必須依存を追加する場合は `neoforge.mods.toml` も更新する。外部アセット/ライブラリ利用時は `THIRD_PARTY_NOTICES.md` の追記要否を確認する。
+- 依存関係の追加・更新では、ビルドで使用するバージョンを `gradle.properties` に集約し、必須依存を追加する場合は `neoforge.mods.toml` も更新する。外部アセット/ライブラリ利用時は `THIRD_PARTY_NOTICES.md` の追記要否を確認する。
+- 明確に非互換と判明しているバージョン境界を拒否する上限は、理由と撤廃・更新条件をコメントしたうえで、例外的に `neoforge.mods.toml` へ直接記述してよい。
 
 ## 5. 変更フロー
 1. 変更内容を 1〜2 文で決める（何を、なぜ変えるか）。
@@ -149,7 +150,7 @@ Get-ChildItem build\libs\*.jar
 - UX のため意図的に client / server 間の差を許容する変更では、許容する挙動と拒否すべき境界の両方を GameTest で明示する。重要な server 側制約が守られた既存仕様として確認できる場合は厳格化を修正方針にせず、テスト不足を指摘する。判断できない挙動をテスト追加だけで仕様化しない。
 - 既存の content ID、設定キー、保存データを維持する。変更が不可避な場合は互換経路または migration 方針を同じ変更で示す。
 - generated/resource の削除・改名・出力パス変更では、旧出力の削除差分と target 側の再生成方針を追跡可能にし、stale 出力を残さない。
-- 依存 MOD のバージョン条件は `gradle.properties`、`build.gradle`、`neoforge.mods.toml` で整合させる。
+- 依存 MOD のバージョン条件は `gradle.properties`、`build.gradle`、`neoforge.mods.toml` で整合させる。TOML に固定上限がある場合、下限をその上限以上へ更新する変更では、同じ変更内で上限を撤廃または更新し、`build` と `runGameTestServer` を成功させる。
 - Backport 候補では `.codex/skills/backport-ready-development` に従い、移植対象、1.20.1 側の補正、対象外要素を説明できるコミット列にする。
 
 ## 7. ドキュメント更新
@@ -165,6 +166,7 @@ Get-ChildItem build\libs\*.jar
 - 両ブランチが Iron's Spells 'n Spellbooks 3.x を使用している間は、Minecraft / loader / 外部 MOD 固有差分を除き、可能な範囲で機能をそろえる。
 - Iron's Spells 'n Spellbooks 4.x の安定版へ移行する前に、3.x 系最終対応時点で両ブランチの共通機能をそろえる。
 - 4.x の Casting API 移行中は、`main` の新機能追加を原則停止し、移行作業と致命的不具合修正を優先する。
+- `main` の `neoforge.mods.toml` に直接記述する Iron's 4.0 未満の上限は移行完了までの一時的な互換性境界とし、4.x 対応時に同じ変更内で撤廃する。`1.20.1-main` では 3.x 系 LTS の互換性境界として対応する上限を維持する。
 - 4.x 移行後の `1.20.1-main` は 3.x 系 LTS とし、完全な機能同一性は保証しない。既存ノウハウで低コストに実装できる要素は個別に採用を判断する。
 - 将来 Minecraft 26.1.x 系へ対応する場合は、NeoForge の `main` を移植元とし、1.20.1 / Forge を経由するバケツリレーは行わない。
 - `main` で backport 候補を計画・実装・レビューする場合は `.codex/skills/backport-ready-development` を使用する。
