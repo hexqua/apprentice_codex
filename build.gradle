@@ -80,6 +80,8 @@ def optionalRuntimeModuleConfigurations = [
         yacl           : 'yaclRuntimeOnly',
         lodestone      : 'lodestoneRuntimeOnly',
         malum          : 'malumRuntimeOnly',
+        atlas_api      : 'atlasApiRuntimeOnly',
+        irons_jewelry  : 'ironsJewelryRuntimeOnly',
 ]
 
 def clientRuntimeModuleConfigurations = [
@@ -88,12 +90,12 @@ def clientRuntimeModuleConfigurations = [
 ]
 
 def optionalRuntimeProfileModules = [
-        compat              : ['create', 'lodestone', 'malum'],
+        compat              : ['create', 'lodestone', 'malum', 'atlas_api', 'irons_jewelry'],
         easy_magic          : ['puzzles_lib', 'easy_magic'],
         better_combat       : ['cloth_config', 'better_combat'],
         epic_fight          : ['epic_fight'],
         epic_fight_controller: ['epic_fight', 'yacl', 'controlify'],
-        compat_easy_better  : ['create', 'lodestone', 'malum', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
+        compat_easy_better  : ['create', 'lodestone', 'malum', 'atlas_api', 'irons_jewelry', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
 ]
 
 def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
@@ -106,10 +108,14 @@ def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
         create        : ['create'],
         lodestone     : ['lodestone'],
         malum         : ['lodestone', 'malum'],
+        atlasapi      : ['atlas_api'],
+        atlas_api     : ['atlas_api'],
+        ironsjewelry  : ['atlas_api', 'irons_jewelry'],
+        irons_jewelry : ['atlas_api', 'irons_jewelry'],
 ]
 
 def optionalRuntimeRequiredModIds = [
-        compat       : 'create,lodestone,malum',
+        compat       : 'create,lodestone,malum,atlas_api,irons_jewelry',
         easy_magic   : 'puzzleslib,easymagic',
         better_combat: 'cloth_config,bettercombat',
         epic_fight   : 'epicfight',
@@ -360,6 +366,11 @@ dependencies {
     compileOnly "maven.modrinth:malum:BIbVs1fo"
     add(optionalRuntimeModuleConfigurations.lodestone, "maven.modrinth:lodestonelib:CohX6yP1")
     add(optionalRuntimeModuleConfigurations.malum, "maven.modrinth:malum:BIbVs1fo")
+
+    // Iron's Gems 'n Jewelry / Atlas API.
+    // 1.21.1用のIron's系として遊びを増やすためにoptionalで確認できるようにする.
+    add(optionalRuntimeModuleConfigurations.atlas_api, "io.redspace:atlas_api:${atlas_api_version}")
+    add(optionalRuntimeModuleConfigurations.irons_jewelry, "io.redspace:irons_jewelry:${irons_jewelry_version}")
 
     // JEI.
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
