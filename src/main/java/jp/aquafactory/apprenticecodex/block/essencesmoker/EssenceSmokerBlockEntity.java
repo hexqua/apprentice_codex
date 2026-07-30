@@ -23,6 +23,7 @@ import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -651,7 +652,7 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
             cachedRecipeManager = recipeManager;
             cachedRecipes = recipeManager.getAllRecipesFor(RecipeRegistry.ESSENCE_SMOKER_RECIPE_TYPE.get()).stream()
                     .filter(ProcessingRecipeDenylist::isAllowed)
-                    .map(recipe -> recipe.value())
+                    .map(RecipeHolder::value)
                     .toList();
             invalidateMaterialRecipeCache();
         }

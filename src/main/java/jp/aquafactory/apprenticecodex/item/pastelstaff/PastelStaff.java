@@ -21,6 +21,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -105,7 +106,7 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
             return true;
         }
 
-        var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
+        var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
         if (MalumCompatibility.isMagicCapableWeaponEnchantment(stack, enchantmentId)) {
             return true;
         }

@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
@@ -109,7 +110,7 @@ public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSp
             return true;
         }
 
-        var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
+        var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
         return enchantmentId != null && isSupportedRobeEnchantment(enchantmentId);
     }
 

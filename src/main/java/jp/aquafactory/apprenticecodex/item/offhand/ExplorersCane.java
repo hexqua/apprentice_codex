@@ -39,6 +39,7 @@ import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
+import java.util.Objects;
 
 public class ExplorersCane extends AbstractOffhandMagicItem implements GeoItem, UniqueItem {
     private static final int ENCHANTMENT_VALUE = 15;
@@ -297,7 +298,7 @@ public class ExplorersCane extends AbstractOffhandMagicItem implements GeoItem, 
 
     private static boolean setStoredNetherPortalPos(ItemStack stack, @Nullable BlockPos pos) {
         var oldPos = getStoredNetherPortalPos(stack);
-        if (oldPos == null ? pos == null : oldPos.equals(pos)) {
+        if (Objects.equals(oldPos, pos)) {
             return false;
         }
 
@@ -351,7 +352,7 @@ public class ExplorersCane extends AbstractOffhandMagicItem implements GeoItem, 
 
     private static boolean setStoredRespawnTarget(ItemStack stack, @Nullable GlobalPos target) {
         var current = getStoredRespawnTarget(stack);
-        if (current == null ? target == null : current.equals(target)) {
+        if (Objects.equals(current, target)) {
             return false;
         }
 

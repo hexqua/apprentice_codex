@@ -29,6 +29,8 @@ public class SyncSchoolAffinityAssignmentsPacket implements CustomPacketPayload 
             List<ResourceLocation> schoolIdsBySlot,
             Map<ResourceLocation, Integer> catalystSlotsByItemId
     ) {
+        // List.copyOf が null 要素を拒否するという確定的な Java API の不整合のため、置き換えられない.
+        //noinspection Java9CollectionFactory
         this.schoolIdsBySlot = java.util.Collections.unmodifiableList(new ArrayList<>(schoolIdsBySlot));
         this.catalystSlotsByItemId = java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(catalystSlotsByItemId));
     }

@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.renderer.item.ZenithStaffRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -104,7 +105,7 @@ public class ZenithStaff extends StaffItem implements GeoItem, UniqueItem, Wisdo
             return true;
         }
 
-        var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
+        var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
         if (MalumCompatibility.isMagicCapableWeaponEnchantment(stack, enchantmentId)
                 || MalumCompatibility.isSpiritPlunderSupported(stack, enchantmentId)) {
             return true;

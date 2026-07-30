@@ -216,19 +216,19 @@ public final class ItemRegistry {
             ITEMS.register("empty_multi_purpose_spell_casing", () -> new SpellcasterRoundItem());
     public static final DeferredHolder<Item, Item> RAPID_SPELLCASTER_ROUND =
             ITEMS.register("rapid_spellcaster_round",
-                    () -> new SpellcasterRoundItem(() -> EMPTY_RAPID_SPELLCASTER_CASING.get()));
+                    () -> new SpellcasterRoundItem(EMPTY_RAPID_SPELLCASTER_CASING));
     public static final DeferredHolder<Item, Item> BASIC_SPELLCASTER_ROUND =
             ITEMS.register("basic_spellcaster_round",
-                    () -> new SpellcasterRoundItem(() -> EMPTY_BASIC_SPELLCASTER_CASING.get()));
+                    () -> new SpellcasterRoundItem(EMPTY_BASIC_SPELLCASTER_CASING));
     public static final DeferredHolder<Item, Item> ARCANE_SPELLCASTER_ROUND =
             ITEMS.register("arcane_spellcaster_round",
-                    () -> new SpellcasterRoundItem(() -> EMPTY_ARCANE_SPELLCASTER_CASING.get()));
+                    () -> new SpellcasterRoundItem(EMPTY_ARCANE_SPELLCASTER_CASING));
     public static final DeferredHolder<Item, Item> ADVANCED_SPELLCASTER_ROUND =
             ITEMS.register("advanced_spellcaster_round",
-                    () -> new SpellcasterRoundItem(() -> EMPTY_ADVANCED_SPELLCASTER_CASING.get()));
+                    () -> new SpellcasterRoundItem(EMPTY_ADVANCED_SPELLCASTER_CASING));
     public static final DeferredHolder<Item, Item> SPELL_DOMINATOR_ROUND =
             ITEMS.register("spell_dominator_round",
-                    () -> new SpellcasterRoundItem(() -> EMPTY_SPELL_DOMINATOR_CASING.get()));
+                    () -> new SpellcasterRoundItem(EMPTY_SPELL_DOMINATOR_CASING));
     public static final DeferredHolder<Item, Item> MULTI_PURPOSE_SPELL_ROUND =
             ITEMS.register("multi_purpose_spell_round",
                     () -> new SpellcasterRoundItem(

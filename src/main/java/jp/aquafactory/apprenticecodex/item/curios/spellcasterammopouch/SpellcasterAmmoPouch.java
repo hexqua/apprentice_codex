@@ -29,6 +29,7 @@ import net.minecraft.world.item.component.CustomData;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
+import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
 import java.util.ArrayList;
@@ -368,7 +369,7 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem, InventoryI
     private static List<ItemStack> getEquippedPouches(Player player) {
         return CuriosApi.getCuriosInventory(player)
                 .map(inventory -> inventory.findCurios(ItemRegistry.SPELLCASTER_AMMO_POUCH.get()).stream()
-                        .map(slotResult -> slotResult.stack())
+                        .map(SlotResult::stack)
                         .toList())
                 .orElse(List.of());
     }

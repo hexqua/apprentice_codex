@@ -29,10 +29,9 @@ public abstract class LivingEntityPhalanxGuardMixin {
     private void apprenticecodex$keepVirtualShieldUse(CallbackInfo ci) {
         // Mixin適用後は this が LivingEntity 実体を指す。明示キャストで静的解析の誤判定を避ける。
         var self = (LivingEntity) (Object) this;
-        if (!(self instanceof Player)) {
+        if (!(self instanceof Player player)) {
             return;
         }
-        var player = (Player) self;
 
         if (!player.hasEffect(net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.PHALANX_STANCE.get()))) {
             return;

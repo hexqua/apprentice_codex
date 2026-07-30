@@ -17,6 +17,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
@@ -164,7 +165,7 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
         if (attributeEnchantment.isPresent()) {
             return supportsDirectAttributeEnchantment(attributeEnchantment.get());
         }
-        var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
+        var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
         return enchantmentId != null && isSupportedArmorEnchantment(enchantmentId);
     }
 
