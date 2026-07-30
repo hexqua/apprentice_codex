@@ -18,6 +18,8 @@ public final class SpellDispenserCreateCompat {
     }
 
     private static void registerSpellDispenser(net.minecraft.world.level.block.Block block) {
+        // Compat内冗長ではない型キャストの可能性があるため抑制.
+        //noinspection RedundantCast
         MountedItemStorageType.REGISTRY.register(block, (MountedItemStorageType<?>) AllMountedStorageTypes.SIMPLE.get());
         MovementBehaviour.REGISTRY.register(block, new SpellDispenserMovementBehaviour());
         MovingInteractionBehaviour.REGISTRY.register(block, new SpellDispenserInteractionBehaviour());
