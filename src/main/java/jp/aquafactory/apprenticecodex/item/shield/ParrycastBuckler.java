@@ -296,7 +296,7 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
     @Override
     public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
         var equippedBase = AttributeEnchantmentResolver.resolveMergedModifiers(
-                ImmutableMultimap.<Holder<Attribute>, AttributeModifier>of(), stack, "parrycast_buckler");
+                ImmutableMultimap.of(), stack, "parrycast_buckler");
         var merged = MagicAttributeModifierHelper.mergeLinearMagicModifiers(
                 equippedBase,
                 "apprenticecodex.parrycast_buckler.merged"
