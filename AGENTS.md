@@ -96,7 +96,7 @@ Get-ChildItem build\libs\*.jar
 - 通常確認で `clean` は付けない。必要時のみ `./gradlew.bat clean build` を使う。
 - `runData` の出力先は `src/generated/resources` であり、`src/generated/resources/.cache` に記録された生成物だけが再生成・差分管理される前提で扱う。
 - `src/generated/resources/.cache` は Git 管理外のため、branch 切替・`cherry-pick`・手動コピーで持ち込んだ古い JSON は `runData` だけでは削除されない場合がある。
-- `1.20.1-main` から `main` へ forward-port する場合は、後述の専用 Skill を使って作業手順と確認観点を確認する。
+- `main` から `1.20.1-main` へ backport する場合は、後述の専用 Skill を使って作業手順と確認観点を確認する。
 
 ## 4. コーディング規約
 - クラス/インターフェースは `PascalCase`、メソッド/フィールド/ローカル変数は `camelCase`、定数は `UPPER_SNAKE_CASE` を使用する。
@@ -110,35 +110,36 @@ Get-ChildItem build\libs\*.jar
 
 ## 5. 変更フロー
 1. 変更内容を 1〜2 文で決める（何を、なぜ変えるか）。
-2. 実装する。
-3. `git diff` / `git diff --name-status` で、依頼範囲外の整形、rename、コメント削除、文字化け差分が混ざっていないことを確認する。
-4. コード、リソース、依存、datagen に影響する変更では `./gradlew.bat build` を成功させる。このビルドには明らかな文字化けと UTF-8 BOM の検査も含める。ドキュメントのみの変更では省略してよいが、最終報告に理由を残す。
-5. サーバー側の登録、データ読込、レシピ、生成、GameTest 対象構造に影響する変更では `./gradlew.bat runGameTestServer` を成功させる。
-6. `1.20.1-main` から `main` への forward-port では、実装内容に関係なく `./gradlew.bat runGameTestServer` と `./gradlew.bat build` を成功させる。
-7. optional MOD 連携に影響する変更では、対象に応じて特殊 GameTest / client 構成を追加実行する。
+2. 実装前に、変更を「共通ロジック」「1.21.1 / NeoForge 固有の接着コード」「generated/resource 更新」「backport 対象外」に分けて考える。
+3. 実装する。
+4. `git diff` / `git diff --name-status` で、依頼範囲外の整形、rename、コメント削除、文字化け差分が混ざっていないことを確認する。
+5. コード、リソース、依存、datagen に影響する変更では `./gradlew.bat build` を成功させる。このビルドには明らかな文字化けと UTF-8 BOM の検査も含める。ドキュメントのみの変更では省略してよいが、最終報告に理由を残す。
+6. サーバー側の登録、データ読込、レシピ、生成、GameTest 対象構造に影響する変更では `./gradlew.bat runGameTestServer` を成功させる。
+7. `main` から `1.20.1-main` への backport では、1.20.1 側で `./gradlew.bat runGameTestServer` と `./gradlew.bat build` を成功させる。
+8. optional MOD 連携に影響する変更では、対象に応じて特殊 GameTest / client 構成を追加実行する。
    - Create / Lodestone / Malum / Farmer's Delight / Atlas API / Iron's Gems 'n Jewelry: `./gradlew.bat runGameTestServerCompat`
    - Easy Magic / エンチャントメニュー: `./gradlew.bat runGameTestServerEasyMagic`
    - Better Combat / offhand / weapon_attributes: `./gradlew.bat runGameTestServerBetterCombat`
    - Epic Fight / mixin / capabilities / item_skins: `./gradlew.bat runGameTestServerEpicFight`
    - client 側の連携確認: 対応する `runClient...` 構成
    - 組み合わせバランス確認: `./gradlew.bat runClientCompatEasyBetter`
-8. client 専用 UI、renderer、screen、入力操作に影響する変更では必要に応じて `./gradlew.bat runClient` で確認する。
-9. コミットはレビューしやすく、forward-port しやすい粒度に分ける。無関係な整形や広域整理を混ぜない。
-10. `main` へ取り込む変更は必ずブランチ + PR で流し、直 push しない。
-11. PR では必須の GitHub Actions `PR CI / build` と `PR CI / gametest`、Codex Cloud のスマートトリガーレビュー、人間のレビューを確認してから取り込む。スマートトリガーレビューは補助であり、CI と人間の判断を置き換えない。
-12. 通常は merge commit で取り込む。バージョン更新だけは rebase merge を使ってよい。squash merge は使わない。
+9. client 専用 UI、renderer、screen、入力操作に影響する変更では必要に応じて `./gradlew.bat runClient` で確認する。
+10. コミットはレビューしやすく、backport 対象を選びやすい粒度に分ける。共通ロジックと NeoForge 固有接着コードを可能な範囲で別コミットにし、無関係な整形や広域整理を混ぜない。
+11. `main` へ取り込む変更は必ずブランチ + PR で流し、直 push しない。
+12. PR では必須の GitHub Actions `PR CI / build` と `PR CI / gametest`、Codex Cloud のスマートトリガーレビュー、人間のレビューを確認してから取り込む。スマートトリガーレビューは補助であり、CI と人間の判断を置き換えない。
+13. 通常は merge commit で取り込む。バージョン更新だけは rebase merge を使ってよい。squash merge は使わない。
 
 ## 6. レビューチェックリスト
 - Java 21 環境で必要な検証が通っていること。コード/リソース変更では `./gradlew.bat build` を必須とする。
 - サーバー側の登録、データ読込、レシピ、生成に影響する変更では `./gradlew.bat runGameTestServer` が成功していること。
-- `1.20.1-main` から `main` への forward-port では、実装内容に関係なく `./gradlew.bat runGameTestServer` と `./gradlew.bat build` が成功していること。
+- `main` から `1.20.1-main` への backport では、1.20.1 / Forge 側の `./gradlew.bat runGameTestServer` と `./gradlew.bat build` が成功していること。
 - optional MOD 連携に影響する変更では、該当する `runGameTestServerCompat` / `runGameTestServerEasyMagic` / `runGameTestServerBetterCombat` / `runGameTestServerEpicFight`、または対応する `runClient...` の実行結果が説明されていること。
 - `main` 向け PR では GitHub Actions の `PR CI / build` と `PR CI / gametest` が成功していること。
 - Codex Cloud のスマートトリガーレビューで指摘が出ている場合、対応または明示的な見送り理由があること。
 - 追加・変更した要素の登録漏れ（Registry/EventBus）がないこと。
 - サーバー専用環境で問題となるクライアント専用参照を追加していないこと。
 - 1 機能が `cherry-pick` しやすい独立したコミット列として保たれていること。
-- generated/resource の削除・改名・出力パス変更がある場合、forward-port 先で stale 出力に気づける差分になっていること。
+- generated/resource の削除・改名・出力パス変更がある場合、backport 先で stale 出力に気づける差分になっていること。
 - 既存コンテンツの ID 変更や削除による互換性破壊を避けていること。
 - 依存 MOD バージョン条件を変更した場合、`neoforge.mods.toml` と `gradle.properties` の整合性が取れていること。
 
@@ -149,20 +150,21 @@ Get-ChildItem build\libs\*.jar
 - GitHub Actions / Ruleset / merge / Codex Cloud レビュー運用に変更がある場合は `docs/github-pr-protection.md` も更新する。
 - データパック系の利用者向け情報は順次 GitHub wiki へ移行する。README には詳細仕様を戻さない。
 
-## 8. ブランチ間取り込み（1.20.1 -> 1.21.1）
-- `1.20.1-main`（1.20.1）を開発基準ブランチとし、`main` への反映は forward-port（`cherry-pick`）で行う。
-- `1.20.1-main` と `main` の直接 `merge` は原則禁止とし、必要な場合は事前合意を必須とする。
-- `merge` コミットの直接 `cherry-pick`（`git cherry-pick -m` を含む）は禁止とし、取り込み対象は個別コミット単位で扱う。
-- 実作業では `.codex/skills/forward-port-1-21-1` を使用する。
-- Skill を使う理由: generated JSON の削除漏れ、1.21.1 の enchant/repair/tag 差分、旧版書式の残留確認は通常作業では不要であり、常設ルールと分離した方が見落としにくいため。
-- 取り込み前に対象コミットを個別 SHA で確定し、`git cherry-pick -x` を使う。
-- 削除・改名・出力パス変更・旧書式移行を含む datagen 作業では、`runData` 前に影響ディレクトリの generated JSON を明示削除する。
-- 1.21.1 の enchant 適用可否や修理可否は Java の override だけで完了と判断せず、enchantment JSON と item tag も確認する。
-- 1 機能を独立した連続コミット系列として保ち、`cherry-pick` しやすくする。
-- `merge` コミットしか見つからない場合でも、その `merge` 自体は取り込まず、元になった個別コミットを洗い出してから取り込む。
-- 取り込み判断で迷わないよう、`1.20.1-main` 側では無関係な整形・リネームの混在を避ける。
+## 8. ブランチ間取り込み（1.21.1 -> 1.20.1）
+- `main`（1.21.1 / NeoForge）を開発基準ブランチとし、新機能と共通不具合修正は原則として `main` へ先に実装する。
+- `1.20.1-main`（1.20.1 / Forge）は保守・backport先として扱い、利用価値、実装差、検証コストを確認して取り込み対象を選ぶ。
+- 両ブランチが Iron's Spells 'n Spellbooks 3.x を使用している間は、Minecraft / loader / 外部 MOD 固有差分を除き、可能な範囲で機能をそろえる。
+- Iron's Spells 'n Spellbooks 4.x の安定版へ移行する前に、3.x 系最終対応時点で両ブランチの共通機能をそろえる。
+- 4.x の Casting API 移行中は、`main` の新機能追加を原則停止し、移行作業と致命的不具合修正を優先する。
+- 4.x 移行後の `1.20.1-main` は 3.x 系 LTS とし、完全な機能同一性は保証しない。既存ノウハウで低コストに実装できる要素は個別に採用を判断する。
+- 将来 Minecraft 26.1.x 系へ対応する場合は、NeoForge の `main` を移植元とし、1.20.1 / Forge を経由するバケツリレーは行わない。
+- `main` と `1.20.1-main` の直接 `merge` は原則禁止とし、取り込み対象は個別コミット単位で扱う。
+- `merge` コミットの直接 `cherry-pick`（`git cherry-pick -m` を含む）は禁止する。元になった非 `merge` コミットを洗い出し、`git cherry-pick -x` で取り込む。
+- 実作業では `.codex/skills/backport-1-20-1` を使用する。
+- 共通ロジック、NeoForge 固有接着コード、generated/resource、ドキュメントを可能な範囲で分け、1.20.1へ不要な実装を持ち込まない。
+- 1.20.1 側の Forge API、Java 17、resource配置、datagen出力を正とし、cherry-pick後の補正理由を差分または日本語コメントで追跡可能にする。
 - 同種コンフリクトの再解決コストを下げるため、`git config rerere.enabled true` を推奨する。
-- `main` のみで必要になった修正は、`1.20.1-main` への逆取り込みが必要かを別途判断し、必要時のみ個別対応で反映する。
+- `1.20.1-main` だけで必要になった修正は、`main` にも必要かを別途判断し、自動的な逆取り込みは行わない。
 
 ## 8.1 `main` の PR CI 運用
 - `main` への反映は PR 経由のみとし、直接 push しない。
