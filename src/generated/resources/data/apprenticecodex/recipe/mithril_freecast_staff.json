@@ -8,8 +8,8 @@
     "D": {
       "item": "irons_spellbooks:mithril_scrap"
     },
-    "G": {
-      "item": "minecraft:glass"
+    "I": {
+      "item": "minecraft:diamond"
     },
     "L": {
       "item": "irons_spellbooks:magic_cloth"
@@ -19,7 +19,7 @@
     }
   },
   "pattern": [
-    " AG",
+    " AI",
     "LWD",
     "D  "
   ],
