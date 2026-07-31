@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.config.item.BulwarkGreatshieldServerConfig
 import jp.aquafactory.apprenticecodex.config.item.ElementalBowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FocusStaffbowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.IronSwingcastStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagiCompressorGadgetServerConfig;
@@ -53,6 +54,7 @@ final class ItemsServerConfig {
     private final MagiCompressorGadgetServerConfig magiCompressorGadgetConfig;
     private final ManaShieldCharmServerConfig manaShieldCharmConfig;
     private final ManaThrusterServerConfig manaThrusterConfig;
+    private final IronSwingcastStaffServerConfig ironSwingcastStaffConfig;
     private final CircuitHeatStaffServerConfig circuitHeatStaffConfig;
     private final SpellgunServerConfig spellgunConfig;
     private final MulticastEchoStaffServerConfig multicastEchoStaffConfig;
@@ -86,6 +88,7 @@ final class ItemsServerConfig {
             MagiCompressorGadgetServerConfig magiCompressorGadgetConfig,
             ManaShieldCharmServerConfig manaShieldCharmConfig,
             ManaThrusterServerConfig manaThrusterConfig,
+            IronSwingcastStaffServerConfig ironSwingcastStaffConfig,
             CircuitHeatStaffServerConfig circuitHeatStaffConfig,
             SpellgunServerConfig spellgunConfig,
             MulticastEchoStaffServerConfig multicastEchoStaffConfig,
@@ -118,6 +121,7 @@ final class ItemsServerConfig {
         this.magiCompressorGadgetConfig = magiCompressorGadgetConfig;
         this.manaShieldCharmConfig = manaShieldCharmConfig;
         this.manaThrusterConfig = manaThrusterConfig;
+        this.ironSwingcastStaffConfig = ironSwingcastStaffConfig;
         this.circuitHeatStaffConfig = circuitHeatStaffConfig;
         this.spellgunConfig = spellgunConfig;
         this.multicastEchoStaffConfig = multicastEchoStaffConfig;
@@ -153,6 +157,7 @@ final class ItemsServerConfig {
         var magiCompressorGadgetConfig = MagiCompressorGadgetServerConfig.define(builder);
         var manaShieldCharmConfig = ManaShieldCharmServerConfig.define(builder);
         var manaThrusterConfig = ManaThrusterServerConfig.define(builder);
+        var ironSwingcastStaffConfig = IronSwingcastStaffServerConfig.define(builder);
         var circuitHeatStaffConfig = CircuitHeatStaffServerConfig.define(builder);
         var spellgunConfig = SpellgunServerConfig.define(builder);
         var multicastEchoStaffConfig = MulticastEchoStaffServerConfig.define(builder);
@@ -187,6 +192,7 @@ final class ItemsServerConfig {
                 magiCompressorGadgetConfig,
                 manaShieldCharmConfig,
                 manaThrusterConfig,
+                ironSwingcastStaffConfig,
                 circuitHeatStaffConfig,
                 spellgunConfig,
                 multicastEchoStaffConfig,
@@ -456,6 +462,10 @@ final class ItemsServerConfig {
 
     int circuitHeatStaffAdditionalManaReferenceCooldownTicks() {
         return circuitHeatStaffConfig.additionalManaReferenceCooldownTicks();
+    }
+
+    double ironSwingcastStaffCrystallineArcaneShardDropChance() {
+        return ironSwingcastStaffConfig.crystallineArcaneShardDropChance();
     }
 
     float circuitHeatStaffAdditionalManaLinearMultiplier() {
@@ -952,6 +962,10 @@ final class ItemsServerConfig {
                 consumeWaterSourceOnCooling,
                 consumeWaterCauldronOnCooling
         );
+    }
+
+    void setIronSwingcastStaffConfigForGameTest(double crystallineArcaneShardDropChance) {
+        ironSwingcastStaffConfig.setForGameTest(crystallineArcaneShardDropChance);
     }
 
     void setMulticastEchoStaffConfigForGameTest(

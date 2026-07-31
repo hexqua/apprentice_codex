@@ -63,6 +63,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
             "apprenticecodex.circuit_heat_staff_water_consumption_config";
     private static final String CIRCUIT_HEAT_STAFF_CAULDRON_CONSUMPTION_CONFIG_BATCH =
             "apprenticecodex.circuit_heat_staff_cauldron_consumption_config";
+    private static final String IRON_SWINGCAST_STAFF_CRYSTALLIZE_CONFIG_BATCH =
+            "apprenticecodex.iron_swingcast_staff_crystallize_config";
     private static final String MANA_SHIELD_CHARM_FREE_COST_CONFIG_BATCH =
             "apprenticecodex.mana_shield_charm_free_cost_config";
     private static final String MANA_SHIELD_CHARM_RECOVERY_CONFIG_BATCH =
@@ -282,6 +284,22 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void copperSwingcastStaffStartsWithBallLightningLevelOne(GameTestHelper helper) {
         SwingcastStaffGameTestScenarios.copperSwingcastStaffStartsWithBallLightningLevelOne(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = IRON_SWINGCAST_STAFF_CRYSTALLIZE_CONFIG_BATCH)
+    public static void ironSwingcastStaffCrystallizesOnlyForEnabledMainhandMobKillCredit(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios
+                .ironSwingcastStaffCrystallizesOnlyForEnabledMainhandMobKillCredit(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = IRON_SWINGCAST_STAFF_CRYSTALLIZE_CONFIG_BATCH)
+    public static void ironSwingcastStaffCrystallizeHintUsesSyncedChanceAndFirstLine(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.ironSwingcastStaffCrystallizeHintUsesSyncedChanceAndFirstLine(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystallineArcaneShardUsesBlastingOnlyRecipeContract(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.crystallineArcaneShardUsesBlastingOnlyRecipeContract(helper);
     }
 
     @GameTest(template = TEMPLATE)

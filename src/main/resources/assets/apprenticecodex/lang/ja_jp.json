@@ -38,6 +38,7 @@
   "item.apprenticecodex.arcane_cinder": "神秘の燃え殻",
   "item.apprenticecodex.wisdom_shard": "叡智の破片",
   "item.apprenticecodex.spell_extract_shard": "術式抽出の破片",
+  "item.apprenticecodex.crystalline_arcane_shard": "結晶化した秘術の破片",
   "item.apprenticecodex.comfort_berries": "安楽の果実",
   "item.apprenticecodex.comfort_sandwich": "安楽ベリーサンド",
   "item.apprenticecodex.spellstained_arcane_ingot": "魔術染めの秘術のインゴット",
@@ -323,6 +324,7 @@
   "item.apprenticecodex.freecast.common.desc": "このアイテムは攻撃時に選択した魔法を放つ。",
   "item.apprenticecodex.right_click_magic_weapon.desc": "対象をオフハンドに持つ時、[%s]はオフハンド使用になる。",
   "item.apprenticecodex.right_click_magic_weapon.item_type": "対象: 盾, 弓, クロスボウ, 詠唱銃, 触媒本",
+  "item.apprenticecodex.iron_swingcast_staff.crystallize_hint": "利き手に持ってモブを倒すと稀に魔力が結晶化して落ちる。",
   "item.apprenticecodex.flask_system.kind": "中身: %s",
   "item.apprenticecodex.flask_system.amount": "残量: %1$d/%2$d",
   "item.apprenticecodex.flask_system.filled_name": "%1$s(%2$s)",
@@ -1355,5 +1357,6 @@
   "subtitle.apprenticecodex.sound.vanilla_chest_jump": "チェストが跳ねる",
   "subtitle.apprenticecodex.sound.vanilla_card_throw": "札を投擲する",
   "subtitle.apprenticecodex.sound.vanilla_feed_ammo": "弾薬を装填する",
-  "subtitle.apprenticecodex.sound.vanilla_cast_book": "本を使う"
+  "subtitle.apprenticecodex.sound.vanilla_cast_book": "本を使う",
+  "subtitle.apprenticecodex.sound.vanilla_crystallize_mana": "魔力が結晶化する"
 }

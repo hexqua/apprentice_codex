@@ -38,6 +38,7 @@
   "item.apprenticecodex.arcane_cinder": "奥术余烬",
   "item.apprenticecodex.wisdom_shard": "智慧碎片",
   "item.apprenticecodex.spell_extract_shard": "法术提取碎片",
+  "item.apprenticecodex.crystalline_arcane_shard": "结晶奥术碎片",
   "item.apprenticecodex.comfort_berries": "舒心浆果",
   "item.apprenticecodex.comfort_sandwich": "舒适三明治",
   "item.apprenticecodex.spellstained_arcane_ingot": "染法奥术锭",
@@ -323,6 +324,7 @@
   "item.apprenticecodex.freecast.common.desc": "该物品每次完整挥击时释放所选法术。",
   "item.apprenticecodex.right_click_magic_weapon.desc": "副手持有目标物品时，[%s]会使用副手。",
   "item.apprenticecodex.right_click_magic_weapon.item_type": "目标：盾牌、弓、弩、法枪、催化书",
+  "item.apprenticecodex.iron_swingcast_staff.crystallize_hint": "主手持有时击杀生物，有小概率使魔力结晶并掉落。",
   "item.apprenticecodex.flask_system.kind": "类型：%s",
   "item.apprenticecodex.flask_system.amount": "数量：%1$d/%2$d",
   "item.apprenticecodex.flask_system.filled_name": "%1$s（%2$s）",
@@ -1345,5 +1347,6 @@
   "subtitle.apprenticecodex.sound.vanilla_chest_jump": "宝箱跳动",
   "subtitle.apprenticecodex.sound.vanilla_card_throw": "符卡被投掷",
   "subtitle.apprenticecodex.sound.vanilla_feed_ammo": "弹药装填",
-  "subtitle.apprenticecodex.sound.vanilla_cast_book": "使用书本"
+  "subtitle.apprenticecodex.sound.vanilla_cast_book": "使用书本",
+  "subtitle.apprenticecodex.sound.vanilla_crystallize_mana": "魔力结晶化"
 }

@@ -17,6 +17,7 @@ import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
 import net.minecraft.data.recipes.SmithingTransformRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
@@ -150,6 +151,19 @@ public final class RecipeGenerator extends RecipeProvider {
                 .requires(ItemRegistry.COMFORT_BERRIES.get(), 2)
                 .unlockedBy(getHasName(ItemRegistry.COMFORT_BERRIES.get()), has(ItemRegistry.COMFORT_BERRIES.get()))
                 .save(recipeOutput);
+
+        SimpleCookingRecipeBuilder.blasting(
+                        Ingredient.of(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get()),
+                        RecipeCategory.MISC,
+                        io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get(),
+                        1.0F,
+                        100
+                )
+                .unlockedBy(
+                        getHasName(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get()),
+                        has(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get())
+                )
+                .save(recipeOutput, ItemRegistry.CRYSTALLINE_ARCANE_SHARD.getId());
 
         ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, ItemRegistry.WISDOM_SHARD.get())
                 .requires(io.redspace.ironsspellbooks.registries.ItemRegistry.DIVINE_SOULSHARD.get())

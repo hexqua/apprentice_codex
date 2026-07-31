@@ -340,7 +340,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ARCANE_CINDER.get(),
                 ItemRegistry.SPELL_EXTRACT_SHARD.get(),
                 ItemRegistry.WISDOM_SHARD.get(),
-                ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get()
+                ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get(),
+                ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get()
         );
         tag(CURIOS_SPELLBOOK).add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),

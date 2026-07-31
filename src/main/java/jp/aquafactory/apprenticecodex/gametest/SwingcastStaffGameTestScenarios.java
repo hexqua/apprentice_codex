@@ -15,6 +15,8 @@ import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlash;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffAttackContextManager;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
+import jp.aquafactory.apprenticecodex.item.swingstaff.IronSwingcastStaffConfigState;
+import jp.aquafactory.apprenticecodex.item.swingstaff.IronSwingcastStaffCrystallizeEvent;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastCooldownMode;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -23,6 +25,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
@@ -30,14 +33,21 @@ import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.crafting.BlastingRecipe;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -650,6 +660,152 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
                     "Iron Swingcast Staff legacy locked replacement should be recovered after save/load");
         });
     }
+
+    static void ironSwingcastStaffCrystallizesOnlyForEnabledMainhandMobKillCredit(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(
+                    helper,
+                    new BlockPos(0, 2, 0),
+                    "iron_swingcast_staff_crystallize_test"
+            );
+            var targetPos = new BlockPos(2, 2, 0);
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.IRON_SWINGCAST_STAFF.get()));
+
+            try (var ignored = ApprenticeCodexServerConfig.useIronSwingcastStaffConfigOverrideForGameTest(1.0D)) {
+                var zombie = helper.spawn(EntityType.ZOMBIE, targetPos);
+                zombie.setLastHurtByPlayer(player);
+                IronSwingcastStaffCrystallizeEvent.onLivingDeath(new LivingDeathEvent(
+                        zombie,
+                        helper.getLevel().damageSources().generic()
+                ));
+                helper.assertTrue(
+                        countFreshItemDrops(
+                                helper.getLevel(),
+                                ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get(),
+                                helper.absolutePos(targetPos),
+                                2.0D
+                        ) == 1,
+                        "Iron Swingcast Staff should add exactly one Crystalline Arcane Shard"
+                );
+            }
+
+            var disabledPos = new BlockPos(5, 2, 0);
+            try (var ignored = ApprenticeCodexServerConfig.useIronSwingcastStaffConfigOverrideForGameTest(0.0D)) {
+                var zombie = helper.spawn(EntityType.ZOMBIE, disabledPos);
+                zombie.setLastHurtByPlayer(player);
+                IronSwingcastStaffCrystallizeEvent.onLivingDeath(new LivingDeathEvent(
+                        zombie,
+                        helper.getLevel().damageSources().generic()
+                ));
+                helper.assertTrue(
+                        countFreshItemDrops(
+                                helper.getLevel(),
+                                ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get(),
+                                helper.absolutePos(disabledPos),
+                                2.0D
+                        ) == 0,
+                        "Zero drop chance should disable Crystalline Arcane Shard drops"
+                );
+            }
+
+            var offhandPos = new BlockPos(8, 2, 0);
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(ItemRegistry.IRON_SWINGCAST_STAFF.get()));
+            try (var ignored = ApprenticeCodexServerConfig.useIronSwingcastStaffConfigOverrideForGameTest(1.0D)) {
+                var zombie = helper.spawn(EntityType.ZOMBIE, offhandPos);
+                zombie.setLastHurtByPlayer(player);
+                IronSwingcastStaffCrystallizeEvent.onLivingDeath(new LivingDeathEvent(
+                        zombie,
+                        helper.getLevel().damageSources().generic()
+                ));
+                helper.assertTrue(
+                        countFreshItemDrops(
+                                helper.getLevel(),
+                                ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get(),
+                                helper.absolutePos(offhandPos),
+                                2.0D
+                        ) == 0,
+                        "Offhand Iron Swingcast Staff should not add Crystalline Arcane Shards"
+                );
+            }
+        });
+    }
+
+    static void ironSwingcastStaffCrystallizeHintUsesSyncedChanceAndFirstLine(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var originalChance = IronSwingcastStaffConfigState.crystallineArcaneShardDropChance();
+            var stack = new ItemStack(ItemRegistry.IRON_SWINGCAST_STAFF.get());
+            try {
+                IronSwingcastStaffConfigState.setCrystallineArcaneShardDropChance(0.05D);
+                var enabledLines = new ArrayList<Component>();
+                stack.getItem().appendHoverText(
+                        stack,
+                        Item.TooltipContext.of(helper.getLevel()),
+                        enabledLines,
+                        TooltipFlag.Default.NORMAL
+                );
+                helper.assertFalse(enabledLines.isEmpty(), "Iron Swingcast Staff tooltip should not be empty");
+                helper.assertTrue(
+                        enabledLines.getFirst().getContents() instanceof TranslatableContents contents
+                                && "item.apprenticecodex.iron_swingcast_staff.crystallize_hint".equals(contents.getKey()),
+                        "Crystallize hint should be the first Iron Swingcast Staff tooltip line"
+                );
+
+                IronSwingcastStaffConfigState.setCrystallineArcaneShardDropChance(0.0D);
+                var disabledLines = new ArrayList<Component>();
+                stack.getItem().appendHoverText(
+                        stack,
+                        Item.TooltipContext.of(helper.getLevel()),
+                        disabledLines,
+                        TooltipFlag.Default.NORMAL
+                );
+                helper.assertFalse(
+                        disabledLines.stream().anyMatch(line ->
+                                line.getContents() instanceof TranslatableContents contents
+                                        && "item.apprenticecodex.iron_swingcast_staff.crystallize_hint".equals(contents.getKey())
+                        ),
+                        "Zero synchronized drop chance should hide the crystallize hint"
+                );
+            } finally {
+                IronSwingcastStaffConfigState.setCrystallineArcaneShardDropChance(originalChance);
+            }
+        });
+    }
+
+    static void crystallineArcaneShardUsesBlastingOnlyRecipeContract(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var recipeManager = helper.getLevel().getRecipeManager();
+            var recipeId = ItemRegistry.CRYSTALLINE_ARCANE_SHARD.getId();
+            var recipeHolder = recipeManager.byKey(recipeId).orElseThrow(
+                    () -> new IllegalStateException("Missing Crystalline Arcane Shard blasting recipe")
+            );
+            helper.assertTrue(
+                    recipeHolder.value() instanceof BlastingRecipe,
+                    "Crystalline Arcane Shard recipe should use minecraft:blasting"
+            );
+            var blastingRecipe = (BlastingRecipe) recipeHolder.value();
+            helper.assertTrue(
+                    Math.abs(blastingRecipe.getExperience() - 1.0F) < 1.0e-6F,
+                    "Crystalline Arcane Shard blasting experience should be 1.0"
+            );
+            helper.assertTrue(
+                    blastingRecipe.getCookingTime() == 100,
+                    "Crystalline Arcane Shard blasting time should be 100 ticks"
+            );
+            helper.assertTrue(
+                    blastingRecipe.getResultItem(helper.getLevel().registryAccess())
+                            .is(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get()),
+                    "Crystalline Arcane Shard blasting result should be Arcane Essence"
+            );
+
+            var input = new SingleRecipeInput(new ItemStack(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get()));
+            helper.assertTrue(
+                    recipeManager.getRecipeFor(RecipeType.SMELTING, input, helper.getLevel()).isEmpty(),
+                    "Crystalline Arcane Shard should not have a furnace smelting recipe"
+            );
+        });
+    }
+
     static void swingcastStaffTiersExposeRequestedImbueRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var instantSpell = SpellRegistry.AUTO_MAGNET.get();
