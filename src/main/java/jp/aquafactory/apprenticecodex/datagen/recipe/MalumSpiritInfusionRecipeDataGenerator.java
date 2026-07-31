@@ -41,7 +41,21 @@ public final class MalumSpiritInfusionRecipeDataGenerator implements DataProvide
                 soulcollectorRecipe("soulcollector_leggings", "soul_hunter_leggings", ItemRegistry.SOULCOLLECTOR_LEGGINGS.get(),
                         ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(), spirits),
                 soulcollectorRecipe("soulcollector_boots", "soul_hunter_boots", ItemRegistry.SOULCOLLECTOR_BOOTS.get(),
-                        ItemRegistry.APPRENTICE_MAGE_BOOTS.get(), spirits)
+                        ItemRegistry.APPRENTICE_MAGE_BOOTS.get(), spirits),
+                spiritInfusionRecipe("soulstained_steel_swingcast_staff",
+                        ItemRegistry.IRON_SWINGCAST_STAFF.getId(),
+                        ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.getId(),
+                        List.of(
+                                new RecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "refined_brilliance"), 8),
+                                new RecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "soul_stained_steel_ingot"), 4),
+                                new RecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "hex_ash"), 8)
+                        ),
+                        List.of(
+                                malumSpirit("wicked", 32),
+                                malumSpirit("arcane", 16),
+                                malumSpirit("eldritch", 8)
+                        )
+                )
         );
         return CompletableFuture.allOf(recipes.stream().map(recipe -> DataProvider.saveStable(
                 cachedOutput,
