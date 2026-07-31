@@ -952,6 +952,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void soulstainedSteelSpellAmplifierFollowsMalumAvailability(GameTestHelper helper) {
+        OffhandAndBetterCombatGameTestScenarios.soulstainedSteelSpellAmplifierFollowsMalumAvailability(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void upgradeWhitelistCoversTargetAbstractItems(GameTestHelper helper) {
         OffhandAndBetterCombatGameTestScenarios.upgradeWhitelistCoversTargetAbstractItems(helper);
     }

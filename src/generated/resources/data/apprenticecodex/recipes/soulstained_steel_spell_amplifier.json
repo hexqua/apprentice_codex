@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "malum"
+    }
+  ],
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "H": {
+      "item": "malum:hex_ash"
+    },
+    "S": {
+      "item": "malum:soul_stained_steel_ingot"
+    }
+  },
+  "pattern": [
+    "HAH",
+    " S ",
+    " S "
+  ],
+  "result": {
+    "item": "apprenticecodex:soulstained_steel_spell_amplifier"
+  }
+}

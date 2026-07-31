@@ -48,6 +48,7 @@ import jp.aquafactory.apprenticecodex.item.offhand.IronSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.NetheriteSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.offhand.SilverSpellAmplifier;
+import jp.aquafactory.apprenticecodex.item.offhand.SoulstainedSteelSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
@@ -359,6 +360,8 @@ public final class ItemRegistry {
             ITEMS.register("silver_spell_amplifier", SilverSpellAmplifier::new);
     public static final RegistryObject<Item> NETHERITE_SPELL_AMPLIFIER =
             ITEMS.register("netherite_spell_amplifier", NetheriteSpellAmplifier::new);
+    public static final RegistryObject<Item> SOULSTAINED_STEEL_SPELL_AMPLIFIER =
+            ITEMS.register("soulstained_steel_spell_amplifier", SoulstainedSteelSpellAmplifier::new);
     public static final RegistryObject<Item> PHOTON_SIPHON =
             ITEMS.register("photon_siphon", PhotonSiphon::new);
     public static final RegistryObject<Item> EXPLORERS_CANE =

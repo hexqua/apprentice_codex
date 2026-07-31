@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.offhand.SoulstainedSteelSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
@@ -162,6 +163,46 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     AttributeModifier.Operation.MULTIPLY_BASE,
                     "Netherite Spell Amplifier casting move speed bonus regression"
             );
+        });
+    }
+    static void soulstainedSteelSpellAmplifierFollowsMalumAvailability(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractOffhandMagicItem) ItemRegistry.SOULSTAINED_STEEL_SPELL_AMPLIFIER.get();
+            var stack = new ItemStack(item);
+            item.initializeSpellContainer(stack);
+
+            helper.assertTrue(stack.getRarity() == net.minecraft.world.item.Rarity.COMMON,
+                    "Soulstained Steel Spell Amplifier should use common rarity");
+            helper.assertTrue(item.getEnchantmentValue(stack) == 16,
+                    "Soulstained Steel Spell Amplifier should use enchantment value 16");
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null && spellContainer.getMaxSpellCount() == 1,
+                    "Soulstained Steel Spell Amplifier should have one spell slot");
+
+            var magicProficiency = ForgeRegistries.ATTRIBUTES.getValue(
+                    ResourceLocation.fromNamespaceAndPath("lodestone", "magic_proficiency"));
+            if (magicProficiency != null) {
+                var amount = item.getAttributeModifiers(EquipmentSlot.OFFHAND, stack)
+                        .get(magicProficiency)
+                        .stream()
+                        .filter(modifier -> modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE)
+                        .mapToDouble(AttributeModifier::getAmount)
+                        .sum();
+                helper.assertTrue(Math.abs(amount - SoulstainedSteelSpellAmplifier.MAGIC_PROFICIENCY_BONUS) < 1.0e-9D,
+                        "Soulstained Steel Spell Amplifier magic proficiency bonus regression");
+            }
+
+            var recipeId = ResourceLocation.fromNamespaceAndPath(
+                    "apprenticecodex", "soulstained_steel_spell_amplifier");
+            var recipe = helper.getLevel().getRecipeManager().byKey(recipeId).orElse(null);
+            helper.assertTrue((recipe != null) == ModList.get().isLoaded("malum"),
+                    "Soulstained Steel Spell Amplifier recipe availability should follow Malum");
+            if (recipe != null) {
+                helper.assertTrue(recipe instanceof net.minecraft.world.item.crafting.ShapedRecipe,
+                        "Soulstained Steel Spell Amplifier recipe should be shaped crafting");
+                helper.assertTrue(recipe.getResultItem(helper.getLevel().registryAccess()).is(item),
+                        "Soulstained Steel Spell Amplifier recipe returned the wrong item");
+            }
         });
     }
     static void upgradeWhitelistCoversTargetAbstractItems(GameTestHelper helper) {
