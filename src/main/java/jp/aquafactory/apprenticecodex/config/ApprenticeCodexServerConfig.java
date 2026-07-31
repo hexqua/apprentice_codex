@@ -656,6 +656,10 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.ironSwingcastStaffCrystallineArcaneShardDropChance();
     }
 
+    public static double soulstainedSteelSwingcastStaffManaCostPerBlade() {
+        return ITEMS_CONFIG.soulstainedSteelSwingcastStaffManaCostPerBlade();
+    }
+
     public static int diamondSwingcastStaffCooldownReductionTicks() {
         return ITEMS_CONFIG.diamondSwingcastStaffCooldownReductionTicks();
     }
@@ -1202,6 +1206,12 @@ public final class ApprenticeCodexServerConfig {
         var previousValue = ITEMS_CONFIG.ironSwingcastStaffCrystallineArcaneShardDropChance();
         ITEMS_CONFIG.setIronSwingcastStaffConfigForGameTest(value);
         return () -> ITEMS_CONFIG.setIronSwingcastStaffConfigForGameTest(previousValue);
+    }
+
+    public static GameTestConfigOverride useSoulstainedSteelSwingcastStaffConfigOverrideForGameTest(double value) {
+        var previousValue = ITEMS_CONFIG.soulstainedSteelSwingcastStaffManaCostPerBlade();
+        ITEMS_CONFIG.setSoulstainedSteelSwingcastStaffConfigForGameTest(value);
+        return () -> ITEMS_CONFIG.setSoulstainedSteelSwingcastStaffConfigForGameTest(previousValue);
     }
 
     public static GameTestConfigOverride useHighTierSwingcastStaffConfigOverrideForGameTest(

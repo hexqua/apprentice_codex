@@ -33,6 +33,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncBoundSwordStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffOverheatPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIronSwingcastStaffConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncSoulstainedSteelSwingcastStaffConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEdgeDancerStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
@@ -72,7 +73,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "72";
+    private static final String PROTOCOL_VERSION = "73";
 
     private Networks() {
     }
@@ -297,6 +298,11 @@ public final class Networks {
                 SyncHighTierSwingcastStaffConfigPacket.TYPE,
                 SyncHighTierSwingcastStaffConfigPacket.STREAM_CODEC,
                 SyncHighTierSwingcastStaffConfigPacket::handle
+        );
+        registrar.playToClient(
+                SyncSoulstainedSteelSwingcastStaffConfigPacket.TYPE,
+                SyncSoulstainedSteelSwingcastStaffConfigPacket.STREAM_CODEC,
+                SyncSoulstainedSteelSwingcastStaffConfigPacket::handle
         );
         registrar.playToClient(
                 SyncAutocastAmuletNotificationPacket.TYPE,

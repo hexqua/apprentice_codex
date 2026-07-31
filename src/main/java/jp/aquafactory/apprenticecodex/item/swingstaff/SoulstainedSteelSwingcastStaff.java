@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.item.swingstaff;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumMnemonicBladeBridge;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SoulstainedSteelSwingcastStaffServerConfig;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
 import net.minecraft.ChatFormatting;
@@ -20,6 +22,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -30,12 +34,15 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
+import java.util.Optional;
 
 public final class SoulstainedSteelSwingcastStaff extends AbstractRightClickMagicWeaponItem
         implements SwingTriggeredMagicItem, GeoItem {
-    public static final int MANA_COST_PER_BLADE = 10;
+    public static final double DEFAULT_MANA_COST_PER_BLADE =
+            SoulstainedSteelSwingcastStaffServerConfig.DEFAULT_MANA_COST_PER_BLADE;
     public static final double MIN_CHARGE_RECOVERY_RATE = 0.01D;
     public static final int MAX_BLADE_COUNT = 3;
+    private static final double MANA_COST_CEILING_EPSILON = 1.0e-9D;
     public static final double MAGIC_DAMAGE_BONUS = 3.0D;
     public static final int ENCHANTMENT_VALUE = 16;
     private static final String ITEM_KEY = "soulstained_steel_swingcast_staff";
@@ -103,26 +110,46 @@ public final class SoulstainedSteelSwingcastStaff extends AbstractRightClickMagi
     }
 
     public static int resolveBladeCount(float availableMana) {
-        return resolveBladeCount(availableMana, MANA_COST_PER_BLADE);
+        return resolveBladeCount(availableMana, DEFAULT_MANA_COST_PER_BLADE);
     }
 
     public static int resolveBladeCount(float availableMana, double manaCostPerBlade) {
-        if (!Float.isFinite(availableMana) || availableMana <= 0.0F || !Double.isFinite(manaCostPerBlade)
-                || manaCostPerBlade <= 0.0D) {
+        if (!Double.isFinite(manaCostPerBlade) || manaCostPerBlade < 0.0D) {
+            return 0;
+        }
+        if (manaCostPerBlade == 0.0D) {
+            return MAX_BLADE_COUNT;
+        }
+        if (!Float.isFinite(availableMana) || availableMana <= 0.0F) {
             return 0;
         }
         return Math.min(MAX_BLADE_COUNT, Math.max(0, (int) Math.floor(availableMana / manaCostPerBlade)));
     }
 
     public static double resolveManaCost(double chargeRecoveryRate) {
+        return resolveManaCost(DEFAULT_MANA_COST_PER_BLADE, chargeRecoveryRate);
+    }
+
+    public static double resolveManaCost(double baseManaCostPerBlade, double chargeRecoveryRate) {
+        if (!Double.isFinite(baseManaCostPerBlade) || baseManaCostPerBlade <= 0.0D) {
+            return 0.0D;
+        }
         if (!Double.isFinite(chargeRecoveryRate)) {
             chargeRecoveryRate = 1.0D;
         }
-        return MANA_COST_PER_BLADE / Math.max(MIN_CHARGE_RECOVERY_RATE, chargeRecoveryRate);
+        return baseManaCostPerBlade / Math.max(MIN_CHARGE_RECOVERY_RATE, chargeRecoveryRate);
+    }
+
+    public static long resolveDisplayedTotalManaCost(double baseManaCostPerBlade, double chargeRecoveryRate) {
+        var totalManaCost = resolveManaCost(baseManaCostPerBlade, chargeRecoveryRate) * MAX_BLADE_COUNT;
+        return (long) Math.ceil(totalManaCost - MANA_COST_CEILING_EPSILON);
     }
 
     private static double getManaCostPerBlade(Player player) {
-        return resolveManaCost(MalumMnemonicBladeBridge.getChargeRecoveryRate(player));
+        return resolveManaCost(
+                ApprenticeCodexServerConfig.soulstainedSteelSwingcastStaffManaCostPerBlade(),
+                MalumMnemonicBladeBridge.getChargeRecoveryRate(player)
+        );
     }
 
     @Override
@@ -156,6 +183,14 @@ public final class SoulstainedSteelSwingcastStaff extends AbstractRightClickMagi
         lines.add(Component.translatable(
                 "item.apprenticecodex.soulstained_steel_swingcast_staff.desc"
         ).withStyle(ChatFormatting.GRAY));
+        resolveClientManaCostTooltip().ifPresent(lines::add);
+    }
+
+    private static Optional<Component> resolveClientManaCostTooltip() {
+        if (FMLEnvironment.dist != Dist.CLIENT) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(SoulstainedSteelSwingcastStaffClientTooltip.createLine());
     }
 
     public ResourceLocation getTextureLocation() {
