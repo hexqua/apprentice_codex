@@ -13,7 +13,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -72,15 +71,6 @@ public final class SoulstainedSteelSwingcastStaff extends AbstractRightClickMagi
     @Override
     public void initializeSpellContainer(ItemStack itemStack) {
         // Mnemonic Blade専用武器のため、Iron'sのspell containerは作らない。
-    }
-
-    @Override
-    public @NotNull InteractionResultHolder<ItemStack> use(
-            @NotNull Level level,
-            @NotNull Player player,
-            @NotNull InteractionHand usedHand
-    ) {
-        return InteractionResultHolder.pass(player.getItemInHand(usedHand));
     }
 
     @Override
