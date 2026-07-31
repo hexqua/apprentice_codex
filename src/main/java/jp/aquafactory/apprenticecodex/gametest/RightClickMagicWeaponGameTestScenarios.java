@@ -284,17 +284,19 @@ final class RightClickMagicWeaponGameTestScenarios extends ApprenticeCodexGameTe
                         item + " should expose right click magic weapon tooltip");
                 helper.assertTrue(tooltipLines.size() > 1,
                         item + " should expose right click magic weapon item type tooltip");
+                // Iron Swingcast Staffは専用能力ヒントを最上段に置き、その直後から共通ヒントを維持する。
+                var offhandTooltipStart = item == ItemRegistry.IRON_SWINGCAST_STAFF.get() ? 1 : 0;
                 assertTranslatableKey(
                         helper,
-                        tooltipLines.get(0),
+                        tooltipLines.get(offhandTooltipStart),
                         "item.apprenticecodex.right_click_magic_weapon.desc",
-                        item + " should show offhand priority tooltip first"
+                        item + " should show offhand priority tooltip at its expected start"
                 );
                 assertTranslatableKey(
                         helper,
-                        tooltipLines.get(1),
+                        tooltipLines.get(offhandTooltipStart + 1),
                         "item.apprenticecodex.right_click_magic_weapon.item_type",
-                        item + " should show offhand priority item type tooltip second"
+                        item + " should show offhand priority item type tooltip next"
                 );
             }
 

@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_crystalline_arcane_shard": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "apprenticecodex:crystalline_arcane_shard"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "apprenticecodex:crystalline_arcane_shard"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_crystalline_arcane_shard",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "apprenticecodex:crystalline_arcane_shard"
+    ]
+  },
+  "sends_telemetry_event": false
+}

@@ -144,6 +144,19 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(ItemRegistry.COMFORT_BERRIES.get()), has(ItemRegistry.COMFORT_BERRIES.get()))
                 .save(recipeWriter);
 
+        SimpleCookingRecipeBuilder.blasting(
+                        Ingredient.of(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get()),
+                        RecipeCategory.MISC,
+                        io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get(),
+                        1.0F,
+                        100
+                )
+                .unlockedBy(
+                        getHasName(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get()),
+                        has(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get())
+                )
+                .save(recipeWriter, ItemRegistry.CRYSTALLINE_ARCANE_SHARD.getId());
+
         ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, ItemRegistry.WISDOM_SHARD.get())
                 .requires(io.redspace.ironsspellbooks.registries.ItemRegistry.DIVINE_SOULSHARD.get())
                 .requires(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())

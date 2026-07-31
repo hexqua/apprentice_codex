@@ -653,6 +653,10 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.circuitHeatStaffAdditionalManaReferenceCooldownTicks();
     }
 
+    public static double ironSwingcastStaffCrystallineArcaneShardDropChance() {
+        return ITEMS_CONFIG.ironSwingcastStaffCrystallineArcaneShardDropChance();
+    }
+
     public static float circuitHeatStaffAdditionalManaLinearMultiplier() {
         return ITEMS_CONFIG.circuitHeatStaffAdditionalManaLinearMultiplier();
     }
@@ -1185,6 +1189,12 @@ public final class ApprenticeCodexServerConfig {
                 previousConsumeWaterSourceOnCooling,
                 previousConsumeWaterCauldronOnCooling
         );
+    }
+
+    public static GameTestConfigOverride useIronSwingcastStaffConfigOverrideForGameTest(double value) {
+        var previousValue = ITEMS_CONFIG.ironSwingcastStaffCrystallineArcaneShardDropChance();
+        ITEMS_CONFIG.setIronSwingcastStaffConfigForGameTest(value);
+        return () -> ITEMS_CONFIG.setIronSwingcastStaffConfigForGameTest(previousValue);
     }
 
     public static GameTestConfigOverride useMulticastEchoStaffConfigOverrideForGameTest(
