@@ -4,13 +4,18 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
+import io.netty.buffer.Unpooled;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumMnemonicBladeBridge;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SoulstainedSteelSwingcastStaff;
+import jp.aquafactory.apprenticecodex.item.swingstaff.SoulstainedSteelSwingcastStaffConfigState;
+import jp.aquafactory.apprenticecodex.network.packet.SyncSoulstainedSteelSwingcastStaffConfigPacket;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
@@ -87,16 +92,55 @@ public final class ApprenticeCodexSoulstainedSteelSwingcastStaffGameTests {
     @GameTest(template = TEMPLATE)
     public static void soulstainedSteelSwingcastStaffResolvesBladeCountFromMana(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            helper.assertTrue(SoulstainedSteelSwingcastStaff.resolveBladeCount(9.99F) == 0,
-                    "Less than 10 mana should not fire a Mnemonic Blade");
-            helper.assertTrue(SoulstainedSteelSwingcastStaff.resolveBladeCount(10.0F) == 1,
-                    "10 mana should fire one Mnemonic Blade");
-            helper.assertTrue(SoulstainedSteelSwingcastStaff.resolveBladeCount(29.99F) == 2,
-                    "Less than 30 mana should fire two Mnemonic Blades");
-            helper.assertTrue(SoulstainedSteelSwingcastStaff.resolveBladeCount(30.0F) == 3,
-                    "30 mana should fire three Mnemonic Blades");
+            helper.assertTrue(SoulstainedSteelSwingcastStaff.resolveBladeCount(19.99F) == 0,
+                    "Less than 20 mana should not fire a Mnemonic Blade");
+            helper.assertTrue(SoulstainedSteelSwingcastStaff.resolveBladeCount(20.0F) == 1,
+                    "20 mana should fire one Mnemonic Blade");
+            helper.assertTrue(SoulstainedSteelSwingcastStaff.resolveBladeCount(59.99F) == 2,
+                    "Less than 60 mana should fire two Mnemonic Blades");
+            helper.assertTrue(SoulstainedSteelSwingcastStaff.resolveBladeCount(60.0F) == 3,
+                    "60 mana should fire three Mnemonic Blades");
             helper.assertTrue(SoulstainedSteelSwingcastStaff.resolveBladeCount(100.0F) == 3,
                     "Mnemonic Blade burst size should be capped at three");
+            helper.assertTrue(SoulstainedSteelSwingcastStaff.resolveBladeCount(0.0F, 0.0D) == 3,
+                    "Zero configured mana cost should fire the full burst without mana");
+            helper.assertTrue(SoulstainedSteelSwingcastStaff.resolveDisplayedTotalManaCost(20.0D) == 60L,
+                    "Default tooltip cost should show 60 mana for the full burst");
+            helper.assertTrue(SoulstainedSteelSwingcastStaff.resolveDisplayedTotalManaCost(20.1D) == 61L,
+                    "Fractional full-burst mana cost should round upward in the tooltip");
+            helper.assertTrue(SoulstainedSteelSwingcastStaff.resolveDisplayedTotalManaCost(0.0D) == 0L,
+                    "Zero configured mana cost should resolve to the hidden tooltip sentinel");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void soulstainedSteelSwingcastStaffConfigSyncPreservesManaCost(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var buffer = new FriendlyByteBuf(Unpooled.buffer());
+            SyncSoulstainedSteelSwingcastStaffConfigPacket.encode(
+                    new SyncSoulstainedSteelSwingcastStaffConfigPacket(12.5D),
+                    buffer
+            );
+            var decoded = SyncSoulstainedSteelSwingcastStaffConfigPacket.decode(buffer);
+            helper.assertTrue(Math.abs(decoded.manaCostPerBlade() - 12.5D) < 1.0e-9D,
+                    "Soulstained Steel Swingcast Staff config sync should preserve fractional mana cost");
+
+            SoulstainedSteelSwingcastStaffConfigState.setManaCostPerBlade(7.5D);
+            helper.assertTrue(Math.abs(SoulstainedSteelSwingcastStaffConfigState.manaCostPerBlade() - 7.5D)
+                            < 1.0e-9D,
+                    "Client config state should retain the synchronized mana cost");
+            SoulstainedSteelSwingcastStaffConfigState.reset();
+            helper.assertTrue(Math.abs(SoulstainedSteelSwingcastStaffConfigState.manaCostPerBlade() - 20.0D)
+                            < 1.0e-9D,
+                    "Client config state reset should restore the default mana cost");
+
+            try (var ignored = ApprenticeCodexServerConfig
+                    .useSoulstainedSteelSwingcastStaffConfigOverrideForGameTest(12.5D)) {
+                helper.assertTrue(Math.abs(
+                                ApprenticeCodexServerConfig.soulstainedSteelSwingcastStaffManaCostPerBlade() - 12.5D
+                        ) < 1.0e-9D,
+                        "Soulstained Steel Swingcast Staff should read the configured base mana cost");
+            }
         });
     }
 
@@ -161,13 +205,13 @@ public final class ApprenticeCodexSoulstainedSteelSwingcastStaffGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
         var magicData = MagicData.getPlayerMagicData(player);
         helper.assertTrue(magicData != null, "Soulstained Steel Swingcast Staff test requires MagicData");
-        magicData.setMana(25.0F);
+        magicData.setMana(45.0F);
         var before = countHexBolts(helper);
 
         var triggered = item.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true);
         if (!MalumMnemonicBladeBridge.isAvailable()) {
             helper.assertFalse(triggered, "Soulstained Steel Swingcast Staff should stay inert without Malum");
-            helper.assertTrue(Math.abs(magicData.getMana() - 25.0F) < 1.0e-6F,
+            helper.assertTrue(Math.abs(magicData.getMana() - 45.0F) < 1.0e-6F,
                     "Missing Malum should not consume mana");
             helper.succeed();
             return;
@@ -175,10 +219,45 @@ public final class ApprenticeCodexSoulstainedSteelSwingcastStaffGameTests {
 
         helper.assertTrue(triggered, "Soulstained Steel Swingcast Staff should fire when Malum is loaded");
         helper.assertTrue(Math.abs(magicData.getMana() - 5.0F) < 1.0e-6F,
-                "Two Mnemonic Blades should consume 20 mana");
+                "Two Mnemonic Blades should consume 40 mana");
         helper.runAfterDelay(1, () -> {
             helper.assertTrue(countHexBolts(helper) - before == 2,
-                    "25 mana should spawn exactly two Malum Mnemonic Blades");
+                    "45 mana should spawn exactly two Malum Mnemonic Blades");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void soulstainedSteelSwingcastStaffZeroConfigFiresFreeFullBurst(GameTestHelper helper) {
+        var item = (SoulstainedSteelSwingcastStaff) ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get();
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 4, 0),
+                "soulstained_staff_free_burst"
+        );
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(item));
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Soulstained Steel Swingcast Staff free-burst test requires MagicData");
+        magicData.setMana(0.0F);
+        var before = countHexBolts(helper);
+
+        boolean triggered;
+        try (var ignored = ApprenticeCodexServerConfig
+                .useSoulstainedSteelSwingcastStaffConfigOverrideForGameTest(0.0D)) {
+            triggered = item.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true);
+        }
+        if (!MalumMnemonicBladeBridge.isAvailable()) {
+            helper.assertFalse(triggered, "Soulstained Steel Swingcast Staff should stay inert without Malum");
+            helper.succeed();
+            return;
+        }
+
+        helper.assertTrue(triggered, "Zero configured mana cost should allow a free full burst");
+        helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-6F,
+                "A free full burst should not consume mana");
+        helper.runAfterDelay(1, () -> {
+            helper.assertTrue(countHexBolts(helper) - before == 3,
+                    "Zero configured mana cost should spawn the full three-blade burst");
             helper.succeed();
         });
     }
