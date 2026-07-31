@@ -5,8 +5,8 @@
     "A": {
       "item": "irons_spellbooks:arcane_ingot"
     },
-    "G": {
-      "item": "minecraft:glass"
+    "D": {
+      "item": "minecraft:diamond"
     },
     "L": {
       "item": "irons_spellbooks:magic_cloth"
@@ -22,7 +22,7 @@
     }
   },
   "pattern": [
-    " AG",
+    " AD",
     "LWM",
     "P  "
   ],

@@ -2,11 +2,11 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "A": {
-      "item": "irons_spellbooks:arcane_ingot"
+    "D": {
+      "item": "minecraft:diamond"
     },
     "G": {
-      "item": "minecraft:glass"
+      "item": "minecraft:gold_ingot"
     },
     "I": {
       "item": "minecraft:iron_ingot"
@@ -19,7 +19,7 @@
     }
   },
   "pattern": [
-    " AG",
+    " GD",
     "LWI",
     "I  "
   ],
