@@ -1,7 +1,9 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumMnemonicBladeBridge;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SoulstainedSteelSwingcastStaff;
@@ -18,6 +20,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.neoforged.fml.ModList;
@@ -115,6 +118,54 @@ public final class ApprenticeCodexSoulstainedSteelSwingcastStaffGameTests {
                     "Mana below the dynamic cost should not fire a blade");
             helper.assertTrue(SoulstainedSteelSwingcastStaff.resolveBladeCount(20.0F, 20.0D) == 1,
                     "Mana equal to the dynamic cost should fire one blade");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void soulstainedSteelSwingcastStaffRightClickUsesSelectedSpellAndDefersToPriorityOffhand(
+            GameTestHelper helper
+    ) {
+        helper.succeedIf(() -> {
+            var staff = new ItemStack(ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get());
+            var amplifier = new ItemStack(ItemRegistry.SOULSTAINED_STEEL_SPELL_AMPLIFIER.get());
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            ISpellContainer.createImbuedContainer(spell, 1, amplifier);
+
+            var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                    helper,
+                    new BlockPos(0, 4, 0),
+                    "soulstained_staff_right_click"
+            );
+            player.setItemInHand(InteractionHand.MAIN_HAND, staff);
+            player.setItemInHand(InteractionHand.OFF_HAND, amplifier);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Soulstained Steel Swingcast Staff right-click test requires MagicData");
+            magicData.setMana(1000.0F);
+            magicData.getSyncedData().setSpellSelection(new SpellSelection(SpellSelectionManager.OFFHAND, 0));
+
+            var selection = new SpellSelectionManager(player).getSelection();
+            helper.assertTrue(selection != null && selection.spellData.getSpell() == spell,
+                    "Soulstained Steel Swingcast Staff should resolve the spell imbued into the offhand amplifier");
+            var result = staff.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Soulstained Steel Swingcast Staff right click should cast the selected spell but got "
+                            + result.getResult());
+            helper.assertTrue(ItemStack.isSameItemSameComponents(magicData.getPlayerCastingItem(), staff),
+                    "Soulstained Steel Swingcast Staff should remain the casting item");
+            helper.assertTrue(SpellSelectionManager.MAINHAND.equals(magicData.getCastingEquipmentSlot()),
+                    "Soulstained Steel Swingcast Staff right click should mark the mainhand casting slot");
+            helper.assertFalse(ISpellContainer.isSpellContainer(staff),
+                    "Soulstained Steel Swingcast Staff right click should not create an Iron's spell container");
+
+            magicData.resetCastingState();
+            magicData.getPlayerCooldowns().removeCooldown(spell.getSpellId());
+            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SHIELD));
+            var deferredResult = staff.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(deferredResult.getResult() == net.minecraft.world.InteractionResult.PASS,
+                    "Soulstained Steel Swingcast Staff should defer to a priority offhand item but got "
+                            + deferredResult.getResult());
+            helper.assertFalse(magicData.isCasting(),
+                    "Soulstained Steel Swingcast Staff should not cast before a priority offhand item");
         });
     }
 
