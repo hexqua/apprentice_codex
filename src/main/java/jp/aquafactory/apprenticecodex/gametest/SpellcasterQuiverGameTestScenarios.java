@@ -17,11 +17,14 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potions;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
+import top.theillusivec4.curios.api.CuriosApi;
+import top.theillusivec4.curios.api.SlotContext;
 
 import java.util.List;
 
@@ -29,11 +32,13 @@ import static jp.aquafactory.apprenticecodex.gametest.BowGameTestSupport.*;
 final class SpellcasterQuiverGameTestScenarios {
     private SpellcasterQuiverGameTestScenarios() {
     }
-    static void spellcasterQuiverUsesBackSlotAndCapsStoredArrows(GameTestHelper helper) {
+    static void spellcasterQuiverUsesBackAndBeltSlotsAndCapsStoredArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
             helper.assertTrue(quiverStack.is(CURIOS_BACK),
                     "Spellcaster Quiver should be tagged for the Curios back slot");
+            helper.assertTrue(quiverStack.is(CURIOS_BELT),
+                    "Spellcaster Quiver should be tagged for the Curios belt slot");
 
             var firstInsert = SpellcasterQuiver.store(quiverStack, new ItemStack(Items.ARROW, 300));
             var secondInsert = SpellcasterQuiver.store(quiverStack, new ItemStack(Items.SPECTRAL_ARROW, 300));
@@ -51,11 +56,64 @@ final class SpellcasterQuiverGameTestScenarios {
                     "Spellcaster Quiver should remove the smallest stored arrow stack first");
         });
     }
+
+    static void spellcasterQuiverAllowsOnlyOneEquippedAcrossSlots(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var quiverItem = (SpellcasterQuiver) ItemRegistry.SPELLCASTER_QUIVER.get();
+
+            var crossSlotPlayer = createEquipmentTestPlayer(
+                    helper,
+                    new BlockPos(0, 2, 0),
+                    "spellcaster_quiver_cross_slot_limit_test"
+            );
+            var backStack = new ItemStack(quiverItem);
+            equipCurio(crossSlotPlayer, CuriosSlotConstants.BACK, backStack);
+
+            var backContext = new SlotContext(CuriosSlotConstants.BACK, crossSlotPlayer, 0, false, true);
+            var beltContext = new SlotContext(CuriosSlotConstants.BELT, crossSlotPlayer, 0, false, true);
+            helper.assertTrue(quiverItem.canEquip(backContext, backStack),
+                    "Spellcaster Quiver should remain valid in its current slot");
+            helper.assertFalse(quiverItem.canEquip(beltContext, new ItemStack(quiverItem)),
+                    "Spellcaster Quiver should reject a second copy in a different slot type");
+
+            var expandedBeltPlayer = createEquipmentTestPlayer(
+                    helper,
+                    new BlockPos(1, 2, 0),
+                    "spellcaster_quiver_expanded_belt_limit_test"
+            );
+            var curiosInventory = CuriosApi.getCuriosInventory(expandedBeltPlayer)
+                    .orElseThrow(() -> new IllegalStateException("Missing curios inventory for expanded belt test"));
+            curiosInventory.addTransientSlotModifier(
+                    CuriosSlotConstants.BELT,
+                    ResourceLocation.fromNamespaceAndPath(
+                            "apprenticecodex",
+                            "gametest/spellcaster_quiver_expanded_belt"
+                    ),
+                    1.0D,
+                    AttributeModifier.Operation.ADD_VALUE
+            );
+            var beltStack = new ItemStack(quiverItem);
+            curiosInventory.setEquippedCurio(CuriosSlotConstants.BELT, 0, beltStack);
+
+            var secondBeltContext = new SlotContext(CuriosSlotConstants.BELT, expandedBeltPlayer, 1, false, true);
+            helper.assertFalse(quiverItem.canEquip(secondBeltContext, new ItemStack(quiverItem)),
+                    "Spellcaster Quiver should reject a second copy when the belt slot is expanded");
+            var expandedPlayerBackContext =
+                    new SlotContext(CuriosSlotConstants.BACK, expandedBeltPlayer, 0, false, true);
+            helper.assertFalse(quiverItem.canEquip(expandedPlayerBackContext, new ItemStack(quiverItem)),
+                    "Spellcaster Quiver should reject a second copy on the back while equipped on the belt");
+            var expandedBeltHandler = curiosInventory.getCurios().get(CuriosSlotConstants.BELT);
+            helper.assertTrue(expandedBeltHandler != null && expandedBeltHandler.getStacks().getSlots() >= 2,
+                    "Expanded belt test should provide at least two functional belt slots");
+            helper.assertFalse(expandedBeltHandler.getStacks().isItemValid(1, new ItemStack(quiverItem)),
+                    "Curios slot validation should reject a second Spellcaster Quiver in the expanded belt");
+        });
+    }
     static void equippedSpellcasterQuiverAutoStoresPickedUpArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_pickup_test");
             var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
-            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
+            equipCurio(player, CuriosSlotConstants.BELT, quiverStack);
 
             var itemEntity = new ItemEntity(helper.getLevel(), player.getX(), player.getY(), player.getZ(), new ItemStack(Items.ARROW, 12));
             SpellcasterQuiverPickupEvent.onEntityItemPickup(new ItemEntityPickupEvent.Pre(player, itemEntity));

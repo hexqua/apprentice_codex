@@ -2,7 +2,6 @@ package jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver;
 
 import jp.aquafactory.apprenticecodex.item.InventoryInsertTarget;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
-import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
@@ -52,36 +51,52 @@ public class SpellcasterQuiver extends Item implements ICurioItem, InventoryInse
     private static final String STACK_TAG = "Stack";
     private static final String COUNT_TAG = "Count";
 
-    private final String slotIdentifier;
-
     public SpellcasterQuiver() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
-        slotIdentifier = CuriosSlotConstants.BACK;
     }
 
     @Override
     public List<Component> getSlotsTooltip(List<Component> tooltips, Item.TooltipContext context, ItemStack stack) {
         var result = new ArrayList<>(tooltips);
-        if (slotIdentifier != null) {
-            result.add(Component.empty());
-            result.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
-            result.add(Component.literal(" ")
-                    .append(Component.translatable(getDescriptionId() + ".desc_1"))
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            result.add(Component.literal(" ")
-                    .append(Component.translatable(getDescriptionId() + ".desc_2"))
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            result.add(Component.literal(" ")
-                    .append(Component.translatable(getDescriptionId() + ".desc_3"))
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-        }
+        result.add(Component.empty());
+        // item.modifiers.anyは1.20.1にはないため、1.21.1でもオリジナルのキーを定義して使う.
+        result.add(Component.translatable("curios.apprenticecodex.modifier.for_quiver").withStyle(ChatFormatting.GOLD));
+        result.add(Component.literal(" ")
+                .append(Component.translatable(getDescriptionId() + ".desc_1"))
+                .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+        result.add(Component.literal(" ")
+                .append(Component.translatable(getDescriptionId() + ".desc_2"))
+                .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+        result.add(Component.literal(" ")
+                .append(Component.translatable(getDescriptionId() + ".desc_3"))
+                .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
 
         return result;
     }
 
     @Override
+    public boolean canEquip(SlotContext slotContext, ItemStack stack) {
+        if (slotContext.entity() == null) {
+            return true;
+        }
+
+        // Item指定の検索は同一tick内で結果がcacheされるため、連続した装備操作でも現在値を見るpredicate検索を使う.
+        return CuriosApi.getCuriosInventory(slotContext.entity())
+                .map(inventory -> inventory.findCurios(
+                                equippedStack -> equippedStack.is(ItemRegistry.SPELLCASTER_QUIVER.get())
+                        ).stream()
+                        .map(SlotResult::slotContext)
+                        .allMatch(equippedSlot -> isSameSlot(equippedSlot, slotContext)))
+                .orElse(true);
+    }
+
+    @Override
     public boolean canEquipFromUse(SlotContext slotContext, ItemStack stack) {
         return true;
+    }
+
+    private static boolean isSameSlot(SlotContext first, SlotContext second) {
+        return first.index() == second.index() && first.identifier().equals(second.identifier());
     }
 
     @Override

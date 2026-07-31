@@ -1198,8 +1198,13 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
-    public static void spellcasterQuiverUsesBackSlotAndCapsStoredArrows(GameTestHelper helper) {
-        SpellcasterQuiverGameTestScenarios.spellcasterQuiverUsesBackSlotAndCapsStoredArrows(helper);
+    public static void spellcasterQuiverUsesBackAndBeltSlotsAndCapsStoredArrows(GameTestHelper helper) {
+        SpellcasterQuiverGameTestScenarios.spellcasterQuiverUsesBackAndBeltSlotsAndCapsStoredArrows(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
+    public static void spellcasterQuiverAllowsOnlyOneEquippedAcrossSlots(GameTestHelper helper) {
+        SpellcasterQuiverGameTestScenarios.spellcasterQuiverAllowsOnlyOneEquippedAcrossSlots(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
