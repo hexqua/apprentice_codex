@@ -1288,7 +1288,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     ItemRegistry.SPELL_EXTRACT_SHARD.get(),
                     ItemRegistry.WISDOM_SHARD.get(),
                     ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get(),
-                    ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get()
+                    ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get(),
+                    ItemRegistry.SPELLCASTER_QUIVER.get()
             ));
             for (var item : expectedItems) {
                 helper.assertTrue(new ItemStack(item).is(MALUM_SOULWOVEN_POUCH_EFFICIENT),
@@ -1301,7 +1302,6 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     ItemRegistry.EXPLORERS_CODEX.get(),
                     ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get(),
                     ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get(),
-                    ItemRegistry.SPELLCASTER_QUIVER.get(),
                     ItemRegistry.MANA_THRUSTER.get(),
                     ItemRegistry.JUMPCAST_CHARM.get()
             )) {

@@ -75,6 +75,7 @@ import jp.aquafactory.apprenticecodex.item.offhand.IronSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.NetheriteSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.offhand.SilverSpellAmplifier;
+import jp.aquafactory.apprenticecodex.item.offhand.SoulstainedSteelSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeSheathItem;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
@@ -378,6 +379,8 @@ public final class ItemRegistry {
             ITEMS.register("silver_spell_amplifier", SilverSpellAmplifier::new);
     public static final DeferredHolder<Item, Item> NETHERITE_SPELL_AMPLIFIER =
             ITEMS.register("netherite_spell_amplifier", NetheriteSpellAmplifier::new);
+    public static final DeferredHolder<Item, Item> SOULSTAINED_STEEL_SPELL_AMPLIFIER =
+            ITEMS.register("soulstained_steel_spell_amplifier", SoulstainedSteelSpellAmplifier::new);
     public static final DeferredHolder<Item, Item> PHOTON_SIPHON =
             ITEMS.register("photon_siphon", PhotonSiphon::new);
     public static final DeferredHolder<Item, Item> EXPLORERS_CANE =

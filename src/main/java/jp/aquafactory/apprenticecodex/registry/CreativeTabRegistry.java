@@ -86,6 +86,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.DIAMOND_SPELL_AMPLIFIER.get());
         output.accept(ItemRegistry.SILVER_SPELL_AMPLIFIER.get());
         output.accept(ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get());
+        addMalumSpellAmplifierToTab(output);
         output.accept(ItemRegistry.IRON_SWINGCAST_STAFF.get());
         output.accept(ItemRegistry.COPPER_SWINGCAST_STAFF.get());
         output.accept(ItemRegistry.GOLD_SWINGCAST_STAFF.get());
@@ -191,6 +192,12 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.SOULCOLLECTOR_ROBE.get());
         output.accept(ItemRegistry.SOULCOLLECTOR_LEGGINGS.get());
         output.accept(ItemRegistry.SOULCOLLECTOR_BOOTS.get());
+    }
+
+    private static void addMalumSpellAmplifierToTab(CreativeModeTab.Output output) {
+        if (ModList.get().isLoaded("malum")) {
+            output.accept(ItemRegistry.SOULSTAINED_STEEL_SPELL_AMPLIFIER.get());
+        }
     }
 
     private static void addSpellScrollsToTab(CreativeModeTab.Output output) {

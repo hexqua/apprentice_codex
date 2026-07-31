@@ -544,7 +544,8 @@ public final class ClientModBusEvents {
                 ItemRegistry.GOLD_SPELL_AMPLIFIER.get(),
                 ItemRegistry.DIAMOND_SPELL_AMPLIFIER.get(),
                 ItemRegistry.SILVER_SPELL_AMPLIFIER.get(),
-                ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get());
+                ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get(),
+                ItemRegistry.SOULSTAINED_STEEL_SPELL_AMPLIFIER.get());
         event.registerItem(new IClientItemExtensions() {
             private ExplorersCaneRenderer renderer;
 

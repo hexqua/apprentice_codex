@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.offhand.SoulstainedSteelSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
@@ -34,7 +35,9 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayer;
@@ -164,6 +167,72 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     "Netherite Spell Amplifier casting move speed bonus regression"
             );
+        });
+    }
+
+    static void soulstainedSteelSpellAmplifierFollowsMalumAvailability(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = ItemRegistry.SOULSTAINED_STEEL_SPELL_AMPLIFIER.get();
+            var stack = new ItemStack(item);
+            ((AbstractOffhandMagicItem) item).initializeSpellContainer(stack);
+
+            helper.assertTrue(stack.getRarity() == Rarity.COMMON,
+                    "Soulstained Steel Spell Amplifier should match Soulstained Steel tool rarity");
+            helper.assertTrue(item.getEnchantmentValue(stack) == 16,
+                    "Soulstained Steel Spell Amplifier should match Soulstained Steel enchantment value");
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null && spellContainer.getMaxSpellCount() == 1,
+                    "Soulstained Steel Spell Amplifier should have one spell slot");
+            helper.assertTrue(spellContainer != null && spellContainer.getActiveSpellCount() == 0,
+                    "Soulstained Steel Spell Amplifier should start without a preset spell");
+
+            var magicProficiencyId = ResourceLocation.fromNamespaceAndPath("lodestone", "magic_proficiency");
+            var magicProficiency = BuiltInRegistries.ATTRIBUTE.getOptional(magicProficiencyId).orElse(null);
+            if (magicProficiency != null) {
+                assertModifierAmount(
+                        helper,
+                        item.getDefaultAttributeModifiers(stack),
+                        magicProficiency,
+                        SoulstainedSteelSpellAmplifier.MAGIC_PROFICIENCY_BONUS,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                        "Soulstained Steel Spell Amplifier magic proficiency bonus regression"
+                );
+            }
+
+            var recipeId = ResourceLocation.fromNamespaceAndPath(
+                    "apprenticecodex", "soulstained_steel_spell_amplifier");
+            var recipeHolder = helper.getLevel().getRecipeManager().byKey(recipeId).orElse(null);
+            var malumLoaded = ModList.get().isLoaded("malum");
+            helper.assertTrue((recipeHolder != null) == malumLoaded,
+                    "Soulstained Steel Spell Amplifier recipe availability should follow Malum");
+            if (!malumLoaded) {
+                return;
+            }
+
+            helper.assertTrue(recipeHolder.value() instanceof ShapedRecipe,
+                    "Soulstained Steel Spell Amplifier recipe should be shaped crafting");
+            var recipe = (ShapedRecipe) recipeHolder.value();
+            var hexAsh = requireForgeItem(helper, ResourceLocation.fromNamespaceAndPath("malum", "hex_ash"));
+            var soulstainedSteel = requireForgeItem(
+                    helper, ResourceLocation.fromNamespaceAndPath("malum", "soul_stained_steel_ingot"));
+            var input = createCraftingInput(
+                    new ItemStack(hexAsh),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()),
+                    new ItemStack(hexAsh),
+                    ItemStack.EMPTY,
+                    new ItemStack(soulstainedSteel),
+                    ItemStack.EMPTY,
+                    ItemStack.EMPTY,
+                    new ItemStack(soulstainedSteel),
+                    ItemStack.EMPTY
+            );
+            helper.assertTrue(recipe.matches(input, helper.getLevel()),
+                    "Soulstained Steel Spell Amplifier recipe rejected its specified pattern");
+            var result = recipe.assemble(input, helper.getLevel().registryAccess());
+            helper.assertTrue(result.is(item),
+                    "Soulstained Steel Spell Amplifier recipe returned the wrong item");
+            helper.assertTrue(ISpellContainer.isSpellContainer(result),
+                    "Soulstained Steel Spell Amplifier recipe result lost its spell container");
         });
     }
     static void upgradeWhitelistCoversTargetAbstractItems(GameTestHelper helper) {
