@@ -26,10 +26,10 @@ public class SpellcasterQuiverCurioRenderer implements ICurioRenderer {
     private static final float BACK_OFFSET_Y = 2.85F * PIXEL;
     private static final float BACK_OFFSET_Z = -2.9F * PIXEL;
     private static final float BACK_ROTATE_DEG_Z = 214F;
-    private static final float BELT_OFFSET_X = 9.5F * PIXEL;
-    private static final float BELT_OFFSET_Y = 3F * PIXEL;
-    private static final float BELT_OFFSET_Z = -2F * PIXEL;
-    private static final float BELT_ROTATE_DEG_Z = 114F;
+    private static final float BELT_OFFSET_X = -10F * PIXEL;
+    private static final float BELT_OFFSET_Y = 5F * PIXEL;
+    private static final float BELT_OFFSET_Z = -2.7F * PIXEL;
+    private static final float BELT_ROTATE_DEG_Z = 260F;
     private static final float ARMORED_OFFSET_Z = -0.45F * PIXEL;
     private static final float QUIVER_SCALE = 1.45F;
 
