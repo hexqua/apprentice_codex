@@ -15,6 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
@@ -29,6 +30,10 @@ import java.util.ArrayList;
 public final class ApprenticeCodexSoulstainedSteelSwingcastStaffGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final ResourceLocation HEX_BOLT = ResourceLocation.fromNamespaceAndPath("malum", "hex_bolt");
+    private static final ResourceLocation CHARGE_RECOVERY_RATE_TEST_MODIFIER =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "soulstained_staff_charge_recovery_rate_test");
+    private static final ResourceLocation CHARGE_RECOVERY_RATE =
+            ResourceLocation.fromNamespaceAndPath("malum", "charge_recovery_rate");
 
     private ApprenticeCodexSoulstainedSteelSwingcastStaffGameTests() {
     }
@@ -89,6 +94,48 @@ public final class ApprenticeCodexSoulstainedSteelSwingcastStaffGameTests {
                     "30 mana should fire three Mnemonic Blades");
             helper.assertTrue(SoulstainedSteelSwingcastStaff.resolveBladeCount(100.0F) == 3,
                     "Mnemonic Blade burst size should be capped at three");
+            helper.assertTrue(Math.abs(SoulstainedSteelSwingcastStaff.resolveManaCost(1.0D) - 10.0D) < 1.0e-6D,
+                    "Charge Recovery Rate 1.0 should cost 10 mana per blade");
+            helper.assertTrue(Math.abs(SoulstainedSteelSwingcastStaff.resolveManaCost(0.5D) - 20.0D) < 1.0e-6D,
+                    "Charge Recovery Rate 0.5 should cost 20 mana per blade");
+            helper.assertTrue(Math.abs(SoulstainedSteelSwingcastStaff.resolveManaCost(0.01D) - 1000.0D) < 1.0e-6D,
+                    "Charge Recovery Rate 0.01 should cost 1000 mana per blade");
+            helper.assertTrue(Math.abs(SoulstainedSteelSwingcastStaff.resolveManaCost(0.0D) - 1000.0D) < 1.0e-6D,
+                    "Charge Recovery Rate 0 should clamp to 0.01");
+            helper.assertTrue(SoulstainedSteelSwingcastStaff.resolveBladeCount(19.99F, 20.0D) == 0,
+                    "Mana below the dynamic cost should not fire a blade");
+            helper.assertTrue(SoulstainedSteelSwingcastStaff.resolveBladeCount(20.0F, 20.0D) == 1,
+                    "Mana equal to the dynamic cost should fire one blade");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void soulstainedSteelSwingcastStaffReadsMalumChargeRecoveryRate(GameTestHelper helper) {
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 4, 0),
+                "soulstained_staff_charge_recovery"
+        );
+        var attribute = BuiltInRegistries.ATTRIBUTE.getOptional(CHARGE_RECOVERY_RATE)
+                .map(BuiltInRegistries.ATTRIBUTE::wrapAsHolder)
+                .map(player::getAttribute)
+                .orElse(null);
+        if (attribute == null) {
+            helper.succeed();
+            return;
+        }
+
+        attribute.addTransientModifier(new AttributeModifier(
+                CHARGE_RECOVERY_RATE_TEST_MODIFIER,
+                -0.5D,
+                AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
+        ));
+        helper.succeedIf(() -> {
+            helper.assertTrue(Math.abs(MalumMnemonicBladeBridge.getChargeRecoveryRate(player) - 0.5D) < 1.0e-6D,
+                    "Malum Charge Recovery Rate should resolve the -50% modifier as 0.5");
+            helper.assertTrue(Math.abs(SoulstainedSteelSwingcastStaff.resolveManaCost(
+                    MalumMnemonicBladeBridge.getChargeRecoveryRate(player)) - 20.0D) < 1.0e-6D,
+                    "Soulstained Steel Swingcast Staff should use the resolved Charge Recovery Rate");
         });
     }
 

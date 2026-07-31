@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.compat.malum;
 
 import com.sammy.malum.common.item.curiosities.weapons.staff.HexStaffItem;
+import com.sammy.malum.registry.common.MalumAttributes;
 import com.sammy.malum.registry.common.MalumParticleEffectTypes;
 import com.sammy.malum.registry.common.MalumSoundEvents;
 import com.sammy.malum.registry.common.item.MalumItems;
@@ -14,6 +15,12 @@ import team.lodestar.lodestone.helpers.SoundHelper;
 
 final class MalumMnemonicBladeBridgeImpl {
     private MalumMnemonicBladeBridgeImpl() {
+    }
+
+    static double getChargeRecoveryRate(LivingEntity entity) {
+        // CHARGE_RECOVERY_RATEは1.21.1にしかないAttributeではあるがnullチェックでそのまま通すかは1.20.1backport対応時に検討.
+        var attribute = entity.getAttribute(MalumAttributes.CHARGE_RECOVERY_RATE);
+        return attribute == null ? 1.0D : attribute.getValue();
     }
 
     static void fire(ServerPlayer player, ItemStack stack, int projectileCount) {

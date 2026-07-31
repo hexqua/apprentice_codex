@@ -16,6 +16,19 @@ public final class MalumMnemonicBladeBridge {
         return ModList.get().isLoaded(MalumCompatibility.MOD_ID);
     }
 
+    public static double getChargeRecoveryRate(LivingEntity entity) {
+        if (!isAvailable()) {
+            return 1.0D;
+        }
+
+        try {
+            return MalumMnemonicBladeBridgeImpl.getChargeRecoveryRate(entity);
+        } catch (LinkageError error) {
+            logFailureOnce(error);
+            return 1.0D;
+        }
+    }
+
     public static boolean fire(ServerPlayer player, ItemStack stack, int projectileCount) {
         if (!isAvailable() || projectileCount <= 0) {
             return false;

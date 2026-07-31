@@ -36,6 +36,7 @@ import java.util.List;
 public final class SoulstainedSteelSwingcastStaff extends AbstractRightClickMagicWeaponItem
         implements SwingTriggeredMagicItem, GeoItem {
     public static final int MANA_COST_PER_BLADE = 10;
+    public static final double MIN_CHARGE_RECOVERY_RATE = 0.01D;
     public static final int MAX_BLADE_COUNT = 3;
     public static final double MAGIC_DAMAGE_BONUS = 3.0D;
     public static final int ENCHANTMENT_VALUE = 16;
@@ -97,22 +98,42 @@ public final class SoulstainedSteelSwingcastStaff extends AbstractRightClickMagi
             return false;
         }
 
+        var manaCost = getManaCostPerBlade(player);
         var bladeCount = player.getAbilities().instabuild
                 ? MAX_BLADE_COUNT
-                : resolveBladeCount(magicData.getMana());
+                : resolveBladeCount(magicData.getMana(), manaCost);
         if (bladeCount <= 0 || !MalumMnemonicBladeBridge.fire(serverPlayer, player.getMainHandItem(), bladeCount)) {
             return false;
         }
 
         if (!player.getAbilities().instabuild) {
-            magicData.setMana(Math.max(0.0F, magicData.getMana() - bladeCount * MANA_COST_PER_BLADE));
+            magicData.setMana(Math.max(0.0F, (float) (magicData.getMana() - bladeCount * manaCost)));
         }
         player.awardStat(Stats.ITEM_USED.get(this));
         return true;
     }
 
     public static int resolveBladeCount(float availableMana) {
-        return Math.min(MAX_BLADE_COUNT, Math.max(0, (int) Math.floor(availableMana / MANA_COST_PER_BLADE)));
+        return resolveBladeCount(availableMana, MANA_COST_PER_BLADE);
+    }
+
+    public static int resolveBladeCount(float availableMana, double manaCostPerBlade) {
+        if (!Float.isFinite(availableMana) || availableMana <= 0.0F || !Double.isFinite(manaCostPerBlade)
+                || manaCostPerBlade <= 0.0D) {
+            return 0;
+        }
+        return Math.min(MAX_BLADE_COUNT, Math.max(0, (int) Math.floor(availableMana / manaCostPerBlade)));
+    }
+
+    public static double resolveManaCost(double chargeRecoveryRate) {
+        if (!Double.isFinite(chargeRecoveryRate)) {
+            chargeRecoveryRate = 1.0D;
+        }
+        return MANA_COST_PER_BLADE / Math.max(MIN_CHARGE_RECOVERY_RATE, chargeRecoveryRate);
+    }
+
+    private static double getManaCostPerBlade(Player player) {
+        return resolveManaCost(MalumMnemonicBladeBridge.getChargeRecoveryRate(player));
     }
 
     @Override
