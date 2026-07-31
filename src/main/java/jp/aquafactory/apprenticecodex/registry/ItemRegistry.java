@@ -96,6 +96,7 @@ import jp.aquafactory.apprenticecodex.item.swingstaff.GoldSwingcastStaff;
 import jp.aquafactory.apprenticecodex.item.swingstaff.IronSwingcastStaff;
 import jp.aquafactory.apprenticecodex.item.swingstaff.NetheriteSwingcastStaff;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SilverSwingcastStaff;
+import jp.aquafactory.apprenticecodex.item.swingstaff.SoulstainedSteelSwingcastStaff;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ArmorItem;
@@ -439,6 +440,8 @@ public final class ItemRegistry {
             ITEMS.register("diamond_swingcast_staff", DiamondSwingcastStaff::new);
     public static final DeferredHolder<Item, Item> NETHERITE_SWINGCAST_STAFF =
             ITEMS.register("netherite_swingcast_staff", NetheriteSwingcastStaff::new);
+    public static final DeferredHolder<Item, Item> SOULSTAINED_STEEL_SWINGCAST_STAFF =
+            ITEMS.register("soulstained_steel_swingcast_staff", SoulstainedSteelSwingcastStaff::new);
     public static final DeferredHolder<Item, Item> MITHRIL_FREECAST_STAFF =
             ITEMS.register("mithril_freecast_staff", MithrilFreecastStaff::new);
     public static final DeferredHolder<Item, Item> REVOLVERCAST_STAFF =

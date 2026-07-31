@@ -72,6 +72,7 @@ import jp.aquafactory.apprenticecodex.renderer.item.ParrycastBucklerRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.ScrollcasterGauntletRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.SpellAmplifierRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.SwingcastStaffRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.SoulstainedSteelSwingcastStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.UniteLunaStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.tooltip.SpellcasterAmmoPouchClientTooltipComponent;
 import jp.aquafactory.apprenticecodex.spell.anchorblink.AnchorBlinkDaggerRenderer;
@@ -484,6 +485,17 @@ public final class ClientModBusEvents {
                 ItemRegistry.GOLD_SWINGCAST_STAFF.get(),
                 ItemRegistry.DIAMOND_SWINGCAST_STAFF.get(),
                 ItemRegistry.NETHERITE_SWINGCAST_STAFF.get());
+        event.registerItem(new IClientItemExtensions() {
+            private SoulstainedSteelSwingcastStaffRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new SoulstainedSteelSwingcastStaffRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get());
         event.registerItem(new IClientItemExtensions() {
             private IronSpellcasterGunRenderer renderer;
 
