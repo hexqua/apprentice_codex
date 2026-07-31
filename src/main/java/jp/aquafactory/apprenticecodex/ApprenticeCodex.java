@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
+import jp.aquafactory.apprenticecodex.event.HighTierSwingcastStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.IronSwingcastStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.client.ClientModBusEvents;
 import jp.aquafactory.apprenticecodex.network.Networks;
@@ -53,6 +54,7 @@ public class ApprenticeCodex
         EpicFightCompat.register(bus);
         CodexSpellStateTypeRegister.register();
         IronSwingcastStaffConfigSyncEvents.register(bus);
+        HighTierSwingcastStaffConfigSyncEvents.register(bus);
         Networks.register();
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientModBusEvents.register(bus));
     }

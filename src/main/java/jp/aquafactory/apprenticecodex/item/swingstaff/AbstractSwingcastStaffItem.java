@@ -312,9 +312,17 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, level, lines, flag);
+        appendAdditionalSwingcastTooltip(stack, level, lines, flag);
         appendSwingcastStaffTooltip(lines);
     }
 
+    protected void appendAdditionalSwingcastTooltip(
+            ItemStack stack,
+            @Nullable Level level,
+            List<Component> lines,
+            TooltipFlag flag
+    ) {
+    }
     protected int resolveEffectiveSpellLevel(Player player, ItemStack stack, AbstractSpell spell) {
         var spellData = getImbuedSpellData(stack);
         if (spellData != null && spell.equals(spellData.getSpell())) {

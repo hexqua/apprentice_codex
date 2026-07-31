@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowStartSound
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffCastHelper;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
@@ -50,6 +51,16 @@ public abstract class AbstractSpellMixin {
                 cir.getReturnValue(),
                 entity
         ));
+    }
+
+    @Inject(method = "canBeInterrupted", at = @At("RETURN"), cancellable = true)
+    private void apprentice_codex$protectNetheriteSwingcastStaffCast(
+            @Nullable net.minecraft.world.entity.player.Player player,
+            CallbackInfoReturnable<Boolean> cir
+    ) {
+        if (player != null && player.getMainHandItem().is(ItemRegistry.NETHERITE_SWINGCAST_STAFF.get())) {
+            cir.setReturnValue(false);
+        }
     }
 
     @Redirect(

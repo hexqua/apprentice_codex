@@ -65,6 +65,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
             "apprenticecodex.circuit_heat_staff_cauldron_consumption_config";
     private static final String IRON_SWINGCAST_STAFF_CRYSTALLIZE_CONFIG_BATCH =
             "apprenticecodex.iron_swingcast_staff_crystallize_config";
+    private static final String HIGH_TIER_SWINGCAST_STAFF_CONFIG_BATCH =
+            "apprenticecodex.high_tier_swingcast_staff_config";
     private static final String MANA_SHIELD_CHARM_FREE_COST_CONFIG_BATCH =
             "apprenticecodex.mana_shield_charm_free_cost_config";
     private static final String MANA_SHIELD_CHARM_RECOVERY_CONFIG_BATCH =
@@ -293,8 +295,28 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = IRON_SWINGCAST_STAFF_CRYSTALLIZE_CONFIG_BATCH)
-    public static void ironSwingcastStaffCrystallizeHintUsesSyncedChanceAndFirstLine(GameTestHelper helper) {
-        SwingcastStaffGameTestScenarios.ironSwingcastStaffCrystallizeHintUsesSyncedChanceAndFirstLine(helper);
+    public static void ironSwingcastStaffCrystallizeHintFollowsCommonDescription(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.ironSwingcastStaffCrystallizeHintFollowsCommonDescription(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HIGH_TIER_SWINGCAST_STAFF_CONFIG_BATCH)
+    public static void highTierSwingcastStaffReducesImbuedCooldownAfterFullyChargedMeleeHit(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.highTierSwingcastStaffReducesImbuedCooldownAfterFullyChargedMeleeHit(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HIGH_TIER_SWINGCAST_STAFF_CONFIG_BATCH)
+    public static void highTierSwingcastStaffCooldownRespectsDisabledAndInvalidHits(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.highTierSwingcastStaffCooldownRespectsDisabledAndInvalidHits(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void netheriteSwingcastStaffPreventsLongCastInterruptionInMainhand(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.netheriteSwingcastStaffPreventsLongCastInterruptionInMainhand(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HIGH_TIER_SWINGCAST_STAFF_CONFIG_BATCH)
+    public static void swingcastStaffAbilityTooltipsUseSyncedConfigAndStableOrder(GameTestHelper helper) {
+        SwingcastStaffGameTestScenarios.swingcastStaffAbilityTooltipsUseSyncedConfigAndStableOrder(helper);
     }
 
     @GameTest(template = TEMPLATE)

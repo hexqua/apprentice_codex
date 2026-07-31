@@ -8,7 +8,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -28,17 +27,16 @@ public class IronSwingcastStaff extends AbstractSwingcastStaffItem {
     }
 
     @Override
-    public void appendHoverText(
-            @NotNull ItemStack stack,
+    protected void appendAdditionalSwingcastTooltip(
+            ItemStack stack,
             @Nullable Level level,
-            @NotNull List<Component> lines,
-            @NotNull TooltipFlag flag
+            List<Component> lines,
+            TooltipFlag flag
     ) {
         if (IronSwingcastStaffConfigState.crystallineArcaneShardDropChance() > 0.0D) {
             lines.add(Component.translatable(
                     "item.apprenticecodex.iron_swingcast_staff.crystallize_hint"
             ).withStyle(ChatFormatting.GRAY));
         }
-        super.appendHoverText(stack, level, lines, flag);
     }
 }

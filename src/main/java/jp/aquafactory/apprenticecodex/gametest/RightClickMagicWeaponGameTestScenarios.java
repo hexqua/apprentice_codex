@@ -284,8 +284,7 @@ final class RightClickMagicWeaponGameTestScenarios extends ApprenticeCodexGameTe
                         item + " should expose right click magic weapon tooltip");
                 helper.assertTrue(tooltipLines.size() > 1,
                         item + " should expose right click magic weapon item type tooltip");
-                // Iron Swingcast Staffは専用能力ヒントを最上段に置き、その直後から共通ヒントを維持する。
-                var offhandTooltipStart = item == ItemRegistry.IRON_SWINGCAST_STAFF.get() ? 1 : 0;
+                var offhandTooltipStart = 0;
                 assertTranslatableKey(
                         helper,
                         tooltipLines.get(offhandTooltipStart),

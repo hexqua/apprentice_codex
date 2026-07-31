@@ -31,6 +31,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncBoundBowStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncBoundSwordStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffOverheatPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncHighTierSwingcastStaffConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIronSwingcastStaffConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEdgeDancerStatePacket;
@@ -74,7 +75,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "71";
+    private static final String PROTOCOL_VERSION = "72";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -432,6 +433,14 @@ public final class Networks {
                 SyncIronSwingcastStaffConfigPacket::encode,
                 SyncIronSwingcastStaffConfigPacket::decode,
                 SyncIronSwingcastStaffConfigPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncHighTierSwingcastStaffConfigPacket.class,
+                SyncHighTierSwingcastStaffConfigPacket::encode,
+                SyncHighTierSwingcastStaffConfigPacket::decode,
+                SyncHighTierSwingcastStaffConfigPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
         CHANNEL.registerMessage(
