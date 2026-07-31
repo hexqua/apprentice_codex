@@ -80,6 +80,9 @@ Get-ChildItem build\libs\*.jar
 - `runGameTestServerEasyMagic` は Puzzles Lib / Easy Magic 連携の確認に使う。
 - `runGameTestServerBetterCombat` は Cloth Config / Better Combat 連携の確認に使う。
 - `runGameTestServerEpicFight` は Epic Fight 連携の確認に使う。
+- Codex が `runGameTestServer` 系を実行する場合、実行ツールによるプロセス強制終了 timeout は、1.21.1 では初回から最低 120 秒、`1.20.1-main` では最低 300 秒に設定する。
+- 出力待機の yield とプロセス強制終了 timeout を混同しない。実行中として返された場合は wait で完了まで追跡し、yield を失敗や再実行として扱わない。
+- 実行ツール側の timeout で中断した場合は、初回失敗の記録を保持したまま、同じ source で強制終了 timeout を前回の 2 倍以上へ延長して追加実行する。GameTest 自身が報告した test timeout にはこの延長規則を適用しない。
 - いずれかの GameTest task が一度でも失敗した場合は、後続実行が成功しても失敗を省略せず、`.codex/skills/report-gametest-failure` を使用して観測結果を最終報告に残す。
 - `runClientEpicFightController` は Epic Fight / Controlify / YACL を入れ、実機コントローラー入力を確認する。
 - `runClientCompatEasyBetter` は compat + EasyMagic + Better Combat を入れた実環境寄りの手動バランス確認用。Epic Fight は含めず、自動テスト対象にも含めない。
