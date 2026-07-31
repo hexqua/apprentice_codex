@@ -107,6 +107,15 @@ final class SpellcasterQuiverGameTestScenarios {
                     "Expanded belt test should provide at least two functional belt slots");
             helper.assertFalse(expandedBeltHandler.getStacks().isItemValid(1, new ItemStack(quiverItem)),
                     "Curios slot validation should reject a second Spellcaster Quiver in the expanded belt");
+
+            curiosInventory.setSlotActive(CuriosSlotConstants.BELT, 0, false);
+            helper.assertTrue(quiverItem.canEquip(
+                            new SlotContext(CuriosSlotConstants.BELT, expandedBeltPlayer, 0, false, true),
+                            beltStack
+                    ),
+                    "Spellcaster Quiver should remain valid in its own slot regardless of slot state");
+            helper.assertFalse(quiverItem.canEquip(secondBeltContext, new ItemStack(quiverItem)),
+                    "Spellcaster Quiver should reject a second copy regardless of existing slot state");
         });
     }
     static void equippedSpellcasterQuiverAutoStoresPickedUpArrows(GameTestHelper helper) {

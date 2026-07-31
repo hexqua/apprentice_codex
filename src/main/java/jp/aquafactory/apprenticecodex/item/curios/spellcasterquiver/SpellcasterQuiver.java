@@ -34,6 +34,7 @@ import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
+import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,13 +81,8 @@ public class SpellcasterQuiver extends Item implements ICurioItem, InventoryInse
             return true;
         }
 
-        // Item指定の検索は同一tick内で結果がcacheされるため、連続した装備操作でも現在値を見るpredicate検索を使う.
         return CuriosApi.getCuriosInventory(slotContext.entity())
-                .map(inventory -> inventory.findCurios(
-                                equippedStack -> equippedStack.is(ItemRegistry.SPELLCASTER_QUIVER.get())
-                        ).stream()
-                        .map(SlotResult::slotContext)
-                        .allMatch(equippedSlot -> isSameSlot(equippedSlot, slotContext)))
+                .map(inventory -> hasNoOtherEquippedQuiver(inventory, slotContext))
                 .orElse(true);
     }
 
@@ -95,8 +91,20 @@ public class SpellcasterQuiver extends Item implements ICurioItem, InventoryInse
         return true;
     }
 
-    private static boolean isSameSlot(SlotContext first, SlotContext second) {
-        return first.index() == second.index() && first.identifier().equals(second.identifier());
+    private static boolean hasNoOtherEquippedQuiver(ICuriosItemHandler inventory, SlotContext targetSlot) {
+        // 枠の種類・数・有効状態に依存せず、Curiosが保持する実装備領域全体で一つだけに制限する.
+        for (var entry : inventory.getCurios().entrySet()) {
+            var stacks = entry.getValue().getStacks();
+            for (var index = 0; index < stacks.getSlots(); index++) {
+                if (entry.getKey().equals(targetSlot.identifier()) && index == targetSlot.index()) {
+                    continue;
+                }
+                if (stacks.getStackInSlot(index).is(ItemRegistry.SPELLCASTER_QUIVER.get())) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     @Override
