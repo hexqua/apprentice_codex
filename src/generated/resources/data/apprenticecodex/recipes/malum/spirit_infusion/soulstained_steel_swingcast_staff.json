@@ -1,0 +1,43 @@
+{
+  "type": "malum:spirit_infusion",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "malum"
+    }
+  ],
+  "extra_items": [
+    {
+      "count": 8,
+      "item": "malum:refined_brilliance"
+    },
+    {
+      "count": 4,
+      "item": "malum:soul_stained_steel_ingot"
+    },
+    {
+      "count": 8,
+      "item": "malum:hex_ash"
+    }
+  ],
+  "input": {
+    "item": "apprenticecodex:iron_swingcast_staff"
+  },
+  "output": {
+    "item": "apprenticecodex:soulstained_steel_swingcast_staff"
+  },
+  "spirits": [
+    {
+      "type": "wicked",
+      "count": 32
+    },
+    {
+      "type": "arcane",
+      "count": 16
+    },
+    {
+      "type": "eldritch",
+      "count": 8
+    }
+  ]
+}

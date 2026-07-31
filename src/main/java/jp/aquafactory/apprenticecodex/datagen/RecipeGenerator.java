@@ -1269,6 +1269,23 @@ public final class RecipeGenerator extends RecipeProvider {
                 ),
                 spirits
         );
+        saveMalumSpiritInfusionRecipe(
+                recipeWriter,
+                ResourceLocation.fromNamespaceAndPath(
+                        ApprenticeCodex.MODID, "malum/spirit_infusion/soulstained_steel_swingcast_staff"),
+                itemId(ItemRegistry.IRON_SWINGCAST_STAFF.get()),
+                itemId(ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get()),
+                List.of(
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "refined_brilliance"), 8),
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "soul_stained_steel_ingot"), 4),
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "hex_ash"), 8)
+                ),
+                List.of(
+                        new MalumSpiritCost("wicked", 32),
+                        new MalumSpiritCost("arcane", 16),
+                        new MalumSpiritCost("eldritch", 8)
+                )
+        );
     }
 
     private void saveMalumSpiritInfusionRecipe(

@@ -20,6 +20,7 @@ import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
@@ -29,6 +30,8 @@ import java.util.ArrayList;
 public final class ApprenticeCodexSoulstainedSteelSwingcastStaffGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final ResourceLocation HEX_BOLT = ResourceLocation.fromNamespaceAndPath("malum", "hex_bolt");
+    private static final ResourceLocation SPIRIT_INFUSION_RECIPE = ResourceLocation.fromNamespaceAndPath(
+            ApprenticeCodex.MODID, "malum/spirit_infusion/soulstained_steel_swingcast_staff");
 
     private ApprenticeCodexSoulstainedSteelSwingcastStaffGameTests() {
     }
@@ -47,8 +50,14 @@ public final class ApprenticeCodexSoulstainedSteelSwingcastStaffGameTests {
                     "Soulstained Steel Swingcast Staff enchantment value should match the Soulstained Steel Spell Amplifier");
             helper.assertFalse(ISpellContainer.isSpellContainer(stack),
                     "Soulstained Steel Swingcast Staff should not use an Iron's spell container");
-            helper.assertTrue(helper.getLevel().getRecipeManager().byKey(ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.getId()).isEmpty(),
-                    "Soulstained Steel Swingcast Staff should not have a recipe yet");
+            var spiritInfusionRecipe = helper.getLevel().getRecipeManager().byKey(SPIRIT_INFUSION_RECIPE);
+            if (ModList.get().isLoaded("malum")) {
+                helper.assertTrue(spiritInfusionRecipe.isPresent(),
+                        "Soulstained Steel Swingcast Staff Spirit Infusion recipe should be loaded with Malum");
+            } else {
+                helper.assertTrue(spiritInfusionRecipe.isEmpty(),
+                        "Soulstained Steel Swingcast Staff Spirit Infusion recipe should not be loaded without Malum");
+            }
 
             var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
             var attackDamage = modifiers.get(Attributes.ATTACK_DAMAGE).stream()
