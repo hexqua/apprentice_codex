@@ -8,9 +8,6 @@
     "D": {
       "item": "minecraft:diamond"
     },
-    "G": {
-      "item": "minecraft:glass"
-    },
     "L": {
       "item": "minecraft:leather"
     },
@@ -19,7 +16,7 @@
     }
   },
   "pattern": [
-    " AG",
+    " AD",
     "LWD",
     "D  "
   ],

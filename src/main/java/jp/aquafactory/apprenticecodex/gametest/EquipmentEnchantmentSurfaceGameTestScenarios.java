@@ -1287,6 +1287,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     ItemRegistry.ARCANE_CINDER.get(),
                     ItemRegistry.SPELL_EXTRACT_SHARD.get(),
                     ItemRegistry.WISDOM_SHARD.get(),
+                    ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get(),
                     ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get()
             ));
             for (var item : expectedItems) {

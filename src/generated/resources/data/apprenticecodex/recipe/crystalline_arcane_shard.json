@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "cookingtime": 100,
+  "experience": 1.0,
+  "ingredient": {
+    "item": "apprenticecodex:crystalline_arcane_shard"
+  },
+  "result": {
+    "count": 1,
+    "id": "irons_spellbooks:arcane_essence"
+  }
+}

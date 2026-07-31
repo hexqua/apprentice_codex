@@ -164,6 +164,7 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> ARCANE_CINDER = ITEMS.register("arcane_cinder", ArcaneCinderItem::new);
     public static final DeferredHolder<Item, Item> WISDOM_SHARD = ITEMS.register("wisdom_shard", WisdomShardItem::new);
     public static final DeferredHolder<Item, Item> SPELL_EXTRACT_SHARD = ITEMS.register("spell_extract_shard", SpellExtractShard::new);
+    public static final DeferredHolder<Item, Item> CRYSTALLINE_ARCANE_SHARD = simple("crystalline_arcane_shard");
     public static final DeferredHolder<Item, Item> COMFORT_BERRIES =
             ITEMS.register("comfort_berries", () -> new ItemNameBlockItem(
                     BlockRegistry.COMFORT_BERRY_BUSH.get(),

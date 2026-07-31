@@ -38,6 +38,7 @@
   "item.apprenticecodex.arcane_cinder": "Arcane Cinder",
   "item.apprenticecodex.wisdom_shard": "Shard of Wisdom",
   "item.apprenticecodex.spell_extract_shard": "Shard of Spell Extraction",
+  "item.apprenticecodex.crystalline_arcane_shard": "Crystalline Arcane Shard",
   "item.apprenticecodex.comfort_berries": "Comfort Berries",
   "item.apprenticecodex.comfort_sandwich": "Comfort Sandwich",
   "item.apprenticecodex.spellstained_arcane_ingot": "Spell-stained Arcane Ingot",
@@ -322,6 +323,9 @@
   "item.apprenticecodex.freecast.common.desc": "This item casts the selected spell with each full swing.",
   "item.apprenticecodex.right_click_magic_weapon.desc": "With a target item in your offhand, [%s] uses the offhand.",
   "item.apprenticecodex.right_click_magic_weapon.item_type": "Targets: shields, bows, crossbows, spellguns, catalystbooks",
+  "item.apprenticecodex.iron_swingcast_staff.crystallize_hint": "Rarely crystallizes mana when you kill a mob while held in your main hand.",
+  "item.apprenticecodex.high_tier_swingcast_staff.cooldown_hint": "Landing an attack reduces the imbued spell's cooldown by %s.",
+  "item.apprenticecodex.netherite_swingcast_staff.protect_hint": "Long casts cannot be interrupted while held in your main hand.",
   "item.apprenticecodex.flask_system.kind": "Kind: %s",
   "item.apprenticecodex.flask_system.amount": "Amount: %1$d/%2$d",
   "item.apprenticecodex.flask_system.filled_name": "%1$s (%2$s)",
@@ -1350,5 +1354,6 @@
   "subtitle.apprenticecodex.sound.vanilla_chest_jump": "Chest jumps",
   "subtitle.apprenticecodex.sound.vanilla_card_throw": "Card thrown",
   "subtitle.apprenticecodex.sound.vanilla_feed_ammo": "Ammo loads",
-  "subtitle.apprenticecodex.sound.vanilla_cast_book": "Book used"
+  "subtitle.apprenticecodex.sound.vanilla_cast_book": "Book used",
+  "subtitle.apprenticecodex.sound.vanilla_crystallize_mana": "Mana crystallizes"
 }

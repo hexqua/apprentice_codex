@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_diamond": {
+    "has_crystalline_arcane_shard": {
       "conditions": {
         "items": [
           {
-            "items": "minecraft:diamond"
+            "items": "apprenticecodex:crystalline_arcane_shard"
           }
         ]
       },
@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "apprenticecodex:iron_swingcast_staff"
+        "recipe": "apprenticecodex:crystalline_arcane_shard"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -21,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_diamond"
+      "has_crystalline_arcane_shard"
     ]
   ],
   "rewards": {
     "recipes": [
-      "apprenticecodex:iron_swingcast_staff"
+      "apprenticecodex:crystalline_arcane_shard"
     ]
   }
 }

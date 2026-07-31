@@ -108,6 +108,7 @@ public final class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_CARD_THROW = reg("vanilla_card_throw");
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_FEED_AMMO = reg("vanilla_feed_ammo");
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_CAST_BOOK = reg("vanilla_cast_book");
+    public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_CRYSTALLIZE_MANA = reg("vanilla_crystallize_mana");
 
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);
