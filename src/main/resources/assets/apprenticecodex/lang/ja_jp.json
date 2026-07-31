@@ -325,6 +325,8 @@
   "item.apprenticecodex.right_click_magic_weapon.desc": "対象をオフハンドに持つ時、[%s]はオフハンド使用になる。",
   "item.apprenticecodex.right_click_magic_weapon.item_type": "対象: 盾, 弓, クロスボウ, 詠唱銃, 触媒本",
   "item.apprenticecodex.iron_swingcast_staff.crystallize_hint": "利き手に持ってモブを倒すと稀に魔力が結晶化して落ちる。",
+  "item.apprenticecodex.high_tier_swingcast_staff.cooldown_hint": "攻撃が命中すると注入魔法のクールダウンが%s短縮される。",
+  "item.apprenticecodex.netherite_swingcast_staff.protect_hint": "利き手に持っている時、長い詠唱が中断されなくなる。",
   "item.apprenticecodex.flask_system.kind": "中身: %s",
   "item.apprenticecodex.flask_system.amount": "残量: %1$d/%2$d",
   "item.apprenticecodex.flask_system.filled_name": "%1$s(%2$s)",

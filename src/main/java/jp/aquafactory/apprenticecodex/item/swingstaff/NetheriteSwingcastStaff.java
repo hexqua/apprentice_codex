@@ -1,10 +1,18 @@
 package jp.aquafactory.apprenticecodex.item.swingstaff;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.util.Utils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.TooltipFlag;
+
+import java.util.List;
 
 public class NetheriteSwingcastStaff extends AbstractSwingcastStaffItem {
     private static final SwingcastStaffTier TIER = createTier(
@@ -19,5 +27,24 @@ public class NetheriteSwingcastStaff extends AbstractSwingcastStaffItem {
 
     public NetheriteSwingcastStaff() {
         super("netherite_swingcast_staff", TIER);
+    }
+
+    @Override
+    protected void appendAdditionalSwingcastTooltip(
+            ItemStack stack,
+            Item.TooltipContext context,
+            List<Component> lines,
+            TooltipFlag flag
+    ) {
+        var cooldownReductionTicks = HighTierSwingcastStaffConfigState.netheriteCooldownReductionTicks();
+        if (cooldownReductionTicks > 0) {
+            lines.add(Component.translatable(
+                    "item.apprenticecodex.high_tier_swingcast_staff.cooldown_hint",
+                    Utils.timeFromTicks(cooldownReductionTicks, 1)
+            ).withStyle(ChatFormatting.GRAY));
+        }
+        lines.add(Component.translatable(
+                "item.apprenticecodex.netherite_swingcast_staff.protect_hint"
+        ).withStyle(ChatFormatting.GRAY));
     }
 }

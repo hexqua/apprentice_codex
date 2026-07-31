@@ -656,6 +656,14 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.ironSwingcastStaffCrystallineArcaneShardDropChance();
     }
 
+    public static int diamondSwingcastStaffCooldownReductionTicks() {
+        return ITEMS_CONFIG.diamondSwingcastStaffCooldownReductionTicks();
+    }
+
+    public static int netheriteSwingcastStaffCooldownReductionTicks() {
+        return ITEMS_CONFIG.netheriteSwingcastStaffCooldownReductionTicks();
+    }
+
     public static float circuitHeatStaffAdditionalManaLinearMultiplier() {
         return ITEMS_CONFIG.circuitHeatStaffAdditionalManaLinearMultiplier();
     }
@@ -1194,6 +1202,19 @@ public final class ApprenticeCodexServerConfig {
         var previousValue = ITEMS_CONFIG.ironSwingcastStaffCrystallineArcaneShardDropChance();
         ITEMS_CONFIG.setIronSwingcastStaffConfigForGameTest(value);
         return () -> ITEMS_CONFIG.setIronSwingcastStaffConfigForGameTest(previousValue);
+    }
+
+    public static GameTestConfigOverride useHighTierSwingcastStaffConfigOverrideForGameTest(
+            int diamondTicks,
+            int netheriteTicks
+    ) {
+        var previousDiamondTicks = ITEMS_CONFIG.diamondSwingcastStaffCooldownReductionTicks();
+        var previousNetheriteTicks = ITEMS_CONFIG.netheriteSwingcastStaffCooldownReductionTicks();
+        ITEMS_CONFIG.setHighTierSwingcastStaffConfigForGameTest(diamondTicks, netheriteTicks);
+        return () -> ITEMS_CONFIG.setHighTierSwingcastStaffConfigForGameTest(
+                previousDiamondTicks,
+                previousNetheriteTicks
+        );
     }
 
     public static GameTestConfigOverride useMulticastEchoStaffConfigOverrideForGameTest(

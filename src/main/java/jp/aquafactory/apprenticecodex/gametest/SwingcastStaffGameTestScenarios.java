@@ -4,9 +4,11 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastResult;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
+import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
@@ -15,6 +17,7 @@ import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlash;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffAttackContextManager;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
+import jp.aquafactory.apprenticecodex.item.swingstaff.HighTierSwingcastStaffConfigState;
 import jp.aquafactory.apprenticecodex.item.swingstaff.IronSwingcastStaffConfigState;
 import jp.aquafactory.apprenticecodex.item.swingstaff.IronSwingcastStaffCrystallizeEvent;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastCooldownMode;
@@ -31,6 +34,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
@@ -731,7 +735,7 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
         });
     }
 
-    static void ironSwingcastStaffCrystallizeHintUsesSyncedChanceAndFirstLine(GameTestHelper helper) {
+    static void ironSwingcastStaffCrystallizeHintFollowsCommonDescription(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var originalChance = IronSwingcastStaffConfigState.crystallineArcaneShardDropChance();
             var stack = new ItemStack(ItemRegistry.IRON_SWINGCAST_STAFF.get());
@@ -744,11 +748,16 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
                         enabledLines,
                         TooltipFlag.Default.NORMAL
                 );
-                helper.assertFalse(enabledLines.isEmpty(), "Iron Swingcast Staff tooltip should not be empty");
+                helper.assertTrue(enabledLines.size() > 3, "Iron Swingcast Staff tooltip should include its ability hint");
                 helper.assertTrue(
-                        enabledLines.getFirst().getContents() instanceof TranslatableContents contents
+                        enabledLines.get(2).getContents() instanceof TranslatableContents commonContents
+                                && "item.apprenticecodex.swingcast.common.desc".equals(commonContents.getKey()),
+                        "Swingcast description should remain before the Iron ability hint"
+                );
+                helper.assertTrue(
+                        enabledLines.get(3).getContents() instanceof TranslatableContents contents
                                 && "item.apprenticecodex.iron_swingcast_staff.crystallize_hint".equals(contents.getKey()),
-                        "Crystallize hint should be the first Iron Swingcast Staff tooltip line"
+                        "Crystallize hint should follow the common Swingcast description"
                 );
 
                 IronSwingcastStaffConfigState.setCrystallineArcaneShardDropChance(0.0D);
@@ -768,6 +777,229 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
                 );
             } finally {
                 IronSwingcastStaffConfigState.setCrystallineArcaneShardDropChance(originalChance);
+            }
+        });
+    }
+
+    static void highTierSwingcastStaffReducesImbuedCooldownAfterFullyChargedMeleeHit(GameTestHelper helper) {
+        var diamondPlayer = createTrackedEquipmentTestPlayer(
+                helper, new BlockPos(0, 2, 0), "swing_diamond");
+        var netheritePlayer = createTrackedEquipmentTestPlayer(
+                helper, new BlockPos(0, 2, 3), "swing_netherite");
+        var diamondTarget = helper.spawn(EntityType.HUSK, new BlockPos(2, 2, 0));
+        var netheriteTarget = helper.spawn(EntityType.HUSK, new BlockPos(2, 2, 3));
+        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        var diamondMagicData = MagicData.getPlayerMagicData(diamondPlayer);
+        var netheriteMagicData = MagicData.getPlayerMagicData(netheritePlayer);
+        helper.assertTrue(diamondMagicData != null, "Diamond Swingcast cooldown test requires MagicData");
+        helper.assertTrue(netheriteMagicData != null, "Netherite Swingcast cooldown test requires MagicData");
+
+        diamondPlayer.setItemInHand(InteractionHand.MAIN_HAND, createImbuedSwingcastStack(
+                (AbstractSwingcastStaffItem) ItemRegistry.DIAMOND_SWINGCAST_STAFF.get(), spell));
+        netheritePlayer.setItemInHand(InteractionHand.MAIN_HAND, createImbuedSwingcastStack(
+                (AbstractSwingcastStaffItem) ItemRegistry.NETHERITE_SWINGCAST_STAFF.get(), spell));
+
+        helper.runAtTickTime(20, () -> {
+            tickUntilAttackIsFullyCharged(diamondPlayer);
+            tickUntilAttackIsFullyCharged(netheritePlayer);
+            helper.assertTrue(
+                    AbstractRightClickMagicWeaponItem.isFullyChargedAttack(diamondPlayer),
+                    "Diamond Swingcast Staff test attack should be fully charged"
+            );
+            helper.assertTrue(
+                    AbstractRightClickMagicWeaponItem.isFullyChargedAttack(netheritePlayer),
+                    "Netherite Swingcast Staff test attack should be fully charged"
+            );
+            diamondMagicData.getPlayerCooldowns().addCooldown(spell, 100, 100);
+            netheriteMagicData.getPlayerCooldowns().addCooldown(spell, 100, 100);
+            var diamondTargetHealth = diamondTarget.getHealth();
+            var netheriteTargetHealth = netheriteTarget.getHealth();
+            diamondPlayer.attack(diamondTarget);
+            netheritePlayer.attack(netheriteTarget);
+            helper.assertTrue(
+                    diamondTarget.getHealth() < diamondTargetHealth,
+                    "Diamond Swingcast Staff test attack should damage its target"
+            );
+            helper.assertTrue(
+                    netheriteTarget.getHealth() < netheriteTargetHealth,
+                    "Netherite Swingcast Staff test attack should damage its target"
+            );
+        });
+        helper.runAtTickTime(21, () -> {
+            var diamondCooldown = diamondMagicData.getPlayerCooldowns()
+                    .getSpellCooldowns().get(spell.getSpellId());
+            var netheriteCooldown = netheriteMagicData.getPlayerCooldowns()
+                    .getSpellCooldowns().get(spell.getSpellId());
+            helper.assertTrue(
+                    diamondCooldown != null
+                            && diamondCooldown.getCooldownRemaining() >= 79
+                            && diamondCooldown.getCooldownRemaining() <= 80,
+                    "A fully charged Diamond Swingcast Staff melee hit should reduce 20 cooldown ticks: "
+                            + (diamondCooldown == null ? "missing" : diamondCooldown.getCooldownRemaining())
+            );
+            helper.assertTrue(
+                    netheriteCooldown != null
+                            && netheriteCooldown.getCooldownRemaining() >= 89
+                            && netheriteCooldown.getCooldownRemaining() <= 90,
+                    "A fully charged Netherite Swingcast Staff melee hit should reduce 10 cooldown ticks: "
+                            + (netheriteCooldown == null ? "missing" : netheriteCooldown.getCooldownRemaining())
+            );
+            helper.succeed();
+        });
+    }
+
+    private static void tickUntilAttackIsFullyCharged(net.neoforged.neoforge.common.util.FakePlayer player) {
+        for (var tick = 0;
+             tick < 40 && !AbstractRightClickMagicWeaponItem.isFullyChargedAttack(player);
+             tick++) {
+            player.doTick();
+        }
+    }
+
+    static void highTierSwingcastStaffCooldownRespectsDisabledAndInvalidHits(GameTestHelper helper) {
+        var player = createTrackedEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 2, 0),
+                "swing_guard"
+        );
+        var offhandPlayer = createTrackedEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 2, 2),
+                "swing_offhand"
+        );
+        var target = helper.spawn(EntityType.ARMOR_STAND, new BlockPos(2, 2, 0));
+        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        var stack = createImbuedSwingcastStack(
+                (AbstractSwingcastStaffItem) ItemRegistry.DIAMOND_SWINGCAST_STAFF.get(),
+                spell
+        );
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "High-tier Swingcast guard test requires MagicData");
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        offhandPlayer.setItemInHand(InteractionHand.OFF_HAND, stack.copy());
+
+        helper.runAtTickTime(20, () -> {
+            magicData.getPlayerCooldowns().addCooldown(spell, 100, 100);
+
+            try (var ignored = ApprenticeCodexServerConfig
+                    .useHighTierSwingcastStaffConfigOverrideForGameTest(0, 0)) {
+                player.attack(target);
+                helper.assertTrue(
+                        magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId())
+                                .getCooldownRemaining() == 100,
+                        "Zero high-tier Swingcast config should disable cooldown reduction"
+                );
+            }
+
+            try (var ignored = ApprenticeCodexServerConfig
+                    .useHighTierSwingcastStaffConfigOverrideForGameTest(20, 10)) {
+                player.attack(target);
+                helper.assertTrue(
+                        magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId())
+                                .getCooldownRemaining() == 100,
+                        "Uncharged attacks should not reduce high-tier Swingcast cooldowns"
+                );
+
+                var offhandMagicData = MagicData.getPlayerMagicData(offhandPlayer);
+                helper.assertTrue(offhandMagicData != null, "Offhand Swingcast guard test requires MagicData");
+                offhandMagicData.getPlayerCooldowns().addCooldown(spell, 100, 100);
+                offhandPlayer.attack(target);
+                helper.assertTrue(
+                        offhandMagicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId())
+                                .getCooldownRemaining() == 100,
+                        "Offhand high-tier Swingcast Staff should not reduce cooldowns"
+                );
+            }
+            helper.succeed();
+        });
+    }
+
+    static void netheriteSwingcastStaffPreventsLongCastInterruptionInMainhand(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(
+                    helper,
+                    new BlockPos(0, 2, 0),
+                    "netherite_swingcast_interrupt_test"
+            );
+            var longSpell = SpellRegistry.ARCANE_BLAST.get();
+
+            helper.assertTrue(longSpell.canBeInterrupted(player),
+                    "Control long spell should be interruptible without Netherite Swingcast Staff");
+
+            var netheriteStack = new ItemStack(ItemRegistry.NETHERITE_SWINGCAST_STAFF.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, netheriteStack);
+            helper.assertFalse(longSpell.canBeInterrupted(player),
+                    "Netherite Swingcast Staff should protect long casts in the main hand");
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            player.setItemInHand(InteractionHand.OFF_HAND, netheriteStack);
+            helper.assertTrue(longSpell.canBeInterrupted(player),
+                    "Offhand Netherite Swingcast Staff should not protect long casts");
+        });
+    }
+
+    static void swingcastStaffAbilityTooltipsUseSyncedConfigAndStableOrder(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var originalDiamondTicks = HighTierSwingcastStaffConfigState.diamondCooldownReductionTicks();
+            var originalNetheriteTicks = HighTierSwingcastStaffConfigState.netheriteCooldownReductionTicks();
+            try {
+                HighTierSwingcastStaffConfigState.setCooldownReductionTicks(20, 10);
+                var diamondLines = collectTooltipLines(
+                        helper,
+                        new ItemStack(ItemRegistry.DIAMOND_SWINGCAST_STAFF.get())
+                );
+                assertTooltipKeyAt(helper, diamondLines, 2,
+                        "item.apprenticecodex.swingcast.common.desc",
+                        "Diamond Swingcast common description order changed");
+                assertTooltipKeyAt(helper, diamondLines, 3,
+                        "item.apprenticecodex.high_tier_swingcast_staff.cooldown_hint",
+                        "Diamond Swingcast cooldown hint should follow the common description");
+                assertTooltipStringArgument(
+                        helper,
+                        diamondLines.get(3),
+                        Utils.timeFromTicks(20, 1),
+                        "Diamond Swingcast cooldown hint should use Iron's tick formatter"
+                );
+
+                var netheriteLines = collectTooltipLines(
+                        helper,
+                        new ItemStack(ItemRegistry.NETHERITE_SWINGCAST_STAFF.get())
+                );
+                assertTooltipKeyAt(helper, netheriteLines, 3,
+                        "item.apprenticecodex.high_tier_swingcast_staff.cooldown_hint",
+                        "Netherite Swingcast cooldown hint should follow the common description");
+                assertTooltipStringArgument(
+                        helper,
+                        netheriteLines.get(3),
+                        Utils.timeFromTicks(10, 1),
+                        "Netherite Swingcast cooldown hint should use Iron's tick formatter"
+                );
+                assertTooltipKeyAt(helper, netheriteLines, 4,
+                        "item.apprenticecodex.netherite_swingcast_staff.protect_hint",
+                        "Netherite Swingcast protection hint should follow the cooldown hint");
+
+                HighTierSwingcastStaffConfigState.setCooldownReductionTicks(0, 0);
+                var disabledDiamondLines = collectTooltipLines(
+                        helper,
+                        new ItemStack(ItemRegistry.DIAMOND_SWINGCAST_STAFF.get())
+                );
+                helper.assertFalse(containsTooltipKey(
+                                disabledDiamondLines,
+                                "item.apprenticecodex.high_tier_swingcast_staff.cooldown_hint"),
+                        "Zero Diamond Swingcast config should hide the cooldown hint");
+
+                var disabledNetheriteLines = collectTooltipLines(
+                        helper,
+                        new ItemStack(ItemRegistry.NETHERITE_SWINGCAST_STAFF.get())
+                );
+                assertTooltipKeyAt(helper, disabledNetheriteLines, 3,
+                        "item.apprenticecodex.netherite_swingcast_staff.protect_hint",
+                        "Netherite protection hint should keep its relative position when cooldown is disabled");
+            } finally {
+                HighTierSwingcastStaffConfigState.setCooldownReductionTicks(
+                        originalDiamondTicks,
+                        originalNetheriteTicks
+                );
             }
         });
     }
@@ -873,6 +1105,68 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
                     "Netherite Swingcast Staff"
             );
         });
+    }
+
+    private static ItemStack createImbuedSwingcastStack(
+            AbstractSwingcastStaffItem item,
+            io.redspace.ironsspellbooks.api.spells.AbstractSpell spell
+    ) {
+        var stack = new ItemStack(item);
+        var mutable = ISpellContainer.create(1, true, false).mutableCopy();
+        mutable.addSpellAtIndex(spell, 1, 0, false);
+        ISpellContainer.set(stack, mutable.toImmutable());
+        return stack;
+    }
+
+    private static ArrayList<Component> collectTooltipLines(GameTestHelper helper, ItemStack stack) {
+        var lines = new ArrayList<Component>();
+        stack.getItem().appendHoverText(
+                stack,
+                Item.TooltipContext.of(helper.getLevel()),
+                lines,
+                TooltipFlag.Default.NORMAL
+        );
+        return lines;
+    }
+
+    private static void assertTooltipKeyAt(
+            GameTestHelper helper,
+            java.util.List<Component> lines,
+            int index,
+            String expectedKey,
+            String message
+    ) {
+        helper.assertTrue(lines.size() > index, message + " (tooltip line count=" + lines.size() + ")");
+        if (lines.size() > index) {
+            assertTranslatableKey(helper, lines.get(index), expectedKey, message);
+        }
+    }
+
+    private static void assertTooltipStringArgument(
+            GameTestHelper helper,
+            Component line,
+            String expectedArgument,
+            String message
+    ) {
+        helper.assertTrue(
+                line.getContents() instanceof TranslatableContents,
+                message + " (tooltip is not translatable)"
+        );
+        if (!(line.getContents() instanceof TranslatableContents contents)) {
+            return;
+        }
+        var args = contents.getArgs();
+        helper.assertTrue(
+                args.length == 1 && expectedArgument.equals(args[0]),
+                message + " (expected=" + expectedArgument + ", actual=" + java.util.Arrays.toString(args) + ")"
+        );
+    }
+
+    private static boolean containsTooltipKey(java.util.List<Component> lines, String expectedKey) {
+        return lines.stream().anyMatch(line ->
+                line.getContents() instanceof TranslatableContents contents
+                        && expectedKey.equals(contents.getKey())
+        );
     }
 
     private static ItemStack createLegacyCrystalBladedStaffContainer(
